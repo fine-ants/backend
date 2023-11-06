@@ -1,0 +1,8 @@
+.DS_Store
+.obsidian
+.env
+.idea/*
+/logs/
+/build/
+/.gradle/
+/src/main/resources/application-secret.yml
