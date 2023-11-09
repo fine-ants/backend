@@ -1,25 +1,21 @@
 package codesquad.fineants.domain.oauth.client;
 
-import java.nio.charset.StandardCharsets;
-import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
-import org.springframework.http.MediaType;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.reactive.function.client.WebClient;
 
 import codesquad.fineants.domain.oauth.properties.OauthProperties;
-import codesquad.fineants.spring.api.errors.errorcode.OauthErrorCode;
-import codesquad.fineants.spring.api.errors.exception.BadRequestException;
-import codesquad.fineants.spring.api.errors.exception.OauthException;
-import codesquad.fineants.spring.api.member.response.OauthAccessTokenResponse;
 import codesquad.fineants.spring.api.member.response.OauthUserProfileResponse;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class KakaoOauthClient extends OauthClient {
+
+	private final String authorizeUri;
+	private final String responseType;
+	private final String scope;
+	private final String oicdUserInfoUri;
 
 	public KakaoOauthClient(OauthProperties.Kakao kakao) {
 		super(kakao.getClientId(),
@@ -27,53 +23,20 @@ public class KakaoOauthClient extends OauthClient {
 			kakao.getTokenUri(),
 			kakao.getUserInfoUri(),
 			kakao.getRedirectUri());
+		this.authorizeUri = kakao.getAuthorizeUri();
+		this.responseType = kakao.getResponseType();
+		this.scope = kakao.getScope();
+		this.oicdUserInfoUri = kakao.getOicdUserInfoUri();
 	}
 
 	@Override
-	public OauthAccessTokenResponse exchangeAccessTokenByAuthorizationCode(String authorizationCode,
-		String redirectUrl) {
-		MultiValueMap<String, String> formData = createFormData(authorizationCode, redirectUrl);
-
-		log.info("formData : {}", formData);
-
-		OauthAccessTokenResponse response = WebClient.create()
-			.post()
-			.uri(getTokenUri())
-			.headers(header -> {
-				header.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-				header.setAccept(List.of(MediaType.APPLICATION_JSON));
-				header.setAcceptCharset(List.of(StandardCharsets.UTF_8));
-			})
-			.bodyValue(formData)
-			.exchangeToMono(clientResponse -> {
-				log.info("statusCode : {}", clientResponse.statusCode());
-				if (clientResponse.statusCode().is4xxClientError() || clientResponse.statusCode().is5xxServerError()) {
-					return clientResponse.bodyToMono(String.class).handle((body, sink) -> {
-						log.info("responseBody : {}", body);
-						sink.error(new OauthException(OauthErrorCode.FAIL_ACCESS_TOKEN));
-					});
-				}
-				return clientResponse.bodyToMono(OauthAccessTokenResponse.class);
-			}).block();
-		log.info("response : {}", response);
-
-		if (Objects.requireNonNull(response).getAccessToken() == null) {
-			throw new BadRequestException(OauthErrorCode.WRONG_AUTHORIZATION_CODE);
-		}
-
-		return response;
-	}
-
-	@Override
-	public MultiValueMap<String, String> createFormData(String authorizationCode, String redirectUrl) {
+	public MultiValueMap<String, String> createFormData(String authorizationCode, String codeVerifier) {
 		MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-		if (redirectUrl == null) {
-			redirectUrl = getRedirectUri();
-		}
 		formData.add("code", authorizationCode);
 		formData.add("client_id", getClientId());
 		formData.add("client_secret", getClientSecret());
-		formData.add("redirect_uri", redirectUrl);
+		formData.add("redirect_uri", getRedirectUri());
+		formData.add("code_verifier", codeVerifier);
 		formData.add("grant_type", "authorization_code");
 		return formData;
 	}
@@ -86,5 +49,23 @@ public class KakaoOauthClient extends OauthClient {
 		String email = (String)kakaoAccount.get("email");
 		String profileImage = (String)profile.get("profile_image_url");
 		return new OauthUserProfileResponse(email, profileImage);
+	}
+
+	private OauthUserProfileResponse createOicdUserProfileResponse(Map<String, Object> attributes) {
+		String email = (String)attributes.get("email");
+		String picture = (String)attributes.get("picture");
+		return new OauthUserProfileResponse(email, picture);
+	}
+
+	@Override
+	public String createAuthURL(String state, String codeVerifier) {
+		return authorizeUri + "?"
+			+ "response_type=" + responseType + "&"
+			+ "client_id=" + getClientId() + "&"
+			+ "redirect_uri=" + getRedirectUri() + "&"
+			+ "scope=" + scope + "&"
+			+ "state=" + state + "&"
+			+ "code_challenge=" + generateCodeChallenge(codeVerifier) + "&"
+			+ "code_challenge_method=S256";
 	}
 }

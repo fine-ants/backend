@@ -16,10 +16,12 @@ public class OauthAccessTokenResponse {
 	private String scope;
 	@JsonProperty("token_type")
 	private String tokenType;
+	@JsonProperty("id_token")
+	private String idToken;
 
 	@Override
 	public String toString() {
-		return String.format("%s, %s(scope=%s, tokenType=%s)", "액세스 토큰 발급 응답", this.getClass().getSimpleName(), scope,
-			tokenType);
+		return String.format("%s, %s(scope=%s, tokenType=%s, idToken=%s)", "액세스 토큰 발급 응답", this.getClass().getSimpleName(), scope,
+			tokenType, idToken);
 	}
 }

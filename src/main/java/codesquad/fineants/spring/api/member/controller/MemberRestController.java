@@ -4,6 +4,7 @@ import static org.springframework.http.HttpStatus.*;
 
 import java.time.LocalDateTime;
 
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestAttribute;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import codesquad.fineants.spring.api.member.request.OauthMemberLogoutRequest;
 import codesquad.fineants.spring.api.member.request.OauthMemberRefreshRequest;
+import codesquad.fineants.spring.api.member.response.OauthCreateUrlResponse;
 import codesquad.fineants.spring.api.member.response.OauthMemberLoginResponse;
 import codesquad.fineants.spring.api.member.response.OauthMemberRefreshResponse;
 import codesquad.fineants.spring.api.member.service.MemberService;
@@ -31,12 +33,18 @@ public class MemberRestController {
 
 	private final MemberService memberService;
 
-	@PostMapping(value = "/{provider}/login")
+	@PostMapping("/{provider}/url")
+	public ApiResponse<OauthCreateUrlResponse> authorizationCodeURL(@PathVariable String provider) {
+		return ApiResponse.success(OauthSuccessCode.OK_URL, memberService.createAuthorizationCodeURL(provider));
+	}
+
+	@GetMapping(value = "/{provider}/login")
 	public ApiResponse<OauthMemberLoginResponse> login(
 		@PathVariable String provider,
 		@RequestParam String code,
-		@RequestParam(value = "redirectUrl", required = false) String redirectUrl) {
-		OauthMemberLoginResponse response = memberService.login(provider, code, LocalDateTime.now(), redirectUrl);
+		@RequestParam String state) {
+		log.info("login 컨트롤러 매핑, provider={}, code={}, state={}", provider, code, state);
+		OauthMemberLoginResponse response = memberService.login(provider, code, state, LocalDateTime.now());
 		return ApiResponse.success(OauthSuccessCode.OK_LOGIN, response);
 	}
 

@@ -49,8 +49,12 @@ public class OauthProperties {
 
 		private final String clientId;
 		private final String clientSecret;
+		private final String authorizeUri;
+		private final String responseType;
+		private final String scope;
 		private final String tokenUri;
 		private final String userInfoUri;
+		private final String oicdUserInfoUri;
 		private final String redirectUri;
 	}
 }
