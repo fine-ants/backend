@@ -1,6 +1,7 @@
 package codesquad.fineants.spring.api.member.service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -10,17 +11,25 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import codesquad.fineants.domain.jwt.Jwt;
 import codesquad.fineants.domain.jwt.JwtProvider;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.member.MemberRepository;
+import codesquad.fineants.domain.oauth.client.DecodedIdTokenPayload;
 import codesquad.fineants.domain.oauth.client.OauthClient;
+import codesquad.fineants.domain.oauth.client.OauthClientRandomGenerator;
+import codesquad.fineants.domain.oauth.client.OauthPublicKey;
+import codesquad.fineants.domain.oauth.client.OauthPublicKeyList;
 import codesquad.fineants.domain.oauth.repository.OauthClientRepository;
 import codesquad.fineants.spring.api.errors.errorcode.MemberErrorCode;
 import codesquad.fineants.spring.api.errors.errorcode.OauthErrorCode;
 import codesquad.fineants.spring.api.errors.exception.BadRequestException;
 import codesquad.fineants.spring.api.errors.exception.FineAntsException;
 import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
+import codesquad.fineants.spring.api.member.request.AuthorizationRequest;
 import codesquad.fineants.spring.api.member.request.OauthMemberLogoutRequest;
 import codesquad.fineants.spring.api.member.request.OauthMemberRefreshRequest;
 import codesquad.fineants.spring.api.member.response.OauthAccessTokenResponse;
@@ -36,18 +45,20 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Service
 public class MemberService {
-	private static final Map<String, String> codeVerifierMap = new ConcurrentHashMap<>();
+	private static final Map<String, AuthorizationRequest> codeVerifierMap = new ConcurrentHashMap<>();
 	private final OauthClientRepository oauthClientRepository;
 	private final MemberRepository memberRepository;
 	private final JwtProvider jwtProvider;
 	private final OauthMemberRedisService redisService;
 	private final WebClientWrapper webClientWrapper;
+	private final OauthClientRandomGenerator oauthClientRandomGenerator;
 
 	public OauthMemberLoginResponse login(String provider, String code, String state, LocalDateTime now) {
 		log.info("provider : {}, code : {}, state : {}", provider, code, state);
 
-		String codeVerifier = getCodeVerifier(state);
-		OauthUserProfileResponse userProfileResponse = getOauthUserProfileResponse(provider, code, codeVerifier);
+		AuthorizationRequest authorizationRequest = getCodeVerifier(state);
+		OauthUserProfileResponse userProfileResponse = getOauthUserProfileResponse(provider, code,
+			authorizationRequest);
 		log.info("userProfileResponse : {}", userProfileResponse);
 
 		Optional<Member> optionalMember = getLoginMember(provider, userProfileResponse);
@@ -71,33 +82,44 @@ public class MemberService {
 		return OauthMemberLoginResponse.of(jwt, member);
 	}
 
-	private static String getCodeVerifier(String state) {
-		String codeVerifier = codeVerifierMap.remove(state);
-		if (codeVerifier == null) {
+	private static AuthorizationRequest getCodeVerifier(String state) {
+		AuthorizationRequest authorizationRequest = codeVerifierMap.remove(state);
+		if (authorizationRequest == null) {
 			throw new BadRequestException(OauthErrorCode.WRONG_STATE);
 		}
-		return codeVerifier;
+		return authorizationRequest;
 	}
 
 	private OauthUserProfileResponse getOauthUserProfileResponse(String provider, String authorizationCode,
-		String codeVerifier) {
+		AuthorizationRequest authorizationRequest) {
 		OauthClient oauthClient = oauthClientRepository.findOneBy(provider);
 
 		OauthAccessTokenResponse accessTokenResponse =
 			webClientWrapper.post(
 				oauthClient.getTokenUri(),
 				oauthClient.createTokenHeader(),
-				oauthClient.createFormData(authorizationCode, codeVerifier),
+				oauthClient.createFormData(authorizationCode, authorizationRequest.getCodeVerifier()),
 				OauthAccessTokenResponse.class);
 		log.info("{}", accessTokenResponse);
 
-		OauthUserProfileResponse userProfileResponse = oauthClient.createOauthUserProfileResponse(
-			webClientWrapper.get(
-				oauthClient.getUserInfoUri(),
-				oauthClient.createUserInfoHeader(accessTokenResponse.getTokenType(),
-					accessTokenResponse.getAccessToken()),
-				new ParameterizedTypeReference<>() {
-				}));
+		// 공개키 목록 조회
+		Map<String, Object> map = webClientWrapper.getPublicKeyList(oauthClient.getPublicKeyUri(),
+			new ParameterizedTypeReference<>() {
+			});
+		List<OauthPublicKey> publicKeys = null;
+		try {
+			ObjectMapper objectMapper = new ObjectMapper();
+			String json = objectMapper.writeValueAsString(map);
+			OauthPublicKeyList oauthPublicKeyList = objectMapper.readValue(json, OauthPublicKeyList.class);
+			publicKeys = oauthPublicKeyList.getKeys();
+		} catch (JsonProcessingException e) {
+			throw new RuntimeException(e);
+		}
+
+		DecodedIdTokenPayload payload = oauthClient.validateIdToken(accessTokenResponse.getIdToken(),
+			authorizationRequest.getNonce(), publicKeys);
+
+		OauthUserProfileResponse userProfileResponse = OauthUserProfileResponse.from(payload);
 		log.info("{}", userProfileResponse);
 		return userProfileResponse;
 	}
@@ -169,12 +191,13 @@ public class MemberService {
 	@Transactional(readOnly = true)
 	public OauthCreateUrlResponse createAuthorizationCodeURL(String provider) {
 		OauthClient oauthClient = oauthClientRepository.findOneBy(provider);
+		String state = oauthClientRandomGenerator.generateState();
+		String codeVerifier = oauthClientRandomGenerator.generateCodeVerifier();
+		String nonce = oauthClientRandomGenerator.generateNonce();
+		codeVerifierMap.put(state, AuthorizationRequest.of(codeVerifier, nonce));
 
-		String state = oauthClient.generateState();
-		String codeVerifier = oauthClient.generateCodeVerifier();
-		codeVerifierMap.put(state, codeVerifier);
-
-		String authURL = oauthClient.createAuthURL(state, codeVerifier);
-		return new OauthCreateUrlResponse(authURL, state, codeVerifier);
+		String authURL = oauthClient.createAuthURL(state,
+			oauthClientRandomGenerator.generateCodeChallenge(codeVerifier), nonce);
+		return new OauthCreateUrlResponse(authURL, state, codeVerifier, nonce);
 	}
 }

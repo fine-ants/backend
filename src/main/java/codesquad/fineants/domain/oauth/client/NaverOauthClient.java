@@ -1,5 +1,6 @@
 package codesquad.fineants.domain.oauth.client;
 
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.util.LinkedMultiValueMap;
@@ -17,7 +18,8 @@ public class NaverOauthClient extends OauthClient {
 			naver.getClientSecret(),
 			naver.getTokenUri(),
 			naver.getUserInfoUri(),
-			naver.getRedirectUri());
+			naver.getRedirectUri(),
+			null);
 	}
 
 	@Override
@@ -40,7 +42,12 @@ public class NaverOauthClient extends OauthClient {
 
 	// TODO: 구현예정
 	@Override
-	public String createAuthURL(String state, String codeVerifier) {
+	public String createAuthURL(String state, String codeVerifier, String nonce) {
+		return null;
+	}
+
+	@Override
+	public DecodedIdTokenPayload validateIdToken(String idToken, String nonce, List<OauthPublicKey> publicKeys) {
 		return null;
 	}
 }

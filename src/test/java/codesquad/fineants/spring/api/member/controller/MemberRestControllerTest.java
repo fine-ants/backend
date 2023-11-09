@@ -102,10 +102,12 @@ class MemberRestControllerTest {
 			+ "&redirect_uri=%s"
 			+ "&scope=openid"
 			+ "&state=1234"
+			+ "&nonce=1234"
 			+ "&code_challenge=LpAzxsJ6VeWDwCNWdhDF6CypNrZlJnXYxhr4PPbkilU"
 			+ "&code_challenge_method=S256", clientId, redirectUrl);
 
-		OauthCreateUrlResponse mockResponse = new OauthCreateUrlResponse(expectedAuthURL, "1234", "codeVerifier");
+		OauthCreateUrlResponse mockResponse = new OauthCreateUrlResponse(expectedAuthURL, "1234", "codeVerifier",
+			"1234");
 
 		given(memberService.createAuthorizationCodeURL(
 			anyString()

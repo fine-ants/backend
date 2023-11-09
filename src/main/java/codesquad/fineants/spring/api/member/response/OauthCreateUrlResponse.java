@@ -13,4 +13,6 @@ public class OauthCreateUrlResponse {
 	private String state;
 	@JsonIgnore
 	private String codeVerifier;
+	@JsonIgnore
+	private String nonce;
 }

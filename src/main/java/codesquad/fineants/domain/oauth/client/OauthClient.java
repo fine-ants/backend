@@ -2,12 +2,8 @@ package codesquad.fineants.domain.oauth.client;
 
 import static org.springframework.http.HttpHeaders.*;
 
-import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
-import java.util.Base64;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.http.MediaType;
@@ -29,38 +25,13 @@ public abstract class OauthClient {
 	private final String tokenUri;
 	private final String userInfoUri;
 	private final String redirectUri;
+	private final String publicKeyUri;
 
 	public abstract MultiValueMap<String, String> createFormData(String authorizationCode, String codeVerifier);
 
 	public abstract OauthUserProfileResponse createOauthUserProfileResponse(Map<String, Object> attributes);
 
-	public abstract String createAuthURL(String state, String codeVerifier);
-
-	public String generateState() {
-		SecureRandom secureRandom = new SecureRandom();
-		return new BigInteger(130, secureRandom).toString();
-	}
-
-	public String generateCodeVerifier() {
-		SecureRandom secureRandom = new SecureRandom();
-		byte[] codeVerifier = new byte[32];
-		secureRandom.nextBytes(codeVerifier);
-		return Base64.getUrlEncoder().withoutPadding().encodeToString(codeVerifier);
-	}
-
-	public String generateCodeChallenge(String codeVerifier) {
-		byte[] bytes = codeVerifier.getBytes(StandardCharsets.US_ASCII);
-		MessageDigest messageDigest;
-		try {
-			messageDigest = MessageDigest.getInstance("SHA-256");
-		} catch (NoSuchAlgorithmException e) {
-			log.error(e.getMessage(), e);
-			throw new RuntimeException(e);
-		}
-		messageDigest.update(bytes, 0, bytes.length);
-		byte[] digest = messageDigest.digest();
-		return Base64.getUrlEncoder().withoutPadding().encodeToString(digest);
-	}
+	public abstract String createAuthURL(String state, String codeVerifier, String nonce);
 
 	public MultiValueMap<String, String> createTokenHeader() {
 		MultiValueMap<String, String> result = new LinkedMultiValueMap<>();
@@ -70,9 +41,16 @@ public abstract class OauthClient {
 		return result;
 	}
 
+	public MultiValueMap<String, String> createEmptyHeader() {
+		return new LinkedMultiValueMap<>();
+	}
+
 	public MultiValueMap<String, String> createUserInfoHeader(String tokenType, String accessToken) {
 		MultiValueMap<String, String> result = new LinkedMultiValueMap<>();
 		result.add(AUTHORIZATION, String.format("%s %s", tokenType, accessToken));
 		return result;
 	}
+
+	public abstract DecodedIdTokenPayload validateIdToken(String idToken, String nonce,
+		List<OauthPublicKey> publicKeys);
 }

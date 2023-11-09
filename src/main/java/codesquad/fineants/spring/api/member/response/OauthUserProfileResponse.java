@@ -1,5 +1,6 @@
 package codesquad.fineants.spring.api.member.response;
 
+import codesquad.fineants.domain.oauth.client.DecodedIdTokenPayload;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -12,6 +13,10 @@ public class OauthUserProfileResponse {
 
 	private String email;
 	private String profileImage;
+
+	public static OauthUserProfileResponse from(DecodedIdTokenPayload payload) {
+		return new OauthUserProfileResponse(payload.getEmail(), payload.getPicture());
+	}
 
 	@Override
 	public String toString() {
