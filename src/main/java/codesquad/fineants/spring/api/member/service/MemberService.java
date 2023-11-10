@@ -11,9 +11,6 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import codesquad.fineants.domain.jwt.Jwt;
 import codesquad.fineants.domain.jwt.JwtProvider;
 import codesquad.fineants.domain.member.Member;
@@ -37,6 +34,7 @@ import codesquad.fineants.spring.api.member.response.OauthCreateUrlResponse;
 import codesquad.fineants.spring.api.member.response.OauthMemberLoginResponse;
 import codesquad.fineants.spring.api.member.response.OauthMemberRefreshResponse;
 import codesquad.fineants.spring.api.member.response.OauthUserProfileResponse;
+import codesquad.fineants.spring.util.ObjectMapperUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -52,6 +50,7 @@ public class MemberService {
 	private final OauthMemberRedisService redisService;
 	private final WebClientWrapper webClientWrapper;
 	private final AuthorizationCodeRandomGenerator authorizationCodeRandomGenerator;
+	private final ObjectMapperUtil objectMapperUtil;
 
 	public OauthMemberLoginResponse login(String provider, String code, String state, LocalDateTime now) {
 		AuthorizationRequest request = getCodeVerifier(state);
@@ -87,28 +86,20 @@ public class MemberService {
 			oauthClient.createTokenBody(authorizationCode, authorizationRequest.getCodeVerifier()),
 			OauthAccessTokenResponse.class);
 
-		// 공개키 목록 조회
-		DecodedIdTokenPayload payload = oauthClient.validateIdToken(
+		DecodedIdTokenPayload payload = oauthClient.decodeIdToken(
 			accessTokenResponse.getIdToken(),
 			authorizationRequest.getNonce(),
-			getOauthPublicKeys(oauthClient));
+			getOauthPublicKeys(oauthClient.getPublicKeyUri()));
 		return OauthUserProfileResponse.from(payload);
 	}
 
-	private List<OauthPublicKey> getOauthPublicKeys(OauthClient oauthClient) {
-		Map<String, Object> map = webClientWrapper.getPublicKeyList(oauthClient.getPublicKeyUri(),
-			new ParameterizedTypeReference<>() {
-			});
-		List<OauthPublicKey> publicKeys = null;
-		try {
-			ObjectMapper objectMapper = new ObjectMapper();
-			String json = objectMapper.writeValueAsString(map);
-			OauthPublicKeyList oauthPublicKeyList = objectMapper.readValue(json, OauthPublicKeyList.class);
-			publicKeys = oauthPublicKeyList.getKeys();
-		} catch (JsonProcessingException e) {
-			throw new RuntimeException(e);
-		}
-		return publicKeys;
+	private List<OauthPublicKey> getOauthPublicKeys(String publicKeyUri) {
+		Map<String, Object> map = webClientWrapper.getPublicKeyList(publicKeyUri, new ParameterizedTypeReference<>() {
+		});
+
+		return objectMapperUtil.deserialize(
+			objectMapperUtil.serialize(map),
+			OauthPublicKeyList.class).getKeys();
 	}
 
 	private Optional<Member> getLoginMember(String provider, OauthUserProfileResponse userProfileResponse) {
