@@ -19,7 +19,7 @@ public class GlobalExceptionHandler {
 
 	@ExceptionHandler(FineAntsException.class)
 	public ResponseEntity<ApiResponse<Object>> handleFineANtsException(FineAntsException exception) {
-		log.error("SecondHandException 발생 : {}", exception.toString());
+		log.error("Exception 발생 : {}", exception.toString());
 		ApiResponse<Object> body = ApiResponse.error(exception.getErrorCode());
 		return ResponseEntity.status(exception.getErrorCode().getHttpStatus()).body(body);
 	}

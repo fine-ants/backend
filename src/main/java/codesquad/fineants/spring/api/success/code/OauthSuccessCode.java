@@ -8,10 +8,11 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum OauthSuccessCode implements SuccessCode {
-	CREATED_SIGNUP(HttpStatus.CREATED, "회원가입에 성공하였습니다."),
-	OK_LOGIN(HttpStatus.OK, "로그인에 성공하였습니다."),
-	OK_LOGOUT(HttpStatus.OK, "로그아웃에 성공하였습니다."),
-	OK_REFRESH_TOKEN(HttpStatus.OK, "액세스 토큰 갱신에 성공하였습니다.");
+	CREATED_SIGNUP(HttpStatus.CREATED, "회원가입에 성공하였습니다"),
+	OK_LOGIN(HttpStatus.OK, "로그인에 성공하였습니다"),
+	OK_LOGOUT(HttpStatus.OK, "로그아웃에 성공하였습니다"),
+	OK_REFRESH_TOKEN(HttpStatus.OK, "액세스 토큰 갱신에 성공하였습니다"),
+	OK_URL(HttpStatus.OK, "인가 코드 URL 요청에 성공하였습니다");
 
 	private final HttpStatus httpStatus;
 	private final String message;

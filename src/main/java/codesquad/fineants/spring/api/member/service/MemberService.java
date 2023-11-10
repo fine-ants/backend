@@ -1,9 +1,13 @@
 package codesquad.fineants.spring.api.member.service;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -11,17 +15,26 @@ import codesquad.fineants.domain.jwt.Jwt;
 import codesquad.fineants.domain.jwt.JwtProvider;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.member.MemberRepository;
+import codesquad.fineants.domain.oauth.client.AuthorizationCodeRandomGenerator;
+import codesquad.fineants.domain.oauth.client.DecodedIdTokenPayload;
 import codesquad.fineants.domain.oauth.client.OauthClient;
+import codesquad.fineants.domain.oauth.client.OauthPublicKey;
+import codesquad.fineants.domain.oauth.client.OauthPublicKeyList;
 import codesquad.fineants.domain.oauth.repository.OauthClientRepository;
 import codesquad.fineants.spring.api.errors.errorcode.MemberErrorCode;
+import codesquad.fineants.spring.api.errors.errorcode.OauthErrorCode;
+import codesquad.fineants.spring.api.errors.exception.BadRequestException;
 import codesquad.fineants.spring.api.errors.exception.FineAntsException;
 import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
+import codesquad.fineants.spring.api.member.request.AuthorizationRequest;
 import codesquad.fineants.spring.api.member.request.OauthMemberLogoutRequest;
 import codesquad.fineants.spring.api.member.request.OauthMemberRefreshRequest;
 import codesquad.fineants.spring.api.member.response.OauthAccessTokenResponse;
+import codesquad.fineants.spring.api.member.response.OauthCreateUrlResponse;
 import codesquad.fineants.spring.api.member.response.OauthMemberLoginResponse;
 import codesquad.fineants.spring.api.member.response.OauthMemberRefreshResponse;
 import codesquad.fineants.spring.api.member.response.OauthUserProfileResponse;
+import codesquad.fineants.spring.util.ObjectMapperUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -30,56 +43,66 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Service
 public class MemberService {
+	private static final Map<String, AuthorizationRequest> authorizationRequestMap = new ConcurrentHashMap<>();
 	private final OauthClientRepository oauthClientRepository;
 	private final MemberRepository memberRepository;
 	private final JwtProvider jwtProvider;
-	private final OauthMemberRedisService oauthMemberRedisService;
 	private final OauthMemberRedisService redisService;
+	private final WebClientWrapper webClientWrapper;
+	private final AuthorizationCodeRandomGenerator authorizationCodeRandomGenerator;
 
-	public OauthMemberLoginResponse login(String provider, String code, LocalDateTime now, String redirectUrl) {
-		log.info("provider : {}, code : {}", provider, code);
-
-		OauthUserProfileResponse userProfileResponse = getOauthUserProfileResponse(provider, code, redirectUrl);
-		log.info("userProfileResponse : {}", userProfileResponse);
-
-		Optional<Member> optionalMember = getLoginMember(provider, userProfileResponse);
-
-		Member member = optionalMember.orElseGet(() -> {
-			Member newMember = Member.builder()
-				.email(userProfileResponse.getEmail())
+	public OauthMemberLoginResponse login(String provider, String code, String state, LocalDateTime now) {
+		AuthorizationRequest request = getCodeVerifier(state);
+		OauthUserProfileResponse profileResponse = getOauthUserProfileResponse(provider, code, request);
+		Optional<Member> optionalMember = getLoginMember(provider, profileResponse);
+		Member member = optionalMember.orElseGet(() ->
+			Member.builder()
+				.email(profileResponse.getEmail())
 				.nickname(generateRandomNickname())
 				.provider(provider)
-				.profileUrl(userProfileResponse.getProfileImage())
-				.build();
-			memberRepository.save(newMember);
-			return newMember;
-		});
+				.profileUrl(profileResponse.getProfileImage())
+				.build());
+		Member saveMember = memberRepository.save(member);
+		Jwt jwt = jwtProvider.createJwtBasedOnMember(saveMember, now);
+		redisService.saveRefreshToken(saveMember.createRedisKey(), jwt);
+		return OauthMemberLoginResponse.of(jwt, saveMember);
+	}
 
-		Jwt jwt = jwtProvider.createJwtBasedOnMember(member, now);
-		log.debug("로그인 서비스 요청 중 jwt 객체 생성 : {}", jwt);
-
-		oauthMemberRedisService.saveRefreshToken(member.createRedisKey(), jwt);
-
-		return OauthMemberLoginResponse.of(jwt, member);
+	private AuthorizationRequest getCodeVerifier(String state) {
+		AuthorizationRequest request = authorizationRequestMap.remove(state);
+		if (request == null) {
+			throw new BadRequestException(OauthErrorCode.WRONG_STATE);
+		}
+		return request;
 	}
 
 	private OauthUserProfileResponse getOauthUserProfileResponse(String provider, String authorizationCode,
-		String redirectUrl) {
+		AuthorizationRequest authorizationRequest) {
 		OauthClient oauthClient = oauthClientRepository.findOneBy(provider);
+		OauthAccessTokenResponse accessTokenResponse = webClientWrapper.post(
+			oauthClient.getTokenUri(),
+			oauthClient.createTokenHeader(),
+			oauthClient.createTokenBody(authorizationCode, authorizationRequest.getCodeVerifier()),
+			OauthAccessTokenResponse.class);
 
-		OauthAccessTokenResponse accessTokenResponse =
-			oauthClient.exchangeAccessTokenByAuthorizationCode(authorizationCode, redirectUrl);
-		log.info("{}", accessTokenResponse);
+		DecodedIdTokenPayload payload = oauthClient.decodeIdToken(
+			accessTokenResponse.getIdToken(),
+			authorizationRequest.getNonce(),
+			getOauthPublicKeys(oauthClient.getPublicKeyUri()));
+		return OauthUserProfileResponse.from(payload);
+	}
 
-		OauthUserProfileResponse userProfileResponse =
-			oauthClient.getUserProfileByAccessToken(accessTokenResponse);
-		log.info("{}", userProfileResponse);
-		return userProfileResponse;
+	private List<OauthPublicKey> getOauthPublicKeys(String publicKeyUri) {
+		Map<String, Object> map = webClientWrapper.getPublicKeyList(publicKeyUri, new ParameterizedTypeReference<>() {
+		});
+
+		return ObjectMapperUtil.deserialize(
+			ObjectMapperUtil.serialize(map),
+			OauthPublicKeyList.class).getKeys();
 	}
 
 	private Optional<Member> getLoginMember(String provider, OauthUserProfileResponse userProfileResponse) {
-		String email = userProfileResponse.getEmail();
-		return memberRepository.findMemberByEmailAndProvider(email, provider);
+		return memberRepository.findMemberByEmailAndProvider(userProfileResponse.getEmail(), provider);
 	}
 
 	private String generateRandomNickname() {
@@ -90,9 +113,7 @@ public class MemberService {
 	}
 
 	public void logout(String accessToken, OauthMemberLogoutRequest request) {
-		log.info("로그아웃 서비스 요청 : accessToken={}, request={}", accessToken, request);
 		String refreshToken = request.getRefreshToken();
-
 		deleteRefreshTokenBy(refreshToken);
 		banAccessToken(accessToken);
 	}
@@ -139,5 +160,15 @@ public class MemberService {
 		Jwt jwt = jwtProvider.createJwtWithRefreshTokenBasedOnMember(member, refreshToken, now);
 
 		return OauthMemberRefreshResponse.from(jwt);
+	}
+
+	@Transactional(readOnly = true)
+	public OauthCreateUrlResponse createAuthorizationCodeURL(String provider) {
+		OauthClient oauthClient = oauthClientRepository.findOneBy(provider);
+		AuthorizationRequest request = authorizationCodeRandomGenerator.generateAuthorizationRequest();
+		authorizationRequestMap.put(request.getState(), request);
+		return new OauthCreateUrlResponse(
+			oauthClient.createAuthURL(request),
+			request);
 	}
 }

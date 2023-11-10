@@ -49,8 +49,36 @@ public class OauthProperties {
 
 		private final String clientId;
 		private final String clientSecret;
+		private final String authorizeUri;
+		private final String responseType;
+		private final String scope;
 		private final String tokenUri;
 		private final String userInfoUri;
 		private final String redirectUri;
+		private final String publicKeyUri;
+		private final String iss;
+		private final String aud;
+		private final AuthorizationCode authorizationCode;
+
+		@Getter
+		public static class AuthorizationCode {
+			private final String code;
+			private final String clientId;
+			private final String clientSecret;
+			private final String redirectUri;
+			private final String codeVerifier;
+			private final String grantType;
+			
+			@ConstructorBinding
+			public AuthorizationCode(String code, String clientId, String clientSecret, String redirectUri,
+				String codeVerifier, String grantType) {
+				this.code = code;
+				this.clientId = clientId;
+				this.clientSecret = clientSecret;
+				this.redirectUri = redirectUri;
+				this.codeVerifier = codeVerifier;
+				this.grantType = grantType;
+			}
+		}
 	}
 }

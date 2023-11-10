@@ -19,7 +19,8 @@ public class FineAntsException extends RuntimeException {
 
 	@Override
 	public String toString() {
-		return String.format("%s, %s(errorCode=%s, message=%s)", "중고거래 예외", this.getClass().getSimpleName(), errorCode,
+		return String.format("%s, %s(errorCode=%s, message=%s)", "FineAnts 예외", this.getClass().getSimpleName(),
+			errorCode,
 			message);
 	}
 }

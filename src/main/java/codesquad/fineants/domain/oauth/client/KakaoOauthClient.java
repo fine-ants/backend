@@ -1,90 +1,77 @@
 package codesquad.fineants.domain.oauth.client;
 
-import java.nio.charset.StandardCharsets;
-import java.util.List;
+import java.time.LocalDateTime;
 import java.util.Map;
-import java.util.Objects;
 
-import org.springframework.http.MediaType;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.reactive.function.client.WebClient;
 
 import codesquad.fineants.domain.oauth.properties.OauthProperties;
-import codesquad.fineants.spring.api.errors.errorcode.OauthErrorCode;
-import codesquad.fineants.spring.api.errors.exception.BadRequestException;
-import codesquad.fineants.spring.api.errors.exception.OauthException;
-import codesquad.fineants.spring.api.member.response.OauthAccessTokenResponse;
+import codesquad.fineants.spring.api.member.request.AuthorizationRequest;
 import codesquad.fineants.spring.api.member.response.OauthUserProfileResponse;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class KakaoOauthClient extends OauthClient {
 
+	private final String authorizeUri;
+	private final String responseType;
+	private final String scope;
+	private final String iss;
+	private final String aud;
+
+	private final OauthProperties.Kakao.AuthorizationCode properties;
+
 	public KakaoOauthClient(OauthProperties.Kakao kakao) {
 		super(kakao.getClientId(),
 			kakao.getClientSecret(),
 			kakao.getTokenUri(),
 			kakao.getUserInfoUri(),
-			kakao.getRedirectUri());
+			kakao.getRedirectUri(),
+			kakao.getPublicKeyUri());
+		this.authorizeUri = kakao.getAuthorizeUri();
+		this.responseType = kakao.getResponseType();
+		this.scope = kakao.getScope();
+		this.iss = kakao.getIss();
+		this.aud = kakao.getAud();
+		this.properties = kakao.getAuthorizationCode();
 	}
 
 	@Override
-	public OauthAccessTokenResponse exchangeAccessTokenByAuthorizationCode(String authorizationCode,
-		String redirectUrl) {
-		MultiValueMap<String, String> formData = createFormData(authorizationCode, redirectUrl);
-
-		log.info("formData : {}", formData);
-
-		OauthAccessTokenResponse response = WebClient.create()
-			.post()
-			.uri(getTokenUri())
-			.headers(header -> {
-				header.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-				header.setAccept(List.of(MediaType.APPLICATION_JSON));
-				header.setAcceptCharset(List.of(StandardCharsets.UTF_8));
-			})
-			.bodyValue(formData)
-			.exchangeToMono(clientResponse -> {
-				log.info("statusCode : {}", clientResponse.statusCode());
-				if (clientResponse.statusCode().is4xxClientError() || clientResponse.statusCode().is5xxServerError()) {
-					return clientResponse.bodyToMono(String.class).handle((body, sink) -> {
-						log.info("responseBody : {}", body);
-						sink.error(new OauthException(OauthErrorCode.FAIL_ACCESS_TOKEN));
-					});
-				}
-				return clientResponse.bodyToMono(OauthAccessTokenResponse.class);
-			}).block();
-		log.info("response : {}", response);
-
-		if (Objects.requireNonNull(response).getAccessToken() == null) {
-			throw new BadRequestException(OauthErrorCode.WRONG_AUTHORIZATION_CODE);
-		}
-
-		return response;
-	}
-
-	@Override
-	public MultiValueMap<String, String> createFormData(String authorizationCode, String redirectUrl) {
+	public MultiValueMap<String, String> createTokenBody(final String authorizationCode, final String codeVerifier) {
+		final String grantType = "authorization_code";
 		MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-		if (redirectUrl == null) {
-			redirectUrl = getRedirectUri();
-		}
-		formData.add("code", authorizationCode);
-		formData.add("client_id", getClientId());
-		formData.add("client_secret", getClientSecret());
-		formData.add("redirect_uri", redirectUrl);
-		formData.add("grant_type", "authorization_code");
+		formData.add(properties.getCode(), authorizationCode);
+		formData.add(properties.getClientId(), getClientId());
+		formData.add(properties.getClientSecret(), getClientSecret());
+		formData.add(properties.getRedirectUri(), getRedirectUri());
+		formData.add(properties.getCodeVerifier(), codeVerifier);
+		formData.add(properties.getGrantType(), grantType);
 		return formData;
 	}
 
 	@Override
-	public OauthUserProfileResponse createOauthUserProfileResponse(Map<String, Object> attributes) {
-		Map<String, Object> kakaoAccount = (Map<String, Object>)attributes.get("kakao_account");
-		Map<String, Object> profile = (Map<String, Object>)kakaoAccount.get("profile");
-		log.info("profile={}", profile);
-		String email = (String)kakaoAccount.get("email");
-		String profileImage = (String)profile.get("profile_image_url");
-		return new OauthUserProfileResponse(email, profileImage);
+	public OauthUserProfileResponse createOauthUserProfileResponse(final Map<String, Object> attributes) {
+		String email = (String)attributes.get("email");
+		String picture = (String)attributes.get("picture");
+		return new OauthUserProfileResponse(email, picture);
+	}
+
+	@Override
+	public String createAuthURL(AuthorizationRequest request) {
+		return authorizeUri + "?"
+			+ "response_type=" + responseType + "&"
+			+ "client_id=" + getClientId() + "&"
+			+ "redirect_uri=" + getRedirectUri() + "&"
+			+ "scope=" + scope + "&"
+			+ "state=" + request.getState() + "&"
+			+ "nonce=" + request.getNonce() + "&"
+			+ "code_challenge=" + request.getCodeChallenge() + "&"
+			+ "code_challenge_method=S256";
+	}
+
+	@Override
+	public void validatePayload(DecodedIdTokenPayload payload, String nonce) {
+		payload.validateIdToken(iss, aud, LocalDateTime.now(), nonce);
 	}
 }
