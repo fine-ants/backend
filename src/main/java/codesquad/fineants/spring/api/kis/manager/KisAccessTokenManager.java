@@ -10,7 +10,7 @@ import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
 @Component
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class KisAccessTokenManager {
 	private String accessToken;
