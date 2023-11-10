@@ -103,6 +103,15 @@ public class MemberService {
 		log.info("{}", accessTokenResponse);
 
 		// 공개키 목록 조회
+		List<OauthPublicKey> publicKeys = getOauthPublicKeys(oauthClient);
+		DecodedIdTokenPayload payload = oauthClient.validateIdToken(accessTokenResponse.getIdToken(),
+			authorizationRequest.getNonce(), publicKeys);
+		OauthUserProfileResponse userProfileResponse = OauthUserProfileResponse.from(payload);
+		log.info("{}", userProfileResponse);
+		return userProfileResponse;
+	}
+
+	private List<OauthPublicKey> getOauthPublicKeys(OauthClient oauthClient) {
 		Map<String, Object> map = webClientWrapper.getPublicKeyList(oauthClient.getPublicKeyUri(),
 			new ParameterizedTypeReference<>() {
 			});
@@ -115,13 +124,7 @@ public class MemberService {
 		} catch (JsonProcessingException e) {
 			throw new RuntimeException(e);
 		}
-
-		DecodedIdTokenPayload payload = oauthClient.validateIdToken(accessTokenResponse.getIdToken(),
-			authorizationRequest.getNonce(), publicKeys);
-
-		OauthUserProfileResponse userProfileResponse = OauthUserProfileResponse.from(payload);
-		log.info("{}", userProfileResponse);
-		return userProfileResponse;
+		return publicKeys;
 	}
 
 	private Optional<Member> getLoginMember(String provider, OauthUserProfileResponse userProfileResponse) {
