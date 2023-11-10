@@ -22,17 +22,17 @@ class KakaoOauthClientTest {
 	private OauthClientRepository oauthClientRepository;
 
 	@Autowired
-	private OauthClientRandomGenerator oauthClientRandomGenerator;
+	private AuthorizationCodeRandomGenerator authorizationCodeRandomGenerator;
 
 	@DisplayName("인가코드 URL을 생성한다")
 	@Test
 	void createAuthURL() {
 		// given
 		OauthClient oauthClient = oauthClientRepository.findOneBy("kakao");
-		String state = oauthClientRandomGenerator.generateState();
-		String codeVerifier = oauthClientRandomGenerator.generateCodeVerifier();
-		String nonce = oauthClientRandomGenerator.generateNonce();
-		String codeChallenge = oauthClientRandomGenerator.generateCodeChallenge(codeVerifier);
+		String state = authorizationCodeRandomGenerator.generateState();
+		String codeVerifier = authorizationCodeRandomGenerator.generateCodeVerifier();
+		String nonce = authorizationCodeRandomGenerator.generateNonce();
+		String codeChallenge = authorizationCodeRandomGenerator.generateCodeChallenge(codeVerifier);
 		AuthorizationRequest authorizationRequest = AuthorizationRequest.of(state, codeVerifier, codeChallenge, nonce);
 		// when
 		String actual = oauthClient.createAuthURL(authorizationRequest);

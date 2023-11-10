@@ -9,11 +9,23 @@ import java.util.Base64;
 
 import org.springframework.stereotype.Component;
 
+import codesquad.fineants.spring.api.member.request.AuthorizationRequest;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component
-public class OauthClientRandomGenerator {
+public class AuthorizationCodeRandomGenerator {
+
+	public AuthorizationRequest generateAuthorizationRequest() {
+		String codeVerifier = generateCodeVerifier();
+		String codeChallenge = generateCodeChallenge(codeVerifier);
+		return AuthorizationRequest.of(
+			generateState(),
+			codeVerifier,
+			codeChallenge,
+			generateNonce()
+		);
+	}
 
 	public String generateState() {
 		SecureRandom secureRandom = new SecureRandom();

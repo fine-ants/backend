@@ -22,7 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import codesquad.fineants.domain.jwt.Jwt;
 import codesquad.fineants.domain.member.MemberRepository;
-import codesquad.fineants.domain.oauth.client.OauthClientRandomGenerator;
+import codesquad.fineants.domain.oauth.client.AuthorizationCodeRandomGenerator;
 import codesquad.fineants.spring.api.errors.errorcode.OauthErrorCode;
 import codesquad.fineants.spring.api.errors.exception.BadRequestException;
 import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
@@ -50,7 +50,7 @@ public class MemberServiceTest {
 	private OauthMemberRedisService redisService;
 
 	@MockBean
-	private OauthClientRandomGenerator oauthClientRandomGenerator;
+	private AuthorizationCodeRandomGenerator authorizationCodeRandomGenerator;
 
 	@AfterEach
 	void tearDown() {
@@ -66,9 +66,9 @@ public class MemberServiceTest {
 		String state = "1234";
 		String codeVerifier = "1234";
 		String nonce = "5b9a1e56120de83c4a083894c8dc8127";
-		given(oauthClientRandomGenerator.generateState()).willReturn(state);
-		given(oauthClientRandomGenerator.generateCodeVerifier()).willReturn(codeVerifier);
-		given(oauthClientRandomGenerator.generateNonce()).willReturn(nonce);
+		given(authorizationCodeRandomGenerator.generateState()).willReturn(state);
+		given(authorizationCodeRandomGenerator.generateCodeVerifier()).willReturn(codeVerifier);
+		given(authorizationCodeRandomGenerator.generateNonce()).willReturn(nonce);
 
 		memberService.createAuthorizationCodeURL(provider);
 
@@ -127,9 +127,9 @@ public class MemberServiceTest {
 		String state = "1234";
 		String codeVerifier = "1234";
 		String nonce = "1234";
-		given(oauthClientRandomGenerator.generateState()).willReturn(state);
-		given(oauthClientRandomGenerator.generateCodeVerifier()).willReturn(codeVerifier);
-		given(oauthClientRandomGenerator.generateNonce()).willReturn(nonce);
+		given(authorizationCodeRandomGenerator.generateState()).willReturn(state);
+		given(authorizationCodeRandomGenerator.generateCodeVerifier()).willReturn(codeVerifier);
+		given(authorizationCodeRandomGenerator.generateNonce()).willReturn(nonce);
 		memberService.createAuthorizationCodeURL("kakao");
 
 		// when
@@ -147,9 +147,9 @@ public class MemberServiceTest {
 		// given
 		String provider = "kakao";
 		String code = "1234";
-		given(oauthClientRandomGenerator.generateState()).willReturn("1234");
-		given(oauthClientRandomGenerator.generateCodeVerifier()).willReturn("1234");
-		given(oauthClientRandomGenerator.generateNonce()).willReturn("1234");
+		given(authorizationCodeRandomGenerator.generateState()).willReturn("1234");
+		given(authorizationCodeRandomGenerator.generateCodeVerifier()).willReturn("1234");
+		given(authorizationCodeRandomGenerator.generateNonce()).willReturn("1234");
 		OauthCreateUrlResponse oauthCreateUrlResponse = memberService.createAuthorizationCodeURL(provider);
 		String state = oauthCreateUrlResponse.getAuthorizationRequest().getState();
 

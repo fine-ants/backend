@@ -28,7 +28,7 @@ public abstract class OauthClient {
 	private final String redirectUri;
 	private final String publicKeyUri;
 
-	public abstract MultiValueMap<String, String> createFormData(String authorizationCode, String codeVerifier);
+	public abstract MultiValueMap<String, String> createTokenBody(String authorizationCode, String codeVerifier);
 
 	public abstract OauthUserProfileResponse createOauthUserProfileResponse(Map<String, Object> attributes);
 
@@ -41,17 +41,7 @@ public abstract class OauthClient {
 		result.add(ACCEPT_CHARSET, StandardCharsets.UTF_8.name());
 		return result;
 	}
-
-	public MultiValueMap<String, String> createEmptyHeader() {
-		return new LinkedMultiValueMap<>();
-	}
-
-	public MultiValueMap<String, String> createUserInfoHeader(String tokenType, String accessToken) {
-		MultiValueMap<String, String> result = new LinkedMultiValueMap<>();
-		result.add(AUTHORIZATION, String.format("%s %s", tokenType, accessToken));
-		return result;
-	}
-
+	
 	public abstract DecodedIdTokenPayload validateIdToken(String idToken, String nonce,
 		List<OauthPublicKey> publicKeys);
 }

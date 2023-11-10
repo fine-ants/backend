@@ -18,9 +18,9 @@ import codesquad.fineants.domain.jwt.Jwt;
 import codesquad.fineants.domain.jwt.JwtProvider;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.member.MemberRepository;
+import codesquad.fineants.domain.oauth.client.AuthorizationCodeRandomGenerator;
 import codesquad.fineants.domain.oauth.client.DecodedIdTokenPayload;
 import codesquad.fineants.domain.oauth.client.OauthClient;
-import codesquad.fineants.domain.oauth.client.OauthClientRandomGenerator;
 import codesquad.fineants.domain.oauth.client.OauthPublicKey;
 import codesquad.fineants.domain.oauth.client.OauthPublicKeyList;
 import codesquad.fineants.domain.oauth.repository.OauthClientRepository;
@@ -51,64 +51,48 @@ public class MemberService {
 	private final JwtProvider jwtProvider;
 	private final OauthMemberRedisService redisService;
 	private final WebClientWrapper webClientWrapper;
-	private final OauthClientRandomGenerator oauthClientRandomGenerator;
+	private final AuthorizationCodeRandomGenerator authorizationCodeRandomGenerator;
 
 	public OauthMemberLoginResponse login(String provider, String code, String state, LocalDateTime now) {
-		log.info("provider : {}, code : {}, state : {}", provider, code, state);
-
-		AuthorizationRequest authorizationRequest = getCodeVerifier(state);
-		OauthUserProfileResponse userProfileResponse = getOauthUserProfileResponse(provider, code,
-			authorizationRequest);
-		log.info("userProfileResponse : {}", userProfileResponse);
-
-		Optional<Member> optionalMember = getLoginMember(provider, userProfileResponse);
-
-		Member member = optionalMember.orElseGet(() -> {
-			Member newMember = Member.builder()
-				.email(userProfileResponse.getEmail())
+		AuthorizationRequest request = getCodeVerifier(state);
+		OauthUserProfileResponse profileResponse = getOauthUserProfileResponse(provider, code, request);
+		Optional<Member> optionalMember = getLoginMember(provider, profileResponse);
+		Member member = optionalMember.orElseGet(() ->
+			Member.builder()
+				.email(profileResponse.getEmail())
 				.nickname(generateRandomNickname())
 				.provider(provider)
-				.profileUrl(userProfileResponse.getProfileImage())
-				.build();
-			memberRepository.save(newMember);
-			return newMember;
-		});
-
+				.profileUrl(profileResponse.getProfileImage())
+				.build());
+		memberRepository.save(member);
 		Jwt jwt = jwtProvider.createJwtBasedOnMember(member, now);
-		log.debug("로그인 서비스 요청 중 jwt 객체 생성 : {}", jwt);
-
 		redisService.saveRefreshToken(member.createRedisKey(), jwt);
-
 		return OauthMemberLoginResponse.of(jwt, member);
 	}
 
-	private static AuthorizationRequest getCodeVerifier(String state) {
-		AuthorizationRequest authorizationRequest = authorizationRequestMap.remove(state);
-		if (authorizationRequest == null) {
+	private AuthorizationRequest getCodeVerifier(String state) {
+		AuthorizationRequest request = authorizationRequestMap.remove(state);
+		if (request == null) {
 			throw new BadRequestException(OauthErrorCode.WRONG_STATE);
 		}
-		return authorizationRequest;
+		return request;
 	}
 
 	private OauthUserProfileResponse getOauthUserProfileResponse(String provider, String authorizationCode,
 		AuthorizationRequest authorizationRequest) {
 		OauthClient oauthClient = oauthClientRepository.findOneBy(provider);
-
-		OauthAccessTokenResponse accessTokenResponse =
-			webClientWrapper.post(
-				oauthClient.getTokenUri(),
-				oauthClient.createTokenHeader(),
-				oauthClient.createFormData(authorizationCode, authorizationRequest.getCodeVerifier()),
-				OauthAccessTokenResponse.class);
-		log.info("{}", accessTokenResponse);
+		OauthAccessTokenResponse accessTokenResponse = webClientWrapper.post(
+			oauthClient.getTokenUri(),
+			oauthClient.createTokenHeader(),
+			oauthClient.createTokenBody(authorizationCode, authorizationRequest.getCodeVerifier()),
+			OauthAccessTokenResponse.class);
 
 		// 공개키 목록 조회
-		List<OauthPublicKey> publicKeys = getOauthPublicKeys(oauthClient);
-		DecodedIdTokenPayload payload = oauthClient.validateIdToken(accessTokenResponse.getIdToken(),
-			authorizationRequest.getNonce(), publicKeys);
-		OauthUserProfileResponse userProfileResponse = OauthUserProfileResponse.from(payload);
-		log.info("{}", userProfileResponse);
-		return userProfileResponse;
+		DecodedIdTokenPayload payload = oauthClient.validateIdToken(
+			accessTokenResponse.getIdToken(),
+			authorizationRequest.getNonce(),
+			getOauthPublicKeys(oauthClient));
+		return OauthUserProfileResponse.from(payload);
 	}
 
 	private List<OauthPublicKey> getOauthPublicKeys(OauthClient oauthClient) {
@@ -128,8 +112,7 @@ public class MemberService {
 	}
 
 	private Optional<Member> getLoginMember(String provider, OauthUserProfileResponse userProfileResponse) {
-		String email = userProfileResponse.getEmail();
-		return memberRepository.findMemberByEmailAndProvider(email, provider);
+		return memberRepository.findMemberByEmailAndProvider(userProfileResponse.getEmail(), provider);
 	}
 
 	private String generateRandomNickname() {
@@ -140,9 +123,7 @@ public class MemberService {
 	}
 
 	public void logout(String accessToken, OauthMemberLogoutRequest request) {
-		log.info("로그아웃 서비스 요청 : accessToken={}, request={}", accessToken, request);
 		String refreshToken = request.getRefreshToken();
-
 		deleteRefreshTokenBy(refreshToken);
 		banAccessToken(accessToken);
 	}
@@ -194,14 +175,10 @@ public class MemberService {
 	@Transactional(readOnly = true)
 	public OauthCreateUrlResponse createAuthorizationCodeURL(String provider) {
 		OauthClient oauthClient = oauthClientRepository.findOneBy(provider);
-		String state = oauthClientRandomGenerator.generateState();
-		String codeVerifier = oauthClientRandomGenerator.generateCodeVerifier();
-		String codeChallenge = oauthClientRandomGenerator.generateCodeChallenge(codeVerifier);
-		String nonce = oauthClientRandomGenerator.generateNonce();
-		AuthorizationRequest authorizationRequest = AuthorizationRequest.of(state, codeVerifier, codeChallenge, nonce);
-		authorizationRequestMap.put(state, authorizationRequest);
-
-		String authURL = oauthClient.createAuthURL(authorizationRequest);
-		return new OauthCreateUrlResponse(authURL, authorizationRequest);
+		AuthorizationRequest request = authorizationCodeRandomGenerator.generateAuthorizationRequest();
+		authorizationRequestMap.put(request.getState(), request);
+		return new OauthCreateUrlResponse(
+			oauthClient.createAuthURL(request),
+			request);
 	}
 }

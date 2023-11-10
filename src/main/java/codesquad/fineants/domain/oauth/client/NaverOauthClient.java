@@ -24,7 +24,7 @@ public class NaverOauthClient extends OauthClient {
 	}
 
 	@Override
-	public MultiValueMap<String, String> createFormData(String authorizationCode, String codeVerifier) {
+	public MultiValueMap<String, String> createTokenBody(String authorizationCode, String codeVerifier) {
 		MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
 		formData.add("code", authorizationCode);
 		formData.add("redirect_uri", getRedirectUri());

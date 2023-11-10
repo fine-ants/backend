@@ -15,7 +15,6 @@ import lombok.RequiredArgsConstructor;
 public class OauthConfig {
 
 	private final OauthProperties oauthProperties;
-	private final OauthKisProperties oauthKisProperties;
 
 	@Bean
 	public InMemoryOauthClientRepository inMemoryOauthProviderRepository() {

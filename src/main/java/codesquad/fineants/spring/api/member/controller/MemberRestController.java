@@ -43,8 +43,8 @@ public class MemberRestController {
 		@PathVariable String provider,
 		@RequestParam String code,
 		@RequestParam String state) {
-		OauthMemberLoginResponse response = memberService.login(provider, code, state, LocalDateTime.now());
-		return ApiResponse.success(OauthSuccessCode.OK_LOGIN, response);
+		return ApiResponse.success(OauthSuccessCode.OK_LOGIN,
+			memberService.login(provider, code, state, LocalDateTime.now()));
 	}
 
 	@PostMapping(value = "/logout")

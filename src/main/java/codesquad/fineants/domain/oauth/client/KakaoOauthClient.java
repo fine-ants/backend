@@ -38,6 +38,8 @@ public class KakaoOauthClient extends OauthClient {
 	private final String iss;
 	private final String aud;
 
+	private final OauthProperties.Kakao.AuthorizationCode properties;
+
 	public KakaoOauthClient(OauthProperties.Kakao kakao) {
 		super(kakao.getClientId(),
 			kakao.getClientSecret(),
@@ -50,22 +52,24 @@ public class KakaoOauthClient extends OauthClient {
 		this.scope = kakao.getScope();
 		this.iss = kakao.getIss();
 		this.aud = kakao.getAud();
+		this.properties = kakao.getAuthorizationCode();
 	}
 
 	@Override
-	public MultiValueMap<String, String> createFormData(String authorizationCode, String codeVerifier) {
+	public MultiValueMap<String, String> createTokenBody(final String authorizationCode, final String codeVerifier) {
+		final String grantType = "authorization_code";
 		MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-		formData.add("code", authorizationCode);
-		formData.add("client_id", getClientId());
-		formData.add("client_secret", getClientSecret());
-		formData.add("redirect_uri", getRedirectUri());
-		formData.add("code_verifier", codeVerifier);
-		formData.add("grant_type", "authorization_code");
+		formData.add(properties.getCode(), authorizationCode);
+		formData.add(properties.getClientId(), getClientId());
+		formData.add(properties.getClientSecret(), getClientSecret());
+		formData.add(properties.getRedirectUri(), getRedirectUri());
+		formData.add(properties.getCodeVerifier(), codeVerifier);
+		formData.add(properties.getGrantType(), grantType);
 		return formData;
 	}
 
 	@Override
-	public OauthUserProfileResponse createOauthUserProfileResponse(Map<String, Object> attributes) {
+	public OauthUserProfileResponse createOauthUserProfileResponse(final Map<String, Object> attributes) {
 		String email = (String)attributes.get("email");
 		String picture = (String)attributes.get("picture");
 		return new OauthUserProfileResponse(email, picture);
@@ -86,9 +90,8 @@ public class KakaoOauthClient extends OauthClient {
 
 	@Override
 	public DecodedIdTokenPayload validateIdToken(String idToken, String nonce, List<OauthPublicKey> publicKeys) {
-		DecodedIdTokenPayload payload = validatePayload(idToken, nonce);
 		validateSign(idToken, publicKeys);
-		return payload;
+		return validatePayload(idToken, nonce);
 	}
 
 	private DecodedIdTokenPayload validatePayload(String idToken, String nonce) {
@@ -99,7 +102,6 @@ public class KakaoOauthClient extends OauthClient {
 		DecodedIdTokenPayload decodedIdTokenPayload = deserializeFromJson(decodedPayload,
 			DecodedIdTokenPayload.class);
 		decodedIdTokenPayload.validateIdToken(iss, aud, LocalDateTime.now(), nonce);
-		log.info("{}", decodedIdTokenPayload);
 		return decodedIdTokenPayload;
 	}
 
@@ -137,8 +139,7 @@ public class KakaoOauthClient extends OauthClient {
 			throw new RuntimeException(e);
 		}
 		JWTVerifier verifier = JWT.require(algorithm).build();
-		DecodedJWT jwt = verifier.verify(idToken);
-		log.info("jwt : {}", jwt);
+		verifier.verify(idToken);
 	}
 
 	private <T> T deserializeFromJson(String json, Class<T> returnType) {
@@ -149,4 +150,5 @@ public class KakaoOauthClient extends OauthClient {
 			throw new RuntimeException("역직렬화에 실패하였습니다.");
 		}
 	}
+
 }
