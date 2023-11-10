@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import codesquad.fineants.domain.oauth.properties.OauthProperties;
 import codesquad.fineants.spring.api.errors.errorcode.OauthErrorCode;
 import codesquad.fineants.spring.api.errors.exception.BadRequestException;
+import codesquad.fineants.spring.api.member.request.AuthorizationRequest;
 import codesquad.fineants.spring.api.member.response.OauthUserProfileResponse;
 import codesquad.fineants.spring.api.member.service.JwkProviderSingleton;
 import lombok.extern.slf4j.Slf4j;
@@ -71,15 +72,15 @@ public class KakaoOauthClient extends OauthClient {
 	}
 
 	@Override
-	public String createAuthURL(String state, String codeChallenge, String nonce) {
+	public String createAuthURL(AuthorizationRequest request) {
 		return authorizeUri + "?"
 			+ "response_type=" + responseType + "&"
 			+ "client_id=" + getClientId() + "&"
 			+ "redirect_uri=" + getRedirectUri() + "&"
 			+ "scope=" + scope + "&"
-			+ "state=" + state + "&"
-			+ "nonce=" + nonce + "&"
-			+ "code_challenge=" + codeChallenge + "&"
+			+ "state=" + request.getState() + "&"
+			+ "nonce=" + request.getNonce() + "&"
+			+ "code_challenge=" + request.getCodeChallenge() + "&"
 			+ "code_challenge_method=S256";
 	}
 

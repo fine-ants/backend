@@ -9,10 +9,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class AuthorizationRequest {
+	private String state;
 	private String codeVerifier;
+	private String codeChallenge;
 	private String nonce;
 
-	public static AuthorizationRequest of(String codeVerifier, String nonce) {
-		return new AuthorizationRequest(codeVerifier, nonce);
+	public static AuthorizationRequest of(String state, String codeVerifier, String codeChallenge, String nonce) {
+		return new AuthorizationRequest(state, codeVerifier, codeChallenge, nonce);
 	}
 }

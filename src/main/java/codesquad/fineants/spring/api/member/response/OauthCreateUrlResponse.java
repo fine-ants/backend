@@ -1,7 +1,6 @@
 package codesquad.fineants.spring.api.member.response;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
+import codesquad.fineants.spring.api.member.request.AuthorizationRequest;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -9,10 +8,5 @@ import lombok.Getter;
 @AllArgsConstructor
 public class OauthCreateUrlResponse {
 	private String authURL;
-	@JsonIgnore
-	private String state;
-	@JsonIgnore
-	private String codeVerifier;
-	@JsonIgnore
-	private String nonce;
+	private AuthorizationRequest authorizationRequest;
 }

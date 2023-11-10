@@ -25,7 +25,7 @@ public class SimpleLogAop {
 	@Before("cut()")
 	public void beforeParameterLog(JoinPoint joinPoint) {
 		Method method = getMethod(joinPoint);
-		log.info("======= method name = {} =======", method.getName());
+		log.info("======= method name = {}", method.getName());
 
 		Object[] args = joinPoint.getArgs();
 		if (args.length <= 0) {

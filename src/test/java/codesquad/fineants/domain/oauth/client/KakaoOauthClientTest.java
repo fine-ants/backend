@@ -10,6 +10,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
 import codesquad.fineants.domain.oauth.repository.OauthClientRepository;
+import codesquad.fineants.spring.api.member.request.AuthorizationRequest;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -32,8 +33,9 @@ class KakaoOauthClientTest {
 		String codeVerifier = oauthClientRandomGenerator.generateCodeVerifier();
 		String nonce = oauthClientRandomGenerator.generateNonce();
 		String codeChallenge = oauthClientRandomGenerator.generateCodeChallenge(codeVerifier);
+		AuthorizationRequest authorizationRequest = AuthorizationRequest.of(state, codeVerifier, codeChallenge, nonce);
 		// when
-		String actual = oauthClient.createAuthURL(state, codeChallenge, nonce);
+		String actual = oauthClient.createAuthURL(authorizationRequest);
 
 		// then
 		String expected = "https://kauth.kakao.com/oauth/authorize?"

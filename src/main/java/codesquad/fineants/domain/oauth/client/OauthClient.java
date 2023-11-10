@@ -10,6 +10,7 @@ import org.springframework.http.MediaType;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
+import codesquad.fineants.spring.api.member.request.AuthorizationRequest;
 import codesquad.fineants.spring.api.member.response.OauthUserProfileResponse;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +32,7 @@ public abstract class OauthClient {
 
 	public abstract OauthUserProfileResponse createOauthUserProfileResponse(Map<String, Object> attributes);
 
-	public abstract String createAuthURL(String state, String codeVerifier, String nonce);
+	public abstract String createAuthURL(AuthorizationRequest authorizationRequest);
 
 	public MultiValueMap<String, String> createTokenHeader() {
 		MultiValueMap<String, String> result = new LinkedMultiValueMap<>();

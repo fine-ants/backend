@@ -43,7 +43,6 @@ public class MemberRestController {
 		@PathVariable String provider,
 		@RequestParam String code,
 		@RequestParam String state) {
-		log.info("login 컨트롤러 매핑, provider={}, code={}, state={}", provider, code, state);
 		OauthMemberLoginResponse response = memberService.login(provider, code, state, LocalDateTime.now());
 		return ApiResponse.success(OauthSuccessCode.OK_LOGIN, response);
 	}
@@ -51,7 +50,6 @@ public class MemberRestController {
 	@PostMapping(value = "/logout")
 	public ApiResponse<Void> logout(@RequestAttribute String accessToken,
 		@RequestBody OauthMemberLogoutRequest request) {
-		log.info("로그아웃 요청 입력 : acessToken={}, request={}", accessToken, request);
 		memberService.logout(accessToken, request);
 		return ApiResponse.success(OauthSuccessCode.OK_LOGOUT);
 	}
@@ -59,11 +57,8 @@ public class MemberRestController {
 	@ResponseStatus(OK)
 	@PostMapping("/refresh/token")
 	public ApiResponse<OauthMemberRefreshResponse> refreshAccessToken(@RequestBody OauthMemberRefreshRequest request) {
-		log.info("리프레시 토큰 API 요청 : {}", request);
-
 		OauthMemberRefreshResponse response = memberService.refreshAccessToken(request,
 			LocalDateTime.now());
-		log.debug("리프레시 토큰 API 응답 : {}", response);
 		return ApiResponse.success(OauthSuccessCode.OK_REFRESH_TOKEN, response);
 	}
 

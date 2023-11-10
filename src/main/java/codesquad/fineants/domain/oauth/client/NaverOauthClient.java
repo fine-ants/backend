@@ -7,6 +7,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import codesquad.fineants.domain.oauth.properties.OauthProperties;
+import codesquad.fineants.spring.api.member.request.AuthorizationRequest;
 import codesquad.fineants.spring.api.member.response.OauthUserProfileResponse;
 import lombok.extern.slf4j.Slf4j;
 
@@ -42,7 +43,7 @@ public class NaverOauthClient extends OauthClient {
 
 	// TODO: 구현예정
 	@Override
-	public String createAuthURL(String state, String codeVerifier, String nonce) {
+	public String createAuthURL(AuthorizationRequest request) {
 		return null;
 	}
 

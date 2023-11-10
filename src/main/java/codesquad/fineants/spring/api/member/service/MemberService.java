@@ -45,7 +45,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Service
 public class MemberService {
-	private static final Map<String, AuthorizationRequest> codeVerifierMap = new ConcurrentHashMap<>();
+	private static final Map<String, AuthorizationRequest> authorizationRequestMap = new ConcurrentHashMap<>();
 	private final OauthClientRepository oauthClientRepository;
 	private final MemberRepository memberRepository;
 	private final JwtProvider jwtProvider;
@@ -83,7 +83,7 @@ public class MemberService {
 	}
 
 	private static AuthorizationRequest getCodeVerifier(String state) {
-		AuthorizationRequest authorizationRequest = codeVerifierMap.remove(state);
+		AuthorizationRequest authorizationRequest = authorizationRequestMap.remove(state);
 		if (authorizationRequest == null) {
 			throw new BadRequestException(OauthErrorCode.WRONG_STATE);
 		}
@@ -196,11 +196,12 @@ public class MemberService {
 		OauthClient oauthClient = oauthClientRepository.findOneBy(provider);
 		String state = oauthClientRandomGenerator.generateState();
 		String codeVerifier = oauthClientRandomGenerator.generateCodeVerifier();
+		String codeChallenge = oauthClientRandomGenerator.generateCodeChallenge(codeVerifier);
 		String nonce = oauthClientRandomGenerator.generateNonce();
-		codeVerifierMap.put(state, AuthorizationRequest.of(codeVerifier, nonce));
+		AuthorizationRequest authorizationRequest = AuthorizationRequest.of(state, codeVerifier, codeChallenge, nonce);
+		authorizationRequestMap.put(state, authorizationRequest);
 
-		String authURL = oauthClient.createAuthURL(state,
-			oauthClientRandomGenerator.generateCodeChallenge(codeVerifier), nonce);
-		return new OauthCreateUrlResponse(authURL, state, codeVerifier, nonce);
+		String authURL = oauthClient.createAuthURL(authorizationRequest);
+		return new OauthCreateUrlResponse(authURL, authorizationRequest);
 	}
 }

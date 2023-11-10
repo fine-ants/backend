@@ -151,7 +151,7 @@ public class MemberServiceTest {
 		given(oauthClientRandomGenerator.generateCodeVerifier()).willReturn("1234");
 		given(oauthClientRandomGenerator.generateNonce()).willReturn("1234");
 		OauthCreateUrlResponse oauthCreateUrlResponse = memberService.createAuthorizationCodeURL(provider);
-		String state = oauthCreateUrlResponse.getState();
+		String state = oauthCreateUrlResponse.getAuthorizationRequest().getState();
 
 		given(webClientWrapper.post(anyString(), any(), any(), any()))
 			.willThrow(new BadRequestException(OauthErrorCode.FAIL_REQUEST,
