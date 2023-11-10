@@ -1,20 +1,18 @@
 package codesquad.fineants.spring.util;
 
-import org.springframework.stereotype.Component;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import codesquad.fineants.spring.api.errors.errorcode.ObjectMapperErrorCode;
 import codesquad.fineants.spring.api.errors.exception.ServerInternalException;
-import lombok.RequiredArgsConstructor;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
-@Component
-@RequiredArgsConstructor
-public class ObjectMapperUtil {
-	private final ObjectMapper objectMapper;
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public final class ObjectMapperUtil {
+	private static final ObjectMapper objectMapper = new ObjectMapper();
 
-	public <T> String serialize(T obj) {
+	public static <T> String serialize(T obj) {
 		try {
 			return objectMapper.writeValueAsString(obj);
 		} catch (JsonProcessingException e) {
@@ -22,7 +20,7 @@ public class ObjectMapperUtil {
 		}
 	}
 
-	public <T> T deserialize(String json, Class<T> returnType) {
+	public static <T> T deserialize(String json, Class<T> returnType) {
 		try {
 			return objectMapper.readValue(json, returnType);
 		} catch (JsonProcessingException e) {

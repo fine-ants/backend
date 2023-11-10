@@ -50,7 +50,6 @@ public class MemberService {
 	private final OauthMemberRedisService redisService;
 	private final WebClientWrapper webClientWrapper;
 	private final AuthorizationCodeRandomGenerator authorizationCodeRandomGenerator;
-	private final ObjectMapperUtil objectMapperUtil;
 
 	public OauthMemberLoginResponse login(String provider, String code, String state, LocalDateTime now) {
 		AuthorizationRequest request = getCodeVerifier(state);
@@ -63,10 +62,10 @@ public class MemberService {
 				.provider(provider)
 				.profileUrl(profileResponse.getProfileImage())
 				.build());
-		memberRepository.save(member);
-		Jwt jwt = jwtProvider.createJwtBasedOnMember(member, now);
-		redisService.saveRefreshToken(member.createRedisKey(), jwt);
-		return OauthMemberLoginResponse.of(jwt, member);
+		Member saveMember = memberRepository.save(member);
+		Jwt jwt = jwtProvider.createJwtBasedOnMember(saveMember, now);
+		redisService.saveRefreshToken(saveMember.createRedisKey(), jwt);
+		return OauthMemberLoginResponse.of(jwt, saveMember);
 	}
 
 	private AuthorizationRequest getCodeVerifier(String state) {
@@ -97,8 +96,8 @@ public class MemberService {
 		Map<String, Object> map = webClientWrapper.getPublicKeyList(publicKeyUri, new ParameterizedTypeReference<>() {
 		});
 
-		return objectMapperUtil.deserialize(
-			objectMapperUtil.serialize(map),
+		return ObjectMapperUtil.deserialize(
+			ObjectMapperUtil.serialize(map),
 			OauthPublicKeyList.class).getKeys();
 	}
 

@@ -42,7 +42,6 @@ public abstract class OauthClient {
 	private final String userInfoUri;
 	private final String redirectUri;
 	private final String publicKeyUri;
-	private final ObjectMapperUtil objectMapperUtil;
 
 	public abstract MultiValueMap<String, String> createTokenBody(String authorizationCode, String codeVerifier);
 
@@ -64,7 +63,7 @@ public abstract class OauthClient {
 		String payload = idToken.split(separatorRegex)[payloadIndex];
 		byte[] decodedBytes = Base64.getUrlDecoder().decode(payload);
 		String decodedPayload = new String(decodedBytes, StandardCharsets.UTF_8);
-		DecodedIdTokenPayload decodedIdTokenPayload = objectMapperUtil.deserialize(decodedPayload,
+		DecodedIdTokenPayload decodedIdTokenPayload = ObjectMapperUtil.deserialize(decodedPayload,
 			DecodedIdTokenPayload.class);
 
 		validatePayload(decodedIdTokenPayload, nonce);
@@ -79,7 +78,7 @@ public abstract class OauthClient {
 		String payload = split[0];
 		byte[] decodedBytes = Base64.getUrlDecoder().decode(payload);
 		String decodedHeader = new String(decodedBytes, StandardCharsets.UTF_8);
-		DecodedIdTokenHeader header = objectMapperUtil.deserialize(decodedHeader, DecodedIdTokenHeader.class);
+		DecodedIdTokenHeader header = ObjectMapperUtil.deserialize(decodedHeader, DecodedIdTokenHeader.class);
 
 		// 공개키 목록에서 헤더의 kid에 해당하는 공개키 값 확인
 		publicKeys.stream()
