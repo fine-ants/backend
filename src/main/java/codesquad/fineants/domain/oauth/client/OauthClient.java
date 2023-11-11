@@ -21,8 +21,10 @@ import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
 
+import codesquad.fineants.spring.api.errors.errorcode.JwkErrorCode;
 import codesquad.fineants.spring.api.errors.errorcode.OauthErrorCode;
 import codesquad.fineants.spring.api.errors.exception.BadRequestException;
+import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
 import codesquad.fineants.spring.api.member.request.AuthorizationRequest;
 import codesquad.fineants.spring.api.member.response.OauthUserProfileResponse;
 import codesquad.fineants.spring.api.member.service.JwkProviderSingleton;
@@ -74,8 +76,9 @@ public abstract class OauthClient {
 	public abstract void validatePayload(DecodedIdTokenPayload payload, String nonce);
 
 	public void validateSign(String idToken, List<OauthPublicKey> publicKeys) {
-		String[] split = idToken.split("\\.");
-		String payload = split[0];
+		final String separatorRegex = "\\.";
+		final int headerIndex = 0;
+		String payload = idToken.split(separatorRegex)[headerIndex];
 		byte[] decodedBytes = Base64.getUrlDecoder().decode(payload);
 		String decodedHeader = new String(decodedBytes, StandardCharsets.UTF_8);
 		DecodedIdTokenHeader header = ObjectMapperUtil.deserialize(decodedHeader, DecodedIdTokenHeader.class);
@@ -85,7 +88,7 @@ public abstract class OauthClient {
 			.filter(oauthPublicKey -> oauthPublicKey.equalKid(header.getKid()))
 			.findAny()
 			.orElseThrow(() -> new BadRequestException(OauthErrorCode.WRONG_ID_TOKEN,
-				"kid 값이 일치하지 않습니다. header.kid=" + header.getKid()));
+				String.format("kid 값이 일치하지 않습니다. header.kid=%s", header.getKid())));
 
 		// 검증 없이 디코딩
 		DecodedJWT jwtOrigin = JWT.decode(idToken);
@@ -96,7 +99,7 @@ public abstract class OauthClient {
 		try {
 			jwk = provider.get(jwtOrigin.getKeyId());
 		} catch (JwkException e) {
-			throw new RuntimeException(e);
+			throw new NotFoundResourceException(JwkErrorCode.NOT_FOUND_SIGNING_KEY);
 		}
 
 		// 검증 및 디코딩
@@ -104,7 +107,7 @@ public abstract class OauthClient {
 		try {
 			algorithm = Algorithm.RSA256((RSAPublicKey)jwk.getPublicKey(), null);
 		} catch (InvalidPublicKeyException e) {
-			throw new RuntimeException(e);
+			throw new BadRequestException(JwkErrorCode.INVALID_PUBLIC_KEY);
 		}
 		JWTVerifier verifier = JWT.require(algorithm).build();
 		verifier.verify(idToken);

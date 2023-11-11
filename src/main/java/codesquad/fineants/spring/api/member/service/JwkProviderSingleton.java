@@ -25,9 +25,4 @@ public class JwkProviderSingleton {
 		}
 		return instance;
 	}
-
-	public void verifyIdToken(String kid) {
-
-	}
-
 }
