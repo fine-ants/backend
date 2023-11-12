@@ -38,6 +38,8 @@ public class OauthProperties {
 
 		private final String clientId;
 		private final String clientSecret;
+		private final String authorizeUri;
+		private final String responseType;
 		private final String tokenUri;
 		private final String userInfoUri;
 		private final String redirectUri;
@@ -68,7 +70,7 @@ public class OauthProperties {
 			private final String redirectUri;
 			private final String codeVerifier;
 			private final String grantType;
-			
+
 			@ConstructorBinding
 			public AuthorizationCode(String code, String clientId, String clientSecret, String redirectUri,
 				String codeVerifier, String grantType) {

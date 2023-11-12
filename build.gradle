@@ -62,6 +62,8 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'io.projectreactor:reactor-test'
     testImplementation 'org.projectlombok:lombok'
+    // final class mocking
+    testImplementation 'org.mockito:mockito-inline:2.13.0'
     testAnnotationProcessor 'org.projectlombok:lombok'
 }
 

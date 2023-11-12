@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface PortfolioGainHistoryRepository extends JpaRepository<PortfolioGainHistory, Long> {
 	@Query(value = "select p.*, p2.* from fineAnts.portfolio_gain_history p "
@@ -13,5 +14,5 @@ public interface PortfolioGainHistoryRepository extends JpaRepository<PortfolioG
 		+ "order by p.create_at desc "
 		+ "limit 1", nativeQuery = true)
 	Optional<PortfolioGainHistory> findFirstByPortfolioAndCreateAtIsLessThanEqualOrderByCreateAtDesc(
-		Long portfolioId, LocalDateTime createAt);
+		@Param("portfolioId") Long portfolioId, @Param("createAt") LocalDateTime createAt);
 }

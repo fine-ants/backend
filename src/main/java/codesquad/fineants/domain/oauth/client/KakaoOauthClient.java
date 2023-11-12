@@ -71,7 +71,7 @@ public class KakaoOauthClient extends OauthClient {
 	}
 
 	@Override
-	public void validatePayload(DecodedIdTokenPayload payload, String nonce) {
-		payload.validateIdToken(iss, aud, LocalDateTime.now(), nonce);
+	public void validatePayload(DecodedIdTokenPayload payload, LocalDateTime now, String nonce) {
+		payload.validateIdToken(iss, aud, now, nonce);
 	}
 }

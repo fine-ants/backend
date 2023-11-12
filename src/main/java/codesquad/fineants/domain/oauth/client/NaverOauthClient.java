@@ -1,5 +1,6 @@
 package codesquad.fineants.domain.oauth.client;
 
+import java.time.LocalDateTime;
 import java.util.Map;
 
 import org.springframework.util.LinkedMultiValueMap;
@@ -13,6 +14,9 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class NaverOauthClient extends OauthClient {
 
+	private final String authorizeUri;
+	private final String responseType;
+
 	public NaverOauthClient(OauthProperties.Naver naver) {
 		super(naver.getClientId(),
 			naver.getClientSecret(),
@@ -20,15 +24,16 @@ public class NaverOauthClient extends OauthClient {
 			naver.getUserInfoUri(),
 			naver.getRedirectUri(),
 			null);
+		this.authorizeUri = naver.getAuthorizeUri();
+		this.responseType = naver.getResponseType();
 	}
 
 	@Override
 	public MultiValueMap<String, String> createTokenBody(String authorizationCode, String codeVerifier) {
 		MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+		formData.add("grant_type", "authorization_code");
 		formData.add("code", authorizationCode);
 		formData.add("redirect_uri", getRedirectUri());
-		formData.add("grant_type", "authorization_code");
-		formData.add("code_verifier", codeVerifier);
 		return formData;
 	}
 
@@ -41,12 +46,16 @@ public class NaverOauthClient extends OauthClient {
 	}
 
 	@Override
-	public String createAuthURL(AuthorizationRequest authorizationRequest) {
-		return null;
+	public String createAuthURL(AuthorizationRequest request) {
+		return authorizeUri + "?"
+			+ "response_type=" + responseType + "&"
+			+ "client_id=" + getClientId() + "&"
+			+ "redirect_uri=" + getRedirectUri() + "&"
+			+ "state=" + request.getState();
 	}
 
 	@Override
-	public void validatePayload(DecodedIdTokenPayload payload, String nonce) {
+	public void validatePayload(DecodedIdTokenPayload payload, LocalDateTime now, String nonce) {
 
 	}
 }

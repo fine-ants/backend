@@ -4,8 +4,8 @@ import static org.springframework.http.HttpHeaders.*;
 
 import java.nio.charset.StandardCharsets;
 import java.security.interfaces.RSAPublicKey;
+import java.time.LocalDateTime;
 import java.util.Base64;
-import java.util.List;
 import java.util.Map;
 
 import org.springframework.http.MediaType;
@@ -19,10 +19,9 @@ import com.auth0.jwk.JwkProvider;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
-import com.auth0.jwt.interfaces.DecodedJWT;
+import com.auth0.jwt.exceptions.JWTDecodeException;
 
 import codesquad.fineants.spring.api.errors.errorcode.JwkErrorCode;
-import codesquad.fineants.spring.api.errors.errorcode.OauthErrorCode;
 import codesquad.fineants.spring.api.errors.exception.BadRequestException;
 import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
 import codesquad.fineants.spring.api.member.request.AuthorizationRequest;
@@ -59,7 +58,7 @@ public abstract class OauthClient {
 		return result;
 	}
 
-	public DecodedIdTokenPayload decodeIdToken(String idToken, String nonce, List<OauthPublicKey> publicKeys) {
+	public DecodedIdTokenPayload decodeIdToken(String idToken, String nonce, LocalDateTime now) {
 		final String separatorRegex = "\\.";
 		final int payloadIndex = 1;
 		String payload = idToken.split(separatorRegex)[payloadIndex];
@@ -68,36 +67,28 @@ public abstract class OauthClient {
 		DecodedIdTokenPayload decodedIdTokenPayload = ObjectMapperUtil.deserialize(decodedPayload,
 			DecodedIdTokenPayload.class);
 
-		validatePayload(decodedIdTokenPayload, nonce);
-		validateSign(idToken, publicKeys);
+		validateSign(idToken);
+		validatePayload(decodedIdTokenPayload, now, nonce);
 		return decodedIdTokenPayload;
 	}
 
-	public abstract void validatePayload(DecodedIdTokenPayload payload, String nonce);
+	public abstract void validatePayload(DecodedIdTokenPayload payload, LocalDateTime now, String nonce);
 
-	public void validateSign(String idToken, List<OauthPublicKey> publicKeys) {
-		final String separatorRegex = "\\.";
-		final int headerIndex = 0;
-		String payload = idToken.split(separatorRegex)[headerIndex];
-		byte[] decodedBytes = Base64.getUrlDecoder().decode(payload);
-		String decodedHeader = new String(decodedBytes, StandardCharsets.UTF_8);
-		DecodedIdTokenHeader header = ObjectMapperUtil.deserialize(decodedHeader, DecodedIdTokenHeader.class);
-
-		// 공개키 목록에서 헤더의 kid에 해당하는 공개키 값 확인
-		publicKeys.stream()
-			.filter(oauthPublicKey -> oauthPublicKey.equalKid(header.getKid()))
-			.findAny()
-			.orElseThrow(() -> new BadRequestException(OauthErrorCode.WRONG_ID_TOKEN,
-				String.format("kid 값이 일치하지 않습니다. header.kid=%s", header.getKid())));
-
+	public void validateSign(String idToken) {
 		// 검증 없이 디코딩
-		DecodedJWT jwtOrigin = JWT.decode(idToken);
+		String kid;
+		try {
+			kid = JWT.decode(idToken).getKeyId();
+		} catch (JWTDecodeException e) {
+			log.error(e.getMessage(), e);
+			throw new BadRequestException(JwkErrorCode.INVALID_ID_TOKEN);
+		}
 
 		// 공개키 프로바이더 준비
-		JwkProvider provider = JwkProviderSingleton.getInstance();
+		JwkProvider provider = JwkProviderSingleton.getInstance(getPublicKeyUri());
 		Jwk jwk;
 		try {
-			jwk = provider.get(jwtOrigin.getKeyId());
+			jwk = provider.get(kid);
 		} catch (JwkException e) {
 			throw new NotFoundResourceException(JwkErrorCode.NOT_FOUND_SIGNING_KEY);
 		}

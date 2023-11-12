@@ -6,8 +6,6 @@ import com.auth0.jwk.JwkProvider;
 import com.auth0.jwk.JwkProviderBuilder;
 
 public class JwkProviderSingleton {
-
-	private static final String JWK_URL = "https://kauth.kakao.com";
 	private static final int CACHE_SIZE = 10;
 	private static final int CACHE_EXPIRATION = 7; // days
 
@@ -17,9 +15,9 @@ public class JwkProviderSingleton {
 		// private constructor to prevent instantiation
 	}
 
-	public static synchronized JwkProvider getInstance() {
+	public static synchronized JwkProvider getInstance(String publicKeyUrl) {
 		if (instance == null) {
-			instance = new JwkProviderBuilder(JWK_URL)
+			instance = new JwkProviderBuilder(publicKeyUrl)
 				.cached(CACHE_SIZE, CACHE_EXPIRATION, TimeUnit.DAYS)
 				.build();
 		}

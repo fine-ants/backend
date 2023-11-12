@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -11,12 +12,18 @@ import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.test.context.ActiveProfiles;
 
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.JWTVerifier;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.interfaces.DecodedJWT;
+import com.auth0.jwt.interfaces.Verification;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -26,8 +33,8 @@ import codesquad.fineants.domain.oauth.client.AuthorizationCodeRandomGenerator;
 import codesquad.fineants.spring.api.errors.errorcode.OauthErrorCode;
 import codesquad.fineants.spring.api.errors.exception.BadRequestException;
 import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
+import codesquad.fineants.spring.api.member.request.AuthorizationRequest;
 import codesquad.fineants.spring.api.member.response.OauthAccessTokenResponse;
-import codesquad.fineants.spring.api.member.response.OauthCreateUrlResponse;
 import codesquad.fineants.spring.api.member.response.OauthMemberLoginResponse;
 
 @ActiveProfiles("test")
@@ -52,6 +59,9 @@ public class MemberServiceTest {
 	@MockBean
 	private AuthorizationCodeRandomGenerator authorizationCodeRandomGenerator;
 
+	@Mock
+	private JWT mockJwt;
+
 	@AfterEach
 	void tearDown() {
 		memberRepository.deleteAllInBatch();
@@ -65,10 +75,10 @@ public class MemberServiceTest {
 		String code = "1234";
 		String state = "1234";
 		String codeVerifier = "1234";
+		String codeChallenge = "1234";
 		String nonce = "5b9a1e56120de83c4a083894c8dc8127";
-		given(authorizationCodeRandomGenerator.generateState()).willReturn(state);
-		given(authorizationCodeRandomGenerator.generateCodeVerifier()).willReturn(codeVerifier);
-		given(authorizationCodeRandomGenerator.generateNonce()).willReturn(nonce);
+		given(authorizationCodeRandomGenerator.generateAuthorizationRequest()).willReturn(
+			AuthorizationRequest.of(state, codeVerifier, codeChallenge, nonce));
 
 		memberService.createAuthorizationCodeURL(provider);
 
@@ -81,41 +91,27 @@ public class MemberServiceTest {
 		OauthAccessTokenResponse mockAccessTokenResponse =
 			objectMapper.readValue(objectMapper.writeValueAsString(responseBody), OauthAccessTokenResponse.class);
 		given(webClientWrapper.post(anyString(), any(), any(), any())).willReturn(mockAccessTokenResponse);
-
 		willDoNothing().given(redisService).saveRefreshToken(anyString(), any(Jwt.class));
 
-		Map<String, Object> map = new HashMap<>();
-		map.put("keys", "[\n"
-			+ "        {\n"
-			+ "            \"kid\": \"3f96980381e451efad0d2ddd30e3d3\",\n"
-			+ "            \"kty\": \"RSA\",\n"
-			+ "            \"alg\": \"RS256\",\n"
-			+ "            \"use\": \"sig\",\n"
-			+ "            \"n\": \"q8zZ0b_MNaLd6Ny8wd4cjFomilLfFIZcmhNSc1ttx_oQdJJZt5CDHB8WWwPGBUDUyY8AmfglS9Y1qA0_fxxs-ZUWdt45jSbUxghKNYgEwSutfM5sROh3srm5TiLW4YfOvKytGW1r9TQEdLe98ork8-rNRYPybRI3SKoqpci1m1QOcvUg4xEYRvbZIWku24DNMSeheytKUz6Ni4kKOVkzfGN11rUj1IrlRR-LNA9V9ZYmeoywy3k066rD5TaZHor5bM5gIzt1B4FmUuFITpXKGQZS5Hn_Ck8Bgc8kLWGAU8TzmOzLeROosqKE0eZJ4ESLMImTb2XSEZuN1wFyL0VtJw\",\n"
-			+ "            \"e\": \"AQAB\"\n"
-			+ "        }, {\n"
-			+ "            \"kid\": \"9f252dadd5f233f93d2fa528d12fea\",\n"
-			+ "            \"kty\": \"RSA\",\n"
-			+ "            \"alg\": \"RS256\",\n"
-			+ "            \"use\": \"sig\",\n"
-			+ "            \"n\": \"qGWf6RVzV2pM8YqJ6by5exoixIlTvdXDfYj2v7E6xkoYmesAjp_1IYL7rzhpUYqIkWX0P4wOwAsg-Ud8PcMHggfwUNPOcqgSk1hAIHr63zSlG8xatQb17q9LrWny2HWkUVEU30PxxHsLcuzmfhbRx8kOrNfJEirIuqSyWF_OBHeEgBgYjydd_c8vPo7IiH-pijZn4ZouPsEg7wtdIX3-0ZcXXDbFkaDaqClfqmVCLNBhg3DKYDQOoyWXrpFKUXUFuk2FTCqWaQJ0GniO4p_ppkYIf4zhlwUYfXZEhm8cBo6H2EgukntDbTgnoha8kNunTPekxWTDhE5wGAt6YpT4Yw\",\n"
-			+ "            \"e\": \"AQAB\"\n"
-			+ "        }\n"
-			+ "    ]");
-		given(
-			webClientWrapper.getPublicKeyList("https://kauth.kakao.com/.well-known/jwks.json",
-				new ParameterizedTypeReference<Map<String, Object>>() {
-				}))
-			.willReturn(map);
+		MockedStatic<JWT> jwtMockedStatic = mockStatic(JWT.class);
+		Verification mockVerification = mock(Verification.class);
+		JWTVerifier mockJWTVerifier = mock(JWTVerifier.class);
+		given(JWT.require(any(Algorithm.class))).willReturn(mockVerification);
+		given(mockVerification.build()).willReturn(mockJWTVerifier);
+		DecodedJWT mockDecodedJWT = mock(DecodedJWT.class);
+		String kid = "9f252dadd5f233f93d2fa528d12fea";
+		given(JWT.decode((String)responseBody.get("id_token"))).willReturn(mockDecodedJWT);
+		given(mockDecodedJWT.getKeyId()).willReturn(kid);
 
-		// when
-		OauthMemberLoginResponse response = memberService.login(provider, code, state, LocalDateTime.now());
+		OauthMemberLoginResponse response = memberService.login(provider, code, state,
+			LocalDate.of(2023, 11, 8).atStartOfDay());
 
-		// then
 		assertThat(response)
 			.extracting("user")
 			.extracting("email")
 			.isEqualTo("qkdlfjtm119@naver.com");
+
+		jwtMockedStatic.close();
 	}
 
 	@DisplayName("존재하지 않은 provider를 제공하여 로그인 시도시 예외가 발생한다")
@@ -126,10 +122,10 @@ public class MemberServiceTest {
 		String code = "1234";
 		String state = "1234";
 		String codeVerifier = "1234";
+		String codeChallenge = "1234";
 		String nonce = "1234";
-		given(authorizationCodeRandomGenerator.generateState()).willReturn(state);
-		given(authorizationCodeRandomGenerator.generateCodeVerifier()).willReturn(codeVerifier);
-		given(authorizationCodeRandomGenerator.generateNonce()).willReturn(nonce);
+		given(authorizationCodeRandomGenerator.generateAuthorizationRequest()).willReturn(
+			AuthorizationRequest.of(state, codeVerifier, codeChallenge, nonce));
 		memberService.createAuthorizationCodeURL("kakao");
 
 		// when
@@ -147,12 +143,13 @@ public class MemberServiceTest {
 		// given
 		String provider = "kakao";
 		String code = "1234";
-		given(authorizationCodeRandomGenerator.generateState()).willReturn("1234");
-		given(authorizationCodeRandomGenerator.generateCodeVerifier()).willReturn("1234");
-		given(authorizationCodeRandomGenerator.generateNonce()).willReturn("1234");
-		OauthCreateUrlResponse oauthCreateUrlResponse = memberService.createAuthorizationCodeURL(provider);
-		String state = oauthCreateUrlResponse.getAuthorizationRequest().getState();
-
+		String state = "1234";
+		String codeVerifier = "1234";
+		String codeChallenge = "4321";
+		String nonce = "1234";
+		given(authorizationCodeRandomGenerator.generateAuthorizationRequest()).willReturn(
+			AuthorizationRequest.of(state, codeVerifier, codeChallenge, nonce));
+		memberService.createAuthorizationCodeURL(provider);
 		given(webClientWrapper.post(anyString(), any(), any(), any()))
 			.willThrow(new BadRequestException(OauthErrorCode.FAIL_REQUEST,
 				"{\"error\":\"invalid_grant\",\"error_description\":\"authorization code not found for code=1234\",\"error_code\":\"KOE320\"}"));

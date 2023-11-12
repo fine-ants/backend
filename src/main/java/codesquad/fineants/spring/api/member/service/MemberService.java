@@ -1,13 +1,11 @@
 package codesquad.fineants.spring.api.member.service;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,8 +16,6 @@ import codesquad.fineants.domain.member.MemberRepository;
 import codesquad.fineants.domain.oauth.client.AuthorizationCodeRandomGenerator;
 import codesquad.fineants.domain.oauth.client.DecodedIdTokenPayload;
 import codesquad.fineants.domain.oauth.client.OauthClient;
-import codesquad.fineants.domain.oauth.client.OauthPublicKey;
-import codesquad.fineants.domain.oauth.client.OauthPublicKeyList;
 import codesquad.fineants.domain.oauth.repository.OauthClientRepository;
 import codesquad.fineants.spring.api.errors.errorcode.MemberErrorCode;
 import codesquad.fineants.spring.api.errors.errorcode.OauthErrorCode;
@@ -34,7 +30,6 @@ import codesquad.fineants.spring.api.member.response.OauthCreateUrlResponse;
 import codesquad.fineants.spring.api.member.response.OauthMemberLoginResponse;
 import codesquad.fineants.spring.api.member.response.OauthMemberRefreshResponse;
 import codesquad.fineants.spring.api.member.response.OauthUserProfileResponse;
-import codesquad.fineants.spring.util.ObjectMapperUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -53,7 +48,7 @@ public class MemberService {
 
 	public OauthMemberLoginResponse login(String provider, String code, String state, LocalDateTime now) {
 		AuthorizationRequest request = getCodeVerifier(state);
-		OauthUserProfileResponse profileResponse = getOauthUserProfileResponse(provider, code, request);
+		OauthUserProfileResponse profileResponse = getOauthUserProfileResponse(provider, code, request, now);
 		Optional<Member> optionalMember = getLoginMember(provider, profileResponse);
 		Member member = optionalMember.orElseGet(() ->
 			Member.builder()
@@ -77,7 +72,7 @@ public class MemberService {
 	}
 
 	private OauthUserProfileResponse getOauthUserProfileResponse(String provider, String authorizationCode,
-		AuthorizationRequest authorizationRequest) {
+		AuthorizationRequest authorizationRequest, LocalDateTime now) {
 		OauthClient oauthClient = oauthClientRepository.findOneBy(provider);
 		OauthAccessTokenResponse accessTokenResponse = webClientWrapper.post(
 			oauthClient.getTokenUri(),
@@ -88,17 +83,8 @@ public class MemberService {
 		DecodedIdTokenPayload payload = oauthClient.decodeIdToken(
 			accessTokenResponse.getIdToken(),
 			authorizationRequest.getNonce(),
-			getOauthPublicKeys(oauthClient.getPublicKeyUri()));
+			now);
 		return OauthUserProfileResponse.from(payload);
-	}
-
-	private List<OauthPublicKey> getOauthPublicKeys(String publicKeyUri) {
-		Map<String, Object> map = webClientWrapper.getPublicKeyList(publicKeyUri, new ParameterizedTypeReference<>() {
-		});
-
-		return ObjectMapperUtil.deserialize(
-			ObjectMapperUtil.serialize(map),
-			OauthPublicKeyList.class).getKeys();
 	}
 
 	private Optional<Member> getLoginMember(String provider, OauthUserProfileResponse userProfileResponse) {
