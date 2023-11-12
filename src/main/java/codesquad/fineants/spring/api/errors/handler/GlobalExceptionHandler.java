@@ -41,4 +41,12 @@ public class GlobalExceptionHandler {
 		);
 		return ResponseEntity.badRequest().body(body);
 	}
+
+	@ExceptionHandler(Exception.class)
+	public ResponseEntity<ApiResponse<Object>> handleFineANtsException(Exception exception) {
+		log.error("Exception 발생 : {}", exception.toString());
+		ApiResponse<Object> body = ApiResponse.of(HttpStatus.INTERNAL_SERVER_ERROR, exception.getMessage(),
+			exception.toString());
+		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
+	}
 }

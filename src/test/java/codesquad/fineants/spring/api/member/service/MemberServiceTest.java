@@ -17,7 +17,9 @@ import org.mockito.MockedStatic;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.util.MultiValueMap;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
@@ -187,4 +189,45 @@ public class MemberServiceTest {
 			.isInstanceOf(BadRequestException.class)
 			.hasMessage("잘못된 State입니다");
 	}
+
+	@DisplayName("사용자가 네이버 로그인합니다.")
+	@Test
+	void loginWithNaver() throws JsonProcessingException {
+		// given
+		String provider = "naver";
+		String code = "1234";
+		String redirectUrl = "http://localhost:5173/signin?provider=naver";
+		String state = "1234";
+		String codeVerifier = "1234";
+		String codeChallenge = "1234";
+		String nonce = "1234";
+		given(authorizationCodeRandomGenerator.generateAuthorizationRequest()).willReturn(
+			AuthorizationRequest.of(state, codeVerifier, codeChallenge, nonce));
+		memberService.createAuthorizationCodeURL(provider);
+
+		Map<String, Object> responseBody = new HashMap<>();
+		responseBody.put("access_token", "accessTokenValue");
+		responseBody.put("scope", "scopeValue");
+		responseBody.put("token_type", "Bearer");
+		OauthAccessTokenResponse mockAccessTokenResponse =
+			objectMapper.readValue(objectMapper.writeValueAsString(responseBody), OauthAccessTokenResponse.class);
+		given(webClientWrapper.post(anyString(), any(), any(), any())).willReturn(mockAccessTokenResponse);
+		willDoNothing().given(redisService).saveRefreshToken(anyString(), any(Jwt.class));
+
+		Map<String, Object> userProfileResponseBody = new HashMap<>();
+		userProfileResponseBody.put("response",
+			Map.of("email", "qkdlfjtm119@naver.com", "profile_image", "profile_image"));
+		given(webClientWrapper.get(anyString(), any(MultiValueMap.class),
+			any(ParameterizedTypeReference.class))).willReturn(userProfileResponseBody);
+		// when
+		OauthMemberLoginResponse response = memberService.login(provider, code, redirectUrl, state,
+			LocalDate.of(2023, 11, 8).atStartOfDay());
+
+		// then
+		assertThat(response)
+			.extracting("user")
+			.extracting("email")
+			.isEqualTo("qkdlfjtm119@naver.com");
+	}
+
 }
