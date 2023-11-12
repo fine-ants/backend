@@ -44,11 +44,14 @@ public abstract class OauthClient {
 	private final String redirectUri;
 	private final String publicKeyUri;
 
-	public abstract MultiValueMap<String, String> createTokenBody(String authorizationCode, String codeVerifier);
+	public abstract MultiValueMap<String, String> createTokenBody(String authorizationCode, String redirectUri,
+		String codeVerifier, String state);
 
 	public abstract OauthUserProfileResponse createOauthUserProfileResponse(Map<String, Object> attributes);
 
 	public abstract String createAuthURL(AuthorizationRequest authorizationRequest);
+
+	public abstract boolean isSupportOICD();
 
 	public MultiValueMap<String, String> createTokenHeader() {
 		MultiValueMap<String, String> result = new LinkedMultiValueMap<>();

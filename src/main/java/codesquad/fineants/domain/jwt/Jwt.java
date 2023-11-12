@@ -4,18 +4,15 @@ import java.util.Date;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 @Getter
 @ToString
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class Jwt {
 
-	private String accessToken;
-	private String refreshToken;
+	private final String accessToken;
+	private final String refreshToken;
 	@JsonIgnore
 	private Date expireDateAccessToken;
 	@JsonIgnore

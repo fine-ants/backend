@@ -73,6 +73,7 @@ public class MemberServiceTest {
 		// given
 		String provider = "kakao";
 		String code = "1234";
+		String redirectUrl = "http://localhost:5173/signin?provider=kakao";
 		String state = "1234";
 		String codeVerifier = "1234";
 		String codeChallenge = "1234";
@@ -103,7 +104,7 @@ public class MemberServiceTest {
 		given(JWT.decode((String)responseBody.get("id_token"))).willReturn(mockDecodedJWT);
 		given(mockDecodedJWT.getKeyId()).willReturn(kid);
 
-		OauthMemberLoginResponse response = memberService.login(provider, code, state,
+		OauthMemberLoginResponse response = memberService.login(provider, code, redirectUrl, state,
 			LocalDate.of(2023, 11, 8).atStartOfDay());
 
 		assertThat(response)
@@ -120,6 +121,7 @@ public class MemberServiceTest {
 		// given
 		String provider = "invalidProvider";
 		String code = "1234";
+		String redirectUrl = "http://localhost:5173/signin?provider=kakao";
 		String state = "1234";
 		String codeVerifier = "1234";
 		String codeChallenge = "1234";
@@ -129,7 +131,8 @@ public class MemberServiceTest {
 		memberService.createAuthorizationCodeURL("kakao");
 
 		// when
-		Throwable throwable = catchThrowable(() -> memberService.login(provider, code, state, LocalDateTime.now()));
+		Throwable throwable = catchThrowable(
+			() -> memberService.login(provider, code, redirectUrl, state, LocalDateTime.now()));
 
 		// then
 		assertThat(throwable)
@@ -143,6 +146,7 @@ public class MemberServiceTest {
 		// given
 		String provider = "kakao";
 		String code = "1234";
+		String redirectUrl = "http://localhost:5173/signin?provider=kakao";
 		String state = "1234";
 		String codeVerifier = "1234";
 		String codeChallenge = "4321";
@@ -155,7 +159,8 @@ public class MemberServiceTest {
 				"{\"error\":\"invalid_grant\",\"error_description\":\"authorization code not found for code=1234\",\"error_code\":\"KOE320\"}"));
 
 		// when
-		Throwable throwable = catchThrowable(() -> memberService.login(provider, code, state, LocalDateTime.now()));
+		Throwable throwable = catchThrowable(
+			() -> memberService.login(provider, code, redirectUrl, state, LocalDateTime.now()));
 
 		// then
 		assertThat(throwable)
@@ -170,10 +175,12 @@ public class MemberServiceTest {
 		// given
 		String provider = "kakao";
 		String code = "1234";
+		String redirectUrl = "http://localhost:5173/signin?provider=kakao";
 		String state = "1234";
 
 		// when
-		Throwable throwable = catchThrowable(() -> memberService.login(provider, code, state, LocalDateTime.now()));
+		Throwable throwable = catchThrowable(
+			() -> memberService.login(provider, code, redirectUrl, state, LocalDateTime.now()));
 
 		// then
 		assertThat(throwable)

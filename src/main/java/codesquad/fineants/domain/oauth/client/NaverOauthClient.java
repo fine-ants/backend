@@ -29,11 +29,15 @@ public class NaverOauthClient extends OauthClient {
 	}
 
 	@Override
-	public MultiValueMap<String, String> createTokenBody(String authorizationCode, String codeVerifier) {
+	public MultiValueMap<String, String> createTokenBody(String authorizationCode, String redirectUrl,
+		String codeVerifier, String state) {
 		MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
 		formData.add("grant_type", "authorization_code");
+		formData.add("client_id", getClientId());
+		formData.add("client_secret", getClientSecret());
 		formData.add("code", authorizationCode);
-		formData.add("redirect_uri", getRedirectUri());
+		formData.add("redirect_uri", redirectUrl);
+		formData.add("state", state);
 		return formData;
 	}
 
@@ -57,5 +61,10 @@ public class NaverOauthClient extends OauthClient {
 	@Override
 	public void validatePayload(DecodedIdTokenPayload payload, LocalDateTime now, String nonce) {
 
+	}
+
+	@Override
+	public boolean isSupportOICD() {
+		return false;
 	}
 }

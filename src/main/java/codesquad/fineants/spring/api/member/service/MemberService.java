@@ -6,8 +6,11 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.LinkedMultiValueMap;
 
 import codesquad.fineants.domain.jwt.Jwt;
 import codesquad.fineants.domain.jwt.JwtProvider;
@@ -46,9 +49,11 @@ public class MemberService {
 	private final WebClientWrapper webClientWrapper;
 	private final AuthorizationCodeRandomGenerator authorizationCodeRandomGenerator;
 
-	public OauthMemberLoginResponse login(String provider, String code, String state, LocalDateTime now) {
+	public OauthMemberLoginResponse login(String provider, String code, String redirectUrl, String state,
+		LocalDateTime now) {
 		AuthorizationRequest request = getCodeVerifier(state);
-		OauthUserProfileResponse profileResponse = getOauthUserProfileResponse(provider, code, request, now);
+		OauthUserProfileResponse profileResponse = getOauthUserProfileResponse(provider, code, redirectUrl, request,
+			now, state);
 		Optional<Member> optionalMember = getLoginMember(provider, profileResponse);
 		Member member = optionalMember.orElseGet(() ->
 			Member.builder()
@@ -72,19 +77,28 @@ public class MemberService {
 	}
 
 	private OauthUserProfileResponse getOauthUserProfileResponse(String provider, String authorizationCode,
-		AuthorizationRequest authorizationRequest, LocalDateTime now) {
+		String redirectUrl, AuthorizationRequest authorizationRequest, LocalDateTime now, String state) {
 		OauthClient oauthClient = oauthClientRepository.findOneBy(provider);
 		OauthAccessTokenResponse accessTokenResponse = webClientWrapper.post(
 			oauthClient.getTokenUri(),
 			oauthClient.createTokenHeader(),
-			oauthClient.createTokenBody(authorizationCode, authorizationRequest.getCodeVerifier()),
+			oauthClient.createTokenBody(authorizationCode, redirectUrl, authorizationRequest.getCodeVerifier(), state),
 			OauthAccessTokenResponse.class);
 
-		DecodedIdTokenPayload payload = oauthClient.decodeIdToken(
-			accessTokenResponse.getIdToken(),
-			authorizationRequest.getNonce(),
-			now);
-		return OauthUserProfileResponse.from(payload);
+		if (oauthClient.isSupportOICD()) {
+			DecodedIdTokenPayload payload = oauthClient.decodeIdToken(
+				accessTokenResponse.getIdToken(),
+				authorizationRequest.getNonce(),
+				now);
+			return OauthUserProfileResponse.from(payload);
+		}
+		LinkedMultiValueMap<String, String> header = new LinkedMultiValueMap<>();
+		header.add(HttpHeaders.AUTHORIZATION,
+			String.format("%s %s", accessTokenResponse.getTokenType(), accessTokenResponse.getAccessToken()));
+		Map<String, Object> attributes = webClientWrapper.get(oauthClient.getUserInfoUri(), header,
+			new ParameterizedTypeReference<>() {
+			});
+		return oauthClient.createOauthUserProfileResponse(attributes);
 	}
 
 	private Optional<Member> getLoginMember(String provider, OauthUserProfileResponse userProfileResponse) {

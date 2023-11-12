@@ -128,6 +128,7 @@ class MemberRestControllerTest {
 	void login() throws Exception {
 		// given
 		String code = "1234";
+		String redirectUrl = "http://localhost:5173/signin?provider=kakao";
 		String state = "1234";
 		String url = "/api/auth/kakao/login";
 
@@ -137,11 +138,13 @@ class MemberRestControllerTest {
 			anyString(),
 			anyString(),
 			anyString(),
+			anyString(),
 			ArgumentMatchers.any(LocalDateTime.class)))
 			.willReturn(mockResponse);
 		// when
-		mockMvc.perform(get(url)
+		mockMvc.perform(post(url)
 				.param("code", code)
+				.param("redirectUrl", redirectUrl)
 				.param("state", state))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("code").value(equalTo(200)))

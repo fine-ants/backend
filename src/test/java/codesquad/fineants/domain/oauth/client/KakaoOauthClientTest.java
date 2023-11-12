@@ -1,6 +1,7 @@
 package codesquad.fineants.domain.oauth.client;
 
-import org.assertj.core.api.Assertions;
+import static org.assertj.core.api.Assertions.*;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,13 +40,12 @@ class KakaoOauthClientTest {
 		String expected = "https://kauth.kakao.com/oauth/authorize?"
 			+ "response_type=code"
 			+ "&client_id=88171956c99257e9ea8c241b4fd544df"
-			+ "&redirect_uri=https://localhost/api/auth/kakao/login"
+			+ "&redirect_uri=http://localhost:5173/signin?provider=kakao"
 			+ "&scope=openid"
 			+ "&state=" + state
 			+ "&nonce=" + nonce
 			+ "&code_challenge=" + codeChallenge
 			+ "&code_challenge_method=S256";
-		log.info("actual={}", actual);
-		Assertions.assertThat(actual).isEqualTo(expected);
+		assertThat(actual).isEqualTo(expected);
 	}
 }
