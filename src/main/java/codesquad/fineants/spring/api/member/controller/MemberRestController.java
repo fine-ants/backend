@@ -4,7 +4,6 @@ import static org.springframework.http.HttpStatus.*;
 
 import java.time.LocalDateTime;
 
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestAttribute;
@@ -38,13 +37,14 @@ public class MemberRestController {
 		return ApiResponse.success(OauthSuccessCode.OK_URL, memberService.createAuthorizationCodeURL(provider));
 	}
 
-	@GetMapping(value = "/{provider}/login")
+	@PostMapping(value = "/{provider}/login")
 	public ApiResponse<OauthMemberLoginResponse> login(
 		@PathVariable String provider,
 		@RequestParam String code,
+		@RequestParam String redirectUrl,
 		@RequestParam String state) {
 		return ApiResponse.success(OauthSuccessCode.OK_LOGIN,
-			memberService.login(provider, code, state, LocalDateTime.now()));
+			memberService.login(provider, code, redirectUrl, state, LocalDateTime.now()));
 	}
 
 	@PostMapping(value = "/logout")

@@ -41,7 +41,7 @@ public class DecodedIdTokenPayload {
 		}
 		if (!this.nonce.equals(nonce)) {
 			throw new BadRequestException(OauthErrorCode.WRONG_ID_TOKEN,
-				"nonce 값이 " + nonce + "값과 일치하지 않습니다. nonce=" + this.nonce);
+				String.format("nonce 값 %s과 일치하지 않습니다. nonce=%s", this.nonce, nonce));
 		}
 	}
 }

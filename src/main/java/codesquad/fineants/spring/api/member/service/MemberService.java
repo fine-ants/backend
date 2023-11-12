@@ -1,15 +1,16 @@
 package codesquad.fineants.spring.api.member.service;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.LinkedMultiValueMap;
 
 import codesquad.fineants.domain.jwt.Jwt;
 import codesquad.fineants.domain.jwt.JwtProvider;
@@ -18,8 +19,6 @@ import codesquad.fineants.domain.member.MemberRepository;
 import codesquad.fineants.domain.oauth.client.AuthorizationCodeRandomGenerator;
 import codesquad.fineants.domain.oauth.client.DecodedIdTokenPayload;
 import codesquad.fineants.domain.oauth.client.OauthClient;
-import codesquad.fineants.domain.oauth.client.OauthPublicKey;
-import codesquad.fineants.domain.oauth.client.OauthPublicKeyList;
 import codesquad.fineants.domain.oauth.repository.OauthClientRepository;
 import codesquad.fineants.spring.api.errors.errorcode.MemberErrorCode;
 import codesquad.fineants.spring.api.errors.errorcode.OauthErrorCode;
@@ -34,7 +33,6 @@ import codesquad.fineants.spring.api.member.response.OauthCreateUrlResponse;
 import codesquad.fineants.spring.api.member.response.OauthMemberLoginResponse;
 import codesquad.fineants.spring.api.member.response.OauthMemberRefreshResponse;
 import codesquad.fineants.spring.api.member.response.OauthUserProfileResponse;
-import codesquad.fineants.spring.util.ObjectMapperUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -51,9 +49,11 @@ public class MemberService {
 	private final WebClientWrapper webClientWrapper;
 	private final AuthorizationCodeRandomGenerator authorizationCodeRandomGenerator;
 
-	public OauthMemberLoginResponse login(String provider, String code, String state, LocalDateTime now) {
+	public OauthMemberLoginResponse login(String provider, String code, String redirectUrl, String state,
+		LocalDateTime now) {
 		AuthorizationRequest request = getCodeVerifier(state);
-		OauthUserProfileResponse profileResponse = getOauthUserProfileResponse(provider, code, request);
+		OauthUserProfileResponse profileResponse = getOauthUserProfileResponse(provider, code, redirectUrl, request,
+			now, state);
 		Optional<Member> optionalMember = getLoginMember(provider, profileResponse);
 		Member member = optionalMember.orElseGet(() ->
 			Member.builder()
@@ -77,28 +77,28 @@ public class MemberService {
 	}
 
 	private OauthUserProfileResponse getOauthUserProfileResponse(String provider, String authorizationCode,
-		AuthorizationRequest authorizationRequest) {
+		String redirectUrl, AuthorizationRequest authorizationRequest, LocalDateTime now, String state) {
 		OauthClient oauthClient = oauthClientRepository.findOneBy(provider);
 		OauthAccessTokenResponse accessTokenResponse = webClientWrapper.post(
 			oauthClient.getTokenUri(),
 			oauthClient.createTokenHeader(),
-			oauthClient.createTokenBody(authorizationCode, authorizationRequest.getCodeVerifier()),
+			oauthClient.createTokenBody(authorizationCode, redirectUrl, authorizationRequest.getCodeVerifier(), state),
 			OauthAccessTokenResponse.class);
 
-		DecodedIdTokenPayload payload = oauthClient.decodeIdToken(
-			accessTokenResponse.getIdToken(),
-			authorizationRequest.getNonce(),
-			getOauthPublicKeys(oauthClient.getPublicKeyUri()));
-		return OauthUserProfileResponse.from(payload);
-	}
-
-	private List<OauthPublicKey> getOauthPublicKeys(String publicKeyUri) {
-		Map<String, Object> map = webClientWrapper.getPublicKeyList(publicKeyUri, new ParameterizedTypeReference<>() {
-		});
-
-		return ObjectMapperUtil.deserialize(
-			ObjectMapperUtil.serialize(map),
-			OauthPublicKeyList.class).getKeys();
+		if (oauthClient.isSupportOICD()) {
+			DecodedIdTokenPayload payload = oauthClient.decodeIdToken(
+				accessTokenResponse.getIdToken(),
+				authorizationRequest.getNonce(),
+				now);
+			return OauthUserProfileResponse.from(payload);
+		}
+		LinkedMultiValueMap<String, String> header = new LinkedMultiValueMap<>();
+		header.add(HttpHeaders.AUTHORIZATION,
+			String.format("%s %s", accessTokenResponse.getTokenType(), accessTokenResponse.getAccessToken()));
+		Map<String, Object> attributes = webClientWrapper.get(oauthClient.getUserInfoUri(), header,
+			new ParameterizedTypeReference<>() {
+			});
+		return oauthClient.createOauthUserProfileResponse(attributes);
 	}
 
 	private Optional<Member> getLoginMember(String provider, OauthUserProfileResponse userProfileResponse) {

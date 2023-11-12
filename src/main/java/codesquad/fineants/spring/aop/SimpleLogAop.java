@@ -2,6 +2,7 @@ package codesquad.fineants.spring.aop;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.Objects;
 
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
@@ -28,13 +29,15 @@ public class SimpleLogAop {
 		log.info("======= method name = {}", method.getName());
 
 		Object[] args = joinPoint.getArgs();
-		if (args.length <= 0) {
+		if (args.length == 0) {
 			log.info("no parameter");
 		}
-		Arrays.stream(args).forEach(arg -> {
-			log.info("parameter type = {}", arg.getClass().getSimpleName());
-			log.info("parameter value = {}", arg);
-		});
+		Arrays.stream(args)
+			.filter(Objects::nonNull)
+			.forEach(arg -> {
+				log.info("parameter type = {}", arg.getClass().getSimpleName());
+				log.info("parameter value = {}", arg);
+			});
 	}
 
 	@AfterReturning(value = "cut()", returning = "returnObj")

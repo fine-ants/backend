@@ -38,13 +38,14 @@ public class KakaoOauthClient extends OauthClient {
 	}
 
 	@Override
-	public MultiValueMap<String, String> createTokenBody(final String authorizationCode, final String codeVerifier) {
+	public MultiValueMap<String, String> createTokenBody(final String authorizationCode, final String redirectUrl,
+		final String codeVerifier, String state) {
 		final String grantType = "authorization_code";
 		MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
 		formData.add(properties.getCode(), authorizationCode);
 		formData.add(properties.getClientId(), getClientId());
 		formData.add(properties.getClientSecret(), getClientSecret());
-		formData.add(properties.getRedirectUri(), getRedirectUri());
+		formData.add(properties.getRedirectUri(), redirectUrl);
 		formData.add(properties.getCodeVerifier(), codeVerifier);
 		formData.add(properties.getGrantType(), grantType);
 		return formData;
@@ -71,7 +72,12 @@ public class KakaoOauthClient extends OauthClient {
 	}
 
 	@Override
-	public void validatePayload(DecodedIdTokenPayload payload, String nonce) {
-		payload.validateIdToken(iss, aud, LocalDateTime.now(), nonce);
+	public void validatePayload(DecodedIdTokenPayload payload, LocalDateTime now, String nonce) {
+		payload.validateIdToken(iss, aud, now, nonce);
+	}
+
+	@Override
+	public boolean isSupportOICD() {
+		return true;
 	}
 }
