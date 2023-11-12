@@ -17,47 +17,50 @@ import lombok.extern.slf4j.Slf4j;
 public class AuthorizationCodeRandomGenerator {
 
 	public AuthorizationRequest generateAuthorizationRequest() {
-		String codeVerifier = generateCodeVerifier();
-		String codeChallenge = generateCodeChallenge(codeVerifier);
+		final String state = generateState();
+		final String codeVerifier = generateCodeVerifier();
+		final String codeChallenge = generateCodeChallenge(codeVerifier);
+		final String nonce = generateNonce();
 		return AuthorizationRequest.of(
-			generateState(),
+			state,
 			codeVerifier,
 			codeChallenge,
-			generateNonce()
+			nonce
 		);
 	}
 
 	public String generateState() {
-		SecureRandom secureRandom = new SecureRandom();
+		final SecureRandom secureRandom = new SecureRandom();
 		return new BigInteger(130, secureRandom).toString();
 	}
 
 	public String generateCodeVerifier() {
-		SecureRandom secureRandom = new SecureRandom();
-		byte[] codeVerifier = new byte[32];
+		final SecureRandom secureRandom = new SecureRandom();
+		final byte[] codeVerifier = new byte[32];
 		secureRandom.nextBytes(codeVerifier);
 		return Base64.getUrlEncoder().withoutPadding().encodeToString(codeVerifier);
 	}
 
 	public String generateNonce() {
-		SecureRandom secureRandom = new SecureRandom();
-		byte[] randomBytes = new byte[16];
+		final SecureRandom secureRandom = new SecureRandom();
+		final byte[] randomBytes = new byte[16];
 		secureRandom.nextBytes(randomBytes);
-		BigInteger nonceValue = new BigInteger(1, randomBytes);
+		final BigInteger nonceValue = new BigInteger(1, randomBytes);
 		return nonceValue.toString(16); // 16진수 문자열로 반환
 	}
 
-	public String generateCodeChallenge(String codeVerifier) {
-		byte[] bytes = codeVerifier.getBytes(StandardCharsets.US_ASCII);
-		MessageDigest messageDigest;
+	public String generateCodeChallenge(final String codeVerifier) {
+		final byte[] bytes = codeVerifier.getBytes(StandardCharsets.US_ASCII);
+		final String algorithm = "SHA-256";
+		final MessageDigest messageDigest;
 		try {
-			messageDigest = MessageDigest.getInstance("SHA-256");
+			messageDigest = MessageDigest.getInstance(algorithm);
 		} catch (NoSuchAlgorithmException e) {
 			log.error(e.getMessage(), e);
 			throw new RuntimeException(e);
 		}
 		messageDigest.update(bytes, 0, bytes.length);
-		byte[] digest = messageDigest.digest();
+		final byte[] digest = messageDigest.digest();
 		return Base64.getUrlEncoder().withoutPadding().encodeToString(digest);
 	}
 }
