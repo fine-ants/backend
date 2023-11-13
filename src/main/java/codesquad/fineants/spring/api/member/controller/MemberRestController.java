@@ -33,32 +33,33 @@ public class MemberRestController {
 	private final MemberService memberService;
 
 	@PostMapping("/{provider}/url")
-	public ApiResponse<OauthCreateUrlResponse> authorizationCodeURL(@PathVariable String provider) {
+	public ApiResponse<OauthCreateUrlResponse> authorizationCodeURL(@PathVariable final String provider) {
 		return ApiResponse.success(OauthSuccessCode.OK_URL, memberService.createAuthorizationCodeURL(provider));
 	}
 
 	@PostMapping(value = "/{provider}/login")
 	public ApiResponse<OauthMemberLoginResponse> login(
-		@PathVariable String provider,
-		@RequestParam String code,
-		@RequestParam String redirectUrl,
-		@RequestParam String state) {
+		@PathVariable final String provider,
+		@RequestParam final String code,
+		@RequestParam final String redirectUrl,
+		@RequestParam final String state) {
 		return ApiResponse.success(OauthSuccessCode.OK_LOGIN,
 			memberService.login(provider, code, redirectUrl, state, LocalDateTime.now()));
 	}
 
 	@PostMapping(value = "/logout")
-	public ApiResponse<Void> logout(@RequestAttribute String accessToken,
-		@RequestBody OauthMemberLogoutRequest request) {
+	public ApiResponse<Void> logout(
+		@RequestAttribute final String accessToken,
+		@RequestBody final OauthMemberLogoutRequest request) {
 		memberService.logout(accessToken, request);
 		return ApiResponse.success(OauthSuccessCode.OK_LOGOUT);
 	}
 
 	@ResponseStatus(OK)
 	@PostMapping("/refresh/token")
-	public ApiResponse<OauthMemberRefreshResponse> refreshAccessToken(@RequestBody OauthMemberRefreshRequest request) {
-		OauthMemberRefreshResponse response = memberService.refreshAccessToken(request,
-			LocalDateTime.now());
+	public ApiResponse<OauthMemberRefreshResponse> refreshAccessToken(
+		@RequestBody final OauthMemberRefreshRequest request) {
+		OauthMemberRefreshResponse response = memberService.refreshAccessToken(request, LocalDateTime.now());
 		return ApiResponse.success(OauthSuccessCode.OK_REFRESH_TOKEN, response);
 	}
 

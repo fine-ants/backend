@@ -163,9 +163,9 @@ public class MemberService {
 	}
 
 	@Transactional(readOnly = true)
-	public OauthCreateUrlResponse createAuthorizationCodeURL(String provider) {
-		OauthClient oauthClient = oauthClientRepository.findOneBy(provider);
-		AuthorizationRequest request = authorizationCodeRandomGenerator.generateAuthorizationRequest();
+	public OauthCreateUrlResponse createAuthorizationCodeURL(final String provider) {
+		final OauthClient oauthClient = oauthClientRepository.findOneBy(provider);
+		final AuthorizationRequest request = authorizationCodeRandomGenerator.generateAuthorizationRequest();
 		authorizationRequestMap.put(request.getState(), request);
 		return new OauthCreateUrlResponse(
 			oauthClient.createAuthURL(request),

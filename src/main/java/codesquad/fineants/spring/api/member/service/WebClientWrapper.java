@@ -2,7 +2,6 @@ package codesquad.fineants.spring.api.member.service;
 
 import java.util.function.Function;
 
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
 import org.springframework.util.MultiValueMap;
@@ -75,14 +74,5 @@ public class WebClientWrapper {
 			}
 			return clientResponse.bodyToMono(reference);
 		};
-	}
-
-	@Cacheable(value = "publicKey")
-	public <T> T getPublicKeyList(String uri, ParameterizedTypeReference<T> reference) {
-		log.info("call getPublicKeyList");
-		return webClient.get()
-			.uri(uri)
-			.exchangeToMono(getClientResponseMonoFunction(reference))
-			.block();
 	}
 }
