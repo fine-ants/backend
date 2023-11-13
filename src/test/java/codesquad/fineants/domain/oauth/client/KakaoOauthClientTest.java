@@ -39,7 +39,7 @@ class KakaoOauthClientTest {
 		// then
 		String expected = "https://kauth.kakao.com/oauth/authorize?"
 			+ "response_type=code"
-			+ "&client_id=88171956c99257e9ea8c241b4fd544df"
+			+ "&client_id=dfb1e25a2b97d03b0b225d4874a34823"
 			+ "&redirect_uri=http://localhost:5173/signin?provider=kakao"
 			+ "&scope=openid"
 			+ "&state=" + state
