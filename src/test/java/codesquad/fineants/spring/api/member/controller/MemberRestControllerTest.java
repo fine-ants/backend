@@ -93,7 +93,7 @@ class MemberRestControllerTest {
 	@Test
 	void authorizationCodeURL() throws Exception {
 		// given
-		String url = "/api/auth/kakao/url";
+		String url = "/api/auth/kakao/authUrl";
 		OauthClient oauthClient = oauthClientRepository.findOneBy("kakao");
 		String clientId = oauthClient.getClientId();
 		String redirectUrl = oauthClient.getRedirectUri();
