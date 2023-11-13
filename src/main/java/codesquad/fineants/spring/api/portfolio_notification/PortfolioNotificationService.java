@@ -13,7 +13,6 @@ import codesquad.fineants.domain.portfolio.Portfolio;
 import codesquad.fineants.domain.portfolio.PortfolioRepository;
 import codesquad.fineants.spring.api.errors.errorcode.PortfolioErrorCode;
 import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
-import codesquad.fineants.spring.api.kis.KisService;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.portfolio_notification.request.PortfolioNotificationModifyRequest;
 import codesquad.fineants.spring.api.portfolio_notification.response.PortfolioNotificationModifyResponse;
@@ -28,7 +27,6 @@ public class PortfolioNotificationService {
 
 	private final PortfolioRepository portfolioRepository;
 	private final MailService mailService;
-	private final KisService kisService;
 	private final RedisTemplate<String, String> redisTemplate;
 	private final CurrentPriceManager currentPriceManager;
 
