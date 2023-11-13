@@ -43,6 +43,8 @@ public class MemberRestController {
 		@RequestParam final String code,
 		@RequestParam final String redirectUrl,
 		@RequestParam final String state) {
+		log.info("로그인 컨트롤러 요청 : provider = {}, code = {}, redirectUrl = {}, state = {}", provider, code, redirectUrl,
+			state);
 		return ApiResponse.success(OauthSuccessCode.OK_LOGIN,
 			memberService.login(provider, code, redirectUrl, state, LocalDateTime.now()));
 	}

@@ -51,6 +51,8 @@ public class MemberService {
 
 	public OauthMemberLoginResponse login(String provider, String code, String redirectUrl, String state,
 		LocalDateTime now) {
+		log.info("로그인 서비스 요청 : provider = {}, code = {}, redirectUrl = {}, state = {}", provider, code, redirectUrl,
+			state);
 		AuthorizationRequest request = getCodeVerifier(state);
 		OauthUserProfileResponse profileResponse = getOauthUserProfileResponse(provider, code, redirectUrl, request,
 			now, state);
@@ -69,6 +71,8 @@ public class MemberService {
 	}
 
 	private AuthorizationRequest getCodeVerifier(String state) {
+		log.info("AuthorizationRequest 조회 : state={}", state);
+		log.info("authorizationRequestMap : {}", authorizationRequestMap);
 		AuthorizationRequest request = authorizationRequestMap.remove(state);
 		if (request == null) {
 			throw new BadRequestException(OauthErrorCode.WRONG_STATE);
