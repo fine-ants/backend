@@ -13,9 +13,6 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class KakaoOauthClient extends OauthClient {
-
-	private final String authorizeUri;
-	private final String responseType;
 	private final String scope;
 	private final String iss;
 	private final String aud;
@@ -26,11 +23,11 @@ public class KakaoOauthClient extends OauthClient {
 		super(kakao.getClientId(),
 			kakao.getClientSecret(),
 			kakao.getTokenUri(),
-			kakao.getUserInfoUri(),
+			null,
 			kakao.getRedirectUri(),
-			kakao.getPublicKeyUri());
-		this.authorizeUri = kakao.getAuthorizeUri();
-		this.responseType = kakao.getResponseType();
+			kakao.getPublicKeyUri(),
+			kakao.getAuthorizeUri(),
+			kakao.getResponseType());
 		this.scope = kakao.getScope();
 		this.iss = kakao.getIss();
 		this.aud = kakao.getAud();
@@ -60,8 +57,8 @@ public class KakaoOauthClient extends OauthClient {
 
 	@Override
 	public String createAuthURL(AuthorizationRequest request) {
-		return authorizeUri + "?"
-			+ "response_type=" + responseType + "&"
+		return getAuthorizeUri() + "?"
+			+ "response_type=" + getResponseType() + "&"
 			+ "client_id=" + getClientId() + "&"
 			+ "redirect_uri=" + getRedirectUri() + "&"
 			+ "scope=" + scope + "&"

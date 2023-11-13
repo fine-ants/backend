@@ -55,7 +55,6 @@ public class OauthProperties {
 		private final String responseType;
 		private final String scope;
 		private final String tokenUri;
-		private final String userInfoUri;
 		private final String redirectUri;
 		private final String publicKeyUri;
 		private final String iss;

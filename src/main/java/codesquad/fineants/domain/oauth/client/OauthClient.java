@@ -43,6 +43,8 @@ public abstract class OauthClient {
 	private final String userInfoUri;
 	private final String redirectUri;
 	private final String publicKeyUri;
+	private final String authorizeUri;
+	private final String responseType;
 
 	public abstract MultiValueMap<String, String> createTokenBody(String authorizationCode, String redirectUri,
 		String codeVerifier, String state);

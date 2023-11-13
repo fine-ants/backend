@@ -79,7 +79,7 @@ public class MemberServiceTest {
 		String state = "1234";
 		String codeVerifier = "1234";
 		String codeChallenge = "1234";
-		String nonce = "5b9a1e56120de83c4a083894c8dc8127";
+		String nonce = "f46e2977378ed6cdf2f03b5962101f7d";
 		given(authorizationCodeRandomGenerator.generateAuthorizationRequest()).willReturn(
 			AuthorizationRequest.of(state, codeVerifier, codeChallenge, nonce));
 
@@ -90,7 +90,7 @@ public class MemberServiceTest {
 		responseBody.put("scope", "scopeValue");
 		responseBody.put("token_type", "Bearer");
 		responseBody.put("id_token",
-			"eyJraWQiOiI5ZjI1MmRhZGQ1ZjIzM2Y5M2QyZmE1MjhkMTJmZWEiLCJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiI4ODE3MTk1NmM5OTI1N2U5ZWE4YzI0MWI0ZmQ1NDRkZiIsInN1YiI6IjMxMDE1NDMzNjUiLCJhdXRoX3RpbWUiOjE2OTk1MDg3MTEsImlzcyI6Imh0dHBzOi8va2F1dGgua2FrYW8uY29tIiwiZXhwIjoxNjk5NTMwMzExLCJpYXQiOjE2OTk1MDg3MTEsIm5vbmNlIjoiNWI5YTFlNTYxMjBkZTgzYzRhMDgzODk0YzhkYzgxMjciLCJwaWN0dXJlIjoiaHR0cDovL2sua2FrYW9jZG4ubmV0L2RuL2RwazlsMS9idHFtR2hBMmxLTC9PejB3RHVKbjFZVjJESW45MmY2RFZLL2ltZ18xMTB4MTEwLmpwZyIsImVtYWlsIjoicWtkbGZqdG0xMTlAbmF2ZXIuY29tIn0.H32Q0NE4Wcy-XWoIKXRXEXhjx3z9kpB5Wfppkm3V_8yAN8HgJzj7RT4zM7_xeHNAdf5grFHm5CpE-UpZKAWMKA1aikAMmyuIKBvcjWTIE97pHS0HGP-vPY6Kp6l-ZYj6aAlafJq93gcGba3kE-9oha8N48aHyv6G7GapZAQghjRNK2az-2YURcaNDkXXCH3Gnntnx-lZ-NKnTgEeAsD4yvU9rW39wlit7rHE4uhXGBsqaxglTK6WogxOhA89_aZsHTGZdn2BkIjRseafzBrGuk0ltDQxc1TCakrjK4bUCXB1q7yYwm5y-zbqb1iUNWd70-mwU3ko1YDUVbLBi0EuAA");
+			"eyJraWQiOiI5ZjI1MmRhZGQ1ZjIzM2Y5M2QyZmE1MjhkMTJmZWEiLCJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiJkZmIxZTI1YTJiOTdkMDNiMGIyMjVkNDg3NGEzNDgyMyIsInN1YiI6IjMxNjA5OTI1NjMiLCJhdXRoX3RpbWUiOjE2OTk4NjY2MjIsImlzcyI6Imh0dHBzOi8va2F1dGgua2FrYW8uY29tIiwiZXhwIjoxNjk5ODg4MjIyLCJpYXQiOjE2OTk4NjY2MjIsIm5vbmNlIjoiZjQ2ZTI5NzczNzhlZDZjZGYyZjAzYjU5NjIxMDFmN2QiLCJwaWN0dXJlIjoiaHR0cDovL2sua2FrYW9jZG4ubmV0L2RuL2RwazlsMS9idHFtR2hBMmxLTC9PejB3RHVKbjFZVjJESW45MmY2RFZLL2ltZ18xMTB4MTEwLmpwZyIsImVtYWlsIjoiZmluZWFudHMuY29AZ21haWwuY29tIn0.KYRaqSup_joMxGSYoWSa5bEvQRbCR3q_kUydXaDs_otD1fmJFWW3h8UsrKaHyaDT6mMIobeuTAXlhjiY7rxqhr3K3cqj3urZThIJ-h4-5VrANC6aulzyhJB93kcIJUxa2UzI0fe_TyC4pbbGvRnFDci0Iv5CuVZoL0-oLgu5LQFpM1xmNmF_SABKuIU0rV60E_Qs7PsbnodZ_emv4PLEtk1yUD1r5oAr9swtSjLG_uh1d2GXUvcIStIJN871Kp-jolqM1Ce4bp0zULd00x0nGKbPBHmS_J11NYJbjujeg771307w65KCYIPMMqM_1BbEFQghH3jDRdzwP_5_RRKhAg");
 		OauthAccessTokenResponse mockAccessTokenResponse =
 			objectMapper.readValue(objectMapper.writeValueAsString(responseBody), OauthAccessTokenResponse.class);
 		given(webClientWrapper.post(anyString(), any(), any(), any())).willReturn(mockAccessTokenResponse);
@@ -112,7 +112,7 @@ public class MemberServiceTest {
 		assertThat(response)
 			.extracting("user")
 			.extracting("email")
-			.isEqualTo("qkdlfjtm119@naver.com");
+			.isEqualTo("fineants.co@gmail.com");
 
 		jwtMockedStatic.close();
 	}
