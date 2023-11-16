@@ -110,7 +110,6 @@ public class KisClient {
 	// 직전 거래일의 종가 조회
 	public LastDayClosingPriceResponse readLastDayClosingPrice(String tickerSymbol, String authorization) {
 		MultiValueMap<String, String> headerMap = new LinkedMultiValueMap<>();
-		log.info("authorization : {}", authorization);
 		headerMap.add("authorization", authorization);
 		headerMap.add("appkey", appkey);
 		headerMap.add("appsecret", secretkey);
@@ -125,7 +124,7 @@ public class KisClient {
 		queryParamMap.add("FID_ORG_ADJ_PRC", "0");
 
 		Map<String, Object> responseMap = getPerform(lastDayClosingPrice, headerMap, queryParamMap);
-		Map<String, String> output = (Map<String, String>)responseMap.get("output2");
-		return LastDayClosingPriceResponse.of(tickerSymbol, Long.parseLong(output.get("stck_clpr")));
+		Map<String, String> output = (Map<String, String>)responseMap.get("output1");
+		return LastDayClosingPriceResponse.of(tickerSymbol, Long.parseLong(output.get("stck_prdy_clpr")));
 	}
 }
