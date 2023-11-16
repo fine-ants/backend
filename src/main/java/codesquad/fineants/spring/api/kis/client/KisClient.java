@@ -1,5 +1,6 @@
 package codesquad.fineants.spring.api.kis.client;
 
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,6 +24,7 @@ public class KisClient {
 	private static final String approvalURI = "https://openapivts.koreainvestment.com:29443/oauth2/Approval";
 	private static final String tokenPURI = "https://openapivts.koreainvestment.com:29443/oauth2/tokenP";
 	public static final String currentPrice = "/uapi/domestic-stock/v1/quotations/inquire-price";
+	private static final String lastDayClosingPrice = "/uapi/domestic-stock/v1/quotations/inquire-daily-itemchartprice";
 
 	private final WebClient.Builder webClient;
 
@@ -105,4 +107,25 @@ public class KisClient {
 		return handleClientResponse(responseSpec);
 	}
 
+	// 직전 거래일의 종가 조회
+	public long readLastDayClosingPrice(String tickerSymbol, String authorization) {
+		MultiValueMap<String, String> headerMap = new LinkedMultiValueMap<>();
+		log.info("authorization : {}", authorization);
+		headerMap.add("authorization", authorization);
+		headerMap.add("appkey", appkey);
+		headerMap.add("appsecret", secretkey);
+		headerMap.add("tr_id", "FHKST03010100");
+
+		MultiValueMap<String, String> queryParamMap = new LinkedMultiValueMap<>();
+		queryParamMap.add("FID_COND_MRKT_DIV_CODE", "J");
+		queryParamMap.add("FID_INPUT_ISCD", tickerSymbol);
+		queryParamMap.add("FID_INPUT_DATE_1", LocalDate.now().minusDays(1L).toString());
+		queryParamMap.add("FID_INPUT_DATE_2", LocalDate.now().minusDays(1L).toString());
+		queryParamMap.add("FID_PERIOD_DIV_CODE", "D");
+		queryParamMap.add("FID_ORG_ADJ_PRC", "0");
+
+		Map<String, Object> responseMap = getPerform(lastDayClosingPrice, headerMap, queryParamMap);
+		Map<String, String> output = (Map<String, String>)responseMap.get("output2");
+		return Long.parseLong(output.get("stck_clpr"));
+	}
 }
