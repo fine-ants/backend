@@ -77,8 +77,6 @@ public class KisService {
 
 	@Scheduled(fixedRate = 5, timeUnit = TimeUnit.SECONDS)
 	public void publishPortfolioDetail() {
-		refreshLastDayClosingPrice();
-
 		List<CompletableFuture<PortfolioHoldingsResponse>> futures = portfolioSubscriptionManager.values()
 			.parallelStream()
 			.filter(this::hasAllCurrentPrice)
@@ -97,36 +95,6 @@ public class KisService {
 			.map(CompletableFuture::join)
 			.forEach(response -> messagingTemplate.convertAndSend(
 				String.format(SUBSCRIBE_PORTFOLIO_HOLDING_FORMAT, response.getPortfolioId()), response));
-	}
-
-	// 종가 매니저가 가격을 갖지 않은 종목들의 직전거래일의 종가를 요청하여 저장한다
-	private void refreshLastDayClosingPrice() {
-		List<CompletableFuture<LastDayClosingPriceResponse>> lastDayClosingPriceFutures = portfolioSubscriptionManager.values()
-			.parallelStream()
-			.map(PortfolioSubscription::getTickerSymbols)
-			.flatMap(Collection::stream)
-			.filter(tickerSymbol -> !lastDayClosingPriceManager.hasPrice(tickerSymbol))
-			.map(tickerSymbol -> {
-				CompletableFuture<LastDayClosingPriceResponse> future = new CompletableFuture<>();
-				executorService.schedule(createLastDayClosingPriceRequest(tickerSymbol, future), 200L,
-					TimeUnit.MILLISECONDS);
-				return future;
-			}).collect(Collectors.toList());
-		lastDayClosingPriceFutures.parallelStream()
-			.map(CompletableFuture::join)
-			.forEach(response -> lastDayClosingPriceManager.addPrice(response.getTickerSymbol(), response.getPrice()));
-	}
-
-	private Runnable createLastDayClosingPriceRequest(final String tickerSymbol,
-		CompletableFuture<LastDayClosingPriceResponse> future) {
-		return () -> {
-			future.completeOnTimeout(kisClient.readLastDayClosingPrice(tickerSymbol, manager.createAuthorization()), 10,
-				TimeUnit.SECONDS);
-			future.exceptionally(e -> {
-				log.info(e.getMessage(), e);
-				return null;
-			});
-		};
 	}
 
 	public CompletableFuture<PortfolioHoldingsResponse> publishPortfolioDetail(Long portfolioId) {
@@ -151,8 +119,40 @@ public class KisService {
 			.map(PortfolioHolding::getStock)
 			.map(Stock::getTickerSymbol)
 			.collect(Collectors.toList());
+
+		// 종목 현재가 갱신
 		refreshCurrentPrice(tickerSymbols);
 		log.info("{}개의 종목 현재가 갱신 완료", tickerSymbols.size());
+
+		// 종가 갱신
+		refreshLastDayClosingPrice(tickerSymbols);
+	}
+
+	// 종가 매니저가 가격을 갖지 않은 종목들의 직전거래일의 종가를 요청하여 저장한다
+	private void refreshLastDayClosingPrice(List<String> tickerSymbols) {
+		List<CompletableFuture<LastDayClosingPriceResponse>> lastDayClosingPriceFutures = tickerSymbols.parallelStream()
+			.filter(tickerSymbol -> !lastDayClosingPriceManager.hasPrice(tickerSymbol))
+			.map(tickerSymbol -> {
+				CompletableFuture<LastDayClosingPriceResponse> future = new CompletableFuture<>();
+				executorService.schedule(createLastDayClosingPriceRequest(tickerSymbol, future), 200L,
+					TimeUnit.MILLISECONDS);
+				return future;
+			}).collect(Collectors.toList());
+		lastDayClosingPriceFutures.parallelStream()
+			.map(CompletableFuture::join)
+			.forEach(response -> lastDayClosingPriceManager.addPrice(response.getTickerSymbol(), response.getPrice()));
+	}
+
+	private Runnable createLastDayClosingPriceRequest(final String tickerSymbol,
+		CompletableFuture<LastDayClosingPriceResponse> future) {
+		return () -> {
+			future.completeOnTimeout(kisClient.readLastDayClosingPrice(tickerSymbol, manager.createAuthorization()), 10,
+				TimeUnit.SECONDS);
+			future.exceptionally(e -> {
+				log.info(e.getMessage(), e);
+				return null;
+			});
+		};
 	}
 
 	public void refreshCurrentPrice(List<String> tickerSymbols) {
