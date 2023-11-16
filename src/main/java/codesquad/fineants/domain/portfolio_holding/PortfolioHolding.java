@@ -130,19 +130,18 @@ public class PortfolioHolding extends BaseEntity {
 		return stock.readDividend(monthDateTime) * calculateNumShares();
 	}
 
-	// 당일 변동 금액 = 직전 거래일의 종가 - 종목 현재가
+	// 당일 변동 금액 = 종목 현재가 - 직전 거래일의 종가
 	public Long calculateDailyChange(long lastDayClosingPrice) {
-		return lastDayClosingPrice - currentPrice;
+		return currentPrice - lastDayClosingPrice;
 	}
 
-	// 당일 변동율 = ((직전 거래일 종가 - 종목 현재가) / 종목 현재가) * 100%
-	public Integer calculateDailyChangeRate() {
-		long currentValuation = calculateCurrentValuation();
-		long totalInvestmentAmount = calculateTotalInvestmentAmount();
-		if (totalInvestmentAmount == 0) {
+	// 당일 변동율 = ((종목 현재가 - 직전 거래일 종가) / 직전 거래일 종가) * 100%
+	public Integer calculateDailyChangeRate(long lastDayClosingPrice) {
+		if (lastDayClosingPrice == 0) {
 			return 0;
 		}
-		return (int)(((double)(currentValuation - totalInvestmentAmount) / (double)totalInvestmentAmount) * 100);
+		double dailyChange = currentPrice - lastDayClosingPrice;
+		return (int)((dailyChange / (double)lastDayClosingPrice) * 100);
 	}
 
 	// 연간배당율 = (연간배당금 / 현재 가치) * 100
