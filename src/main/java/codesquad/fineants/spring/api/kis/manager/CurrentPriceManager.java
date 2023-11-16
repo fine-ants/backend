@@ -1,7 +1,5 @@
 package codesquad.fineants.spring.api.kis.manager;
 
-import java.time.Duration;
-
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
@@ -11,19 +9,16 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Component
 public class CurrentPriceManager {
-	private static final String pattern = "cp:*";
 	private static final String format = "cp:%s";
-	private static final Duration duration = Duration.ofMinutes(1);
 	private final RedisTemplate<String, String> redisTemplate;
 
 	public void addKey(String tickerSymbol) {
-		redisTemplate.opsForValue().set(String.format(format, tickerSymbol), "0", duration);
+		redisTemplate.opsForValue().set(String.format(format, tickerSymbol), "0");
 	}
 
 	public void addCurrentPrice(CurrentPriceResponse response) {
 		redisTemplate.opsForValue()
-			.set(String.format(format, response.getTickerSymbol()), String.valueOf(response.getCurrentPrice()),
-				duration);
+			.set(String.format(format, response.getTickerSymbol()), String.valueOf(response.getCurrentPrice()));
 	}
 
 	public Long getCurrentPrice(String tickerSymbol) {
