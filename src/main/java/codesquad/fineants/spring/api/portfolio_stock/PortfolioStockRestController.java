@@ -21,6 +21,7 @@ import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
 import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.spring.api.kis.KisService;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
+import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
 import codesquad.fineants.spring.api.portfolio.PortFolioService;
 import codesquad.fineants.spring.api.portfolio_stock.request.PortfolioStockCreateRequest;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioHoldingsResponse;
@@ -37,6 +38,7 @@ public class PortfolioStockRestController {
 	private final KisService kisService;
 	private final PortFolioService portFolioService;
 	private final CurrentPriceManager currentPriceManager;
+	private final LastDayClosingPriceManager lastDayClosingPriceManager;
 
 	@ResponseStatus(HttpStatus.CREATED)
 	@PostMapping
@@ -64,7 +66,8 @@ public class PortfolioStockRestController {
 			.collect(Collectors.toList());
 		kisService.refreshCurrentPrice(tickerSymbols);
 
-		PortfolioHoldingsResponse response = portfolioStockService.readMyPortfolioStocks(portfolioId);
+		PortfolioHoldingsResponse response = portfolioStockService.readMyPortfolioStocks(portfolioId,
+			lastDayClosingPriceManager);
 		return ApiResponse.success(PortfolioStockSuccessCode.OK_READ_PORTFOLIO_STOCKS, response);
 	}
 }

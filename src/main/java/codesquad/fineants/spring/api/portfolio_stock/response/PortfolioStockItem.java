@@ -19,9 +19,10 @@ public class PortfolioStockItem {
 	private List<StockDividendItem> dividends;
 	private List<PurchaseHistoryItem> purchaseHistory;
 
-	public static PortfolioStockItem from(PortfolioHolding portfolioHolding) {
+	public static PortfolioStockItem from(PortfolioHolding portfolioHolding, long lastDayClosingPrice) {
 		StockItem stockItem = StockItem.from(portfolioHolding.getStock());
-		PortfolioHoldingDetailItem holdingDetailItem = PortfolioHoldingDetailItem.from(portfolioHolding);
+		PortfolioHoldingDetailItem holdingDetailItem = PortfolioHoldingDetailItem.from(portfolioHolding,
+			lastDayClosingPrice);
 		List<StockDividendItem> dividends = portfolioHolding.getStock().getStockDividends().stream()
 			.map(StockDividendItem::from)
 			.collect(Collectors.toList());
