@@ -14,6 +14,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import codesquad.fineants.spring.api.errors.exception.KisException;
 import codesquad.fineants.spring.api.kis.properties.OauthKisProperties;
+import codesquad.fineants.spring.api.kis.response.LastDayClosingPriceResponse;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
@@ -21,7 +22,6 @@ import reactor.core.publisher.Mono;
 @Component
 public class KisClient {
 	public static final String baseUrl = "https://openapivts.koreainvestment.com:29443";
-	private static final String approvalURI = "https://openapivts.koreainvestment.com:29443/oauth2/Approval";
 	private static final String tokenPURI = "https://openapivts.koreainvestment.com:29443/oauth2/tokenP";
 	public static final String currentPrice = "/uapi/domestic-stock/v1/quotations/inquire-price";
 	private static final String lastDayClosingPrice = "/uapi/domestic-stock/v1/quotations/inquire-daily-itemchartprice";
@@ -108,7 +108,7 @@ public class KisClient {
 	}
 
 	// 직전 거래일의 종가 조회
-	public long readLastDayClosingPrice(String tickerSymbol, String authorization) {
+	public LastDayClosingPriceResponse readLastDayClosingPrice(String tickerSymbol, String authorization) {
 		MultiValueMap<String, String> headerMap = new LinkedMultiValueMap<>();
 		log.info("authorization : {}", authorization);
 		headerMap.add("authorization", authorization);
@@ -126,6 +126,6 @@ public class KisClient {
 
 		Map<String, Object> responseMap = getPerform(lastDayClosingPrice, headerMap, queryParamMap);
 		Map<String, String> output = (Map<String, String>)responseMap.get("output2");
-		return Long.parseLong(output.get("stck_clpr"));
+		return LastDayClosingPriceResponse.of(tickerSymbol, Long.parseLong(output.get("stck_clpr")));
 	}
 }
