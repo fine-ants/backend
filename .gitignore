@@ -7,3 +7,4 @@
 /.gradle/
 /src/main/resources/application-secret.yml
 /out/
+/src/main/resources/secret/

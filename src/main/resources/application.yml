@@ -28,6 +28,8 @@ spring:
           timeout: 5000
           starttls:
             enable: true
+  config:
+    import: ./secret/application-secret.yml
 ---
 spring:
   config:
