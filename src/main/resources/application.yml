@@ -4,6 +4,7 @@ spring:
       local: local, secret, s3
       dev: dev, secret, s3
       test: test, secret, s3
+      analyze: analyze, secret, s3
     default: local
 
   jackson:
@@ -117,6 +118,38 @@ spring:
 logging:
   level:
     codesquard: info
+---
+spring:
+  config:
+    activate:
+      on-profile: analyze
+  datasource:
+    url: ${db.analyze.datasource.url}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: ${db.analyze.datasource.username}
+    password: ${db.analyze.datasource.password}
+  jpa:
+    database: mysql
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+    hibernate:
+      ddl-auto: create
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQL8Dialect
+    defer-datasource-initialization: true
+    show-sql: true
+  redis:
+    host: redis
+    port: 6379
+  sql:
+    init:
+      mode: always
+      data-locations: classpath*:db/mysql/data.sql
+
+logging:
+  level:
+    codesquad: debug
 ---
 
 spring:

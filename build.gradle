@@ -101,6 +101,6 @@ task copyPrivate(type: Copy) {
 }
 
 bootJar {
-    enabled = false
+    archiveFileName = "fineAnts_app.jar"
     copyPrivate
 }
