@@ -1,6 +1,7 @@
 package codesquad.fineants.spring.api.portfolio_stock.response;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import codesquad.fineants.domain.portfolio.Portfolio;
@@ -15,10 +16,11 @@ public class PortfolioHoldingsResponse {
 	private List<PortfolioStockItem> portfolioHoldings;
 
 	public static PortfolioHoldingsResponse of(Portfolio portfolio, PortfolioGainHistory history,
-		List<PortfolioHolding> portfolioHoldings) {
+		List<PortfolioHolding> portfolioHoldings, Map<String, Long> lastDayClosingPriceMap) {
 		PortfolioDetailResponse portfolioDetailResponse = PortfolioDetailResponse.from(portfolio, history);
 		List<PortfolioStockItem> portfolioStockItems = portfolioHoldings.stream()
-			.map(PortfolioStockItem::from)
+			.map(portfolioHolding -> PortfolioStockItem.from(portfolioHolding,
+				lastDayClosingPriceMap.getOrDefault(portfolioHolding.getStock().getTickerSymbol(), 0L)))
 			.collect(Collectors.toList());
 		return new PortfolioHoldingsResponse(portfolioDetailResponse, portfolioStockItems);
 	}

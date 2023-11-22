@@ -91,6 +91,7 @@ public class PortfolioHolding extends BaseEntity {
 		return (double)(calculateTotalInvestmentAmount() / numShares);
 	}
 
+	// 총 매입 개수 = 매입 내역들의 매입개수의 합계
 	public long calculateNumShares() {
 		return purchaseHistory.stream()
 			.mapToLong(PurchaseHistory::getNumShares)
@@ -129,19 +130,18 @@ public class PortfolioHolding extends BaseEntity {
 		return stock.readDividend(monthDateTime) * calculateNumShares();
 	}
 
-	// 당일 손익 = 현재 평가금액 - 총 투자 금액
-	public Long calculateDailyChange() {
-		return calculateCurrentValuation() - calculateTotalInvestmentAmount();
+	// 당일 변동 금액 = 종목 현재가 - 직전 거래일의 종가
+	public Long calculateDailyChange(long lastDayClosingPrice) {
+		return currentPrice - lastDayClosingPrice;
 	}
 
-	// 당일 손익율 = ((현재 평가금액 - 총 투자 금액) / 총 투자 금액) * 100
-	public Integer calculateDailyChangeRate() {
-		long currentValuation = calculateCurrentValuation();
-		long totalInvestmentAmount = calculateTotalInvestmentAmount();
-		if (totalInvestmentAmount == 0) {
+	// 당일 변동율 = ((종목 현재가 - 직전 거래일 종가) / 직전 거래일 종가) * 100%
+	public Integer calculateDailyChangeRate(long lastDayClosingPrice) {
+		if (lastDayClosingPrice == 0) {
 			return 0;
 		}
-		return (int)(((double)(currentValuation - totalInvestmentAmount) / (double)totalInvestmentAmount) * 100);
+		double dailyChange = currentPrice - lastDayClosingPrice;
+		return (int)((dailyChange / (double)lastDayClosingPrice) * 100);
 	}
 
 	// 연간배당율 = (연간배당금 / 현재 가치) * 100

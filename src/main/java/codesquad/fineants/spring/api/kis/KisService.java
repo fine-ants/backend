@@ -3,6 +3,7 @@ package codesquad.fineants.spring.api.kis;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -22,8 +23,10 @@ import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.spring.api.kis.client.KisClient;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.kis.manager.KisAccessTokenManager;
+import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
 import codesquad.fineants.spring.api.kis.manager.PortfolioSubscriptionManager;
 import codesquad.fineants.spring.api.kis.response.CurrentPriceResponse;
+import codesquad.fineants.spring.api.kis.response.LastDayClosingPriceResponse;
 import codesquad.fineants.spring.api.portfolio_stock.PortfolioStockService;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioHoldingsResponse;
 import lombok.RequiredArgsConstructor;
@@ -43,6 +46,7 @@ public class KisService {
 	private final KisAccessTokenManager manager;
 	private final CurrentPriceManager currentPriceManager;
 	private final PortfolioSubscriptionManager portfolioSubscriptionManager;
+	private final LastDayClosingPriceManager lastDayClosingPriceManager;
 	private final Executor portfolioDetailExecutor = Executors.newFixedThreadPool(100, r -> {
 		Thread thread = new Thread(r);
 		thread.setDaemon(true);
@@ -78,11 +82,13 @@ public class KisService {
 			.filter(this::hasAllCurrentPrice)
 			.map(PortfolioSubscription::getPortfolioId)
 			.map(portfolioId -> CompletableFuture.supplyAsync(
-					() -> portfolioStockService.readMyPortfolioStocks(portfolioId), portfolioDetailExecutor)
+					() -> portfolioStockService.readMyPortfolioStocks(portfolioId, lastDayClosingPriceManager),
+					portfolioDetailExecutor)
 				.exceptionally(e -> {
 					log.info(e.getMessage(), e);
 					return null;
 				}))
+			.filter(Objects::nonNull)
 			.collect(Collectors.toList());
 
 		futures.parallelStream()
@@ -95,7 +101,7 @@ public class KisService {
 		return CompletableFuture.supplyAsync(() ->
 			portfolioSubscriptionManager.getPortfolioSubscription(portfolioId)
 				.map(PortfolioSubscription::getPortfolioId)
-				.map(portfolioStockService::readMyPortfolioStocks)
+				.map(id -> portfolioStockService.readMyPortfolioStocks(id, lastDayClosingPriceManager))
 				.orElse(null));
 	}
 
@@ -113,8 +119,46 @@ public class KisService {
 			.map(PortfolioHolding::getStock)
 			.map(Stock::getTickerSymbol)
 			.collect(Collectors.toList());
+
+		// 종목 현재가 갱신
 		refreshCurrentPrice(tickerSymbols);
 		log.info("{}개의 종목 현재가 갱신 완료", tickerSymbols.size());
+
+		// 종가 갱신
+		refreshLastDayClosingPrice(tickerSymbols);
+	}
+
+	// 종가 매니저가 가격을 갖지 않은 종목들의 직전거래일의 종가를 요청하여 저장한다
+	private void refreshLastDayClosingPrice(List<String> tickerSymbols) {
+		List<CompletableFuture<LastDayClosingPriceResponse>> futures = tickerSymbols.parallelStream()
+			.filter(tickerSymbol -> !lastDayClosingPriceManager.hasPrice(tickerSymbol))
+			.map(tickerSymbol -> {
+				CompletableFuture<LastDayClosingPriceResponse> future = new CompletableFuture<>();
+				executorService.schedule(createLastDayClosingPriceRequest(tickerSymbol, future), 200L,
+					TimeUnit.MILLISECONDS);
+				return future;
+			})
+			.collect(Collectors.toList());
+		futures.parallelStream()
+			.map(CompletableFuture::join)
+			.filter(Objects::nonNull)
+			.forEach(response -> lastDayClosingPriceManager.addPrice(response.getTickerSymbol(), response.getPrice()));
+	}
+
+	private Runnable createLastDayClosingPriceRequest(final String tickerSymbol,
+		CompletableFuture<LastDayClosingPriceResponse> future) {
+		return () -> {
+			try {
+				future.completeOnTimeout(kisClient.readLastDayClosingPrice(tickerSymbol, manager.createAuthorization()),
+					10, TimeUnit.SECONDS);
+			} catch (Exception e) {
+				future.completeExceptionally(e);
+			}
+			future.exceptionally(e -> {
+				log.error(e.getMessage(), e);
+				return null;
+			});
+		};
 	}
 
 	public void refreshCurrentPrice(List<String> tickerSymbols) {
@@ -127,6 +171,7 @@ public class KisService {
 
 		futures.parallelStream()
 			.map(CompletableFuture::join)
+			.filter(Objects::nonNull)
 			.forEach(currentPriceManager::addCurrentPrice);
 	}
 

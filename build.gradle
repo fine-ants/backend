@@ -92,8 +92,15 @@ configurations {
 }
 /** QueryDSL end **/
 
-// executable jar만 생성하도록 설정
-jar {
-    enabled = false
+task copyPrivate(type: Copy) {
+    copy {
+        from './secret'
+        include "*.yml"
+        into 'src/main/resources/secret'
+    }
 }
 
+bootJar {
+    archiveFileName = "fineAnts_app.jar"
+    copyPrivate
+}

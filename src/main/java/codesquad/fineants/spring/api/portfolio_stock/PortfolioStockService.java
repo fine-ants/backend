@@ -2,6 +2,8 @@ package codesquad.fineants.spring.api.portfolio_stock;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
@@ -23,6 +25,7 @@ import codesquad.fineants.spring.api.errors.errorcode.StockErrorCode;
 import codesquad.fineants.spring.api.errors.exception.ForBiddenException;
 import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
+import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
 import codesquad.fineants.spring.api.portfolio_stock.request.PortfolioStockCreateRequest;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioHoldingsResponse;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioStockCreateResponse;
@@ -86,7 +89,7 @@ public class PortfolioStockService {
 		return new PortfolioStockDeleteResponse(portfolioHoldingId);
 	}
 
-	public PortfolioHoldingsResponse readMyPortfolioStocks(Long portfolioId) {
+	public PortfolioHoldingsResponse readMyPortfolioStocks(Long portfolioId, LastDayClosingPriceManager manager) {
 		Portfolio portfolio = findPortfolio(portfolioId);
 
 		List<PortfolioHolding> portfolioHoldings = portfolio.changeCurrentPriceFromHoldings(currentPriceManager);
@@ -95,6 +98,11 @@ public class PortfolioStockService {
 		PortfolioGainHistory latestHistory = portfolioGainHistoryRepository.findFirstByPortfolioAndCreateAtIsLessThanEqualOrderByCreateAtDesc(
 				portfolio.getId(), LocalDateTime.now())
 			.orElseGet(PortfolioGainHistory::empty);
-		return PortfolioHoldingsResponse.of(portfolio, latestHistory, portfolioHoldings);
+
+		Map<String, Long> lastDayClosingPriceMap = portfolioHoldings.parallelStream()
+			.map(PortfolioHolding::getStock)
+			.map(Stock::getTickerSymbol)
+			.collect(Collectors.toMap(key -> key, manager::getPrice));
+		return PortfolioHoldingsResponse.of(portfolio, latestHistory, portfolioHoldings, lastDayClosingPriceMap);
 	}
 }

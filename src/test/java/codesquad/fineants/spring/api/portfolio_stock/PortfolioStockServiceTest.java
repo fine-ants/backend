@@ -33,6 +33,7 @@ import codesquad.fineants.domain.stock.StockRepository;
 import codesquad.fineants.domain.stock_dividend.StockDividend;
 import codesquad.fineants.domain.stock_dividend.StockDividendRepository;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
+import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
 import codesquad.fineants.spring.api.kis.response.CurrentPriceResponse;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioHoldingsResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -71,6 +72,9 @@ class PortfolioStockServiceTest {
 
 	@Autowired
 	private CurrentPriceManager currentPriceManager;
+
+	@Autowired
+	private LastDayClosingPriceManager lastDayClosingPriceManager;
 
 	private Member member;
 	private Portfolio portfolio;
@@ -161,9 +165,9 @@ class PortfolioStockServiceTest {
 		// given
 		Long portfolioId = portfolio.getId();
 		currentPriceManager.addCurrentPrice(new CurrentPriceResponse("005930", 60000L));
-
+		lastDayClosingPriceManager.addPrice("005930", 50000);
 		// when
-		PortfolioHoldingsResponse response = service.readMyPortfolioStocks(portfolioId);
+		PortfolioHoldingsResponse response = service.readMyPortfolioStocks(portfolioId, lastDayClosingPriceManager);
 
 		// then
 		assertAll(
@@ -189,7 +193,7 @@ class PortfolioStockServiceTest {
 				.extracting("portfolioHoldingId", "currentValuation", "currentPrice", "averageCostPerShare",
 					"numShares", "dailyChange", "dailyChangeRate", "totalGain", "totalReturnRate", "annualDividend")
 				.containsExactlyInAnyOrder(Tuple.tuple(
-					portfolioHolding.getId(), 180000L, 60000L, 50000.0, 3L, 30000L, 20, 30000L, 20, 4332L)),
+					portfolioHolding.getId(), 180000L, 60000L, 50000.0, 3L, 10000L, 20, 30000L, 20, 4332L)),
 
 			() -> assertThat(response).extracting("portfolioHoldings")
 				.asList()

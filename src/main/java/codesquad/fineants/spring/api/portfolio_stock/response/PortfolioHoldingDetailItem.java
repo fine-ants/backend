@@ -34,15 +34,15 @@ public class PortfolioHoldingDetailItem {
 		this.annualDividendYield = annualDividendYield;
 	}
 
-	public static PortfolioHoldingDetailItem from(PortfolioHolding portfolioHolding) {
+	public static PortfolioHoldingDetailItem from(PortfolioHolding portfolioHolding, long lastDayClosingPrice) {
 		return PortfolioHoldingDetailItem.builder()
 			.portfolioHoldingId(portfolioHolding.getId())
 			.currentValuation(portfolioHolding.calculateCurrentValuation())
 			.currentPrice(portfolioHolding.getCurrentPrice())
 			.averageCostPerShare(portfolioHolding.calculateAverageCostPerShare())
 			.numShares(portfolioHolding.calculateNumShares())
-			.dailyChange(portfolioHolding.calculateDailyChange())
-			.dailyChangeRate(portfolioHolding.calculateDailyChangeRate())
+			.dailyChange(portfolioHolding.calculateDailyChange(lastDayClosingPrice))
+			.dailyChangeRate(portfolioHolding.calculateDailyChangeRate(lastDayClosingPrice))
 			.totalGain(portfolioHolding.calculateTotalGain())
 			.totalReturnRate(portfolioHolding.calculateTotalReturnRate())
 			.annualDividend(portfolioHolding.calculateAnnualDividend())

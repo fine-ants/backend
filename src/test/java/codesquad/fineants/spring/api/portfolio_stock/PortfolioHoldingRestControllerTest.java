@@ -34,6 +34,7 @@ import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.spring.api.errors.handler.GlobalExceptionHandler;
 import codesquad.fineants.spring.api.kis.KisService;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
+import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
 import codesquad.fineants.spring.api.portfolio.PortFolioService;
 import codesquad.fineants.spring.api.portfolio_stock.request.PortfolioStockCreateRequest;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioStockCreateResponse;
@@ -69,6 +70,9 @@ class PortfolioHoldingRestControllerTest {
 
 	@MockBean
 	private CurrentPriceManager currentPriceManager;
+
+	@MockBean
+	private LastDayClosingPriceManager lastDayClosingPriceManager;
 
 	private Member member;
 	private Portfolio portfolio;
