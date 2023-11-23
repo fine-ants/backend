@@ -60,7 +60,6 @@ public class PortfolioStockRestController {
 	public SseEmitter readMyPortfolioStocks(@PathVariable Long portfolioId) {
 		SseEmitter emitter = new SseEmitter();
 		sseExecutor.scheduleAtFixedRate(generateSseEventTask(portfolioId, emitter), 0, 5L, TimeUnit.SECONDS);
-		emitter.onCompletion(sseExecutor::shutdown);
 		return emitter;
 	}
 
