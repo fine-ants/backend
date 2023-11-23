@@ -1,6 +1,7 @@
 package codesquad.fineants.spring.config;
 
 import codesquad.fineants.domain.jwt.JwtProvider;
+import codesquad.fineants.domain.member.MemberRepository;
 import codesquad.fineants.domain.oauth.support.AuthenticationContext;
 import codesquad.fineants.spring.api.member.service.OauthMemberRedisService;
 import codesquad.fineants.spring.filter.CorsFilter;
@@ -10,15 +11,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
-import java.util.List;
 
 @Configuration
 @RequiredArgsConstructor
@@ -28,6 +26,7 @@ public class SecurityConfig {
     private final AuthenticationContext authenticationContext;
     private final ObjectMapper objectMapper;
     private final OauthMemberRedisService redisService;
+    private final MemberRepository memberRepository;
 
     // 인증이 필요하지 않은 주소
     private final String[] accessUrl = {"/api/auth/login",
@@ -57,8 +56,8 @@ public class SecurityConfig {
          * 필터 추가
          */
         http.addFilterBefore(new CorsFilter(), UsernamePasswordAuthenticationFilter.class); // cors 필터
-        http.addFilterBefore(new JwtAuthorizationFilter(jwtProvider, authenticationContext,objectMapper,redisService), UsernamePasswordAuthenticationFilter.class); // JWT 토큰으로 모든 접근에 대해 인증한다.
-        http.addFilterBefore(new LogoutFilter(redisService,objectMapper), UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(new JwtAuthorizationFilter(jwtProvider, authenticationContext, objectMapper, redisService,memberRepository), UsernamePasswordAuthenticationFilter.class); // JWT 토큰으로 모든 접근에 대해 인증한다.
+        http.addFilterBefore(new LogoutFilter(redisService, objectMapper), UsernamePasswordAuthenticationFilter.class);
 
         /**
          * 요청 허용 / 미허용
