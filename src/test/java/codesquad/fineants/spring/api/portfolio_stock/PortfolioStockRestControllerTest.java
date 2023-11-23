@@ -1,11 +1,14 @@
 package codesquad.fineants.spring.api.portfolio_stock;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.hamcrest.Matchers.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
@@ -21,6 +24,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -34,6 +38,8 @@ import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
 import codesquad.fineants.domain.purchase_history.PurchaseHistory;
 import codesquad.fineants.domain.stock.Market;
 import codesquad.fineants.domain.stock.Stock;
+import codesquad.fineants.spring.api.errors.errorcode.PortfolioErrorCode;
+import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
 import codesquad.fineants.spring.api.errors.handler.GlobalExceptionHandler;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioHoldingsResponse;
@@ -124,7 +130,7 @@ class PortfolioStockRestControllerTest {
 			.portFolioHolding(portfolioHolding)
 			.build());
 		portfolio.addPortfolioStock(portfolioHolding);
-		
+
 		PortfolioGainHistory history = PortfolioGainHistory.empty();
 		Map<String, Long> lastDayClosingPriceMap = Map.of("005930", 50000L);
 		PortfolioHoldingsResponse mockResponse = PortfolioHoldingsResponse.of(portfolio, history,
@@ -140,5 +146,24 @@ class PortfolioStockRestControllerTest {
 			.getResponse()
 			.getContentAsString();
 		assertThat(body).contains(objectMapper.writeValueAsString(mockResponse));
+	}
+
+	@DisplayName("존재하지 않는 포트폴리오 번호를 가지고 포트폴리오 상세 정보를 가져올 수 없다")
+	@Test
+	void readMyPortfolioStocksWithNotFoundPortfolio() throws Exception {
+		// given
+		long portfolioId = 9999L;
+		given(portfolioStockService.readMyPortfolioStocks(anyLong(), any(LastDayClosingPriceManager.class)))
+			.willThrow(new NotFoundResourceException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
+
+		// when
+		MvcResult result = mockMvc.perform(get("/api/portfolio/{portfolioId}/holdings", portfolioId))
+			.andExpect(request().asyncStarted())
+			.andReturn();
+
+		// then
+		mockMvc.perform(asyncDispatch(result))
+			.andExpect(status().isNotFound())
+			.andExpect(jsonPath("message").value(equalTo("포트폴리오를 찾을 수 없습니다")));
 	}
 }
