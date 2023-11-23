@@ -20,6 +20,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.oauth.support.AuthPrincipalMember;
+import codesquad.fineants.spring.api.errors.exception.FineAntsException;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
 import codesquad.fineants.spring.api.portfolio_stock.request.PortfolioStockCreateRequest;
 import codesquad.fineants.spring.api.response.ApiResponse;
@@ -65,12 +66,12 @@ public class PortfolioStockRestController {
 
 	private Runnable generateSseEventTask(Long portfolioId, SseEmitter emitter) {
 		return () -> {
-			SseEmitter.SseEventBuilder event = SseEmitter.event()
-				.data(portfolioStockService.readMyPortfolioStocks(portfolioId, lastDayClosingPriceManager))
-				.name("sse event - myPortfolioStocks");
 			try {
+				SseEmitter.SseEventBuilder event = SseEmitter.event()
+					.data(portfolioStockService.readMyPortfolioStocks(portfolioId, lastDayClosingPriceManager))
+					.name("sse event - myPortfolioStocks");
 				emitter.send(event);
-			} catch (IOException e) {
+			} catch (IOException | FineAntsException e) {
 				log.error(e.getMessage(), e);
 				emitter.completeWithError(e);
 			}
