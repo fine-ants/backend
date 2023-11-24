@@ -10,6 +10,33 @@ LOAD DATA LOCAL INFILE 'src/main/resources/stocks.tsv'
         market = @market,
         create_at = now();
 
+CREATE TEMPORARY TABLE temp_update_table
+select ticker_symbol, sector
+from stock
+limit 0;
+
+LOAD DATA LOCAL INFILE 'src/main/resources/sectors_kospi.tsv'
+    INTO TABLE temp_update_table
+    FIELDS TERMINATED BY '\t'
+    IGNORE 1 ROWS
+    (@종목코드, @종목명, @시장구분, @업종명, @종가, @대비, @등락률, @시가총액)
+    set ticker_symbol = @종목코드,
+        sector = @업종명;
+
+LOAD DATA LOCAL INFILE 'src/main/resources/sectors_kosdaq.tsv'
+    INTO TABLE temp_update_table
+    FIELDS TERMINATED BY '\t'
+    IGNORE 1 ROWS
+    (@종목코드, @종목명, @시장구분, @업종명, @종가, @대비, @등락률, @시가총액)
+    set ticker_symbol = @종목코드,
+        sector = @업종명;
+
+UPDATE stock
+    INNER JOIN temp_update_table on temp_update_table.ticker_symbol = stock.ticker_symbol
+SET stock.sector = temp_update_table.sector;
+
+DROP TEMPORARY TABLE temp_update_table;
+
 LOAD DATA LOCAL INFILE 'src/main/resources/dividends.tsv'
     INTO TABLE stock_dividend
     FIELDS TERMINATED BY '\t'
