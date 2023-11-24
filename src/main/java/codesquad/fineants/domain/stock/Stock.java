@@ -30,6 +30,7 @@ public class Stock extends BaseEntity {
 	private String companyName;
 	private String companyNameEng;
 	private String stockCode;
+	private String sector;
 	@Enumerated(value = EnumType.STRING)
 	private Market market;
 
@@ -37,12 +38,13 @@ public class Stock extends BaseEntity {
 	private final List<StockDividend> stockDividends = new ArrayList<>();
 
 	@Builder
-	public Stock(String companyName, String companyNameEng, String stockCode, String tickerSymbol,
+	public Stock(String tickerSymbol, String companyName, String companyNameEng, String stockCode, String sector,
 		Market market) {
+		this.tickerSymbol = tickerSymbol;
 		this.companyName = companyName;
 		this.companyNameEng = companyNameEng;
 		this.stockCode = stockCode;
-		this.tickerSymbol = tickerSymbol;
+		this.sector = sector;
 		this.market = market;
 	}
 
