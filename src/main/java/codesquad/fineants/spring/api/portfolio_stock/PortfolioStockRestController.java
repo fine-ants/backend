@@ -1,7 +1,9 @@
 package codesquad.fineants.spring.api.portfolio_stock;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import java.io.IOException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import javax.validation.Valid;
 
@@ -14,30 +16,27 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.oauth.support.AuthPrincipalMember;
-import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
-import codesquad.fineants.domain.stock.Stock;
-import codesquad.fineants.spring.api.kis.KisService;
-import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
+import codesquad.fineants.spring.api.errors.exception.FineAntsException;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
-import codesquad.fineants.spring.api.portfolio.PortFolioService;
 import codesquad.fineants.spring.api.portfolio_stock.request.PortfolioStockCreateRequest;
-import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioHoldingsResponse;
 import codesquad.fineants.spring.api.response.ApiResponse;
 import codesquad.fineants.spring.api.success.code.PortfolioStockSuccessCode;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RequestMapping("/api/portfolio/{portfolioId}/holdings")
 @RequiredArgsConstructor
 @RestController
 public class PortfolioStockRestController {
 
+	private static final ScheduledExecutorService sseExecutor = Executors.newScheduledThreadPool(100);
+
 	private final PortfolioStockService portfolioStockService;
-	private final KisService kisService;
-	private final PortFolioService portFolioService;
-	private final CurrentPriceManager currentPriceManager;
 	private final LastDayClosingPriceManager lastDayClosingPriceManager;
 
 	@ResponseStatus(HttpStatus.CREATED)
@@ -58,16 +57,23 @@ public class PortfolioStockRestController {
 	}
 
 	@GetMapping
-	public ApiResponse<PortfolioHoldingsResponse> readMyPortfolioStocks(@PathVariable Long portfolioId) {
-		List<String> tickerSymbols = portFolioService.findPortfolio(portfolioId).getPortfolioHoldings().stream()
-			.map(PortfolioHolding::getStock)
-			.map(Stock::getTickerSymbol)
-			.filter(tickerSymbol -> !currentPriceManager.hasCurrentPrice(tickerSymbol))
-			.collect(Collectors.toList());
-		kisService.refreshCurrentPrice(tickerSymbols);
+	public SseEmitter readMyPortfolioStocks(@PathVariable Long portfolioId) {
+		SseEmitter emitter = new SseEmitter();
+		sseExecutor.scheduleAtFixedRate(generateSseEventTask(portfolioId, emitter), 0, 5L, TimeUnit.SECONDS);
+		return emitter;
+	}
 
-		PortfolioHoldingsResponse response = portfolioStockService.readMyPortfolioStocks(portfolioId,
-			lastDayClosingPriceManager);
-		return ApiResponse.success(PortfolioStockSuccessCode.OK_READ_PORTFOLIO_STOCKS, response);
+	private Runnable generateSseEventTask(Long portfolioId, SseEmitter emitter) {
+		return () -> {
+			try {
+				SseEmitter.SseEventBuilder event = SseEmitter.event()
+					.data(portfolioStockService.readMyPortfolioStocks(portfolioId, lastDayClosingPriceManager))
+					.name("sse event - myPortfolioStocks");
+				emitter.send(event);
+			} catch (IOException | FineAntsException e) {
+				log.error(e.getMessage(), e);
+				emitter.completeWithError(e);
+			}
+		};
 	}
 }
