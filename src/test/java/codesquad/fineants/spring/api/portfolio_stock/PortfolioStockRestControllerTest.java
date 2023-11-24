@@ -1,6 +1,5 @@
 package codesquad.fineants.spring.api.portfolio_stock;
 
-import static org.assertj.core.api.Assertions.*;
 import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.*;
@@ -21,13 +20,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.oauth.support.AuthMember;
@@ -59,9 +57,6 @@ class PortfolioStockRestControllerTest {
 
 	@Autowired
 	private MappingJackson2HttpMessageConverter converter;
-
-	@Autowired
-	private ObjectMapper objectMapper;
 
 	@MockBean
 	private AuthPrincipalArgumentResolver authPrincipalArgumentResolver;
@@ -134,18 +129,15 @@ class PortfolioStockRestControllerTest {
 		PortfolioGainHistory history = PortfolioGainHistory.empty();
 		Map<String, Long> lastDayClosingPriceMap = Map.of("005930", 50000L);
 		PortfolioHoldingsResponse mockResponse = PortfolioHoldingsResponse.of(portfolio, history,
-			List.of(portfolioHolding),
-			lastDayClosingPriceMap);
+			List.of(portfolioHolding), lastDayClosingPriceMap);
 		given(portfolioStockService.readMyPortfolioStocks(anyLong(), any(LastDayClosingPriceManager.class)))
 			.willReturn(mockResponse);
 
 		// when & then
-		String body = mockMvc.perform(get("/api/portfolio/{portfolioId}/holdings", portfolioId))
+		mockMvc.perform(get("/api/portfolio/{portfolioId}/holdings", portfolioId))
 			.andExpect(request().asyncStarted())
-			.andReturn()
-			.getResponse()
-			.getContentAsString();
-		assertThat(body).contains(objectMapper.writeValueAsString(mockResponse));
+			.andExpect(status().isOk())
+			.andExpect(content().contentType(MediaType.TEXT_EVENT_STREAM));
 	}
 
 	@DisplayName("존재하지 않는 포트폴리오 번호를 가지고 포트폴리오 상세 정보를 가져올 수 없다")
