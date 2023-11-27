@@ -121,7 +121,7 @@ public class Portfolio {
 	}
 
 	// 포트폴리오 평가 금액(현재 가치) = 모든 종목들의 평가금액 합계
-	private Long calculateTotalCurrentValuation() {
+	public Long calculateTotalCurrentValuation() {
 		return portfolioHoldings.stream()
 			.mapToLong(PortfolioHolding::calculateCurrentValuation)
 			.sum();

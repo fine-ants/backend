@@ -27,7 +27,11 @@ import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
 import codesquad.fineants.spring.api.portfolio_stock.request.PortfolioStockCreateRequest;
+import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioChartResponse;
+import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioDividendChartItem;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioHoldingsResponse;
+import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioPieChartItem;
+import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioSectorChartItemResponse;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioStockCreateResponse;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioStockDeleteResponse;
 import lombok.RequiredArgsConstructor;
@@ -104,5 +108,40 @@ public class PortfolioStockService {
 			.map(Stock::getTickerSymbol)
 			.collect(Collectors.toMap(key -> key, manager::getPrice));
 		return PortfolioHoldingsResponse.of(portfolio, latestHistory, portfolioHoldings, lastDayClosingPriceMap);
+	}
+
+	public PortfolioChartResponse readMyPortfolioCharts(Long portfolioId) {
+		Portfolio portfolio = findPortfolio(portfolioId);
+		List<PortfolioHolding> portfolioHoldings = portfolio.changeCurrentPriceFromHoldings(currentPriceManager);
+
+		// 파이 차트 데이터 생성
+		long portfolioCurrentValuation = portfolio.calculateTotalCurrentValuation();
+		List<PortfolioPieChartItem> pieChartItems = portfolioHoldings.parallelStream()
+			.map(portfolioHolding -> PortfolioPieChartItem.of(portfolioHolding, portfolioCurrentValuation))
+			.collect(Collectors.toList());
+
+		// 배당금 차트 데이터 생성
+		Map<Integer, Long> totalDividendMap = portfolioHoldings.parallelStream()
+			.flatMap(portfolioHolding -> portfolioHolding.calculateMonthlyDividends().entrySet().stream())
+			.collect(Collectors.groupingBy(Map.Entry::getKey, Collectors.summingLong(Map.Entry::getValue)));
+
+		List<PortfolioDividendChartItem> dividendChartItems = totalDividendMap.entrySet().parallelStream()
+			.map(entry -> new PortfolioDividendChartItem(entry.getKey(), entry.getValue()))
+			.collect(Collectors.toList());
+
+		// 섹터 차트 데이터 생성
+		Map<String, List<Long>> sectorCurrentValuationMap = portfolioHoldings.parallelStream()
+			.collect(Collectors.groupingBy(portfolioHolding -> portfolioHolding.getStock().getSector(),
+				Collectors.mapping(PortfolioHolding::calculateCurrentValuation, Collectors.toList())));
+		List<PortfolioSectorChartItemResponse> sectorChartItems = sectorCurrentValuationMap.entrySet()
+			.parallelStream()
+			.map(entry -> {
+				double weight =
+					(entry.getValue().stream().mapToDouble(Double::valueOf).sum() / (double)portfolioCurrentValuation)
+						* 100;
+				return new PortfolioSectorChartItemResponse(entry.getKey(), weight);
+			})
+			.collect(Collectors.toList());
+		return new PortfolioChartResponse(pieChartItems, dividendChartItems, sectorChartItems);
 	}
 }

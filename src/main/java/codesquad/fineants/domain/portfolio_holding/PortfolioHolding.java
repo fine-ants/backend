@@ -2,7 +2,9 @@ package codesquad.fineants.domain.portfolio_holding;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -164,5 +166,16 @@ public class PortfolioHolding extends BaseEntity {
 
 	public void changeCurrentPrice(long currentPrice) {
 		this.currentPrice = currentPrice;
+	}
+
+	// 월별 배당금 계산
+	// key=월, value=배당금 합계
+	public Map<Integer, Long> calculateMonthlyDividends() {
+		Map<Integer, Long> result = new HashMap<>();
+		for (int month = 1; month <= 12; month++) {
+			long amount = stock.readDividend(LocalDateTime.now().withMonth(month)) * calculateNumShares();
+			result.put(month, amount);
+		}
+		return result;
 	}
 }
