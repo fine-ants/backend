@@ -9,14 +9,11 @@ import java.util.List;
 
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.member.MemberRepository;
@@ -65,9 +62,6 @@ class PortfolioStockServiceTest {
 	private StockRepository stockRepository;
 
 	@Autowired
-	private ObjectMapper objectMapper;
-
-	@Autowired
 	private PortfolioGainHistoryRepository portfolioGainHistoryRepository;
 
 	@Autowired
@@ -75,78 +69,6 @@ class PortfolioStockServiceTest {
 
 	@Autowired
 	private LastDayClosingPriceManager lastDayClosingPriceManager;
-
-	private Member member;
-	private Portfolio portfolio;
-	private Stock stock;
-	private PortfolioHolding portfolioHolding;
-	private PurchaseHistory purchaseHistory;
-
-	@BeforeEach
-	void init() {
-		Member member = Member.builder()
-			.nickname("일개미1234")
-			.email("kim1234@gmail.com")
-			.password("kim1234@")
-			.provider("local")
-			.build();
-		this.member = memberRepository.save(member);
-
-		Portfolio portfolio = Portfolio.builder()
-			.name("내꿈은 워렌버핏")
-			.securitiesFirm("토스")
-			.budget(1000000L)
-			.targetGain(1500000L)
-			.maximumLoss(900000L)
-			.member(member)
-			.targetGainIsActive(false)
-			.maximumIsActive(false)
-			.build();
-		this.portfolio = portfolioRepository.save(portfolio);
-
-		Stock stock = Stock.builder()
-			.companyName("삼성전자보통주")
-			.tickerSymbol("005930")
-			.companyNameEng("SamsungElectronics")
-			.stockCode("KR7005930003")
-			.market(Market.KOSPI)
-			.build();
-		this.stock = stockRepository.save(stock);
-
-		StockDividend stockDividend1Q = StockDividend.builder()
-			.dividend(361L)
-			.dividendMonth(LocalDate.of(2023, 4, 1).atStartOfDay())
-			.stock(this.stock)
-			.build();
-		StockDividend stockDividend2Q = StockDividend.builder()
-			.dividend(361L)
-			.dividendMonth(LocalDate.of(2023, 5, 1).atStartOfDay())
-			.stock(this.stock)
-			.build();
-		StockDividend stockDividend3Q = StockDividend.builder()
-			.dividend(361L)
-			.dividendMonth(LocalDate.of(2023, 8, 1).atStartOfDay())
-			.stock(this.stock)
-			.build();
-		StockDividend stockDividend4Q = StockDividend.builder()
-			.dividend(361L)
-			.dividendMonth(LocalDate.of(2023, 11, 1).atStartOfDay())
-			.stock(this.stock)
-			.build();
-
-		stockDividendRepository.saveAll(List.of(stockDividend1Q, stockDividend2Q, stockDividend3Q, stockDividend4Q));
-
-		PortfolioHolding portfolioHolding = PortfolioHolding.empty(portfolio, stock);
-		this.portfolioHolding = portFolioHoldingRepository.save(portfolioHolding);
-
-		this.purchaseHistory = purchaseHistoryRepository.save(PurchaseHistory.builder()
-			.purchaseDate(LocalDateTime.of(2023, 11, 1, 9, 30, 0))
-			.numShares(3L)
-			.purchasePricePerShare(50000.0)
-			.memo("첫구매")
-			.portFolioHolding(portfolioHolding)
-			.build());
-	}
 
 	@AfterEach
 	void tearDown() {
@@ -163,11 +85,23 @@ class PortfolioStockServiceTest {
 	@Test
 	void readMyPortfolioStocks() {
 		// given
-		Long portfolioId = portfolio.getId();
+		Member member = memberRepository.save(createMember());
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
+		Stock stock = stockRepository.save(createStock());
+		stockDividendRepository.saveAll(List.of(
+			createStockDividend(LocalDate.of(2023, 4, 1), stock),
+			createStockDividend(LocalDate.of(2023, 5, 1), stock),
+			createStockDividend(LocalDate.of(2023, 8, 1), stock),
+			createStockDividend(LocalDate.of(2023, 11, 1), stock)
+		));
+		PortfolioHolding portfolioHolding = portFolioHoldingRepository.save(createPortfolioHolding(portfolio, stock));
+		purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding));
+
 		currentPriceManager.addCurrentPrice(new CurrentPriceResponse("005930", 60000L));
 		lastDayClosingPriceManager.addPrice("005930", 50000);
 		// when
-		PortfolioHoldingsResponse response = service.readMyPortfolioStocks(portfolioId, lastDayClosingPriceManager);
+		PortfolioHoldingsResponse response = service.readMyPortfolioStocks(portfolio.getId(),
+			lastDayClosingPriceManager);
 
 		// then
 		assertAll(
@@ -214,5 +148,62 @@ class PortfolioStockServiceTest {
 				.extracting("purchaseDate", "numShares", "purchasePricePerShare", "memo")
 				.containsExactlyInAnyOrder(Tuple.tuple(LocalDateTime.of(2023, 11, 1, 9, 30, 0), 3L, 50000.0, "첫구매"))
 		);
+	}
+
+	private static Member createMember() {
+		return Member.builder()
+			.nickname("일개미1234")
+			.email("kim1234@gmail.com")
+			.password("kim1234@")
+			.provider("local")
+			.build();
+	}
+
+	private static Portfolio createPortfolio(Member member) {
+		return Portfolio.builder()
+			.name("내꿈은 워렌버핏")
+			.securitiesFirm("토스")
+			.budget(1000000L)
+			.targetGain(1500000L)
+			.maximumLoss(900000L)
+			.member(member)
+			.targetGainIsActive(false)
+			.maximumIsActive(false)
+			.build();
+	}
+
+	private static Stock createStock() {
+		return Stock.builder()
+			.companyName("삼성전자보통주")
+			.tickerSymbol("005930")
+			.companyNameEng("SamsungElectronics")
+			.stockCode("KR7005930003")
+			.market(Market.KOSPI)
+			.build();
+	}
+
+	private StockDividend createStockDividend(LocalDate dividendMonth, Stock stock) {
+		return StockDividend.builder()
+			.dividend(361L)
+			.dividendMonth(dividendMonth.atStartOfDay())
+			.stock(stock)
+			.build();
+	}
+
+	private static PortfolioHolding createPortfolioHolding(Portfolio portfolio, Stock stock) {
+		return PortfolioHolding.builder()
+			.portfolio(portfolio)
+			.stock(stock)
+			.build();
+	}
+
+	private static PurchaseHistory createPurchaseHistory(PortfolioHolding portfolioHolding) {
+		return PurchaseHistory.builder()
+			.purchaseDate(LocalDateTime.of(2023, 11, 1, 9, 30, 0))
+			.numShares(3L)
+			.purchasePricePerShare(50000.0)
+			.memo("첫구매")
+			.portFolioHolding(portfolioHolding)
+			.build();
 	}
 }
