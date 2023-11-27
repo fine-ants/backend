@@ -1,14 +1,16 @@
 package codesquad.fineants.spring.api.kis;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.BDDMockito.*;
 
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +20,6 @@ import org.springframework.test.context.ActiveProfiles;
 
 import codesquad.fineants.spring.api.kis.client.KisClient;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
-import codesquad.fineants.spring.api.kis.manager.KisAccessTokenManager;
 import codesquad.fineants.spring.api.kis.response.CurrentPriceResponse;
 import lombok.extern.slf4j.Slf4j;
 
@@ -30,36 +31,39 @@ class KisServiceTest {
 	@Autowired
 	private KisService kisService;
 
-	@MockBean
-	private CurrentPriceManager currentPriceManager;
+	@Autowired
+	private CurrentPriceManager manager;
 
-	@Autowired
-	private KisAccessTokenManager manager;
-	@Autowired
+	@MockBean
 	private KisClient client;
-	@Autowired
-	private KisRedisService redisService;
 
 	@DisplayName("주식 현재가 시세를 가져온다")
 	@Test
 	void readRealTimeCurrentPrice() {
 		// given
 		String tickerSymbol = "005930";
-		manager.refreshAccessToken(client.accessToken());
+
+		given(client.readRealTimeCurrentPrice(anyString(), anyString())).willReturn(60000L);
 		// when
-		kisService.readRealTimeCurrentPrice(tickerSymbol);
+		CurrentPriceResponse response = kisService.readRealTimeCurrentPrice(tickerSymbol);
 		// then
+		assertThat(response)
+			.extracting("tickerSymbol", "currentPrice")
+			.containsExactlyInAnyOrder("005930", 60000L);
 	}
 
-	@DisplayName("1초마다 주식 현재가 시세를 요청하고 갱신합니다.")
+	@DisplayName("티커 심볼을 추가한다")
 	@Test
-	void publishCurrentPrice() throws InterruptedException {
+	void addTickerSymbols() {
 		// given
-
+		List<String> tickerSymbols = List.of("005930", "035720");
 		// when
-		kisService.addTickerSymbols(List.of("005930", "035720"));
-		Thread.sleep(20000L);
+		kisService.addTickerSymbols(tickerSymbols);
 		// then
+		Assertions.assertAll(
+			() -> assertThat(manager.hasKey("005930")).isTrue(),
+			() -> assertThat(manager.hasKey("035720")).isTrue()
+		);
 	}
 
 	@DisplayName("AccessTokenAspect이 수행하여 새로운 엑세스 토큰을 갱신한다")

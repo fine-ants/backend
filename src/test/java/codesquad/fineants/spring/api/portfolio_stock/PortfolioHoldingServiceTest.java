@@ -138,7 +138,7 @@ class PortfolioHoldingServiceTest {
 		// given
 		Long portfolioId = portfolio.getId();
 		Map<String, Object> requestBodyMap = new HashMap<>();
-		requestBodyMap.put("stockId", 9999L);
+		requestBodyMap.put("tickerSymbol", "999999");
 		PortfolioStockCreateRequest request = objectMapper.readValue(
 			objectMapper.writeValueAsString(requestBodyMap), PortfolioStockCreateRequest.class);
 
