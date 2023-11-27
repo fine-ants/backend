@@ -19,7 +19,7 @@ public class DecodedIdTokenPayload {
 	private String aud;
 	private String sub;
 	private Integer iat;
-	private Long exp;
+	private Integer exp;
 	private String nonce;
 	private Integer auth_time;
 	private String picture;
