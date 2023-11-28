@@ -9,7 +9,7 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 public class SseEventStreamMessageConverter extends MappingJackson2HttpMessageConverter {
 	public SseEventStreamMessageConverter() {
 		List<MediaType> mediaTypes = new ArrayList<>();
-		mediaTypes.add(new MediaType("text", "event-stream"));
+		mediaTypes.add(MediaType.TEXT_EVENT_STREAM);
 		setSupportedMediaTypes(mediaTypes);
 	}
 }
