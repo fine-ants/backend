@@ -9,6 +9,7 @@ import java.util.List;
 
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +33,7 @@ import codesquad.fineants.domain.stock_dividend.StockDividendRepository;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
 import codesquad.fineants.spring.api.kis.response.CurrentPriceResponse;
+import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioChartResponse;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioHoldingsResponse;
 import lombok.extern.slf4j.Slf4j;
 
@@ -150,6 +152,42 @@ class PortfolioStockServiceTest {
 		);
 	}
 
+	@DisplayName("사용자는 포트폴리오의 차트 정보를 조회한다")
+	@Test
+	void readMyPortfolioCharts() {
+		// given
+		Member member = memberRepository.save(createMember());
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
+		Stock stock = stockRepository.save(createStock());
+		stockDividendRepository.saveAll(List.of(
+			createStockDividend(LocalDate.of(2023, 4, 1), stock),
+			createStockDividend(LocalDate.of(2023, 5, 1), stock),
+			createStockDividend(LocalDate.of(2023, 8, 1), stock),
+			createStockDividend(LocalDate.of(2023, 11, 1), stock)
+		));
+		PortfolioHolding portfolioHolding = portFolioHoldingRepository.save(createPortfolioHolding(portfolio, stock));
+		purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding));
+
+		currentPriceManager.addCurrentPrice(new CurrentPriceResponse("005930", 60000L));
+		lastDayClosingPriceManager.addPrice("005930", 50000);
+
+		// when
+		PortfolioChartResponse response = service.readMyPortfolioCharts(portfolio.getId());
+
+		// then
+		Assertions.assertAll(
+			() -> assertThat(response)
+				.extracting("pieChart")
+				.asList()
+				.hasSize(2)
+				.extracting("name", "valuation", "fill", "weight", "totalGain", "totalGainRate")
+				.containsExactlyInAnyOrder(
+					Tuple.tuple("삼성전자보통주", 180000L, "#000000", 17.48, 30000L, 20.00),
+					Tuple.tuple("현금", 850000L, "#1CADFF", 82.52, 0L, 0.00)
+				)
+		);
+	}
+
 	private static Member createMember() {
 		return Member.builder()
 			.nickname("일개미1234")
@@ -178,6 +216,7 @@ class PortfolioStockServiceTest {
 			.tickerSymbol("005930")
 			.companyNameEng("SamsungElectronics")
 			.stockCode("KR7005930003")
+			.sector("전기전자")
 			.market(Market.KOSPI)
 			.build();
 	}
