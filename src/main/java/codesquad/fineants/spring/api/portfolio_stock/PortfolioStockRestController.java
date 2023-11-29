@@ -1,6 +1,7 @@
 package codesquad.fineants.spring.api.portfolio_stock;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -38,6 +39,7 @@ public class PortfolioStockRestController {
 
 	private final PortfolioStockService portfolioStockService;
 	private final LastDayClosingPriceManager lastDayClosingPriceManager;
+	private final StockMarketChecker stockMarketChecker;
 
 	@ResponseStatus(HttpStatus.CREATED)
 	@PostMapping
@@ -58,9 +60,32 @@ public class PortfolioStockRestController {
 
 	@GetMapping
 	public SseEmitter readMyPortfolioStocks(@PathVariable Long portfolioId) {
-		SseEmitter emitter = new SseEmitter();
-		sseExecutor.scheduleAtFixedRate(generateSseEventTask(portfolioId, emitter), 0, 5L, TimeUnit.SECONDS);
+		SseEmitter emitter = new SseEmitter(30 * 1000L);
+
+		// 장시간 동안에는 스케줄러를 이용하여 지속적 응답
+		if (stockMarketChecker.isMarketOpen(LocalDateTime.now())) {
+			sseExecutor.scheduleAtFixedRate(generatePersistentSseEventTask(portfolioId, emitter), 0, 5L,
+				TimeUnit.SECONDS);
+		} else {
+			// 장시간이 끝나면 한번만 응답하고 http 연결 끊기
+			sseExecutor.schedule(generateSseEventTask(portfolioId, emitter), 0, TimeUnit.SECONDS);
+		}
+
 		return emitter;
+	}
+
+	private Runnable generatePersistentSseEventTask(Long portfolioId, SseEmitter emitter) {
+		return () -> {
+			try {
+				SseEmitter.SseEventBuilder event = SseEmitter.event()
+					.data(portfolioStockService.readMyPortfolioStocks(portfolioId, lastDayClosingPriceManager))
+					.name("sse event - myPortfolioStocks");
+				emitter.send(event);
+			} catch (IOException | FineAntsException e) {
+				log.error(e.getMessage(), e);
+				emitter.completeWithError(e);
+			}
+		};
 	}
 
 	private Runnable generateSseEventTask(Long portfolioId, SseEmitter emitter) {
@@ -70,6 +95,7 @@ public class PortfolioStockRestController {
 					.data(portfolioStockService.readMyPortfolioStocks(portfolioId, lastDayClosingPriceManager))
 					.name("sse event - myPortfolioStocks");
 				emitter.send(event);
+				emitter.complete();
 			} catch (IOException | FineAntsException e) {
 				log.error(e.getMessage(), e);
 				emitter.completeWithError(e);

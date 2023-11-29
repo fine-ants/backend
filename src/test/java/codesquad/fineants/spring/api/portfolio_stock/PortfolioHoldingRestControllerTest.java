@@ -74,6 +74,9 @@ class PortfolioHoldingRestControllerTest {
 	@MockBean
 	private LastDayClosingPriceManager lastDayClosingPriceManager;
 
+	@MockBean
+	private StockMarketChecker stockMarketChecker;
+
 	private Member member;
 	private Portfolio portfolio;
 	private Stock stock;
