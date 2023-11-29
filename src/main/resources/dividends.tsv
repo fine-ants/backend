@@ -1,4 +1,4 @@
-allocation_base_date	cash_dividend_payment_date	ticker_symbol	dividend_per_share
+record_date	payment_date	ticker_symbol	dividend_per_share
 20231031		448730	70
 20231031		453440	0
 20231005	20231025	009970	1600
