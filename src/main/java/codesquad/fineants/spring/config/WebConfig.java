@@ -22,6 +22,7 @@ public class WebConfig implements WebMvcConfigurer {
 	@Override
 	public void addInterceptors(InterceptorRegistry registry) {
 		registry.addInterceptor(new LogoutInterceptor())
+			.excludePathPatterns("/api/*")
 			.addPathPatterns("/api/auth/logout");
 	}
 
