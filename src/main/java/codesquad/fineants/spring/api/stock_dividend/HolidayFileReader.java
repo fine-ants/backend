@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 @Component
 public class HolidayFileReader {
 
-    private static String FILE_NAME = "holidays.tsv";
+    private static final String FILE_NAME = "holidays.tsv";
 
     public List<HolidayDto> read() throws IOException {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");

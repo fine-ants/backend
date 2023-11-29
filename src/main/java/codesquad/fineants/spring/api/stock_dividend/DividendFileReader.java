@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 @Component
 public class DividendFileReader {
 
-    private static String FILE_NAME = "dividends.tsv";
+    private static final String FILE_NAME = "dividends.tsv";
 
     public List<DividendDto> read() throws IOException {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
