@@ -72,6 +72,9 @@ class PortfolioStockRestControllerTest {
 	@MockBean
 	private LastDayClosingPriceManager lastDayClosingPriceManager;
 
+	@MockBean
+	private StockMarketChecker stockMarketChecker;
+
 	@BeforeEach
 	void setup() {
 		mockMvc = MockMvcBuilders.standaloneSetup(portfolioStockRestController)
@@ -85,6 +88,7 @@ class PortfolioStockRestControllerTest {
 		AuthMember authMember = AuthMember.from(createMember());
 		given(authPrincipalArgumentResolver.resolveArgument(any(), any(), any(), any())).willReturn(authMember);
 		given(authPrincipalArgumentResolver.supportsParameter(any())).willReturn(true);
+		given(stockMarketChecker.isMarketOpen(any())).willReturn(true);
 	}
 
 	@DisplayName("사용자의 포트폴리오 상세 정보를 가져온다")
