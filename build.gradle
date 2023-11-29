@@ -39,8 +39,6 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-devtools'
     implementation 'org.springframework.boot:spring-boot-starter-aop'
     implementation 'org.springframework.boot:spring-boot-starter-mail'
-    // spring security 라이브러리
-    implementation 'org.springframework.boot:spring-boot-starter-security'
 
     // websocket
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
