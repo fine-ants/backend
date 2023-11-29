@@ -91,7 +91,6 @@ class PortfolioStockRestControllerTest {
 	@Test
 	void readMyPortfolioStocks() throws Exception {
 		// given
-		long portfolioId = 1;
 		Member member = createMember();
 		Portfolio portfolio = createPortfolio(member);
 		Stock stock = createStock();
@@ -108,7 +107,7 @@ class PortfolioStockRestControllerTest {
 			.willReturn(mockResponse);
 
 		// when & then
-		mockMvc.perform(get("/api/portfolio/{portfolioId}/holdings", portfolioId))
+		mockMvc.perform(get("/api/portfolio/{portfolioId}/holdings", portfolio.getId()))
 			.andExpect(request().asyncStarted())
 			.andExpect(content().contentType(MediaType.TEXT_EVENT_STREAM));
 	}
