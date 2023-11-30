@@ -61,6 +61,7 @@ public class PortfolioStockRestController {
 	@GetMapping
 	public SseEmitter readMyPortfolioStocks(@PathVariable Long portfolioId) {
 		SseEmitter emitter = new SseEmitter(30 * 1000L);
+		emitter.onTimeout(emitter::complete);
 
 		// 장시간 동안에는 스케줄러를 이용하여 지속적 응답
 		if (stockMarketChecker.isMarketOpen(LocalDateTime.now())) {
