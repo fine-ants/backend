@@ -70,7 +70,7 @@ public class ExDividendDateAnalyzer {
     }
 
     private String formatDividendDtoForTsv(DividendDto dividendDto) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
         String exDividendDate = dividendDto.getExDividendDate().format(formatter);
         String recordDate = dividendDto.getRecordDate().format(formatter);
