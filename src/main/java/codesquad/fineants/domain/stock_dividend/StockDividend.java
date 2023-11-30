@@ -14,6 +14,9 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Table(name = "stock_dividend", uniqueConstraints = {
+		@UniqueConstraint(columnNames = {"ticker_symbol", "recordDate"})
+})
 @Entity
 public class StockDividend extends BaseEntity {
 	@Id
