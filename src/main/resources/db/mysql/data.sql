@@ -10,15 +10,16 @@ LOAD DATA LOCAL INFILE 'src/main/resources/stocks.tsv'
         market = @market,
         create_at = now();
 
-LOAD DATA LOCAL INFILE 'src/main/resources/dividends.tsv'
+LOAD DATA LOCAL INFILE 'src/main/resources/ex-dividend-date.tsv'
     INTO TABLE stock_dividend
     FIELDS TERMINATED BY '\t'
     IGNORE 1 ROWS
-    (@allocation_base_date, @cash_dividend_payment_date, @ticker_symbol, @dividend_per_share)
-    set stock_dividend.dividend = @dividend_per_share,
-        stock_dividend.dividend_month =
-                IF(@cash_dividend_payment_date = '', @allocation_base_date, @cash_dividend_payment_date),
+    (@ex_dividend_date, @record_date, @payment_date, @ticker_symbol, @dividend_per_share)
+    set stock_dividend.ex_dividend_date = @ex_dividend_date,
+        stock_dividend.record_date = @record_date,
+        stock_dividend.payment_date = @payment_date,
         stock_dividend.ticker_symbol = @ticker_symbol,
+        stock_dividend.dividend = @dividend_per_share,
         stock_dividend.create_at = now();
 
 INSERT INTO member(create_at, email, nickname, profile_url, provider)
