@@ -2,8 +2,6 @@ package codesquad.fineants.spring.api.kis;
 
 import static org.assertj.core.api.Assertions.*;
 
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -48,17 +46,6 @@ class KisServiceTest {
 		manager.refreshAccessToken(client.accessToken());
 		// when
 		kisService.readRealTimeCurrentPrice(tickerSymbol);
-		// then
-	}
-
-	@DisplayName("1초마다 주식 현재가 시세를 요청하고 갱신합니다.")
-	@Test
-	void publishCurrentPrice() throws InterruptedException {
-		// given
-
-		// when
-		kisService.addTickerSymbols(List.of("005930", "035720"));
-		Thread.sleep(20000L);
 		// then
 	}
 
