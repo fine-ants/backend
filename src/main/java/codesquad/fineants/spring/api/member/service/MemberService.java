@@ -20,11 +20,9 @@ import codesquad.fineants.domain.oauth.client.AuthorizationCodeRandomGenerator;
 import codesquad.fineants.domain.oauth.client.DecodedIdTokenPayload;
 import codesquad.fineants.domain.oauth.client.OauthClient;
 import codesquad.fineants.domain.oauth.repository.OauthClientRepository;
-import codesquad.fineants.spring.api.errors.errorcode.MemberErrorCode;
 import codesquad.fineants.spring.api.errors.errorcode.OauthErrorCode;
 import codesquad.fineants.spring.api.errors.exception.BadRequestException;
 import codesquad.fineants.spring.api.errors.exception.FineAntsException;
-import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
 import codesquad.fineants.spring.api.member.request.AuthorizationRequest;
 import codesquad.fineants.spring.api.member.request.OauthMemberLogoutRequest;
 import codesquad.fineants.spring.api.member.request.OauthMemberRefreshRequest;
@@ -33,6 +31,7 @@ import codesquad.fineants.spring.api.member.response.OauthCreateUrlResponse;
 import codesquad.fineants.spring.api.member.response.OauthMemberLoginResponse;
 import codesquad.fineants.spring.api.member.response.OauthMemberRefreshResponse;
 import codesquad.fineants.spring.api.member.response.OauthUserProfileResponse;
+import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -66,7 +65,6 @@ public class MemberService {
 				.build());
 		Member saveMember = memberRepository.save(member);
 		Jwt jwt = jwtProvider.createJwtBasedOnMember(saveMember, now);
-		redisService.saveRefreshToken(saveMember.createRedisKey(), jwt);
 		return OauthMemberLoginResponse.of(jwt, saveMember);
 	}
 
@@ -118,51 +116,29 @@ public class MemberService {
 
 	public void logout(String accessToken, OauthMemberLogoutRequest request) {
 		String refreshToken = request.getRefreshToken();
-		deleteRefreshTokenBy(refreshToken);
-		banAccessToken(accessToken);
+		banTokens(accessToken, refreshToken);
 	}
 
-	private void deleteRefreshTokenBy(String refreshToken) {
-		String email;
+	private void banTokens(String accessToken, String refreshToken) {
+		long accessTokenExpiration;
+		long refreshTokenExpiration;
 		try {
-			email = redisService.findEmailBy(refreshToken);
-			log.debug("리프레시 토큰 값에 따른 이메일 조회 결과 : email={}", email);
-		} catch (FineAntsException e) {
-			log.error("리프레시 토큰에 따른 이메일 없음 : {}", e.toString());
-			return;
-		}
-
-		boolean result = redisService.deleteRefreshToken(String.format("RT:%s", email));
-		log.debug("리프레쉬 토큰 삭제 결과 : {}", result);
-	}
-
-	private void banAccessToken(String accessToken) {
-		long expiration;
-		try {
-			expiration = ((Integer)jwtProvider.getClaims(accessToken).get("exp")).longValue();
+			accessTokenExpiration = ((Integer)jwtProvider.getClaims(accessToken).get("exp")).longValue();
+			refreshTokenExpiration = ((Integer)jwtProvider.getClaims(accessToken).get("exp")).longValue();
 		} catch (FineAntsException e) {
 			log.error("토큰 에러 : {}", accessToken);
 			log.error("액세스 토큰 밴 에러 : {}", e.toString());
 			return;
 		}
-		redisService.banAccessToken(accessToken, expiration);
-
+		redisService.banToken(accessToken, accessTokenExpiration);
+		redisService.banToken(refreshToken, refreshTokenExpiration);
 	}
 
 	public OauthMemberRefreshResponse refreshAccessToken(OauthMemberRefreshRequest request, LocalDateTime now) {
 		String refreshToken = request.getRefreshToken();
-
-		jwtProvider.validateToken(refreshToken);
+		Claims claims = jwtProvider.getClaims(refreshToken);
 		log.debug("refreshToken is valid token : {}", refreshToken);
-
-		String email = redisService.findEmailBy(refreshToken);
-		log.debug("findEmailByRefreshToken 결과 : email={}", email);
-		Member member = memberRepository.findMemberByEmail(email)
-			.orElseThrow(() -> new NotFoundResourceException(MemberErrorCode.NOT_FOUND_MEMBER));
-		log.debug("findMemberByEmail 결과 : member={}", member);
-
-		Jwt jwt = jwtProvider.createJwtWithRefreshTokenBasedOnMember(member, refreshToken, now);
-
+		Jwt jwt = jwtProvider.createJwtWithRefreshToken(claims, refreshToken, now);
 		return OauthMemberRefreshResponse.from(jwt);
 	}
 

@@ -12,7 +12,6 @@ import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -29,7 +28,6 @@ import com.auth0.jwt.interfaces.Verification;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import codesquad.fineants.domain.jwt.Jwt;
 import codesquad.fineants.domain.member.MemberRepository;
 import codesquad.fineants.domain.oauth.client.AuthorizationCodeRandomGenerator;
 import codesquad.fineants.spring.api.errors.errorcode.OauthErrorCode;
@@ -56,13 +54,7 @@ public class MemberServiceTest {
 	private MemberRepository memberRepository;
 
 	@MockBean
-	private OauthMemberRedisService redisService;
-
-	@MockBean
 	private AuthorizationCodeRandomGenerator authorizationCodeRandomGenerator;
-
-	@Mock
-	private JWT mockJwt;
 
 	@AfterEach
 	void tearDown() {
@@ -94,7 +86,6 @@ public class MemberServiceTest {
 		OauthAccessTokenResponse mockAccessTokenResponse =
 			objectMapper.readValue(objectMapper.writeValueAsString(responseBody), OauthAccessTokenResponse.class);
 		given(webClientWrapper.post(anyString(), any(), any(), any())).willReturn(mockAccessTokenResponse);
-		willDoNothing().given(redisService).saveRefreshToken(anyString(), any(Jwt.class));
 
 		MockedStatic<JWT> jwtMockedStatic = mockStatic(JWT.class);
 		Verification mockVerification = mock(Verification.class);
@@ -212,7 +203,6 @@ public class MemberServiceTest {
 		OauthAccessTokenResponse mockAccessTokenResponse =
 			objectMapper.readValue(objectMapper.writeValueAsString(responseBody), OauthAccessTokenResponse.class);
 		given(webClientWrapper.post(anyString(), any(), any(), any())).willReturn(mockAccessTokenResponse);
-		willDoNothing().given(redisService).saveRefreshToken(anyString(), any(Jwt.class));
 
 		Map<String, Object> userProfileResponseBody = new HashMap<>();
 		userProfileResponseBody.put("response",
