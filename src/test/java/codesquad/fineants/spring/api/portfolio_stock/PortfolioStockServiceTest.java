@@ -115,22 +115,30 @@ class PortfolioStockServiceTest {
 
 		StockDividend stockDividend1Q = StockDividend.builder()
 			.dividend(361L)
-			.dividendMonth(LocalDate.of(2023, 4, 1).atStartOfDay())
+			.exDividendDate(LocalDate.of(2022, 12, 30))
+			.recordDate(LocalDate.of(2022, 12, 31))
+			.paymentDate(LocalDate.of(2023, 4, 14))
 			.stock(this.stock)
 			.build();
 		StockDividend stockDividend2Q = StockDividend.builder()
 			.dividend(361L)
-			.dividendMonth(LocalDate.of(2023, 5, 1).atStartOfDay())
+			.exDividendDate(LocalDate.of(2023, 3, 30))
+			.recordDate(LocalDate.of(2023, 3, 31))
+			.paymentDate(LocalDate.of(2023, 5, 17))
 			.stock(this.stock)
 			.build();
 		StockDividend stockDividend3Q = StockDividend.builder()
 			.dividend(361L)
-			.dividendMonth(LocalDate.of(2023, 8, 1).atStartOfDay())
+			.exDividendDate(LocalDate.of(2023, 6, 29))
+			.recordDate(LocalDate.of(2023, 6, 30))
+			.paymentDate(LocalDate.of(2023, 8, 16))
 			.stock(this.stock)
 			.build();
 		StockDividend stockDividend4Q = StockDividend.builder()
 			.dividend(361L)
-			.dividendMonth(LocalDate.of(2023, 11, 1).atStartOfDay())
+			.exDividendDate(LocalDate.of(2023, 9, 27))
+			.recordDate(LocalDate.of(2023, 9, 30))
+			.paymentDate(LocalDate.of(2023, 11, 20))
 			.stock(this.stock)
 			.build();
 
