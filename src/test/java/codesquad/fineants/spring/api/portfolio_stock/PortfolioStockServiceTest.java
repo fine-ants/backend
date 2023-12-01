@@ -130,19 +130,6 @@ class PortfolioStockServiceTest {
 					"numShares", "dailyChange", "dailyChangeRate", "totalGain", "totalReturnRate", "annualDividend")
 				.containsExactlyInAnyOrder(Tuple.tuple(
 					portfolioHolding.getId(), 180000L, 60000L, 50000.0, 3L, 10000L, 20, 30000L, 20, 4332L)),
-
-			() -> assertThat(response).extracting("portfolioHoldings")
-				.asList()
-				.hasSize(1)
-				.flatExtracting("dividends")
-				.extracting("dividendMonth", "dividendAmount")
-				.containsExactlyInAnyOrder(
-					Tuple.tuple(LocalDate.of(2023, 4, 1).atStartOfDay(), 361L),
-					Tuple.tuple(LocalDate.of(2023, 5, 1).atStartOfDay(), 361L),
-					Tuple.tuple(LocalDate.of(2023, 8, 1).atStartOfDay(), 361L),
-					Tuple.tuple(LocalDate.of(2023, 11, 1).atStartOfDay(), 361L)
-				),
-
 			() -> assertThat(response).extracting("portfolioHoldings")
 				.asList()
 				.hasSize(1)

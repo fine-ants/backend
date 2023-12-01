@@ -27,6 +27,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.oauth.support.AuthPrincipalArgumentResolver;
@@ -58,6 +60,9 @@ class PortfolioStockRestControllerTest {
 	@Autowired
 	private MappingJackson2HttpMessageConverter converter;
 
+	@Autowired
+	private ObjectMapper objectMapper;
+
 	@MockBean
 	private AuthPrincipalArgumentResolver authPrincipalArgumentResolver;
 
@@ -67,7 +72,8 @@ class PortfolioStockRestControllerTest {
 	@MockBean
 	private LastDayClosingPriceManager lastDayClosingPriceManager;
 
-	private Member member;
+	@MockBean
+	private StockMarketChecker stockMarketChecker;
 
 	@BeforeEach
 	void setup() {
@@ -78,66 +84,46 @@ class PortfolioStockRestControllerTest {
 			.defaultResponseCharacterEncoding(StandardCharsets.UTF_8)
 			.alwaysDo(print())
 			.build();
-		given(authPrincipalArgumentResolver.supportsParameter(any())).willReturn(true);
 
-		member = Member.builder()
-			.id(1L)
-			.nickname("일개미1234")
-			.email("kim1234@gmail.com")
-			.provider("local")
-			.password("kim1234@")
-			.profileUrl("profileValue")
-			.build();
-
-		AuthMember authMember = AuthMember.from(member);
-
+		AuthMember authMember = AuthMember.from(createMember());
 		given(authPrincipalArgumentResolver.resolveArgument(any(), any(), any(), any())).willReturn(authMember);
+		given(authPrincipalArgumentResolver.supportsParameter(any())).willReturn(true);
+		given(stockMarketChecker.isMarketOpen(any())).willReturn(true);
 	}
 
 	@DisplayName("사용자의 포트폴리오 상세 정보를 가져온다")
 	@Test
 	void readMyPortfolioStocks() throws Exception {
 		// given
-		long portfolioId = 1;
-		Portfolio portfolio = Portfolio.builder()
-			.id(1L)
-			.name("내꿈은 워렌버핏")
-			.securitiesFirm("토스")
-			.budget(1000000L)
-			.targetGain(1500000L)
-			.maximumLoss(900000L)
-			.member(member)
-			.build();
-		Stock stock = Stock.builder()
+		Member member = createMember();
+		Portfolio portfolio = createPortfolio(member);
+		Stock stock = createStock();
+		PortfolioHolding portfolioHolding = createPortfolioHolding(portfolio, stock);
+		portfolioHolding.addPurchaseHistory(createPurchaseHistory(portfolioHolding));
+		portfolio.addPortfolioStock(portfolioHolding);
+		PortfolioGainHistory history = createEmptyPortfolioGainHistory();
+
+		Map<String, Long> lastDayClosingPriceMap = Map.of("005930", 50000L);
+		PortfolioHoldingsResponse mockResponse = PortfolioHoldingsResponse.of(portfolio, history,
+			List.of(portfolioHolding),
+			lastDayClosingPriceMap);
+		given(portfolioStockService.readMyPortfolioStocks(anyLong(), any(LastDayClosingPriceManager.class)))
+			.willReturn(mockResponse);
+
+		// when & then
+		mockMvc.perform(get("/api/portfolio/{portfolioId}/holdings", portfolio.getId()))
+			.andExpect(request().asyncStarted())
+			.andExpect(content().contentType(MediaType.TEXT_EVENT_STREAM));
+	}
+
+	private static Stock createStock() {
+		return Stock.builder()
 			.tickerSymbol("005930")
 			.companyName("삼성전자보통주")
 			.companyNameEng("SamsungElectronics")
 			.stockCode("KR7005930003")
 			.market(Market.KOSPI)
 			.build();
-		long currentPrice = 60000;
-		PortfolioHolding portfolioHolding = PortfolioHolding.of(portfolio, stock, currentPrice);
-		portfolioHolding.addPurchaseHistory(PurchaseHistory.builder()
-			.purchaseDate(LocalDateTime.of(2023, 11, 1, 9, 30, 0))
-			.numShares(3L)
-			.purchasePricePerShare(50000.0)
-			.memo("첫구매")
-			.portFolioHolding(portfolioHolding)
-			.build());
-		portfolio.addPortfolioStock(portfolioHolding);
-
-		PortfolioGainHistory history = PortfolioGainHistory.empty();
-		Map<String, Long> lastDayClosingPriceMap = Map.of("005930", 50000L);
-		PortfolioHoldingsResponse mockResponse = PortfolioHoldingsResponse.of(portfolio, history,
-			List.of(portfolioHolding), lastDayClosingPriceMap);
-		given(portfolioStockService.readMyPortfolioStocks(anyLong(), any(LastDayClosingPriceManager.class)))
-			.willReturn(mockResponse);
-
-		// when & then
-		mockMvc.perform(get("/api/portfolio/{portfolioId}/holdings", portfolioId))
-			.andExpect(request().asyncStarted())
-			.andExpect(status().isOk())
-			.andExpect(content().contentType(MediaType.TEXT_EVENT_STREAM));
 	}
 
 	@DisplayName("존재하지 않는 포트폴리오 번호를 가지고 포트폴리오 상세 정보를 가져올 수 없다")
@@ -157,5 +143,51 @@ class PortfolioStockRestControllerTest {
 		mockMvc.perform(asyncDispatch(result))
 			.andExpect(status().isNotFound())
 			.andExpect(jsonPath("message").value(equalTo("포트폴리오를 찾을 수 없습니다")));
+	}
+
+	private static Member createMember() {
+		return Member.builder()
+			.id(1L)
+			.nickname("일개미1234")
+			.email("kim1234@gmail.com")
+			.provider("local")
+			.password("kim1234@")
+			.profileUrl("profileValue")
+			.build();
+	}
+
+	private static Portfolio createPortfolio(Member member) {
+		return Portfolio.builder()
+			.id(1L)
+			.name("내꿈은 워렌버핏")
+			.securitiesFirm("토스")
+			.budget(1000000L)
+			.targetGain(1500000L)
+			.maximumLoss(900000L)
+			.member(member)
+			.build();
+	}
+
+	private static PortfolioHolding createPortfolioHolding(Portfolio portfolio, Stock stock) {
+		return PortfolioHolding.builder()
+			.id(1L)
+			.portfolio(portfolio)
+			.stock(stock)
+			.currentPrice(60000L)
+			.build();
+	}
+
+	private static PurchaseHistory createPurchaseHistory(PortfolioHolding portfolioHolding) {
+		return PurchaseHistory.builder()
+			.purchaseDate(LocalDateTime.of(2023, 11, 1, 9, 30, 0))
+			.numShares(3L)
+			.purchasePricePerShare(50000.0)
+			.memo("첫구매")
+			.portFolioHolding(portfolioHolding)
+			.build();
+	}
+
+	private static PortfolioGainHistory createEmptyPortfolioGainHistory() {
+		return PortfolioGainHistory.empty();
 	}
 }

@@ -9,13 +9,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import codesquad.fineants.spring.filter.auth.CustomUserDetails;
-import codesquad.fineants.domain.member.Member;
-import codesquad.fineants.domain.member.MemberRepository;
-import io.jsonwebtoken.Claims;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.StringUtils;
 import org.springframework.web.cors.CorsUtils;
@@ -38,78 +31,64 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class JwtAuthorizationFilter extends OncePerRequestFilter {
 
-    public static final String AUTHORIZATION = "Authorization";
-    public static final String BEARER = "Bearer";
-    private static final AntPathMatcher pathMatcher = new AntPathMatcher();
-    private static final List<String> excludeUrlPatterns = List.of(
-            "/api/auth/**/authUrl",
-            "/api/auth/**/login",
-            "/api/auth/signup",
-            "/api/auth/login",
-            "/api/auth/refresh/token",
-            "/api/auth/logout",
-            "/api/stocks/**");
-    private final JwtProvider jwtProvider;
-    private final AuthenticationContext authenticationContext;
-    private final ObjectMapper objectMapper;
-    private final OauthMemberRedisService redisService;
-    private final MemberRepository memberRepository;
+	public static final String AUTHORIZATION = "Authorization";
+	public static final String BEARER = "Bearer";
+	private static final AntPathMatcher pathMatcher = new AntPathMatcher();
+	private static final List<String> excludeUrlPatterns = List.of(
+		"/api/auth/**/authUrl",
+		"/api/auth/**/login",
+		"/api/auth/signup",
+		"/api/auth/login",
+		"/api/auth/refresh/token",
+		"/api/auth/logout",
+		"/api/stocks/**");
+	private final JwtProvider jwtProvider;
+	private final AuthenticationContext authenticationContext;
+	private final ObjectMapper objectMapper;
+	private final OauthMemberRedisService redisService;
 
-    @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) {
-        return excludeUrlPatterns.stream()
-                .anyMatch(pattern -> pathMatcher.match(pattern, request.getRequestURI()));
-    }
+	@Override
+	protected boolean shouldNotFilter(HttpServletRequest request) {
+		return excludeUrlPatterns.stream()
+			.anyMatch(pattern -> pathMatcher.match(pattern, request.getRequestURI()));
+	}
 
-    @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
-                                    FilterChain filterChain) throws ServletException, IOException {
-        if (CorsUtils.isPreFlightRequest(request)) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-        try {
-            String token = extractJwt(request).orElseThrow(
-                    () -> new UnAuthorizationException(JwtErrorCode.EMPTY_TOKEN));
-            jwtProvider.validateToken(token);
-            redisService.validateAlreadyLogout(token);
-            authenticationContext.setAuthMember(jwtProvider.extractAuthMember(token));
+	@Override
+	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
+		FilterChain filterChain) throws ServletException, IOException {
+		if (CorsUtils.isPreFlightRequest(request)) {
+			filterChain.doFilter(request, response);
+			return;
+		}
+		try {
+			String token = extractJwt(request).orElseThrow(
+				() -> new UnAuthorizationException(JwtErrorCode.EMPTY_TOKEN));
+			jwtProvider.validateToken(token);
+			redisService.validateAlreadyLogout(token);
+			authenticationContext.setAuthMember(jwtProvider.extractAuthMember(token));
+		} catch (FineAntsException e) {
+			setErrorResponse(response, e.getErrorCode());
+			return;
+		}
 
-            // Authentication 객체 생성
-            Claims claims = jwtProvider.getClaims(token);
-            long memberId = Long.parseLong(String.valueOf(claims.get("memberId")));
+		filterChain.doFilter(request, response);
+	}
 
-            Member member = memberRepository.findById(memberId).orElseThrow(()-> new RuntimeException("there is no member"));
+	private Optional<String> extractJwt(HttpServletRequest request) {
+		String header = request.getHeader(AUTHORIZATION);
 
-            CustomUserDetails userDetail = new CustomUserDetails(member);
+		if (!StringUtils.hasText(header) || !header.startsWith(BEARER)) {
+			return Optional.empty();
+		}
 
-            Authentication authentication = new UsernamePasswordAuthenticationToken(userDetail, null, userDetail.getAuthorities());
+		return Optional.of(header.split(" ")[1]);
+	}
 
-            // security 세션에 authentication 객체 넣기 (spring security가 인증 / 인가를 처리 하기 위함)
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-        } catch (FineAntsException e) {
-            setErrorResponse(response, e.getErrorCode());
-            return;
-        }
-
-        filterChain.doFilter(request, response);
-    }
-
-    private Optional<String> extractJwt(HttpServletRequest request) {
-        String header = request.getHeader(AUTHORIZATION);
-
-        if (!StringUtils.hasText(header) || !header.startsWith(BEARER)) {
-            return Optional.empty();
-        }
-
-        return Optional.of(header.split(" ")[1]);
-    }
-
-    private void setErrorResponse(HttpServletResponse httpServletResponse, ErrorCode errorCode) throws IOException {
-        httpServletResponse.setStatus(errorCode.getHttpStatus().value());
-        httpServletResponse.setContentType("application/json");
-        httpServletResponse.setCharacterEncoding("UTF-8");
-        ApiResponse<Object> body = ApiResponse.error(errorCode);
-        httpServletResponse.getWriter().write(objectMapper.writeValueAsString(body));
-    }
+	private void setErrorResponse(HttpServletResponse httpServletResponse, ErrorCode errorCode) throws IOException {
+		httpServletResponse.setStatus(errorCode.getHttpStatus().value());
+		httpServletResponse.setContentType("application/json");
+		httpServletResponse.setCharacterEncoding("UTF-8");
+		ApiResponse<Object> body = ApiResponse.error(errorCode);
+		httpServletResponse.getWriter().write(objectMapper.writeValueAsString(body));
+	}
 }
