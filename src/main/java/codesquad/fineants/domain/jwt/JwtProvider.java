@@ -2,7 +2,6 @@ package codesquad.fineants.domain.jwt;
 
 import java.time.LocalDateTime;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.stereotype.Component;
@@ -29,8 +28,7 @@ public class JwtProvider {
 		this.jwtProperties = jwtProperties;
 	}
 
-	public Jwt createJwtWithRefreshTokenBasedOnMember(Member member, String refreshToken, LocalDateTime now) {
-		Map<String, Object> claims = member.createClaims();
+	public Jwt createJwtWithRefreshToken(Claims claims, String refreshToken, LocalDateTime now) {
 		Date expireDateAccessToken = jwtProperties.createExpireAccessTokenDate(now);
 		Date expireDateRefreshToken = getClaims(refreshToken).getExpiration();
 		return createJwt(claims, expireDateAccessToken, expireDateRefreshToken);
@@ -45,7 +43,7 @@ public class JwtProvider {
 
 	private Jwt createJwt(Map<String, Object> claims, Date expireDateAccessToken, Date expireDateRefreshToken) {
 		String accessToken = createToken(claims, expireDateAccessToken);
-		String refreshToken = createToken(new HashMap<>(), expireDateRefreshToken);
+		String refreshToken = createToken(claims, expireDateRefreshToken);
 		return new Jwt(accessToken, refreshToken, expireDateAccessToken, expireDateRefreshToken);
 	}
 
