@@ -115,10 +115,11 @@ public class PortfolioStockService {
 		List<PortfolioHolding> portfolioHoldings = portfolio.changeCurrentPriceFromHoldings(currentPriceManager);
 
 		// 파이 차트 데이터 생성
-		long portfolioCurrentValuation = portfolio.calculateTotalCurrentValuation();
+		Long portfolioTotalAsset = portfolio.calculateTotalAsset();
 		List<PortfolioPieChartItem> pieChartItems = portfolioHoldings.parallelStream()
-			.map(portfolioHolding -> PortfolioPieChartItem.of(portfolioHolding, portfolioCurrentValuation))
+			.map(portfolioHolding -> PortfolioPieChartItem.of(portfolioHolding, portfolioTotalAsset))
 			.collect(Collectors.toList());
+		pieChartItems.add(PortfolioPieChartItem.cash(portfolio));
 
 		// 배당금 차트 데이터 생성
 		Map<Integer, Long> totalDividendMap = portfolioHoldings.parallelStream()
@@ -137,7 +138,7 @@ public class PortfolioStockService {
 			.parallelStream()
 			.map(entry -> {
 				double weight =
-					(entry.getValue().stream().mapToDouble(Double::valueOf).sum() / (double)portfolioCurrentValuation)
+					(entry.getValue().stream().mapToDouble(Double::valueOf).sum() / portfolioTotalAsset.doubleValue())
 						* 100;
 				return new PortfolioSectorChartItemResponse(entry.getKey(), weight);
 			})

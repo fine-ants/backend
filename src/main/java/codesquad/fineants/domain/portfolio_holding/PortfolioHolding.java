@@ -120,7 +120,7 @@ public class PortfolioHolding extends BaseEntity {
 	}
 
 	// 평가 금액(현재 가치) = 현재가 * 개수
-	public long calculateCurrentValuation() {
+	public Long calculateCurrentValuation() {
 		return currentPrice * calculateNumShares();
 	}
 

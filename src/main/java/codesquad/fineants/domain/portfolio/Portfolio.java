@@ -218,6 +218,11 @@ public class Portfolio {
 		return (int)(((double)(targetGain - budget) / (double)budget) * 100);
 	}
 
+	// 총 자산 = 잔고 + 평가금액 합계
+	public Long calculateTotalAsset() {
+		return calculateBalance() + calculateTotalCurrentValuation();
+	}
+
 	public void changeTargetGainNotification(Boolean isActive) {
 		this.targetGainIsActive = isActive;
 	}
