@@ -90,12 +90,7 @@ class PortfolioStockServiceTest {
 		Member member = memberRepository.save(createMember());
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Stock stock = stockRepository.save(createStock());
-		stockDividendRepository.saveAll(List.of(
-			createStockDividend(LocalDate.of(2023, 4, 1), stock),
-			createStockDividend(LocalDate.of(2023, 5, 1), stock),
-			createStockDividend(LocalDate.of(2023, 8, 1), stock),
-			createStockDividend(LocalDate.of(2023, 11, 1), stock)
-		));
+		stockDividendRepository.saveAll(createStockDividendWith(stock));
 		PortfolioHolding portfolioHolding = portFolioHoldingRepository.save(createPortfolioHolding(portfolio, stock));
 		purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding));
 
@@ -146,12 +141,7 @@ class PortfolioStockServiceTest {
 		Member member = memberRepository.save(createMember());
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Stock stock = stockRepository.save(createStock());
-		stockDividendRepository.saveAll(List.of(
-			createStockDividend(LocalDate.of(2023, 4, 1), stock),
-			createStockDividend(LocalDate.of(2023, 5, 1), stock),
-			createStockDividend(LocalDate.of(2023, 8, 1), stock),
-			createStockDividend(LocalDate.of(2023, 11, 1), stock)
-		));
+		stockDividendRepository.saveAll(createStockDividendWith(stock));
 		PortfolioHolding portfolioHolding = portFolioHoldingRepository.save(createPortfolioHolding(portfolio, stock));
 		purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding));
 
@@ -169,8 +159,8 @@ class PortfolioStockServiceTest {
 				.hasSize(2)
 				.extracting("name", "valuation", "fill", "weight", "totalGain", "totalGainRate")
 				.containsExactlyInAnyOrder(
-					Tuple.tuple("삼성전자보통주", 180000L, "#000000", 17.48, 30000L, 20.00),
-					Tuple.tuple("현금", 850000L, "#1CADFF", 82.52, 0L, 0.00)
+					Tuple.tuple("삼성전자보통주", 180000L, "#000000", 17.475728155339805, 30000L, 20.00),
+					Tuple.tuple("현금", 850000L, "#1CADFF", 82.52427184466019, 0L, 0.00)
 				)
 		);
 	}
@@ -208,10 +198,14 @@ class PortfolioStockServiceTest {
 			.build();
 	}
 
-	private StockDividend createStockDividend(LocalDate dividendMonth, Stock stock) {
+	private StockDividend createStockDividend(LocalDate dividendMonth, LocalDate exDividendDate, LocalDate recordDate,
+		LocalDate paymentDate, Stock stock) {
 		return StockDividend.builder()
 			.dividend(361L)
 			.dividendMonth(dividendMonth.atStartOfDay())
+			.exDividendDate(exDividendDate)
+			.recordDate(recordDate)
+			.paymentDate(paymentDate)
 			.stock(stock)
 			.build();
 	}
@@ -231,5 +225,30 @@ class PortfolioStockServiceTest {
 			.memo("첫구매")
 			.portFolioHolding(portfolioHolding)
 			.build();
+	}
+
+	private List<StockDividend> createStockDividendWith(Stock stock) {
+		return List.of(
+			createStockDividend(LocalDate.of(2022, 12, 31),
+				LocalDate.of(2022, 12, 30),
+				LocalDate.of(2022, 12, 31),
+				LocalDate.of(2023, 4, 14),
+				stock),
+			createStockDividend(LocalDate.of(2023, 3, 31),
+				LocalDate.of(2023, 3, 30),
+				LocalDate.of(2023, 3, 31),
+				LocalDate.of(2023, 5, 17),
+				stock),
+			createStockDividend(LocalDate.of(2023, 6, 30),
+				LocalDate.of(2023, 6, 29),
+				LocalDate.of(2023, 6, 30),
+				LocalDate.of(2023, 8, 16),
+				stock),
+			createStockDividend(LocalDate.of(2023, 9, 30),
+				LocalDate.of(2023, 9, 27),
+				LocalDate.of(2023, 9, 30),
+				LocalDate.of(2023, 11, 20),
+				stock)
+		);
 	}
 }
