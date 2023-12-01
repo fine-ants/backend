@@ -64,7 +64,7 @@ public class PortfolioStockRestController {
 		emitter.onTimeout(emitter::complete);
 
 		// 장시간 동안에는 스케줄러를 이용하여 지속적 응답
-		if (stockMarketChecker.isMarketOpen(LocalDateTime.now())) {
+		if (!stockMarketChecker.isMarketOpen(LocalDateTime.now())) {
 			scheduleSseEventTask(portfolioId, emitter, false);
 		} else {
 			scheduleSseEventTask(portfolioId, emitter, true);
@@ -78,7 +78,7 @@ public class PortfolioStockRestController {
 				emitter.send(SseEmitter.event()
 					.data(portfolioStockService.readMyPortfolioStocks(portfolioId, lastDayClosingPriceManager))
 					.name("sse event - myPortfolioStocks"));
-				if (!isComplete) {
+				if (isComplete) {
 					emitter.send(SseEmitter.event()
 						.data("sse complete")
 						.name("complete"));
