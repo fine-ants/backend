@@ -1,6 +1,7 @@
 package codesquad.fineants.spring.api.portfolio_stock;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -64,47 +65,41 @@ public class PortfolioStockRestController {
 
 	@GetMapping("/holdings")
 	public SseEmitter readMyPortfolioStocks(@PathVariable Long portfolioId) {
-		SseEmitter emitter = new SseEmitter(30 * 1000L);
+		SseEmitter emitter = new SseEmitter(Duration.ofHours(10L).toMillis());
+		emitter.onTimeout(emitter::complete);
 
 		// 장시간 동안에는 스케줄러를 이용하여 지속적 응답
 		if (stockMarketChecker.isMarketOpen(LocalDateTime.now())) {
-			sseExecutor.scheduleAtFixedRate(generatePersistentSseEventTask(portfolioId, emitter), 0, 5L,
-				TimeUnit.SECONDS);
+			scheduleSseEventTask(portfolioId, emitter, false);
 		} else {
-			// 장시간이 끝나면 한번만 응답하고 http 연결 끊기
-			sseExecutor.schedule(generateSseEventTask(portfolioId, emitter), 0, TimeUnit.SECONDS);
+			scheduleSseEventTask(portfolioId, emitter, true);
 		}
-
 		return emitter;
 	}
 
-	private Runnable generatePersistentSseEventTask(Long portfolioId, SseEmitter emitter) {
-		return () -> {
+	private void scheduleSseEventTask(Long portfolioId, SseEmitter emitter, boolean isComplete) {
+		Runnable task = () -> {
 			try {
-				SseEmitter.SseEventBuilder event = SseEmitter.event()
+				emitter.send(SseEmitter.event()
 					.data(portfolioStockService.readMyPortfolioStocks(portfolioId, lastDayClosingPriceManager))
-					.name("sse event - myPortfolioStocks");
-				emitter.send(event);
+					.name("sse event - myPortfolioStocks"));
+				log.info("send message");
+				if (isComplete) {
+					emitter.send(SseEmitter.event()
+						.data("sse complete")
+						.name("complete"));
+					emitter.complete();
+				}
 			} catch (IOException | FineAntsException e) {
-				log.error(e.getMessage(), e);
+				log.error(e.getMessage());
 				emitter.completeWithError(e);
 			}
 		};
-	}
-
-	private Runnable generateSseEventTask(Long portfolioId, SseEmitter emitter) {
-		return () -> {
-			try {
-				SseEmitter.SseEventBuilder event = SseEmitter.event()
-					.data(portfolioStockService.readMyPortfolioStocks(portfolioId, lastDayClosingPriceManager))
-					.name("sse event - myPortfolioStocks");
-				emitter.send(event);
-				emitter.complete();
-			} catch (IOException | FineAntsException e) {
-				log.error(e.getMessage(), e);
-				emitter.completeWithError(e);
-			}
-		};
+		if (isComplete) {
+			sseExecutor.schedule(task, 0, TimeUnit.SECONDS);
+		} else {
+			sseExecutor.scheduleAtFixedRate(task, 0, 5L, TimeUnit.SECONDS);
+		}
 	}
 
 	@GetMapping("/charts")
