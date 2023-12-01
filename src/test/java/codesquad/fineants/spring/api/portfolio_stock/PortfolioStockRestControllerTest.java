@@ -88,7 +88,7 @@ class PortfolioStockRestControllerTest {
 		AuthMember authMember = AuthMember.from(createMember());
 		given(authPrincipalArgumentResolver.resolveArgument(any(), any(), any(), any())).willReturn(authMember);
 		given(authPrincipalArgumentResolver.supportsParameter(any())).willReturn(true);
-		given(stockMarketChecker.isMarketOpen(any())).willReturn(true);
+		given(stockMarketChecker.isMarketOpen(any())).willReturn(false);
 	}
 
 	@DisplayName("사용자의 포트폴리오 상세 정보를 가져온다")
@@ -108,9 +108,8 @@ class PortfolioStockRestControllerTest {
 			List.of(portfolioHolding),
 			lastDayClosingPriceMap);
 
-		given(portfolioStockService.readMyPortfolioStocks(anyLong(), any(LastDayClosingPriceManager.class))).willReturn(
-			mockResponse);
-
+		given(portfolioStockService.readMyPortfolioStocks(anyLong(), any(LastDayClosingPriceManager.class)))
+			.willReturn(mockResponse);
 		// when
 		MvcResult result = mockMvc.perform(get("/api/portfolio/{portfolioId}/holdings", portfolio.getId()))
 			.andExpect(request().asyncStarted())
@@ -120,6 +119,7 @@ class PortfolioStockRestControllerTest {
 		mockMvc.perform(asyncDispatch(result))
 			.andExpect(status().isOk())
 			.andExpect(content().contentType(MediaType.TEXT_EVENT_STREAM));
+
 	}
 
 	private static Stock createStock() {
