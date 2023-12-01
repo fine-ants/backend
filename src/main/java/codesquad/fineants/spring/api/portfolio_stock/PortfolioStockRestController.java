@@ -1,6 +1,7 @@
 package codesquad.fineants.spring.api.portfolio_stock;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -60,7 +61,7 @@ public class PortfolioStockRestController {
 
 	@GetMapping
 	public SseEmitter readMyPortfolioStocks(@PathVariable Long portfolioId) {
-		SseEmitter emitter = new SseEmitter(30 * 1000L);
+		SseEmitter emitter = new SseEmitter(Duration.ofHours(10L).toMillis());
 		emitter.onTimeout(emitter::complete);
 
 		// 장시간 동안에는 스케줄러를 이용하여 지속적 응답
@@ -78,6 +79,7 @@ public class PortfolioStockRestController {
 				emitter.send(SseEmitter.event()
 					.data(portfolioStockService.readMyPortfolioStocks(portfolioId, lastDayClosingPriceManager))
 					.name("sse event - myPortfolioStocks"));
+				log.info("send message");
 				if (isComplete) {
 					emitter.send(SseEmitter.event()
 						.data("sse complete")
