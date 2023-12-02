@@ -134,6 +134,9 @@ public class PortfolioStockService {
 		Map<String, List<Long>> sectorCurrentValuationMap = portfolioHoldings.parallelStream()
 			.collect(Collectors.groupingBy(portfolioHolding -> portfolioHolding.getStock().getSector(),
 				Collectors.mapping(PortfolioHolding::calculateCurrentValuation, Collectors.toList())));
+		// 섹션 차트에 현금 추가
+		sectorCurrentValuationMap.put("현금", List.of(portfolio.calculateBalance()));
+
 		List<PortfolioSectorChartItemResponse> sectorChartItems = sectorCurrentValuationMap.entrySet()
 			.parallelStream()
 			.map(entry -> {
