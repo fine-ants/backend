@@ -9,7 +9,6 @@ import java.util.List;
 
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -130,7 +129,7 @@ class PortfolioStockServiceTest {
 				.hasSize(1)
 				.flatExtracting("purchaseHistory")
 				.extracting("purchaseDate", "numShares", "purchasePricePerShare", "memo")
-				.containsExactlyInAnyOrder(Tuple.tuple(LocalDateTime.of(2023, 11, 1, 9, 30, 0), 3L, 50000.0, "첫구매"))
+				.containsExactlyInAnyOrder(Tuple.tuple(LocalDateTime.of(2023, 3, 1, 9, 30, 0), 3L, 50000.0, "첫구매"))
 		);
 	}
 
@@ -141,7 +140,9 @@ class PortfolioStockServiceTest {
 		Member member = memberRepository.save(createMember());
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Stock stock = stockRepository.save(createStock());
-		stockDividendRepository.saveAll(createStockDividendWith(stock));
+		List<StockDividend> stockDividends = createStockDividendWith(stock);
+		stockDividends.forEach(stock::addStockDividend);
+		stockDividendRepository.saveAll(stockDividends);
 		PortfolioHolding portfolioHolding = portFolioHoldingRepository.save(createPortfolioHolding(portfolio, stock));
 		purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding));
 
@@ -152,7 +153,7 @@ class PortfolioStockServiceTest {
 		PortfolioChartResponse response = service.readMyPortfolioCharts(portfolio.getId());
 
 		// then
-		Assertions.assertAll(
+		assertAll(
 			() -> assertThat(response)
 				.extracting("pieChart")
 				.asList()
@@ -161,6 +162,33 @@ class PortfolioStockServiceTest {
 				.containsExactlyInAnyOrder(
 					Tuple.tuple("삼성전자보통주", 180000L, "#000000", 17.475728155339805, 30000L, 20.00),
 					Tuple.tuple("현금", 850000L, "#1CADFF", 82.52427184466019, 0L, 0.00)
+				),
+			() -> assertThat(response)
+				.extracting("dividendChart")
+				.asList()
+				.hasSize(12)
+				.extracting("month", "amount")
+				.containsExactlyInAnyOrder(
+					Tuple.tuple(1, 0L),
+					Tuple.tuple(2, 0L),
+					Tuple.tuple(3, 0L),
+					Tuple.tuple(4, 0L),
+					Tuple.tuple(5, 1083L),
+					Tuple.tuple(6, 0L),
+					Tuple.tuple(7, 0L),
+					Tuple.tuple(8, 1083L),
+					Tuple.tuple(9, 0L),
+					Tuple.tuple(10, 0L),
+					Tuple.tuple(11, 1083L),
+					Tuple.tuple(12, 0L)
+				),
+			() -> assertThat(response)
+				.extracting("sectorChart")
+				.asList()
+				.hasSize(1)
+				.containsExactlyInAnyOrder(
+					Tuple.tuple("전기 전자", 17.475728155339805),
+					Tuple.tuple("현금", 82.52427184466019)
 				)
 		);
 	}
@@ -219,7 +247,7 @@ class PortfolioStockServiceTest {
 
 	private static PurchaseHistory createPurchaseHistory(PortfolioHolding portfolioHolding) {
 		return PurchaseHistory.builder()
-			.purchaseDate(LocalDateTime.of(2023, 11, 1, 9, 30, 0))
+			.purchaseDate(LocalDateTime.of(2023, 3, 1, 9, 30, 0))
 			.numShares(3L)
 			.purchasePricePerShare(50000.0)
 			.memo("첫구매")
