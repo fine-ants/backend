@@ -185,9 +185,10 @@ class PortfolioStockServiceTest {
 			() -> assertThat(response)
 				.extracting("sectorChart")
 				.asList()
-				.hasSize(1)
+				.hasSize(2)
+				.extracting("sector", "sectorWeight")
 				.containsExactlyInAnyOrder(
-					Tuple.tuple("전기 전자", 17.475728155339805),
+					Tuple.tuple("전기전자", 17.475728155339805),
 					Tuple.tuple("현금", 82.52427184466019)
 				)
 		);
