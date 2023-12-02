@@ -48,6 +48,7 @@ public class PortfolioStockService {
 	private final PurchaseHistoryRepository purchaseHistoryRepository;
 	private final PortfolioGainHistoryRepository portfolioGainHistoryRepository;
 	private final CurrentPriceManager currentPriceManager;
+	private final RandomColorGenerator colorGenerator;
 
 	@Transactional
 	public PortfolioStockCreateResponse addPortfolioStock(Long portfolioId, PortfolioStockCreateRequest request,
@@ -117,9 +118,10 @@ public class PortfolioStockService {
 		// 파이 차트 데이터 생성
 		Long portfolioTotalAsset = portfolio.calculateTotalAsset();
 		List<PortfolioPieChartItem> pieChartItems = portfolioHoldings.parallelStream()
-			.map(portfolioHolding -> PortfolioPieChartItem.stock(portfolioHolding, portfolioTotalAsset))
+			.map(portfolioHolding -> PortfolioPieChartItem.stock(portfolioHolding, portfolioTotalAsset,
+				colorGenerator.generateRandomColor()))
 			.collect(Collectors.toList());
-		pieChartItems.add(PortfolioPieChartItem.cash(portfolio));
+		pieChartItems.add(PortfolioPieChartItem.cash(portfolio, colorGenerator.generateRandomColor()));
 
 		// 배당금 차트 데이터 생성
 		Map<Integer, Long> totalDividendMap = portfolioHoldings.parallelStream()

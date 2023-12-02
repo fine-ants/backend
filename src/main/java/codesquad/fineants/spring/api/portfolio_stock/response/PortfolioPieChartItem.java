@@ -14,26 +14,27 @@ public class PortfolioPieChartItem {
 	private Long totalGain;
 	private Double totalGainRate;
 
-	public static PortfolioPieChartItem stock(PortfolioHolding portfolioHolding, Long portfolioTotalAsset) {
+	public static PortfolioPieChartItem stock(PortfolioHolding portfolioHolding, Long portfolioTotalAsset,
+		String fill) {
 		Long currentValuation = portfolioHolding.calculateCurrentValuation();
 		Double weight = currentValuation.doubleValue() / portfolioTotalAsset.doubleValue() * 100;
 		return new PortfolioPieChartItem(
 			portfolioHolding.getStock().getCompanyName(),
 			currentValuation,
-			"#000000",
+			fill,
 			weight,
 			portfolioHolding.calculateTotalGain(),
 			portfolioHolding.calculateTotalReturnRate().doubleValue()
 		);
 	}
 
-	public static PortfolioPieChartItem cash(Portfolio portfolio) {
+	public static PortfolioPieChartItem cash(Portfolio portfolio, String fill) {
 		Double weight =
 			portfolio.calculateBalance().doubleValue() / portfolio.calculateTotalAsset().doubleValue() * 100;
 		return new PortfolioPieChartItem(
 			"현금",
 			portfolio.calculateBalance(),
-			"#1CADFF",
+			fill,
 			weight,
 			0L,
 			0.0
