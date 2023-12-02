@@ -171,11 +171,6 @@ public class PortfolioHolding extends BaseEntity {
 	// 월별 배당금 계산
 	// key=월, value=배당금 합계
 	public Map<Integer, Long> calculateMonthlyDividends() {
-		Map<Integer, Long> result = new HashMap<>();
-		for (int month = 1; month <= 12; month++) {
-			long amount = stock.readDividend(LocalDateTime.now().withMonth(month)) * calculateNumShares();
-			result.put(month, amount);
-		}
-		return result;
+		return stock.calculateMonthlyDividends(purchaseHistory);
 	}
 }

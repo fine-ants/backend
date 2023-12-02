@@ -20,7 +20,9 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
+@ToString(exclude = {"stock"})
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "stock_dividend", uniqueConstraints = {
@@ -59,5 +61,21 @@ public class StockDividend extends BaseEntity {
 	public boolean isMonthlyDividend(LocalDateTime monthDateTime) {
 		return dividendMonth.getYear() == monthDateTime.getYear()
 			&& dividendMonth.getMonthValue() == monthDateTime.getMonthValue();
+	}
+
+	// 주식 개수에 따른 배당금 합계 계산
+	// 배당금 합계 = 주당 배당금 * 주식 개수
+	public long calculateDividendSum(Long numShares) {
+		return dividend * numShares;
+	}
+
+	// 배당금을 받을 수 있는지 검사
+	public boolean isSatisfied(LocalDate purchaseDate) {
+		return purchaseDate.isBefore(exDividendDate);
+	}
+
+	// 현금 배당 지급일의 월을 반환
+	public int getMonthValueByPaymentDate() {
+		return paymentDate.getMonthValue();
 	}
 }

@@ -2,7 +2,9 @@ package codesquad.fineants.domain.stock;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -12,6 +14,7 @@ import javax.persistence.Id;
 import javax.persistence.OneToMany;
 
 import codesquad.fineants.domain.BaseEntity;
+import codesquad.fineants.domain.purchase_history.PurchaseHistory;
 import codesquad.fineants.domain.stock_dividend.StockDividend;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -64,5 +67,23 @@ public class Stock extends BaseEntity {
 		if (!stockDividends.contains(stockDividend)) {
 			stockDividends.add(stockDividend);
 		}
+	}
+
+	public Map<Integer, Long> calculateMonthlyDividends(List<PurchaseHistory> purchaseHistories) {
+		Map<Integer, Long> result = new HashMap<>();
+		for (int month = 1; month <= 12; month++) {
+			result.put(month, 0L);
+		}
+		
+		for (StockDividend stockDividend : stockDividends) {
+			for (PurchaseHistory purchaseHistory : purchaseHistories) {
+				if (stockDividend.isSatisfied(purchaseHistory.getPurchaseLocalDate())) {
+					int paymentMonth = stockDividend.getMonthValueByPaymentDate();
+					long dividendSum = stockDividend.calculateDividendSum(purchaseHistory.getNumShares());
+					result.put(paymentMonth, result.getOrDefault(paymentMonth, 0L) + dividendSum);
+				}
+			}
+		}
+		return result;
 	}
 }
