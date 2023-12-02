@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.*;
 
 import java.time.LocalDateTime;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
@@ -17,31 +16,12 @@ import codesquad.fineants.domain.stock.Stock;
 @ActiveProfiles("test")
 class PortfolioHoldingTest {
 
-	private Portfolio portfolio;
-
-	private Stock stock;
-
-	@BeforeEach
-	void init() {
-		portfolio = Portfolio.builder()
-			.budget(1000000L)
-			.targetGain(1500000L)
-			.maximumLoss(900000L)
-			.build();
-
-		stock = Stock.builder()
-			.stockCode("KR7005930003")
-			.tickerSymbol("005930")
-			.companyName("삼성전자보통주")
-			.companyNameEng("SamsungElectronics")
-			.market(Market.KOSPI)
-			.build();
-	}
-
 	@DisplayName("한 종목의 총 투자 금액을 계산한다")
 	@Test
 	void calculateTotalInvestmentAmount() {
 		// given
+		Portfolio portfolio = createPortfolio();
+		Stock stock = createStock();
 		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock, 10000L);
 
 		PurchaseHistory purchaseHistory1 = PurchaseHistory.builder()
@@ -72,6 +52,8 @@ class PortfolioHoldingTest {
 	@Test
 	void calculateAverageCostPerShare() {
 		// given
+		Portfolio portfolio = createPortfolio();
+		Stock stock = createStock();
 		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock, 10000L);
 
 		PurchaseHistory purchaseHistory1 = PurchaseHistory.builder()
@@ -102,6 +84,8 @@ class PortfolioHoldingTest {
 	@Test
 	void calculateTotalGain() {
 		// given
+		Portfolio portfolio = createPortfolio();
+		Stock stock = createStock();
 		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock, 20000L);
 
 		PurchaseHistory purchaseHistory1 = PurchaseHistory.builder()
@@ -132,6 +116,8 @@ class PortfolioHoldingTest {
 	@Test
 	void calculateTotalReturnRate() {
 		// given
+		Portfolio portfolio = createPortfolio();
+		Stock stock = createStock();
 		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock, 20000L);
 
 		PurchaseHistory purchaseHistory1 = PurchaseHistory.builder()
@@ -157,5 +143,22 @@ class PortfolioHoldingTest {
 		// then
 		assertThat(result).isEqualTo(100.0);
 	}
+	
+	private static Portfolio createPortfolio() {
+		return Portfolio.builder()
+			.budget(1000000L)
+			.targetGain(1500000L)
+			.maximumLoss(900000L)
+			.build();
+	}
 
+	private static Stock createStock() {
+		return Stock.builder()
+			.stockCode("KR7005930003")
+			.tickerSymbol("005930")
+			.companyName("삼성전자보통주")
+			.companyNameEng("SamsungElectronics")
+			.market(Market.KOSPI)
+			.build();
+	}
 }
