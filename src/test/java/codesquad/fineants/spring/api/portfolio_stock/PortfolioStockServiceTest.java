@@ -2,6 +2,7 @@ package codesquad.fineants.spring.api.portfolio_stock;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.BDDMockito.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -13,6 +14,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 
 import codesquad.fineants.domain.member.Member;
@@ -70,6 +72,9 @@ class PortfolioStockServiceTest {
 
 	@Autowired
 	private LastDayClosingPriceManager lastDayClosingPriceManager;
+
+	@MockBean
+	private RandomColorGenerator colorGenerator;
 
 	@AfterEach
 	void tearDown() {
@@ -148,6 +153,8 @@ class PortfolioStockServiceTest {
 
 		currentPriceManager.addCurrentPrice(new CurrentPriceResponse("005930", 60000L));
 		lastDayClosingPriceManager.addPrice("005930", 50000);
+
+		given(colorGenerator.generateRandomColor()).willReturn("#000000", "#1CADFF");
 
 		// when
 		PortfolioChartResponse response = service.readMyPortfolioCharts(portfolio.getId());
