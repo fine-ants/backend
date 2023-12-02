@@ -14,7 +14,7 @@ public class PortfolioPieChartItem {
 	private Long totalGain;
 	private Double totalGainRate;
 
-	public static PortfolioPieChartItem of(PortfolioHolding portfolioHolding, Long portfolioTotalAsset) {
+	public static PortfolioPieChartItem stock(PortfolioHolding portfolioHolding, Long portfolioTotalAsset) {
 		Long currentValuation = portfolioHolding.calculateCurrentValuation();
 		Double weight = currentValuation.doubleValue() / portfolioTotalAsset.doubleValue() * 100;
 		return new PortfolioPieChartItem(

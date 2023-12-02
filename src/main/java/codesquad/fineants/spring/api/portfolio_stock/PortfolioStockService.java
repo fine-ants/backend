@@ -117,7 +117,7 @@ public class PortfolioStockService {
 		// 파이 차트 데이터 생성
 		Long portfolioTotalAsset = portfolio.calculateTotalAsset();
 		List<PortfolioPieChartItem> pieChartItems = portfolioHoldings.parallelStream()
-			.map(portfolioHolding -> PortfolioPieChartItem.of(portfolioHolding, portfolioTotalAsset))
+			.map(portfolioHolding -> PortfolioPieChartItem.stock(portfolioHolding, portfolioTotalAsset))
 			.collect(Collectors.toList());
 		pieChartItems.add(PortfolioPieChartItem.cash(portfolio));
 
