@@ -169,10 +169,9 @@ public class PortfolioHolding extends BaseEntity {
 		this.currentPrice = currentPrice;
 	}
 
-	// 월별 배당금 계산
-	// key=월, value=배당금 합계
-	public Map<Integer, Long> calculateMonthlyDividends() {
-		return stock.calculateMonthlyDividends(purchaseHistory);
+	// 월별 배당금 계산, key=월, value=배당금 합계
+	public Map<Integer, Long> createMonthlyDividendMap() {
+		return stock.createMonthlyDividends(purchaseHistory);
 	}
 
 	public void applyCurrentPrice(CurrentPriceManager manager) {

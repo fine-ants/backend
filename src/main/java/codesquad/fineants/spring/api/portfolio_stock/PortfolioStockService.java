@@ -48,8 +48,8 @@ public class PortfolioStockService {
 	private final PurchaseHistoryRepository purchaseHistoryRepository;
 	private final PortfolioGainHistoryRepository portfolioGainHistoryRepository;
 	private final CurrentPriceManager currentPriceManager;
-	private final RandomColorGenerator colorGenerator;
 	private final PieChart pieChart;
+	private final DividendChart dividendChart;
 
 	@Transactional
 	public PortfolioStockCreateResponse addPortfolioStock(Long portfolioId, PortfolioStockCreateRequest request,
@@ -119,14 +119,8 @@ public class PortfolioStockService {
 		// 파이 차트 생성
 		List<PortfolioPieChartItem> pieChartItems = pieChart.createBy(portfolio);
 
-		// 배당금 차트 데이터 생성
-		Map<Integer, Long> totalDividendMap = portfolioHoldings.parallelStream()
-			.flatMap(portfolioHolding -> portfolioHolding.calculateMonthlyDividends().entrySet().stream())
-			.collect(Collectors.groupingBy(Map.Entry::getKey, Collectors.summingLong(Map.Entry::getValue)));
-
-		List<PortfolioDividendChartItem> dividendChartItems = totalDividendMap.entrySet().parallelStream()
-			.map(entry -> new PortfolioDividendChartItem(entry.getKey(), entry.getValue()))
-			.collect(Collectors.toList());
+		// 배당금 차트 생성
+		List<PortfolioDividendChartItem> dividendChartItems = dividendChart.createBy(portfolio);
 
 		// 섹터 차트 데이터 생성
 		Map<String, List<Long>> sectorCurrentValuationMap = portfolioHoldings.parallelStream()

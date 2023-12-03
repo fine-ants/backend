@@ -3,6 +3,7 @@ package codesquad.fineants.domain.portfolio;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import javax.persistence.Entity;
@@ -19,6 +20,7 @@ import codesquad.fineants.domain.portfolio_gain_history.PortfolioGainHistory;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.portfolio_stock.RandomColorGenerator;
+import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioDividendChartItem;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioPieChartItem;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -278,5 +280,16 @@ public class Portfolio {
 	// 포트폴리오 종목 비중 계산, 종목 비중 = 종목 평가 금액 / 총자산
 	private Double calculateWeightBy(PortfolioHolding holding) {
 		return holding.calculateWeightBy(calculateTotalAsset().doubleValue());
+	}
+
+	// 배당금 차트 생성
+	public List<PortfolioDividendChartItem> createDividendChart() {
+		Map<Integer, Long> totalDividendMap = portfolioHoldings.stream()
+			.flatMap(portfolioHolding -> portfolioHolding.createMonthlyDividendMap().entrySet().stream())
+			.collect(Collectors.groupingBy(Map.Entry::getKey, Collectors.summingLong(Map.Entry::getValue)));
+
+		return totalDividendMap.entrySet().stream()
+			.map(entry -> new PortfolioDividendChartItem(entry.getKey(), entry.getValue()))
+			.collect(Collectors.toList());
 	}
 }

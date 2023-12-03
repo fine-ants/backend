@@ -70,7 +70,7 @@ public class Stock extends BaseEntity {
 		}
 	}
 
-	public Map<Integer, Long> calculateMonthlyDividends(List<PurchaseHistory> purchaseHistories) {
+	public Map<Integer, Long> createMonthlyDividends(List<PurchaseHistory> purchaseHistories) {
 		Map<Integer, Long> result = new HashMap<>();
 		for (int month = 1; month <= 12; month++) {
 			result.put(month, 0L);
