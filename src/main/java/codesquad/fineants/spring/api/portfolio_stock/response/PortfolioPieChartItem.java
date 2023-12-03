@@ -1,11 +1,5 @@
 package codesquad.fineants.spring.api.portfolio_stock.response;
 
-import codesquad.fineants.domain.portfolio.Portfolio;
-import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class PortfolioPieChartItem {
 	private String name;
 	private Long valuation;
@@ -14,30 +8,25 @@ public class PortfolioPieChartItem {
 	private Long totalGain;
 	private Double totalGainRate;
 
-	public static PortfolioPieChartItem stock(PortfolioHolding portfolioHolding, Long portfolioTotalAsset,
-		String fill) {
-		Long currentValuation = portfolioHolding.calculateCurrentValuation();
-		Double weight = currentValuation.doubleValue() / portfolioTotalAsset.doubleValue() * 100;
-		return new PortfolioPieChartItem(
-			portfolioHolding.getStock().getCompanyName(),
-			currentValuation,
-			fill,
-			weight,
-			portfolioHolding.calculateTotalGain(),
-			portfolioHolding.calculateTotalReturnRate().doubleValue()
-		);
+	private PortfolioPieChartItem(String name, Long valuation, String fill, Double weight) {
+		this(name, valuation, fill, weight, 0L, 0.0);
 	}
 
-	public static PortfolioPieChartItem cash(Portfolio portfolio, String fill) {
-		Double weight =
-			portfolio.calculateBalance().doubleValue() / portfolio.calculateTotalAsset().doubleValue() * 100;
+	public PortfolioPieChartItem(String name, Long valuation, String fill, Double weight, Long totalGain,
+		Double totalGainRate) {
+		this.name = name;
+		this.valuation = valuation;
+		this.fill = fill;
+		this.weight = weight;
+		this.totalGain = totalGain;
+		this.totalGainRate = totalGainRate;
+	}
+
+	public static PortfolioPieChartItem cash(Double weight, Long balance, String fill) {
 		return new PortfolioPieChartItem(
 			"현금",
-			portfolio.calculateBalance(),
+			balance,
 			fill,
-			weight,
-			0L,
-			0.0
-		);
+			weight);
 	}
 }

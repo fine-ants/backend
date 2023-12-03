@@ -2,7 +2,6 @@ package codesquad.fineants.domain.portfolio_holding;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -21,6 +20,8 @@ import codesquad.fineants.domain.portfolio.Portfolio;
 import codesquad.fineants.domain.purchase_history.PurchaseHistory;
 import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.domain.stock_dividend.StockDividend;
+import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
+import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioPieChartItem;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -172,5 +173,21 @@ public class PortfolioHolding extends BaseEntity {
 	// key=월, value=배당금 합계
 	public Map<Integer, Long> calculateMonthlyDividends() {
 		return stock.calculateMonthlyDividends(purchaseHistory);
+	}
+
+	public void applyCurrentPrice(CurrentPriceManager manager) {
+		this.currentPrice = stock.getCurrentPrice(manager);
+	}
+
+	public Double calculateWeightBy(Double portfolioAsset) {
+		return calculateCurrentValuation().doubleValue() / portfolioAsset * 100;
+	}
+
+	public PortfolioPieChartItem createPieChartItem(String fill, Double weight) {
+		String name = stock.getCompanyName();
+		Long currentValuation = calculateCurrentValuation();
+		Long totalGain = calculateTotalGain();
+		Double totalReturnRate = calculateTotalReturnRate().doubleValue();
+		return new PortfolioPieChartItem(name, currentValuation, fill, weight, totalGain, totalReturnRate);
 	}
 }

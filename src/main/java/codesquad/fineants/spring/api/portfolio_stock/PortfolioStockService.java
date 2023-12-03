@@ -49,6 +49,7 @@ public class PortfolioStockService {
 	private final PortfolioGainHistoryRepository portfolioGainHistoryRepository;
 	private final CurrentPriceManager currentPriceManager;
 	private final RandomColorGenerator colorGenerator;
+	private final PieChart pieChart;
 
 	@Transactional
 	public PortfolioStockCreateResponse addPortfolioStock(Long portfolioId, PortfolioStockCreateRequest request,
@@ -115,13 +116,8 @@ public class PortfolioStockService {
 		Portfolio portfolio = findPortfolio(portfolioId);
 		List<PortfolioHolding> portfolioHoldings = portfolio.changeCurrentPriceFromHoldings(currentPriceManager);
 
-		// 파이 차트 데이터 생성
-		Long portfolioTotalAsset = portfolio.calculateTotalAsset();
-		List<PortfolioPieChartItem> pieChartItems = portfolioHoldings.parallelStream()
-			.map(portfolioHolding -> PortfolioPieChartItem.stock(portfolioHolding, portfolioTotalAsset,
-				colorGenerator.generateRandomColor()))
-			.collect(Collectors.toList());
-		pieChartItems.add(PortfolioPieChartItem.cash(portfolio, colorGenerator.generateRandomColor()));
+		// 파이 차트 생성
+		List<PortfolioPieChartItem> pieChartItems = pieChart.createBy(portfolio);
 
 		// 배당금 차트 데이터 생성
 		Map<Integer, Long> totalDividendMap = portfolioHoldings.parallelStream()
@@ -143,7 +139,8 @@ public class PortfolioStockService {
 			.parallelStream()
 			.map(entry -> {
 				double weight =
-					(entry.getValue().stream().mapToDouble(Double::valueOf).sum() / portfolioTotalAsset.doubleValue())
+					(entry.getValue().stream().mapToDouble(Double::valueOf).sum() / portfolio.calculateTotalAsset()
+						.doubleValue())
 						* 100;
 				return new PortfolioSectorChartItemResponse(entry.getKey(), weight);
 			})

@@ -3,6 +3,7 @@ package codesquad.fineants.domain.portfolio;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -17,6 +18,8 @@ import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.portfolio_gain_history.PortfolioGainHistory;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
+import codesquad.fineants.spring.api.portfolio_stock.RandomColorGenerator;
+import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioPieChartItem;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -213,9 +216,16 @@ public class Portfolio {
 		return result;
 	}
 
+	// 포트폴리오 모든 종목들에 주식 현재가 적용
+	public void applyCurrentPriceAllHoldingsBy(CurrentPriceManager manager) {
+		for (PortfolioHolding portfolioHolding : portfolioHoldings) {
+			portfolioHolding.applyCurrentPrice(manager);
+		}
+	}
+
 	// 목표 수익률 = ((목표 수익 금액 - 예산) / 예산) * 100
 	public Integer calculateTargetReturnRate() {
-		return (int)(((double)(targetGain - budget) / (double)budget) * 100);
+		return (int)(((targetGain.doubleValue() - budget.doubleValue()) / budget.doubleValue()) * 100);
 	}
 
 	// 총 자산 = 잔고 + 평가금액 합계
@@ -223,19 +233,50 @@ public class Portfolio {
 		return calculateBalance() + calculateTotalCurrentValuation();
 	}
 
+	// 목표수익금액 알림 변경
 	public void changeTargetGainNotification(Boolean isActive) {
 		this.targetGainIsActive = isActive;
 	}
 
+	// 최대손실금액의 알림 변경
 	public void changeMaximumLossNotification(Boolean isActive) {
 		this.maximumIsActive = isActive;
 	}
 
+	// 포트폴리오가 목표수익금액에 도달했는지 검사
 	public boolean reachedTargetGain() {
 		return budget + calculateTotalGain() >= targetGain;
 	}
 
+	// 포트폴리오가 최대손실금액에 도달했는지 검사
 	public boolean reachedMaximumLoss() {
 		return budget + calculateTotalGain() <= maximumLoss;
+	}
+
+	// 파이 차트 생성
+	public List<PortfolioPieChartItem> createPieChart(RandomColorGenerator colorGenerator) {
+		List<PortfolioPieChartItem> stocks = portfolioHoldings.stream()
+			.map(portfolioHolding -> {
+				String fill = colorGenerator.generate();
+				Double weight = calculateWeightBy(portfolioHolding);
+				return portfolioHolding.createPieChartItem(fill, weight);
+			})
+			.collect(Collectors.toList());
+		PortfolioPieChartItem cash = PortfolioPieChartItem.cash(calculateCashWeight(), calculateBalance(),
+			colorGenerator.generate());
+
+		List<PortfolioPieChartItem> result = new ArrayList<>(stocks);
+		result.add(cash);
+		return result;
+	}
+
+	// 현금 비중 계산, 현금 비중 = 잔고 / 총자산
+	public Double calculateCashWeight() {
+		return calculateBalance().doubleValue() / calculateTotalAsset().doubleValue() * 100;
+	}
+
+	// 포트폴리오 종목 비중 계산, 종목 비중 = 종목 평가 금액 / 총자산
+	private Double calculateWeightBy(PortfolioHolding holding) {
+		return holding.calculateWeightBy(calculateTotalAsset().doubleValue());
 	}
 }

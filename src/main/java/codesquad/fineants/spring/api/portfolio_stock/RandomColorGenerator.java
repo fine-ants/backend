@@ -11,7 +11,7 @@ import lombok.RequiredArgsConstructor;
 public class RandomColorGenerator {
 	private static final Random random = new Random();
 
-	public String generateRandomColor() {
+	public String generate() {
 		// 랜덤 RGB 값 생성
 		int red = random.nextInt(256);
 		int green = random.nextInt(256);

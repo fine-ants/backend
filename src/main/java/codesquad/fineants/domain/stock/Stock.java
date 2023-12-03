@@ -16,6 +16,7 @@ import javax.persistence.OneToMany;
 import codesquad.fineants.domain.BaseEntity;
 import codesquad.fineants.domain.purchase_history.PurchaseHistory;
 import codesquad.fineants.domain.stock_dividend.StockDividend;
+import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -74,7 +75,7 @@ public class Stock extends BaseEntity {
 		for (int month = 1; month <= 12; month++) {
 			result.put(month, 0L);
 		}
-		
+
 		for (StockDividend stockDividend : stockDividends) {
 			for (PurchaseHistory purchaseHistory : purchaseHistories) {
 				if (stockDividend.isSatisfied(purchaseHistory.getPurchaseLocalDate())) {
@@ -85,5 +86,9 @@ public class Stock extends BaseEntity {
 			}
 		}
 		return result;
+	}
+
+	public Long getCurrentPrice(CurrentPriceManager manager) {
+		return manager.getCurrentPrice(tickerSymbol);
 	}
 }
