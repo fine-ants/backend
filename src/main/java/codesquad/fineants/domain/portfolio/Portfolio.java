@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.persistence.Entity;
@@ -299,19 +300,25 @@ public class Portfolio {
 	}
 
 	public List<PortfolioSectorChartItem> createSectorChart() {
+		return calculateSectorCurrentValuationMap().entrySet().stream()
+			.map(mappingSectorChartItem())
+			.collect(Collectors.toList());
+	}
+
+	private Map<String, List<Long>> calculateSectorCurrentValuationMap() {
 		Map<String, List<Long>> sectorCurrentValuationMap = portfolioHoldings.stream()
 			.collect(Collectors.groupingBy(portfolioHolding -> portfolioHolding.getStock().getSector(),
 				Collectors.mapping(PortfolioHolding::calculateCurrentValuation, Collectors.toList())));
 		// 섹션 차트에 현금 추가
 		sectorCurrentValuationMap.put("현금", List.of(calculateBalance()));
+		return sectorCurrentValuationMap;
+	}
 
-		return sectorCurrentValuationMap.entrySet()
-			.stream()
-			.map(entry -> {
-				Double currentValuation = entry.getValue().stream().mapToDouble(Double::valueOf).sum();
-				Double weight = calculateWeightBy(currentValuation);
-				return new PortfolioSectorChartItem(entry.getKey(), weight);
-			})
-			.collect(Collectors.toList());
+	private Function<Map.Entry<String, List<Long>>, PortfolioSectorChartItem> mappingSectorChartItem() {
+		return entry -> {
+			Double currentValuation = entry.getValue().stream().mapToDouble(Double::valueOf).sum();
+			Double weight = calculateWeightBy(currentValuation);
+			return new PortfolioSectorChartItem(entry.getKey(), weight);
+		};
 	}
 }
