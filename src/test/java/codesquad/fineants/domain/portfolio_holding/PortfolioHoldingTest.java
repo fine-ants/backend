@@ -166,7 +166,7 @@ class PortfolioHoldingTest {
 		portfolioHolding.addPurchaseHistory(purchaseHistory);
 
 		// when
-		Map<Integer, Long> result = portfolioHolding.calculateMonthlyDividends();
+		Map<Integer, Long> result = portfolioHolding.createMonthlyDividendMap();
 
 		// then
 		Map<Integer, Long> expected = new HashMap<>();

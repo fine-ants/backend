@@ -154,7 +154,7 @@ class PortfolioStockServiceTest {
 		currentPriceManager.addCurrentPrice(new CurrentPriceResponse("005930", 60000L));
 		lastDayClosingPriceManager.addPrice("005930", 50000);
 
-		given(colorGenerator.generateRandomColor()).willReturn("#000000", "#1CADFF");
+		given(colorGenerator.generate()).willReturn("#000000", "#1CADFF");
 
 		// when
 		PortfolioChartResponse response = service.readMyPortfolioCharts(portfolio.getId());
