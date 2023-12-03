@@ -31,7 +31,7 @@ import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioChartResp
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioDividendChartItem;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioHoldingsResponse;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioPieChartItem;
-import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioSectorChartItemResponse;
+import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioSectorChartItem;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioStockCreateResponse;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioStockDeleteResponse;
 import lombok.RequiredArgsConstructor;
@@ -50,6 +50,7 @@ public class PortfolioStockService {
 	private final CurrentPriceManager currentPriceManager;
 	private final PieChart pieChart;
 	private final DividendChart dividendChart;
+	private final SectorChart sectorChart;
 
 	@Transactional
 	public PortfolioStockCreateResponse addPortfolioStock(Long portfolioId, PortfolioStockCreateRequest request,
@@ -114,31 +115,9 @@ public class PortfolioStockService {
 
 	public PortfolioChartResponse readMyPortfolioCharts(Long portfolioId) {
 		Portfolio portfolio = findPortfolio(portfolioId);
-		List<PortfolioHolding> portfolioHoldings = portfolio.changeCurrentPriceFromHoldings(currentPriceManager);
-
-		// 파이 차트 생성
 		List<PortfolioPieChartItem> pieChartItems = pieChart.createBy(portfolio);
-
-		// 배당금 차트 생성
 		List<PortfolioDividendChartItem> dividendChartItems = dividendChart.createBy(portfolio);
-
-		// 섹터 차트 데이터 생성
-		Map<String, List<Long>> sectorCurrentValuationMap = portfolioHoldings.parallelStream()
-			.collect(Collectors.groupingBy(portfolioHolding -> portfolioHolding.getStock().getSector(),
-				Collectors.mapping(PortfolioHolding::calculateCurrentValuation, Collectors.toList())));
-		// 섹션 차트에 현금 추가
-		sectorCurrentValuationMap.put("현금", List.of(portfolio.calculateBalance()));
-
-		List<PortfolioSectorChartItemResponse> sectorChartItems = sectorCurrentValuationMap.entrySet()
-			.parallelStream()
-			.map(entry -> {
-				double weight =
-					(entry.getValue().stream().mapToDouble(Double::valueOf).sum() / portfolio.calculateTotalAsset()
-						.doubleValue())
-						* 100;
-				return new PortfolioSectorChartItemResponse(entry.getKey(), weight);
-			})
-			.collect(Collectors.toList());
+		List<PortfolioSectorChartItem> sectorChartItems = sectorChart.createBy(portfolio);
 		return new PortfolioChartResponse(pieChartItems, dividendChartItems, sectorChartItems);
 	}
 }

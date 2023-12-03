@@ -22,6 +22,7 @@ import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.portfolio_stock.RandomColorGenerator;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioDividendChartItem;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioPieChartItem;
+import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioSectorChartItem;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -282,6 +283,10 @@ public class Portfolio {
 		return holding.calculateWeightBy(calculateTotalAsset().doubleValue());
 	}
 
+	private Double calculateWeightBy(Double currentValuation) {
+		return currentValuation / calculateTotalAsset().doubleValue() * 100;
+	}
+
 	// 배당금 차트 생성
 	public List<PortfolioDividendChartItem> createDividendChart() {
 		Map<Integer, Long> totalDividendMap = portfolioHoldings.stream()
@@ -290,6 +295,23 @@ public class Portfolio {
 
 		return totalDividendMap.entrySet().stream()
 			.map(entry -> new PortfolioDividendChartItem(entry.getKey(), entry.getValue()))
+			.collect(Collectors.toList());
+	}
+
+	public List<PortfolioSectorChartItem> createSectorChart() {
+		Map<String, List<Long>> sectorCurrentValuationMap = portfolioHoldings.stream()
+			.collect(Collectors.groupingBy(portfolioHolding -> portfolioHolding.getStock().getSector(),
+				Collectors.mapping(PortfolioHolding::calculateCurrentValuation, Collectors.toList())));
+		// 섹션 차트에 현금 추가
+		sectorCurrentValuationMap.put("현금", List.of(calculateBalance()));
+
+		return sectorCurrentValuationMap.entrySet()
+			.stream()
+			.map(entry -> {
+				Double currentValuation = entry.getValue().stream().mapToDouble(Double::valueOf).sum();
+				Double weight = calculateWeightBy(currentValuation);
+				return new PortfolioSectorChartItem(entry.getKey(), weight);
+			})
 			.collect(Collectors.toList());
 	}
 }

@@ -8,5 +8,5 @@ import lombok.AllArgsConstructor;
 public class PortfolioChartResponse {
 	private List<PortfolioPieChartItem> pieChart;
 	private List<PortfolioDividendChartItem> dividendChart;
-	private List<PortfolioSectorChartItemResponse> sectorChart;
+	private List<PortfolioSectorChartItem> sectorChart;
 }
