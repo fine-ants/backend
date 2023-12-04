@@ -260,14 +260,9 @@ public class Portfolio {
 	// 파이 차트 생성
 	public List<PortfolioPieChartItem> createPieChart(RandomColorGenerator colorGenerator) {
 		List<PortfolioPieChartItem> stocks = portfolioHoldings.stream()
-			.map(portfolioHolding -> {
-				String fill = colorGenerator.generate();
-				Double weight = calculateWeightBy(portfolioHolding);
-				return portfolioHolding.createPieChartItem(fill, weight);
-			})
+			.map(portfolioHolding -> portfolioHolding.createPieChartItem(calculateWeightBy(portfolioHolding)))
 			.collect(Collectors.toList());
-		PortfolioPieChartItem cash = PortfolioPieChartItem.cash(calculateCashWeight(), calculateBalance(),
-			colorGenerator.generate());
+		PortfolioPieChartItem cash = PortfolioPieChartItem.cash(calculateCashWeight(), calculateBalance());
 
 		List<PortfolioPieChartItem> result = new ArrayList<>(stocks);
 		result.add(cash);

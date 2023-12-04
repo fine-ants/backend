@@ -48,6 +48,7 @@ public class PortfolioStockService {
 	private final PurchaseHistoryRepository purchaseHistoryRepository;
 	private final PortfolioGainHistoryRepository portfolioGainHistoryRepository;
 	private final CurrentPriceManager currentPriceManager;
+	private final RandomColorGenerator colorGenerator;
 	private final PieChart pieChart;
 	private final DividendChart dividendChart;
 	private final SectorChart sectorChart;
@@ -62,7 +63,9 @@ public class PortfolioStockService {
 
 		Stock stock = stockRepository.findByTickerSymbol(request.getTickerSymbol())
 			.orElseThrow(() -> new NotFoundResourceException(StockErrorCode.NOT_FOUND_STOCK));
-		PortfolioHolding portFolioHolding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
+
+		PortfolioHolding portFolioHolding = portFolioHoldingRepository.save(
+			PortfolioHolding.empty(colorGenerator.generate(), portfolio, stock));
 
 		log.info("포트폴리오 종목 추가 결과 : {}", portFolioHolding);
 		return PortfolioStockCreateResponse.from(portFolioHolding);

@@ -22,11 +22,11 @@ public class PortfolioPieChartItem {
 		this.totalGainRate = totalGainRate;
 	}
 
-	public static PortfolioPieChartItem cash(Double weight, Long balance, String fill) {
+	public static PortfolioPieChartItem cash(Double weight, Long balance) {
 		return new PortfolioPieChartItem(
 			"현금",
 			balance,
-			fill,
+			"#1CADFF",
 			weight);
 	}
 }
