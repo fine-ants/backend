@@ -39,7 +39,6 @@ public class StockDividend extends BaseEntity {
 	@Column(nullable = true)
 	private LocalDate paymentDate;
 
-
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "ticker_symbol", referencedColumnName = "tickerSymbol")
 	private Stock stock;
