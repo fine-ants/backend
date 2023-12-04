@@ -11,9 +11,4 @@ public class StockDividendItem {
 	private Long dividendId;
 	private LocalDateTime dividendMonth;
 	private Long dividendAmount;
-
-	public static StockDividendItem from(StockDividend stockDividend) {
-		return new StockDividendItem(stockDividend.getId(), stockDividend.getDividendMonth(),
-			stockDividend.getDividend());
-	}
 }

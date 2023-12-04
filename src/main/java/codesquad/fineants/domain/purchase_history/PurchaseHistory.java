@@ -1,5 +1,6 @@
 package codesquad.fineants.domain.purchase_history;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import javax.persistence.Entity;
