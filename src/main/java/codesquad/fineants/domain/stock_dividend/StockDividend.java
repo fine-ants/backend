@@ -22,7 +22,6 @@ public class StockDividend extends BaseEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
-	private LocalDateTime dividendMonth;
 	@Column(nullable = false)
 	private LocalDate exDividendDate;
 	@Column(nullable = false)
@@ -36,15 +35,12 @@ public class StockDividend extends BaseEntity {
 	private Stock stock;
 
 	@Builder
-	public StockDividend(Long id, LocalDateTime dividendMonth, Long dividend, Stock stock) {
+	public StockDividend(Long id, LocalDate exDividendDate, LocalDate recordDate, LocalDate paymentDate, Long dividend, Stock stock) {
 		this.id = id;
-		this.dividendMonth = dividendMonth;
+		this.exDividendDate = exDividendDate;
+		this.recordDate = recordDate;
+		this.paymentDate = paymentDate;
 		this.dividend = dividend;
 		this.stock = stock;
-	}
-
-	public boolean isMonthlyDividend(LocalDateTime monthDateTime) {
-		return dividendMonth.getYear() == monthDateTime.getYear()
-			&& dividendMonth.getMonthValue() == monthDateTime.getMonthValue();
 	}
 }
