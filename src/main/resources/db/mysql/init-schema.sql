@@ -1,129 +1,103 @@
-CREATE TABLE member
+create table if not exists fineAnts.member
 (
-    id          BIGINT AUTO_INCREMENT NOT NULL,
-    create_at   datetime NULL,
-    modified_at datetime NULL,
-    email       VARCHAR(255) NULL,
-    nickname    VARCHAR(255) NULL,
-    provider    VARCHAR(255) NULL,
-    password    VARCHAR(255) NULL,
-    profile_url VARCHAR(255) NULL,
-    CONSTRAINT pk_member PRIMARY KEY (id)
+    id          bigint auto_increment
+        primary key,
+    create_at   datetime(6)  null,
+    modified_at datetime(6)  null,
+    email       varchar(255) null,
+    nickname    varchar(255) null,
+    password    varchar(255) null,
+    profile_url varchar(255) null,
+    provider    varchar(255) null
 );
 
-CREATE TABLE port_folio_stock
+create table if not exists fineAnts.portfolio
 (
-    id               BIGINT AUTO_INCREMENT NOT NULL,
-    create_at        datetime NULL,
-    modified_at      datetime NULL,
-    number_of_shares BIGINT NULL,
-    total_gain       BIGINT NULL,
-    annual_dividend  BIGINT NULL,
-    current_value    BIGINT NULL,
-    current_price    BIGINT NULL,
-    portfolio_id     BIGINT NULL,
-    stock_id         VARCHAR(255) NULL,
-    CONSTRAINT pk_portfoliostock PRIMARY KEY (id)
+    id                    bigint auto_increment
+        primary key,
+    budget                bigint       null,
+    maximum_is_active     bit          null,
+    maximum_loss          bigint       null,
+    name                  varchar(255) null,
+    securities_firm       varchar(255) null,
+    target_gain           bigint       null,
+    target_gain_is_active bit          null,
+    member_id             bigint       null,
+    constraint FK_PORTFOLIO_ON_MEMBER
+        foreign key (member_id) references fineAnts.member (id)
 );
 
-CREATE TABLE portfolio
+create table if not exists fineAnts.portfolio_gain_history
 (
-    id                    BIGINT AUTO_INCREMENT NOT NULL,
-    name                  VARCHAR(255) NULL,
-    securities_firm       VARCHAR(255) NULL,
-    budget                BIGINT NULL,
-    target_gain           BIGINT NULL,
-    maximum_loss          BIGINT NULL,
-    target_gain_is_active BIT(1) NULL,
-    maximum_is_active     BIT(1) NULL,
-    member_id             BIGINT NULL,
-    CONSTRAINT pk_portfolio PRIMARY KEY (id)
+    id                bigint auto_increment
+        primary key,
+    create_at         datetime(6) null,
+    modified_at       datetime(6) null,
+    current_valuation bigint      null,
+    daily_gain        bigint      null,
+    total_gain        bigint      null,
+    portfolio_id      bigint      null,
+    constraint FK_PORTFOLIOGAINHISTORY_PORTFOLIO
+        foreign key (portfolio_id) references fineAnts.portfolio (id)
 );
 
-CREATE TABLE portfolio_gain_history
+create table if not exists fineAnts.stock
 (
-    id                BIGINT AUTO_INCREMENT NOT NULL,
-    create_at         datetime NULL,
-    modified_at       datetime NULL,
-    total_gain        BIGINT NULL,
-    daily_gain        BIGINT NULL,
-    current_valuation BIGINT NULL,
-    portfolio_id      BIGINT NULL,
-    CONSTRAINT pk_portfoliogainhistory PRIMARY KEY (id)
+    ticker_symbol    varchar(255) not null
+        primary key,
+    create_at        datetime(6)  null,
+    modified_at      datetime(6)  null,
+    company_name     varchar(255) null,
+    company_name_eng varchar(255) null,
+    market           varchar(255) null,
+    sector           varchar(255) null,
+    stock_code       varchar(255) null
 );
 
-CREATE TABLE portfolio_holding
+create table if not exists fineAnts.portfolio_holding
 (
-    id            BIGINT AUTO_INCREMENT NOT NULL,
-    create_at     datetime NULL,
-    modified_at   datetime NULL,
-    portfolio_id  BIGINT NULL,
-    ticker_symbol VARCHAR(255) NULL,
-    CONSTRAINT pk_portfolioholding PRIMARY KEY (id)
+    id            bigint auto_increment
+        primary key,
+    create_at     datetime(6)  null,
+    modified_at   datetime(6)  null,
+    fill          varchar(255) not null,
+    portfolio_id  bigint       null,
+    ticker_symbol varchar(255) null,
+    constraint FK_PORTFOLIOHOLDING_STOCK
+        foreign key (ticker_symbol) references fineAnts.stock (ticker_symbol),
+    constraint FK_PORTFOLIOHOLDING_PORTFOLIO
+        foreign key (portfolio_id) references fineAnts.portfolio (id)
 );
 
-CREATE TABLE purchase_history
+create table if not exists fineAnts.purchase_history
 (
-    id                   BIGINT AUTO_INCREMENT NOT NULL,
-    create_at            datetime NULL,
-    modified_at          datetime NULL,
-    purchase_date        datetime NULL,
-    purchase_price_per_share DOUBLE NULL,
-    num_shares           BIGINT NULL,
-    memo                 VARCHAR(255) NULL,
-    portfolio_holding_id BIGINT NULL,
-    CONSTRAINT pk_purchasehistory PRIMARY KEY (id)
+    id                       bigint auto_increment
+        primary key,
+    create_at                datetime(6)  null,
+    modified_at              datetime(6)  null,
+    memo                     varchar(255) null,
+    num_shares               bigint       null,
+    purchase_date            datetime(6)  null,
+    purchase_price_per_share double       null,
+    portfolio_holding_id     bigint       null,
+    constraint FK_PURCHASEHISTORY_ON_PORTFOLIOHOLDING
+        foreign key (portfolio_holding_id) references fineAnts.portfolio_holding (id)
 );
 
-CREATE TABLE stock
+create table if not exists fineAnts.stock_dividend
 (
-    ticker_symbol    VARCHAR(255) NOT NULL,
-    create_at        datetime NULL,
-    modified_at      datetime NULL,
-    company_name     VARCHAR(255) NULL,
-    company_name_eng VARCHAR(255) NULL,
-    stock_code       VARCHAR(255) NULL,
-    market           VARCHAR(255) NULL,
-    CONSTRAINT pk_stock PRIMARY KEY (ticker_symbol)
+    id               bigint auto_increment
+        primary key,
+    create_at        datetime(6)  null,
+    modified_at      datetime(6)  null,
+    dividend         bigint       null,
+    dividend_month   datetime(6)  null,
+    ex_dividend_date date         not null,
+    payment_date     date         null,
+    record_date      date         not null,
+    ticker_symbol    varchar(255) null,
+    constraint UNIQUE_STOCK_DIVIDEND
+        unique (ticker_symbol, record_date),
+    constraint FK_STOCKDIVIDEND_ON_STOCK
+        foreign key (ticker_symbol) references fineAnts.stock (ticker_symbol)
 );
-
-CREATE TABLE stock_dividend
-(
-    id               BIGINT AUTO_INCREMENT NOT NULL,
-    create_at        datetime NULL,
-    modified_at      datetime NULL,
-    dividend_month   datetime NULL,
-    ex_dividend_date date NOT NULL,
-    record_date      date NOT NULL,
-    payment_date     date NULL,
-    dividend         BIGINT NULL,
-    ticker_symbol    VARCHAR(255) NULL,
-    CONSTRAINT pk_stock_dividend PRIMARY KEY (id)
-);
-
-ALTER TABLE stock_dividend
-    ADD CONSTRAINT UNIQUE_STOCK_DIVIDEND UNIQUE (ticker_symbol, record_date);
-
-ALTER TABLE portfolio_gain_history
-    ADD CONSTRAINT FK_PORTFOLIOGAINHISTORY_ON_PORTFOLIO FOREIGN KEY (portfolio_id) REFERENCES portfolio (id);
-
-ALTER TABLE portfolio_holding
-    ADD CONSTRAINT FK_PORTFOLIOHOLDING_ON_PORTFOLIO FOREIGN KEY (portfolio_id) REFERENCES portfolio (id);
-
-ALTER TABLE portfolio_holding
-    ADD CONSTRAINT FK_PORTFOLIOHOLDING_ON_TICKER_SYMBOL FOREIGN KEY (ticker_symbol) REFERENCES stock (ticker_symbol);
-
-ALTER TABLE port_folio_stock
-    ADD CONSTRAINT FK_PORTFOLIOSTOCK_ON_PORTFOLIO FOREIGN KEY (portfolio_id) REFERENCES portfolio (id);
-
-ALTER TABLE port_folio_stock
-    ADD CONSTRAINT FK_PORTFOLIOSTOCK_ON_STOCK FOREIGN KEY (stock_id) REFERENCES stock (ticker_symbol);
-
-ALTER TABLE portfolio
-    ADD CONSTRAINT FK_PORTFOLIO_ON_MEMBER FOREIGN KEY (member_id) REFERENCES member (id);
-
-ALTER TABLE purchase_history
-    ADD CONSTRAINT FK_PURCHASEHISTORY_ON_PORTFOLIO_HOLDING FOREIGN KEY (portfolio_holding_id) REFERENCES portfolio_holding (id);
-
-ALTER TABLE stock_dividend
-    ADD CONSTRAINT FK_STOCK_DIVIDEND_ON_TICKER_SYMBOL FOREIGN KEY (ticker_symbol) REFERENCES stock (ticker_symbol);
