@@ -65,9 +65,7 @@ public class PortfolioStockRestController {
 		emitter.onTimeout(emitter::complete);
 
 		// 장시간 동안에는 스케줄러를 이용하여 지속적 응답
-		LocalDateTime now = LocalDateTime.now();
-		log.info("now : {}", now);
-		if (stockMarketChecker.isMarketOpen(now)) {
+		if (stockMarketChecker.isMarketOpen(LocalDateTime.now())) {
 			scheduleSseEventTask(portfolioId, emitter, false);
 		} else {
 			scheduleSseEventTask(portfolioId, emitter, true);
