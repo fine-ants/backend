@@ -1,7 +1,6 @@
 package codesquad.fineants.spring.api.portfolio_stock;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -63,12 +62,22 @@ public class PortfolioStockRestController {
 		SseEmitter emitter = new SseEmitter(1000L * 30);
 		emitter.onTimeout(emitter::complete);
 
-		// 장시간 동안에는 스케줄러를 이용하여 지속적 응답
-		if (stockMarketChecker.isMarketOpen(LocalDateTime.now())) {
-			scheduleSseEventTask(portfolioId, emitter, false);
-		} else {
-			scheduleSseEventTask(portfolioId, emitter, true);
+		try {
+			emitter.send(SseEmitter.event()
+				.data(portfolioStockService.readMyPortfolioStocks(portfolioId, lastDayClosingPriceManager))
+				.name("sse event - myPortfolioStocks"));
+			emitter.complete();
+		} catch (IOException e) {
+			log.error(e.getMessage(), e);
+			emitter.completeWithError(e);
 		}
+
+		// 장시간 동안에는 스케줄러를 이용하여 지속적 응답
+		// if (stockMarketChecker.isMarketOpen(LocalDateTime.now())) {
+		// 	scheduleSseEventTask(portfolioId, emitter, false);
+		// } else {
+		// 	scheduleSseEventTask(portfolioId, emitter, true);
+		// }
 		return emitter;
 	}
 
