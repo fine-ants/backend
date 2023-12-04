@@ -150,25 +150,32 @@ public class PortfolioHolding extends BaseEntity {
 
 	// 연간 배당금 = 종목의 배당금 합계
 	public long calculateAnnualDividend() {
-		long annualDividend = stock.getStockDividends().stream()
-			.mapToLong(StockDividend::getDividend)
-			.sum();
-		return annualDividend * calculateNumShares();
+		List<StockDividend> stockDividends = stock.getCurrentYearDividends();
+
+		long totalDividend = 0;
+		for (PurchaseHistory history : purchaseHistory) {
+			for (StockDividend stockDividend : stockDividends) {
+				if (history.getPurchaseDate().isBefore(stockDividend.getExDividendDate().atStartOfDay())) {
+					totalDividend += history.getNumShares() * stockDividend.getDividend();
+				}
+			}
+		}
+		return totalDividend;
 	}
 
 	public void changeCurrentPrice(long currentPrice) {
 		this.currentPrice = currentPrice;
 	}
 
-	public long calculateCurrentMonthDividend(){
+	public long calculateCurrentMonthDividend() {
 		List<StockDividend> stockDividends = stock.getCurrentMonthDividends();
 		return stockDividends.stream()
-				.flatMapToLong(stockDividend ->
-						LongStream.of(purchaseHistory.stream()
-								.filter(history ->
-										history.getPurchaseDate().isBefore(stockDividend.getExDividendDate().atStartOfDay()))
-								.mapToLong(PurchaseHistory::getNumShares)
-								.sum() * stockDividend.getDividend()))
-				.sum();
+			.flatMapToLong(stockDividend ->
+				LongStream.of(purchaseHistory.stream()
+					.filter(history ->
+						history.getPurchaseDate().isBefore(stockDividend.getExDividendDate().atStartOfDay()))
+					.mapToLong(PurchaseHistory::getNumShares)
+					.sum() * stockDividend.getDividend()))
+			.sum();
 	}
 }
