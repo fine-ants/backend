@@ -136,7 +136,7 @@ class PortfolioHoldingRestControllerTest {
 	@Test
 	void addPortfolioStock() throws Exception {
 		PortfolioStockCreateResponse response = PortfolioStockCreateResponse.from(
-			PortfolioHolding.empty("#000000", portfolio, stock));
+			PortfolioHolding.empty(portfolio, stock));
 		given(portfolioStockService.addPortfolioStock(anyLong(), any(PortfolioStockCreateRequest.class),
 			any(AuthMember.class))).willReturn(response);
 

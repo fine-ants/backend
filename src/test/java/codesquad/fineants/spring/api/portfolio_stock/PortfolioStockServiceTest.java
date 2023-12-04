@@ -158,10 +158,10 @@ class PortfolioStockServiceTest {
 				.extracting("pieChart")
 				.asList()
 				.hasSize(2)
-				.extracting("name", "valuation", "fill", "weight", "totalGain", "totalGainRate")
+				.extracting("name", "valuation", "weight", "totalGain", "totalGainRate")
 				.containsExactlyInAnyOrder(
-					Tuple.tuple("삼성전자보통주", 180000L, "#1F4FD5", 17.475728155339805, 30000L, 20.00),
-					Tuple.tuple("현금", 850000L, "#1CADFF", 82.52427184466019, 0L, 0.00)
+					Tuple.tuple("삼성전자보통주", 180000L, 17.475728155339805, 30000L, 20.00),
+					Tuple.tuple("현금", 850000L, 82.52427184466019, 0L, 0.00)
 				),
 			() -> assertThat(response)
 				.extracting("dividendChart")
@@ -241,7 +241,6 @@ class PortfolioStockServiceTest {
 
 	private static PortfolioHolding createPortfolioHolding(Portfolio portfolio, Stock stock) {
 		return PortfolioHolding.builder()
-			.fill("#1F4FD5")
 			.portfolio(portfolio)
 			.stock(stock)
 			.build();

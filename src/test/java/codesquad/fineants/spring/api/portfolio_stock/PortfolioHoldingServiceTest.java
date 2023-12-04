@@ -157,7 +157,7 @@ class PortfolioHoldingServiceTest {
 	void deletePortfolioStock() {
 		// given
 		PortfolioHolding portfolioHolding = portFolioHoldingRepository.save(
-			PortfolioHolding.empty("#000000", portfolio, stock)
+			PortfolioHolding.empty(portfolio, stock)
 		);
 
 		purchaseHistoryRepository.save(

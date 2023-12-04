@@ -27,7 +27,7 @@ class PortfolioHoldingTest {
 		// given
 		Portfolio portfolio = createPortfolio();
 		Stock stock = createStock();
-		PortfolioHolding portFolioHolding = PortfolioHolding.of("#000000", portfolio, stock, 10000L);
+		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock, 10000L);
 
 		PurchaseHistory purchaseHistory1 = PurchaseHistory.builder()
 			.purchaseDate(LocalDateTime.now())
@@ -59,7 +59,7 @@ class PortfolioHoldingTest {
 		// given
 		Portfolio portfolio = createPortfolio();
 		Stock stock = createStock();
-		PortfolioHolding portFolioHolding = PortfolioHolding.of("#000000", portfolio, stock, 10000L);
+		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock, 10000L);
 
 		PurchaseHistory purchaseHistory1 = PurchaseHistory.builder()
 			.purchaseDate(LocalDateTime.now())
@@ -91,7 +91,7 @@ class PortfolioHoldingTest {
 		// given
 		Portfolio portfolio = createPortfolio();
 		Stock stock = createStock();
-		PortfolioHolding portFolioHolding = PortfolioHolding.of("#000000", portfolio, stock, 20000L);
+		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock, 20000L);
 
 		PurchaseHistory purchaseHistory1 = PurchaseHistory.builder()
 			.purchaseDate(LocalDateTime.now())
@@ -123,7 +123,7 @@ class PortfolioHoldingTest {
 		// given
 		Portfolio portfolio = createPortfolio();
 		Stock stock = createStock();
-		PortfolioHolding portFolioHolding = PortfolioHolding.of("#000000", portfolio, stock, 20000L);
+		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock, 20000L);
 
 		PurchaseHistory purchaseHistory1 = PurchaseHistory.builder()
 			.purchaseDate(LocalDateTime.now())
