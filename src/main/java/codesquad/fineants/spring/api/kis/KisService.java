@@ -141,6 +141,7 @@ public class KisService {
 			.collect(Collectors.toList());
 		futures.parallelStream()
 			.map(CompletableFuture::join)
+			.peek(response -> log.info("종가 갱신 응답 : {}", response))
 			.filter(Objects::nonNull)
 			.forEach(response -> lastDayClosingPriceManager.addPrice(response.getTickerSymbol(), response.getPrice()));
 	}
