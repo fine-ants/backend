@@ -20,7 +20,6 @@ import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.portfolio_gain_history.PortfolioGainHistory;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
-import codesquad.fineants.spring.api.portfolio_stock.RandomColorGenerator;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioDividendChartItem;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioPieChartItem;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioSectorChartItem;
@@ -258,7 +257,7 @@ public class Portfolio {
 	}
 
 	// 파이 차트 생성
-	public List<PortfolioPieChartItem> createPieChart(RandomColorGenerator colorGenerator) {
+	public List<PortfolioPieChartItem> createPieChart() {
 		List<PortfolioPieChartItem> stocks = portfolioHoldings.stream()
 			.map(portfolioHolding -> portfolioHolding.createPieChartItem(calculateWeightBy(portfolioHolding)))
 			.collect(Collectors.toList());

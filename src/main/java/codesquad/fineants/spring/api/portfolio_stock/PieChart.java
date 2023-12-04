@@ -14,10 +14,9 @@ import lombok.RequiredArgsConstructor;
 public class PieChart {
 
 	private final CurrentPriceManager manager;
-	private final RandomColorGenerator colorGenerator;
 
 	public List<PortfolioPieChartItem> createBy(Portfolio portfolio) {
 		portfolio.applyCurrentPriceAllHoldingsBy(manager);
-		return portfolio.createPieChart(colorGenerator);
+		return portfolio.createPieChart();
 	}
 }

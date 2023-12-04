@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
@@ -40,9 +39,6 @@ public class PortfolioHolding extends BaseEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@Column(nullable = false)
-	private String fill;
-
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "portfolio_id")
 	private Portfolio portfolio;
@@ -58,21 +54,19 @@ public class PortfolioHolding extends BaseEntity {
 	private Long currentPrice;    // 현재가
 
 	@Builder
-	private PortfolioHolding(Long id, String fill, Portfolio portfolio, Stock stock, Long currentPrice) {
+	private PortfolioHolding(Long id, Portfolio portfolio, Stock stock, Long currentPrice) {
 		this.id = id;
-		this.fill = fill;
 		this.portfolio = portfolio;
 		this.stock = stock;
 		this.currentPrice = currentPrice;
 	}
 
-	public static PortfolioHolding empty(String fill, Portfolio portfolio, Stock stock) {
-		return of(fill, portfolio, stock, 0L);
+	public static PortfolioHolding empty(Portfolio portfolio, Stock stock) {
+		return of(portfolio, stock, 0L);
 	}
 
-	public static PortfolioHolding of(String fill, Portfolio portfolio, Stock stock, Long currentPrice) {
+	public static PortfolioHolding of(Portfolio portfolio, Stock stock, Long currentPrice) {
 		return PortfolioHolding.builder()
-			.fill(fill)
 			.currentPrice(currentPrice)
 			.portfolio(portfolio)
 			.stock(stock)
@@ -193,6 +187,6 @@ public class PortfolioHolding extends BaseEntity {
 		Long currentValuation = calculateCurrentValuation();
 		Long totalGain = calculateTotalGain();
 		Double totalReturnRate = calculateTotalReturnRate().doubleValue();
-		return new PortfolioPieChartItem(name, currentValuation, fill, weight, totalGain, totalReturnRate);
+		return new PortfolioPieChartItem(name, currentValuation, weight, totalGain, totalReturnRate);
 	}
 }
