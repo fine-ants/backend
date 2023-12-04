@@ -85,6 +85,7 @@ public class PortfolioStockRestController {
 						.data("sse complete")
 						.name("complete"));
 					emitter.complete();
+					log.info("emitter complete");
 				}
 			} catch (IOException | FineAntsException e) {
 				log.error(e.getMessage());
@@ -92,8 +93,10 @@ public class PortfolioStockRestController {
 			}
 		};
 		if (isComplete) {
+			log.info("sseExecutor.schedule");
 			sseExecutor.schedule(task, 0, TimeUnit.SECONDS);
 		} else {
+			log.info("sseExecutor.scheduleAtFixedRate");
 			sseExecutor.scheduleAtFixedRate(task, 0, 5L, TimeUnit.SECONDS);
 		}
 	}
