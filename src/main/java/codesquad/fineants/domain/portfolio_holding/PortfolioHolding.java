@@ -1,8 +1,10 @@
 package codesquad.fineants.domain.portfolio_holding;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.LongStream;
 
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -122,14 +124,6 @@ public class PortfolioHolding extends BaseEntity {
 		return currentPrice * calculateNumShares();
 	}
 
-	public boolean hasMonthlyDividend(LocalDateTime monthDateTime) {
-		return stock.hasMonthlyDividend(monthDateTime);
-	}
-
-	public long readDividend(LocalDateTime monthDateTime) {
-		return stock.readDividend(monthDateTime) * calculateNumShares();
-	}
-
 	// 당일 변동 금액 = 종목 현재가 - 직전 거래일의 종가
 	public Long calculateDailyChange(long lastDayClosingPrice) {
 		return currentPrice - lastDayClosingPrice;
@@ -164,5 +158,17 @@ public class PortfolioHolding extends BaseEntity {
 
 	public void changeCurrentPrice(long currentPrice) {
 		this.currentPrice = currentPrice;
+	}
+
+	public long calculateCurrentMonthDividend(){
+		List<StockDividend> stockDividends = stock.getCurrentMonthDividends();
+		return stockDividends.stream()
+				.flatMapToLong(stockDividend ->
+						LongStream.of(purchaseHistory.stream()
+								.filter(history ->
+										history.getPurchaseDate().isBefore(stockDividend.getExDividendDate().atStartOfDay()))
+								.mapToLong(PurchaseHistory::getNumShares)
+								.sum() * stockDividend.getDividend()))
+				.sum();
 	}
 }

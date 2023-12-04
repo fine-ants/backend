@@ -11,20 +11,6 @@ CREATE TABLE member
     CONSTRAINT pk_member PRIMARY KEY (id)
 );
 
-CREATE TABLE port_folio_stock
-(
-    id               BIGINT AUTO_INCREMENT NOT NULL,
-    create_at        datetime NULL,
-    modified_at      datetime NULL,
-    number_of_shares BIGINT NULL,
-    total_gain       BIGINT NULL,
-    annual_dividend  BIGINT NULL,
-    current_value    BIGINT NULL,
-    current_price    BIGINT NULL,
-    portfolio_id     BIGINT NULL,
-    stock_id         VARCHAR(255) NULL,
-    CONSTRAINT pk_portfoliostock PRIMARY KEY (id)
-);
 
 CREATE TABLE portfolio
 (
@@ -92,7 +78,6 @@ CREATE TABLE stock_dividend
     id               BIGINT AUTO_INCREMENT NOT NULL,
     create_at        datetime NULL,
     modified_at      datetime NULL,
-    dividend_month   datetime NULL,
     ex_dividend_date date NOT NULL,
     record_date      date NOT NULL,
     payment_date     date NULL,
