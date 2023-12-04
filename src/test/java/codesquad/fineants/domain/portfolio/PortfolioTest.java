@@ -44,7 +44,7 @@ class PortfolioTest {
 	@Test
 	void calculateTotalGain() {
 		// given
-		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock, 20000L);
+		PortfolioHolding portFolioHolding = PortfolioHolding.of("#000000", portfolio, stock, 20000L);
 
 		PurchaseHistory purchaseHistory1 = PurchaseHistory.builder()
 			.purchaseDate(LocalDateTime.now())
@@ -76,7 +76,7 @@ class PortfolioTest {
 	@Test
 	void calculateTotalReturnRate() {
 		// given
-		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock, 20000L);
+		PortfolioHolding portFolioHolding = PortfolioHolding.of("#000000", portfolio, stock, 20000L);
 
 		PurchaseHistory purchaseHistory1 = PurchaseHistory.builder()
 			.purchaseDate(LocalDateTime.now())
@@ -135,7 +135,7 @@ class PortfolioTest {
 		stock.addStockDividend(stockDividend3);
 		stock.addStockDividend(stockDividend4);
 
-		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock, 20000L);
+		PortfolioHolding portFolioHolding = PortfolioHolding.of("#000000", portfolio, stock, 20000L);
 
 		PurchaseHistory purchaseHistory1 = PurchaseHistory.builder()
 			.purchaseDate(LocalDateTime.now())

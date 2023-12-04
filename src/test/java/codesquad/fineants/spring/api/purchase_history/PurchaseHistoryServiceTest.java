@@ -106,7 +106,7 @@ class PurchaseHistoryServiceTest {
 			.build();
 		this.stock = stockRepository.save(stock);
 
-		PortfolioHolding portfolioHolding = PortfolioHolding.empty(portfolio, stock);
+		PortfolioHolding portfolioHolding = PortfolioHolding.empty("#000000", portfolio, stock);
 		this.portfolioHolding = portFolioHoldingRepository.save(portfolioHolding);
 
 		this.purchaseHistory = purchaseHistoryRepository.save(PurchaseHistory.builder()

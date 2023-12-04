@@ -2,7 +2,6 @@ package codesquad.fineants.spring.api.portfolio_stock;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.BDDMockito.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -14,7 +13,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 
 import codesquad.fineants.domain.member.Member;
@@ -72,9 +70,6 @@ class PortfolioStockServiceTest {
 
 	@Autowired
 	private LastDayClosingPriceManager lastDayClosingPriceManager;
-
-	@MockBean
-	private RandomColorGenerator colorGenerator;
 
 	@AfterEach
 	void tearDown() {
@@ -154,8 +149,6 @@ class PortfolioStockServiceTest {
 		currentPriceManager.addCurrentPrice(new CurrentPriceResponse("005930", 60000L));
 		lastDayClosingPriceManager.addPrice("005930", 50000);
 
-		given(colorGenerator.generate()).willReturn("#000000", "#1CADFF");
-
 		// when
 		PortfolioChartResponse response = service.readMyPortfolioCharts(portfolio.getId());
 
@@ -167,7 +160,7 @@ class PortfolioStockServiceTest {
 				.hasSize(2)
 				.extracting("name", "valuation", "fill", "weight", "totalGain", "totalGainRate")
 				.containsExactlyInAnyOrder(
-					Tuple.tuple("삼성전자보통주", 180000L, "#000000", 17.475728155339805, 30000L, 20.00),
+					Tuple.tuple("삼성전자보통주", 180000L, "#1F4FD5", 17.475728155339805, 30000L, 20.00),
 					Tuple.tuple("현금", 850000L, "#1CADFF", 82.52427184466019, 0L, 0.00)
 				),
 			() -> assertThat(response)
@@ -248,6 +241,7 @@ class PortfolioStockServiceTest {
 
 	private static PortfolioHolding createPortfolioHolding(Portfolio portfolio, Stock stock) {
 		return PortfolioHolding.builder()
+			.fill("#1F4FD5")
 			.portfolio(portfolio)
 			.stock(stock)
 			.build();

@@ -110,7 +110,7 @@ class PortfolioGainHistoryServiceTest {
 	void addPortfolioGainHistory() {
 		// given
 		Portfolio savePortfolio = portfolioRepository.save(portfolio);
-		PortfolioHolding portfolioHolding = PortfolioHolding.of(savePortfolio, stock, 60000L);
+		PortfolioHolding portfolioHolding = PortfolioHolding.of("#000000", savePortfolio, stock, 60000L);
 		PurchaseHistory purchaseHistory = PurchaseHistory.builder()
 			.purchaseDate(LocalDateTime.now())
 			.numShares(3L)
