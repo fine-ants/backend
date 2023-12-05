@@ -71,86 +71,6 @@ class PortfolioStockServiceTest {
 	@Autowired
 	private LastDayClosingPriceManager lastDayClosingPriceManager;
 
-	private Member member;
-	private Portfolio portfolio;
-	private Stock stock;
-	private PortfolioHolding portfolioHolding;
-	private PurchaseHistory purchaseHistory;
-
-	@BeforeEach
-	void init() {
-		Member member = Member.builder()
-			.nickname("일개미1234")
-			.email("kim1234@gmail.com")
-			.password("kim1234@")
-			.provider("local")
-			.build();
-		this.member = memberRepository.save(member);
-
-		Portfolio portfolio = Portfolio.builder()
-			.name("내꿈은 워렌버핏")
-			.securitiesFirm("토스")
-			.budget(1000000L)
-			.targetGain(1500000L)
-			.maximumLoss(900000L)
-			.member(member)
-			.targetGainIsActive(false)
-			.maximumIsActive(false)
-			.build();
-		this.portfolio = portfolioRepository.save(portfolio);
-
-		Stock stock = Stock.builder()
-			.companyName("삼성전자보통주")
-			.tickerSymbol("005930")
-			.companyNameEng("SamsungElectronics")
-			.stockCode("KR7005930003")
-			.market(Market.KOSPI)
-			.build();
-		this.stock = stockRepository.save(stock);
-
-		StockDividend stockDividend1Q = StockDividend.builder()
-			.dividend(361L)
-			.exDividendDate(LocalDate.of(2022, 12, 30))
-			.recordDate(LocalDate.of(2022, 12, 31))
-			.paymentDate(LocalDate.of(2023, 4, 14))
-			.stock(this.stock)
-			.build();
-		StockDividend stockDividend2Q = StockDividend.builder()
-			.dividend(361L)
-			.exDividendDate(LocalDate.of(2023, 3, 30))
-			.recordDate(LocalDate.of(2023, 3, 31))
-			.paymentDate(LocalDate.of(2023, 5, 17))
-			.stock(this.stock)
-			.build();
-		StockDividend stockDividend3Q = StockDividend.builder()
-			.dividend(361L)
-			.exDividendDate(LocalDate.of(2023, 6, 29))
-			.recordDate(LocalDate.of(2023, 6, 30))
-			.paymentDate(LocalDate.of(2023, 8, 16))
-			.stock(this.stock)
-			.build();
-		StockDividend stockDividend4Q = StockDividend.builder()
-			.dividend(361L)
-			.exDividendDate(LocalDate.of(2023, 9, 27))
-			.recordDate(LocalDate.of(2023, 9, 30))
-			.paymentDate(LocalDate.of(2023, 11, 20))
-			.stock(this.stock)
-			.build();
-
-		stockDividendRepository.saveAll(List.of(stockDividend1Q, stockDividend2Q, stockDividend3Q, stockDividend4Q));
-
-		PortfolioHolding portfolioHolding = PortfolioHolding.empty(portfolio, stock);
-		this.portfolioHolding = portFolioHoldingRepository.save(portfolioHolding);
-
-		this.purchaseHistory = purchaseHistoryRepository.save(PurchaseHistory.builder()
-			.purchaseDate(LocalDateTime.of(2023, 9, 26, 9, 30, 0))
-			.numShares(3L)
-			.purchasePricePerShare(50000.0)
-			.memo("첫구매")
-			.portFolioHolding(portfolioHolding)
-			.build());
-	}
-
 	@AfterEach
 	void tearDown() {
 		purchaseHistoryRepository.deleteAllInBatch();
@@ -210,7 +130,6 @@ class PortfolioStockServiceTest {
 				.flatExtracting("purchaseHistory")
 				.extracting("purchaseDate", "numShares", "purchasePricePerShare", "memo")
 				.containsExactlyInAnyOrder(Tuple.tuple(LocalDateTime.of(2023, 9, 26, 9, 30, 0), 3L, 50000.0, "첫구매"))
-				.containsExactlyInAnyOrder(Tuple.tuple(LocalDateTime.of(2023, 3, 1, 9, 30, 0), 3L, 50000.0, "첫구매"))
 		);
 	}
 
@@ -254,10 +173,10 @@ class PortfolioStockServiceTest {
 					Tuple.tuple(2, 0L),
 					Tuple.tuple(3, 0L),
 					Tuple.tuple(4, 0L),
-					Tuple.tuple(5, 1083L),
+					Tuple.tuple(5, 0L),
 					Tuple.tuple(6, 0L),
 					Tuple.tuple(7, 0L),
-					Tuple.tuple(8, 1083L),
+					Tuple.tuple(8, 0L),
 					Tuple.tuple(9, 0L),
 					Tuple.tuple(10, 0L),
 					Tuple.tuple(11, 1083L),
@@ -308,11 +227,10 @@ class PortfolioStockServiceTest {
 			.build();
 	}
 
-	private StockDividend createStockDividend(LocalDate dividendMonth, LocalDate exDividendDate, LocalDate recordDate,
-		LocalDate paymentDate, Stock stock) {
+	private StockDividend createStockDividend(LocalDate exDividendDate, LocalDate recordDate, LocalDate paymentDate,
+		Stock stock) {
 		return StockDividend.builder()
 			.dividend(361L)
-			.dividendMonth(dividendMonth.atStartOfDay())
 			.exDividendDate(exDividendDate)
 			.recordDate(recordDate)
 			.paymentDate(paymentDate)
@@ -329,7 +247,7 @@ class PortfolioStockServiceTest {
 
 	private static PurchaseHistory createPurchaseHistory(PortfolioHolding portfolioHolding) {
 		return PurchaseHistory.builder()
-			.purchaseDate(LocalDateTime.of(2023, 3, 1, 9, 30, 0))
+			.purchaseDate(LocalDateTime.of(2023, 9, 26, 9, 30, 0))
 			.numShares(3L)
 			.purchasePricePerShare(50000.0)
 			.memo("첫구매")
@@ -339,22 +257,22 @@ class PortfolioStockServiceTest {
 
 	private List<StockDividend> createStockDividendWith(Stock stock) {
 		return List.of(
-			createStockDividend(LocalDate.of(2022, 12, 31),
+			createStockDividend(
 				LocalDate.of(2022, 12, 30),
 				LocalDate.of(2022, 12, 31),
 				LocalDate.of(2023, 4, 14),
 				stock),
-			createStockDividend(LocalDate.of(2023, 3, 31),
+			createStockDividend(
 				LocalDate.of(2023, 3, 30),
 				LocalDate.of(2023, 3, 31),
 				LocalDate.of(2023, 5, 17),
 				stock),
-			createStockDividend(LocalDate.of(2023, 6, 30),
+			createStockDividend(
 				LocalDate.of(2023, 6, 29),
 				LocalDate.of(2023, 6, 30),
 				LocalDate.of(2023, 8, 16),
 				stock),
-			createStockDividend(LocalDate.of(2023, 9, 30),
+			createStockDividend(
 				LocalDate.of(2023, 9, 27),
 				LocalDate.of(2023, 9, 30),
 				LocalDate.of(2023, 11, 20),

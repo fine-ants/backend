@@ -56,11 +56,6 @@ public class StockDividend extends BaseEntity {
 		this.stock = stock;
 	}
 
-	public boolean isMonthlyDividend(LocalDateTime monthDateTime) {
-		return dividendMonth.getYear() == monthDateTime.getYear()
-			&& dividendMonth.getMonthValue() == monthDateTime.getMonthValue();
-	}
-
 	// 주식 개수에 따른 배당금 합계 계산
 	// 배당금 합계 = 주당 배당금 * 주식 개수
 	public long calculateDividendSum(Long numShares) {

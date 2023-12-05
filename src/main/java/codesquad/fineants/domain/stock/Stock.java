@@ -1,12 +1,10 @@
 package codesquad.fineants.domain.stock;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.persistence.Entity;
@@ -76,5 +74,27 @@ public class Stock extends BaseEntity {
 			.filter(dividend -> dividend.getPaymentDate() != null)
 			.filter(dividend -> dividend.getPaymentDate().getYear() == today.getYear())
 			.collect(Collectors.toList());
+	}
+
+	public Map<Integer, Long> createMonthlyDividends(List<PurchaseHistory> purchaseHistories) {
+		Map<Integer, Long> result = new HashMap<>();
+		for (int month = 1; month <= 12; month++) {
+			result.put(month, 0L);
+		}
+
+		for (StockDividend stockDividend : stockDividends) {
+			for (PurchaseHistory purchaseHistory : purchaseHistories) {
+				if (stockDividend.isSatisfied(purchaseHistory.getPurchaseLocalDate())) {
+					int paymentMonth = stockDividend.getMonthValueByPaymentDate();
+					long dividendSum = stockDividend.calculateDividendSum(purchaseHistory.getNumShares());
+					result.put(paymentMonth, result.getOrDefault(paymentMonth, 0L) + dividendSum);
+				}
+			}
+		}
+		return result;
+	}
+
+	public Long getCurrentPrice(CurrentPriceManager manager) {
+		return manager.getCurrentPrice(tickerSymbol);
 	}
 }
