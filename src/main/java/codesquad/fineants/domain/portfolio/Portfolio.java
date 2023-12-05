@@ -1,7 +1,5 @@
 package codesquad.fineants.domain.portfolio;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,10 +12,10 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 
+import codesquad.fineants.domain.BaseEntity;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.portfolio_gain_history.PortfolioGainHistory;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
-import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -31,7 +29,9 @@ import lombok.extern.slf4j.Slf4j;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @ToString(exclude = {"member", "portfolioHoldings"})
 @Entity
-public class Portfolio {
+public class Portfolio extends BaseEntity {
+	@OneToMany(mappedBy = "portfolio")
+	private final List<PortfolioHolding> portfolioHoldings = new ArrayList<>();
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
@@ -42,13 +42,9 @@ public class Portfolio {
 	private Long maximumLoss;
 	private Boolean targetGainIsActive;
 	private Boolean maximumIsActive;
-
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "member_id")
 	private Member member;
-
-	@OneToMany(mappedBy = "portfolio")
-	private final List<PortfolioHolding> portfolioHoldings = new ArrayList<>();
 
 	@Builder
 	public Portfolio(Long id, String name, String securitiesFirm, Long budget, Long targetGain, Long maximumLoss,

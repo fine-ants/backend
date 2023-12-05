@@ -6,15 +6,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.member.MemberRepository;
 import codesquad.fineants.domain.oauth.support.AuthMember;
-import codesquad.fineants.domain.page.ScrollPaginationCollection;
 import codesquad.fineants.domain.portfolio.Portfolio;
 import codesquad.fineants.domain.portfolio.PortfolioRepository;
 import codesquad.fineants.domain.portfolio_gain_history.PortfolioGainHistory;
@@ -140,8 +137,10 @@ public class PortFolioService {
 			.orElseThrow(() -> new NotFoundResourceException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
 	}
 
-	public PortfoliosResponse readMyAllPortfolio(AuthMember authMember, int size, Long nextCursor) {
-		kisService.refreshCurrentPrice(portfolioRepository.findAllByMemberId(authMember.getMemberId()).stream()
+	public PortfoliosResponse readMyAllPortfolio(AuthMember authMember) {
+		List<Portfolio> portfolios = portfolioRepository.findAllByMemberIdOrderByIdDesc(
+			authMember.getMemberId());
+		kisService.refreshCurrentPrice(portfolios.stream()
 			.map(Portfolio::getPortfolioHoldings)
 			.flatMap(Collection::stream)
 			.map(PortfolioHolding::getStock)
@@ -150,11 +149,6 @@ public class PortFolioService {
 			.distinct()
 			.collect(Collectors.toList()));
 
-		PageRequest pageRequest = PageRequest.of(0, size + 1);
-		Page<Portfolio> page = portfolioRepository.findAllByMemberIdAndIdLessThanOrderByIdDesc(authMember.getMemberId(),
-			nextCursor, pageRequest);
-		List<Portfolio> portfolios = page.getContent();
-
 		Map<Portfolio, PortfolioGainHistory> portfolioGainHistoryMap = portfolios.stream()
 			.collect(Collectors.toMap(
 				portfolio -> portfolio,
@@ -162,9 +156,6 @@ public class PortFolioService {
 					portfolio.getId(), LocalDateTime.now()).orElseGet(PortfolioGainHistory::empty)
 			));
 
-		ScrollPaginationCollection<Portfolio> portfoliosCursor = ScrollPaginationCollection.of(
-			portfolios, size);
-
-		return PortfoliosResponse.of(portfoliosCursor, portfolioGainHistoryMap, currentPriceManager);
+		return PortfoliosResponse.of(portfolios, portfolioGainHistoryMap, currentPriceManager);
 	}
 }
