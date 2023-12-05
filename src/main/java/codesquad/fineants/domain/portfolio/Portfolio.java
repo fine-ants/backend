@@ -2,6 +2,9 @@ package codesquad.fineants.domain.portfolio;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -17,6 +20,9 @@ import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.portfolio_gain_history.PortfolioGainHistory;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
+import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioDividendChartItem;
+import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioPieChartItem;
+import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioSectorChartItem;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -119,7 +125,7 @@ public class Portfolio extends BaseEntity {
 	}
 
 	// 포트폴리오 평가 금액(현재 가치) = 모든 종목들의 평가금액 합계
-	private Long calculateTotalCurrentValuation() {
+	public Long calculateTotalCurrentValuation() {
 		return portfolioHoldings.stream()
 			.mapToLong(PortfolioHolding::calculateCurrentValuation)
 			.sum();
@@ -210,24 +216,100 @@ public class Portfolio extends BaseEntity {
 		return result;
 	}
 
-	// 목표 수익률 = ((목표 수익 금액 - 예산) / 예산) * 100
-	public Integer calculateTargetReturnRate() {
-		return (int)(((double)(targetGain - budget) / (double)budget) * 100);
+	// 포트폴리오 모든 종목들에 주식 현재가 적용
+	public void applyCurrentPriceAllHoldingsBy(CurrentPriceManager manager) {
+		for (PortfolioHolding portfolioHolding : portfolioHoldings) {
+			portfolioHolding.applyCurrentPrice(manager);
+		}
 	}
 
+	// 목표 수익률 = ((목표 수익 금액 - 예산) / 예산) * 100
+	public Integer calculateTargetReturnRate() {
+		return (int)(((targetGain.doubleValue() - budget.doubleValue()) / budget.doubleValue()) * 100);
+	}
+
+	// 총 자산 = 잔고 + 평가금액 합계
+	public Long calculateTotalAsset() {
+		return calculateBalance() + calculateTotalCurrentValuation();
+	}
+
+	// 목표수익금액 알림 변경
 	public void changeTargetGainNotification(Boolean isActive) {
 		this.targetGainIsActive = isActive;
 	}
 
+	// 최대손실금액의 알림 변경
 	public void changeMaximumLossNotification(Boolean isActive) {
 		this.maximumIsActive = isActive;
 	}
 
+	// 포트폴리오가 목표수익금액에 도달했는지 검사
 	public boolean reachedTargetGain() {
 		return budget + calculateTotalGain() >= targetGain;
 	}
 
+	// 포트폴리오가 최대손실금액에 도달했는지 검사
 	public boolean reachedMaximumLoss() {
 		return budget + calculateTotalGain() <= maximumLoss;
+	}
+
+	// 파이 차트 생성
+	public List<PortfolioPieChartItem> createPieChart() {
+		List<PortfolioPieChartItem> stocks = portfolioHoldings.stream()
+			.map(portfolioHolding -> portfolioHolding.createPieChartItem(calculateWeightBy(portfolioHolding)))
+			.collect(Collectors.toList());
+		PortfolioPieChartItem cash = PortfolioPieChartItem.cash(calculateCashWeight(), calculateBalance());
+
+		List<PortfolioPieChartItem> result = new ArrayList<>(stocks);
+		result.add(cash);
+		return result;
+	}
+
+	// 현금 비중 계산, 현금 비중 = 잔고 / 총자산
+	public Double calculateCashWeight() {
+		return calculateBalance().doubleValue() / calculateTotalAsset().doubleValue() * 100;
+	}
+
+	// 포트폴리오 종목 비중 계산, 종목 비중 = 종목 평가 금액 / 총자산
+	private Double calculateWeightBy(PortfolioHolding holding) {
+		return holding.calculateWeightBy(calculateTotalAsset().doubleValue());
+	}
+
+	private Double calculateWeightBy(Double currentValuation) {
+		return currentValuation / calculateTotalAsset().doubleValue() * 100;
+	}
+
+	// 배당금 차트 생성
+	public List<PortfolioDividendChartItem> createDividendChart() {
+		Map<Integer, Long> totalDividendMap = portfolioHoldings.stream()
+			.flatMap(portfolioHolding -> portfolioHolding.createMonthlyDividendMap().entrySet().stream())
+			.collect(Collectors.groupingBy(Map.Entry::getKey, Collectors.summingLong(Map.Entry::getValue)));
+
+		return totalDividendMap.entrySet().stream()
+			.map(entry -> new PortfolioDividendChartItem(entry.getKey(), entry.getValue()))
+			.collect(Collectors.toList());
+	}
+
+	public List<PortfolioSectorChartItem> createSectorChart() {
+		return calculateSectorCurrentValuationMap().entrySet().stream()
+			.map(mappingSectorChartItem())
+			.collect(Collectors.toList());
+	}
+
+	private Map<String, List<Long>> calculateSectorCurrentValuationMap() {
+		Map<String, List<Long>> sectorCurrentValuationMap = portfolioHoldings.stream()
+			.collect(Collectors.groupingBy(portfolioHolding -> portfolioHolding.getStock().getSector(),
+				Collectors.mapping(PortfolioHolding::calculateCurrentValuation, Collectors.toList())));
+		// 섹션 차트에 현금 추가
+		sectorCurrentValuationMap.put("현금", List.of(calculateBalance()));
+		return sectorCurrentValuationMap;
+	}
+
+	private Function<Map.Entry<String, List<Long>>, PortfolioSectorChartItem> mappingSectorChartItem() {
+		return entry -> {
+			Double currentValuation = entry.getValue().stream().mapToDouble(Double::valueOf).sum();
+			Double weight = calculateWeightBy(currentValuation);
+			return new PortfolioSectorChartItem(entry.getKey(), weight);
+		};
 	}
 }

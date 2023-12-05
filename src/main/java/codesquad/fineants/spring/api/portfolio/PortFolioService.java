@@ -137,6 +137,7 @@ public class PortFolioService {
 			.orElseThrow(() -> new NotFoundResourceException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
 	}
 
+
 	public PortfoliosResponse readMyAllPortfolio(AuthMember authMember) {
 		List<Portfolio> portfolios = portfolioRepository.findAllByMemberIdOrderByIdDesc(
 			authMember.getMemberId());

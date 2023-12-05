@@ -1,6 +1,8 @@
 package codesquad.fineants.spring.api.kis;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.BDDMockito.*;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -16,7 +18,6 @@ import org.springframework.test.context.ActiveProfiles;
 
 import codesquad.fineants.spring.api.kis.client.KisClient;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
-import codesquad.fineants.spring.api.kis.manager.KisAccessTokenManager;
 import codesquad.fineants.spring.api.kis.response.CurrentPriceResponse;
 import lombok.extern.slf4j.Slf4j;
 
@@ -28,25 +29,25 @@ class KisServiceTest {
 	@Autowired
 	private KisService kisService;
 
-	@MockBean
-	private CurrentPriceManager currentPriceManager;
+	@Autowired
+	private CurrentPriceManager manager;
 
-	@Autowired
-	private KisAccessTokenManager manager;
-	@Autowired
+	@MockBean
 	private KisClient client;
-	@Autowired
-	private KisRedisService redisService;
 
 	@DisplayName("주식 현재가 시세를 가져온다")
 	@Test
 	void readRealTimeCurrentPrice() {
 		// given
 		String tickerSymbol = "005930";
-		manager.refreshAccessToken(client.accessToken());
+
+		given(client.readRealTimeCurrentPrice(anyString(), anyString())).willReturn(60000L);
 		// when
-		kisService.readRealTimeCurrentPrice(tickerSymbol);
+		CurrentPriceResponse response = kisService.readRealTimeCurrentPrice(tickerSymbol);
 		// then
+		assertThat(response)
+			.extracting("tickerSymbol", "currentPrice")
+			.containsExactlyInAnyOrder("005930", 60000L);
 	}
 
 	@DisplayName("AccessTokenAspect이 수행하여 새로운 엑세스 토큰을 갱신한다")

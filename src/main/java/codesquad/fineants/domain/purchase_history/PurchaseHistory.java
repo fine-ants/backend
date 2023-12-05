@@ -60,4 +60,8 @@ public class PurchaseHistory extends BaseEntity {
 		this.memo = history.getMemo();
 		return this;
 	}
+	
+	public LocalDate getPurchaseLocalDate() {
+		return purchaseDate.toLocalDate();
+	}
 }

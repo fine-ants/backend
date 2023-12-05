@@ -1,6 +1,5 @@
 package codesquad.fineants.spring.api.portfolio_stock;
 
-import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.concurrent.Executors;
@@ -20,18 +19,20 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.oauth.support.AuthPrincipalMember;
-import codesquad.fineants.spring.api.errors.exception.FineAntsException;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
 import codesquad.fineants.spring.api.portfolio_stock.request.PortfolioStockCreateRequest;
+import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioChartResponse;
 import codesquad.fineants.spring.api.response.ApiResponse;
 import codesquad.fineants.spring.api.success.code.PortfolioStockSuccessCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@RequestMapping("/api/portfolio/{portfolioId}/holdings")
+@RequestMapping("/api/portfolio/{portfolioId}")
 @RequiredArgsConstructor
 @RestController
 public class PortfolioStockRestController {
@@ -41,9 +42,10 @@ public class PortfolioStockRestController {
 	private final PortfolioStockService portfolioStockService;
 	private final LastDayClosingPriceManager lastDayClosingPriceManager;
 	private final StockMarketChecker stockMarketChecker;
+	private final ObjectMapper objectMapper;
 
 	@ResponseStatus(HttpStatus.CREATED)
-	@PostMapping
+	@PostMapping("/holdings")
 	public ApiResponse<Void> addPortfolioStock(@PathVariable Long portfolioId,
 		@Valid @RequestBody PortfolioStockCreateRequest request,
 		@AuthPrincipalMember AuthMember authMember) {
@@ -51,7 +53,7 @@ public class PortfolioStockRestController {
 		return ApiResponse.success(PortfolioStockSuccessCode.CREATED_ADD_PORTFOLIO_STOCK);
 	}
 
-	@DeleteMapping("/{portfolioHoldingId}")
+	@DeleteMapping("/holdings/{portfolioHoldingId}")
 	public ApiResponse<Void> deletePortfolioStock(@PathVariable Long portfolioId,
 		@PathVariable Long portfolioHoldingId,
 		@AuthPrincipalMember AuthMember authMember) {
@@ -59,9 +61,9 @@ public class PortfolioStockRestController {
 		return ApiResponse.success(PortfolioStockSuccessCode.OK_DELETE_PORTFOLIO_STOCK);
 	}
 
-	@GetMapping
+	@GetMapping("/holdings")
 	public SseEmitter readMyPortfolioStocks(@PathVariable Long portfolioId) {
-		SseEmitter emitter = new SseEmitter(Duration.ofHours(10L).toMillis());
+		SseEmitter emitter = new SseEmitter(Duration.ofHours(10).toMillis());
 		emitter.onTimeout(emitter::complete);
 
 		// 장시간 동안에는 스케줄러를 이용하여 지속적 응답
@@ -81,12 +83,14 @@ public class PortfolioStockRestController {
 					.name("sse event - myPortfolioStocks"));
 				log.info("send message");
 				if (isComplete) {
+					Thread.sleep(2000L); // sse event - myPortfolioStocks 메시지와 전송 간격
 					emitter.send(SseEmitter.event()
 						.data("sse complete")
 						.name("complete"));
 					emitter.complete();
+					log.info("emitter complete");
 				}
-			} catch (IOException | FineAntsException e) {
+			} catch (Exception e) {
 				log.error(e.getMessage());
 				emitter.completeWithError(e);
 			}
@@ -96,5 +100,11 @@ public class PortfolioStockRestController {
 		} else {
 			sseExecutor.scheduleAtFixedRate(task, 0, 5L, TimeUnit.SECONDS);
 		}
+	}
+
+	@GetMapping("/charts")
+	public ApiResponse<PortfolioChartResponse> readMyPortfolioCharts(@PathVariable Long portfolioId) {
+		PortfolioChartResponse response = portfolioStockService.readMyPortfolioCharts(portfolioId);
+		return ApiResponse.success(PortfolioStockSuccessCode.OK_READ_PORTFOLIO_CHARTS, response);
 	}
 }
