@@ -1,4 +1,4 @@
-package codesquad.fineants.domain.oauth.client;
+package codesquad.fineants.domain.oauth.client.kakao;
 
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -6,9 +6,12 @@ import java.util.Map;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
+import codesquad.fineants.domain.oauth.client.DecodedIdTokenPayload;
+import codesquad.fineants.domain.oauth.client.OauthClient;
 import codesquad.fineants.domain.oauth.properties.OauthProperties;
 import codesquad.fineants.spring.api.member.request.AuthorizationRequest;
 import codesquad.fineants.spring.api.member.response.OauthUserProfileResponse;
+import codesquad.fineants.spring.util.ObjectMapperUtil;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -35,14 +38,14 @@ public class KakaoOauthClient extends OauthClient {
 	}
 
 	@Override
-	public MultiValueMap<String, String> createTokenBody(final String authorizationCode, final String redirectUrl,
+	public MultiValueMap<String, String> createTokenBody(final String authorizationCode, final String redirectUri,
 		final String codeVerifier, String state) {
 		final String grantType = "authorization_code";
 		MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
 		formData.add(properties.getCode(), authorizationCode);
 		formData.add(properties.getClientId(), getClientId());
 		formData.add(properties.getClientSecret(), getClientSecret());
-		formData.add(properties.getRedirectUri(), redirectUrl);
+		formData.add(properties.getRedirectUri(), redirectUri);
 		formData.add(properties.getCodeVerifier(), codeVerifier);
 		formData.add(properties.getGrantType(), grantType);
 		return formData;
@@ -66,6 +69,11 @@ public class KakaoOauthClient extends OauthClient {
 			+ "nonce=" + request.getNonce() + "&"
 			+ "code_challenge=" + request.getCodeChallenge() + "&"
 			+ "code_challenge_method=S256";
+	}
+
+	@Override
+	protected DecodedIdTokenPayload deserializeDecodedPayload(String decodedPayload) {
+		return ObjectMapperUtil.deserialize(decodedPayload, KakaoDecodedIdTokenPayload.class);
 	}
 
 	@Override
