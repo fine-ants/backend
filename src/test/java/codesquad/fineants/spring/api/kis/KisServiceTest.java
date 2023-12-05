@@ -4,13 +4,11 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
 
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,20 +48,6 @@ class KisServiceTest {
 		assertThat(response)
 			.extracting("tickerSymbol", "currentPrice")
 			.containsExactlyInAnyOrder("005930", 60000L);
-	}
-
-	@DisplayName("티커 심볼을 추가한다")
-	@Test
-	void addTickerSymbols() {
-		// given
-		List<String> tickerSymbols = List.of("005930", "035720");
-		// when
-		kisService.addTickerSymbols(tickerSymbols);
-		// then
-		Assertions.assertAll(
-			() -> assertThat(manager.hasKey("005930")).isTrue(),
-			() -> assertThat(manager.hasKey("035720")).isTrue()
-		);
 	}
 
 	@DisplayName("AccessTokenAspect이 수행하여 새로운 엑세스 토큰을 갱신한다")
