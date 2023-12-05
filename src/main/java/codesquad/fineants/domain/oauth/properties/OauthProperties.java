@@ -64,8 +64,7 @@ public class OauthProperties {
 		private final String publicKeyUri;
 		private final String iss;
 		private final String aud;
-		private final AuthorizationCode authorizationCode;
-
+		
 		@Getter
 		public static class AuthorizationCode {
 			private final String code;

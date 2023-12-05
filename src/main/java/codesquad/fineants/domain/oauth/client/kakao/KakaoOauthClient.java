@@ -20,8 +20,6 @@ public class KakaoOauthClient extends OauthClient {
 	private final String iss;
 	private final String aud;
 
-	private final OauthProperties.Kakao.AuthorizationCode properties;
-
 	public KakaoOauthClient(OauthProperties.Kakao kakao) {
 		super(kakao.getClientId(),
 			kakao.getClientSecret(),
@@ -34,20 +32,18 @@ public class KakaoOauthClient extends OauthClient {
 		this.scope = kakao.getScope();
 		this.iss = kakao.getIss();
 		this.aud = kakao.getAud();
-		this.properties = kakao.getAuthorizationCode();
 	}
 
 	@Override
 	public MultiValueMap<String, String> createTokenBody(final String authorizationCode, final String redirectUri,
 		final String codeVerifier, String state) {
-		final String grantType = "authorization_code";
 		MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-		formData.add(properties.getCode(), authorizationCode);
-		formData.add(properties.getClientId(), getClientId());
-		formData.add(properties.getClientSecret(), getClientSecret());
-		formData.add(properties.getRedirectUri(), redirectUri);
-		formData.add(properties.getCodeVerifier(), codeVerifier);
-		formData.add(properties.getGrantType(), grantType);
+		formData.add("code", authorizationCode);
+		formData.add("client_id", getClientId());
+		formData.add("client_secret", getClientSecret());
+		formData.add("redirect_uri", redirectUri);
+		formData.add("code_verifier", codeVerifier);
+		formData.add("grant_type", "authorization_code");
 		return formData;
 	}
 
