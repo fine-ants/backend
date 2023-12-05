@@ -58,8 +58,26 @@ INSERT INTO fineAnts.portfolio (id, budget, maximum_loss, name, securities_firm,
                                 maximum_is_active, member_id)
 VALUES (1, 1000000, 900000, '내꿈은 워렌버핏', '토스', 1500000, false, false, 1);
 
-INSERT INTO fineAnts.portfolio_holding (id, fill, create_at, modified_at, portfolio_id, ticker_symbol)
-VALUES (1, '#1F4FD5', '2023-10-26 15:25:39.409612', '2023-10-26 15:25:39.409612', 1, '005930');
+INSERT INTO fineAnts.portfolio_holding (id, create_at, modified_at, portfolio_id, ticker_symbol)
+VALUES (1, '2023-10-26 15:25:39.409612', '2023-10-26 15:25:39.409612', 1, '005930');
+
+INSERT INTO fineAnts.portfolio_holding (id, create_at, modified_at, portfolio_id, ticker_symbol)
+VALUES (2, '2023-10-26 15:25:39.409612', '2023-10-26 15:25:39.409612', 1, '000020');
+
+INSERT INTO fineAnts.portfolio_holding (id, create_at, modified_at, portfolio_id, ticker_symbol)
+VALUES (3, '2023-10-26 15:25:39.409612', '2023-10-26 15:25:39.409612', 1, '000040');
+
+INSERT INTO fineAnts.portfolio_holding (id, create_at, modified_at, portfolio_id, ticker_symbol)
+VALUES (4, '2023-10-26 15:25:39.409612', '2023-10-26 15:25:39.409612', 1, '000050');
+
+INSERT INTO fineAnts.portfolio_holding (id, create_at, modified_at, portfolio_id, ticker_symbol)
+VALUES (5, '2023-10-26 15:25:39.409612', '2023-10-26 15:25:39.409612', 1, '000070');
+
+INSERT INTO fineAnts.portfolio_holding (id, create_at, modified_at, portfolio_id, ticker_symbol)
+VALUES (6, '2023-10-26 15:25:39.409612', '2023-10-26 15:25:39.409612', 1, '000080');
+
+INSERT INTO fineAnts.portfolio_holding (id, create_at, modified_at, portfolio_id, ticker_symbol)
+VALUES (7, '2023-10-26 15:25:39.409612', '2023-10-26 15:25:39.409612', 1, '000087');
 
 INSERT INTO fineAnts.purchase_history (id, create_at, modified_at, memo, num_shares, purchase_date,
                                        purchase_price_per_share, portfolio_holding_id)
