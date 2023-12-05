@@ -16,6 +16,7 @@ import org.springframework.test.context.ActiveProfiles;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import codesquad.fineants.domain.oauth.client.kakao.KakaoDecodedIdTokenPayload;
 import codesquad.fineants.domain.oauth.repository.OauthClientRepository;
 import codesquad.fineants.spring.api.errors.exception.BadRequestException;
 
@@ -25,7 +26,7 @@ class OauthClientTest {
 
 	@Autowired
 	private OauthClientRepository oauthClientRepository;
-	
+
 	@DisplayName("IdToken을 디코딩할때 유효하지 않은 토큰으로 디코딩할 수 없다")
 	@Test
 	void decodeIdTokenWithInvalidIdToken() {
@@ -73,7 +74,7 @@ class OauthClientTest {
 
 		ObjectMapper objectMapper = new ObjectMapper();
 		DecodedIdTokenPayload payload = objectMapper.readValue(objectMapper.writeValueAsString(payloadMap),
-			DecodedIdTokenPayload.class);
+			KakaoDecodedIdTokenPayload.class);
 		return payload;
 	}
 }
