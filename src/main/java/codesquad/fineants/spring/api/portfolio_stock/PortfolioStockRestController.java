@@ -1,6 +1,7 @@
 package codesquad.fineants.spring.api.portfolio_stock;
 
-import java.io.IOException;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -20,7 +21,6 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.oauth.support.AuthPrincipalMember;
-import codesquad.fineants.spring.api.errors.exception.FineAntsException;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
 import codesquad.fineants.spring.api.portfolio_stock.request.PortfolioStockCreateRequest;
 import codesquad.fineants.spring.api.response.ApiResponse;
@@ -59,25 +59,15 @@ public class PortfolioStockRestController {
 
 	@GetMapping
 	public SseEmitter readMyPortfolioStocks(@PathVariable Long portfolioId) {
-		SseEmitter emitter = new SseEmitter(1000L * 30);
+		SseEmitter emitter = new SseEmitter(Duration.ofHours(10).toMillis());
 		emitter.onTimeout(emitter::complete);
 
-		try {
-			emitter.send(SseEmitter.event()
-				.data(portfolioStockService.readMyPortfolioStocks(portfolioId, lastDayClosingPriceManager))
-				.name("sse event - myPortfolioStocks"));
-			emitter.complete();
-		} catch (IOException e) {
-			log.error(e.getMessage(), e);
-			emitter.completeWithError(e);
-		}
-
 		// 장시간 동안에는 스케줄러를 이용하여 지속적 응답
-		// if (stockMarketChecker.isMarketOpen(LocalDateTime.now())) {
-		// 	scheduleSseEventTask(portfolioId, emitter, false);
-		// } else {
-		// 	scheduleSseEventTask(portfolioId, emitter, true);
-		// }
+		if (stockMarketChecker.isMarketOpen(LocalDateTime.now())) {
+			scheduleSseEventTask(portfolioId, emitter, false);
+		} else {
+			scheduleSseEventTask(portfolioId, emitter, true);
+		}
 		return emitter;
 	}
 
@@ -89,25 +79,21 @@ public class PortfolioStockRestController {
 					.name("sse event - myPortfolioStocks"));
 				log.info("send message");
 				if (isComplete) {
-					Thread.sleep(3000L);
+					Thread.sleep(2000L); // sse event - myPortfolioStocks 메시지와 전송 간격
 					emitter.send(SseEmitter.event()
 						.data("sse complete")
 						.name("complete"));
 					emitter.complete();
 					log.info("emitter complete");
 				}
-			} catch (IOException | FineAntsException e) {
+			} catch (Exception e) {
 				log.error(e.getMessage());
-				emitter.completeWithError(e);
-			} catch (InterruptedException e) {
 				emitter.completeWithError(e);
 			}
 		};
 		if (isComplete) {
-			log.info("sseExecutor.schedule");
 			sseExecutor.schedule(task, 0, TimeUnit.SECONDS);
 		} else {
-			log.info("sseExecutor.scheduleAtFixedRate");
 			sseExecutor.scheduleAtFixedRate(task, 0, 5L, TimeUnit.SECONDS);
 		}
 	}
