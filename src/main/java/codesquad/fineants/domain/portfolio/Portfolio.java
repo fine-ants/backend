@@ -143,10 +143,10 @@ public class Portfolio {
 	}
 
 	// 포트폴리오 당월 예상 배당금 = 각 종목들에 해당월의 배당금 합계
-	public long calculateCurrentMonthDividend(){
+	public long calculateCurrentMonthDividend() {
 		return portfolioHoldings.stream()
-				.mapToLong(PortfolioHolding::calculateCurrentMonthDividend)
-				.sum();
+			.mapToLong(PortfolioHolding::calculateCurrentMonthDividend)
+			.sum();
 	}
 
 	public Integer getNumberOfShares() {
