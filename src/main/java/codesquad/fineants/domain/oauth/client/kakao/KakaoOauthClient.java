@@ -26,7 +26,7 @@ public class KakaoOauthClient extends OauthClient {
 			kakao.getTokenUri(),
 			null,
 			kakao.getRedirectUri(),
-			kakao.getPublicKeyUri(),
+			kakao.getJwksUri(),
 			kakao.getAuthorizeUri(),
 			kakao.getResponseType());
 		this.scope = kakao.getScope();
