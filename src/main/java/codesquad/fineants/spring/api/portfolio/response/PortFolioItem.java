@@ -1,6 +1,6 @@
 package codesquad.fineants.spring.api.portfolio.response;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 import codesquad.fineants.domain.portfolio.Portfolio;
 import codesquad.fineants.domain.portfolio_gain_history.PortfolioGainHistory;
@@ -47,7 +47,7 @@ public class PortFolioItem {
 			.totalGainRate(portfolio.calculateTotalGainRate())
 			.dailyGain(portfolio.calculateDailyGain(prevHistory))
 			.dailyGainRate(portfolio.calculateDailyGainRate(prevHistory))
-			.expectedMonthlyDividend(portfolio.calculateExpectedMonthlyDividend(LocalDateTime.now()))
+			.expectedMonthlyDividend(portfolio.calculateCurrentMonthDividend())
 			.numShares(portfolio.getNumberOfShares())
 			.build();
 	}

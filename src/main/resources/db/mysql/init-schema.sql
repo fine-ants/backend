@@ -2,8 +2,8 @@ create table if not exists fineAnts.member
 (
     id          bigint auto_increment
         primary key,
-    create_at   datetime(6)  null,
-    modified_at datetime(6)  null,
+    create_at   datetime  null,
+    modified_at datetime  null,
     email       varchar(255) null,
     nickname    varchar(255) null,
     password    varchar(255) null,
@@ -86,16 +86,14 @@ create table if not exists fineAnts.purchase_history
 
 create table if not exists fineAnts.stock_dividend
 (
-    id               bigint auto_increment
-        primary key,
-    create_at        datetime(6)  null,
-    modified_at      datetime(6)  null,
-    dividend         bigint       null,
-    dividend_month   datetime(6)  null,
-    ex_dividend_date date         not null,
-    payment_date     date         null,
-    record_date      date         not null,
-    ticker_symbol    varchar(255) null,
+    id               BIGINT AUTO_INCREMENT NOT NULL,
+    create_at        datetime NULL,
+    modified_at      datetime NULL,
+    ex_dividend_date date NOT NULL,
+    record_date      date NOT NULL,
+    payment_date     date NULL,
+    dividend         BIGINT NULL,
+    ticker_symbol    VARCHAR(255) NULL,
     constraint UNIQUE_STOCK_DIVIDEND
         unique (ticker_symbol, record_date),
     constraint FK_STOCKDIVIDEND_ON_STOCK

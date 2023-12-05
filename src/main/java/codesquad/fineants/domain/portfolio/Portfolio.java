@@ -1,5 +1,6 @@
 package codesquad.fineants.domain.portfolio;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +20,7 @@ import javax.persistence.OneToMany;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.portfolio_gain_history.PortfolioGainHistory;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
+import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioDividendChartItem;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioPieChartItem;
@@ -147,11 +149,10 @@ public class Portfolio {
 	}
 
 	// 포트폴리오 당월 예상 배당금 = 각 종목들에 해당월의 배당금 합계
-	public Long calculateExpectedMonthlyDividend(LocalDateTime monthDateTime) {
+	public long calculateCurrentMonthDividend() {
 		return portfolioHoldings.stream()
-			.filter(portFolioStock -> portFolioStock.hasMonthlyDividend(monthDateTime))
-			.mapToLong(portFolioStock -> portFolioStock.readDividend(monthDateTime))
-			.findAny().orElse(0L);
+			.mapToLong(PortfolioHolding::calculateCurrentMonthDividend)
+			.sum();
 	}
 
 	public Integer getNumberOfShares() {

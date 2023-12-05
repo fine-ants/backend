@@ -31,4 +31,9 @@ public class OauthMemberRedisService {
 			throw new UnAuthorizationException(OauthErrorCode.NOT_LOGIN_STATE);
 		}
 	}
+
+	public void saveEmailVerifCode(String email, String verifCode) {
+		long expirationTimeInMinutes = 5; // 5 minutes
+		redisTemplate.opsForValue().set(email, verifCode, expirationTimeInMinutes, TimeUnit.MINUTES);
+	}
 }

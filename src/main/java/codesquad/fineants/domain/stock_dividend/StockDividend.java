@@ -1,7 +1,6 @@
 package codesquad.fineants.domain.stock_dividend;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -34,23 +33,22 @@ public class StockDividend extends BaseEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	private Long dividend;
+
 	@Column(nullable = false)
 	private LocalDate exDividendDate;
 	@Column(nullable = false)
 	private LocalDate recordDate;
 	@Column(nullable = true)
 	private LocalDate paymentDate;
-	private LocalDateTime dividendMonth;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "ticker_symbol", referencedColumnName = "tickerSymbol")
 	private Stock stock;
 
 	@Builder
-	public StockDividend(Long id, LocalDateTime dividendMonth, LocalDate exDividendDate, LocalDate recordDate,
+	public StockDividend(Long id, LocalDate exDividendDate, LocalDate recordDate,
 		LocalDate paymentDate, Long dividend, Stock stock) {
 		this.id = id;
-		this.dividendMonth = dividendMonth;
 		this.exDividendDate = exDividendDate;
 		this.recordDate = recordDate;
 		this.paymentDate = paymentDate;

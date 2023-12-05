@@ -1,8 +1,10 @@
 package codesquad.fineants.domain.portfolio_holding;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.LongStream;
 import java.util.Map;
 
 import javax.persistence.Entity;
@@ -125,14 +127,6 @@ public class PortfolioHolding extends BaseEntity {
 		return currentPrice * calculateNumShares();
 	}
 
-	public boolean hasMonthlyDividend(LocalDateTime monthDateTime) {
-		return stock.hasMonthlyDividend(monthDateTime);
-	}
-
-	public long readDividend(LocalDateTime monthDateTime) {
-		return stock.readDividend(monthDateTime) * calculateNumShares();
-	}
-
 	// 당일 변동 금액 = 종목 현재가 - 직전 거래일의 종가
 	public Long calculateDailyChange(long lastDayClosingPrice) {
 		return currentPrice - lastDayClosingPrice;
@@ -159,14 +153,33 @@ public class PortfolioHolding extends BaseEntity {
 
 	// 연간 배당금 = 종목의 배당금 합계
 	public long calculateAnnualDividend() {
-		long annualDividend = stock.getStockDividends().stream()
-			.mapToLong(StockDividend::getDividend)
-			.sum();
-		return annualDividend * calculateNumShares();
+		List<StockDividend> stockDividends = stock.getCurrentYearDividends();
+
+		long totalDividend = 0;
+		for (PurchaseHistory history : purchaseHistory) {
+			for (StockDividend stockDividend : stockDividends) {
+				if (history.getPurchaseDate().isBefore(stockDividend.getExDividendDate().atStartOfDay())) {
+					totalDividend += history.getNumShares() * stockDividend.getDividend();
+				}
+			}
+		}
+		return totalDividend;
 	}
 
 	public void changeCurrentPrice(long currentPrice) {
 		this.currentPrice = currentPrice;
+	}
+
+	public long calculateCurrentMonthDividend() {
+		List<StockDividend> stockDividends = stock.getCurrentMonthDividends();
+		return stockDividends.stream()
+			.flatMapToLong(stockDividend ->
+				LongStream.of(purchaseHistory.stream()
+					.filter(history ->
+						history.getPurchaseDate().isBefore(stockDividend.getExDividendDate().atStartOfDay()))
+					.mapToLong(PurchaseHistory::getNumShares)
+					.sum() * stockDividend.getDividend()))
+			.sum();
 	}
 
 	// 월별 배당금 계산, key=월, value=배당금 합계

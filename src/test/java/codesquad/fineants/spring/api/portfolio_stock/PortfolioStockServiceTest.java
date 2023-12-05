@@ -71,6 +71,86 @@ class PortfolioStockServiceTest {
 	@Autowired
 	private LastDayClosingPriceManager lastDayClosingPriceManager;
 
+	private Member member;
+	private Portfolio portfolio;
+	private Stock stock;
+	private PortfolioHolding portfolioHolding;
+	private PurchaseHistory purchaseHistory;
+
+	@BeforeEach
+	void init() {
+		Member member = Member.builder()
+			.nickname("일개미1234")
+			.email("kim1234@gmail.com")
+			.password("kim1234@")
+			.provider("local")
+			.build();
+		this.member = memberRepository.save(member);
+
+		Portfolio portfolio = Portfolio.builder()
+			.name("내꿈은 워렌버핏")
+			.securitiesFirm("토스")
+			.budget(1000000L)
+			.targetGain(1500000L)
+			.maximumLoss(900000L)
+			.member(member)
+			.targetGainIsActive(false)
+			.maximumIsActive(false)
+			.build();
+		this.portfolio = portfolioRepository.save(portfolio);
+
+		Stock stock = Stock.builder()
+			.companyName("삼성전자보통주")
+			.tickerSymbol("005930")
+			.companyNameEng("SamsungElectronics")
+			.stockCode("KR7005930003")
+			.market(Market.KOSPI)
+			.build();
+		this.stock = stockRepository.save(stock);
+
+		StockDividend stockDividend1Q = StockDividend.builder()
+			.dividend(361L)
+			.exDividendDate(LocalDate.of(2022, 12, 30))
+			.recordDate(LocalDate.of(2022, 12, 31))
+			.paymentDate(LocalDate.of(2023, 4, 14))
+			.stock(this.stock)
+			.build();
+		StockDividend stockDividend2Q = StockDividend.builder()
+			.dividend(361L)
+			.exDividendDate(LocalDate.of(2023, 3, 30))
+			.recordDate(LocalDate.of(2023, 3, 31))
+			.paymentDate(LocalDate.of(2023, 5, 17))
+			.stock(this.stock)
+			.build();
+		StockDividend stockDividend3Q = StockDividend.builder()
+			.dividend(361L)
+			.exDividendDate(LocalDate.of(2023, 6, 29))
+			.recordDate(LocalDate.of(2023, 6, 30))
+			.paymentDate(LocalDate.of(2023, 8, 16))
+			.stock(this.stock)
+			.build();
+		StockDividend stockDividend4Q = StockDividend.builder()
+			.dividend(361L)
+			.exDividendDate(LocalDate.of(2023, 9, 27))
+			.recordDate(LocalDate.of(2023, 9, 30))
+			.paymentDate(LocalDate.of(2023, 11, 20))
+			.stock(this.stock)
+			.build();
+
+		stockDividendRepository.saveAll(List.of(stockDividend1Q, stockDividend2Q, stockDividend3Q, stockDividend4Q));
+
+		PortfolioHolding portfolioHolding = PortfolioHolding.empty(portfolio, stock);
+		this.portfolioHolding = portFolioHoldingRepository.save(portfolioHolding);
+
+		this.purchaseHistory = purchaseHistoryRepository.save(PurchaseHistory.builder()
+			.purchaseDate(LocalDateTime.of(2023, 9, 26, 9, 30, 0))
+			.numShares(3L)
+			.purchasePricePerShare(50000.0)
+			.memo("첫구매")
+			.portFolioHolding(portfolioHolding)
+			.build());
+	}
+
 	@AfterEach
 	void tearDown() {
 		purchaseHistoryRepository.deleteAllInBatch();
@@ -108,7 +188,7 @@ class PortfolioStockServiceTest {
 					"provisionalLossBalance",
 					"targetGainNotification", "maxLossNotification")
 				.containsExactlyInAnyOrder("토스", "내꿈은 워렌버핏", 1000000L, 1500000L, 50, 900000L, 10, 150000L, 30000L,
-					20, 30000L, 20, 850000L, 4332L, 2, 0L, false, false),
+					20, 30000L, 20, 850000L, 1083L, 0, 0L, false, false),
 			() -> assertThat(response).extracting("portfolioHoldings")
 				.asList()
 				.hasSize(1)
@@ -123,12 +203,13 @@ class PortfolioStockServiceTest {
 				.extracting("portfolioHoldingId", "currentValuation", "currentPrice", "averageCostPerShare",
 					"numShares", "dailyChange", "dailyChangeRate", "totalGain", "totalReturnRate", "annualDividend")
 				.containsExactlyInAnyOrder(Tuple.tuple(
-					portfolioHolding.getId(), 180000L, 60000L, 50000.0, 3L, 10000L, 20, 30000L, 20, 4332L)),
+					portfolioHolding.getId(), 180000L, 60000L, 50000.0, 3L, 10000L, 20, 30000L, 20, 1083L)),
 			() -> assertThat(response).extracting("portfolioHoldings")
 				.asList()
 				.hasSize(1)
 				.flatExtracting("purchaseHistory")
 				.extracting("purchaseDate", "numShares", "purchasePricePerShare", "memo")
+				.containsExactlyInAnyOrder(Tuple.tuple(LocalDateTime.of(2023, 9, 26, 9, 30, 0), 3L, 50000.0, "첫구매"))
 				.containsExactlyInAnyOrder(Tuple.tuple(LocalDateTime.of(2023, 3, 1, 9, 30, 0), 3L, 50000.0, "첫구매"))
 		);
 	}
