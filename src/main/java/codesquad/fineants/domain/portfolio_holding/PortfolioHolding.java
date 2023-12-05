@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.LongStream;
+import java.util.Map;
 
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -21,6 +22,8 @@ import codesquad.fineants.domain.portfolio.Portfolio;
 import codesquad.fineants.domain.purchase_history.PurchaseHistory;
 import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.domain.stock_dividend.StockDividend;
+import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
+import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioPieChartItem;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -53,11 +56,11 @@ public class PortfolioHolding extends BaseEntity {
 	private Long currentPrice;    // 현재가
 
 	@Builder
-	private PortfolioHolding(Long id, Long currentPrice, Portfolio portfolio, Stock stock) {
+	private PortfolioHolding(Long id, Portfolio portfolio, Stock stock, Long currentPrice) {
 		this.id = id;
-		this.currentPrice = currentPrice;
 		this.portfolio = portfolio;
 		this.stock = stock;
+		this.currentPrice = currentPrice;
 	}
 
 	public static PortfolioHolding empty(Portfolio portfolio, Stock stock) {
@@ -120,7 +123,7 @@ public class PortfolioHolding extends BaseEntity {
 	}
 
 	// 평가 금액(현재 가치) = 현재가 * 개수
-	public long calculateCurrentValuation() {
+	public Long calculateCurrentValuation() {
 		return currentPrice * calculateNumShares();
 	}
 
@@ -177,5 +180,26 @@ public class PortfolioHolding extends BaseEntity {
 					.mapToLong(PurchaseHistory::getNumShares)
 					.sum() * stockDividend.getDividend()))
 			.sum();
+	}
+
+	// 월별 배당금 계산, key=월, value=배당금 합계
+	public Map<Integer, Long> createMonthlyDividendMap() {
+		return stock.createMonthlyDividends(purchaseHistory);
+	}
+
+	public void applyCurrentPrice(CurrentPriceManager manager) {
+		this.currentPrice = stock.getCurrentPrice(manager);
+	}
+
+	public Double calculateWeightBy(Double portfolioAsset) {
+		return calculateCurrentValuation().doubleValue() / portfolioAsset * 100;
+	}
+
+	public PortfolioPieChartItem createPieChartItem(Double weight) {
+		String name = stock.getCompanyName();
+		Long currentValuation = calculateCurrentValuation();
+		Long totalGain = calculateTotalGain();
+		Double totalReturnRate = calculateTotalReturnRate().doubleValue();
+		return new PortfolioPieChartItem(name, currentValuation, weight, totalGain, totalReturnRate);
 	}
 }
