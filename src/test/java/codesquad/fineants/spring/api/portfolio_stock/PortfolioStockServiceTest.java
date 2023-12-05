@@ -148,7 +148,7 @@ class PortfolioStockServiceTest {
 		this.portfolioHolding = portFolioHoldingRepository.save(portfolioHolding);
 
 		this.purchaseHistory = purchaseHistoryRepository.save(PurchaseHistory.builder()
-			.purchaseDate(LocalDateTime.of(2023, 11, 1, 9, 30, 0))
+			.purchaseDate(LocalDateTime.of(2023, 9, 26, 9, 30, 0))
 			.numShares(3L)
 			.purchasePricePerShare(50000.0)
 			.memo("첫구매")
@@ -186,7 +186,7 @@ class PortfolioStockServiceTest {
 					"provisionalLossBalance",
 					"targetGainNotification", "maxLossNotification")
 				.containsExactlyInAnyOrder("토스", "내꿈은 워렌버핏", 1000000L, 1500000L, 50, 900000L, 10, 150000L, 30000L,
-					20, 30000L, 20, 850000L, 4332L, 2, 0L, false, false),
+					20, 30000L, 20, 850000L, 1083L, 0, 0L, false, false),
 			() -> assertThat(response).extracting("portfolioHoldings")
 				.asList()
 				.hasSize(1)
@@ -201,13 +201,13 @@ class PortfolioStockServiceTest {
 				.extracting("portfolioHoldingId", "currentValuation", "currentPrice", "averageCostPerShare",
 					"numShares", "dailyChange", "dailyChangeRate", "totalGain", "totalReturnRate", "annualDividend")
 				.containsExactlyInAnyOrder(Tuple.tuple(
-					portfolioHolding.getId(), 180000L, 60000L, 50000.0, 3L, 10000L, 20, 30000L, 20, 4332L)),
+					portfolioHolding.getId(), 180000L, 60000L, 50000.0, 3L, 10000L, 20, 30000L, 20, 1083L)),
 			() -> assertThat(response).extracting("portfolioHoldings")
 				.asList()
 				.hasSize(1)
 				.flatExtracting("purchaseHistory")
 				.extracting("purchaseDate", "numShares", "purchasePricePerShare", "memo")
-				.containsExactlyInAnyOrder(Tuple.tuple(LocalDateTime.of(2023, 11, 1, 9, 30, 0), 3L, 50000.0, "첫구매"))
+				.containsExactlyInAnyOrder(Tuple.tuple(LocalDateTime.of(2023, 9, 26, 9, 30, 0), 3L, 50000.0, "첫구매"))
 		);
 	}
 }
