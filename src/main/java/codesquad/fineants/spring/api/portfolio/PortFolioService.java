@@ -33,6 +33,7 @@ import codesquad.fineants.spring.api.kis.KisService;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.portfolio.request.PortfolioCreateRequest;
 import codesquad.fineants.spring.api.portfolio.request.PortfolioModifyRequest;
+import codesquad.fineants.spring.api.portfolio.request.PortfoliosDeleteRequest;
 import codesquad.fineants.spring.api.portfolio.response.PortFolioCreateResponse;
 import codesquad.fineants.spring.api.portfolio.response.PortfolioModifyResponse;
 import codesquad.fineants.spring.api.portfolio.response.PortfoliosResponse;
@@ -135,7 +136,25 @@ public class PortFolioService {
 		log.info("포트폴리오 삭제 : delPortfolio={}", findPortfolio);
 	}
 
-	public Portfolio findPortfolio(Long portfolioId) {
+	@Transactional
+	public void deletePortfolios(PortfoliosDeleteRequest request, AuthMember authMember) {
+		for (Long portfolioId : request.getPortfolioIds()) {
+			Portfolio portfolio = findPortfolio(portfolioId);
+			validatePortfolioAuthorization(portfolio, authMember.getMemberId());
+		}
+
+		for (Long portfolioId : request.getPortfolioIds()) {
+			Portfolio portfolio = findPortfolio(portfolioId);
+			List<Long> portfolioStockIds = portFolioHoldingRepository.findAllByPortfolio(portfolio).stream()
+				.map(PortfolioHolding::getId)
+				.collect(Collectors.toList());
+			purchaseHistoryRepository.deleteAllByPortFolioHoldingIdIn(portfolioStockIds);
+			portFolioHoldingRepository.deleteAllByPortfolioId(portfolio.getId());
+			portfolioRepository.deleteById(portfolio.getId());
+		}
+	}
+
+	private Portfolio findPortfolio(Long portfolioId) {
 		return portfolioRepository.findById(portfolioId)
 			.orElseThrow(() -> new NotFoundResourceException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
 	}
