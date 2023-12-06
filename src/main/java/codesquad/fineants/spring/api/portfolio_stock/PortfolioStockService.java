@@ -27,7 +27,11 @@ import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
 import codesquad.fineants.spring.api.portfolio_stock.request.PortfolioStockCreateRequest;
+import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioChartResponse;
+import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioDividendChartItem;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioHoldingsResponse;
+import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioPieChartItem;
+import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioSectorChartItem;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioStockCreateResponse;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioStockDeleteResponse;
 import lombok.RequiredArgsConstructor;
@@ -44,6 +48,9 @@ public class PortfolioStockService {
 	private final PurchaseHistoryRepository purchaseHistoryRepository;
 	private final PortfolioGainHistoryRepository portfolioGainHistoryRepository;
 	private final CurrentPriceManager currentPriceManager;
+	private final PieChart pieChart;
+	private final DividendChart dividendChart;
+	private final SectorChart sectorChart;
 
 	@Transactional
 	public PortfolioStockCreateResponse addPortfolioStock(Long portfolioId, PortfolioStockCreateRequest request,
@@ -55,6 +62,7 @@ public class PortfolioStockService {
 
 		Stock stock = stockRepository.findByTickerSymbol(request.getTickerSymbol())
 			.orElseThrow(() -> new NotFoundResourceException(StockErrorCode.NOT_FOUND_STOCK));
+
 		PortfolioHolding portFolioHolding = portfolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
 
 		log.info("포트폴리오 종목 추가 결과 : {}", portFolioHolding);
@@ -104,5 +112,13 @@ public class PortfolioStockService {
 			.map(Stock::getTickerSymbol)
 			.collect(Collectors.toMap(key -> key, manager::getPrice));
 		return PortfolioHoldingsResponse.of(portfolio, latestHistory, portfolioHoldings, lastDayClosingPriceMap);
+	}
+
+	public PortfolioChartResponse readMyPortfolioCharts(Long portfolioId) {
+		Portfolio portfolio = findPortfolio(portfolioId);
+		List<PortfolioPieChartItem> pieChartItems = pieChart.createBy(portfolio);
+		List<PortfolioDividendChartItem> dividendChartItems = dividendChart.createBy(portfolio);
+		List<PortfolioSectorChartItem> sectorChartItems = sectorChart.createBy(portfolio);
+		return new PortfolioChartResponse(pieChartItems, dividendChartItems, sectorChartItems);
 	}
 }

@@ -1,5 +1,6 @@
 package codesquad.fineants.domain.purchase_history;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import javax.persistence.Entity;
@@ -58,5 +59,9 @@ public class PurchaseHistory extends BaseEntity {
 		this.numShares = history.getNumShares();
 		this.memo = history.getMemo();
 		return this;
+	}
+
+	public LocalDate getPurchaseLocalDate() {
+		return purchaseDate.toLocalDate();
 	}
 }

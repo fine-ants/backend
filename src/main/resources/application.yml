@@ -6,15 +6,6 @@ spring:
       test: test, secret, s3
       analyze: analyze, secret, s3
     default: local
-
-  jackson:
-    visibility:
-      field: any
-      is-getter: none
-      getter: none
-      setter: none
-      creator: none
-
   main:
     allow-bean-definition-overriding: true
   mail:

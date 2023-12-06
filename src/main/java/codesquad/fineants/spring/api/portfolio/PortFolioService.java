@@ -160,7 +160,7 @@ public class PortFolioService {
 	}
 
 	public PortfoliosResponse readMyAllPortfolio(AuthMember authMember, int size, Long nextCursor) {
-		kisService.refreshCurrentPrice(portfolioRepository.findAllByMemberId(authMember.getMemberId()).stream()
+		kisService.refreshStockCurrentPrice(portfolioRepository.findAllByMemberId(authMember.getMemberId()).stream()
 			.map(Portfolio::getPortfolioHoldings)
 			.flatMap(Collection::stream)
 			.map(PortfolioHolding::getStock)

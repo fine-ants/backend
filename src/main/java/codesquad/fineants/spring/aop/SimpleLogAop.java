@@ -10,13 +10,12 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
-import org.springframework.stereotype.Component;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Aspect
-@Component
+// @Component
 public class SimpleLogAop {
 
 	@Pointcut("execution(* codesquad.fineants..*.*(..))")
