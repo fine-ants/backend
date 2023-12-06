@@ -101,9 +101,6 @@ public abstract class OauthClient {
 
 		Jwk jwk;
 		try {
-			log.info("publicKeyUri : {}", getPublicKeyUri());
-			log.info("idToken : {}", idToken);
-			log.info("kid : {}", kid);
 			jwk = provider.get(kid);
 		} catch (JwkException e) {
 			log.error(e.getMessage());

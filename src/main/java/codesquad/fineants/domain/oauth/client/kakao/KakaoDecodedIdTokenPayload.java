@@ -4,6 +4,8 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import codesquad.fineants.domain.oauth.client.DecodedIdTokenPayload;
 import codesquad.fineants.spring.api.errors.errorcode.OauthErrorCode;
 import codesquad.fineants.spring.api.errors.exception.BadRequestException;
@@ -22,7 +24,8 @@ public class KakaoDecodedIdTokenPayload implements DecodedIdTokenPayload {
 	private Integer iat;
 	private Integer exp;
 	private String nonce;
-	private Integer auth_time;
+	@JsonProperty("auth_time")
+	private Integer authTime;
 	private String picture;
 	private String email;
 
