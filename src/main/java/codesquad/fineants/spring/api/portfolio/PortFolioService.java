@@ -1,7 +1,6 @@
 package codesquad.fineants.spring.api.portfolio;
 
 import java.time.LocalDateTime;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -16,10 +15,9 @@ import codesquad.fineants.domain.portfolio.Portfolio;
 import codesquad.fineants.domain.portfolio.PortfolioRepository;
 import codesquad.fineants.domain.portfolio_gain_history.PortfolioGainHistory;
 import codesquad.fineants.domain.portfolio_gain_history.PortfolioGainHistoryRepository;
-import codesquad.fineants.domain.portfolio_holding.PortfolioHoldingRepository;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
+import codesquad.fineants.domain.portfolio_holding.PortfolioHoldingRepository;
 import codesquad.fineants.domain.purchase_history.PurchaseHistoryRepository;
-import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.spring.api.errors.errorcode.MemberErrorCode;
 import codesquad.fineants.spring.api.errors.errorcode.PortfolioErrorCode;
 import codesquad.fineants.spring.api.errors.exception.BadRequestException;
@@ -156,19 +154,9 @@ public class PortFolioService {
 			.orElseThrow(() -> new NotFoundResourceException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
 	}
 
-
 	public PortfoliosResponse readMyAllPortfolio(AuthMember authMember) {
 		List<Portfolio> portfolios = portfolioRepository.findAllByMemberIdOrderByIdDesc(
 			authMember.getMemberId());
-		kisService.refreshCurrentPrice(portfolios.stream()
-			.map(Portfolio::getPortfolioHoldings)
-			.flatMap(Collection::stream)
-			.map(PortfolioHolding::getStock)
-			.map(Stock::getTickerSymbol)
-			.filter(tickerSymbol -> !currentPriceManager.hasCurrentPrice(tickerSymbol))
-			.distinct()
-			.collect(Collectors.toList()));
-
 		Map<Portfolio, PortfolioGainHistory> portfolioGainHistoryMap = portfolios.stream()
 			.collect(Collectors.toMap(
 				portfolio -> portfolio,
