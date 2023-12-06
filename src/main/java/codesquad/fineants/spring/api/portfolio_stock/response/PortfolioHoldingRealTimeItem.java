@@ -1,0 +1,25 @@
+package codesquad.fineants.spring.api.portfolio_stock.response;
+
+import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+public class PortfolioHoldingRealTimeItem {
+	private Long currentValuation;
+	private Long currentPrice;
+	private Long dailyChange;
+	private Integer dailyChangeRate;
+	private Long totalGain;
+	private Integer totalReturnRate;
+
+	public static PortfolioHoldingRealTimeItem of(PortfolioHolding portfolioHolding, Long lastDayClosingPrice) {
+		return new PortfolioHoldingRealTimeItem(
+			portfolioHolding.calculateCurrentValuation(),
+			portfolioHolding.getCurrentPrice(),
+			portfolioHolding.calculateDailyChange(lastDayClosingPrice),
+			portfolioHolding.calculateDailyChangeRate(lastDayClosingPrice),
+			portfolioHolding.calculateTotalGain(),
+			portfolioHolding.calculateTotalReturnRate());
+	}
+}
