@@ -26,7 +26,7 @@ import codesquad.fineants.domain.member.MemberRepository;
 import codesquad.fineants.domain.portfolio.Portfolio;
 import codesquad.fineants.domain.portfolio.PortfolioRepository;
 import codesquad.fineants.domain.portfolio_gain_history.PortfolioGainHistoryRepository;
-import codesquad.fineants.domain.portfolio_holding.PortFolioHoldingRepository;
+import codesquad.fineants.domain.portfolio_holding.PortfolioHoldingRepository;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
 import codesquad.fineants.domain.purchase_history.PurchaseHistory;
 import codesquad.fineants.domain.purchase_history.PurchaseHistoryRepository;
@@ -45,7 +45,7 @@ class PortfolioNotificationServiceTest {
 	private PortfolioNotificationService service;
 
 	@Autowired
-	private PortFolioHoldingRepository portFolioHoldingRepository;
+	private PortfolioHoldingRepository portFolioHoldingRepository;
 
 	@Autowired
 	private PortfolioRepository portfolioRepository;
@@ -120,7 +120,7 @@ class PortfolioNotificationServiceTest {
 			.numShares(3L)
 			.purchasePricePerShare(50000.0)
 			.memo("첫구매")
-			.portFolioHolding(this.portfolioHolding)
+			.portfolioHolding(this.portfolioHolding)
 			.build());
 	}
 
@@ -187,7 +187,7 @@ class PortfolioNotificationServiceTest {
 			.numShares(100L)
 			.purchasePricePerShare(10000.0)
 			.memo("추가구매")
-			.portFolioHolding(portfolioHolding)
+			.portfolioHolding(portfolioHolding)
 			.build());
 
 		given(currentPriceManager.hasCurrentPrice("005930")).willReturn(true);

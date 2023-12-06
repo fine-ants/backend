@@ -25,7 +25,7 @@ import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.portfolio.Portfolio;
 import codesquad.fineants.domain.portfolio.PortfolioRepository;
 import codesquad.fineants.domain.portfolio_gain_history.PortfolioGainHistoryRepository;
-import codesquad.fineants.domain.portfolio_holding.PortFolioHoldingRepository;
+import codesquad.fineants.domain.portfolio_holding.PortfolioHoldingRepository;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
 import codesquad.fineants.domain.purchase_history.PurchaseHistory;
 import codesquad.fineants.domain.purchase_history.PurchaseHistoryRepository;
@@ -44,7 +44,7 @@ import codesquad.fineants.spring.api.purchase_history.response.PurchaseHistoryMo
 class PurchaseHistoryServiceTest {
 
 	@Autowired
-	private PortFolioHoldingRepository portFolioHoldingRepository;
+	private PortfolioHoldingRepository portFolioHoldingRepository;
 
 	@Autowired
 	private PortfolioRepository portfolioRepository;

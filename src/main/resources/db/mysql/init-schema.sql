@@ -15,6 +15,8 @@ create table if not exists fineAnts.portfolio
 (
     id                    bigint auto_increment
         primary key,
+    create_at             datetime     null,
+    modified_at           datetime     null,
     budget                bigint       null,
     maximum_is_active     bit          null,
     maximum_loss          bigint       null,

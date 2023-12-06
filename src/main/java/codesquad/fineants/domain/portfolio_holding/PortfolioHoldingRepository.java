@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 
 import codesquad.fineants.domain.portfolio.Portfolio;
 
-public interface PortFolioHoldingRepository extends JpaRepository<PortfolioHolding, Long> {
+public interface PortfolioHoldingRepository extends JpaRepository<PortfolioHolding, Long> {
 
 	int deleteAllByPortfolioId(Long portFolioId);
 

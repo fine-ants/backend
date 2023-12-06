@@ -20,7 +20,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 @Getter
-@ToString(exclude = {"portFolioHolding"})
+@ToString(exclude = {"portfolioHolding"})
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class PurchaseHistory extends BaseEntity {
@@ -34,18 +34,18 @@ public class PurchaseHistory extends BaseEntity {
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "portfolio_holding_id")
-	private PortfolioHolding portFolioHolding;
+	private PortfolioHolding portfolioHolding;
 
 	@Builder
 	public PurchaseHistory(Long id, LocalDateTime purchaseDate, Double purchasePricePerShare, Long numShares,
 		String memo,
-		PortfolioHolding portFolioHolding) {
+		PortfolioHolding portfolioHolding) {
 		this.id = id;
 		this.purchaseDate = purchaseDate;
 		this.purchasePricePerShare = purchasePricePerShare;
 		this.numShares = numShares;
 		this.memo = memo;
-		this.portFolioHolding = portFolioHolding;
+		this.portfolioHolding = portfolioHolding;
 	}
 
 	// 투자 금액 = 주당 매입가 * 개수
@@ -60,7 +60,7 @@ public class PurchaseHistory extends BaseEntity {
 		this.memo = history.getMemo();
 		return this;
 	}
-	
+
 	public LocalDate getPurchaseLocalDate() {
 		return purchaseDate.toLocalDate();
 	}

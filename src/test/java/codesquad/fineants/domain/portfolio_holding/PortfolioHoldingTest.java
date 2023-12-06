@@ -33,14 +33,14 @@ class PortfolioHoldingTest {
 			.purchaseDate(LocalDateTime.now())
 			.numShares(5L)
 			.purchasePricePerShare(10000.0)
-			.portFolioHolding(portFolioHolding)
+			.portfolioHolding(portFolioHolding)
 			.build();
 
 		PurchaseHistory purchaseHistory2 = PurchaseHistory.builder()
 			.purchaseDate(LocalDateTime.now())
 			.numShares(5L)
 			.purchasePricePerShare(10000.0)
-			.portFolioHolding(portFolioHolding)
+			.portfolioHolding(portFolioHolding)
 			.build();
 
 		portFolioHolding.addPurchaseHistory(purchaseHistory1);
@@ -65,14 +65,14 @@ class PortfolioHoldingTest {
 			.purchaseDate(LocalDateTime.now())
 			.numShares(5L)
 			.purchasePricePerShare(10000.0)
-			.portFolioHolding(portFolioHolding)
+			.portfolioHolding(portFolioHolding)
 			.build();
 
 		PurchaseHistory purchaseHistory2 = PurchaseHistory.builder()
 			.purchaseDate(LocalDateTime.now())
 			.numShares(5L)
 			.purchasePricePerShare(10000.0)
-			.portFolioHolding(portFolioHolding)
+			.portfolioHolding(portFolioHolding)
 			.build();
 
 		portFolioHolding.addPurchaseHistory(purchaseHistory1);
@@ -97,14 +97,14 @@ class PortfolioHoldingTest {
 			.purchaseDate(LocalDateTime.now())
 			.numShares(5L)
 			.purchasePricePerShare(10000.0)
-			.portFolioHolding(portFolioHolding)
+			.portfolioHolding(portFolioHolding)
 			.build();
 
 		PurchaseHistory purchaseHistory2 = PurchaseHistory.builder()
 			.purchaseDate(LocalDateTime.now())
 			.numShares(5L)
 			.purchasePricePerShare(10000.0)
-			.portFolioHolding(portFolioHolding)
+			.portfolioHolding(portFolioHolding)
 			.build();
 
 		portFolioHolding.addPurchaseHistory(purchaseHistory1);
@@ -129,14 +129,14 @@ class PortfolioHoldingTest {
 			.purchaseDate(LocalDateTime.now())
 			.numShares(5L)
 			.purchasePricePerShare(10000.0)
-			.portFolioHolding(portFolioHolding)
+			.portfolioHolding(portFolioHolding)
 			.build();
 
 		PurchaseHistory purchaseHistory2 = PurchaseHistory.builder()
 			.purchaseDate(LocalDateTime.now())
 			.numShares(5L)
 			.purchasePricePerShare(10000.0)
-			.portFolioHolding(portFolioHolding)
+			.portfolioHolding(portFolioHolding)
 			.build();
 
 		portFolioHolding.addPurchaseHistory(purchaseHistory1);
@@ -257,7 +257,7 @@ class PortfolioHoldingTest {
 			.purchasePricePerShare(50000.0)
 			.numShares(3L)
 			.memo("구매 메모")
-			.portFolioHolding(portfolioHolding)
+			.portfolioHolding(portfolioHolding)
 			.build();
 	}
 }

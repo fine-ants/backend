@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -18,6 +17,7 @@ import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.oauth.support.AuthPrincipalMember;
 import codesquad.fineants.spring.api.portfolio.request.PortfolioCreateRequest;
 import codesquad.fineants.spring.api.portfolio.request.PortfolioModifyRequest;
+import codesquad.fineants.spring.api.portfolio.request.PortfoliosDeleteRequest;
 import codesquad.fineants.spring.api.portfolio.response.PortFolioCreateResponse;
 import codesquad.fineants.spring.api.portfolio.response.PortfoliosResponse;
 import codesquad.fineants.spring.api.response.ApiResponse;
@@ -61,10 +61,15 @@ public class PortFolioRestController {
 	}
 
 	@GetMapping
-	public ApiResponse<PortfoliosResponse> readMyAllPortfolio(@AuthPrincipalMember AuthMember authMember,
-		@RequestParam(required = false, defaultValue = "10") int size,
-		@RequestParam(required = false, defaultValue = Long.MAX_VALUE + "") long nextCursor) {
+	public ApiResponse<PortfoliosResponse> readMyAllPortfolio(@AuthPrincipalMember AuthMember authMember) {
 		return ApiResponse.success(PortfolioSuccessCode.OK_SEARCH_PORTFOLIOS,
-			portFolioService.readMyAllPortfolio(authMember, size, nextCursor));
+			portFolioService.readMyAllPortfolio(authMember));
+	}
+
+	@DeleteMapping
+	public ApiResponse<Void> deletePortfolios(@RequestBody PortfoliosDeleteRequest request,
+		@AuthPrincipalMember AuthMember authMember) {
+		portFolioService.deletePortfolios(request, authMember);
+		return ApiResponse.success(PortfolioSuccessCode.OK_DELETE_PORTFOLIO);
 	}
 }

@@ -14,7 +14,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import codesquad.fineants.domain.portfolio_holding.PortFolioHoldingRepository;
+import codesquad.fineants.domain.portfolio_holding.PortfolioHoldingRepository;
 import codesquad.fineants.spring.api.kis.client.KisClient;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.kis.manager.KisAccessTokenManager;
@@ -35,7 +35,7 @@ public class KisService {
 	private static final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
 
 	private final KisClient kisClient;
-	private final PortFolioHoldingRepository portFolioHoldingRepository;
+	private final PortfolioHoldingRepository portFolioHoldingRepository;
 	private final SimpMessagingTemplate messagingTemplate;
 	private final PortfolioStockService portfolioStockService;
 	private final KisAccessTokenManager manager;
