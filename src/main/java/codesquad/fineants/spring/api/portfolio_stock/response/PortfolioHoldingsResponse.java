@@ -25,6 +25,11 @@ public class PortfolioHoldingsResponse {
 		return new PortfolioHoldingsResponse(portfolioDetailResponse, portfolioStockItems);
 	}
 
+	public static PortfolioHoldingsResponse of(PortfolioDetailResponse portfolioDetail,
+		List<PortfolioStockItem> portfolioStockItems) {
+		return new PortfolioHoldingsResponse(portfolioDetail, portfolioStockItems);
+	}
+
 	public Long getPortfolioId() {
 		return portfolioDetails.getId();
 	}

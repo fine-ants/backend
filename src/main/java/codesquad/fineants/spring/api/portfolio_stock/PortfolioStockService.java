@@ -1,9 +1,6 @@
 package codesquad.fineants.spring.api.portfolio_stock;
 
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
@@ -12,7 +9,6 @@ import org.springframework.transaction.annotation.Transactional;
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.portfolio.Portfolio;
 import codesquad.fineants.domain.portfolio.PortfolioRepository;
-import codesquad.fineants.domain.portfolio_gain_history.PortfolioGainHistory;
 import codesquad.fineants.domain.portfolio_gain_history.PortfolioGainHistoryRepository;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHoldingRepository;
@@ -29,6 +25,7 @@ import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
 import codesquad.fineants.spring.api.portfolio_stock.request.PortfolioStockCreateRequest;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioChartResponse;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioDetailRealTimeItem;
+import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioDetailResponse;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioDividendChartItem;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioHoldingRealTimeItem;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioHoldingsRealTimeResponse;
@@ -37,6 +34,7 @@ import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioPieChartI
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioSectorChartItem;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioStockCreateResponse;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioStockDeleteResponse;
+import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioStockItem;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -105,18 +103,10 @@ public class PortfolioStockService {
 
 	public PortfolioHoldingsResponse readMyPortfolioStocks(Long portfolioId) {
 		Portfolio portfolio = findPortfolio(portfolioId);
-		List<PortfolioHolding> portfolioHoldings = portfolio.changeCurrentPriceFromHoldings(currentPriceManager);
-		log.info("portfolioHoldings : {}", portfolioHoldings);
-
-		PortfolioGainHistory latestHistory = portfolioGainHistoryRepository.findFirstByPortfolioAndCreateAtIsLessThanEqualOrderByCreateAtDesc(
-				portfolio.getId(), LocalDateTime.now())
-			.orElseGet(PortfolioGainHistory::empty);
-
-		Map<String, Long> lastDayClosingPriceMap = portfolioHoldings.parallelStream()
-			.map(PortfolioHolding::getStock)
-			.map(Stock::getTickerSymbol)
-			.collect(Collectors.toMap(key -> key, lastDayClosingPriceManager::getPrice));
-		return PortfolioHoldingsResponse.of(portfolio, latestHistory, portfolioHoldings, lastDayClosingPriceMap);
+		PortfolioDetailResponse portfolioDetail = portfolioDetailFactory.createPortfolioDetailItem(portfolio);
+		List<PortfolioStockItem> portfolioStockItems = portfolioHoldingDetailFactory.createPortfolioStockItems(
+			portfolio);
+		return PortfolioHoldingsResponse.of(portfolioDetail, portfolioStockItems);
 	}
 
 	public PortfolioHoldingsRealTimeResponse readMyPortfolioStocksInRealTime(Long portfolioId) {
