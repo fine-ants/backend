@@ -14,7 +14,7 @@ import codesquad.fineants.domain.portfolio.Portfolio;
 import codesquad.fineants.domain.portfolio.PortfolioRepository;
 import codesquad.fineants.domain.portfolio_gain_history.PortfolioGainHistory;
 import codesquad.fineants.domain.portfolio_gain_history.PortfolioGainHistoryRepository;
-import codesquad.fineants.domain.portfolio_holding.PortFolioHoldingRepository;
+import codesquad.fineants.domain.portfolio_holding.PortfolioHoldingRepository;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
 import codesquad.fineants.domain.purchase_history.PurchaseHistoryRepository;
 import codesquad.fineants.domain.stock.Stock;
@@ -44,7 +44,7 @@ import lombok.extern.slf4j.Slf4j;
 public class PortfolioStockService {
 	private final PortfolioRepository portfolioRepository;
 	private final StockRepository stockRepository;
-	private final PortFolioHoldingRepository portFolioHoldingRepository;
+	private final PortfolioHoldingRepository portfolioHoldingRepository;
 	private final PurchaseHistoryRepository purchaseHistoryRepository;
 	private final PortfolioGainHistoryRepository portfolioGainHistoryRepository;
 	private final CurrentPriceManager currentPriceManager;
@@ -63,8 +63,7 @@ public class PortfolioStockService {
 		Stock stock = stockRepository.findByTickerSymbol(request.getTickerSymbol())
 			.orElseThrow(() -> new NotFoundResourceException(StockErrorCode.NOT_FOUND_STOCK));
 
-		PortfolioHolding portFolioHolding = portFolioHoldingRepository.save(
-			PortfolioHolding.empty(portfolio, stock));
+		PortfolioHolding portFolioHolding = portfolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
 
 		log.info("포트폴리오 종목 추가 결과 : {}", portFolioHolding);
 		return PortfolioStockCreateResponse.from(portFolioHolding);
@@ -89,9 +88,9 @@ public class PortfolioStockService {
 		Portfolio portfolio = findPortfolio(portfolioId);
 		validatePortfolioAuthorization(portfolio, authMember.getMemberId());
 
-		purchaseHistoryRepository.deleteAllByPortFolioHoldingIdIn(List.of(portfolioHoldingId));
+		purchaseHistoryRepository.deleteAllByPortfolioHoldingIdIn(List.of(portfolioHoldingId));
 		try {
-			portFolioHoldingRepository.deleteById(portfolioHoldingId);
+			portfolioHoldingRepository.deleteById(portfolioHoldingId);
 		} catch (EmptyResultDataAccessException e) {
 			throw new NotFoundResourceException(PortfolioHoldingErrorCode.NOT_FOUND_PORTFOLIO_HOLDING);
 		}

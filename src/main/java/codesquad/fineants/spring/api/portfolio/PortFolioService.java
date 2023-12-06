@@ -19,7 +19,7 @@ import codesquad.fineants.domain.portfolio.Portfolio;
 import codesquad.fineants.domain.portfolio.PortfolioRepository;
 import codesquad.fineants.domain.portfolio_gain_history.PortfolioGainHistory;
 import codesquad.fineants.domain.portfolio_gain_history.PortfolioGainHistoryRepository;
-import codesquad.fineants.domain.portfolio_holding.PortFolioHoldingRepository;
+import codesquad.fineants.domain.portfolio_holding.PortfolioHoldingRepository;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
 import codesquad.fineants.domain.purchase_history.PurchaseHistoryRepository;
 import codesquad.fineants.domain.stock.Stock;
@@ -33,6 +33,7 @@ import codesquad.fineants.spring.api.kis.KisService;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.portfolio.request.PortfolioCreateRequest;
 import codesquad.fineants.spring.api.portfolio.request.PortfolioModifyRequest;
+import codesquad.fineants.spring.api.portfolio.request.PortfoliosDeleteRequest;
 import codesquad.fineants.spring.api.portfolio.response.PortFolioCreateResponse;
 import codesquad.fineants.spring.api.portfolio.response.PortfolioModifyResponse;
 import codesquad.fineants.spring.api.portfolio.response.PortfoliosResponse;
@@ -47,7 +48,7 @@ public class PortFolioService {
 
 	private final PortfolioRepository portfolioRepository;
 	private final MemberRepository memberRepository;
-	private final PortFolioHoldingRepository portFolioHoldingRepository;
+	private final PortfolioHoldingRepository portfolioHoldingRepository;
 	private final PurchaseHistoryRepository purchaseHistoryRepository;
 	private final PortfolioGainHistoryRepository portfolioGainHistoryRepository;
 	private final CurrentPriceManager currentPriceManager;
@@ -121,21 +122,39 @@ public class PortFolioService {
 		Portfolio findPortfolio = findPortfolio(portfolioId);
 		validatePortfolioAuthorization(findPortfolio, authMember.getMemberId());
 
-		List<Long> portfolioStockIds = portFolioHoldingRepository.findAllByPortfolio(findPortfolio).stream()
+		List<Long> portfolioStockIds = portfolioHoldingRepository.findAllByPortfolio(findPortfolio).stream()
 			.map(PortfolioHolding::getId)
 			.collect(Collectors.toList());
 
-		int delTradeHistoryCnt = purchaseHistoryRepository.deleteAllByPortFolioHoldingIdIn(portfolioStockIds);
+		int delTradeHistoryCnt = purchaseHistoryRepository.deleteAllByPortfolioHoldingIdIn(portfolioStockIds);
 		log.info("매매이력 삭제 개수 : {}", delTradeHistoryCnt);
 
-		int delPortfolioCnt = portFolioHoldingRepository.deleteAllByPortfolioId(findPortfolio.getId());
+		int delPortfolioCnt = portfolioHoldingRepository.deleteAllByPortfolioId(findPortfolio.getId());
 		log.info("포트폴리오 종목 삭제 개수 : {}", delPortfolioCnt);
 
 		portfolioRepository.deleteById(findPortfolio.getId());
 		log.info("포트폴리오 삭제 : delPortfolio={}", findPortfolio);
 	}
 
-	public Portfolio findPortfolio(Long portfolioId) {
+	@Transactional
+	public void deletePortfolios(PortfoliosDeleteRequest request, AuthMember authMember) {
+		for (Long portfolioId : request.getPortfolioIds()) {
+			Portfolio portfolio = findPortfolio(portfolioId);
+			validatePortfolioAuthorization(portfolio, authMember.getMemberId());
+		}
+
+		for (Long portfolioId : request.getPortfolioIds()) {
+			Portfolio portfolio = findPortfolio(portfolioId);
+			List<Long> portfolioStockIds = portfolioHoldingRepository.findAllByPortfolio(portfolio).stream()
+				.map(PortfolioHolding::getId)
+				.collect(Collectors.toList());
+			purchaseHistoryRepository.deleteAllByPortfolioHoldingIdIn(portfolioStockIds);
+			portfolioHoldingRepository.deleteAllByPortfolioId(portfolio.getId());
+			portfolioRepository.deleteById(portfolio.getId());
+		}
+	}
+
+	private Portfolio findPortfolio(Long portfolioId) {
 		return portfolioRepository.findById(portfolioId)
 			.orElseThrow(() -> new NotFoundResourceException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
 	}

@@ -20,7 +20,7 @@ import codesquad.fineants.domain.member.MemberRepository;
 import codesquad.fineants.domain.portfolio.Portfolio;
 import codesquad.fineants.domain.portfolio.PortfolioRepository;
 import codesquad.fineants.domain.portfolio_gain_history.PortfolioGainHistoryRepository;
-import codesquad.fineants.domain.portfolio_holding.PortFolioHoldingRepository;
+import codesquad.fineants.domain.portfolio_holding.PortfolioHoldingRepository;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
 import codesquad.fineants.domain.purchase_history.PurchaseHistory;
 import codesquad.fineants.domain.purchase_history.PurchaseHistoryRepository;
@@ -48,7 +48,7 @@ class PortfolioStockServiceTest {
 	private PurchaseHistoryRepository purchaseHistoryRepository;
 
 	@Autowired
-	private PortFolioHoldingRepository portFolioHoldingRepository;
+	private PortfolioHoldingRepository portFolioHoldingRepository;
 
 	@Autowired
 	private PortfolioRepository portfolioRepository;
@@ -251,7 +251,7 @@ class PortfolioStockServiceTest {
 			.numShares(3L)
 			.purchasePricePerShare(50000.0)
 			.memo("첫구매")
-			.portFolioHolding(portfolioHolding)
+			.portfolioHolding(portfolioHolding)
 			.build();
 	}
 

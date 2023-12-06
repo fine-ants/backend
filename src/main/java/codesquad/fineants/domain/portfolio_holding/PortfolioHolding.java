@@ -1,7 +1,5 @@
 package codesquad.fineants.domain.portfolio_holding;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.LongStream;
@@ -49,7 +47,7 @@ public class PortfolioHolding extends BaseEntity {
 	@JoinColumn(name = "ticker_symbol")
 	private Stock stock;
 
-	@OneToMany(mappedBy = "portFolioHolding")
+	@OneToMany(mappedBy = "portfolioHolding")
 	private final List<PurchaseHistory> purchaseHistory = new ArrayList<>();
 
 	@Transient

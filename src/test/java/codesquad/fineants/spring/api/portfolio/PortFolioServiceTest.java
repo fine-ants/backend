@@ -3,6 +3,7 @@ package codesquad.fineants.spring.api.portfolio;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -28,10 +29,15 @@ import codesquad.fineants.domain.member.MemberRepository;
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.portfolio.Portfolio;
 import codesquad.fineants.domain.portfolio.PortfolioRepository;
+import codesquad.fineants.domain.portfolio_holding.PortfolioHoldingRepository;
+import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
+import codesquad.fineants.domain.purchase_history.PurchaseHistory;
+import codesquad.fineants.domain.purchase_history.PurchaseHistoryRepository;
 import codesquad.fineants.spring.api.errors.exception.BadRequestException;
 import codesquad.fineants.spring.api.errors.exception.ConflictException;
 import codesquad.fineants.spring.api.portfolio.request.PortfolioCreateRequest;
 import codesquad.fineants.spring.api.portfolio.request.PortfolioModifyRequest;
+import codesquad.fineants.spring.api.portfolio.request.PortfoliosDeleteRequest;
 import codesquad.fineants.spring.api.portfolio.response.PortFolioCreateResponse;
 import codesquad.fineants.spring.api.portfolio.response.PortfoliosResponse;
 
@@ -51,6 +57,11 @@ class PortFolioServiceTest {
 	private PortfolioRepository portfolioRepository;
 
 	private Member member;
+	@Autowired
+	private PurchaseHistoryRepository purchaseHistoryRepository;
+
+	@Autowired
+	private PortfolioHoldingRepository portFolioHoldingRepository;
 
 	@BeforeEach
 	void init() {
@@ -273,5 +284,63 @@ class PortFolioServiceTest {
 				.asList()
 				.hasSize(10)
 		);
+	}
+
+	@DisplayName("회원이 포트폴리오들을 삭제한다")
+	@Test
+	void deletePortfolios() {
+		// given
+		Portfolio portfolio = portfolioRepository.save(Portfolio.builder()
+			.name("내꿈은 워렌버핏")
+			.securitiesFirm("토스")
+			.budget(1000000L)
+			.targetGain(1500000L)
+			.maximumLoss(900000L)
+			.member(member)
+			.build());
+
+		PortfolioHolding portfolioHolding = portFolioHoldingRepository.save(
+			PortfolioHolding.builder()
+				.portfolio(portfolio)
+				.build()
+		);
+
+		PurchaseHistory purchaseHistory1 = purchaseHistoryRepository.save(
+			PurchaseHistory.builder()
+				.portfolioHolding(portfolioHolding)
+				.purchaseDate(LocalDateTime.now())
+				.purchasePricePerShare(10000.0)
+				.numShares(10L)
+				.build()
+		);
+
+		PurchaseHistory purchaseHistory2 = purchaseHistoryRepository.save(
+			PurchaseHistory.builder()
+				.portfolioHolding(portfolioHolding)
+				.purchaseDate(LocalDateTime.now())
+				.purchasePricePerShare(10000.0)
+				.numShares(10L)
+				.build()
+		);
+
+		Portfolio portfolio2 = portfolioRepository.save(Portfolio.builder()
+			.name("내꿈은 워렌버핏")
+			.securitiesFirm("토스")
+			.budget(1000000L)
+			.targetGain(1500000L)
+			.maximumLoss(900000L)
+			.member(member)
+			.build());
+
+		// when
+		PortfoliosDeleteRequest request = new PortfoliosDeleteRequest(List.of(portfolio.getId(), portfolio2.getId()));
+		service.deletePortfolios(request, AuthMember.from(member));
+
+		// then
+		assertThat(portfolioRepository.existsById(portfolio.getId())).isFalse();
+		assertThat(portFolioHoldingRepository.existsById(portfolioHolding.getId())).isFalse();
+		assertThat(purchaseHistoryRepository.existsById(purchaseHistory1.getId())).isFalse();
+		assertThat(purchaseHistoryRepository.existsById(purchaseHistory2.getId())).isFalse();
+		assertThat(portfolioRepository.existsById(portfolio2.getId())).isFalse();
 	}
 }
