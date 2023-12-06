@@ -5,7 +5,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.portfolio.Portfolio;
-import codesquad.fineants.domain.portfolio_holding.PortFolioHoldingRepository;
+import codesquad.fineants.domain.portfolio_holding.PortfolioHoldingRepository;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
 import codesquad.fineants.domain.purchase_history.PurchaseHistory;
 import codesquad.fineants.domain.purchase_history.PurchaseHistoryRepository;
@@ -28,7 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 public class PurchaseHistoryService {
 	private final PurchaseHistoryRepository repository;
-	private final PortFolioHoldingRepository portFolioHoldingRepository;
+	private final PortfolioHoldingRepository portFolioHoldingRepository;
 
 	@Transactional
 	public PurchaseHistoryCreateResponse addPurchaseHistory(PurchaseHistoryCreateRequest request,

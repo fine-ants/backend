@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface PurchaseHistoryRepository extends JpaRepository<PurchaseHistory, Long> {
 
-	int deleteAllByPortFolioHoldingIdIn(List<Long> portfolioId);
+	int deleteAllByPortfolioHoldingIdIn(List<Long> portfolioId);
 
-	List<PurchaseHistory> findAllByPortFolioHoldingId(Long portfolioStockId);
+	List<PurchaseHistory> findAllByPortfolioHoldingId(Long portfolioStockId);
 }
