@@ -63,6 +63,20 @@ class PortFolioServiceTest {
 	@Autowired
 	private PortfolioHoldingRepository portFolioHoldingRepository;
 
+	private static Stream<Arguments> provideInvalidTargetGain() {
+		return Stream.of(
+			Arguments.of(900000L),
+			Arguments.of(1000000L)
+		);
+	}
+
+	private static Stream<Arguments> provideInvalidMaximumLoss() {
+		return Stream.of(
+			Arguments.of(1000000L),
+			Arguments.of(1100000L)
+		);
+	}
+
 	@BeforeEach
 	void init() {
 		Member member = Member.builder()
@@ -126,13 +140,6 @@ class PortFolioServiceTest {
 			.isEqualTo("목표 수익금액은 예산보다 커야 합니다");
 	}
 
-	private static Stream<Arguments> provideInvalidTargetGain() {
-		return Stream.of(
-			Arguments.of(900000L),
-			Arguments.of(1000000L)
-		);
-	}
-
 	@DisplayName("회원은 포트폴리오를 추가할때 최대손실율이 예산보다 같거나 크면 안된다")
 	@MethodSource("provideInvalidMaximumLoss")
 	@ParameterizedTest
@@ -156,13 +163,6 @@ class PortFolioServiceTest {
 			.isInstanceOf(BadRequestException.class)
 			.extracting("message")
 			.isEqualTo("최대 손실 금액은 예산 보다 작아야 합니다");
-	}
-
-	private static Stream<Arguments> provideInvalidMaximumLoss() {
-		return Stream.of(
-			Arguments.of(1000000L),
-			Arguments.of(1100000L)
-		);
 	}
 
 	@DisplayName("회원은 내가 가지고 있는 포트폴리오들중에서 동일한 이름을 가지는 포트폴리오를 추가할 수는 없다")
@@ -268,21 +268,20 @@ class PortFolioServiceTest {
 				.targetGain(1500000L)
 				.maximumLoss(900000L)
 				.member(member)
+				.targetGainIsActive(false)
+				.maximumIsActive(false)
 				.build());
 		}
 		portfolioRepository.saveAll(portfolios);
-		int size = 10;
-		Long nextCursor = Long.MAX_VALUE;
 
 		// when
-		PortfoliosResponse response = service.readMyAllPortfolio(AuthMember.from(member), size, nextCursor);
+		PortfoliosResponse response = service.readMyAllPortfolio(AuthMember.from(member));
 
 		// then
 		assertAll(
-			() -> assertThat(response).extracting("nextCursor").isNotNull(),
 			() -> assertThat(response).extracting("portfolios")
 				.asList()
-				.hasSize(10)
+				.hasSize(25)
 		);
 	}
 
