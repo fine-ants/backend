@@ -38,14 +38,13 @@ public class GoogleOauthClient extends OauthClient {
 	@Override
 	public MultiValueMap<String, String> createTokenBody(String authorizationCode, String redirectUri,
 		String codeVerifier, String state) {
-		final String grantType = "authorization_code";
 		MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
 		formData.add("code", authorizationCode);
 		formData.add("client_id", getClientId());
 		formData.add("client_secret", getClientSecret());
 		formData.add("redirect_uri", redirectUri);
 		formData.add("code_verifier", codeVerifier);
-		formData.add("grant_type", grantType);
+		formData.add("grant_type", "authorization_code");
 		return formData;
 	}
 
@@ -58,7 +57,6 @@ public class GoogleOauthClient extends OauthClient {
 
 	@Override
 	public String createAuthURL(AuthorizationRequest request) {
-		log.info("scope : {}", scope);
 		return getAuthorizeUri() + "?"
 			+ "response_type=" + getResponseType() + "&"
 			+ "client_id=" + getClientId() + "&"

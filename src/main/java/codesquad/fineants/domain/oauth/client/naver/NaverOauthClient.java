@@ -31,13 +31,12 @@ public class NaverOauthClient extends OauthClient {
 	public MultiValueMap<String, String> createTokenBody(String authorizationCode, String redirectUrl,
 		String codeVerifier, String state) {
 		MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-		final String grantType = "authorization_code";
 		formData.add("code", authorizationCode);
 		formData.add("client_id", getClientId());
 		formData.add("client_secret", getClientSecret());
 		formData.add("redirect_uri", redirectUrl);
-		formData.add("grant_type", grantType);
 		formData.add("state", state);
+		formData.add("grant_type", "authorization_code");
 		return formData;
 	}
 
