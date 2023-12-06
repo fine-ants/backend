@@ -33,6 +33,7 @@ import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
 import codesquad.fineants.spring.api.kis.response.CurrentPriceResponse;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioChartResponse;
+import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioHoldingsRealTimeResponse;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioHoldingsResponse;
 import lombok.extern.slf4j.Slf4j;
 
@@ -190,6 +191,39 @@ class PortfolioStockServiceTest {
 					Tuple.tuple("전기전자", 17.475728155339805),
 					Tuple.tuple("현금", 82.52427184466019)
 				)
+		);
+	}
+
+	@DisplayName("사용자는 포트폴리오에 실시간 상세 데이터를 조회한다")
+	@Test
+	void readMyPortfolioStocksInRealTime() {
+		// given
+		Member member = memberRepository.save(createMember());
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
+		Stock stock = stockRepository.save(createStock());
+		stockDividendRepository.saveAll(createStockDividendWith(stock));
+		PortfolioHolding portfolioHolding = portFolioHoldingRepository.save(createPortfolioHolding(portfolio, stock));
+		purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding));
+
+		currentPriceManager.addCurrentPrice(new CurrentPriceResponse("005930", 60000L));
+		lastDayClosingPriceManager.addPrice("005930", 50000);
+
+		// when
+		PortfolioHoldingsRealTimeResponse response = service.readMyPortfolioStocksInRealTime(portfolio.getId());
+
+		// then
+		assertAll(
+			() -> assertThat(response).extracting("portfolioDetails")
+				.extracting("currentValuation", "totalGain", "totalGainRate", "dailyGain", "dailyGainRate",
+					"provisionalLossBalance")
+				.containsExactlyInAnyOrder(180000L, 30000L, 20, 30000L, 20, 0L),
+
+			() -> assertThat(response).extracting("portfolioHoldings")
+				.asList()
+				.hasSize(1)
+				.extracting("currentValuation", "currentPrice", "dailyChange", "dailyChangeRate", "totalGain",
+					"totalReturnRate")
+				.containsExactlyInAnyOrder(Tuple.tuple(180000L, 60000L, 10000L, 20, 30000L, 20))
 		);
 	}
 
