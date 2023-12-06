@@ -34,7 +34,7 @@ import codesquad.fineants.spring.api.errors.errorcode.OauthErrorCode;
 import codesquad.fineants.spring.api.errors.exception.BadRequestException;
 import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
 import codesquad.fineants.spring.api.member.request.AuthorizationRequest;
-import codesquad.fineants.spring.api.member.request.OauthMemberLoginServiceRequest;
+import codesquad.fineants.spring.api.member.request.OauthMemberLoginRequest;
 import codesquad.fineants.spring.api.member.response.OauthAccessTokenResponse;
 import codesquad.fineants.spring.api.member.response.OauthMemberLoginResponse;
 
@@ -95,7 +95,7 @@ public class MemberServiceTest {
 		given(JWT.decode((String)responseBody.get("id_token"))).willReturn(mockDecodedJWT);
 		given(mockDecodedJWT.getKeyId()).willReturn(kid);
 
-		OauthMemberLoginServiceRequest loginRequest = createOauthMemberLoginServiceRequest(provider, code, redirectUrl,
+		OauthMemberLoginRequest loginRequest = createOauthMemberLoginServiceRequest(provider, code, redirectUrl,
 			state);
 		// when
 		OauthMemberLoginResponse response = memberService.login(loginRequest);
@@ -124,7 +124,7 @@ public class MemberServiceTest {
 			AuthorizationRequest.of(state, codeVerifier, codeChallenge, nonce));
 		memberService.createAuthorizationCodeURL("kakao");
 
-		OauthMemberLoginServiceRequest loginRequest = createOauthMemberLoginServiceRequest(provider,
+		OauthMemberLoginRequest loginRequest = createOauthMemberLoginServiceRequest(provider,
 			code, redirectUrl, state);
 
 		// when
@@ -154,7 +154,7 @@ public class MemberServiceTest {
 			.willThrow(new BadRequestException(OauthErrorCode.FAIL_REQUEST,
 				"{\"error\":\"invalid_grant\",\"error_description\":\"authorization code not found for code=1234\",\"error_code\":\"KOE320\"}"));
 
-		OauthMemberLoginServiceRequest loginRequest = createOauthMemberLoginServiceRequest(provider,
+		OauthMemberLoginRequest loginRequest = createOauthMemberLoginServiceRequest(provider,
 			code, redirectUrl, state);
 
 		// when
@@ -176,7 +176,7 @@ public class MemberServiceTest {
 		String redirectUrl = "http://localhost:5173/signin?provider=kakao";
 		String state = "1234";
 
-		OauthMemberLoginServiceRequest loginRequest = createOauthMemberLoginServiceRequest(provider,
+		OauthMemberLoginRequest loginRequest = createOauthMemberLoginServiceRequest(provider,
 			code, redirectUrl, state);
 		// when
 		Throwable throwable = catchThrowable(() -> memberService.login(loginRequest));
@@ -216,7 +216,7 @@ public class MemberServiceTest {
 		given(webClientWrapper.get(anyString(), any(MultiValueMap.class),
 			any(ParameterizedTypeReference.class))).willReturn(userProfileResponseBody);
 
-		OauthMemberLoginServiceRequest loginRequest = createOauthMemberLoginServiceRequest(provider,
+		OauthMemberLoginRequest loginRequest = createOauthMemberLoginServiceRequest(provider,
 			code, redirectUrl, state);
 		// when
 		OauthMemberLoginResponse response = memberService.login(loginRequest);
@@ -235,9 +235,9 @@ public class MemberServiceTest {
 		return AuthorizationRequest.of(state, codeVerifier, codeChallenge, nonce);
 	}
 
-	private OauthMemberLoginServiceRequest createOauthMemberLoginServiceRequest(String provider, String code,
+	private OauthMemberLoginRequest createOauthMemberLoginServiceRequest(String provider, String code,
 		String redirectUrl, String state) {
-		return OauthMemberLoginServiceRequest.of(provider,
+		return OauthMemberLoginRequest.of(provider,
 			code, redirectUrl, state, LocalDate.of(2023, 11, 8).atStartOfDay());
 	}
 }

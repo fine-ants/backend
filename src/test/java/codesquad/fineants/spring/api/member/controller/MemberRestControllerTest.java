@@ -33,7 +33,7 @@ import codesquad.fineants.domain.oauth.repository.OauthClientRepository;
 import codesquad.fineants.domain.oauth.support.AuthPrincipalArgumentResolver;
 import codesquad.fineants.spring.api.errors.handler.GlobalExceptionHandler;
 import codesquad.fineants.spring.api.member.request.AuthorizationRequest;
-import codesquad.fineants.spring.api.member.request.OauthMemberLoginServiceRequest;
+import codesquad.fineants.spring.api.member.request.OauthMemberLoginRequest;
 import codesquad.fineants.spring.api.member.response.OauthCreateUrlResponse;
 import codesquad.fineants.spring.api.member.response.OauthMemberLoginResponse;
 import codesquad.fineants.spring.api.member.service.MemberService;
@@ -135,7 +135,7 @@ class MemberRestControllerTest {
 
 		Jwt jwt = jwtProvider.createJwtBasedOnMember(member, LocalDateTime.now());
 		OauthMemberLoginResponse mockResponse = OauthMemberLoginResponse.of(jwt, member);
-		given(memberService.login(ArgumentMatchers.any(OauthMemberLoginServiceRequest.class))).willReturn(mockResponse);
+		given(memberService.login(ArgumentMatchers.any(OauthMemberLoginRequest.class))).willReturn(mockResponse);
 		// when
 		mockMvc.perform(post(url)
 				.param("code", code)

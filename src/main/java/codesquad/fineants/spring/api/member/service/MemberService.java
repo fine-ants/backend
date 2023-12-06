@@ -27,7 +27,7 @@ import codesquad.fineants.spring.api.errors.exception.BadRequestException;
 import codesquad.fineants.spring.api.errors.exception.FineAntsException;
 import codesquad.fineants.spring.api.member.request.AuthorizationRequest;
 import codesquad.fineants.spring.api.member.request.LoginRequest;
-import codesquad.fineants.spring.api.member.request.OauthMemberLoginServiceRequest;
+import codesquad.fineants.spring.api.member.request.OauthMemberLoginRequest;
 import codesquad.fineants.spring.api.member.request.OauthMemberLogoutRequest;
 import codesquad.fineants.spring.api.member.request.OauthMemberRefreshRequest;
 import codesquad.fineants.spring.api.member.request.SignUpRequest;
@@ -59,7 +59,7 @@ public class MemberService {
 	private final AmazonS3Service amazonS3Service;
 	private final AuthorizationCodeRandomGenerator authorizationCodeRandomGenerator;
 
-	public OauthMemberLoginResponse login(OauthMemberLoginServiceRequest loginRequest) {
+	public OauthMemberLoginResponse login(OauthMemberLoginRequest loginRequest) {
 		log.info("로그인 서비스 요청 : loginRequest={}", loginRequest);
 		AuthorizationRequest authRequest = authorizationRequestManager.pop(loginRequest.getState());
 		OauthUserProfileResponse profileResponse = getOauthUserProfileResponse(loginRequest, authRequest);
@@ -76,7 +76,7 @@ public class MemberService {
 		return OauthMemberLoginResponse.of(jwt, saveMember);
 	}
 
-	private OauthUserProfileResponse getOauthUserProfileResponse(OauthMemberLoginServiceRequest loginRequest,
+	private OauthUserProfileResponse getOauthUserProfileResponse(OauthMemberLoginRequest loginRequest,
 		AuthorizationRequest authRequest) {
 		OauthClient oauthClient = oauthClientRepository.findOneBy(loginRequest.getProvider());
 		OauthAccessTokenResponse accessTokenResponse = webClientWrapper.post(oauthClient.getTokenUri(),

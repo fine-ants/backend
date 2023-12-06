@@ -10,15 +10,15 @@ import lombok.ToString;
 @Getter
 @ToString
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class OauthMemberLoginServiceRequest {
+public class OauthMemberLoginRequest {
 	private String provider;
 	private String code;
 	private String redirectUrl;
 	private String state;
 	private LocalDateTime requestTime;
 
-	public static OauthMemberLoginServiceRequest of(String provider, String code, String redirectUrl, String state,
+	public static OauthMemberLoginRequest of(String provider, String code, String redirectUrl, String state,
 		LocalDateTime requestTime) {
-		return new OauthMemberLoginServiceRequest(provider, code, redirectUrl, state, requestTime);
+		return new OauthMemberLoginRequest(provider, code, redirectUrl, state, requestTime);
 	}
 }
