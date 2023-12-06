@@ -44,7 +44,7 @@ public class PortfolioHolding extends BaseEntity {
 	@JoinColumn(name = "ticker_symbol")
 	private Stock stock;
 
-	@OneToMany(mappedBy = "portFolioHolding")
+	@OneToMany(mappedBy = "portfolioHolding")
 	private final List<PurchaseHistory> purchaseHistory = new ArrayList<>();
 
 	@Transient

@@ -152,7 +152,7 @@ class PortfolioStockServiceTest {
 			.numShares(3L)
 			.purchasePricePerShare(50000.0)
 			.memo("첫구매")
-			.portFolioHolding(portfolioHolding)
+			.portfolioHolding(portfolioHolding)
 			.build());
 	}
 

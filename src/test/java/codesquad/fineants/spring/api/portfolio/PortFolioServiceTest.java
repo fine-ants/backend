@@ -307,7 +307,7 @@ class PortFolioServiceTest {
 
 		PurchaseHistory purchaseHistory1 = purchaseHistoryRepository.save(
 			PurchaseHistory.builder()
-				.portFolioHolding(portfolioHolding)
+				.portfolioHolding(portfolioHolding)
 				.purchaseDate(LocalDateTime.now())
 				.purchasePricePerShare(10000.0)
 				.numShares(10L)
@@ -316,7 +316,7 @@ class PortFolioServiceTest {
 
 		PurchaseHistory purchaseHistory2 = purchaseHistoryRepository.save(
 			PurchaseHistory.builder()
-				.portFolioHolding(portfolioHolding)
+				.portfolioHolding(portfolioHolding)
 				.purchaseDate(LocalDateTime.now())
 				.purchasePricePerShare(10000.0)
 				.numShares(10L)

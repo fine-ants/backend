@@ -120,7 +120,7 @@ class PortfolioNotificationServiceTest {
 			.numShares(3L)
 			.purchasePricePerShare(50000.0)
 			.memo("첫구매")
-			.portFolioHolding(this.portfolioHolding)
+			.portfolioHolding(this.portfolioHolding)
 			.build());
 	}
 
@@ -187,7 +187,7 @@ class PortfolioNotificationServiceTest {
 			.numShares(100L)
 			.purchasePricePerShare(10000.0)
 			.memo("추가구매")
-			.portFolioHolding(portfolioHolding)
+			.portfolioHolding(portfolioHolding)
 			.build());
 
 		given(currentPriceManager.hasCurrentPrice("005930")).willReturn(true);

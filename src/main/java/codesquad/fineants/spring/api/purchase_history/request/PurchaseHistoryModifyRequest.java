@@ -32,7 +32,7 @@ public class PurchaseHistoryModifyRequest {
 			.numShares(numShares)
 			.purchasePricePerShare(purchasePricePerShare)
 			.memo(memo)
-			.portFolioHolding(portfolioHolding)
+			.portfolioHolding(portfolioHolding)
 			.build();
 	}
 }
