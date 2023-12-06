@@ -6,7 +6,6 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.nio.charset.StandardCharsets;
@@ -20,11 +19,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -108,18 +105,10 @@ class PortfolioStockRestControllerTest {
 			List.of(portfolioHolding),
 			lastDayClosingPriceMap);
 
-		given(portfolioStockService.readMyPortfolioStocks(anyLong(), any(LastDayClosingPriceManager.class)))
-			.willReturn(mockResponse);
+		given(portfolioStockService.readMyPortfolioStocks(anyLong())).willReturn(mockResponse);
 		// when
-		MvcResult result = mockMvc.perform(get("/api/portfolio/{portfolioId}/holdings", portfolio.getId()))
-			.andExpect(request().asyncStarted())
-			.andExpect(status().isOk())
-			.andReturn();
-
-		mockMvc.perform(asyncDispatch(result))
-			.andExpect(status().isOk())
-			.andExpect(content().contentType(MediaType.TEXT_EVENT_STREAM));
-
+		mockMvc.perform(get("/api/portfolio/{portfolioId}/holdings", portfolio.getId()))
+			.andExpect(status().isOk());
 	}
 
 	private static Stock createStock() {
@@ -137,16 +126,11 @@ class PortfolioStockRestControllerTest {
 	void readMyPortfolioStocksWithNotExistPortfolioId() throws Exception {
 		// given
 		long portfolioId = 9999L;
-		given(portfolioStockService.readMyPortfolioStocks(anyLong(), any(LastDayClosingPriceManager.class)))
+		given(portfolioStockService.readMyPortfolioStocks(anyLong()))
 			.willThrow(new NotFoundResourceException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
 
-		// when
-		MvcResult result = mockMvc.perform(get("/api/portfolio/{portfolioId}/holdings", portfolioId))
-			.andExpect(request().asyncStarted())
-			.andReturn();
-
-		// then
-		mockMvc.perform(asyncDispatch(result))
+		// when & then
+		mockMvc.perform(get("/api/portfolio/{portfolioId}/holdings", portfolioId))
 			.andExpect(status().isNotFound())
 			.andExpect(jsonPath("message").value(equalTo("포트폴리오를 찾을 수 없습니다")));
 	}

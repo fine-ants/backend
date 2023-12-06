@@ -20,8 +20,8 @@ import codesquad.fineants.domain.member.MemberRepository;
 import codesquad.fineants.domain.portfolio.Portfolio;
 import codesquad.fineants.domain.portfolio.PortfolioRepository;
 import codesquad.fineants.domain.portfolio_gain_history.PortfolioGainHistoryRepository;
-import codesquad.fineants.domain.portfolio_holding.PortfolioHoldingRepository;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
+import codesquad.fineants.domain.portfolio_holding.PortfolioHoldingRepository;
 import codesquad.fineants.domain.purchase_history.PurchaseHistory;
 import codesquad.fineants.domain.purchase_history.PurchaseHistoryRepository;
 import codesquad.fineants.domain.stock.Market;
@@ -96,8 +96,7 @@ class PortfolioStockServiceTest {
 		currentPriceManager.addCurrentPrice(new CurrentPriceResponse("005930", 60000L));
 		lastDayClosingPriceManager.addPrice("005930", 50000);
 		// when
-		PortfolioHoldingsResponse response = service.readMyPortfolioStocks(portfolio.getId(),
-			lastDayClosingPriceManager);
+		PortfolioHoldingsResponse response = service.readMyPortfolioStocks(portfolio.getId());
 
 		// then
 		assertAll(
