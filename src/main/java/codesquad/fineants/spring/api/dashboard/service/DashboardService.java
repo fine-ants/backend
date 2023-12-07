@@ -3,6 +3,7 @@ package codesquad.fineants.spring.api.dashboard.service;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.member.MemberRepository;
@@ -22,6 +23,7 @@ public class DashboardService {
 	private final MemberRepository memberRepository;
 	private final CurrentPriceManager currentPriceManager;
 
+	@Transactional(readOnly = true)
 	public OverviewResponse getOverview(AuthMember authMember) {
 		List<Portfolio> portfolios = portfolioRepository.findAllByMemberId(authMember.getMemberId());
 		Member member = memberRepository.findById(authMember.getMemberId()).orElseThrow(() -> new BadRequestException(
