@@ -19,6 +19,7 @@ import codesquad.fineants.spring.api.purchase_history.request.PurchaseHistoryMod
 import codesquad.fineants.spring.api.purchase_history.response.PurchaseHistoryDeleteResponse;
 import codesquad.fineants.spring.api.response.ApiResponse;
 import codesquad.fineants.spring.api.success.code.PurchaseHistorySuccessCode;
+import codesquad.fineants.spring.auth.HasAuthorization;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -30,34 +31,41 @@ public class PurchaseHistoryRestController {
 
 	private final PurchaseHistoryService service;
 
+	@HasAuthorization
 	@ResponseStatus(HttpStatus.CREATED)
 	@PostMapping
-	public ApiResponse<Void> addPurchaseHistory(@Valid @RequestBody PurchaseHistoryCreateRequest request,
+	public ApiResponse<Void> addPurchaseHistory(
+		@PathVariable Long portfolioId,
+		@AuthPrincipalMember AuthMember authMember,
 		@PathVariable Long portfolioHoldingId,
-		@AuthPrincipalMember AuthMember authMember) {
+		@Valid @RequestBody PurchaseHistoryCreateRequest request) {
 		log.info("매입 내역 추가 요청 : request={}, portfolioHoldingId={}", request, portfolioHoldingId);
-		service.addPurchaseHistory(request, portfolioHoldingId, authMember);
+		service.addPurchaseHistory(request, portfolioHoldingId);
 		return ApiResponse.success(PurchaseHistorySuccessCode.CREATED_ADD_PURCHASE_HISTORY);
 	}
 
+	@HasAuthorization
 	@PutMapping("/{purchaseHistoryId}")
-	public ApiResponse<Void> modifyPurchaseHistory(@Valid @RequestBody PurchaseHistoryModifyRequest request,
+	public ApiResponse<Void> modifyPurchaseHistory(
+		@PathVariable Long portfolioId,
+		@AuthPrincipalMember AuthMember authMember,
 		@PathVariable Long portfolioHoldingId,
 		@PathVariable Long purchaseHistoryId,
-		@AuthPrincipalMember AuthMember authMember) {
+		@Valid @RequestBody PurchaseHistoryModifyRequest request) {
 		log.info("매입 내역 수정 요청 : request={}, portfolioHoldingId={}", request, portfolioHoldingId);
 		service.modifyPurchaseHistory(request, portfolioHoldingId, purchaseHistoryId, authMember);
 		return ApiResponse.success(PurchaseHistorySuccessCode.OK_MODIFY_PURCHASE_HISTORY);
 	}
 
+	@HasAuthorization
 	@DeleteMapping("/{purchaseHistoryId}")
 	public ApiResponse<Void> deletePurchaseHistory(
+		@PathVariable Long portfolioId,
+		@AuthPrincipalMember AuthMember authMember,
 		@PathVariable Long portfolioHoldingId,
-		@PathVariable Long purchaseHistoryId,
-		@AuthPrincipalMember AuthMember authMember) {
+		@PathVariable Long purchaseHistoryId) {
 		log.info("매입 내역 삭제 요청 : portfolioHoldingId={}, purchaseHistoryId={}", portfolioHoldingId, purchaseHistoryId);
-		PurchaseHistoryDeleteResponse response = service.deletePurchaseHistory(portfolioHoldingId, purchaseHistoryId,
-			authMember);
+		PurchaseHistoryDeleteResponse response = service.deletePurchaseHistory(portfolioHoldingId, purchaseHistoryId);
 		log.info("매입 내역 삭제 결과 : response={}", response);
 		return ApiResponse.success(PurchaseHistorySuccessCode.OK_DELETE_PURCHASE_HISTORY);
 	}
