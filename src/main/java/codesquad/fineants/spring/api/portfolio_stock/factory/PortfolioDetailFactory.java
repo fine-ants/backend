@@ -1,4 +1,4 @@
-package codesquad.fineants.spring.api.portfolio_stock;
+package codesquad.fineants.spring.api.portfolio_stock.factory;
 
 import java.time.LocalDateTime;
 

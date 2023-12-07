@@ -1,4 +1,4 @@
-package codesquad.fineants.spring.api.portfolio_stock;
+package codesquad.fineants.spring.api.portfolio_stock.factory;
 
 import java.util.List;
 import java.util.stream.Collectors;
