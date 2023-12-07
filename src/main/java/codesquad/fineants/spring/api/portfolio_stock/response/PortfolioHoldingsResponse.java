@@ -13,21 +13,21 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class PortfolioHoldingsResponse {
 	private PortfolioDetailResponse portfolioDetails;
-	private List<PortfolioStockItem> portfolioHoldings;
+	private List<PortfolioHoldingItem> portfolioHoldings;
 
 	public static PortfolioHoldingsResponse of(Portfolio portfolio, PortfolioGainHistory history,
 		List<PortfolioHolding> portfolioHoldings, Map<String, Long> lastDayClosingPriceMap) {
 		PortfolioDetailResponse portfolioDetailResponse = PortfolioDetailResponse.from(portfolio, history);
-		List<PortfolioStockItem> portfolioStockItems = portfolioHoldings.stream()
-			.map(portfolioHolding -> PortfolioStockItem.from(portfolioHolding,
+		List<PortfolioHoldingItem> portfolioHoldingItems = portfolioHoldings.stream()
+			.map(portfolioHolding -> PortfolioHoldingItem.from(portfolioHolding,
 				lastDayClosingPriceMap.getOrDefault(portfolioHolding.getStock().getTickerSymbol(), 0L)))
 			.collect(Collectors.toList());
-		return new PortfolioHoldingsResponse(portfolioDetailResponse, portfolioStockItems);
+		return new PortfolioHoldingsResponse(portfolioDetailResponse, portfolioHoldingItems);
 	}
 
 	public static PortfolioHoldingsResponse of(PortfolioDetailResponse portfolioDetail,
-		List<PortfolioStockItem> portfolioStockItems) {
-		return new PortfolioHoldingsResponse(portfolioDetail, portfolioStockItems);
+		List<PortfolioHoldingItem> portfolioHoldingItems) {
+		return new PortfolioHoldingsResponse(portfolioDetail, portfolioHoldingItems);
 	}
 
 	public Long getPortfolioId() {

@@ -8,8 +8,8 @@ import org.springframework.stereotype.Component;
 import codesquad.fineants.domain.portfolio.Portfolio;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
+import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioHoldingItem;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioHoldingRealTimeItem;
-import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioStockItem;
 import lombok.RequiredArgsConstructor;
 
 @Component
@@ -19,11 +19,11 @@ public class PortfolioHoldingDetailFactory {
 	private final CurrentPriceManager manager;
 	private final LastDayClosingPriceManager lastDayClosingPriceManager;
 
-	public List<PortfolioStockItem> createPortfolioStockItems(Portfolio portfolio) {
+	public List<PortfolioHoldingItem> createPortfolioHoldingItems(Portfolio portfolio) {
 		portfolio.applyCurrentPriceAllHoldingsBy(manager);
 
 		return portfolio.getPortfolioHoldings().stream()
-			.map(portfolioHolding -> PortfolioStockItem.from(
+			.map(portfolioHolding -> PortfolioHoldingItem.from(
 				portfolioHolding,
 				portfolioHolding.getLastDayClosingPrice(lastDayClosingPriceManager)))
 			.collect(Collectors.toList());

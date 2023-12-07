@@ -27,6 +27,7 @@ import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioChartResp
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioDetailRealTimeItem;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioDetailResponse;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioDividendChartItem;
+import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioHoldingItem;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioHoldingRealTimeItem;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioHoldingsRealTimeResponse;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioHoldingsResponse;
@@ -34,7 +35,6 @@ import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioPieChartI
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioSectorChartItem;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioStockCreateResponse;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioStockDeleteResponse;
-import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioStockItem;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -104,9 +104,9 @@ public class PortfolioStockService {
 	public PortfolioHoldingsResponse readMyPortfolioStocks(Long portfolioId) {
 		Portfolio portfolio = findPortfolio(portfolioId);
 		PortfolioDetailResponse portfolioDetail = portfolioDetailFactory.createPortfolioDetailItem(portfolio);
-		List<PortfolioStockItem> portfolioStockItems = portfolioHoldingDetailFactory.createPortfolioStockItems(
+		List<PortfolioHoldingItem> portfolioHoldingItems = portfolioHoldingDetailFactory.createPortfolioHoldingItems(
 			portfolio);
-		return PortfolioHoldingsResponse.of(portfolioDetail, portfolioStockItems);
+		return PortfolioHoldingsResponse.of(portfolioDetail, portfolioHoldingItems);
 	}
 
 	public PortfolioHoldingsRealTimeResponse readMyPortfolioStocksInRealTime(Long portfolioId) {
