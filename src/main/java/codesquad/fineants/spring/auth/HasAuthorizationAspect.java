@@ -28,7 +28,6 @@ public class HasAuthorizationAspect {
 	public void hasAuthorization(final HasAuthorization hasAuthorization,
 		@PathVariable final Long portfolioId,
 		@AuthPrincipalMember final AuthMember authMember) {
-		log.info("call hasAuthorization");
 		Portfolio portfolio = portfolioRepository.findById(portfolioId)
 			.orElseThrow(() -> new NotFoundResourceException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
 		if (!portfolio.hasAuthorization(authMember.getMemberId())) {
