@@ -9,7 +9,9 @@ import codesquad.fineants.domain.portfolio_gain_history.PortfolioGainHistory;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.ToString;
 
+@ToString
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class PortfolioHoldingsResponse {
 	private PortfolioDetailResponse portfolioDetails;
