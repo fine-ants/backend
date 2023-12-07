@@ -18,7 +18,8 @@ public enum MemberErrorCode implements ErrorCode {
 	SEND_EMAIL_VERIF_FAIL(HttpStatus.BAD_REQUEST, "이메일 전송이 실패하였습니다"),
 	PROFILE_IMAGE_UPLOAD_FAIL(HttpStatus.BAD_REQUEST, "이미지 파일 업로드가 실패하였습니다."),
 	BAD_SIGNUP_INPUT(HttpStatus.BAD_REQUEST, "잘못된 입력형식입니다."),
-	LOGIN_FAIL(HttpStatus.BAD_REQUEST, "로그인에 실패하였습니다.");
+	LOGIN_FAIL(HttpStatus.BAD_REQUEST, "로그인에 실패하였습니다."),
+	FORBIDDEN_MEMBER(HttpStatus.FORBIDDEN, "권한이 없습니다.");
 
 	private final HttpStatus httpStatus;
 	private final String message;

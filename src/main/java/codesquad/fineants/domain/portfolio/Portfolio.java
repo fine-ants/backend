@@ -82,7 +82,7 @@ public class Portfolio extends BaseEntity {
 	}
 
 	public boolean hasAuthorization(Long memberId) {
-		return member.getId().equals(memberId);
+		return member.hasAuthorization(memberId);
 	}
 
 	// 포트폴리오 총 손익 = 모든 종목 총 손익의 합계
