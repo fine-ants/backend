@@ -13,8 +13,18 @@ public class AuthorizationRequest {
 	private String codeVerifier;
 	private String codeChallenge;
 	private String nonce;
+	private long createTime;
 
 	public static AuthorizationRequest of(String state, String codeVerifier, String codeChallenge, String nonce) {
-		return new AuthorizationRequest(state, codeVerifier, codeChallenge, nonce);
+		return of(state, codeVerifier, codeChallenge, nonce, System.currentTimeMillis());
+	}
+
+	public static AuthorizationRequest of(String state, String codeVerifier, String codeChallenge, String nonce,
+		long createTime) {
+		return new AuthorizationRequest(state, codeVerifier, codeChallenge, nonce, createTime);
+	}
+
+	public boolean isExpiration(long time) {
+		return time - createTime > 60000;
 	}
 }

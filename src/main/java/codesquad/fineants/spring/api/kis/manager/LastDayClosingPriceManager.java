@@ -15,7 +15,7 @@ public class LastDayClosingPriceManager {
 	private final RedisTemplate<String, String> redisTemplate;
 
 	public void addPrice(String tickerSymbol, long price) {
-		redisTemplate.opsForValue().set(String.format(format, tickerSymbol), String.valueOf(price), Duration.ofDays(2));
+		redisTemplate.opsForValue().set(String.format(format, tickerSymbol), String.valueOf(price), Duration.ofDays(1));
 	}
 
 	public Long getPrice(String tickerSymbol) {

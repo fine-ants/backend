@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import codesquad.fineants.spring.api.member.request.LoginRequest;
+import codesquad.fineants.spring.api.member.request.OauthMemberLoginRequest;
 import codesquad.fineants.spring.api.member.request.OauthMemberLogoutRequest;
 import codesquad.fineants.spring.api.member.request.OauthMemberRefreshRequest;
 import codesquad.fineants.spring.api.member.request.SignUpRequest;
@@ -54,7 +55,8 @@ public class MemberRestController {
 		log.info("로그인 컨트롤러 요청 : provider = {}, code = {}, redirectUrl = {}, state = {}", provider, code, redirectUrl,
 			state);
 		return ApiResponse.success(OauthSuccessCode.OK_LOGIN,
-			memberService.login(provider, code, redirectUrl, state, LocalDateTime.now()));
+			memberService.login(
+				OauthMemberLoginRequest.of(provider, code, redirectUrl, state, LocalDateTime.now())));
 	}
 
 	@PostMapping(value = "/logout")

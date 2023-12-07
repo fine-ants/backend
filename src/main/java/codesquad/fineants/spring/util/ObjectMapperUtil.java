@@ -16,7 +16,7 @@ public final class ObjectMapperUtil {
 		try {
 			return objectMapper.writeValueAsString(obj);
 		} catch (JsonProcessingException e) {
-			throw new ServerInternalException(ObjectMapperErrorCode.FAIL_DESERIALIZE);
+			throw new ServerInternalException(ObjectMapperErrorCode.FAIL_SERIALIZE);
 		}
 	}
 

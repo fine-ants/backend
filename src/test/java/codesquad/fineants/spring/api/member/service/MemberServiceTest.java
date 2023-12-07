@@ -1,11 +1,11 @@
 package codesquad.fineants.spring.api.member.service;
 
+import static codesquad.fineants.spring.util.ObjectMapperUtil.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -34,6 +34,7 @@ import codesquad.fineants.spring.api.errors.errorcode.OauthErrorCode;
 import codesquad.fineants.spring.api.errors.exception.BadRequestException;
 import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
 import codesquad.fineants.spring.api.member.request.AuthorizationRequest;
+import codesquad.fineants.spring.api.member.request.OauthMemberLoginRequest;
 import codesquad.fineants.spring.api.member.response.OauthAccessTokenResponse;
 import codesquad.fineants.spring.api.member.response.OauthMemberLoginResponse;
 
@@ -63,28 +64,25 @@ public class MemberServiceTest {
 
 	@DisplayName("사용자가 카카오 로그인합니다.")
 	@Test
-	void login() throws JsonProcessingException {
+	void loginUsingKakao() {
 		// given
 		String provider = "kakao";
 		String code = "1234";
 		String redirectUrl = "http://localhost:5173/signin?provider=kakao";
 		String state = "1234";
-		String codeVerifier = "1234";
-		String codeChallenge = "1234";
-		String nonce = "f46e2977378ed6cdf2f03b5962101f7d";
-		given(authorizationCodeRandomGenerator.generateAuthorizationRequest()).willReturn(
-			AuthorizationRequest.of(state, codeVerifier, codeChallenge, nonce));
+		AuthorizationRequest authorizationRequest = createAuthorizationRequest(state);
+		given(authorizationCodeRandomGenerator.generateAuthorizationRequest()).willReturn(authorizationRequest);
 
 		memberService.createAuthorizationCodeURL(provider);
 
 		Map<String, Object> responseBody = new HashMap<>();
 		responseBody.put("access_token", "accessTokenValue");
-		responseBody.put("scope", "scopeValue");
+		responseBody.put("scope", "openid");
 		responseBody.put("token_type", "Bearer");
 		responseBody.put("id_token",
 			"eyJraWQiOiI5ZjI1MmRhZGQ1ZjIzM2Y5M2QyZmE1MjhkMTJmZWEiLCJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiJkZmIxZTI1YTJiOTdkMDNiMGIyMjVkNDg3NGEzNDgyMyIsInN1YiI6IjMxNjA5OTI1NjMiLCJhdXRoX3RpbWUiOjE2OTk4NjY2MjIsImlzcyI6Imh0dHBzOi8va2F1dGgua2FrYW8uY29tIiwiZXhwIjoxNjk5ODg4MjIyLCJpYXQiOjE2OTk4NjY2MjIsIm5vbmNlIjoiZjQ2ZTI5NzczNzhlZDZjZGYyZjAzYjU5NjIxMDFmN2QiLCJwaWN0dXJlIjoiaHR0cDovL2sua2FrYW9jZG4ubmV0L2RuL2RwazlsMS9idHFtR2hBMmxLTC9PejB3RHVKbjFZVjJESW45MmY2RFZLL2ltZ18xMTB4MTEwLmpwZyIsImVtYWlsIjoiZmluZWFudHMuY29AZ21haWwuY29tIn0.KYRaqSup_joMxGSYoWSa5bEvQRbCR3q_kUydXaDs_otD1fmJFWW3h8UsrKaHyaDT6mMIobeuTAXlhjiY7rxqhr3K3cqj3urZThIJ-h4-5VrANC6aulzyhJB93kcIJUxa2UzI0fe_TyC4pbbGvRnFDci0Iv5CuVZoL0-oLgu5LQFpM1xmNmF_SABKuIU0rV60E_Qs7PsbnodZ_emv4PLEtk1yUD1r5oAr9swtSjLG_uh1d2GXUvcIStIJN871Kp-jolqM1Ce4bp0zULd00x0nGKbPBHmS_J11NYJbjujeg771307w65KCYIPMMqM_1BbEFQghH3jDRdzwP_5_RRKhAg");
-		OauthAccessTokenResponse mockAccessTokenResponse =
-			objectMapper.readValue(objectMapper.writeValueAsString(responseBody), OauthAccessTokenResponse.class);
+		OauthAccessTokenResponse mockAccessTokenResponse = deserialize(serialize(responseBody),
+			OauthAccessTokenResponse.class);
 		given(webClientWrapper.post(anyString(), any(), any(), any())).willReturn(mockAccessTokenResponse);
 
 		MockedStatic<JWT> jwtMockedStatic = mockStatic(JWT.class);
@@ -97,9 +95,12 @@ public class MemberServiceTest {
 		given(JWT.decode((String)responseBody.get("id_token"))).willReturn(mockDecodedJWT);
 		given(mockDecodedJWT.getKeyId()).willReturn(kid);
 
-		OauthMemberLoginResponse response = memberService.login(provider, code, redirectUrl, state,
-			LocalDate.of(2023, 11, 8).atStartOfDay());
+		OauthMemberLoginRequest loginRequest = createOauthMemberLoginServiceRequest(provider, code, redirectUrl,
+			state);
+		// when
+		OauthMemberLoginResponse response = memberService.login(loginRequest);
 
+		// then
 		assertThat(response)
 			.extracting("user")
 			.extracting("email")
@@ -123,9 +124,11 @@ public class MemberServiceTest {
 			AuthorizationRequest.of(state, codeVerifier, codeChallenge, nonce));
 		memberService.createAuthorizationCodeURL("kakao");
 
+		OauthMemberLoginRequest loginRequest = createOauthMemberLoginServiceRequest(provider,
+			code, redirectUrl, state);
+
 		// when
-		Throwable throwable = catchThrowable(
-			() -> memberService.login(provider, code, redirectUrl, state, LocalDateTime.now()));
+		Throwable throwable = catchThrowable(() -> memberService.login(loginRequest));
 
 		// then
 		assertThat(throwable)
@@ -151,9 +154,11 @@ public class MemberServiceTest {
 			.willThrow(new BadRequestException(OauthErrorCode.FAIL_REQUEST,
 				"{\"error\":\"invalid_grant\",\"error_description\":\"authorization code not found for code=1234\",\"error_code\":\"KOE320\"}"));
 
+		OauthMemberLoginRequest loginRequest = createOauthMemberLoginServiceRequest(provider,
+			code, redirectUrl, state);
+
 		// when
-		Throwable throwable = catchThrowable(
-			() -> memberService.login(provider, code, redirectUrl, state, LocalDateTime.now()));
+		Throwable throwable = catchThrowable(() -> memberService.login(loginRequest));
 
 		// then
 		assertThat(throwable)
@@ -171,9 +176,10 @@ public class MemberServiceTest {
 		String redirectUrl = "http://localhost:5173/signin?provider=kakao";
 		String state = "1234";
 
+		OauthMemberLoginRequest loginRequest = createOauthMemberLoginServiceRequest(provider,
+			code, redirectUrl, state);
 		// when
-		Throwable throwable = catchThrowable(
-			() -> memberService.login(provider, code, redirectUrl, state, LocalDateTime.now()));
+		Throwable throwable = catchThrowable(() -> memberService.login(loginRequest));
 
 		// then
 		assertThat(throwable)
@@ -209,9 +215,11 @@ public class MemberServiceTest {
 			Map.of("email", "qkdlfjtm119@naver.com", "profile_image", "profile_image"));
 		given(webClientWrapper.get(anyString(), any(MultiValueMap.class),
 			any(ParameterizedTypeReference.class))).willReturn(userProfileResponseBody);
+
+		OauthMemberLoginRequest loginRequest = createOauthMemberLoginServiceRequest(provider,
+			code, redirectUrl, state);
 		// when
-		OauthMemberLoginResponse response = memberService.login(provider, code, redirectUrl, state,
-			LocalDate.of(2023, 11, 8).atStartOfDay());
+		OauthMemberLoginResponse response = memberService.login(loginRequest);
 
 		// then
 		assertThat(response)
@@ -220,4 +228,16 @@ public class MemberServiceTest {
 			.isEqualTo("qkdlfjtm119@naver.com");
 	}
 
+	private AuthorizationRequest createAuthorizationRequest(String state) {
+		String codeVerifier = "1234";
+		String codeChallenge = "1234";
+		String nonce = "f46e2977378ed6cdf2f03b5962101f7d";
+		return AuthorizationRequest.of(state, codeVerifier, codeChallenge, nonce);
+	}
+
+	private OauthMemberLoginRequest createOauthMemberLoginServiceRequest(String provider, String code,
+		String redirectUrl, String state) {
+		return OauthMemberLoginRequest.of(provider,
+			code, redirectUrl, state, LocalDate.of(2023, 11, 8).atStartOfDay());
+	}
 }

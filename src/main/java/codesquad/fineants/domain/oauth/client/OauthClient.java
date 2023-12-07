@@ -2,6 +2,8 @@ package codesquad.fineants.domain.oauth.client;
 
 import static org.springframework.http.HttpHeaders.*;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.security.interfaces.RSAPublicKey;
 import java.time.LocalDateTime;
@@ -16,6 +18,7 @@ import com.auth0.jwk.InvalidPublicKeyException;
 import com.auth0.jwk.Jwk;
 import com.auth0.jwk.JwkException;
 import com.auth0.jwk.JwkProvider;
+import com.auth0.jwk.UrlJwkProvider;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
@@ -26,8 +29,6 @@ import codesquad.fineants.spring.api.errors.exception.BadRequestException;
 import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
 import codesquad.fineants.spring.api.member.request.AuthorizationRequest;
 import codesquad.fineants.spring.api.member.response.OauthUserProfileResponse;
-import codesquad.fineants.spring.api.member.service.JwkProviderSingleton;
-import codesquad.fineants.spring.util.ObjectMapperUtil;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -69,13 +70,14 @@ public abstract class OauthClient {
 		String payload = idToken.split(separatorRegex)[payloadIndex];
 		byte[] decodedBytes = Base64.getUrlDecoder().decode(payload);
 		String decodedPayload = new String(decodedBytes, StandardCharsets.UTF_8);
-		DecodedIdTokenPayload decodedIdTokenPayload = ObjectMapperUtil.deserialize(decodedPayload,
-			DecodedIdTokenPayload.class);
+		DecodedIdTokenPayload decodedIdTokenPayload = deserializeDecodedPayload(decodedPayload);
 
 		validateSign(idToken);
 		validatePayload(decodedIdTokenPayload, now, nonce);
 		return decodedIdTokenPayload;
 	}
+
+	protected abstract DecodedIdTokenPayload deserializeDecodedPayload(String decodedPayload);
 
 	public abstract void validatePayload(DecodedIdTokenPayload payload, LocalDateTime now, String nonce);
 
@@ -90,11 +92,18 @@ public abstract class OauthClient {
 		}
 
 		// 공개키 프로바이더 준비
-		JwkProvider provider = JwkProviderSingleton.getInstance(getPublicKeyUri());
+		JwkProvider provider;
+		try {
+			provider = new UrlJwkProvider(new URL(getPublicKeyUri()));
+		} catch (MalformedURLException e) {
+			throw new RuntimeException(e);
+		}
+
 		Jwk jwk;
 		try {
 			jwk = provider.get(kid);
 		} catch (JwkException e) {
+			log.error(e.getMessage());
 			throw new NotFoundResourceException(JwkErrorCode.NOT_FOUND_SIGNING_KEY);
 		}
 
