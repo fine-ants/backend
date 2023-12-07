@@ -155,7 +155,7 @@ class PortfolioStockRestControllerTest {
 			.andExpect(content().contentType(MediaType.TEXT_EVENT_STREAM));
 	}
 
-	@DisplayName("사용자의 포트폴리오 상세 정보를 SSE로 가져온다")
+	@DisplayName("존재하지 않은 포트폴리오 등록번호를 가지고 상세 데이터를 조회할 수 없다")
 	@Test
 	void readMyPortfolioStocksInRealTimeWithNotExistPortfolioId() throws Exception {
 		// given
