@@ -35,13 +35,13 @@ import codesquad.fineants.spring.api.portfolio.request.PortfolioCreateRequest;
 import codesquad.fineants.spring.api.portfolio.request.PortfolioModifyRequest;
 import codesquad.fineants.spring.api.portfolio.response.PortFolioCreateResponse;
 import codesquad.fineants.spring.api.portfolio.response.PortfolioModifyResponse;
-import codesquad.fineants.spring.auth.HasAuthorizationAspect;
+import codesquad.fineants.spring.auth.HasPortfolioAuthorizationAspect;
 import codesquad.fineants.spring.config.JpaAuditingConfiguration;
 import codesquad.fineants.spring.config.SpringConfig;
 
 @ActiveProfiles("test")
 @WebMvcTest(controllers = PortFolioRestController.class)
-@Import(value = {SpringConfig.class, HasAuthorizationAspect.class})
+@Import(value = {SpringConfig.class, HasPortfolioAuthorizationAspect.class})
 @MockBean(JpaAuditingConfiguration.class)
 class PortFolioRestControllerTest {
 

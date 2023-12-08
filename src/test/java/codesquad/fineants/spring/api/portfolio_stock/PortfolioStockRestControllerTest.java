@@ -47,13 +47,13 @@ import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioDetailRea
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioHoldingRealTimeItem;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioHoldingsRealTimeResponse;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioHoldingsResponse;
-import codesquad.fineants.spring.auth.HasAuthorizationAspect;
+import codesquad.fineants.spring.auth.HasPortfolioAuthorizationAspect;
 import codesquad.fineants.spring.config.JpaAuditingConfiguration;
 import codesquad.fineants.spring.config.SpringConfig;
 
 @ActiveProfiles("test")
 @WebMvcTest(controllers = PortfolioStockRestController.class)
-@Import(value = {SpringConfig.class, HasAuthorizationAspect.class})
+@Import(value = {SpringConfig.class, HasPortfolioAuthorizationAspect.class})
 @MockBean(JpaAuditingConfiguration.class)
 class PortfolioStockRestControllerTest {
 	private MockMvc mockMvc;

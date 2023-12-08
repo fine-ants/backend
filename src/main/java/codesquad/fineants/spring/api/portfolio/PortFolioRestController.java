@@ -22,7 +22,7 @@ import codesquad.fineants.spring.api.portfolio.response.PortFolioCreateResponse;
 import codesquad.fineants.spring.api.portfolio.response.PortfoliosResponse;
 import codesquad.fineants.spring.api.response.ApiResponse;
 import codesquad.fineants.spring.api.success.code.PortfolioSuccessCode;
-import codesquad.fineants.spring.auth.HasAuthorization;
+import codesquad.fineants.spring.auth.HasPortfolioAuthorization;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -43,7 +43,7 @@ public class PortFolioRestController {
 		return ApiResponse.success(PortfolioSuccessCode.CREATED_ADD_PORTFOLIO, response);
 	}
 
-	@HasAuthorization
+	@HasPortfolioAuthorization
 	@PutMapping("/{portfolioId}")
 	public ApiResponse<Void> modifyPortfolio(@PathVariable Long portfolioId,
 		@AuthPrincipalMember AuthMember authMember,
@@ -53,7 +53,7 @@ public class PortFolioRestController {
 		return ApiResponse.success(PortfolioSuccessCode.OK_MODIFY_PORTFOLIO);
 	}
 
-	@HasAuthorization
+	@HasPortfolioAuthorization
 	@DeleteMapping("/{portfolioId}")
 	public ApiResponse<Void> deletePortfolio(@PathVariable Long portfolioId,
 		@AuthPrincipalMember AuthMember authMember) {

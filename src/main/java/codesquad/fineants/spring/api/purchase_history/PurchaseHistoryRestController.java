@@ -19,7 +19,7 @@ import codesquad.fineants.spring.api.purchase_history.request.PurchaseHistoryMod
 import codesquad.fineants.spring.api.purchase_history.response.PurchaseHistoryDeleteResponse;
 import codesquad.fineants.spring.api.response.ApiResponse;
 import codesquad.fineants.spring.api.success.code.PurchaseHistorySuccessCode;
-import codesquad.fineants.spring.auth.HasAuthorization;
+import codesquad.fineants.spring.auth.HasPortfolioAuthorization;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -31,7 +31,7 @@ public class PurchaseHistoryRestController {
 
 	private final PurchaseHistoryService service;
 
-	@HasAuthorization
+	@HasPortfolioAuthorization
 	@ResponseStatus(HttpStatus.CREATED)
 	@PostMapping
 	public ApiResponse<Void> addPurchaseHistory(
@@ -44,7 +44,7 @@ public class PurchaseHistoryRestController {
 		return ApiResponse.success(PurchaseHistorySuccessCode.CREATED_ADD_PURCHASE_HISTORY);
 	}
 
-	@HasAuthorization
+	@HasPortfolioAuthorization
 	@PutMapping("/{purchaseHistoryId}")
 	public ApiResponse<Void> modifyPurchaseHistory(
 		@PathVariable Long portfolioId,
@@ -57,7 +57,7 @@ public class PurchaseHistoryRestController {
 		return ApiResponse.success(PurchaseHistorySuccessCode.OK_MODIFY_PURCHASE_HISTORY);
 	}
 
-	@HasAuthorization
+	@HasPortfolioAuthorization
 	@DeleteMapping("/{purchaseHistoryId}")
 	public ApiResponse<Void> deletePurchaseHistory(
 		@PathVariable Long portfolioId,

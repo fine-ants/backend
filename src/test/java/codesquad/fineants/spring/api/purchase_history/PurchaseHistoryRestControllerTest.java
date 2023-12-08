@@ -38,13 +38,13 @@ import codesquad.fineants.domain.purchase_history.PurchaseHistory;
 import codesquad.fineants.domain.stock.Market;
 import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.spring.api.errors.handler.GlobalExceptionHandler;
-import codesquad.fineants.spring.auth.HasAuthorizationAspect;
+import codesquad.fineants.spring.auth.HasPortfolioAuthorizationAspect;
 import codesquad.fineants.spring.config.JpaAuditingConfiguration;
 import codesquad.fineants.spring.config.SpringConfig;
 
 @ActiveProfiles("test")
 @WebMvcTest(controllers = PurchaseHistoryRestController.class)
-@Import(value = {SpringConfig.class, HasAuthorizationAspect.class})
+@Import(value = {SpringConfig.class, HasPortfolioAuthorizationAspect.class})
 @MockBean(JpaAuditingConfiguration.class)
 class PurchaseHistoryRestControllerTest {
 

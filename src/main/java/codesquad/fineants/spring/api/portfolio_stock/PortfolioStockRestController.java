@@ -26,7 +26,7 @@ import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioChartResp
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioHoldingsResponse;
 import codesquad.fineants.spring.api.response.ApiResponse;
 import codesquad.fineants.spring.api.success.code.PortfolioStockSuccessCode;
-import codesquad.fineants.spring.auth.HasAuthorization;
+import codesquad.fineants.spring.auth.HasPortfolioAuthorization;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -41,7 +41,7 @@ public class PortfolioStockRestController {
 	private final PortfolioStockService portfolioStockService;
 	private final StockMarketChecker stockMarketChecker;
 
-	@HasAuthorization
+	@HasPortfolioAuthorization
 	@ResponseStatus(HttpStatus.CREATED)
 	@PostMapping("/holdings")
 	public ApiResponse<Void> addPortfolioStock(@PathVariable Long portfolioId,
@@ -51,7 +51,7 @@ public class PortfolioStockRestController {
 		return ApiResponse.success(PortfolioStockSuccessCode.CREATED_ADD_PORTFOLIO_STOCK);
 	}
 
-	@HasAuthorization
+	@HasPortfolioAuthorization
 	@DeleteMapping("/holdings/{portfolioHoldingId}")
 	public ApiResponse<Void> deletePortfolioStock(@PathVariable Long portfolioId,
 		@AuthPrincipalMember AuthMember authMember,
@@ -60,7 +60,7 @@ public class PortfolioStockRestController {
 		return ApiResponse.success(PortfolioStockSuccessCode.OK_DELETE_PORTFOLIO_STOCK);
 	}
 
-	@HasAuthorization
+	@HasPortfolioAuthorization
 	@GetMapping("/holdings")
 	public ApiResponse<PortfolioHoldingsResponse> readMyPortfolioStocks(@PathVariable Long portfolioId,
 		@AuthPrincipalMember AuthMember authMember) {
@@ -68,7 +68,7 @@ public class PortfolioStockRestController {
 			portfolioStockService.readMyPortfolioStocks(portfolioId));
 	}
 
-	@HasAuthorization
+	@HasPortfolioAuthorization
 	@GetMapping("/holdings/realtime")
 	public SseEmitter readMyPortfolioStocksInRealTime(@PathVariable Long portfolioId,
 		@AuthPrincipalMember AuthMember authMember) {
@@ -112,7 +112,7 @@ public class PortfolioStockRestController {
 		}
 	}
 
-	@HasAuthorization
+	@HasPortfolioAuthorization
 	@GetMapping("/charts")
 	public ApiResponse<PortfolioChartResponse> readMyPortfolioCharts(@PathVariable Long portfolioId,
 		@AuthPrincipalMember AuthMember authMember) {

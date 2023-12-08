@@ -14,7 +14,7 @@ import codesquad.fineants.spring.api.portfolio_notification.request.PortfolioNot
 import codesquad.fineants.spring.api.portfolio_notification.response.PortfolioNotificationModifyResponse;
 import codesquad.fineants.spring.api.response.ApiResponse;
 import codesquad.fineants.spring.api.success.code.PortfolioSuccessCode;
-import codesquad.fineants.spring.auth.HasAuthorization;
+import codesquad.fineants.spring.auth.HasPortfolioAuthorization;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -26,7 +26,7 @@ public class PortfolioNotificationRestController {
 
 	private final PortfolioNotificationService service;
 
-	@HasAuthorization
+	@HasPortfolioAuthorization
 	@PutMapping("/targetGain")
 	public ApiResponse<Void> modifyNotificationTargetGain(
 		@PathVariable Long portfolioId,
@@ -41,7 +41,7 @@ public class PortfolioNotificationRestController {
 		return ApiResponse.success(PortfolioSuccessCode.OK_MODIFY_PORTFOLIO_TARGET_GAIN_INACTIVE_NOTIFICATION);
 	}
 
-	@HasAuthorization
+	@HasPortfolioAuthorization
 	@PutMapping("/maxLoss")
 	public ApiResponse<Void> modifyNotificationMaximumLoss(
 		@PathVariable Long portfolioId,

@@ -11,6 +11,6 @@ import org.springframework.core.annotation.Order;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 @Order(Ordered.HIGHEST_PRECEDENCE)
-public @interface HasAuthorization {
+public @interface HasPortfolioAuthorization {
 
 }

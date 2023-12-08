@@ -20,12 +20,12 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Aspect
 @Component
-public class HasAuthorizationAspect {
+public class HasPortfolioAuthorizationAspect {
 
 	private final PortfolioRepository portfolioRepository;
 
-	@Before(value = "within(@org.springframework.web.bind.annotation.RestController *) && @annotation(hasAuthorization) && args(portfolioId, authMember, ..)", argNames = "hasAuthorization,portfolioId,authMember")
-	public void hasAuthorization(final HasAuthorization hasAuthorization,
+	@Before(value = "within(@org.springframework.web.bind.annotation.RestController *) && @annotation(hasPortfolioAuthorization) && args(portfolioId, authMember, ..)", argNames = "hasPortfolioAuthorization,portfolioId,authMember")
+	public void hasAuthorization(final HasPortfolioAuthorization hasPortfolioAuthorization,
 		@PathVariable final Long portfolioId,
 		@AuthPrincipalMember final AuthMember authMember) {
 		Portfolio portfolio = portfolioRepository.findById(portfolioId)

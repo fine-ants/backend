@@ -40,13 +40,13 @@ import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.spring.api.errors.handler.GlobalExceptionHandler;
 import codesquad.fineants.spring.api.portfolio_notification.request.PortfolioNotificationModifyRequest;
 import codesquad.fineants.spring.api.portfolio_notification.response.PortfolioNotificationModifyResponse;
-import codesquad.fineants.spring.auth.HasAuthorizationAspect;
+import codesquad.fineants.spring.auth.HasPortfolioAuthorizationAspect;
 import codesquad.fineants.spring.config.JpaAuditingConfiguration;
 import codesquad.fineants.spring.config.SpringConfig;
 
 @ActiveProfiles("test")
 @WebMvcTest(controllers = PortfolioNotificationRestController.class)
-@Import(value = {SpringConfig.class, HasAuthorizationAspect.class})
+@Import(value = {SpringConfig.class, HasPortfolioAuthorizationAspect.class})
 @MockBean(JpaAuditingConfiguration.class)
 class PortfolioNotificationRestControllerTest {
 
