@@ -22,6 +22,7 @@ import codesquad.fineants.spring.api.portfolio.response.PortFolioCreateResponse;
 import codesquad.fineants.spring.api.portfolio.response.PortfoliosResponse;
 import codesquad.fineants.spring.api.response.ApiResponse;
 import codesquad.fineants.spring.api.success.code.PortfolioSuccessCode;
+import codesquad.fineants.spring.auth.HasAuthorization;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -42,18 +43,19 @@ public class PortFolioRestController {
 		return ApiResponse.success(PortfolioSuccessCode.CREATED_ADD_PORTFOLIO, response);
 	}
 
+	@HasAuthorization
 	@PutMapping("/{portfolioId}")
-	public ApiResponse<Void> modifyPortfolio(@Valid @RequestBody PortfolioModifyRequest request,
-		@PathVariable Long portfolioId,
-		@AuthPrincipalMember AuthMember authMember) {
+	public ApiResponse<Void> modifyPortfolio(@PathVariable Long portfolioId,
+		@AuthPrincipalMember AuthMember authMember,
+		@Valid @RequestBody PortfolioModifyRequest request) {
 		log.info("포트폴리오 수정 요청, request={}", request);
 		portFolioService.modifyPortfolio(request, portfolioId, authMember);
 		return ApiResponse.success(PortfolioSuccessCode.OK_MODIFY_PORTFOLIO);
 	}
 
+	@HasAuthorization
 	@DeleteMapping("/{portfolioId}")
-	public ApiResponse<Void> deletePortfolio(
-		@PathVariable Long portfolioId,
+	public ApiResponse<Void> deletePortfolio(@PathVariable Long portfolioId,
 		@AuthPrincipalMember AuthMember authMember) {
 		log.info("포트폴리오 삭제 요청, portfolioId={}", portfolioId);
 		portFolioService.deletePortfolio(portfolioId, authMember);
