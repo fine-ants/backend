@@ -18,6 +18,7 @@ import codesquad.fineants.domain.BaseEntity;
 import codesquad.fineants.domain.purchase_history.PurchaseHistory;
 import codesquad.fineants.domain.stock_dividend.StockDividend;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
+import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -96,5 +97,9 @@ public class Stock extends BaseEntity {
 
 	public Long getCurrentPrice(CurrentPriceManager manager) {
 		return manager.getCurrentPrice(tickerSymbol);
+	}
+
+	public Long getLastDayClosingPrice(LastDayClosingPriceManager manager) {
+		return manager.getPrice(tickerSymbol);
 	}
 }

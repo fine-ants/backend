@@ -19,13 +19,11 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.oauth.support.AuthPrincipalMember;
-import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
 import codesquad.fineants.spring.api.portfolio_stock.request.PortfolioStockCreateRequest;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioChartResponse;
+import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioHoldingsResponse;
 import codesquad.fineants.spring.api.response.ApiResponse;
 import codesquad.fineants.spring.api.success.code.PortfolioStockSuccessCode;
 import lombok.RequiredArgsConstructor;
@@ -40,9 +38,7 @@ public class PortfolioStockRestController {
 	private static final ScheduledExecutorService sseExecutor = Executors.newScheduledThreadPool(100);
 
 	private final PortfolioStockService portfolioStockService;
-	private final LastDayClosingPriceManager lastDayClosingPriceManager;
 	private final StockMarketChecker stockMarketChecker;
-	private final ObjectMapper objectMapper;
 
 	@ResponseStatus(HttpStatus.CREATED)
 	@PostMapping("/holdings")
@@ -62,7 +58,13 @@ public class PortfolioStockRestController {
 	}
 
 	@GetMapping("/holdings")
-	public SseEmitter readMyPortfolioStocks(@PathVariable Long portfolioId) {
+	public ApiResponse<PortfolioHoldingsResponse> readMyPortfolioStocks(@PathVariable Long portfolioId) {
+		return ApiResponse.success(PortfolioStockSuccessCode.OK_READ_PORTFOLIO_STOCKS,
+			portfolioStockService.readMyPortfolioStocks(portfolioId));
+	}
+
+	@GetMapping("/holdings/realtime")
+	public SseEmitter readMyPortfolioStocksInRealTime(@PathVariable Long portfolioId) {
 		SseEmitter emitter = new SseEmitter(Duration.ofHours(10).toMillis());
 		emitter.onTimeout(emitter::complete);
 
@@ -79,7 +81,8 @@ public class PortfolioStockRestController {
 		Runnable task = () -> {
 			try {
 				emitter.send(SseEmitter.event()
-					.data(portfolioStockService.readMyPortfolioStocks(portfolioId, lastDayClosingPriceManager))
+					.data(
+						portfolioStockService.readMyPortfolioStocksInRealTime(portfolioId))
 					.name("sse event - myPortfolioStocks"));
 				log.info("send message");
 				if (isComplete) {

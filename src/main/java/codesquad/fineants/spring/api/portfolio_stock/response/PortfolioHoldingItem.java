@@ -10,7 +10,7 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class PortfolioStockItem {
+public class PortfolioHoldingItem {
 
 	@JsonUnwrapped
 	private StockItem stock;
@@ -18,13 +18,13 @@ public class PortfolioStockItem {
 	private PortfolioHoldingDetailItem portfolioHolding;
 	private List<PurchaseHistoryItem> purchaseHistory;
 
-	public static PortfolioStockItem from(PortfolioHolding portfolioHolding, long lastDayClosingPrice) {
+	public static PortfolioHoldingItem from(PortfolioHolding portfolioHolding, long lastDayClosingPrice) {
 		StockItem stockItem = StockItem.from(portfolioHolding.getStock());
 		PortfolioHoldingDetailItem holdingDetailItem = PortfolioHoldingDetailItem.from(portfolioHolding,
 			lastDayClosingPrice);
 		List<PurchaseHistoryItem> purchaseHistory = portfolioHolding.getPurchaseHistory().stream()
 			.map(PurchaseHistoryItem::from)
 			.collect(Collectors.toList());
-		return new PortfolioStockItem(stockItem, holdingDetailItem, purchaseHistory);
+		return new PortfolioHoldingItem(stockItem, holdingDetailItem, purchaseHistory);
 	}
 }

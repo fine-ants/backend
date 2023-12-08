@@ -2,8 +2,8 @@ package codesquad.fineants.domain.portfolio_holding;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.LongStream;
 import java.util.Map;
+import java.util.stream.LongStream;
 
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -21,6 +21,7 @@ import codesquad.fineants.domain.purchase_history.PurchaseHistory;
 import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.domain.stock_dividend.StockDividend;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
+import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioPieChartItem;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -199,5 +200,9 @@ public class PortfolioHolding extends BaseEntity {
 		Long totalGain = calculateTotalGain();
 		Double totalReturnRate = calculateTotalReturnRate().doubleValue();
 		return new PortfolioPieChartItem(name, currentValuation, weight, totalGain, totalReturnRate);
+	}
+
+	public Long getLastDayClosingPrice(LastDayClosingPriceManager manager) {
+		return stock.getLastDayClosingPrice(manager);
 	}
 }

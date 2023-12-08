@@ -27,8 +27,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.oauth.support.AuthPrincipalArgumentResolver;
@@ -42,6 +40,9 @@ import codesquad.fineants.spring.api.errors.errorcode.PortfolioErrorCode;
 import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
 import codesquad.fineants.spring.api.errors.handler.GlobalExceptionHandler;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
+import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioDetailRealTimeItem;
+import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioHoldingRealTimeItem;
+import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioHoldingsRealTimeResponse;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioHoldingsResponse;
 import codesquad.fineants.spring.config.JpaAuditingConfiguration;
 
@@ -59,9 +60,6 @@ class PortfolioStockRestControllerTest {
 
 	@Autowired
 	private MappingJackson2HttpMessageConverter converter;
-
-	@Autowired
-	private ObjectMapper objectMapper;
 
 	@MockBean
 	private AuthPrincipalArgumentResolver authPrincipalArgumentResolver;
@@ -108,28 +106,10 @@ class PortfolioStockRestControllerTest {
 			List.of(portfolioHolding),
 			lastDayClosingPriceMap);
 
-		given(portfolioStockService.readMyPortfolioStocks(anyLong(), any(LastDayClosingPriceManager.class)))
-			.willReturn(mockResponse);
-		// when
-		MvcResult result = mockMvc.perform(get("/api/portfolio/{portfolioId}/holdings", portfolio.getId()))
-			.andExpect(request().asyncStarted())
-			.andExpect(status().isOk())
-			.andReturn();
-
-		mockMvc.perform(asyncDispatch(result))
-			.andExpect(status().isOk())
-			.andExpect(content().contentType(MediaType.TEXT_EVENT_STREAM));
-
-	}
-
-	private static Stock createStock() {
-		return Stock.builder()
-			.tickerSymbol("005930")
-			.companyName("삼성전자보통주")
-			.companyNameEng("SamsungElectronics")
-			.stockCode("KR7005930003")
-			.market(Market.KOSPI)
-			.build();
+		given(portfolioStockService.readMyPortfolioStocks(anyLong())).willReturn(mockResponse);
+		// when & then
+		mockMvc.perform(get("/api/portfolio/{portfolioId}/holdings", portfolio.getId()))
+			.andExpect(status().isOk());
 	}
 
 	@DisplayName("존재하지 않는 포트폴리오 번호를 가지고 포트폴리오 상세 정보를 가져올 수 없다")
@@ -137,11 +117,54 @@ class PortfolioStockRestControllerTest {
 	void readMyPortfolioStocksWithNotExistPortfolioId() throws Exception {
 		// given
 		long portfolioId = 9999L;
-		given(portfolioStockService.readMyPortfolioStocks(anyLong(), any(LastDayClosingPriceManager.class)))
+		given(portfolioStockService.readMyPortfolioStocks(anyLong()))
+			.willThrow(new NotFoundResourceException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
+
+		// when & then
+		mockMvc.perform(get("/api/portfolio/{portfolioId}/holdings", portfolioId))
+			.andExpect(status().isNotFound())
+			.andExpect(jsonPath("message").value(equalTo("포트폴리오를 찾을 수 없습니다")));
+	}
+
+	@DisplayName("사용자의 포트폴리오 상세 정보를 SSE로 가져온다")
+	@Test
+	void readMyPortfolioStocksInRealTime() throws Exception {
+		// given
+		Member member = createMember();
+		Portfolio portfolio = createPortfolio(member);
+		Stock stock = createStock();
+		PortfolioHolding portfolioHolding = createPortfolioHolding(portfolio, stock);
+		portfolioHolding.addPurchaseHistory(createPurchaseHistory(portfolioHolding));
+		portfolio.addPortfolioStock(portfolioHolding);
+		PortfolioGainHistory history = createEmptyPortfolioGainHistory();
+
+		PortfolioHoldingsRealTimeResponse mockResponse = PortfolioHoldingsRealTimeResponse.of(
+			PortfolioDetailRealTimeItem.of(portfolio, history),
+			List.of(PortfolioHoldingRealTimeItem.of(portfolioHolding, 50000L))
+		);
+
+		given(portfolioStockService.readMyPortfolioStocksInRealTime(anyLong())).willReturn(mockResponse);
+		// when & then
+		MvcResult result = mockMvc.perform(get("/api/portfolio/{portfolioId}/holdings/realtime", portfolio.getId()))
+			.andExpect(request().asyncStarted())
+			.andExpect(status().isOk())
+			.andReturn();
+
+		mockMvc.perform(asyncDispatch(result))
+			.andExpect(status().isOk())
+			.andExpect(content().contentType(MediaType.TEXT_EVENT_STREAM));
+	}
+
+	@DisplayName("존재하지 않은 포트폴리오 등록번호를 가지고 상세 데이터를 조회할 수 없다")
+	@Test
+	void readMyPortfolioStocksInRealTimeWithNotExistPortfolioId() throws Exception {
+		// given
+		long portfolioId = 9999L;
+		given(portfolioStockService.readMyPortfolioStocksInRealTime(anyLong()))
 			.willThrow(new NotFoundResourceException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
 
 		// when
-		MvcResult result = mockMvc.perform(get("/api/portfolio/{portfolioId}/holdings", portfolioId))
+		MvcResult result = mockMvc.perform(get("/api/portfolio/{portfolioId}/holdings/realtime", portfolioId))
 			.andExpect(request().asyncStarted())
 			.andReturn();
 
@@ -149,6 +172,16 @@ class PortfolioStockRestControllerTest {
 		mockMvc.perform(asyncDispatch(result))
 			.andExpect(status().isNotFound())
 			.andExpect(jsonPath("message").value(equalTo("포트폴리오를 찾을 수 없습니다")));
+	}
+
+	private Stock createStock() {
+		return Stock.builder()
+			.tickerSymbol("005930")
+			.companyName("삼성전자보통주")
+			.companyNameEng("SamsungElectronics")
+			.stockCode("KR7005930003")
+			.market(Market.KOSPI)
+			.build();
 	}
 
 	private static Member createMember() {

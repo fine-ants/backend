@@ -66,7 +66,7 @@ public class KisService {
 			.filter(this::hasAllCurrentPrice)
 			.map(PortfolioSubscription::getPortfolioId)
 			.map(portfolioId -> CompletableFuture.supplyAsync(
-					() -> portfolioStockService.readMyPortfolioStocks(portfolioId, lastDayClosingPriceManager),
+					() -> portfolioStockService.readMyPortfolioStocks(portfolioId),
 					portfolioDetailExecutor)
 				.exceptionally(e -> {
 					log.info(e.getMessage(), e);
@@ -85,7 +85,7 @@ public class KisService {
 		return CompletableFuture.supplyAsync(() ->
 			portfolioSubscriptionManager.getPortfolioSubscription(portfolioId)
 				.map(PortfolioSubscription::getPortfolioId)
-				.map(id -> portfolioStockService.readMyPortfolioStocks(id, lastDayClosingPriceManager))
+				.map(portfolioStockService::readMyPortfolioStocks)
 				.orElse(null));
 	}
 
