@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -16,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -27,15 +29,19 @@ import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.oauth.support.AuthPrincipalArgumentResolver;
 import codesquad.fineants.domain.portfolio.Portfolio;
+import codesquad.fineants.domain.portfolio.PortfolioRepository;
 import codesquad.fineants.spring.api.errors.handler.GlobalExceptionHandler;
 import codesquad.fineants.spring.api.portfolio.request.PortfolioCreateRequest;
 import codesquad.fineants.spring.api.portfolio.request.PortfolioModifyRequest;
 import codesquad.fineants.spring.api.portfolio.response.PortFolioCreateResponse;
 import codesquad.fineants.spring.api.portfolio.response.PortfolioModifyResponse;
+import codesquad.fineants.spring.auth.HasAuthorizationAspect;
 import codesquad.fineants.spring.config.JpaAuditingConfiguration;
+import codesquad.fineants.spring.config.SpringConfig;
 
 @ActiveProfiles("test")
 @WebMvcTest(controllers = PortFolioRestController.class)
+@Import(value = {SpringConfig.class, HasAuthorizationAspect.class})
 @MockBean(JpaAuditingConfiguration.class)
 class PortFolioRestControllerTest {
 
@@ -55,6 +61,9 @@ class PortFolioRestControllerTest {
 
 	@MockBean
 	private PortFolioService portFolioService;
+
+	@MockBean
+	private PortfolioRepository portfolioRepository;
 
 	private Member member;
 
@@ -144,17 +153,19 @@ class PortFolioRestControllerTest {
 	@Test
 	void modifyPortfolio() throws Exception {
 		// given
-		PortfolioModifyResponse response = PortfolioModifyResponse.from(Portfolio.builder()
+		Portfolio portfolio = Portfolio.builder()
 			.name("내꿈은 워렌버핏")
 			.securitiesFirm("토스")
 			.budget(1000000L)
 			.targetGain(1500000L)
 			.maximumLoss(900000L)
 			.member(member)
-			.build());
+			.build();
+		PortfolioModifyResponse response = PortfolioModifyResponse.from(portfolio);
 
 		given(portFolioService.modifyPortfolio(any(PortfolioModifyRequest.class), anyLong(), any(AuthMember.class)))
 			.willReturn(response);
+		given(portfolioRepository.findById(anyLong())).willReturn(Optional.of(portfolio));
 
 		Map<String, Object> requestBodyMap = new HashMap<>();
 		requestBodyMap.put("name", "내꿈은 찰리몽거");
@@ -202,6 +213,15 @@ class PortFolioRestControllerTest {
 	@Test
 	void deletePortfolio() throws Exception {
 		// given
+		Portfolio portfolio = Portfolio.builder()
+			.name("내꿈은 워렌버핏")
+			.securitiesFirm("토스")
+			.budget(1000000L)
+			.targetGain(1500000L)
+			.maximumLoss(900000L)
+			.member(member)
+			.build();
+		given(portfolioRepository.findById(anyLong())).willReturn(Optional.of(portfolio));
 
 		// when & then
 		mockMvc.perform(delete("/api/portfolios/1"))
