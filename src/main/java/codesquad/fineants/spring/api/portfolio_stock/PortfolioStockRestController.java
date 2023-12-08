@@ -83,7 +83,7 @@ public class PortfolioStockRestController {
 				emitter.send(SseEmitter.event()
 					.data(
 						portfolioStockService.readMyPortfolioStocksInRealTime(portfolioId))
-					.name("sse event - myPortfolioStocks"));
+					.name("portfolioDetails"));
 				log.info("send message");
 				if (isComplete) {
 					Thread.sleep(2000L); // sse event - myPortfolioStocks 메시지와 전송 간격
