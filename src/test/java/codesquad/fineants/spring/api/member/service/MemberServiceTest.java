@@ -35,8 +35,8 @@ import codesquad.fineants.spring.api.errors.exception.BadRequestException;
 import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
 import codesquad.fineants.spring.api.member.request.AuthorizationRequest;
 import codesquad.fineants.spring.api.member.request.OauthMemberLoginRequest;
-import codesquad.fineants.spring.api.member.response.OauthAccessTokenResponse;
 import codesquad.fineants.spring.api.member.response.OauthMemberLoginResponse;
+import codesquad.fineants.spring.api.member.response.OauthToken;
 
 @ActiveProfiles("test")
 @SpringBootTest
@@ -81,8 +81,8 @@ public class MemberServiceTest {
 		responseBody.put("token_type", "Bearer");
 		responseBody.put("id_token",
 			"eyJraWQiOiI5ZjI1MmRhZGQ1ZjIzM2Y5M2QyZmE1MjhkMTJmZWEiLCJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiJkZmIxZTI1YTJiOTdkMDNiMGIyMjVkNDg3NGEzNDgyMyIsInN1YiI6IjMxNjA5OTI1NjMiLCJhdXRoX3RpbWUiOjE2OTk4NjY2MjIsImlzcyI6Imh0dHBzOi8va2F1dGgua2FrYW8uY29tIiwiZXhwIjoxNjk5ODg4MjIyLCJpYXQiOjE2OTk4NjY2MjIsIm5vbmNlIjoiZjQ2ZTI5NzczNzhlZDZjZGYyZjAzYjU5NjIxMDFmN2QiLCJwaWN0dXJlIjoiaHR0cDovL2sua2FrYW9jZG4ubmV0L2RuL2RwazlsMS9idHFtR2hBMmxLTC9PejB3RHVKbjFZVjJESW45MmY2RFZLL2ltZ18xMTB4MTEwLmpwZyIsImVtYWlsIjoiZmluZWFudHMuY29AZ21haWwuY29tIn0.KYRaqSup_joMxGSYoWSa5bEvQRbCR3q_kUydXaDs_otD1fmJFWW3h8UsrKaHyaDT6mMIobeuTAXlhjiY7rxqhr3K3cqj3urZThIJ-h4-5VrANC6aulzyhJB93kcIJUxa2UzI0fe_TyC4pbbGvRnFDci0Iv5CuVZoL0-oLgu5LQFpM1xmNmF_SABKuIU0rV60E_Qs7PsbnodZ_emv4PLEtk1yUD1r5oAr9swtSjLG_uh1d2GXUvcIStIJN871Kp-jolqM1Ce4bp0zULd00x0nGKbPBHmS_J11NYJbjujeg771307w65KCYIPMMqM_1BbEFQghH3jDRdzwP_5_RRKhAg");
-		OauthAccessTokenResponse mockAccessTokenResponse = deserialize(serialize(responseBody),
-			OauthAccessTokenResponse.class);
+		OauthToken mockAccessTokenResponse = deserialize(serialize(responseBody),
+			OauthToken.class);
 		given(webClientWrapper.post(anyString(), any(), any(), any())).willReturn(mockAccessTokenResponse);
 
 		MockedStatic<JWT> jwtMockedStatic = mockStatic(JWT.class);
@@ -206,8 +206,8 @@ public class MemberServiceTest {
 		responseBody.put("access_token", "accessTokenValue");
 		responseBody.put("scope", "scopeValue");
 		responseBody.put("token_type", "Bearer");
-		OauthAccessTokenResponse mockAccessTokenResponse =
-			objectMapper.readValue(objectMapper.writeValueAsString(responseBody), OauthAccessTokenResponse.class);
+		OauthToken mockAccessTokenResponse =
+			objectMapper.readValue(objectMapper.writeValueAsString(responseBody), OauthToken.class);
 		given(webClientWrapper.post(anyString(), any(), any(), any())).willReturn(mockAccessTokenResponse);
 
 		Map<String, Object> userProfileResponseBody = new HashMap<>();
