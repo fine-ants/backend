@@ -10,6 +10,8 @@ import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.Map;
 
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -28,7 +30,10 @@ import codesquad.fineants.spring.api.errors.errorcode.JwkErrorCode;
 import codesquad.fineants.spring.api.errors.exception.BadRequestException;
 import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
 import codesquad.fineants.spring.api.member.request.AuthorizationRequest;
+import codesquad.fineants.spring.api.member.request.OauthMemberLoginRequest;
+import codesquad.fineants.spring.api.member.response.OauthToken;
 import codesquad.fineants.spring.api.member.response.OauthUserProfile;
+import codesquad.fineants.spring.api.member.service.WebClientWrapper;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -46,6 +51,7 @@ public abstract class OauthClient {
 	private final String publicKeyUri;
 	private final String authorizeUri;
 	private final String responseType;
+	private final WebClientWrapper webClient;
 
 	public abstract MultiValueMap<String, String> createTokenBody(String authorizationCode, String redirectUri,
 		String codeVerifier, String state);
@@ -116,5 +122,40 @@ public abstract class OauthClient {
 		}
 		JWTVerifier verifier = JWT.require(algorithm).build();
 		verifier.verify(idToken);
+	}
+
+	public OauthUserProfile fetchProfile(OauthMemberLoginRequest request, AuthorizationRequest authRequest) {
+		// OIDC 토큰 및 Access Token 발급
+		OauthToken oauthToken = retrieveToken(request, authRequest);
+		// TODO: 토큰 발급이 실패하는 경우 예외 처리
+
+		// 프로필 정보 가져오기
+		if (isSupportOICD()) {
+			DecodedIdTokenPayload payload = decodeIdToken(oauthToken.getIdToken(),
+				authRequest.getNonce(), request.getRequestTime());
+			return OauthUserProfile.from(payload, request.getProvider());
+		}
+
+		Map<String, Object> attributes = fetchUserProfile(oauthToken);
+		return createOauthUserProfileResponse(attributes);
+	}
+
+	private Map<String, Object> fetchUserProfile(OauthToken oauthToken) {
+		MultiValueMap<String, String> header = new LinkedMultiValueMap<>();
+		header.add(HttpHeaders.AUTHORIZATION, oauthToken.createAuthorizationHeader());
+		return webClient.get(userInfoUri, header, new ParameterizedTypeReference<>() {
+		});
+	}
+
+	private OauthToken retrieveToken(OauthMemberLoginRequest request, AuthorizationRequest authRequest) {
+		return webClient.post(tokenUri,
+			createTokenHeader(),
+			createTokenBody(
+				request.getCode(),
+				request.getRedirectUrl(),
+				authRequest.getCodeVerifier(),
+				request.getState()
+			),
+			OauthToken.class);
 	}
 }
