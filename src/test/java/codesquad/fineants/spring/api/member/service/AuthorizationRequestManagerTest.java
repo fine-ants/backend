@@ -4,6 +4,7 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import codesquad.fineants.spring.api.member.manager.AuthorizationRequestManager;
 import codesquad.fineants.spring.api.member.request.AuthorizationRequest;
 
 class AuthorizationRequestManagerTest {
