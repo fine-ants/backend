@@ -38,6 +38,7 @@ import codesquad.fineants.spring.api.member.response.OauthCreateUrlResponse;
 import codesquad.fineants.spring.api.member.response.OauthMemberLoginResponse;
 import codesquad.fineants.spring.api.member.response.OauthMemberResponse;
 import codesquad.fineants.spring.api.member.service.MemberService;
+import codesquad.fineants.spring.api.member.service.WebClientWrapper;
 import codesquad.fineants.spring.config.JpaAuditingConfiguration;
 import codesquad.fineants.spring.config.OauthConfig;
 
@@ -70,6 +71,9 @@ class MemberRestControllerTest {
 
 	@MockBean
 	private AuthPrincipalArgumentResolver authPrincipalArgumentResolver;
+
+	@MockBean
+	private WebClientWrapper webClient;
 
 	private Member member;
 
