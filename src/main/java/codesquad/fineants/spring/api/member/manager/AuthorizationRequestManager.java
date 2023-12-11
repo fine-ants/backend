@@ -1,4 +1,4 @@
-package codesquad.fineants.spring.api.member.service;
+package codesquad.fineants.spring.api.member.manager;
 
 import java.util.ArrayList;
 import java.util.List;
