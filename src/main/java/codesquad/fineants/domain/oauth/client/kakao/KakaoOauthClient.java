@@ -11,6 +11,7 @@ import codesquad.fineants.domain.oauth.client.OauthClient;
 import codesquad.fineants.domain.oauth.properties.OauthProperties;
 import codesquad.fineants.spring.api.member.request.AuthorizationRequest;
 import codesquad.fineants.spring.api.member.response.OauthUserProfile;
+import codesquad.fineants.spring.api.member.service.WebClientWrapper;
 import codesquad.fineants.spring.util.ObjectMapperUtil;
 import lombok.extern.slf4j.Slf4j;
 
@@ -20,7 +21,7 @@ public class KakaoOauthClient extends OauthClient {
 	private final String iss;
 	private final String aud;
 
-	public KakaoOauthClient(OauthProperties.Kakao kakao) {
+	public KakaoOauthClient(OauthProperties.Kakao kakao, WebClientWrapper webClient) {
 		super(kakao.getClientId(),
 			kakao.getClientSecret(),
 			kakao.getTokenUri(),
@@ -28,7 +29,8 @@ public class KakaoOauthClient extends OauthClient {
 			kakao.getRedirectUri(),
 			kakao.getJwksUri(),
 			kakao.getAuthorizeUri(),
-			kakao.getResponseType());
+			kakao.getResponseType(),
+			webClient);
 		this.scope = kakao.getScope();
 		this.iss = kakao.getIss();
 		this.aud = kakao.getAud();

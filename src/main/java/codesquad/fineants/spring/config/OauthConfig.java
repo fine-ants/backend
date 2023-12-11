@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import codesquad.fineants.domain.oauth.properties.OauthProperties;
 import codesquad.fineants.domain.oauth.repository.InMemoryOauthClientRepository;
 import codesquad.fineants.spring.api.kis.properties.OauthKisProperties;
+import codesquad.fineants.spring.api.member.service.WebClientWrapper;
 import lombok.RequiredArgsConstructor;
 
 @EnableConfigurationProperties({OauthProperties.class, OauthKisProperties.class})
@@ -15,9 +16,10 @@ import lombok.RequiredArgsConstructor;
 public class OauthConfig {
 
 	private final OauthProperties oauthProperties;
+	private final WebClientWrapper webClient;
 
 	@Bean
 	public InMemoryOauthClientRepository inMemoryOauthProviderRepository() {
-		return new InMemoryOauthClientRepository(oauthProperties.createOauthClientMap());
+		return new InMemoryOauthClientRepository(oauthProperties.createOauthClientMap(webClient));
 	}
 }

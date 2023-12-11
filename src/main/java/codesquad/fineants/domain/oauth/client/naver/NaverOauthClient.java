@@ -11,12 +11,13 @@ import codesquad.fineants.domain.oauth.client.OauthClient;
 import codesquad.fineants.domain.oauth.properties.OauthProperties;
 import codesquad.fineants.spring.api.member.request.AuthorizationRequest;
 import codesquad.fineants.spring.api.member.response.OauthUserProfile;
+import codesquad.fineants.spring.api.member.service.WebClientWrapper;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class NaverOauthClient extends OauthClient {
 
-	public NaverOauthClient(OauthProperties.Naver naver) {
+	public NaverOauthClient(OauthProperties.Naver naver, WebClientWrapper webClient) {
 		super(naver.getClientId(),
 			naver.getClientSecret(),
 			naver.getTokenUri(),
@@ -24,7 +25,8 @@ public class NaverOauthClient extends OauthClient {
 			naver.getRedirectUri(),
 			null,
 			naver.getAuthorizeUri(),
-			naver.getResponseType());
+			naver.getResponseType(),
+			webClient);
 	}
 
 	@Override

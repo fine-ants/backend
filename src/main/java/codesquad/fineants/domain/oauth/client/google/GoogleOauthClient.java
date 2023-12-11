@@ -11,6 +11,7 @@ import codesquad.fineants.domain.oauth.client.OauthClient;
 import codesquad.fineants.domain.oauth.properties.OauthProperties;
 import codesquad.fineants.spring.api.member.request.AuthorizationRequest;
 import codesquad.fineants.spring.api.member.response.OauthUserProfile;
+import codesquad.fineants.spring.api.member.service.WebClientWrapper;
 import codesquad.fineants.spring.util.ObjectMapperUtil;
 import lombok.extern.slf4j.Slf4j;
 
@@ -21,7 +22,7 @@ public class GoogleOauthClient extends OauthClient {
 	private final String iss;
 	private final String aud;
 
-	public GoogleOauthClient(OauthProperties.Google google) {
+	public GoogleOauthClient(OauthProperties.Google google, WebClientWrapper webClient) {
 		super(google.getClientId(),
 			google.getClientSecret(),
 			google.getTokenUri(),
@@ -29,7 +30,8 @@ public class GoogleOauthClient extends OauthClient {
 			google.getRedirectUri(),
 			google.getJwksUri(),
 			google.getAuthorizeUri(),
-			google.getResponseType());
+			google.getResponseType(),
+			webClient);
 		this.scope = google.getScope();
 		this.iss = google.getIss();
 		this.aud = google.getAud();
