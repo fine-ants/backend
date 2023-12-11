@@ -9,13 +9,13 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @AllArgsConstructor
-public class OauthUserProfileResponse {
+public class OauthUserProfile {
 
 	private String email;
 	private String profileImage;
 
-	public static OauthUserProfileResponse from(DecodedIdTokenPayload payload) {
-		return new OauthUserProfileResponse(payload.getEmail(), payload.getPicture());
+	public static OauthUserProfile from(DecodedIdTokenPayload payload) {
+		return new OauthUserProfile(payload.getEmail(), payload.getPicture());
 	}
 
 	@Override
