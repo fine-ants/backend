@@ -51,7 +51,7 @@ public class KakaoOauthClient extends OauthClient {
 	public OauthUserProfile createOauthUserProfileResponse(final Map<String, Object> attributes) {
 		String email = (String)attributes.get("email");
 		String picture = (String)attributes.get("picture");
-		return new OauthUserProfile(email, picture);
+		return new OauthUserProfile(email, picture, "kakao");
 	}
 
 	@Override
