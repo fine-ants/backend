@@ -2,6 +2,7 @@ package codesquad.fineants.spring.api.member.service;
 
 import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Random;
 
 import org.springframework.core.ParameterizedTypeReference;
@@ -64,12 +65,24 @@ public class MemberService {
 		AuthorizationRequest authRequest = authorizationRequestManager.pop(request.getState());
 		OauthUserProfile profile = getOauthUserProfile(request, authRequest);
 
-		Member member = memberRepository.findMemberByEmailAndProvider(profile.getEmail(), request.getProvider())
+		Member member = findMember(profile.getEmail(), request.getProvider())
 			.orElseGet(() -> memberFactory.createMember(profile));
-		Member saveMember = memberRepository.save(member);
-		Jwt jwt = jwtProvider.createJwtBasedOnMember(saveMember, request.getRequestTime());
+		Member saveMember = saveMember(member);
+		Jwt jwt = createToken(saveMember, request.getRequestTime());
 
-		return OauthMemberLoginResponse.of(jwt, saveMember);
+		return OauthMemberLoginResponse.of(jwt, OauthMemberResponse.from(saveMember));
+	}
+
+	private Optional<Member> findMember(String email, String provider) {
+		return memberRepository.findMemberByEmailAndProvider(email, provider);
+	}
+
+	private Member saveMember(Member member) {
+		return memberRepository.save(member);
+	}
+
+	private Jwt createToken(Member member, LocalDateTime requestTime) {
+		return jwtProvider.createJwtBasedOnMember(member, requestTime);
 	}
 
 	private OauthUserProfile getOauthUserProfile(OauthMemberLoginRequest loginRequest,
@@ -161,7 +174,7 @@ public class MemberService {
 			.profileUrl(url)
 			.password(request.getPassword())
 			.build();
-		memberRepository.save(member);
+		saveMember(member);
 	}
 
 	private void checkForm(SignUpRequest request) {

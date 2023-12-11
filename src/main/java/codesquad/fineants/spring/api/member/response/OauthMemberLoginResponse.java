@@ -1,7 +1,6 @@
 package codesquad.fineants.spring.api.member.response;
 
 import codesquad.fineants.domain.jwt.Jwt;
-import codesquad.fineants.domain.member.Member;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -15,9 +14,8 @@ public class OauthMemberLoginResponse {
 	private Jwt jwt;
 	private OauthMemberResponse user;
 
-	public static OauthMemberLoginResponse of(Jwt jwt, Member member) {
-		OauthMemberResponse user = OauthMemberResponse.from(member);
-		return new OauthMemberLoginResponse(jwt, user);
+	public static OauthMemberLoginResponse of(Jwt jwt, OauthMemberResponse oauthMemberResponse) {
+		return new OauthMemberLoginResponse(jwt, oauthMemberResponse);
 	}
 
 	@Override
