@@ -5,10 +5,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Getter
+@ToString
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class OauthAccessTokenResponse {
+public class OauthToken {
 
 	@JsonProperty("access_token")
 	private String accessToken;
@@ -21,7 +23,12 @@ public class OauthAccessTokenResponse {
 
 	@Override
 	public String toString() {
-		return String.format("%s, %s(scope=%s, tokenType=%s, idToken=%s)", "액세스 토큰 발급 응답", this.getClass().getSimpleName(), scope,
+		return String.format("%s, %s(scope=%s, tokenType=%s, idToken=%s)", "액세스 토큰 발급 응답",
+			this.getClass().getSimpleName(), scope,
 			tokenType, idToken);
+	}
+
+	public String createAuthorizationHeader() {
+		return String.join(" ", tokenType, accessToken);
 	}
 }
