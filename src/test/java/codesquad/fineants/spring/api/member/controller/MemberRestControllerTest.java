@@ -36,6 +36,7 @@ import codesquad.fineants.spring.api.member.request.AuthorizationRequest;
 import codesquad.fineants.spring.api.member.request.OauthMemberLoginRequest;
 import codesquad.fineants.spring.api.member.response.OauthCreateUrlResponse;
 import codesquad.fineants.spring.api.member.response.OauthMemberLoginResponse;
+import codesquad.fineants.spring.api.member.response.OauthMemberResponse;
 import codesquad.fineants.spring.api.member.service.MemberService;
 import codesquad.fineants.spring.config.JpaAuditingConfiguration;
 import codesquad.fineants.spring.config.OauthConfig;
@@ -134,7 +135,7 @@ class MemberRestControllerTest {
 		String url = "/api/auth/kakao/login";
 
 		Jwt jwt = jwtProvider.createJwtBasedOnMember(member, LocalDateTime.now());
-		OauthMemberLoginResponse mockResponse = OauthMemberLoginResponse.of(jwt, member);
+		OauthMemberLoginResponse mockResponse = OauthMemberLoginResponse.of(jwt, OauthMemberResponse.from(member));
 		given(memberService.login(ArgumentMatchers.any(OauthMemberLoginRequest.class))).willReturn(mockResponse);
 		// when
 		mockMvc.perform(post(url)

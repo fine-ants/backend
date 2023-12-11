@@ -4,6 +4,9 @@ import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
@@ -65,12 +68,16 @@ public class MemberService {
 		AuthorizationRequest authRequest = authorizationRequestManager.pop(request.getState());
 		OauthUserProfile profile = getOauthUserProfile(request, authRequest);
 
-		Member member = findMember(profile.getEmail(), request.getProvider())
-			.orElseGet(() -> memberFactory.createMember(profile));
-		Member saveMember = saveMember(member);
-		Jwt jwt = createToken(saveMember, request.getRequestTime());
+		CompletableFuture<OauthMemberLoginResponse> future = CompletableFuture
+			.supplyAsync(supplyMember(request, profile))
+			.thenApplyAsync(this::saveMember)
+			.thenApply(createLoginResponse(request.getRequestTime()));
+		return future.join();
+	}
 
-		return OauthMemberLoginResponse.of(jwt, OauthMemberResponse.from(saveMember));
+	private Supplier<Member> supplyMember(OauthMemberLoginRequest request, OauthUserProfile profile) {
+		return () -> findMember(profile.getEmail(), request.getProvider())
+			.orElseGet(() -> memberFactory.createMember(profile));
 	}
 
 	private Optional<Member> findMember(String email, String provider) {
@@ -79,6 +86,14 @@ public class MemberService {
 
 	private Member saveMember(Member member) {
 		return memberRepository.save(member);
+	}
+
+	private Function<Member, OauthMemberLoginResponse> createLoginResponse(
+		LocalDateTime requestTime) {
+		return member -> {
+			Jwt jwt = createToken(member, requestTime);
+			return OauthMemberLoginResponse.of(jwt, OauthMemberResponse.from(member));
+		};
 	}
 
 	private Jwt createToken(Member member, LocalDateTime requestTime) {
