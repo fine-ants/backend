@@ -24,8 +24,4 @@ public class Jwt {
 		this.expireDateAccessToken = expireDateAccessToken;
 		this.expireDateRefreshToken = expireDateRefreshToken;
 	}
-
-	public long convertExpireDateRefreshTokenTimeWithLong() {
-		return expireDateRefreshToken.getTime();
-	}
 }

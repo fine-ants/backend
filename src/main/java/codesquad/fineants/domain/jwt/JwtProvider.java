@@ -16,17 +16,15 @@ import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 @Component
+@Slf4j
+@RequiredArgsConstructor
 public class JwtProvider {
 
 	private final JwtProperties jwtProperties;
-
-	public JwtProvider(JwtProperties jwtProperties) {
-		this.jwtProperties = jwtProperties;
-	}
 
 	public Jwt createJwtWithRefreshToken(Claims claims, String refreshToken, LocalDateTime now) {
 		Date expireDateAccessToken = jwtProperties.createExpireAccessTokenDate(now);
@@ -91,9 +89,6 @@ public class JwtProvider {
 			.build()
 			.parseClaimsJws(token)
 			.getBody();
-
-		log.debug("claims : {}", claims);
-
 		return AuthMember.from(claims, token);
 	}
 
