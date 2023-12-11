@@ -10,7 +10,7 @@ import codesquad.fineants.domain.oauth.client.DecodedIdTokenPayload;
 import codesquad.fineants.domain.oauth.client.OauthClient;
 import codesquad.fineants.domain.oauth.properties.OauthProperties;
 import codesquad.fineants.spring.api.member.request.AuthorizationRequest;
-import codesquad.fineants.spring.api.member.response.OauthUserProfileResponse;
+import codesquad.fineants.spring.api.member.response.OauthUserProfile;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -41,11 +41,11 @@ public class NaverOauthClient extends OauthClient {
 	}
 
 	@Override
-	public OauthUserProfileResponse createOauthUserProfileResponse(Map<String, Object> attributes) {
+	public OauthUserProfile createOauthUserProfileResponse(Map<String, Object> attributes) {
 		Map<String, Object> responseMap = (Map<String, Object>)attributes.get("response");
 		String email = (String)responseMap.get("email");
 		String profileImage = (String)responseMap.get("profile_image");
-		return new OauthUserProfileResponse(email, profileImage);
+		return new OauthUserProfile(email, profileImage);
 	}
 
 	@Override

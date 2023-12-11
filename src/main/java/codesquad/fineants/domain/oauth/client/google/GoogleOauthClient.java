@@ -10,7 +10,7 @@ import codesquad.fineants.domain.oauth.client.DecodedIdTokenPayload;
 import codesquad.fineants.domain.oauth.client.OauthClient;
 import codesquad.fineants.domain.oauth.properties.OauthProperties;
 import codesquad.fineants.spring.api.member.request.AuthorizationRequest;
-import codesquad.fineants.spring.api.member.response.OauthUserProfileResponse;
+import codesquad.fineants.spring.api.member.response.OauthUserProfile;
 import codesquad.fineants.spring.util.ObjectMapperUtil;
 import lombok.extern.slf4j.Slf4j;
 
@@ -49,10 +49,10 @@ public class GoogleOauthClient extends OauthClient {
 	}
 
 	@Override
-	public OauthUserProfileResponse createOauthUserProfileResponse(Map<String, Object> attributes) {
+	public OauthUserProfile createOauthUserProfileResponse(Map<String, Object> attributes) {
 		String email = (String)attributes.get("email");
 		String picture = (String)attributes.get("picture");
-		return new OauthUserProfileResponse(email, picture);
+		return new OauthUserProfile(email, picture);
 	}
 
 	@Override

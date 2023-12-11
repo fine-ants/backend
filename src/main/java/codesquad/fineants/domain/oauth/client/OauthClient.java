@@ -28,7 +28,7 @@ import codesquad.fineants.spring.api.errors.errorcode.JwkErrorCode;
 import codesquad.fineants.spring.api.errors.exception.BadRequestException;
 import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
 import codesquad.fineants.spring.api.member.request.AuthorizationRequest;
-import codesquad.fineants.spring.api.member.response.OauthUserProfileResponse;
+import codesquad.fineants.spring.api.member.response.OauthUserProfile;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -50,7 +50,7 @@ public abstract class OauthClient {
 	public abstract MultiValueMap<String, String> createTokenBody(String authorizationCode, String redirectUri,
 		String codeVerifier, String state);
 
-	public abstract OauthUserProfileResponse createOauthUserProfileResponse(Map<String, Object> attributes);
+	public abstract OauthUserProfile createOauthUserProfileResponse(Map<String, Object> attributes);
 
 	public abstract String createAuthURL(AuthorizationRequest authorizationRequest);
 
