@@ -2,9 +2,7 @@ package codesquad.fineants.spring.api.member.service;
 
 import java.time.LocalDateTime;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Random;
-import java.util.UUID;
 
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
@@ -25,6 +23,7 @@ import codesquad.fineants.spring.api.S3.service.AmazonS3Service;
 import codesquad.fineants.spring.api.errors.errorcode.MemberErrorCode;
 import codesquad.fineants.spring.api.errors.exception.BadRequestException;
 import codesquad.fineants.spring.api.errors.exception.FineAntsException;
+import codesquad.fineants.spring.api.member.manager.AuthorizationRequestManager;
 import codesquad.fineants.spring.api.member.request.AuthorizationRequest;
 import codesquad.fineants.spring.api.member.request.LoginRequest;
 import codesquad.fineants.spring.api.member.request.OauthMemberLoginRequest;
@@ -38,7 +37,7 @@ import codesquad.fineants.spring.api.member.response.OauthCreateUrlResponse;
 import codesquad.fineants.spring.api.member.response.OauthMemberLoginResponse;
 import codesquad.fineants.spring.api.member.response.OauthMemberRefreshResponse;
 import codesquad.fineants.spring.api.member.response.OauthMemberResponse;
-import codesquad.fineants.spring.api.member.response.OauthUserProfileResponse;
+import codesquad.fineants.spring.api.member.response.OauthUserProfile;
 import codesquad.fineants.spring.api.portfolio_notification.MailService;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
@@ -58,25 +57,22 @@ public class MemberService {
 	private final MailService mailService;
 	private final AmazonS3Service amazonS3Service;
 	private final AuthorizationCodeRandomGenerator authorizationCodeRandomGenerator;
+	private final MemberFactory memberFactory;
 
-	public OauthMemberLoginResponse login(OauthMemberLoginRequest loginRequest) {
-		log.info("로그인 서비스 요청 : loginRequest={}", loginRequest);
-		AuthorizationRequest authRequest = authorizationRequestManager.pop(loginRequest.getState());
-		OauthUserProfileResponse profileResponse = getOauthUserProfileResponse(loginRequest, authRequest);
-		Optional<Member> optionalMember = memberRepository.findMemberByEmailAndProvider(profileResponse.getEmail(),
-			loginRequest.getProvider());
-		Member member = optionalMember.orElseGet(() -> Member.builder()
-			.email(profileResponse.getEmail())
-			.nickname(generateRandomNickname())
-			.provider(loginRequest.getProvider())
-			.profileUrl(profileResponse.getProfileImage())
-			.build());
+	public OauthMemberLoginResponse login(OauthMemberLoginRequest request) {
+		log.info("로그인 서비스 요청 : loginRequest={}", request);
+		AuthorizationRequest authRequest = authorizationRequestManager.pop(request.getState());
+		OauthUserProfile profile = getOauthUserProfile(request, authRequest);
+
+		Member member = memberRepository.findMemberByEmailAndProvider(profile.getEmail(), request.getProvider())
+			.orElseGet(() -> memberFactory.createMember(profile));
 		Member saveMember = memberRepository.save(member);
-		Jwt jwt = jwtProvider.createJwtBasedOnMember(saveMember, loginRequest.getRequestTime());
+		Jwt jwt = jwtProvider.createJwtBasedOnMember(saveMember, request.getRequestTime());
+
 		return OauthMemberLoginResponse.of(jwt, saveMember);
 	}
 
-	private OauthUserProfileResponse getOauthUserProfileResponse(OauthMemberLoginRequest loginRequest,
+	private OauthUserProfile getOauthUserProfile(OauthMemberLoginRequest loginRequest,
 		AuthorizationRequest authRequest) {
 		OauthClient oauthClient = oauthClientRepository.findOneBy(loginRequest.getProvider());
 		OauthAccessTokenResponse accessTokenResponse = webClientWrapper.post(oauthClient.getTokenUri(),
@@ -92,7 +88,7 @@ public class MemberService {
 		if (oauthClient.isSupportOICD()) {
 			DecodedIdTokenPayload payload = oauthClient.decodeIdToken(accessTokenResponse.getIdToken(),
 				authRequest.getNonce(), loginRequest.getRequestTime());
-			return OauthUserProfileResponse.from(payload);
+			return OauthUserProfile.from(payload, loginRequest.getProvider());
 		}
 		LinkedMultiValueMap<String, String> header = new LinkedMultiValueMap<>();
 		header.add(HttpHeaders.AUTHORIZATION,
@@ -101,11 +97,6 @@ public class MemberService {
 			new ParameterizedTypeReference<>() {
 			});
 		return oauthClient.createOauthUserProfileResponse(attributes);
-	}
-
-	private String generateRandomNickname() {
-		String randomPart = UUID.randomUUID().toString().replaceAll("-", "").substring(0, 8);
-		return "일개미" + randomPart;
 	}
 
 	public void logout(String accessToken, OauthMemberLogoutRequest request) {
