@@ -5,8 +5,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.portfolio.Portfolio;
-import codesquad.fineants.domain.portfolio_holding.PortfolioHoldingRepository;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
+import codesquad.fineants.domain.portfolio_holding.PortfolioHoldingRepository;
 import codesquad.fineants.domain.purchase_history.PurchaseHistory;
 import codesquad.fineants.domain.purchase_history.PurchaseHistoryRepository;
 import codesquad.fineants.spring.api.errors.errorcode.PortfolioErrorCode;
@@ -32,11 +32,9 @@ public class PurchaseHistoryService {
 
 	@Transactional
 	public PurchaseHistoryCreateResponse addPurchaseHistory(PurchaseHistoryCreateRequest request,
-		Long portfolioHoldingId,
-		AuthMember authMember) {
+		Long portfolioHoldingId) {
 		log.info("매입이력 추가 서비스 요청 : request={}, portfolioHoldingId={}", request, portfolioHoldingId);
 		PortfolioHolding portfolioHolding = findPortfolioHolding(portfolioHoldingId);
-		validatePortfolioAuthorization(portfolioHolding.getPortfolio(), authMember.getMemberId());
 		PurchaseHistory newPurchaseHistory = repository.save(request.toEntity(portfolioHolding));
 		log.info("매입이력 저장 결과 : newPurchaseHistory={}", newPurchaseHistory);
 		return PurchaseHistoryCreateResponse.from(newPurchaseHistory);
@@ -58,9 +56,6 @@ public class PurchaseHistoryService {
 		Long portfolioHoldingId, Long purchaseHistoryId, AuthMember authMember) {
 		log.info("매입 내역 수정 서비스 요청 : request={}, portfolioHoldingId={}, purchaseHistoryId={}", request,
 			portfolioHoldingId, purchaseHistoryId);
-		Portfolio portfolio = findPortfolioHolding(portfolioHoldingId).getPortfolio();
-		validatePortfolioAuthorization(portfolio, authMember.getMemberId());
-
 		PortfolioHolding portfolioHolding = findPortfolioHolding(portfolioHoldingId);
 		PurchaseHistory originalPurchaseHistory = findPurchaseHistory(purchaseHistoryId);
 		PurchaseHistory changePurchaseHistory = request.toEntity(portfolioHolding);
@@ -75,12 +70,9 @@ public class PurchaseHistoryService {
 	}
 
 	@Transactional
-	public PurchaseHistoryDeleteResponse deletePurchaseHistory(Long portfolioHoldingId, Long purchaseHistoryId,
-		AuthMember authMember) {
+	public PurchaseHistoryDeleteResponse deletePurchaseHistory(Long portfolioHoldingId, Long purchaseHistoryId) {
 		log.info("매입 내역 삭제 서비스 요청 : portfolioHoldingId={}, purchaseHistoryId={}", portfolioHoldingId,
 			purchaseHistoryId);
-		Portfolio portfolio = findPortfolioHolding(portfolioHoldingId).getPortfolio();
-		validatePortfolioAuthorization(portfolio, authMember.getMemberId());
 		PurchaseHistory deletePurchaseHistory = findPurchaseHistory(purchaseHistoryId);
 		repository.deleteById(purchaseHistoryId);
 		return PurchaseHistoryDeleteResponse.from(deletePurchaseHistory);

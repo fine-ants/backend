@@ -26,6 +26,7 @@ import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioChartResp
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioHoldingsResponse;
 import codesquad.fineants.spring.api.response.ApiResponse;
 import codesquad.fineants.spring.api.success.code.PortfolioStockSuccessCode;
+import codesquad.fineants.spring.auth.HasPortfolioAuthorization;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -40,31 +41,37 @@ public class PortfolioStockRestController {
 	private final PortfolioStockService portfolioStockService;
 	private final StockMarketChecker stockMarketChecker;
 
+	@HasPortfolioAuthorization
 	@ResponseStatus(HttpStatus.CREATED)
 	@PostMapping("/holdings")
 	public ApiResponse<Void> addPortfolioStock(@PathVariable Long portfolioId,
-		@Valid @RequestBody PortfolioStockCreateRequest request,
-		@AuthPrincipalMember AuthMember authMember) {
+		@AuthPrincipalMember AuthMember authMember,
+		@Valid @RequestBody PortfolioStockCreateRequest request) {
 		portfolioStockService.addPortfolioStock(portfolioId, request, authMember);
 		return ApiResponse.success(PortfolioStockSuccessCode.CREATED_ADD_PORTFOLIO_STOCK);
 	}
 
+	@HasPortfolioAuthorization
 	@DeleteMapping("/holdings/{portfolioHoldingId}")
 	public ApiResponse<Void> deletePortfolioStock(@PathVariable Long portfolioId,
-		@PathVariable Long portfolioHoldingId,
-		@AuthPrincipalMember AuthMember authMember) {
+		@AuthPrincipalMember AuthMember authMember,
+		@PathVariable Long portfolioHoldingId) {
 		portfolioStockService.deletePortfolioStock(portfolioHoldingId, portfolioId, authMember);
 		return ApiResponse.success(PortfolioStockSuccessCode.OK_DELETE_PORTFOLIO_STOCK);
 	}
 
+	@HasPortfolioAuthorization
 	@GetMapping("/holdings")
-	public ApiResponse<PortfolioHoldingsResponse> readMyPortfolioStocks(@PathVariable Long portfolioId) {
+	public ApiResponse<PortfolioHoldingsResponse> readMyPortfolioStocks(@PathVariable Long portfolioId,
+		@AuthPrincipalMember AuthMember authMember) {
 		return ApiResponse.success(PortfolioStockSuccessCode.OK_READ_PORTFOLIO_STOCKS,
 			portfolioStockService.readMyPortfolioStocks(portfolioId));
 	}
 
+	@HasPortfolioAuthorization
 	@GetMapping("/holdings/realtime")
-	public SseEmitter readMyPortfolioStocksInRealTime(@PathVariable Long portfolioId) {
+	public SseEmitter readMyPortfolioStocksInRealTime(@PathVariable Long portfolioId,
+		@AuthPrincipalMember AuthMember authMember) {
 		SseEmitter emitter = new SseEmitter(Duration.ofHours(10).toMillis());
 		emitter.onTimeout(emitter::complete);
 
@@ -105,8 +112,10 @@ public class PortfolioStockRestController {
 		}
 	}
 
+	@HasPortfolioAuthorization
 	@GetMapping("/charts")
-	public ApiResponse<PortfolioChartResponse> readMyPortfolioCharts(@PathVariable Long portfolioId) {
+	public ApiResponse<PortfolioChartResponse> readMyPortfolioCharts(@PathVariable Long portfolioId,
+		@AuthPrincipalMember AuthMember authMember) {
 		PortfolioChartResponse response = portfolioStockService.readMyPortfolioCharts(portfolioId);
 		return ApiResponse.success(PortfolioStockSuccessCode.OK_READ_PORTFOLIO_CHARTS, response);
 	}

@@ -18,7 +18,6 @@ import codesquad.fineants.domain.stock.StockRepository;
 import codesquad.fineants.spring.api.errors.errorcode.PortfolioErrorCode;
 import codesquad.fineants.spring.api.errors.errorcode.PortfolioHoldingErrorCode;
 import codesquad.fineants.spring.api.errors.errorcode.StockErrorCode;
-import codesquad.fineants.spring.api.errors.exception.ForBiddenException;
 import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
@@ -67,7 +66,6 @@ public class PortfolioStockService {
 		log.info("포트폴리오 종목 추가 서비스 요청 : portfolioId={}, request={}, authMember={}", request, portfolioId, authMember);
 
 		Portfolio portfolio = findPortfolio(portfolioId);
-		validatePortfolioAuthorization(portfolio, authMember.getMemberId());
 
 		Stock stock = stockRepository.findByTickerSymbol(request.getTickerSymbol())
 			.orElseThrow(() -> new NotFoundResourceException(StockErrorCode.NOT_FOUND_STOCK));
@@ -83,19 +81,10 @@ public class PortfolioStockService {
 			.orElseThrow(() -> new NotFoundResourceException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
 	}
 
-	private void validatePortfolioAuthorization(Portfolio portfolio, Long memberId) {
-		if (!portfolio.hasAuthorization(memberId)) {
-			throw new ForBiddenException(PortfolioErrorCode.NOT_HAVE_AUTHORIZATION);
-		}
-	}
-
 	@Transactional
 	public PortfolioStockDeleteResponse deletePortfolioStock(Long portfolioHoldingId, Long portfolioId,
 		AuthMember authMember) {
 		log.info("포트폴리오 종목 삭제 서비스 : portfolioHoldingId={}, authMember={}", portfolioHoldingId, authMember);
-
-		Portfolio portfolio = findPortfolio(portfolioId);
-		validatePortfolioAuthorization(portfolio, authMember.getMemberId());
 
 		purchaseHistoryRepository.deleteAllByPortfolioHoldingIdIn(List.of(portfolioHoldingId));
 		try {

@@ -48,4 +48,7 @@ public class Member extends BaseEntity {
 		return "RT:" + email;
 	}
 
+	public boolean hasAuthorization(Long memberId) {
+		return id.equals(memberId);
+	}
 }

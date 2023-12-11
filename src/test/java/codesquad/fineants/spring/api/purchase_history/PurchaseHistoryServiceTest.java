@@ -25,8 +25,8 @@ import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.portfolio.Portfolio;
 import codesquad.fineants.domain.portfolio.PortfolioRepository;
 import codesquad.fineants.domain.portfolio_gain_history.PortfolioGainHistoryRepository;
-import codesquad.fineants.domain.portfolio_holding.PortfolioHoldingRepository;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
+import codesquad.fineants.domain.portfolio_holding.PortfolioHoldingRepository;
 import codesquad.fineants.domain.purchase_history.PurchaseHistory;
 import codesquad.fineants.domain.purchase_history.PurchaseHistoryRepository;
 import codesquad.fineants.domain.stock.Market;
@@ -141,8 +141,7 @@ class PurchaseHistoryServiceTest {
 			objectMapper.writeValueAsString(requestBody), PurchaseHistoryCreateRequest.class);
 		Long portfolioHoldingId = portfolioHolding.getId();
 		// when
-		PurchaseHistoryCreateResponse response = service.addPurchaseHistory(request,
-			portfolioHoldingId, AuthMember.from(member));
+		PurchaseHistoryCreateResponse response = service.addPurchaseHistory(request, portfolioHoldingId);
 
 		TypeReference<Map<String, Object>> typeReference = new TypeReference<>() {
 		};
@@ -192,8 +191,7 @@ class PurchaseHistoryServiceTest {
 		Long purchaseHistoryId = purchaseHistory.getId();
 
 		// when
-		PurchaseHistoryDeleteResponse response = service.deletePurchaseHistory(portfolioHoldingId,
-			purchaseHistoryId, AuthMember.from(member));
+		PurchaseHistoryDeleteResponse response = service.deletePurchaseHistory(portfolioHoldingId, purchaseHistoryId);
 
 		// then
 		assertAll(
@@ -211,7 +209,7 @@ class PurchaseHistoryServiceTest {
 
 		// when
 		Throwable throwable = catchThrowable(
-			() -> service.deletePurchaseHistory(portfolioHoldingId, purchaseHistoryId, AuthMember.from(member)));
+			() -> service.deletePurchaseHistory(portfolioHoldingId, purchaseHistoryId));
 
 		// then
 		assertThat(throwable)

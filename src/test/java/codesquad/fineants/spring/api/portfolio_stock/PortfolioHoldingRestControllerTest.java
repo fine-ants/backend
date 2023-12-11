@@ -10,6 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -17,6 +18,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -28,6 +30,7 @@ import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.oauth.support.AuthPrincipalArgumentResolver;
 import codesquad.fineants.domain.portfolio.Portfolio;
+import codesquad.fineants.domain.portfolio.PortfolioRepository;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
 import codesquad.fineants.domain.stock.Market;
 import codesquad.fineants.domain.stock.Stock;
@@ -38,10 +41,13 @@ import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
 import codesquad.fineants.spring.api.portfolio.PortFolioService;
 import codesquad.fineants.spring.api.portfolio_stock.request.PortfolioStockCreateRequest;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioStockCreateResponse;
+import codesquad.fineants.spring.auth.HasPortfolioAuthorizationAspect;
 import codesquad.fineants.spring.config.JpaAuditingConfiguration;
+import codesquad.fineants.spring.config.SpringConfig;
 
 @ActiveProfiles("test")
 @WebMvcTest(controllers = PortfolioStockRestController.class)
+@Import(value = {SpringConfig.class, HasPortfolioAuthorizationAspect.class})
 @MockBean(JpaAuditingConfiguration.class)
 class PortfolioHoldingRestControllerTest {
 
@@ -76,6 +82,9 @@ class PortfolioHoldingRestControllerTest {
 
 	@MockBean
 	private StockMarketChecker stockMarketChecker;
+
+	@MockBean
+	private PortfolioRepository portfolioRepository;
 
 	private Member member;
 	private Portfolio portfolio;
@@ -137,6 +146,7 @@ class PortfolioHoldingRestControllerTest {
 	void addPortfolioStock() throws Exception {
 		PortfolioStockCreateResponse response = PortfolioStockCreateResponse.from(
 			PortfolioHolding.empty(portfolio, stock));
+		given(portfolioRepository.findById(anyLong())).willReturn(Optional.of(portfolio));
 		given(portfolioStockService.addPortfolioStock(anyLong(), any(PortfolioStockCreateRequest.class),
 			any(AuthMember.class))).willReturn(response);
 
@@ -165,6 +175,8 @@ class PortfolioHoldingRestControllerTest {
 		String body = objectMapper.writeValueAsString(requestBodyMap);
 		Long portfolioId = portfolio.getId();
 
+		given(portfolioRepository.findById(anyLong())).willReturn(Optional.of(portfolio));
+
 		// when & then
 		mockMvc.perform(post("/api/portfolio/" + portfolioId + "/holdings")
 				.contentType(MediaType.APPLICATION_JSON)
@@ -183,6 +195,7 @@ class PortfolioHoldingRestControllerTest {
 		Long portfolioHoldingId = portfolioHolding.getId();
 		Long portfolioId = portfolio.getId();
 
+		given(portfolioRepository.findById(anyLong())).willReturn(Optional.of(portfolio));
 		// when & then
 		mockMvc.perform(delete("/api/portfolio/" + portfolioId + "/holdings/" + portfolioHoldingId))
 			.andExpect(status().isOk())

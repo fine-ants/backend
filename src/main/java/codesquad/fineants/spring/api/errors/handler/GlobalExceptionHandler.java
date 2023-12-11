@@ -19,7 +19,7 @@ public class GlobalExceptionHandler {
 
 	@ExceptionHandler(FineAntsException.class)
 	public ResponseEntity<ApiResponse<Object>> handleFineANtsException(FineAntsException exception) {
-		log.error("Exception 발생 : {}", exception.toString());
+		log.error(exception.getMessage(), exception);
 		ApiResponse<Object> body = ApiResponse.error(exception.getErrorCode());
 		return ResponseEntity.status(exception.getErrorCode().getHttpStatus()).body(body);
 	}
@@ -27,7 +27,7 @@ public class GlobalExceptionHandler {
 	@ExceptionHandler(MethodArgumentNotValidException.class)
 	public ResponseEntity<ApiResponse<Object>> handleMethodArgumentNotValidException(
 		MethodArgumentNotValidException exception) {
-		log.error("MethodArgumentNotValidException 발생 : {}", exception.toString());
+		log.error(exception.getMessage(), exception);
 		ApiResponse<Object> body = ApiResponse.of(
 			HttpStatus.BAD_REQUEST,
 			"잘못된 입력형식입니다",
@@ -44,7 +44,7 @@ public class GlobalExceptionHandler {
 
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<ApiResponse<Object>> handleFineANtsException(Exception exception) {
-		log.error("Exception 발생 : {}", exception.toString());
+		log.error(exception.getMessage(), exception);
 		ApiResponse<Object> body = ApiResponse.of(HttpStatus.INTERNAL_SERVER_ERROR, exception.getMessage(),
 			exception.toString());
 		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
