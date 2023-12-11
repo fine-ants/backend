@@ -1,18 +1,15 @@
 package codesquad.fineants.spring.api.member.service;
 
 import java.time.LocalDateTime;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.multipart.MultipartFile;
 
 import codesquad.fineants.domain.jwt.Jwt;
@@ -20,7 +17,6 @@ import codesquad.fineants.domain.jwt.JwtProvider;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.member.MemberRepository;
 import codesquad.fineants.domain.oauth.client.AuthorizationCodeRandomGenerator;
-import codesquad.fineants.domain.oauth.client.DecodedIdTokenPayload;
 import codesquad.fineants.domain.oauth.client.OauthClient;
 import codesquad.fineants.domain.oauth.repository.OauthClientRepository;
 import codesquad.fineants.spring.api.S3.service.AmazonS3Service;
@@ -36,7 +32,6 @@ import codesquad.fineants.spring.api.member.request.OauthMemberRefreshRequest;
 import codesquad.fineants.spring.api.member.request.SignUpRequest;
 import codesquad.fineants.spring.api.member.request.VerifyEmailRequest;
 import codesquad.fineants.spring.api.member.response.LoginResponse;
-import codesquad.fineants.spring.api.member.response.OauthAccessTokenResponse;
 import codesquad.fineants.spring.api.member.response.OauthCreateUrlResponse;
 import codesquad.fineants.spring.api.member.response.OauthMemberLoginResponse;
 import codesquad.fineants.spring.api.member.response.OauthMemberRefreshResponse;
@@ -57,7 +52,6 @@ public class MemberService {
 	private final MemberRepository memberRepository;
 	private final JwtProvider jwtProvider;
 	private final OauthMemberRedisService redisService;
-	private final WebClientWrapper webClientWrapper;
 	private final MailService mailService;
 	private final AmazonS3Service amazonS3Service;
 	private final AuthorizationCodeRandomGenerator authorizationCodeRandomGenerator;
@@ -65,21 +59,37 @@ public class MemberService {
 
 	public OauthMemberLoginResponse login(OauthMemberLoginRequest request) {
 		log.info("로그인 서비스 요청 : loginRequest={}", request);
-		OauthUserProfile profile = getOauthUserProfile(request, popAuthorizationRequest(request));
-
-		return CompletableFuture
-			.supplyAsync(supplyMember(request, profile))
-			.thenApplyAsync(this::saveMember)
-			.thenApply(createLoginResponse(request.getRequestTime()))
-			.join();
+		String provider = request.getProvider();
+		CompletableFuture<OauthMemberLoginResponse> future = CompletableFuture
+			.supplyAsync(supplyOauthClient(provider))
+			.thenApply(fetchProfile(request))
+			.thenCompose(saveMember(provider))
+			.thenApply(createLoginResponse(request.getRequestTime()));
+		return future.join();
 	}
 
-	private AuthorizationRequest popAuthorizationRequest(OauthMemberLoginRequest request) {
-		return authorizationRequestManager.pop(request.getState());
+	private Supplier<OauthClient> supplyOauthClient(String provider) {
+		return () -> findOauthClient(provider);
 	}
 
-	private Supplier<Member> supplyMember(OauthMemberLoginRequest request, OauthUserProfile profile) {
-		return () -> findMember(profile.getEmail(), request.getProvider())
+	private Function<OauthClient, OauthUserProfile> fetchProfile(
+		OauthMemberLoginRequest request) {
+		return oauthClient -> oauthClient.fetchProfile(request, popAuthorizationRequest(request.getState()));
+	}
+
+	private Function<OauthUserProfile, CompletionStage<Member>> saveMember(
+		String provider) {
+		return profile -> CompletableFuture
+			.supplyAsync(supplyMember(provider, profile))
+			.thenApplyAsync(this::saveMember);
+	}
+
+	private AuthorizationRequest popAuthorizationRequest(String state) {
+		return authorizationRequestManager.pop(state);
+	}
+
+	private Supplier<Member> supplyMember(String provider, OauthUserProfile profile) {
+		return () -> findMember(profile.getEmail(), provider)
 			.orElseGet(() -> memberFactory.createMember(profile));
 	}
 
@@ -103,31 +113,8 @@ public class MemberService {
 		return jwtProvider.createJwtBasedOnMember(member, requestTime);
 	}
 
-	private OauthUserProfile getOauthUserProfile(OauthMemberLoginRequest loginRequest,
-		AuthorizationRequest authRequest) {
-		OauthClient oauthClient = oauthClientRepository.findOneBy(loginRequest.getProvider());
-		OauthAccessTokenResponse accessTokenResponse = webClientWrapper.post(oauthClient.getTokenUri(),
-			oauthClient.createTokenHeader(),
-			oauthClient.createTokenBody(
-				loginRequest.getCode(),
-				loginRequest.getRedirectUrl(),
-				authRequest.getCodeVerifier(),
-				loginRequest.getState()
-			),
-			OauthAccessTokenResponse.class);
-
-		if (oauthClient.isSupportOICD()) {
-			DecodedIdTokenPayload payload = oauthClient.decodeIdToken(accessTokenResponse.getIdToken(),
-				authRequest.getNonce(), loginRequest.getRequestTime());
-			return OauthUserProfile.from(payload, loginRequest.getProvider());
-		}
-		LinkedMultiValueMap<String, String> header = new LinkedMultiValueMap<>();
-		header.add(HttpHeaders.AUTHORIZATION,
-			String.format("%s %s", accessTokenResponse.getTokenType(), accessTokenResponse.getAccessToken()));
-		Map<String, Object> attributes = webClientWrapper.get(oauthClient.getUserInfoUri(), header,
-			new ParameterizedTypeReference<>() {
-			});
-		return oauthClient.createOauthUserProfileResponse(attributes);
+	private OauthClient findOauthClient(String provider) {
+		return oauthClientRepository.findOneBy(provider);
 	}
 
 	public void logout(String accessToken, OauthMemberLogoutRequest request) {
