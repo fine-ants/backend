@@ -13,9 +13,10 @@ public class OauthUserProfile {
 
 	private String email;
 	private String profileImage;
+	private String provider;
 
-	public static OauthUserProfile from(DecodedIdTokenPayload payload) {
-		return new OauthUserProfile(payload.getEmail(), payload.getPicture());
+	public static OauthUserProfile from(DecodedIdTokenPayload payload, String provider) {
+		return new OauthUserProfile(payload.getEmail(), payload.getPicture(), provider);
 	}
 
 	@Override
