@@ -65,14 +65,17 @@ public class MemberService {
 
 	public OauthMemberLoginResponse login(OauthMemberLoginRequest request) {
 		log.info("로그인 서비스 요청 : loginRequest={}", request);
-		AuthorizationRequest authRequest = authorizationRequestManager.pop(request.getState());
-		OauthUserProfile profile = getOauthUserProfile(request, authRequest);
+		OauthUserProfile profile = getOauthUserProfile(request, popAuthorizationRequest(request));
 
-		CompletableFuture<OauthMemberLoginResponse> future = CompletableFuture
+		return CompletableFuture
 			.supplyAsync(supplyMember(request, profile))
 			.thenApplyAsync(this::saveMember)
-			.thenApply(createLoginResponse(request.getRequestTime()));
-		return future.join();
+			.thenApply(createLoginResponse(request.getRequestTime()))
+			.join();
+	}
+
+	private AuthorizationRequest popAuthorizationRequest(OauthMemberLoginRequest request) {
+		return authorizationRequestManager.pop(request.getState());
 	}
 
 	private Supplier<Member> supplyMember(OauthMemberLoginRequest request, OauthUserProfile profile) {
