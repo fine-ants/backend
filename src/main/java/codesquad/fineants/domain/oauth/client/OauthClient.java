@@ -10,9 +10,9 @@ import org.springframework.http.MediaType;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
+import codesquad.fineants.domain.oauth.decoder.IDTokenDecoder;
 import codesquad.fineants.spring.api.errors.errorcode.OauthErrorCode;
 import codesquad.fineants.spring.api.errors.exception.ServerInternalException;
-import codesquad.fineants.spring.api.member.decoder.IDTokenDecoder;
 import codesquad.fineants.spring.api.member.request.AuthorizationRequest;
 import codesquad.fineants.spring.api.member.request.OauthMemberLoginRequest;
 import codesquad.fineants.spring.api.member.response.OauthToken;

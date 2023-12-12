@@ -1,12 +1,10 @@
-package codesquad.fineants.spring.api.member.decoder;
+package codesquad.fineants.domain.oauth.decoder;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.security.interfaces.RSAPublicKey;
 import java.util.Base64;
-
-import org.springframework.stereotype.Component;
 
 import com.auth0.jwk.InvalidPublicKeyException;
 import com.auth0.jwk.Jwk;
@@ -24,7 +22,6 @@ import codesquad.fineants.spring.api.errors.exception.BadRequestException;
 import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
 import lombok.extern.slf4j.Slf4j;
 
-@Component
 @Slf4j
 public abstract class IDTokenDecoder {
 

@@ -1,4 +1,4 @@
-package codesquad.fineants.spring.api.member.decoder;
+package codesquad.fineants.domain.oauth.decoder;
 
 import static org.assertj.core.api.Assertions.*;
 
