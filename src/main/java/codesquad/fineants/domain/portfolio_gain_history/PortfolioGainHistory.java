@@ -24,6 +24,7 @@ public class PortfolioGainHistory extends BaseEntity {
 	private Long id;
 	private Long totalGain;
 	private Long dailyGain;
+	private Long cash;
 	private Long currentValuation;
 
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -31,12 +32,14 @@ public class PortfolioGainHistory extends BaseEntity {
 	private Portfolio portfolio;
 
 	@Builder
-	public PortfolioGainHistory(Long id, Long totalGain, Long dailyGain, Long currentValuation, Portfolio portfolio) {
+	public PortfolioGainHistory(Long id, Long totalGain, Long dailyGain, Long currentValuation, Portfolio portfolio,
+		Long cash) {
 		this.id = id;
 		this.totalGain = totalGain;
 		this.dailyGain = dailyGain;
 		this.currentValuation = currentValuation;
 		this.portfolio = portfolio;
+		this.cash = cash;
 	}
 
 	public static PortfolioGainHistory empty() {
@@ -44,6 +47,7 @@ public class PortfolioGainHistory extends BaseEntity {
 			.totalGain(0L)
 			.dailyGain(0L)
 			.currentValuation(0L)
+			.cash(0L)
 			.build();
 	}
 }

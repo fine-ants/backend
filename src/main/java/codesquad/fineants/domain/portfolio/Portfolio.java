@@ -196,10 +196,12 @@ public class Portfolio extends BaseEntity {
 		Long totalGain = calculateTotalGain();
 		Long dailyGain = calculateDailyGain(history);
 		Long currentValuation = calculateTotalCurrentValuation();
+		Long cash = calculateBalance();
 		return PortfolioGainHistory.builder()
 			.totalGain(totalGain)
 			.dailyGain(dailyGain)
 			.currentValuation(currentValuation)
+			.cash(cash)
 			.portfolio(this)
 			.build();
 	}

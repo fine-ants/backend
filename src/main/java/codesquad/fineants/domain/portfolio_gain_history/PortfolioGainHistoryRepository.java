@@ -1,6 +1,7 @@
 package codesquad.fineants.domain.portfolio_gain_history;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -15,4 +16,6 @@ public interface PortfolioGainHistoryRepository extends JpaRepository<PortfolioG
 		+ "limit 1", nativeQuery = true)
 	Optional<PortfolioGainHistory> findFirstByPortfolioAndCreateAtIsLessThanEqualOrderByCreateAtDesc(
 		@Param("portfolioId") Long portfolioId, @Param("createAt") LocalDateTime createAt);
+
+	List<PortfolioGainHistory> findAllByPortfolioId(Long portfolioId);
 }
