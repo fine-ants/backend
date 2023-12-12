@@ -44,9 +44,7 @@ public class DashboardService {
 		long totalGain = 0L; // 총 수익
 		Long totalAnnualDividend = 0L; // 총 연간 배당금
 		if (portfolios.isEmpty()) {
-			return OverviewResponse.of(member.getNickname(), totalValuation, totalInvestment,
-				0,
-				totalAnnualDividend, 0);
+			return OverviewResponse.empty(member.getNickname());
 		}
 		for (Portfolio portfolio : portfolios) {
 			portfolio.changeCurrentPriceFromHoldings(currentPriceManager);

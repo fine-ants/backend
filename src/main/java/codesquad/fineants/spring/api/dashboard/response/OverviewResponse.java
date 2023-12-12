@@ -19,4 +19,9 @@ public class OverviewResponse {
 		return new OverviewResponse(username, totalValuation, totalInvestment, totalGainRate, totalAnnualDividend,
 			totalAnnualDividendYield);
 	}
+
+	public static OverviewResponse empty(String username) {
+		return new OverviewResponse(username, 0L, 0L,
+			0, 0L, 0);
+	}
 }
