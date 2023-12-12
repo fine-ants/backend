@@ -64,8 +64,12 @@ public class DashboardService {
 			totalAnnualDividend, totalAnnualDividendYield);
 	}
 
+	@Transactional(readOnly = true)
 	public List<DashboardPieChartResponse> getPieChart(AuthMember authMember) {
 		List<Portfolio> portfolios = portfolioRepository.findAllByMemberId(authMember.getMemberId());
+		if (portfolios.isEmpty()) {
+			return new ArrayList<>();
+		}
 		Long totalValuation = 0L;// 평가 금액 + 현금?
 		for (Portfolio portfolio : portfolios) {
 			portfolio.changeCurrentPriceFromHoldings(currentPriceManager);
@@ -76,11 +80,14 @@ public class DashboardService {
 			pieChartResponses.add(DashboardPieChartResponse.of(portfolio, totalValuation));
 		}
 		return pieChartResponses;
-
 	}
 
+	@Transactional(readOnly = true)
 	public List<DashboardLineChartResponse> getLineChart(AuthMember authMember) {
 		List<Portfolio> portfolios = portfolioRepository.findAllByMemberId(authMember.getMemberId());
+		if (portfolios.isEmpty()) {
+			return new ArrayList<>();
+		}
 		List<PortfolioGainHistory> portfolioGainHistories = new ArrayList<>();
 		for (Portfolio portfolio : portfolios) {
 			portfolioGainHistories.addAll(portfolioGainHistoryRepository.findAllByPortfolioId(portfolio.getId()));

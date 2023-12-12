@@ -3,7 +3,9 @@ package codesquad.fineants.spring.api.dashboard.response;
 import codesquad.fineants.domain.portfolio.Portfolio;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 
+@Getter
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class DashboardPieChartResponse {
 	private Long id;
@@ -15,7 +17,7 @@ public class DashboardPieChartResponse {
 
 	public static DashboardPieChartResponse of(Portfolio portfolio, Long totalValuation) {
 		return new DashboardPieChartResponse(portfolio.getId(), portfolio.getName(), portfolio.calculateTotalAsset()
-			, (double)(portfolio.calculateTotalAsset() / totalValuation) * 100, portfolio.calculateTotalGain(),
+			, ((double)portfolio.calculateTotalAsset() / totalValuation) * 100, portfolio.calculateTotalGain(),
 			portfolio.calculateTotalGainRate());
 	}
 }
