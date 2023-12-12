@@ -53,21 +53,22 @@ public abstract class OauthClient {
 	private final String responseType;
 	private final WebClientWrapper webClient;
 
-	public abstract MultiValueMap<String, String> createTokenBody(Map<String, String> bodyMap);
-
 	public abstract String createAuthURL(AuthorizationRequest authorizationRequest);
 
-	public abstract boolean isSupportOICD();
+	protected abstract MultiValueMap<String, String> createTokenBody(Map<String, String> bodyMap);
 
-	public abstract DecodedIdTokenPayload deserializeDecodedPayload(String decodedPayload);
+	protected abstract boolean isSupportOICD();
 
-	public abstract void validatePayload(DecodedIdTokenPayload payload, LocalDateTime now, String nonce);
+	protected abstract DecodedIdTokenPayload deserializeDecodedPayload(String decodedPayload);
 
-	public abstract OauthUserProfile fetchUserProfile(OauthToken oauthToken);
+	protected abstract void validatePayload(DecodedIdTokenPayload payload, LocalDateTime now, String nonce);
 
-	public abstract OauthUserProfile fetchUserProfile(String idToken, String nonce, LocalDateTime requestTime);
+	protected abstract OauthUserProfile fetchUserProfile(OauthToken oauthToken);
 
-	public DecodedIdTokenPayload decodeIdToken(String idToken, String nonce, LocalDateTime now) {
+	protected abstract OauthUserProfile fetchUserProfile(String idToken, String nonce, LocalDateTime requestTime);
+
+	// TODO: 별도의 객체로 분리하여 개선
+	protected DecodedIdTokenPayload decodeIdToken(String idToken, String nonce, LocalDateTime now) {
 		final String separatorRegex = "\\.";
 		final int payloadIndex = 1;
 		String payload = idToken.split(separatorRegex)[payloadIndex];
@@ -80,7 +81,7 @@ public abstract class OauthClient {
 		return decodedIdTokenPayload;
 	}
 
-	public void validateSign(String idToken) {
+	private void validateSign(String idToken) {
 		// 검증 없이 디코딩
 		String kid;
 		try {

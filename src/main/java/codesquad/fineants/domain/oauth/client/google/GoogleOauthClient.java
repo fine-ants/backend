@@ -39,7 +39,7 @@ public class GoogleOauthClient extends OauthClient {
 	}
 
 	@Override
-	public MultiValueMap<String, String> createTokenBody(Map<String, String> bodyMap) {
+	protected MultiValueMap<String, String> createTokenBody(Map<String, String> bodyMap) {
 		MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
 		formData.add("code", bodyMap.get("code"));
 		formData.add("client_id", getClientId());
@@ -64,27 +64,27 @@ public class GoogleOauthClient extends OauthClient {
 	}
 
 	@Override
-	public boolean isSupportOICD() {
+	protected boolean isSupportOICD() {
 		return true;
 	}
 
 	@Override
-	public DecodedIdTokenPayload deserializeDecodedPayload(String decodedPayload) {
+	protected DecodedIdTokenPayload deserializeDecodedPayload(String decodedPayload) {
 		return ObjectMapperUtil.deserialize(decodedPayload, GoogleDecodedIdTokenPayload.class);
 	}
 
 	@Override
-	public void validatePayload(DecodedIdTokenPayload payload, LocalDateTime now, String nonce) {
+	protected void validatePayload(DecodedIdTokenPayload payload, LocalDateTime now, String nonce) {
 		payload.validateIdToken(iss, aud, now, nonce);
 	}
 
 	@Override
-	public OauthUserProfile fetchUserProfile(OauthToken oauthToken) {
+	protected OauthUserProfile fetchUserProfile(OauthToken oauthToken) {
 		throw new IllegalStateException("GoogleOauthClient 객체는 해당 기능을 지원하지 않습니다.");
 	}
 
 	@Override
-	public OauthUserProfile fetchUserProfile(String idToken, String nonce, LocalDateTime requestTime) {
+	protected OauthUserProfile fetchUserProfile(String idToken, String nonce, LocalDateTime requestTime) {
 		return OauthUserProfile.google(decodeIdToken(idToken, nonce, requestTime));
 	}
 }
