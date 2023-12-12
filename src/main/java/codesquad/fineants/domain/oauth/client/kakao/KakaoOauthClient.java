@@ -38,7 +38,7 @@ public class KakaoOauthClient extends OauthClient {
 	}
 
 	@Override
-	public MultiValueMap<String, String> createTokenBody(Map<String, String> bodyMap) {
+	protected MultiValueMap<String, String> createTokenBody(Map<String, String> bodyMap) {
 		MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
 		formData.add("code", bodyMap.get("code"));
 		formData.add("client_id", getClientId());
@@ -48,7 +48,7 @@ public class KakaoOauthClient extends OauthClient {
 		formData.add("grant_type", "authorization_code");
 		return formData;
 	}
-	
+
 	@Override
 	public String createAuthURL(AuthorizationRequest request) {
 		return getAuthorizeUri() + "?"
@@ -63,27 +63,27 @@ public class KakaoOauthClient extends OauthClient {
 	}
 
 	@Override
-	public DecodedIdTokenPayload deserializeDecodedPayload(String decodedPayload) {
+	protected DecodedIdTokenPayload deserializeDecodedPayload(String decodedPayload) {
 		return ObjectMapperUtil.deserialize(decodedPayload, KakaoDecodedIdTokenPayload.class);
 	}
 
 	@Override
-	public void validatePayload(DecodedIdTokenPayload payload, LocalDateTime now, String nonce) {
+	protected void validatePayload(DecodedIdTokenPayload payload, LocalDateTime now, String nonce) {
 		payload.validateIdToken(iss, aud, now, nonce);
 	}
 
 	@Override
-	public boolean isSupportOICD() {
+	protected boolean isSupportOICD() {
 		return true;
 	}
 
 	@Override
-	public OauthUserProfile fetchUserProfile(OauthToken oauthToken) {
+	protected OauthUserProfile fetchUserProfile(OauthToken oauthToken) {
 		throw new IllegalStateException("KakaoOauthClient 객체는 해당 기능을 지원하지 않습니다.");
 	}
 
 	@Override
-	public OauthUserProfile fetchUserProfile(String idToken, String nonce, LocalDateTime requestTime) {
+	protected OauthUserProfile fetchUserProfile(String idToken, String nonce, LocalDateTime requestTime) {
 		return OauthUserProfile.kakao(decodeIdToken(idToken, nonce, requestTime));
 	}
 }

@@ -33,7 +33,7 @@ public class NaverOauthClient extends OauthClient {
 	}
 
 	@Override
-	public MultiValueMap<String, String> createTokenBody(Map<String, String> bodyMap) {
+	protected MultiValueMap<String, String> createTokenBody(Map<String, String> bodyMap) {
 		MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
 		formData.add("code", bodyMap.get("code"));
 		formData.add("client_id", getClientId());
@@ -54,22 +54,22 @@ public class NaverOauthClient extends OauthClient {
 	}
 
 	@Override
-	public DecodedIdTokenPayload deserializeDecodedPayload(String decodedPayload) {
+	protected DecodedIdTokenPayload deserializeDecodedPayload(String decodedPayload) {
 		throw new IllegalStateException("네이버는 지원하지 않는 기능입니다.");
 	}
 
 	@Override
-	public void validatePayload(DecodedIdTokenPayload payload, LocalDateTime now, String nonce) {
+	protected void validatePayload(DecodedIdTokenPayload payload, LocalDateTime now, String nonce) {
 		throw new IllegalStateException("네이버는 지원하지 않는 기능입니다.");
 	}
 
 	@Override
-	public boolean isSupportOICD() {
+	protected boolean isSupportOICD() {
 		return false;
 	}
 
 	@Override
-	public OauthUserProfile fetchUserProfile(OauthToken oauthToken) {
+	protected OauthUserProfile fetchUserProfile(OauthToken oauthToken) {
 		MultiValueMap<String, String> header = new LinkedMultiValueMap<>();
 		header.add(HttpHeaders.AUTHORIZATION, oauthToken.createAuthorizationHeader());
 		Map<String, Object> userInfoMap = getWebClient().get(getUserInfoUri(), header,
@@ -86,7 +86,7 @@ public class NaverOauthClient extends OauthClient {
 	}
 
 	@Override
-	public OauthUserProfile fetchUserProfile(String idToken, String nonce, LocalDateTime requestTime) {
+	protected OauthUserProfile fetchUserProfile(String idToken, String nonce, LocalDateTime requestTime) {
 		throw new IllegalStateException("NaverOauthClient 객체는 해당 기능을 지원하지 않습니다.");
 	}
 }
