@@ -23,6 +23,7 @@ import codesquad.fineants.domain.oauth.client.AuthorizationCodeRandomGenerator;
 import codesquad.fineants.domain.oauth.client.DecodedIdTokenPayload;
 import codesquad.fineants.domain.oauth.client.OauthClient;
 import codesquad.fineants.domain.oauth.repository.OauthClientRepository;
+import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.spring.api.S3.service.AmazonS3Service;
 import codesquad.fineants.spring.api.errors.errorcode.MemberErrorCode;
 import codesquad.fineants.spring.api.errors.exception.BadRequestException;
@@ -62,6 +63,7 @@ public class MemberService {
 	private final AuthorizationCodeRandomGenerator authorizationCodeRandomGenerator;
 	private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
+	@Transactional
 	public OauthMemberLoginResponse login(OauthMemberLoginRequest loginRequest) {
 		log.info("로그인 서비스 요청 : loginRequest={}", loginRequest);
 		AuthorizationRequest authRequest = authorizationRequestManager.pop(loginRequest.getState());
@@ -227,6 +229,7 @@ public class MemberService {
 		}
 	}
 
+	@Transactional(readOnly = true)
 	public LoginResponse login(LoginRequest request) {
 		Member member = memberRepository.findMemberByEmail(request.getEmail())
 			.orElseThrow(() -> new BadRequestException(MemberErrorCode.LOGIN_FAIL));
@@ -238,5 +241,16 @@ public class MemberService {
 		}
 		Jwt jwt = jwtProvider.createJwtBasedOnMember(member, LocalDateTime.now());
 		return LoginResponse.from(jwt, OauthMemberResponse.from(member));
+	}
+
+	@Transactional
+	public void changeProfileImage(MultipartFile profileImageFile, AuthMember authMember) {
+		Member member = memberRepository.findById(authMember.getMemberId())
+			.orElseThrow(() -> new BadRequestException(MemberErrorCode.NOT_FOUND_MEMBER));
+		String url = null;
+		if (profileImageFile != null) {
+			url = amazonS3Service.upload(profileImageFile);
+		}
+		member.updateProfileImage(url);
 	}
 }

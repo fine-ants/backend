@@ -51,4 +51,8 @@ public class Member extends BaseEntity {
 	public boolean hasAuthorization(Long memberId) {
 		return id.equals(memberId);
 	}
+
+	public void updateProfileImage(String url) {
+		profileUrl = url;
+	}
 }
