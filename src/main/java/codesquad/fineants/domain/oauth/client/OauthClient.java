@@ -27,8 +27,10 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTDecodeException;
 
 import codesquad.fineants.spring.api.errors.errorcode.JwkErrorCode;
+import codesquad.fineants.spring.api.errors.errorcode.OauthErrorCode;
 import codesquad.fineants.spring.api.errors.exception.BadRequestException;
 import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
+import codesquad.fineants.spring.api.errors.exception.ServerInternalException;
 import codesquad.fineants.spring.api.member.request.AuthorizationRequest;
 import codesquad.fineants.spring.api.member.request.OauthMemberLoginRequest;
 import codesquad.fineants.spring.api.member.response.OauthToken;
@@ -53,8 +55,7 @@ public abstract class OauthClient {
 	private final String responseType;
 	private final WebClientWrapper webClient;
 
-	public abstract MultiValueMap<String, String> createTokenBody(String authorizationCode, String redirectUri,
-		String codeVerifier, String state);
+	public abstract MultiValueMap<String, String> createTokenBody(Map<String, String> bodyMap);
 
 	public abstract OauthUserProfile createOauthUserProfileResponse(Map<String, Object> attributes);
 
@@ -62,13 +63,9 @@ public abstract class OauthClient {
 
 	public abstract boolean isSupportOICD();
 
-	public MultiValueMap<String, String> createTokenHeader() {
-		MultiValueMap<String, String> result = new LinkedMultiValueMap<>();
-		result.add(CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED.toString());
-		result.add(ACCEPT, MediaType.APPLICATION_JSON.toString());
-		result.add(ACCEPT_CHARSET, StandardCharsets.UTF_8.name());
-		return result;
-	}
+	public abstract DecodedIdTokenPayload deserializeDecodedPayload(String decodedPayload);
+
+	public abstract void validatePayload(DecodedIdTokenPayload payload, LocalDateTime now, String nonce);
 
 	public DecodedIdTokenPayload decodeIdToken(String idToken, String nonce, LocalDateTime now) {
 		final String separatorRegex = "\\.";
@@ -82,10 +79,6 @@ public abstract class OauthClient {
 		validatePayload(decodedIdTokenPayload, now, nonce);
 		return decodedIdTokenPayload;
 	}
-
-	protected abstract DecodedIdTokenPayload deserializeDecodedPayload(String decodedPayload);
-
-	public abstract void validatePayload(DecodedIdTokenPayload payload, LocalDateTime now, String nonce);
 
 	public void validateSign(String idToken) {
 		// 검증 없이 디코딩
@@ -126,8 +119,9 @@ public abstract class OauthClient {
 
 	public OauthUserProfile fetchProfile(OauthMemberLoginRequest request, AuthorizationRequest authRequest) {
 		// OIDC 토큰 및 Access Token 발급
-		OauthToken oauthToken = retrieveToken(request, authRequest);
-		// TODO: 토큰 발급이 실패하는 경우 예외 처리
+		Map<String, String> tokenBodyMap = request.toTokenBodyMap();
+		tokenBodyMap.putAll(authRequest.toTokenBodyMap());
+		OauthToken oauthToken = retrieveToken(tokenBodyMap);
 
 		// 프로필 정보 가져오기
 		if (isSupportOICD()) {
@@ -147,15 +141,22 @@ public abstract class OauthClient {
 		});
 	}
 
-	private OauthToken retrieveToken(OauthMemberLoginRequest request, AuthorizationRequest authRequest) {
-		return webClient.post(tokenUri,
+	private OauthToken retrieveToken(Map<String, String> tokenBodyMap) {
+		OauthToken oauthToken = webClient.post(tokenUri,
 			createTokenHeader(),
-			createTokenBody(
-				request.getCode(),
-				request.getRedirectUrl(),
-				authRequest.getCodeVerifier(),
-				request.getState()
-			),
+			createTokenBody(tokenBodyMap),
 			OauthToken.class);
+		if (oauthToken.isEmpty()) {
+			throw new ServerInternalException(OauthErrorCode.FAIL_ACCESS_TOKEN);
+		}
+		return oauthToken;
+	}
+
+	private MultiValueMap<String, String> createTokenHeader() {
+		MultiValueMap<String, String> result = new LinkedMultiValueMap<>();
+		result.add(CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED.toString());
+		result.add(ACCEPT, MediaType.APPLICATION_JSON.toString());
+		result.add(ACCEPT_CHARSET, StandardCharsets.UTF_8.name());
+		return result;
 	}
 }

@@ -31,4 +31,8 @@ public class OauthToken {
 	public String createAuthorizationHeader() {
 		return String.join(" ", tokenType, accessToken);
 	}
+
+	public boolean isEmpty() {
+		return accessToken == null && idToken == null;
+	}
 }

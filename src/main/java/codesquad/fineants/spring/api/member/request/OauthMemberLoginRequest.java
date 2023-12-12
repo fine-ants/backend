@@ -1,6 +1,8 @@
 package codesquad.fineants.spring.api.member.request;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -20,5 +22,13 @@ public class OauthMemberLoginRequest {
 	public static OauthMemberLoginRequest of(String provider, String code, String redirectUrl, String state,
 		LocalDateTime requestTime) {
 		return new OauthMemberLoginRequest(provider, code, redirectUrl, state, requestTime);
+	}
+
+	public Map<String, String> toTokenBodyMap() {
+		Map<String, String> result = new HashMap<>();
+		result.put("code", code);
+		result.put("redirectUrl", redirectUrl);
+		result.put("state", state);
+		return result;
 	}
 }

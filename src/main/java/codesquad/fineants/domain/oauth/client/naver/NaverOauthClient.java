@@ -30,14 +30,13 @@ public class NaverOauthClient extends OauthClient {
 	}
 
 	@Override
-	public MultiValueMap<String, String> createTokenBody(String authorizationCode, String redirectUrl,
-		String codeVerifier, String state) {
+	public MultiValueMap<String, String> createTokenBody(Map<String, String> bodyMap) {
 		MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-		formData.add("code", authorizationCode);
+		formData.add("code", bodyMap.get("code"));
 		formData.add("client_id", getClientId());
 		formData.add("client_secret", getClientSecret());
-		formData.add("redirect_uri", redirectUrl);
-		formData.add("state", state);
+		formData.add("redirect_uri", bodyMap.get("redirectUrl"));
+		formData.add("state", bodyMap.get("state"));
 		formData.add("grant_type", "authorization_code");
 		return formData;
 	}
@@ -60,7 +59,7 @@ public class NaverOauthClient extends OauthClient {
 	}
 
 	@Override
-	protected DecodedIdTokenPayload deserializeDecodedPayload(String decodedPayload) {
+	public DecodedIdTokenPayload deserializeDecodedPayload(String decodedPayload) {
 		throw new IllegalStateException("네이버는 지원하지 않는 기능입니다.");
 	}
 
