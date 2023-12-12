@@ -5,6 +5,9 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -21,6 +24,7 @@ import codesquad.fineants.domain.oauth.client.OauthClient;
 import codesquad.fineants.domain.oauth.repository.OauthClientRepository;
 import codesquad.fineants.spring.api.S3.service.AmazonS3Service;
 import codesquad.fineants.spring.api.errors.errorcode.MemberErrorCode;
+import codesquad.fineants.spring.api.errors.errorcode.OauthErrorCode;
 import codesquad.fineants.spring.api.errors.exception.BadRequestException;
 import codesquad.fineants.spring.api.errors.exception.FineAntsException;
 import codesquad.fineants.spring.api.member.manager.AuthorizationRequestManager;
@@ -65,7 +69,12 @@ public class MemberService {
 			.thenApply(fetchProfile(request))
 			.thenCompose(saveMember(provider))
 			.thenApply(createLoginResponse(request.getRequestTime()));
-		return future.join();
+
+		try {
+			return future.get(5L, TimeUnit.SECONDS);
+		} catch (ExecutionException | InterruptedException | TimeoutException e) {
+			throw new FineAntsException(OauthErrorCode.FAIL_LOGIN, e.getMessage());
+		}
 	}
 
 	private Supplier<OauthClient> supplyOauthClient(String provider) {
