@@ -8,6 +8,8 @@ import java.util.UUID;
 
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
@@ -58,6 +60,7 @@ public class MemberService {
 	private final MailService mailService;
 	private final AmazonS3Service amazonS3Service;
 	private final AuthorizationCodeRandomGenerator authorizationCodeRandomGenerator;
+	private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
 	public OauthMemberLoginResponse login(OauthMemberLoginRequest loginRequest) {
 		log.info("로그인 서비스 요청 : loginRequest={}", loginRequest);
@@ -168,7 +171,7 @@ public class MemberService {
 			.email(request.getEmail())
 			.nickname(request.getNickname())
 			.profileUrl(url)
-			.password(request.getPassword())
+			.password(passwordEncoder.encode(request.getPassword()))
 			.build();
 		memberRepository.save(member);
 	}
@@ -227,7 +230,10 @@ public class MemberService {
 	public LoginResponse login(LoginRequest request) {
 		Member member = memberRepository.findMemberByEmail(request.getEmail())
 			.orElseThrow(() -> new BadRequestException(MemberErrorCode.LOGIN_FAIL));
-		if (!member.getPassword().equals(request.getPassword())) {
+		if (!passwordEncoder.matches(request.getPassword(), member.getPassword())) {
+			throw new BadRequestException(MemberErrorCode.LOGIN_FAIL);
+		}
+		if (request.getPassword().length() < 8) {
 			throw new BadRequestException(MemberErrorCode.LOGIN_FAIL);
 		}
 		Jwt jwt = jwtProvider.createJwtBasedOnMember(member, LocalDateTime.now());
