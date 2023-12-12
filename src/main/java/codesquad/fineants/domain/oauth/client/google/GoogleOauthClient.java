@@ -38,14 +38,13 @@ public class GoogleOauthClient extends OauthClient {
 	}
 
 	@Override
-	public MultiValueMap<String, String> createTokenBody(String authorizationCode, String redirectUri,
-		String codeVerifier, String state) {
+	public MultiValueMap<String, String> createTokenBody(Map<String, String> bodyMap) {
 		MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-		formData.add("code", authorizationCode);
+		formData.add("code", bodyMap.get("code"));
 		formData.add("client_id", getClientId());
 		formData.add("client_secret", getClientSecret());
-		formData.add("redirect_uri", redirectUri);
-		formData.add("code_verifier", codeVerifier);
+		formData.add("redirect_uri", bodyMap.get("redirectUrl"));
+		formData.add("code_verifier", bodyMap.get("codeVerifier"));
 		formData.add("grant_type", "authorization_code");
 		return formData;
 	}
@@ -76,7 +75,7 @@ public class GoogleOauthClient extends OauthClient {
 	}
 
 	@Override
-	protected DecodedIdTokenPayload deserializeDecodedPayload(String decodedPayload) {
+	public DecodedIdTokenPayload deserializeDecodedPayload(String decodedPayload) {
 		return ObjectMapperUtil.deserialize(decodedPayload, GoogleDecodedIdTokenPayload.class);
 	}
 
