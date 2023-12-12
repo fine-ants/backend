@@ -52,10 +52,11 @@ public class DashboardServiceTest {
 	@AfterEach
 	void tearDown() {
 		purchaseHistoryRepository.deleteAllInBatch();
-		stockRepository.deleteAllInBatch();
+		portfolioHoldingRepository.deleteAllInBatch();
 		portfolioGainHistoryRepository.deleteAllInBatch();
 		portfolioRepository.deleteAllInBatch();
 		memberRepository.deleteAllInBatch();
+		stockRepository.deleteAllInBatch();
 	}
 
 	@Test
