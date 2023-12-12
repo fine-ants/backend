@@ -10,6 +10,8 @@ import codesquad.fineants.domain.oauth.client.OauthClient;
 import codesquad.fineants.domain.oauth.client.google.GoogleOauthClient;
 import codesquad.fineants.domain.oauth.client.kakao.KakaoOauthClient;
 import codesquad.fineants.domain.oauth.client.naver.NaverOauthClient;
+import codesquad.fineants.spring.api.member.decoder.GoogleIDTokenDecoder;
+import codesquad.fineants.spring.api.member.decoder.KakaoIDTokenDecoder;
 import codesquad.fineants.spring.api.member.service.WebClientWrapper;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -32,8 +34,8 @@ public class OauthProperties {
 	public Map<String, OauthClient> createOauthClientMap(WebClientWrapper webClient) {
 		Map<String, OauthClient> oauthClientMap = new HashMap<>();
 		oauthClientMap.put("naver", new NaverOauthClient(naver, webClient));
-		oauthClientMap.put("kakao", new KakaoOauthClient(kakao, webClient));
-		oauthClientMap.put("google", new GoogleOauthClient(google, webClient));
+		oauthClientMap.put("kakao", new KakaoOauthClient(kakao, webClient, new KakaoIDTokenDecoder()));
+		oauthClientMap.put("google", new GoogleOauthClient(google, webClient, new GoogleIDTokenDecoder()));
 		return oauthClientMap;
 	}
 
