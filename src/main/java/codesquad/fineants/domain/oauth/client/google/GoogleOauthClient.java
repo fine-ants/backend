@@ -10,6 +10,7 @@ import codesquad.fineants.domain.oauth.client.DecodedIdTokenPayload;
 import codesquad.fineants.domain.oauth.client.OauthClient;
 import codesquad.fineants.domain.oauth.properties.OauthProperties;
 import codesquad.fineants.spring.api.member.request.AuthorizationRequest;
+import codesquad.fineants.spring.api.member.response.OauthToken;
 import codesquad.fineants.spring.api.member.response.OauthUserProfile;
 import codesquad.fineants.spring.api.member.service.WebClientWrapper;
 import codesquad.fineants.spring.util.ObjectMapperUtil;
@@ -50,13 +51,6 @@ public class GoogleOauthClient extends OauthClient {
 	}
 
 	@Override
-	public OauthUserProfile createOauthUserProfileResponse(Map<String, Object> attributes) {
-		String email = (String)attributes.get("email");
-		String picture = (String)attributes.get("picture");
-		return new OauthUserProfile(email, picture, "google");
-	}
-
-	@Override
 	public String createAuthURL(AuthorizationRequest request) {
 		return getAuthorizeUri() + "?"
 			+ "response_type=" + getResponseType() + "&"
@@ -82,5 +76,15 @@ public class GoogleOauthClient extends OauthClient {
 	@Override
 	public void validatePayload(DecodedIdTokenPayload payload, LocalDateTime now, String nonce) {
 		payload.validateIdToken(iss, aud, now, nonce);
+	}
+
+	@Override
+	public OauthUserProfile fetchUserProfile(OauthToken oauthToken) {
+		throw new IllegalStateException("GoogleOauthClient 객체는 해당 기능을 지원하지 않습니다.");
+	}
+
+	@Override
+	public OauthUserProfile fetchUserProfile(String idToken, String nonce, LocalDateTime requestTime) {
+		return OauthUserProfile.google(decodeIdToken(idToken, nonce, requestTime));
 	}
 }
