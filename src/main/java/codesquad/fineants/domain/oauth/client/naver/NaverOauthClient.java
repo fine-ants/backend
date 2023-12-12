@@ -29,7 +29,8 @@ public class NaverOauthClient extends OauthClient {
 			null,
 			naver.getAuthorizeUri(),
 			naver.getResponseType(),
-			webClient);
+			webClient,
+			null);
 	}
 
 	@Override
@@ -52,12 +53,7 @@ public class NaverOauthClient extends OauthClient {
 			+ "redirect_uri=" + getRedirectUri() + "&"
 			+ "state=" + request.getState();
 	}
-
-	@Override
-	protected DecodedIdTokenPayload deserializeDecodedPayload(String decodedPayload) {
-		throw new IllegalStateException("네이버는 지원하지 않는 기능입니다.");
-	}
-
+	
 	@Override
 	protected void validatePayload(DecodedIdTokenPayload payload, LocalDateTime now, String nonce) {
 		throw new IllegalStateException("네이버는 지원하지 않는 기능입니다.");
@@ -86,7 +82,7 @@ public class NaverOauthClient extends OauthClient {
 	}
 
 	@Override
-	protected OauthUserProfile fetchUserProfile(String idToken, String nonce, LocalDateTime requestTime) {
+	protected OauthUserProfile fetchUserProfile(DecodedIdTokenPayload payload) {
 		throw new IllegalStateException("NaverOauthClient 객체는 해당 기능을 지원하지 않습니다.");
 	}
 }

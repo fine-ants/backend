@@ -9,11 +9,11 @@ import org.springframework.util.MultiValueMap;
 import codesquad.fineants.domain.oauth.client.DecodedIdTokenPayload;
 import codesquad.fineants.domain.oauth.client.OauthClient;
 import codesquad.fineants.domain.oauth.properties.OauthProperties;
+import codesquad.fineants.spring.api.member.decoder.IDTokenDecoder;
 import codesquad.fineants.spring.api.member.request.AuthorizationRequest;
 import codesquad.fineants.spring.api.member.response.OauthToken;
 import codesquad.fineants.spring.api.member.response.OauthUserProfile;
 import codesquad.fineants.spring.api.member.service.WebClientWrapper;
-import codesquad.fineants.spring.util.ObjectMapperUtil;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -22,7 +22,8 @@ public class KakaoOauthClient extends OauthClient {
 	private final String iss;
 	private final String aud;
 
-	public KakaoOauthClient(OauthProperties.Kakao kakao, WebClientWrapper webClient) {
+	public KakaoOauthClient(OauthProperties.Kakao kakao, WebClientWrapper webClient, IDTokenDecoder decoder) {
+
 		super(kakao.getClientId(),
 			kakao.getClientSecret(),
 			kakao.getTokenUri(),
@@ -31,7 +32,8 @@ public class KakaoOauthClient extends OauthClient {
 			kakao.getJwksUri(),
 			kakao.getAuthorizeUri(),
 			kakao.getResponseType(),
-			webClient);
+			webClient,
+			decoder);
 		this.scope = kakao.getScope();
 		this.iss = kakao.getIss();
 		this.aud = kakao.getAud();
@@ -63,11 +65,6 @@ public class KakaoOauthClient extends OauthClient {
 	}
 
 	@Override
-	protected DecodedIdTokenPayload deserializeDecodedPayload(String decodedPayload) {
-		return ObjectMapperUtil.deserialize(decodedPayload, KakaoDecodedIdTokenPayload.class);
-	}
-
-	@Override
 	protected void validatePayload(DecodedIdTokenPayload payload, LocalDateTime now, String nonce) {
 		payload.validateIdToken(iss, aud, now, nonce);
 	}
@@ -83,7 +80,7 @@ public class KakaoOauthClient extends OauthClient {
 	}
 
 	@Override
-	protected OauthUserProfile fetchUserProfile(String idToken, String nonce, LocalDateTime requestTime) {
-		return OauthUserProfile.kakao(decodeIdToken(idToken, nonce, requestTime));
+	protected OauthUserProfile fetchUserProfile(DecodedIdTokenPayload payload) {
+		return OauthUserProfile.kakao(payload);
 	}
 }
