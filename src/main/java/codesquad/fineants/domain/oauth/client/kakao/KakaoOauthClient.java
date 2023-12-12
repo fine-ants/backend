@@ -8,8 +8,8 @@ import org.springframework.util.MultiValueMap;
 
 import codesquad.fineants.domain.oauth.client.DecodedIdTokenPayload;
 import codesquad.fineants.domain.oauth.client.OauthClient;
+import codesquad.fineants.domain.oauth.decoder.IDTokenDecoder;
 import codesquad.fineants.domain.oauth.properties.OauthProperties;
-import codesquad.fineants.spring.api.member.decoder.IDTokenDecoder;
 import codesquad.fineants.spring.api.member.request.AuthorizationRequest;
 import codesquad.fineants.spring.api.member.response.OauthToken;
 import codesquad.fineants.spring.api.member.response.OauthUserProfile;
