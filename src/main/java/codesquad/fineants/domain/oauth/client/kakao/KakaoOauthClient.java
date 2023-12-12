@@ -10,6 +10,7 @@ import codesquad.fineants.domain.oauth.client.DecodedIdTokenPayload;
 import codesquad.fineants.domain.oauth.client.OauthClient;
 import codesquad.fineants.domain.oauth.properties.OauthProperties;
 import codesquad.fineants.spring.api.member.request.AuthorizationRequest;
+import codesquad.fineants.spring.api.member.response.OauthToken;
 import codesquad.fineants.spring.api.member.response.OauthUserProfile;
 import codesquad.fineants.spring.api.member.service.WebClientWrapper;
 import codesquad.fineants.spring.util.ObjectMapperUtil;
@@ -47,14 +48,7 @@ public class KakaoOauthClient extends OauthClient {
 		formData.add("grant_type", "authorization_code");
 		return formData;
 	}
-
-	@Override
-	public OauthUserProfile createOauthUserProfileResponse(final Map<String, Object> attributes) {
-		String email = (String)attributes.get("email");
-		String picture = (String)attributes.get("picture");
-		return new OauthUserProfile(email, picture, "kakao");
-	}
-
+	
 	@Override
 	public String createAuthURL(AuthorizationRequest request) {
 		return getAuthorizeUri() + "?"
@@ -81,5 +75,15 @@ public class KakaoOauthClient extends OauthClient {
 	@Override
 	public boolean isSupportOICD() {
 		return true;
+	}
+
+	@Override
+	public OauthUserProfile fetchUserProfile(OauthToken oauthToken) {
+		throw new IllegalStateException("KakaoOauthClient 객체는 해당 기능을 지원하지 않습니다.");
+	}
+
+	@Override
+	public OauthUserProfile fetchUserProfile(String idToken, String nonce, LocalDateTime requestTime) {
+		return OauthUserProfile.kakao(decodeIdToken(idToken, nonce, requestTime));
 	}
 }

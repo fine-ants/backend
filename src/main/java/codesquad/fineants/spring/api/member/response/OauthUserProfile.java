@@ -19,6 +19,18 @@ public class OauthUserProfile {
 		return new OauthUserProfile(payload.getEmail(), payload.getPicture(), provider);
 	}
 
+	public static OauthUserProfile google(DecodedIdTokenPayload payload) {
+		return new OauthUserProfile(payload.getEmail(), payload.getPicture(), "google");
+	}
+
+	public static OauthUserProfile kakao(DecodedIdTokenPayload payload) {
+		return new OauthUserProfile(payload.getEmail(), payload.getPicture(), "kakao");
+	}
+
+	public static OauthUserProfile naver(String email, String picture) {
+		return new OauthUserProfile(email, picture, "naver");
+	}
+
 	@Override
 	public String toString() {
 		return String.format("%s, %s(email=%s, profileImage=%s)", "유저 프로필 응답", this.getClass().getSimpleName(), email,

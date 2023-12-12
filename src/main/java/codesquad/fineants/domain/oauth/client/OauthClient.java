@@ -10,8 +10,6 @@ import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.Map;
 
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -57,8 +55,6 @@ public abstract class OauthClient {
 
 	public abstract MultiValueMap<String, String> createTokenBody(Map<String, String> bodyMap);
 
-	public abstract OauthUserProfile createOauthUserProfileResponse(Map<String, Object> attributes);
-
 	public abstract String createAuthURL(AuthorizationRequest authorizationRequest);
 
 	public abstract boolean isSupportOICD();
@@ -66,6 +62,10 @@ public abstract class OauthClient {
 	public abstract DecodedIdTokenPayload deserializeDecodedPayload(String decodedPayload);
 
 	public abstract void validatePayload(DecodedIdTokenPayload payload, LocalDateTime now, String nonce);
+
+	public abstract OauthUserProfile fetchUserProfile(OauthToken oauthToken);
+
+	public abstract OauthUserProfile fetchUserProfile(String idToken, String nonce, LocalDateTime requestTime);
 
 	public DecodedIdTokenPayload decodeIdToken(String idToken, String nonce, LocalDateTime now) {
 		final String separatorRegex = "\\.";
@@ -125,20 +125,9 @@ public abstract class OauthClient {
 
 		// 프로필 정보 가져오기
 		if (isSupportOICD()) {
-			DecodedIdTokenPayload payload = decodeIdToken(oauthToken.getIdToken(),
-				authRequest.getNonce(), request.getRequestTime());
-			return OauthUserProfile.from(payload, request.getProvider());
+			return fetchUserProfile(oauthToken.getIdToken(), authRequest.getNonce(), request.getRequestTime());
 		}
-
-		Map<String, Object> attributes = fetchUserProfile(oauthToken);
-		return createOauthUserProfileResponse(attributes);
-	}
-
-	private Map<String, Object> fetchUserProfile(OauthToken oauthToken) {
-		MultiValueMap<String, String> header = new LinkedMultiValueMap<>();
-		header.add(HttpHeaders.AUTHORIZATION, oauthToken.createAuthorizationHeader());
-		return webClient.get(userInfoUri, header, new ParameterizedTypeReference<>() {
-		});
+		return fetchUserProfile(oauthToken);
 	}
 
 	private OauthToken retrieveToken(Map<String, String> tokenBodyMap) {
