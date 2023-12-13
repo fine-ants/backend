@@ -42,7 +42,7 @@ public class MemberRestController {
 	private final MemberService memberService;
 
 	@PostMapping("/{provider}/authUrl")
-	public ApiResponse<OauthSaveUrlResponse> authorizationCodeURL(@PathVariable final String provider) {
+	public ApiResponse<OauthSaveUrlResponse> saveAuthorizationCodeURL(@PathVariable final String provider) {
 		return ApiResponse.success(OauthSuccessCode.OK_URL, memberService.saveAuthorizationCodeURL(provider));
 	}
 
