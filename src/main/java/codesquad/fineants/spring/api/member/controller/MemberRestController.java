@@ -23,9 +23,9 @@ import codesquad.fineants.spring.api.member.request.OauthMemberRefreshRequest;
 import codesquad.fineants.spring.api.member.request.SignUpRequest;
 import codesquad.fineants.spring.api.member.request.VerifyEmailRequest;
 import codesquad.fineants.spring.api.member.response.LoginResponse;
-import codesquad.fineants.spring.api.member.response.OauthCreateUrlResponse;
 import codesquad.fineants.spring.api.member.response.OauthMemberLoginResponse;
 import codesquad.fineants.spring.api.member.response.OauthMemberRefreshResponse;
+import codesquad.fineants.spring.api.member.response.OauthSaveUrlResponse;
 import codesquad.fineants.spring.api.member.service.MemberService;
 import codesquad.fineants.spring.api.response.ApiResponse;
 import codesquad.fineants.spring.api.success.code.MemberSuccessCode;
@@ -42,8 +42,8 @@ public class MemberRestController {
 	private final MemberService memberService;
 
 	@PostMapping("/{provider}/authUrl")
-	public ApiResponse<OauthCreateUrlResponse> authorizationCodeURL(@PathVariable final String provider) {
-		return ApiResponse.success(OauthSuccessCode.OK_URL, memberService.createAuthorizationCodeURL(provider));
+	public ApiResponse<OauthSaveUrlResponse> authorizationCodeURL(@PathVariable final String provider) {
+		return ApiResponse.success(OauthSuccessCode.OK_URL, memberService.saveAuthorizationCodeURL(provider));
 	}
 
 	@PostMapping(value = "/{provider}/login")

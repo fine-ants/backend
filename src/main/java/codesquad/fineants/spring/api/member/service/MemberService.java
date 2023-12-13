@@ -36,10 +36,10 @@ import codesquad.fineants.spring.api.member.request.OauthMemberRefreshRequest;
 import codesquad.fineants.spring.api.member.request.SignUpRequest;
 import codesquad.fineants.spring.api.member.request.VerifyEmailRequest;
 import codesquad.fineants.spring.api.member.response.LoginResponse;
-import codesquad.fineants.spring.api.member.response.OauthCreateUrlResponse;
 import codesquad.fineants.spring.api.member.response.OauthMemberLoginResponse;
 import codesquad.fineants.spring.api.member.response.OauthMemberRefreshResponse;
 import codesquad.fineants.spring.api.member.response.OauthMemberResponse;
+import codesquad.fineants.spring.api.member.response.OauthSaveUrlResponse;
 import codesquad.fineants.spring.api.member.response.OauthUserProfile;
 import codesquad.fineants.spring.api.portfolio_notification.MailService;
 import io.jsonwebtoken.Claims;
@@ -81,20 +81,24 @@ public class MemberService {
 		return () -> findOauthClient(provider);
 	}
 
+	private OauthClient findOauthClient(String provider) {
+		return oauthClientRepository.findOneBy(provider);
+	}
+
 	private Function<OauthClient, OauthUserProfile> fetchProfile(
 		OauthMemberLoginRequest request) {
 		return oauthClient -> oauthClient.fetchProfile(request, popAuthorizationRequest(request.getState()));
+	}
+
+	private AuthorizationRequest popAuthorizationRequest(String state) {
+		return authorizationRequestManager.pop(state);
 	}
 
 	private Function<OauthUserProfile, CompletionStage<Member>> saveMember(
 		String provider) {
 		return profile -> CompletableFuture
 			.supplyAsync(supplyMember(provider, profile))
-			.thenApplyAsync(this::saveMember);
-	}
-
-	private AuthorizationRequest popAuthorizationRequest(String state) {
-		return authorizationRequestManager.pop(state);
+			.thenApplyAsync(this::saveMemberToRepository);
 	}
 
 	private Supplier<Member> supplyMember(String provider, OauthUserProfile profile) {
@@ -106,7 +110,7 @@ public class MemberService {
 		return memberRepository.findMemberByEmailAndProvider(email, provider);
 	}
 
-	private Member saveMember(Member member) {
+	private Member saveMemberToRepository(Member member) {
 		return memberRepository.save(member);
 	}
 
@@ -122,10 +126,6 @@ public class MemberService {
 		return jwtProvider.createJwtBasedOnMember(member, requestTime);
 	}
 
-	private OauthClient findOauthClient(String provider) {
-		return oauthClientRepository.findOneBy(provider);
-	}
-
 	public void logout(String accessToken, OauthMemberLogoutRequest request) {
 		String refreshToken = request.getRefreshToken();
 		banTokens(accessToken, refreshToken);
@@ -138,8 +138,7 @@ public class MemberService {
 			accessTokenExpiration = ((Integer)jwtProvider.getClaims(accessToken).get("exp")).longValue();
 			refreshTokenExpiration = ((Integer)jwtProvider.getClaims(accessToken).get("exp")).longValue();
 		} catch (FineAntsException e) {
-			log.error("토큰 에러 : {}", accessToken);
-			log.error("액세스 토큰 밴 에러 : {}", e.toString());
+			log.error(e.getMessage(), e);
 			return;
 		}
 		redisService.banToken(accessToken, accessTokenExpiration);
@@ -149,17 +148,16 @@ public class MemberService {
 	public OauthMemberRefreshResponse refreshAccessToken(OauthMemberRefreshRequest request, LocalDateTime now) {
 		String refreshToken = request.getRefreshToken();
 		Claims claims = jwtProvider.getClaims(refreshToken);
-		log.debug("refreshToken is valid token : {}", refreshToken);
 		Jwt jwt = jwtProvider.createJwtWithRefreshToken(claims, refreshToken, now);
 		return OauthMemberRefreshResponse.from(jwt);
 	}
 
 	@Transactional(readOnly = true)
-	public OauthCreateUrlResponse createAuthorizationCodeURL(final String provider) {
+	public OauthSaveUrlResponse saveAuthorizationCodeURL(final String provider) {
 		final OauthClient oauthClient = oauthClientRepository.findOneBy(provider);
 		final AuthorizationRequest request = authorizationCodeRandomGenerator.generateAuthorizationRequest();
 		authorizationRequestManager.add(request.getState(), request);
-		return new OauthCreateUrlResponse(oauthClient.createAuthURL(request), request);
+		return new OauthSaveUrlResponse(oauthClient.createAuthURL(request), request);
 	}
 
 	@Transactional
@@ -188,7 +186,7 @@ public class MemberService {
 			.profileUrl(url)
 			.password(request.getPassword())
 			.build();
-		saveMember(member);
+		saveMemberToRepository(member);
 	}
 
 	private void checkForm(SignUpRequest request) {

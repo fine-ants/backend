@@ -107,7 +107,7 @@ public class MemberServiceTest {
 		errorBody.put("error_code", "KOE320");
 		given(oauthClient.fetchProfile(any(OauthMemberLoginRequest.class), any(AuthorizationRequest.class)))
 			.willThrow(new BadRequestException(OauthErrorCode.FAIL_REQUEST, ObjectMapperUtil.serialize(errorBody)));
-		memberService.createAuthorizationCodeURL(provider);
+		memberService.saveAuthorizationCodeURL(provider);
 
 		OauthMemberLoginRequest loginRequest = createOauthMemberLoginServiceRequest(provider);
 
@@ -169,7 +169,7 @@ public class MemberServiceTest {
 		given(oauthClientRepository.findOneBy(anyString())).willReturn(oauthClient);
 		given(oauthClient.fetchProfile(any(OauthMemberLoginRequest.class), any(AuthorizationRequest.class)))
 			.willReturn(createOauthUserProfile(email, provider));
-		memberService.createAuthorizationCodeURL(provider);
+		memberService.saveAuthorizationCodeURL(provider);
 
 		OauthMemberLoginRequest loginRequest = createOauthMemberLoginServiceRequest(provider);
 

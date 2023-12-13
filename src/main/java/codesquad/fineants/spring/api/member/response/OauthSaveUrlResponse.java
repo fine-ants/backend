@@ -8,7 +8,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class OauthCreateUrlResponse {
+public class OauthSaveUrlResponse {
 	private String authURL;
 	@JsonIgnore
 	private AuthorizationRequest authorizationRequest;

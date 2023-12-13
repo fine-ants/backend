@@ -34,9 +34,9 @@ import codesquad.fineants.domain.oauth.support.AuthPrincipalArgumentResolver;
 import codesquad.fineants.spring.api.errors.handler.GlobalExceptionHandler;
 import codesquad.fineants.spring.api.member.request.AuthorizationRequest;
 import codesquad.fineants.spring.api.member.request.OauthMemberLoginRequest;
-import codesquad.fineants.spring.api.member.response.OauthCreateUrlResponse;
 import codesquad.fineants.spring.api.member.response.OauthMemberLoginResponse;
 import codesquad.fineants.spring.api.member.response.OauthMemberResponse;
+import codesquad.fineants.spring.api.member.response.OauthSaveUrlResponse;
 import codesquad.fineants.spring.api.member.service.MemberService;
 import codesquad.fineants.spring.api.member.service.WebClientWrapper;
 import codesquad.fineants.spring.config.JpaAuditingConfiguration;
@@ -113,10 +113,10 @@ class MemberRestControllerTest {
 			+ "&code_challenge=LpAzxsJ6VeWDwCNWdhDF6CypNrZlJnXYxhr4PPbkilU"
 			+ "&code_challenge_method=S256", clientId, redirectUrl);
 
-		OauthCreateUrlResponse mockResponse = new OauthCreateUrlResponse(expectedAuthURL,
+		OauthSaveUrlResponse mockResponse = new OauthSaveUrlResponse(expectedAuthURL,
 			AuthorizationRequest.of("1234", "codeVerifier", "codeChallenge", "1234"));
 
-		given(memberService.createAuthorizationCodeURL(
+		given(memberService.saveAuthorizationCodeURL(
 			anyString()
 		)).willReturn(mockResponse);
 
