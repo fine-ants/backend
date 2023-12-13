@@ -31,54 +31,56 @@ public abstract class IDTokenDecoder {
 	protected abstract DecodedIdTokenPayload deserializeDecodedPayload(String payload);
 
 	public DecodedIdTokenPayload decode(String idToken, String jwkUri) {
-		String decodedPayload = decodePayload(parsePayloadBlock(idToken));
-		DecodedIdTokenPayload decodedIdTokenPayload = deserializeDecodedPayload(decodedPayload);
-		validateSign(idToken, jwkUri);
-		return decodedIdTokenPayload;
+		verifyIdToken(idToken, jwkUri);
+		return deserializeDecodedPayload(decodePayload(parsePayloadBlock(idToken)));
 	}
 
-	private static String parsePayloadBlock(String idToken) {
+	private String parsePayloadBlock(String idToken) {
 		return idToken.split(ID_TOKEN_SEPARATOR)[PAYLOAD];
 	}
 
-	private static String decodePayload(String payload) {
+	private String decodePayload(String payload) {
 		return new String(Base64.getUrlDecoder().decode(payload), StandardCharsets.UTF_8);
 	}
 
-	private void validateSign(String idToken, String jwkUri) {
-		// 검증 없이 디코딩
-		String kid;
+	private void verifyIdToken(String idToken, String jwkUri) {
+		Jwk jwk = getJwkBy(fetchJwkProvider(jwkUri), parseKid(idToken));
+		Algorithm algorithm = getAlgorithmBy(jwk);
+		JWTVerifier verifier = JWT.require(algorithm).build();
+		verifier.verify(idToken);
+	}
+
+	private JwkProvider fetchJwkProvider(String jwkUri) {
 		try {
-			kid = JWT.decode(idToken).getKeyId();
+			return new UrlJwkProvider(new URL(jwkUri));
+		} catch (MalformedURLException e) {
+			throw new BadRequestException(JwkErrorCode.INVALID_JWK_URI);
+		}
+	}
+
+	private String parseKid(String idToken) {
+		try {
+			return JWT.decode(idToken).getKeyId();
 		} catch (JWTDecodeException e) {
-			log.error(e.getMessage(), e);
 			throw new BadRequestException(JwkErrorCode.INVALID_ID_TOKEN);
 		}
+	}
 
-		// 공개키 프로바이더 준비
-		JwkProvider provider;
+	private Jwk getJwkBy(JwkProvider provider, String kid) {
 		try {
-			provider = new UrlJwkProvider(new URL(jwkUri));
-		} catch (MalformedURLException e) {
-			throw new RuntimeException(e);
-		}
-
-		Jwk jwk;
-		try {
-			jwk = provider.get(kid);
+			return provider.get(kid);
 		} catch (JwkException e) {
-			log.error(e.getMessage());
 			throw new NotFoundResourceException(JwkErrorCode.NOT_FOUND_SIGNING_KEY);
 		}
+	}
 
-		// 검증 및 디코딩
+	private Algorithm getAlgorithmBy(Jwk jwk) {
 		Algorithm algorithm;
 		try {
 			algorithm = Algorithm.RSA256((RSAPublicKey)jwk.getPublicKey(), null);
 		} catch (InvalidPublicKeyException e) {
 			throw new BadRequestException(JwkErrorCode.INVALID_PUBLIC_KEY);
 		}
-		JWTVerifier verifier = JWT.require(algorithm).build();
-		verifier.verify(idToken);
+		return algorithm;
 	}
 }
