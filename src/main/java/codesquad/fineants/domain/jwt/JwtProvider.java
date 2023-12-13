@@ -75,10 +75,8 @@ public class JwtProvider {
 				.build()
 				.parseClaimsJws(token);
 		} catch (ExpiredJwtException e) {
-			log.error("토큰 만료 에러 : {}", e.getMessage());
 			throw new ForBiddenException(JwtErrorCode.EXPIRE_TOKEN);
 		} catch (JwtException e) {
-			log.error("Jwt 에러 : {}", e.getMessage());
 			throw new BadRequestException(JwtErrorCode.INVALID_TOKEN);
 		}
 	}
@@ -91,5 +89,4 @@ public class JwtProvider {
 			.getBody();
 		return AuthMember.from(claims, token);
 	}
-
 }
