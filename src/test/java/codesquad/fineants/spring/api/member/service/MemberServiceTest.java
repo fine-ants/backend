@@ -12,6 +12,8 @@ import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -54,33 +56,6 @@ public class MemberServiceTest {
 	@AfterEach
 	void tearDown() {
 		memberRepository.deleteAllInBatch();
-	}
-
-	@DisplayName("사용자가 카카오 로그인합니다.")
-	@Test
-	void loginUsingKakao() {
-		// given
-		String provider = "kakao";
-		String code = "1234";
-		String redirectUrl = "http://localhost:5173/signin?provider=kakao";
-		String state = "1234";
-		given(authorizationCodeRandomGenerator.generateAuthorizationRequest()).willReturn(
-			createAuthorizationRequest(state));
-		given(oauthClientRepository.findOneBy(anyString())).willReturn(oauthClient);
-		given(oauthClient.fetchProfile(any(OauthMemberLoginRequest.class), any(AuthorizationRequest.class)))
-			.willReturn(new OauthUserProfile("fineants.co@gmail.com", "profileImage", "kakao"));
-		memberService.createAuthorizationCodeURL(provider);
-
-		OauthMemberLoginRequest loginRequest = createOauthMemberLoginServiceRequest(provider, code, redirectUrl,
-			state);
-		// when
-		OauthMemberLoginResponse response = memberService.login(loginRequest);
-
-		// then
-		assertThat(response)
-			.extracting("user")
-			.extracting("email")
-			.isEqualTo("fineants.co@gmail.com");
 	}
 
 	@DisplayName("존재하지 않은 provider를 제공하여 로그인 시도시 예외가 발생한다")
@@ -170,9 +145,9 @@ public class MemberServiceTest {
 		String code = "1234";
 		String redirectUrl = "http://localhost:5173/signin?provider=kakao";
 		String state = "1234";
-
 		OauthMemberLoginRequest loginRequest = createOauthMemberLoginServiceRequest(provider,
 			code, redirectUrl, state);
+
 		// when
 		Throwable throwable = catchThrowable(() -> memberService.login(loginRequest));
 
@@ -193,33 +168,35 @@ public class MemberServiceTest {
 		);
 	}
 
-	@DisplayName("사용자가 네이버 로그인합니다.")
-	@Test
-	void loginWithNaver() {
+	@DisplayName("사용자가 소셜 로그인을 합니다")
+	@CsvSource(value = {"naver,fineants.co@naver.com", "kakao,fineants.co@gmail.com", "google,fineants.co@gmail.com"})
+	@ParameterizedTest
+	void loginWithNaver(String provider, String email) {
 		// given
-		String provider = "naver";
 		String code = "1234";
 		String redirectUrl = "http://localhost:5173/signin?provider=naver";
 		String state = "1234";
-		String codeVerifier = "1234";
-		String codeChallenge = "1234";
-		String nonce = "1234";
 		given(authorizationCodeRandomGenerator.generateAuthorizationRequest()).willReturn(
-			AuthorizationRequest.of(state, codeVerifier, codeChallenge, nonce));
+			createAuthorizationRequest(state));
 		given(oauthClientRepository.findOneBy(anyString())).willReturn(oauthClient);
 		given(oauthClient.fetchProfile(any(OauthMemberLoginRequest.class), any(AuthorizationRequest.class)))
-			.willReturn(createOauthUserProfile("fineants.co@naver.com", "naver"));
+			.willReturn(createOauthUserProfile(email, provider));
 		memberService.createAuthorizationCodeURL(provider);
 
 		OauthMemberLoginRequest loginRequest = createOauthMemberLoginServiceRequest(provider, code, redirectUrl, state);
+
 		// when
 		OauthMemberLoginResponse response = memberService.login(loginRequest);
 
 		// then
-		assertThat(response)
-			.extracting("user")
-			.extracting("email")
-			.isEqualTo("fineants.co@naver.com");
+		assertAll(
+			() -> assertThat(response)
+				.extracting("user")
+				.extracting("email")
+				.isEqualTo(email),
+			() -> assertThat(memberRepository.findMemberByEmailAndProvider(email, provider).orElseThrow())
+				.isNotNull()
+		);
 	}
 
 	private AuthorizationRequest createAuthorizationRequest(String state) {
@@ -230,7 +207,7 @@ public class MemberServiceTest {
 	}
 
 	private OauthUserProfile createOauthUserProfile(String email, String provider) {
-		return new OauthUserProfile("fineants.co@naver.com", "profileImage", "naver");
+		return new OauthUserProfile(email, "profileImage", provider);
 	}
 
 	private OauthMemberLoginRequest createOauthMemberLoginServiceRequest(String provider, String code,
