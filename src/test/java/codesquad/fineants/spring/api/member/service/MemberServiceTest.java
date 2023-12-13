@@ -63,14 +63,10 @@ public class MemberServiceTest {
 	void loginWithNotExistProvider() {
 		// given
 		String provider = "invalidProvider";
-		String code = "1234";
-		String redirectUrl = "http://localhost:5173/signin?provider=kakao";
-		String state = "1234";
 		given(oauthClientRepository.findOneBy(anyString())).willThrow(
 			new NotFoundResourceException(OauthErrorCode.NOT_FOUND_PROVIDER));
 
-		OauthMemberLoginRequest loginRequest = createOauthMemberLoginServiceRequest(provider,
-			code, redirectUrl, state);
+		OauthMemberLoginRequest loginRequest = createOauthMemberLoginServiceRequest(provider);
 
 		// when
 		Throwable throwable = catchThrowable(() -> memberService.login(loginRequest));
@@ -97,8 +93,6 @@ public class MemberServiceTest {
 	void loginWithInvalidCode() {
 		// given
 		String provider = "kakao";
-		String code = "1234";
-		String redirectUrl = "http://localhost:5173/signin?provider=kakao";
 		String state = "1234";
 		String codeVerifier = "1234";
 		String codeChallenge = "4321";
@@ -115,7 +109,7 @@ public class MemberServiceTest {
 			.willThrow(new BadRequestException(OauthErrorCode.FAIL_REQUEST, ObjectMapperUtil.serialize(errorBody)));
 		memberService.createAuthorizationCodeURL(provider);
 
-		OauthMemberLoginRequest loginRequest = createOauthMemberLoginServiceRequest(provider, code, redirectUrl, state);
+		OauthMemberLoginRequest loginRequest = createOauthMemberLoginServiceRequest(provider);
 
 		// when
 		Throwable throwable = catchThrowable(() -> memberService.login(loginRequest));
@@ -142,11 +136,7 @@ public class MemberServiceTest {
 	void loginWithInvalidState() {
 		// given
 		String provider = "kakao";
-		String code = "1234";
-		String redirectUrl = "http://localhost:5173/signin?provider=kakao";
-		String state = "1234";
-		OauthMemberLoginRequest loginRequest = createOauthMemberLoginServiceRequest(provider,
-			code, redirectUrl, state);
+		OauthMemberLoginRequest loginRequest = createOauthMemberLoginServiceRequest(provider);
 
 		// when
 		Throwable throwable = catchThrowable(() -> memberService.login(loginRequest));
@@ -173,8 +163,6 @@ public class MemberServiceTest {
 	@ParameterizedTest
 	void loginWithNaver(String provider, String email) {
 		// given
-		String code = "1234";
-		String redirectUrl = "http://localhost:5173/signin?provider=naver";
 		String state = "1234";
 		given(authorizationCodeRandomGenerator.generateAuthorizationRequest()).willReturn(
 			createAuthorizationRequest(state));
@@ -183,7 +171,7 @@ public class MemberServiceTest {
 			.willReturn(createOauthUserProfile(email, provider));
 		memberService.createAuthorizationCodeURL(provider);
 
-		OauthMemberLoginRequest loginRequest = createOauthMemberLoginServiceRequest(provider, code, redirectUrl, state);
+		OauthMemberLoginRequest loginRequest = createOauthMemberLoginServiceRequest(provider);
 
 		// when
 		OauthMemberLoginResponse response = memberService.login(loginRequest);
@@ -207,11 +195,14 @@ public class MemberServiceTest {
 	}
 
 	private OauthUserProfile createOauthUserProfile(String email, String provider) {
-		return new OauthUserProfile(email, "profileImage", provider);
+		String profileImage = "profileImage";
+		return new OauthUserProfile(email, profileImage, provider);
 	}
 
-	private OauthMemberLoginRequest createOauthMemberLoginServiceRequest(String provider, String code,
-		String redirectUrl, String state) {
+	private OauthMemberLoginRequest createOauthMemberLoginServiceRequest(String provider) {
+		String code = "1234";
+		String redirectUrl = "http://localhost:5173/signin?provider=" + provider;
+		String state = "1234";
 		return OauthMemberLoginRequest.of(provider,
 			code, redirectUrl, state, LocalDate.of(2023, 11, 8).atStartOfDay());
 	}
