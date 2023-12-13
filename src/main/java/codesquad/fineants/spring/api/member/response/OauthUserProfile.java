@@ -15,10 +15,6 @@ public class OauthUserProfile {
 	private String profileImage;
 	private String provider;
 
-	public static OauthUserProfile from(DecodedIdTokenPayload payload, String provider) {
-		return new OauthUserProfile(payload.getEmail(), payload.getPicture(), provider);
-	}
-
 	public static OauthUserProfile google(DecodedIdTokenPayload payload) {
 		return new OauthUserProfile(payload.getEmail(), payload.getPicture(), "google");
 	}
@@ -33,7 +29,7 @@ public class OauthUserProfile {
 
 	@Override
 	public String toString() {
-		return String.format("%s, %s(email=%s, profileImage=%s)", "유저 프로필 응답", this.getClass().getSimpleName(), email,
-			profileImage);
+		return String.format("%s, %s(email=%s, profileImage=%s, provider=%s)", "유저 프로필 응답",
+			this.getClass().getSimpleName(), email, profileImage, provider);
 	}
 }
