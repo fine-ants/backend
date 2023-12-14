@@ -52,7 +52,7 @@ public class Member extends BaseEntity {
 		return id.equals(memberId);
 	}
 
-	public void updateProfileImage(String url) {
-		profileUrl = url;
+	public void updateProfileImage(String profileUrl) {
+		this.profileUrl = profileUrl;
 	}
 }

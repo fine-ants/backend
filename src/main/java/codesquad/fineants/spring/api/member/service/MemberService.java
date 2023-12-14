@@ -8,7 +8,6 @@ import java.util.UUID;
 
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -61,7 +60,7 @@ public class MemberService {
 	private final MailService mailService;
 	private final AmazonS3Service amazonS3Service;
 	private final AuthorizationCodeRandomGenerator authorizationCodeRandomGenerator;
-	private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+	private final PasswordEncoder passwordEncoder;
 
 	@Transactional
 	public OauthMemberLoginResponse login(OauthMemberLoginRequest loginRequest) {
@@ -231,12 +230,12 @@ public class MemberService {
 
 	@Transactional(readOnly = true)
 	public LoginResponse login(LoginRequest request) {
-		Member member = memberRepository.findMemberByEmail(request.getEmail())
+		Member member = memberRepository.findMemberByEmailAndProvider(request.getEmail(), null)
 			.orElseThrow(() -> new BadRequestException(MemberErrorCode.LOGIN_FAIL));
 		if (!passwordEncoder.matches(request.getPassword(), member.getPassword())) {
 			throw new BadRequestException(MemberErrorCode.LOGIN_FAIL);
 		}
-		if (request.getPassword().length() < 8) {
+		if (request.getPassword().isBlank()) {
 			throw new BadRequestException(MemberErrorCode.LOGIN_FAIL);
 		}
 		Jwt jwt = jwtProvider.createJwtBasedOnMember(member, LocalDateTime.now());
