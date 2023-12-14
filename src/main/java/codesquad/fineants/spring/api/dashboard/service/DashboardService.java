@@ -98,6 +98,7 @@ public class DashboardService {
 		}
 		return timeValueMap.keySet()
 			.stream()
+			.sorted()
 			.map(key -> DashboardLineChartResponse.of(key, timeValueMap.get(key)))
 			.collect(
 				Collectors.toList());

@@ -11,6 +11,9 @@ import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpHeaders;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -22,6 +25,7 @@ import codesquad.fineants.domain.member.MemberRepository;
 import codesquad.fineants.domain.oauth.client.AuthorizationCodeRandomGenerator;
 import codesquad.fineants.domain.oauth.client.OauthClient;
 import codesquad.fineants.domain.oauth.repository.OauthClientRepository;
+import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.spring.api.S3.service.AmazonS3Service;
 import codesquad.fineants.spring.api.errors.errorcode.MemberErrorCode;
 import codesquad.fineants.spring.api.errors.errorcode.OauthErrorCode;
@@ -60,6 +64,7 @@ public class MemberService {
 	private final AmazonS3Service amazonS3Service;
 	private final AuthorizationCodeRandomGenerator authorizationCodeRandomGenerator;
 	private final MemberFactory memberFactory;
+  private final PasswordEncoder passwordEncoder;
 
 	public OauthMemberLoginResponse login(OauthMemberLoginRequest request) {
 		log.info("로그인 서비스 요청 : loginRequest={}", request);
@@ -184,7 +189,7 @@ public class MemberService {
 			.email(request.getEmail())
 			.nickname(request.getNickname())
 			.profileUrl(url)
-			.password(request.getPassword())
+			.password(passwordEncoder.encode(request.getPassword()))
 			.build();
 		saveMemberToRepository(member);
 	}
@@ -240,13 +245,28 @@ public class MemberService {
 		}
 	}
 
+	@Transactional(readOnly = true)
 	public LoginResponse login(LoginRequest request) {
-		Member member = memberRepository.findMemberByEmail(request.getEmail())
+		Member member = memberRepository.findMemberByEmailAndProvider(request.getEmail(), null)
 			.orElseThrow(() -> new BadRequestException(MemberErrorCode.LOGIN_FAIL));
-		if (!member.getPassword().equals(request.getPassword())) {
+		if (!passwordEncoder.matches(request.getPassword(), member.getPassword())) {
+			throw new BadRequestException(MemberErrorCode.LOGIN_FAIL);
+		}
+		if (request.getPassword().isBlank()) {
 			throw new BadRequestException(MemberErrorCode.LOGIN_FAIL);
 		}
 		Jwt jwt = jwtProvider.createJwtBasedOnMember(member, LocalDateTime.now());
 		return LoginResponse.from(jwt, OauthMemberResponse.from(member));
+	}
+
+	@Transactional
+	public void changeProfileImage(MultipartFile profileImageFile, AuthMember authMember) {
+		Member member = memberRepository.findById(authMember.getMemberId())
+			.orElseThrow(() -> new BadRequestException(MemberErrorCode.NOT_FOUND_MEMBER));
+		String url = null;
+		if (profileImageFile != null) {
+			url = amazonS3Service.upload(profileImageFile);
+		}
+		member.updateProfileImage(url);
 	}
 }
