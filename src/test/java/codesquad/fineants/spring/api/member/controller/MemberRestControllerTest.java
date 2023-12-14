@@ -34,9 +34,11 @@ import codesquad.fineants.domain.oauth.support.AuthPrincipalArgumentResolver;
 import codesquad.fineants.spring.api.errors.handler.GlobalExceptionHandler;
 import codesquad.fineants.spring.api.member.request.AuthorizationRequest;
 import codesquad.fineants.spring.api.member.request.OauthMemberLoginRequest;
-import codesquad.fineants.spring.api.member.response.OauthCreateUrlResponse;
 import codesquad.fineants.spring.api.member.response.OauthMemberLoginResponse;
+import codesquad.fineants.spring.api.member.response.OauthMemberResponse;
+import codesquad.fineants.spring.api.member.response.OauthSaveUrlResponse;
 import codesquad.fineants.spring.api.member.service.MemberService;
+import codesquad.fineants.spring.api.member.service.WebClientWrapper;
 import codesquad.fineants.spring.config.JpaAuditingConfiguration;
 import codesquad.fineants.spring.config.OauthConfig;
 
@@ -69,6 +71,9 @@ class MemberRestControllerTest {
 
 	@MockBean
 	private AuthPrincipalArgumentResolver authPrincipalArgumentResolver;
+
+	@MockBean
+	private WebClientWrapper webClient;
 
 	private Member member;
 
@@ -108,10 +113,10 @@ class MemberRestControllerTest {
 			+ "&code_challenge=LpAzxsJ6VeWDwCNWdhDF6CypNrZlJnXYxhr4PPbkilU"
 			+ "&code_challenge_method=S256", clientId, redirectUrl);
 
-		OauthCreateUrlResponse mockResponse = new OauthCreateUrlResponse(expectedAuthURL,
+		OauthSaveUrlResponse mockResponse = new OauthSaveUrlResponse(expectedAuthURL,
 			AuthorizationRequest.of("1234", "codeVerifier", "codeChallenge", "1234"));
 
-		given(memberService.createAuthorizationCodeURL(
+		given(memberService.saveAuthorizationCodeURL(
 			anyString()
 		)).willReturn(mockResponse);
 
@@ -134,7 +139,7 @@ class MemberRestControllerTest {
 		String url = "/api/auth/kakao/login";
 
 		Jwt jwt = jwtProvider.createJwtBasedOnMember(member, LocalDateTime.now());
-		OauthMemberLoginResponse mockResponse = OauthMemberLoginResponse.of(jwt, member);
+		OauthMemberLoginResponse mockResponse = OauthMemberLoginResponse.of(jwt, OauthMemberResponse.from(member));
 		given(memberService.login(ArgumentMatchers.any(OauthMemberLoginRequest.class))).willReturn(mockResponse);
 		// when
 		mockMvc.perform(post(url)

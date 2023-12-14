@@ -21,7 +21,9 @@ spring:
           starttls:
             enable: true
   config:
-    import: ./secret/application-secret.yml
+    import:
+      - ./secret/application-secret.yml
+      - ./member.yml
 ---
 spring:
   config:

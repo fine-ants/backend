@@ -1,17 +1,21 @@
 package codesquad.fineants.spring.api.member.service;
 
 import java.time.LocalDateTime;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
-import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.multipart.MultipartFile;
 
 import codesquad.fineants.domain.jwt.Jwt;
@@ -19,14 +23,15 @@ import codesquad.fineants.domain.jwt.JwtProvider;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.member.MemberRepository;
 import codesquad.fineants.domain.oauth.client.AuthorizationCodeRandomGenerator;
-import codesquad.fineants.domain.oauth.client.DecodedIdTokenPayload;
 import codesquad.fineants.domain.oauth.client.OauthClient;
 import codesquad.fineants.domain.oauth.repository.OauthClientRepository;
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.spring.api.S3.service.AmazonS3Service;
 import codesquad.fineants.spring.api.errors.errorcode.MemberErrorCode;
+import codesquad.fineants.spring.api.errors.errorcode.OauthErrorCode;
 import codesquad.fineants.spring.api.errors.exception.BadRequestException;
 import codesquad.fineants.spring.api.errors.exception.FineAntsException;
+import codesquad.fineants.spring.api.member.manager.AuthorizationRequestManager;
 import codesquad.fineants.spring.api.member.request.AuthorizationRequest;
 import codesquad.fineants.spring.api.member.request.LoginRequest;
 import codesquad.fineants.spring.api.member.request.OauthMemberLoginRequest;
@@ -35,12 +40,11 @@ import codesquad.fineants.spring.api.member.request.OauthMemberRefreshRequest;
 import codesquad.fineants.spring.api.member.request.SignUpRequest;
 import codesquad.fineants.spring.api.member.request.VerifyEmailRequest;
 import codesquad.fineants.spring.api.member.response.LoginResponse;
-import codesquad.fineants.spring.api.member.response.OauthAccessTokenResponse;
-import codesquad.fineants.spring.api.member.response.OauthCreateUrlResponse;
 import codesquad.fineants.spring.api.member.response.OauthMemberLoginResponse;
 import codesquad.fineants.spring.api.member.response.OauthMemberRefreshResponse;
 import codesquad.fineants.spring.api.member.response.OauthMemberResponse;
-import codesquad.fineants.spring.api.member.response.OauthUserProfileResponse;
+import codesquad.fineants.spring.api.member.response.OauthSaveUrlResponse;
+import codesquad.fineants.spring.api.member.response.OauthUserProfile;
 import codesquad.fineants.spring.api.portfolio_notification.MailService;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
@@ -56,60 +60,75 @@ public class MemberService {
 	private final MemberRepository memberRepository;
 	private final JwtProvider jwtProvider;
 	private final OauthMemberRedisService redisService;
-	private final WebClientWrapper webClientWrapper;
 	private final MailService mailService;
 	private final AmazonS3Service amazonS3Service;
 	private final AuthorizationCodeRandomGenerator authorizationCodeRandomGenerator;
-	private final PasswordEncoder passwordEncoder;
+	private final MemberFactory memberFactory;
+  private final PasswordEncoder passwordEncoder;
 
-	@Transactional
-	public OauthMemberLoginResponse login(OauthMemberLoginRequest loginRequest) {
-		log.info("로그인 서비스 요청 : loginRequest={}", loginRequest);
-		AuthorizationRequest authRequest = authorizationRequestManager.pop(loginRequest.getState());
-		OauthUserProfileResponse profileResponse = getOauthUserProfileResponse(loginRequest, authRequest);
-		Optional<Member> optionalMember = memberRepository.findMemberByEmailAndProvider(profileResponse.getEmail(),
-			loginRequest.getProvider());
-		Member member = optionalMember.orElseGet(() -> Member.builder()
-			.email(profileResponse.getEmail())
-			.nickname(generateRandomNickname())
-			.provider(loginRequest.getProvider())
-			.profileUrl(profileResponse.getProfileImage())
-			.build());
-		Member saveMember = memberRepository.save(member);
-		Jwt jwt = jwtProvider.createJwtBasedOnMember(saveMember, loginRequest.getRequestTime());
-		return OauthMemberLoginResponse.of(jwt, saveMember);
-	}
+	public OauthMemberLoginResponse login(OauthMemberLoginRequest request) {
+		log.info("로그인 서비스 요청 : loginRequest={}", request);
+		String provider = request.getProvider();
+		CompletableFuture<OauthMemberLoginResponse> future = CompletableFuture
+			.supplyAsync(supplyOauthClient(provider))
+			.thenApply(fetchProfile(request))
+			.thenCompose(saveMember(provider))
+			.thenApply(createLoginResponse(request.getRequestTime()));
 
-	private OauthUserProfileResponse getOauthUserProfileResponse(OauthMemberLoginRequest loginRequest,
-		AuthorizationRequest authRequest) {
-		OauthClient oauthClient = oauthClientRepository.findOneBy(loginRequest.getProvider());
-		OauthAccessTokenResponse accessTokenResponse = webClientWrapper.post(oauthClient.getTokenUri(),
-			oauthClient.createTokenHeader(),
-			oauthClient.createTokenBody(
-				loginRequest.getCode(),
-				loginRequest.getRedirectUrl(),
-				authRequest.getCodeVerifier(),
-				loginRequest.getState()
-			),
-			OauthAccessTokenResponse.class);
-
-		if (oauthClient.isSupportOICD()) {
-			DecodedIdTokenPayload payload = oauthClient.decodeIdToken(accessTokenResponse.getIdToken(),
-				authRequest.getNonce(), loginRequest.getRequestTime());
-			return OauthUserProfileResponse.from(payload);
+		try {
+			return future.get(5L, TimeUnit.SECONDS);
+		} catch (ExecutionException | InterruptedException | TimeoutException e) {
+			throw new FineAntsException(OauthErrorCode.FAIL_LOGIN, e.getMessage());
 		}
-		LinkedMultiValueMap<String, String> header = new LinkedMultiValueMap<>();
-		header.add(HttpHeaders.AUTHORIZATION,
-			String.format("%s %s", accessTokenResponse.getTokenType(), accessTokenResponse.getAccessToken()));
-		Map<String, Object> attributes = webClientWrapper.get(oauthClient.getUserInfoUri(), header,
-			new ParameterizedTypeReference<>() {
-			});
-		return oauthClient.createOauthUserProfileResponse(attributes);
 	}
 
-	private String generateRandomNickname() {
-		String randomPart = UUID.randomUUID().toString().replaceAll("-", "").substring(0, 8);
-		return "일개미" + randomPart;
+	private Supplier<OauthClient> supplyOauthClient(String provider) {
+		return () -> findOauthClient(provider);
+	}
+
+	private OauthClient findOauthClient(String provider) {
+		return oauthClientRepository.findOneBy(provider);
+	}
+
+	private Function<OauthClient, OauthUserProfile> fetchProfile(
+		OauthMemberLoginRequest request) {
+		return oauthClient -> oauthClient.fetchProfile(request, popAuthorizationRequest(request.getState()));
+	}
+
+	private AuthorizationRequest popAuthorizationRequest(String state) {
+		return authorizationRequestManager.pop(state);
+	}
+
+	private Function<OauthUserProfile, CompletionStage<Member>> saveMember(
+		String provider) {
+		return profile -> CompletableFuture
+			.supplyAsync(supplyMember(provider, profile))
+			.thenApplyAsync(this::saveMemberToRepository);
+	}
+
+	private Supplier<Member> supplyMember(String provider, OauthUserProfile profile) {
+		return () -> findMember(profile.getEmail(), provider)
+			.orElseGet(() -> memberFactory.createMember(profile));
+	}
+
+	private Optional<Member> findMember(String email, String provider) {
+		return memberRepository.findMemberByEmailAndProvider(email, provider);
+	}
+
+	private Member saveMemberToRepository(Member member) {
+		return memberRepository.save(member);
+	}
+
+	private Function<Member, OauthMemberLoginResponse> createLoginResponse(
+		LocalDateTime requestTime) {
+		return member -> {
+			Jwt jwt = createToken(member, requestTime);
+			return OauthMemberLoginResponse.of(jwt, OauthMemberResponse.from(member));
+		};
+	}
+
+	private Jwt createToken(Member member, LocalDateTime requestTime) {
+		return jwtProvider.createJwtBasedOnMember(member, requestTime);
 	}
 
 	public void logout(String accessToken, OauthMemberLogoutRequest request) {
@@ -124,8 +143,7 @@ public class MemberService {
 			accessTokenExpiration = ((Integer)jwtProvider.getClaims(accessToken).get("exp")).longValue();
 			refreshTokenExpiration = ((Integer)jwtProvider.getClaims(accessToken).get("exp")).longValue();
 		} catch (FineAntsException e) {
-			log.error("토큰 에러 : {}", accessToken);
-			log.error("액세스 토큰 밴 에러 : {}", e.toString());
+			log.error(e.getMessage(), e);
 			return;
 		}
 		redisService.banToken(accessToken, accessTokenExpiration);
@@ -135,17 +153,16 @@ public class MemberService {
 	public OauthMemberRefreshResponse refreshAccessToken(OauthMemberRefreshRequest request, LocalDateTime now) {
 		String refreshToken = request.getRefreshToken();
 		Claims claims = jwtProvider.getClaims(refreshToken);
-		log.debug("refreshToken is valid token : {}", refreshToken);
 		Jwt jwt = jwtProvider.createJwtWithRefreshToken(claims, refreshToken, now);
 		return OauthMemberRefreshResponse.from(jwt);
 	}
 
 	@Transactional(readOnly = true)
-	public OauthCreateUrlResponse createAuthorizationCodeURL(final String provider) {
+	public OauthSaveUrlResponse saveAuthorizationCodeURL(final String provider) {
 		final OauthClient oauthClient = oauthClientRepository.findOneBy(provider);
 		final AuthorizationRequest request = authorizationCodeRandomGenerator.generateAuthorizationRequest();
 		authorizationRequestManager.add(request.getState(), request);
-		return new OauthCreateUrlResponse(oauthClient.createAuthURL(request), request);
+		return new OauthSaveUrlResponse(oauthClient.createAuthURL(request), request);
 	}
 
 	@Transactional
@@ -174,7 +191,7 @@ public class MemberService {
 			.profileUrl(url)
 			.password(passwordEncoder.encode(request.getPassword()))
 			.build();
-		memberRepository.save(member);
+		saveMemberToRepository(member);
 	}
 
 	private void checkForm(SignUpRequest request) {

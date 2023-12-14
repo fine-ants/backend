@@ -1,5 +1,8 @@
 package codesquad.fineants.spring.api.member.request;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -26,5 +29,11 @@ public class AuthorizationRequest {
 
 	public boolean isExpiration(long time) {
 		return time - createTime > 60000;
+	}
+
+	public Map<String, String> toTokenBodyMap() {
+		Map<String, String> result = new HashMap<>();
+		result.put("codeVerifier", codeVerifier);
+		return result;
 	}
 }

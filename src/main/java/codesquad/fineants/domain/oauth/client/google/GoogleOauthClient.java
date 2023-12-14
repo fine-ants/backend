@@ -8,10 +8,12 @@ import org.springframework.util.MultiValueMap;
 
 import codesquad.fineants.domain.oauth.client.DecodedIdTokenPayload;
 import codesquad.fineants.domain.oauth.client.OauthClient;
+import codesquad.fineants.domain.oauth.decoder.IDTokenDecoder;
 import codesquad.fineants.domain.oauth.properties.OauthProperties;
 import codesquad.fineants.spring.api.member.request.AuthorizationRequest;
-import codesquad.fineants.spring.api.member.response.OauthUserProfileResponse;
-import codesquad.fineants.spring.util.ObjectMapperUtil;
+import codesquad.fineants.spring.api.member.response.OauthToken;
+import codesquad.fineants.spring.api.member.response.OauthUserProfile;
+import codesquad.fineants.spring.api.member.service.WebClientWrapper;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -21,7 +23,7 @@ public class GoogleOauthClient extends OauthClient {
 	private final String iss;
 	private final String aud;
 
-	public GoogleOauthClient(OauthProperties.Google google) {
+	public GoogleOauthClient(OauthProperties.Google google, WebClientWrapper webClient, IDTokenDecoder decoder) {
 		super(google.getClientId(),
 			google.getClientSecret(),
 			google.getTokenUri(),
@@ -29,30 +31,24 @@ public class GoogleOauthClient extends OauthClient {
 			google.getRedirectUri(),
 			google.getJwksUri(),
 			google.getAuthorizeUri(),
-			google.getResponseType());
+			google.getResponseType(),
+			webClient,
+			decoder);
 		this.scope = google.getScope();
 		this.iss = google.getIss();
 		this.aud = google.getAud();
 	}
 
 	@Override
-	public MultiValueMap<String, String> createTokenBody(String authorizationCode, String redirectUri,
-		String codeVerifier, String state) {
+	protected MultiValueMap<String, String> createTokenBody(Map<String, String> bodyMap) {
 		MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-		formData.add("code", authorizationCode);
+		formData.add("code", bodyMap.get("code"));
 		formData.add("client_id", getClientId());
 		formData.add("client_secret", getClientSecret());
-		formData.add("redirect_uri", redirectUri);
-		formData.add("code_verifier", codeVerifier);
+		formData.add("redirect_uri", bodyMap.get("redirectUrl"));
+		formData.add("code_verifier", bodyMap.get("codeVerifier"));
 		formData.add("grant_type", "authorization_code");
 		return formData;
-	}
-
-	@Override
-	public OauthUserProfileResponse createOauthUserProfileResponse(Map<String, Object> attributes) {
-		String email = (String)attributes.get("email");
-		String picture = (String)attributes.get("picture");
-		return new OauthUserProfileResponse(email, picture);
 	}
 
 	@Override
@@ -69,17 +65,22 @@ public class GoogleOauthClient extends OauthClient {
 	}
 
 	@Override
-	public boolean isSupportOICD() {
+	protected boolean isSupportOICD() {
 		return true;
 	}
 
 	@Override
-	protected DecodedIdTokenPayload deserializeDecodedPayload(String decodedPayload) {
-		return ObjectMapperUtil.deserialize(decodedPayload, GoogleDecodedIdTokenPayload.class);
+	protected void validatePayload(DecodedIdTokenPayload payload, LocalDateTime now, String nonce) {
+		payload.validateIdToken(iss, aud, now, nonce);
 	}
 
 	@Override
-	public void validatePayload(DecodedIdTokenPayload payload, LocalDateTime now, String nonce) {
-		payload.validateIdToken(iss, aud, now, nonce);
+	protected OauthUserProfile fetchUserProfile(OauthToken oauthToken) {
+		throw new IllegalStateException("GoogleOauthClient 객체는 해당 기능을 지원하지 않습니다.");
+	}
+
+	@Override
+	protected OauthUserProfile fetchUserProfile(DecodedIdTokenPayload payload) {
+		return OauthUserProfile.google(payload);
 	}
 }

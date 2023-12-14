@@ -8,10 +8,12 @@ import org.springframework.util.MultiValueMap;
 
 import codesquad.fineants.domain.oauth.client.DecodedIdTokenPayload;
 import codesquad.fineants.domain.oauth.client.OauthClient;
+import codesquad.fineants.domain.oauth.decoder.IDTokenDecoder;
 import codesquad.fineants.domain.oauth.properties.OauthProperties;
 import codesquad.fineants.spring.api.member.request.AuthorizationRequest;
-import codesquad.fineants.spring.api.member.response.OauthUserProfileResponse;
-import codesquad.fineants.spring.util.ObjectMapperUtil;
+import codesquad.fineants.spring.api.member.response.OauthToken;
+import codesquad.fineants.spring.api.member.response.OauthUserProfile;
+import codesquad.fineants.spring.api.member.service.WebClientWrapper;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -20,7 +22,8 @@ public class KakaoOauthClient extends OauthClient {
 	private final String iss;
 	private final String aud;
 
-	public KakaoOauthClient(OauthProperties.Kakao kakao) {
+	public KakaoOauthClient(OauthProperties.Kakao kakao, WebClientWrapper webClient, IDTokenDecoder decoder) {
+
 		super(kakao.getClientId(),
 			kakao.getClientSecret(),
 			kakao.getTokenUri(),
@@ -28,30 +31,24 @@ public class KakaoOauthClient extends OauthClient {
 			kakao.getRedirectUri(),
 			kakao.getJwksUri(),
 			kakao.getAuthorizeUri(),
-			kakao.getResponseType());
+			kakao.getResponseType(),
+			webClient,
+			decoder);
 		this.scope = kakao.getScope();
 		this.iss = kakao.getIss();
 		this.aud = kakao.getAud();
 	}
 
 	@Override
-	public MultiValueMap<String, String> createTokenBody(final String authorizationCode, final String redirectUri,
-		final String codeVerifier, String state) {
+	protected MultiValueMap<String, String> createTokenBody(Map<String, String> bodyMap) {
 		MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-		formData.add("code", authorizationCode);
+		formData.add("code", bodyMap.get("code"));
 		formData.add("client_id", getClientId());
 		formData.add("client_secret", getClientSecret());
-		formData.add("redirect_uri", redirectUri);
-		formData.add("code_verifier", codeVerifier);
+		formData.add("redirect_uri", bodyMap.get("redirectUrl"));
+		formData.add("code_verifier", bodyMap.get("codeVerifier"));
 		formData.add("grant_type", "authorization_code");
 		return formData;
-	}
-
-	@Override
-	public OauthUserProfileResponse createOauthUserProfileResponse(final Map<String, Object> attributes) {
-		String email = (String)attributes.get("email");
-		String picture = (String)attributes.get("picture");
-		return new OauthUserProfileResponse(email, picture);
 	}
 
 	@Override
@@ -68,17 +65,22 @@ public class KakaoOauthClient extends OauthClient {
 	}
 
 	@Override
-	protected DecodedIdTokenPayload deserializeDecodedPayload(String decodedPayload) {
-		return ObjectMapperUtil.deserialize(decodedPayload, KakaoDecodedIdTokenPayload.class);
-	}
-
-	@Override
-	public void validatePayload(DecodedIdTokenPayload payload, LocalDateTime now, String nonce) {
+	protected void validatePayload(DecodedIdTokenPayload payload, LocalDateTime now, String nonce) {
 		payload.validateIdToken(iss, aud, now, nonce);
 	}
 
 	@Override
-	public boolean isSupportOICD() {
+	protected boolean isSupportOICD() {
 		return true;
+	}
+
+	@Override
+	protected OauthUserProfile fetchUserProfile(OauthToken oauthToken) {
+		throw new IllegalStateException("KakaoOauthClient 객체는 해당 기능을 지원하지 않습니다.");
+	}
+
+	@Override
+	protected OauthUserProfile fetchUserProfile(DecodedIdTokenPayload payload) {
+		return OauthUserProfile.kakao(payload);
 	}
 }
