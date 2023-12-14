@@ -47,6 +47,7 @@ public class MemberRestController {
 	@PostMapping("/auth/{provider}/authUrl")
 	public ApiResponse<OauthSaveUrlResponse> saveAuthorizationCodeURL(@PathVariable final String provider) {
 		return ApiResponse.success(OauthSuccessCode.OK_URL, memberService.saveAuthorizationCodeURL(provider));
+	}
 
 	@PostMapping(value = "/auth/{provider}/login")
 	public ApiResponse<OauthMemberLoginResponse> login(
