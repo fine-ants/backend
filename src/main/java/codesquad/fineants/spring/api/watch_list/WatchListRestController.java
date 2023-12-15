@@ -27,7 +27,7 @@ public class WatchListRestController {
 	@PostMapping
 	public ApiResponse<CreateWatchListResponse> createWatchList(@AuthPrincipalMember AuthMember authMember,
 		@RequestBody CreateWatchListRequest request){
-		return ApiResponse.success(WatchListSuccessCode.CREATED_WATCHLIST,
+		return ApiResponse.success(WatchListSuccessCode.CREATED_WATCH_LIST,
 			watchListService.createWatchList(authMember, request));
 	}
 
@@ -35,13 +35,20 @@ public class WatchListRestController {
 	public ApiResponse<Void> createWatchStock(@AuthPrincipalMember AuthMember authMember,
 		@PathVariable Long watchlistId, @RequestBody CreateWatchStockRequest request){
 		watchListService.createWatchStock(authMember, watchlistId, request);
-		return ApiResponse.success(WatchListSuccessCode.CREATED_WATCHLIST_STOCK);
+		return ApiResponse.success(WatchListSuccessCode.CREATED_WATCH_STOCK);
 	}
 
 	@DeleteMapping("/{watchlistId}")
 	public ApiResponse<Void> deleteWatchList(@AuthPrincipalMember AuthMember authMember,
 		@PathVariable Long watchlistId){
 		watchListService.deleteWatchList(authMember, watchlistId);
-		return ApiResponse.success(WatchListSuccessCode.DELETED_WATCHLIST);
+		return ApiResponse.success(WatchListSuccessCode.DELETED_WATCH_LIST);
+	}
+
+	@DeleteMapping("/{watchlistId}/stock/{stockId}")
+	public ApiResponse<Void> deleteWatchStock(@AuthPrincipalMember AuthMember authMember,
+		@PathVariable("watchlistId") Long watchListId, @PathVariable("stockId") Long stockId){
+		watchListService.deleteWatchStock(authMember, watchListId, stockId);
+		return ApiResponse.success(WatchListSuccessCode.DELETED_WATCH_STOCK);
 	}
 }

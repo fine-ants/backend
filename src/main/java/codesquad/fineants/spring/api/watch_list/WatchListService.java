@@ -15,6 +15,7 @@ import codesquad.fineants.domain.watch_stock.WatchStockRepository;
 import codesquad.fineants.spring.api.errors.errorcode.MemberErrorCode;
 import codesquad.fineants.spring.api.errors.errorcode.StockErrorCode;
 import codesquad.fineants.spring.api.errors.errorcode.WatchListErrorCode;
+import codesquad.fineants.spring.api.errors.exception.BadRequestException;
 import codesquad.fineants.spring.api.errors.exception.ForBiddenException;
 import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
 import codesquad.fineants.spring.api.watch_list.request.CreateWatchListRequest;
@@ -67,6 +68,21 @@ public class WatchListService {
 		validateWatchListAuthorization(member.getId(), watchListId);
 
 		watchListRepository.deleteById(watchListId);
+	}
+
+	@Transactional
+	public void deleteWatchStock(AuthMember authMember, Long watchListId, Long stockId) {
+		Member member = findMember(authMember.getMemberId());
+		validateWatchListAuthorization(member.getId(), watchListId);
+
+		WatchStock watchStock = watchStockRepository.findById(stockId)
+			.orElseThrow(() -> new NotFoundResourceException(WatchListErrorCode.NOT_FOUND_WATCH_STOCK));
+
+		if(!watchStock.getWatchList().getId().equals(watchListId)){
+			throw new NotFoundResourceException(WatchListErrorCode.NOT_FOUND_WATCH_STOCK);
+		}
+
+		watchStockRepository.deleteById(stockId);
 	}
 
 	private Member findMember(Long memberId) {

@@ -157,7 +157,7 @@ public class MemberService {
 			throw new BadRequestException(MemberErrorCode.PASSWORD_CHECK_FAIL);
 		}
 		String verifCode = redisService.get(request.getEmail());
-		if (!verifCode.equals(request.getVerificationCode())) {
+		if (verifCode == null || !verifCode.equals(request.getVerificationCode())) {
 			throw new BadRequestException(MemberErrorCode.VERIFICATION_CODE_CHECK_FAIL);
 		}
 		String url = null;
