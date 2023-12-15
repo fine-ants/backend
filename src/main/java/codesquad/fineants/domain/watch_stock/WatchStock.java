@@ -12,8 +12,12 @@ import javax.persistence.ManyToOne;
 import codesquad.fineants.domain.BaseEntity;
 import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.domain.watch_list.WatchList;
+import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Entity
 public class WatchStock extends BaseEntity {
@@ -29,4 +33,10 @@ public class WatchStock extends BaseEntity {
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "ticker_symbol", referencedColumnName = "tickerSymbol")
 	private Stock stock;
+
+	@Builder
+	public WatchStock(WatchList watchList, Stock stock){
+		this.watchList = watchList;
+		this.stock = stock;
+	}
 }
