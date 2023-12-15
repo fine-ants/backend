@@ -74,21 +74,21 @@ class WatchListServiceTest {
 	@DisplayName("회원이 watchlist를 추가한다.")
 	@Test
 	void createWatchList() {
-		//given
+		// given
 		AuthMember authMember = AuthMember.from(member);
 		CreateWatchListRequest request = new CreateWatchListRequest("My WatchList");
 
-		//when
+		// when
 		CreateWatchListResponse response = watchListService.createWatchList(authMember, request);
 
-		//then
+		// then
 		assertThat(response.getWatchlistId()).isNotNull();
 	}
 
 	@DisplayName("회원이 watchlist에 종목을 추가한다.")
 	@Test
 	void createWatchStock() {
-		//given
+		// given
 		String tickerSymbol = "005930";
 		Stock stock = stockRepository.save(
 			Stock.builder()
@@ -107,10 +107,10 @@ class WatchListServiceTest {
 		Long watchListId = watchList.getId();
 
 
-		//when
+		// when
 		watchListService.createWatchStock(authMember, watchListId, request);
 
-		//then
+		// then
 		assertThat(watchStockRepository.findByWatchList(watchList)).hasSize(1);
 		assertThat(watchStockRepository.findByWatchList(watchList).get(0).getStock().getTickerSymbol()).isEqualTo(tickerSymbol);
 	}
@@ -118,7 +118,7 @@ class WatchListServiceTest {
 	@DisplayName("회원이 watchlist를 삭제한다.")
 	@Test
 	void deleteWatchList() {
-		//given
+		// given
 		String tickerSymbol = "005930";
 		Stock stock = stockRepository.save(
 			Stock.builder()
@@ -143,11 +143,47 @@ class WatchListServiceTest {
 				.build()
 		);
 
-		//when
+		// when
 		watchListService.deleteWatchList(authMember, watchListId);
 
-		//then
+		// then
 		assertThat(watchListRepository.findById(watchListId).isPresent()).isFalse();
 		assertThat(watchStockRepository.findByWatchList(watchList)).hasSize(0);
+	}
+
+	@DisplayName("회원이 watchlist에서 종목을 삭제한다.")
+	@Test
+	void deleteWatchStock(){
+		// given
+		String tickerSymbol = "005930";
+		Stock stock = stockRepository.save(
+			Stock.builder()
+				.tickerSymbol(tickerSymbol)
+				.build()
+		);
+
+		AuthMember authMember = AuthMember.from(member);
+		CreateWatchStockRequest request = new CreateWatchStockRequest(tickerSymbol);
+
+
+		WatchList watchList = watchListRepository.save(WatchList.builder()
+			.name("My WatchList")
+			.member(member)
+			.build());
+		Long watchListId = watchList.getId();
+
+		WatchStock watchStock = watchStockRepository.save(
+			WatchStock.builder()
+				.watchList(watchList)
+				.stock(stock)
+				.build()
+		);
+		Long stockId = watchStock.getId();
+
+		// when
+		watchListService.deleteWatchStock(authMember, watchListId, stockId);
+
+		// then
+		assertThat(watchStockRepository.findById(stockId).isPresent()).isFalse();
 	}
 }
