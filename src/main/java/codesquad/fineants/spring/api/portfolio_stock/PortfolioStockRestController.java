@@ -1,9 +1,8 @@
 package codesquad.fineants.spring.api.portfolio_stock;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import javax.validation.Valid;
@@ -37,9 +36,9 @@ import lombok.extern.slf4j.Slf4j;
 public class PortfolioStockRestController {
 
 	private static final ScheduledExecutorService sseExecutor = Executors.newScheduledThreadPool(100);
-
 	private final PortfolioStockService portfolioStockService;
 	private final StockMarketChecker stockMarketChecker;
+	private final PortfolioEventPublisher publisher;
 
 	@HasPortfolioAuthorization
 	@ResponseStatus(HttpStatus.CREATED)
@@ -72,15 +71,10 @@ public class PortfolioStockRestController {
 	@GetMapping("/holdings/realtime")
 	public SseEmitter readMyPortfolioStocksInRealTime(@PathVariable Long portfolioId,
 		@AuthPrincipalMember AuthMember authMember) {
-		SseEmitter emitter = new SseEmitter(Duration.ofHours(10).toMillis());
-		emitter.onTimeout(emitter::complete);
-
-		// 장시간 동안에는 스케줄러를 이용하여 지속적 응답
-		if (stockMarketChecker.isMarketOpen(LocalDateTime.now())) {
-			scheduleSseEventTask(portfolioId, emitter, false);
-		} else {
-			scheduleSseEventTask(portfolioId, emitter, true);
-		}
+		SseEmitter emitter = new SseEmitter();
+		emitter.onTimeout(() -> publisher.remove(portfolioId));
+		emitter.onCompletion(() -> publisher.remove(portfolioId));
+		publisher.add(portfolioId, emitter);
 		return emitter;
 	}
 
@@ -108,7 +102,13 @@ public class PortfolioStockRestController {
 		if (isComplete) {
 			sseExecutor.schedule(task, 0, TimeUnit.SECONDS);
 		} else {
-			sseExecutor.scheduleAtFixedRate(task, 0, 5L, TimeUnit.SECONDS);
+			ScheduledFuture<?> future = sseExecutor.scheduleAtFixedRate(task, 0, 5L, TimeUnit.SECONDS);
+
+			sseExecutor.schedule(() -> {
+				log.info("call future cancel");
+				emitter.complete();
+				future.cancel(true);
+			}, 30L, TimeUnit.SECONDS);
 		}
 	}
 
