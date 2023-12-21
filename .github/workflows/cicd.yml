@@ -8,10 +8,10 @@ permissions:
   contents: read
 
 env:
-  S3_BUCKET_NAME: fine-ants
+  S3_BUCKET_NAME: fineants
   AWS_REGION: ap-northeast-2
   CODEDEPLOY_NAME: fineAnts
-  CODEDEPLOY_GROUP: fineAnts-group
+  CODEDEPLOY_GROUP: dev
 
 jobs:
   build-image:
@@ -46,11 +46,6 @@ jobs:
           # 캐시가 없거나 만료되었을때 이 키를 기반으로 이전에 생성된 캐시를 찾아 복원합니다.
           restore-keys: |
             ${{ runner.os }}-gradle-
-      # env 파일 생성
-      - name: make .env file
-        run: |
-          touch .env
-          echo "${{ secrets.ENV }}" > ./.env
       # gradlew 실행을 위해서 실행 권한을 부여
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
