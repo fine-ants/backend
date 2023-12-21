@@ -14,4 +14,3 @@ docker-compose -f /home/ec2-user/build/docker-compose-dev.yml down -v
 docker-compose -f /home/ec2-user/build/docker-compose-dev.yml build
 docker-compose -f /home/ec2-user/build/docker-compose-dev.yml pull
 docker-compose -f /home/ec2-user/build/docker-compose-dev.yml up -d
-docker system prune -a
