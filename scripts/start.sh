@@ -10,7 +10,7 @@ cp $BUILD_JAR $DEPLOY_PATH
 
 sudo chmod 666 /var/run/docker.sock
 sudo chmod +x /usr/local/bin/docker-compose
-docker-compose -f /home/ec2-user/build/docker-compose-dev.yml down -v
-docker-compose -f /home/ec2-user/build/docker-compose-dev.yml build
-docker-compose -f /home/ec2-user/build/docker-compose-dev.yml pull
-docker-compose -f /home/ec2-user/build/docker-compose-dev.yml up -d
+sudo docker-compose -f /home/ec2-user/build/docker-compose-dev.yml down -v
+sudo docker-compose -f /home/ec2-user/build/docker-compose-dev.yml build
+sudo docker-compose -f /home/ec2-user/build/docker-compose-dev.yml pull
+sudo docker-compose -f /home/ec2-user/build/docker-compose-dev.yml up -d
