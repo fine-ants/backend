@@ -8,7 +8,9 @@ import org.springframework.stereotype.Component;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Component
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
@@ -29,6 +31,7 @@ public class KisAccessTokenManager {
 		if (expirationDatetime == null) {
 			return true;
 		}
+		log.info("액세스 토큰 만료 체크, expirationDatetime : {}", expirationDatetime);
 		return dateTime.isAfter(expirationDatetime);
 	}
 
