@@ -6,6 +6,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.Optional;
 
+import org.springframework.data.redis.RedisSystemException;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -21,7 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 public class KisRedisService {
 	private static final String ACCESS_TOKEN_MAP_KEY = "kis:accessTokenMap";
-	private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+	public static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
 	private final RedisTemplate<String, Object> redisTemplate;
 	private final ObjectMapper objectMapper;
@@ -55,7 +56,13 @@ public class KisRedisService {
 		long exp = Duration.between(now,
 				LocalDateTime.parse(access_token_token_expired, formatter))
 			.toSeconds();
-		redisTemplate.opsForValue().set(ACCESS_TOKEN_MAP_KEY, json, Duration.ofSeconds(exp));
+		try {
+			redisTemplate.opsForValue().set(ACCESS_TOKEN_MAP_KEY, json, Duration.ofSeconds(exp));
+		} catch (RedisSystemException e) {
+			log.error(e.getMessage(), e);
+			throw new RuntimeException(e.getMessage());
+		}
+
 	}
 
 	public void deleteAccessTokenMap() {

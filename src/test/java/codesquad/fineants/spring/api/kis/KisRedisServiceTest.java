@@ -38,6 +38,20 @@ class KisRedisServiceTest {
 		assertThat(service.getAccessTokenMap().isPresent()).isTrue();
 	}
 
+	@DisplayName("이미 만료된 액세스 토큰을 redis에 저장할 수 없다.")
+	@Test
+	void setAccessTokenMapWithExpiredAccessToken() {
+		// given
+		Map<String, Object> accessTokenMap = createAccessTokenMap();
+		// when
+		Throwable throwable = catchThrowable(
+			() -> service.setAccessTokenMap(accessTokenMap, LocalDateTime.of(2023, 12, 8, 15, 0, 0)));
+
+		// then
+		assertThat(throwable)
+			.isInstanceOf(RuntimeException.class);
+	}
+
 	@DisplayName("kis 액세스 토큰맵을 가져온다")
 	@Test
 	void getAccessTokenMap() {

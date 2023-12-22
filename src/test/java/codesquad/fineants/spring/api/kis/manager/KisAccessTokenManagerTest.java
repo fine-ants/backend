@@ -18,9 +18,10 @@ class KisAccessTokenManagerTest {
 		Map<String, Object> map = new HashMap<>();
 		map.put("access_token", "accessTokenValue");
 		map.put("token_type", "Bearer");
+		map.put("access_token_token_expired", "2023-12-23 14:08:26");
 		map.put("expires_in", 86400);
 		KisAccessTokenManager manager = KisAccessTokenManager.from(map);
-		LocalDateTime now = LocalDateTime.now();
+		LocalDateTime now = LocalDateTime.of(2023, 12, 22, 15, 0, 0);
 
 		// when
 		boolean actual = manager.isAccessTokenExpired(now);
