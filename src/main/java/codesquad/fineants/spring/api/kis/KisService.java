@@ -32,7 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 public class KisService {
 	private static final String SUBSCRIBE_PORTFOLIO_HOLDING_FORMAT = "/sub/portfolio/%d";
-	private static final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
+	private static final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
 
 	private final KisClient kisClient;
 	private final PortfolioHoldingRepository portFolioHoldingRepository;
@@ -107,7 +107,7 @@ public class KisService {
 		List<CompletableFuture<CurrentPriceResponse>> futures = tickerSymbols.parallelStream()
 			.map(tickerSymbol -> {
 				CompletableFuture<CurrentPriceResponse> future = new CompletableFuture<>();
-				executorService.schedule(createCurrentPriceRequest(tickerSymbol, future), 200, TimeUnit.MILLISECONDS);
+				executorService.schedule(createCurrentPriceRequest(tickerSymbol, future), 1L, TimeUnit.SECONDS);
 				return future;
 			}).collect(Collectors.toList());
 
@@ -142,8 +142,8 @@ public class KisService {
 			.filter(tickerSymbol -> !lastDayClosingPriceManager.hasPrice(tickerSymbol))
 			.map(tickerSymbol -> {
 				CompletableFuture<LastDayClosingPriceResponse> future = new CompletableFuture<>();
-				executorService.schedule(createLastDayClosingPriceRequest(tickerSymbol, future), 200L,
-					TimeUnit.MILLISECONDS);
+				executorService.schedule(createLastDayClosingPriceRequest(tickerSymbol, future), 1L,
+					TimeUnit.SECONDS);
 				return future;
 			})
 			.collect(Collectors.toList());
