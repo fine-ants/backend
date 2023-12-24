@@ -8,6 +8,7 @@ echo ">>> copy build file" >> /home/ec2-user/build/deploy.log
 DEPLOY_PATH=/home/ec2-user/build/
 cp $BUILD_JAR $DEPLOY_PATH
 
+sudo service codedeploy-agent restart
 sudo chmod 666 /var/run/docker.sock
 sudo chmod +x /usr/local/bin/docker-compose
 sudo docker-compose -f /home/ec2-user/build/docker-compose-dev.yml down -v
