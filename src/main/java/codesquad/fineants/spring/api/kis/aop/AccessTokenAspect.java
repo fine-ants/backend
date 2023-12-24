@@ -42,7 +42,7 @@ public class AccessTokenAspect {
 			}, () -> {
 				final Map<String, Object> newAccessTokenMap = client.accessToken();
 				log.info("kis accessToken 만료로 인한 새로운 accessToken 갱신, newAccessTokenMap : {}", newAccessTokenMap);
-				redisService.setAccessTokenMap(newAccessTokenMap, LocalDateTime.now());
+				redisService.setAccessTokenMap(newAccessTokenMap, now);
 				manager.refreshAccessToken(newAccessTokenMap);
 				log.info("새로 발급한 accessToken으로 갱신한 manager : {}", manager);
 			});
