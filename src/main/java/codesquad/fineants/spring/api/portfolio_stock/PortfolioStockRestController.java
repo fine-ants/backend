@@ -1,7 +1,6 @@
 package codesquad.fineants.spring.api.portfolio_stock;
 
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
+import java.time.Duration;
 
 import javax.validation.Valid;
 
@@ -33,7 +32,6 @@ import lombok.extern.slf4j.Slf4j;
 @RestController
 public class PortfolioStockRestController {
 
-	private static final ScheduledExecutorService sseExecutor = Executors.newScheduledThreadPool(100);
 	private final PortfolioStockService portfolioStockService;
 	private final PortfolioEventPublisher publisher;
 
@@ -68,7 +66,7 @@ public class PortfolioStockRestController {
 	@GetMapping("/holdings/realtime")
 	public SseEmitter readMyPortfolioStocksInRealTime(@PathVariable Long portfolioId,
 		@AuthPrincipalMember AuthMember authMember) {
-		SseEmitter emitter = new SseEmitter();
+		SseEmitter emitter = new SseEmitter(Duration.ofHours(10L).toMillis());
 		emitter.onTimeout(() -> publisher.remove(portfolioId));
 		emitter.onCompletion(() -> publisher.remove(portfolioId));
 		publisher.add(portfolioId, emitter);

@@ -4,6 +4,8 @@ import static java.util.concurrent.TimeUnit.*;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
@@ -38,6 +40,8 @@ public class PortfolioEventPublisher {
 	}
 
 	public void sendEventToPortfolio(LocalDateTime now) {
+		List<Long> deadEmitters = new ArrayList<>();
+		log.info("emitters 개수 : {}", size());
 		for (Long id : clients.keySet()) {
 			try {
 				PortfolioHoldingsRealTimeResponse response = portfolioStockService.readMyPortfolioStocksInRealTime(id);
@@ -46,8 +50,10 @@ public class PortfolioEventPublisher {
 			} catch (Exception e) {
 				log.error(e.getMessage(), e);
 				clients.get(id).completeWithError(e);
+				deadEmitters.add(id);
 			}
 		}
+		deadEmitters.forEach(clients::remove);
 		this.executor.schedule(() -> this.sendEventToPortfolio(LocalDateTime.now()), 5, SECONDS);
 	}
 
@@ -79,5 +85,9 @@ public class PortfolioEventPublisher {
 
 	public void remove(Long portfolioId) {
 		clients.remove(portfolioId);
+	}
+
+	public int size() {
+		return clients.size();
 	}
 }
