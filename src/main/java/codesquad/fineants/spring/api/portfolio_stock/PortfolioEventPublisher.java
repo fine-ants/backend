@@ -36,12 +36,16 @@ public class PortfolioEventPublisher {
 	}
 
 	public void sendEventToPortfolio() {
-		clients.keySet()
-			.forEach(id -> {
+		for (Long id : clients.keySet()) {
+			try {
 				PortfolioHoldingsRealTimeResponse response = portfolioStockService.readMyPortfolioStocksInRealTime(id);
 				PortfolioEvent portfolioEvent = new PortfolioEvent(id, response);
 				eventPublisher.publishEvent(portfolioEvent);
-			});
+			} catch (Exception e) {
+				log.error(e.getMessage(), e);
+				clients.get(id).completeWithError(e);
+			}
+		}
 		this.executor.schedule(this::sendEventToPortfolio, 5, SECONDS);
 	}
 
