@@ -28,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class PortfolioEventPublisher {
 	private static final String EVENT_NAME = "portfolioDetails";
+	private static final String COMPLETE_NAME = "complete";
 	private static final Map<Long, SseEmitter> clients = new ConcurrentHashMap<>();
 	private final ApplicationEventPublisher eventPublisher;
 	private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
@@ -41,7 +42,6 @@ public class PortfolioEventPublisher {
 
 	public void sendEventToPortfolio(LocalDateTime now) {
 		List<Long> deadEmitters = new ArrayList<>();
-		log.info("emitters 개수 : {}", size());
 		for (Long id : clients.keySet()) {
 			try {
 				PortfolioHoldingsRealTimeResponse response = portfolioStockService.readMyPortfolioStocksInRealTime(id);
@@ -70,7 +70,7 @@ public class PortfolioEventPublisher {
 				Thread.sleep(2000L);
 				emitter.send(SseEmitter.event()
 					.data("sse complete")
-					.name("complete"));
+					.name(COMPLETE_NAME));
 				emitter.complete();
 			}
 		} catch (IOException | InterruptedException e) {
