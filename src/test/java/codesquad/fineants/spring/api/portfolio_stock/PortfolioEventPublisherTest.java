@@ -9,11 +9,13 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -69,6 +71,9 @@ class PortfolioEventPublisherTest {
 	@Autowired
 	private LastDayClosingPriceManager lastDayClosingPriceManager;
 
+	@MockBean
+	private PortfolioStockService portfolioStockService;
+
 	@AfterEach
 	void tearDown() {
 		purchaseHistoryRepository.deleteAllInBatch();
@@ -102,6 +107,33 @@ class PortfolioEventPublisherTest {
 		publisher.sendEventToPortfolio(LocalDateTime.of(2023, 12, 22, 10, 0, 0));
 		// then
 		verify(emitter, times(1)).send(any(SseEventBuilder.class));
+	}
+
+	@DisplayName("포트폴리오 이벤트 전송전에 예외가 발생하여 emitter가 제거된다")
+	@Test
+	void sendEventToPortfolioWithException() throws IOException {
+		// given
+		Member member = memberRepository.save(createMember());
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
+		Stock stock = stockRepository.save(createStock());
+		stockDividendRepository.saveAll(createStockDividendWith(stock));
+		PortfolioHolding portfolioHolding = portfolioHoldingRepository.save(createPortfolioHolding(portfolio, stock));
+		purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding));
+		currentPriceManager.addCurrentPrice(new CurrentPriceResponse("005930", 60000L));
+		lastDayClosingPriceManager.addPrice("005930", 50000);
+
+		given(portfolioStockService.readMyPortfolioStocksInRealTime(anyLong()))
+			.willThrow(new IllegalArgumentException("005930 종목에 대한 가격을 찾을 수 없습니다."));
+
+		SseEmitter emitter = new SseEmitter();
+		emitter.onTimeout(() -> publisher.remove(portfolio.getId()));
+		emitter.onCompletion(() -> publisher.remove(portfolio.getId()));
+		publisher.add(portfolio.getId(), emitter);
+
+		// when
+		publisher.sendEventToPortfolio(LocalDateTime.of(2023, 12, 22, 10, 0, 0));
+		// then
+		Assertions.assertThat(publisher.size()).isZero();
 	}
 
 	private Member createMember() {
