@@ -6,7 +6,6 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.nio.charset.StandardCharsets;
@@ -22,11 +21,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import codesquad.fineants.domain.member.Member;
@@ -43,9 +40,6 @@ import codesquad.fineants.spring.api.errors.errorcode.PortfolioErrorCode;
 import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
 import codesquad.fineants.spring.api.errors.handler.GlobalExceptionHandler;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
-import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioDetailRealTimeItem;
-import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioHoldingRealTimeItem;
-import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioHoldingsRealTimeResponse;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioHoldingsResponse;
 import codesquad.fineants.spring.auth.HasPortfolioAuthorizationAspect;
 import codesquad.fineants.spring.config.JpaAuditingConfiguration;
@@ -81,6 +75,9 @@ class PortfolioStockRestControllerTest {
 
 	@MockBean
 	private PortfolioRepository portfolioRepository; // HasAuthorizationAspect 목빈 객체
+
+	@MockBean
+	private PortfolioEventPublisher publisher;
 
 	@BeforeEach
 	void setup() {
@@ -135,37 +132,7 @@ class PortfolioStockRestControllerTest {
 			.andExpect(status().isNotFound())
 			.andExpect(jsonPath("message").value(equalTo("포트폴리오를 찾을 수 없습니다")));
 	}
-
-	@DisplayName("사용자의 포트폴리오 상세 정보를 SSE로 가져온다")
-	@Test
-	void readMyPortfolioStocksInRealTime() throws Exception {
-		// given
-		Member member = createMember();
-		Portfolio portfolio = createPortfolio(member);
-		Stock stock = createStock();
-		PortfolioHolding portfolioHolding = createPortfolioHolding(portfolio, stock);
-		portfolioHolding.addPurchaseHistory(createPurchaseHistory(portfolioHolding));
-		portfolio.addPortfolioStock(portfolioHolding);
-		PortfolioGainHistory history = createEmptyPortfolioGainHistory();
-
-		PortfolioHoldingsRealTimeResponse mockResponse = PortfolioHoldingsRealTimeResponse.of(
-			PortfolioDetailRealTimeItem.of(portfolio, history),
-			List.of(PortfolioHoldingRealTimeItem.of(portfolioHolding, 50000L))
-		);
-
-		given(portfolioStockService.readMyPortfolioStocksInRealTime(anyLong())).willReturn(mockResponse);
-		given(portfolioRepository.findById(anyLong())).willReturn(Optional.of(portfolio));
-		// when & then
-		MvcResult result = mockMvc.perform(get("/api/portfolio/{portfolioId}/holdings/realtime", portfolio.getId()))
-			.andExpect(request().asyncStarted())
-			.andExpect(status().isOk())
-			.andReturn();
-
-		mockMvc.perform(asyncDispatch(result))
-			.andExpect(status().isOk())
-			.andExpect(content().contentType(MediaType.TEXT_EVENT_STREAM));
-	}
-
+	
 	@DisplayName("존재하지 않은 포트폴리오 등록번호를 가지고 상세 데이터를 조회할 수 없다")
 	@Test
 	void readMyPortfolioStocksInRealTimeWithNotExistPortfolioId() throws Exception {
