@@ -86,6 +86,9 @@ class PortfolioHoldingRestControllerTest {
 	@MockBean
 	private PortfolioRepository portfolioRepository;
 
+	@MockBean
+	private PortfolioEventPublisher publisher;
+
 	private Member member;
 	private Portfolio portfolio;
 	private Stock stock;

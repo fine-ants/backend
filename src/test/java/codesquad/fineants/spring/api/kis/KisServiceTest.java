@@ -52,7 +52,8 @@ class KisServiceTest {
 	void readRealTimeCurrentPrice() {
 		// given
 		String tickerSymbol = "005930";
-
+		given(kisAccessTokenManager.createAuthorization()).willReturn(
+			"Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0b2tlbiIsImF1ZCI6Ijg5MjBlNjM2LTNkYmItNGU5MS04ZGJmLWJmZDU5ZmI2YjAwYiIsImlzcyI6InVub2d3IiwiZXhwIjoxNzAzNTcwOTA0LCJpYXQiOjE3MDM0ODQ1MDQsImp0aSI6IlBTRGc4WlVJd041eVl5ZkR6bnA0TDM2Z2xhRUpic2RJNGd6biJ9.z8dh9rlOyPq_ukm9KeCz0tkKI2QaHEe07LhXTcKQBrcP1-uiW3dwAwdknpAojJZ7aUWLUaQQn0HmjTCttjSJaA");
 		given(client.readRealTimeCurrentPrice(anyString(), anyString())).willReturn(60000L);
 		// when
 		CurrentPriceResponse response = kisService.readRealTimeCurrentPrice(tickerSymbol);
@@ -99,7 +100,7 @@ class KisServiceTest {
 		kisRedisService.deleteAccessTokenMap();
 		given(kisAccessTokenManager.isAccessTokenExpired(ArgumentMatchers.any(LocalDateTime.class)))
 			.willReturn(true);
-		given(client.accessToken()).willReturn(createAccessTokenMap(LocalDateTime.of(2023, 12, 24, 15, 0, 0)));
+		given(client.accessToken()).willReturn(createAccessTokenMap(LocalDateTime.now()));
 		// when
 		kisService.refreshStockPrice();
 		// then

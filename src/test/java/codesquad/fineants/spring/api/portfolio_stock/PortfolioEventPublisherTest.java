@@ -99,9 +99,9 @@ class PortfolioEventPublisherTest {
 		publisher.add(portfolio.getId(), emitter);
 
 		// when
-		publisher.sendEventToPortfolio();
+		publisher.sendEventToPortfolio(LocalDateTime.of(2023, 12, 22, 10, 0, 0));
 		// then
-		verify(emitter).send(any(SseEventBuilder.class));
+		verify(emitter, times(1)).send(any(SseEventBuilder.class));
 	}
 
 	private Member createMember() {
