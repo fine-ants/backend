@@ -3,6 +3,7 @@ package codesquad.fineants.spring.api.portfolio_stock;
 import static java.util.concurrent.TimeUnit.*;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
@@ -29,24 +30,25 @@ public class PortfolioEventPublisher {
 	private final ApplicationEventPublisher eventPublisher;
 	private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 	private final PortfolioStockService portfolioStockService;
+	private final StockMarketChecker stockMarketChecker;
 
 	@PostConstruct
 	public void startProcessing() {
-		this.executor.schedule(this::sendEventToPortfolio, 1, SECONDS);
+		this.executor.schedule(() -> this.sendEventToPortfolio(LocalDateTime.now()), 1, SECONDS);
 	}
 
-	public void sendEventToPortfolio() {
+	public void sendEventToPortfolio(LocalDateTime now) {
 		for (Long id : clients.keySet()) {
 			try {
 				PortfolioHoldingsRealTimeResponse response = portfolioStockService.readMyPortfolioStocksInRealTime(id);
-				PortfolioEvent portfolioEvent = new PortfolioEvent(id, response);
+				PortfolioEvent portfolioEvent = new PortfolioEvent(id, response, now);
 				eventPublisher.publishEvent(portfolioEvent);
 			} catch (Exception e) {
 				log.error(e.getMessage(), e);
 				clients.get(id).completeWithError(e);
 			}
 		}
-		this.executor.schedule(this::sendEventToPortfolio, 5, SECONDS);
+		this.executor.schedule(() -> this.sendEventToPortfolio(LocalDateTime.now()), 5, SECONDS);
 	}
 
 	@Async
@@ -57,7 +59,15 @@ public class PortfolioEventPublisher {
 			emitter.send(SseEmitter.event()
 				.data(event.getResponse())
 				.name(EVENT_NAME));
-		} catch (IOException e) {
+
+			if (!stockMarketChecker.isMarketOpen(event.getEventDateTime())) {
+				Thread.sleep(2000L);
+				emitter.send(SseEmitter.event()
+					.data("sse complete")
+					.name("complete"));
+				emitter.complete();
+			}
+		} catch (IOException | InterruptedException e) {
 			log.info(e.getMessage(), e);
 			emitter.completeWithError(e);
 		}
