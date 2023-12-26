@@ -33,7 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 public class PortfolioStockRestController {
 
 	private final PortfolioStockService portfolioStockService;
-	private final PortfolioEventPublisher publisher;
+	private final SseEmitterManager manager;
 
 	@HasPortfolioAuthorization
 	@ResponseStatus(HttpStatus.CREATED)
@@ -67,9 +67,9 @@ public class PortfolioStockRestController {
 	public SseEmitter readMyPortfolioStocksInRealTime(@PathVariable Long portfolioId,
 		@AuthPrincipalMember AuthMember authMember) {
 		SseEmitter emitter = new SseEmitter(Duration.ofHours(10L).toMillis());
-		emitter.onTimeout(() -> publisher.remove(portfolioId));
-		emitter.onCompletion(() -> publisher.remove(portfolioId));
-		publisher.add(portfolioId, emitter);
+		emitter.onTimeout(() -> manager.remove(portfolioId));
+		emitter.onCompletion(() -> manager.remove(portfolioId));
+		manager.add(portfolioId, emitter);
 		return emitter;
 	}
 

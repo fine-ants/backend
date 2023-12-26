@@ -45,6 +45,9 @@ class PortfolioEventPublisherTest {
 	private PortfolioEventPublisher publisher;
 
 	@Autowired
+	private SseEmitterManager manager;
+
+	@Autowired
 	private MemberRepository memberRepository;
 
 	@Autowired
@@ -99,9 +102,9 @@ class PortfolioEventPublisherTest {
 		lastDayClosingPriceManager.addPrice("005930", 50000);
 
 		SseEmitter emitter = mock(SseEmitter.class);
-		emitter.onTimeout(() -> publisher.remove(portfolio.getId()));
-		emitter.onCompletion(() -> publisher.remove(portfolio.getId()));
-		publisher.add(portfolio.getId(), emitter);
+		emitter.onTimeout(() -> manager.remove(portfolio.getId()));
+		emitter.onCompletion(() -> manager.remove(portfolio.getId()));
+		manager.add(portfolio.getId(), emitter);
 
 		// when
 		publisher.sendEventToPortfolio(LocalDateTime.of(2023, 12, 22, 10, 0, 0));
@@ -126,14 +129,14 @@ class PortfolioEventPublisherTest {
 			.willThrow(new IllegalArgumentException("005930 종목에 대한 가격을 찾을 수 없습니다."));
 
 		SseEmitter emitter = new SseEmitter();
-		emitter.onTimeout(() -> publisher.remove(portfolio.getId()));
-		emitter.onCompletion(() -> publisher.remove(portfolio.getId()));
-		publisher.add(portfolio.getId(), emitter);
+		emitter.onTimeout(() -> manager.remove(portfolio.getId()));
+		emitter.onCompletion(() -> manager.remove(portfolio.getId()));
+		manager.add(portfolio.getId(), emitter);
 
 		// when
 		publisher.sendEventToPortfolio(LocalDateTime.of(2023, 12, 22, 10, 0, 0));
 		// then
-		Assertions.assertThat(publisher.size()).isZero();
+		Assertions.assertThat(manager.size()).isZero();
 	}
 
 	private Member createMember() {
