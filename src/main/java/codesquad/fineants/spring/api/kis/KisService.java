@@ -4,10 +4,12 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -119,7 +121,13 @@ public class KisService {
 			}).collect(Collectors.toList());
 
 		futures.parallelStream()
-			.map(CompletableFuture::join)
+			.map(future -> {
+				try {
+					return future.get(10L, TimeUnit.SECONDS);
+				} catch (InterruptedException | ExecutionException | TimeoutException e) {
+					return null;
+				}
+			})
 			.filter(Objects::nonNull)
 			.forEach(currentPriceManager::addCurrentPrice);
 	}
@@ -159,7 +167,13 @@ public class KisService {
 			})
 			.collect(Collectors.toList());
 		futures.parallelStream()
-			.map(CompletableFuture::join)
+			.map(future -> {
+				try {
+					return future.get(10L, TimeUnit.SECONDS);
+				} catch (InterruptedException | ExecutionException | TimeoutException e) {
+					return null;
+				}
+			})
 			.peek(response -> log.info("종가 갱신 응답 : {}", response))
 			.filter(Objects::nonNull)
 			.forEach(response -> lastDayClosingPriceManager.addPrice(response.getTickerSymbol(), response.getPrice()));
