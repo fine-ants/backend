@@ -100,7 +100,6 @@ public class KisService {
 	// 종목 가격정보 갱신
 	@Scheduled(fixedRate = 5, timeUnit = TimeUnit.SECONDS)
 	public void refreshStockPrice() {
-		log.info("call refreshStockPrice");
 		List<String> tickerSymbols = portFolioHoldingRepository.findAllTickerSymbol();
 		refreshStockCurrentPrice(tickerSymbols);
 		refreshLastDayClosingPrice(tickerSymbols);
