@@ -88,6 +88,9 @@ public class KisClient {
 		queryParamMap.add("fid_input_iscd", tickerSymbol);
 
 		Map<String, Object> responseMap = getPerform(currentPrice, headerMap, queryParamMap);
+		if (!responseMap.containsKey("output")) {
+			throw new KisException((String)responseMap.get("msg1"));
+		}
 		Map<String, String> output = (Map<String, String>)responseMap.get("output");
 		return Long.parseLong(output.get("stck_prpr"));
 	}
@@ -123,6 +126,9 @@ public class KisClient {
 		queryParamMap.add("FID_ORG_ADJ_PRC", "0");
 
 		Map<String, Object> responseMap = getPerform(lastDayClosingPrice, headerMap, queryParamMap);
+		if (!responseMap.containsKey("output1")) {
+			throw new KisException((String)responseMap.get("msg1"));
+		}
 		Map<String, String> output = (Map<String, String>)responseMap.get("output1");
 		return LastDayClosingPriceResponse.of(tickerSymbol, Long.parseLong(output.get("stck_prdy_clpr")));
 	}

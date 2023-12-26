@@ -15,6 +15,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import codesquad.fineants.domain.portfolio_holding.PortfolioHoldingRepository;
+import codesquad.fineants.spring.api.errors.exception.KisException;
 import codesquad.fineants.spring.api.kis.client.KisClient;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.kis.manager.KisAccessTokenManager;
@@ -97,6 +98,7 @@ public class KisService {
 	// 종목 가격정보 갱신
 	@Scheduled(fixedRate = 5, timeUnit = TimeUnit.SECONDS)
 	public void refreshStockPrice() {
+		log.info("call refreshStockPrice");
 		List<String> tickerSymbols = portFolioHoldingRepository.findAllTickerSymbol();
 		refreshStockCurrentPrice(tickerSymbols);
 		refreshLastDayClosingPrice(tickerSymbols);
@@ -107,7 +109,12 @@ public class KisService {
 		List<CompletableFuture<CurrentPriceResponse>> futures = tickerSymbols.parallelStream()
 			.map(tickerSymbol -> {
 				CompletableFuture<CurrentPriceResponse> future = new CompletableFuture<>();
-				executorService.schedule(createCurrentPriceRequest(tickerSymbol, future), 1L, TimeUnit.SECONDS);
+				future.completeOnTimeout(null, 10, TimeUnit.SECONDS);
+				future.exceptionally(e -> {
+					log.info(e.getMessage(), e);
+					return null;
+				});
+				executorService.schedule(createCurrentPriceRequest(tickerSymbol, future), 1L, TimeUnit.MILLISECONDS);
 				return future;
 			}).collect(Collectors.toList());
 
@@ -120,12 +127,11 @@ public class KisService {
 	private Runnable createCurrentPriceRequest(final String tickerSymbol,
 		CompletableFuture<CurrentPriceResponse> future) {
 		return () -> {
-			CurrentPriceResponse response = readRealTimeCurrentPrice(tickerSymbol);
-			future.completeOnTimeout(response, 10, TimeUnit.SECONDS);
-			future.exceptionally(e -> {
-				log.info(e.getMessage(), e);
-				return null;
-			});
+			try {
+				future.complete(readRealTimeCurrentPrice(tickerSymbol));
+			} catch (KisException e) {
+				future.completeExceptionally(e);
+			}
 		};
 	}
 
@@ -142,6 +148,11 @@ public class KisService {
 			.filter(tickerSymbol -> !lastDayClosingPriceManager.hasPrice(tickerSymbol))
 			.map(tickerSymbol -> {
 				CompletableFuture<LastDayClosingPriceResponse> future = new CompletableFuture<>();
+				future.completeOnTimeout(null, 10L, TimeUnit.SECONDS);
+				future.exceptionally(e -> {
+					log.error(e.getMessage(), e);
+					return null;
+				});
 				executorService.schedule(createLastDayClosingPriceRequest(tickerSymbol, future), 1L,
 					TimeUnit.SECONDS);
 				return future;
@@ -158,15 +169,10 @@ public class KisService {
 		CompletableFuture<LastDayClosingPriceResponse> future) {
 		return () -> {
 			try {
-				future.completeOnTimeout(kisClient.readLastDayClosingPrice(tickerSymbol, manager.createAuthorization()),
-					10, TimeUnit.SECONDS);
-			} catch (Exception e) {
+				future.complete(kisClient.readLastDayClosingPrice(tickerSymbol, manager.createAuthorization()));
+			} catch (KisException e) {
 				future.completeExceptionally(e);
 			}
-			future.exceptionally(e -> {
-				log.error(e.getMessage(), e);
-				return null;
-			});
 		};
 	}
 }
