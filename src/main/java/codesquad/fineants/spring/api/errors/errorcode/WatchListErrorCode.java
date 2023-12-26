@@ -17,7 +17,7 @@ public enum WatchListErrorCode implements ErrorCode{
 
 	@Override
 	public String toString() {
-		return String.format("%s, %s(name=%s, httpStatus=%s, message=%s)", "회원 에러 코드",
+		return String.format("%s, %s(name=%s, httpStatus=%s, message=%s)", "관심목록 에러 코드",
 			this.getClass().getSimpleName(),
 			name(),
 			httpStatus,
