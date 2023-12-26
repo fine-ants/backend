@@ -39,7 +39,6 @@ import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.spring.api.errors.errorcode.PortfolioErrorCode;
 import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
 import codesquad.fineants.spring.api.errors.handler.GlobalExceptionHandler;
-import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioHoldingsResponse;
 import codesquad.fineants.spring.auth.HasPortfolioAuthorizationAspect;
 import codesquad.fineants.spring.config.JpaAuditingConfiguration;
@@ -68,16 +67,13 @@ class PortfolioStockRestControllerTest {
 	private PortfolioStockService portfolioStockService;
 
 	@MockBean
-	private LastDayClosingPriceManager lastDayClosingPriceManager;
-
-	@MockBean
 	private StockMarketChecker stockMarketChecker;
 
 	@MockBean
 	private PortfolioRepository portfolioRepository; // HasAuthorizationAspect 목빈 객체
 
 	@MockBean
-	private PortfolioEventPublisher publisher;
+	private SseEmitterManager manager;
 
 	@BeforeEach
 	void setup() {
@@ -132,7 +128,7 @@ class PortfolioStockRestControllerTest {
 			.andExpect(status().isNotFound())
 			.andExpect(jsonPath("message").value(equalTo("포트폴리오를 찾을 수 없습니다")));
 	}
-	
+
 	@DisplayName("존재하지 않은 포트폴리오 등록번호를 가지고 상세 데이터를 조회할 수 없다")
 	@Test
 	void readMyPortfolioStocksInRealTimeWithNotExistPortfolioId() throws Exception {

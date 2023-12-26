@@ -35,6 +35,7 @@ import codesquad.fineants.domain.stock.StockRepository;
 import codesquad.fineants.spring.api.errors.exception.KisException;
 import codesquad.fineants.spring.api.kis.client.KisClient;
 import codesquad.fineants.spring.api.kis.manager.KisAccessTokenManager;
+import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
 import codesquad.fineants.spring.api.kis.response.CurrentPriceResponse;
 import lombok.extern.slf4j.Slf4j;
 
@@ -45,12 +46,6 @@ class KisServiceTest {
 
 	@Autowired
 	private KisService kisService;
-
-	@MockBean
-	private KisClient client;
-
-	@MockBean
-	private KisAccessTokenManager kisAccessTokenManager;
 
 	@Autowired
 	private KisRedisService kisRedisService;
@@ -66,6 +61,15 @@ class KisServiceTest {
 
 	@Autowired
 	private StockRepository stockRepository;
+
+	@MockBean
+	private KisClient client;
+
+	@MockBean
+	private KisAccessTokenManager kisAccessTokenManager;
+
+	@MockBean
+	private LastDayClosingPriceManager lastDayClosingPriceManager;
 
 	@AfterEach
 	void tearDown() {
@@ -140,7 +144,8 @@ class KisServiceTest {
 		// given
 		Member member = memberRepository.save(createMember());
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
-		List<String> tickerSymbols = List.of("000270", "000660", "000880", "001360", "001500",
+		List<String> tickerSymbols = List.of(
+			"000270", "000660", "000880", "001360", "001500",
 			"003530", "003550", "003800", "005930", "034220",
 			"035420", "035720", "086520", "115390", "194480",
 			"323410");
@@ -150,6 +155,7 @@ class KisServiceTest {
 		stocks.forEach(stock -> portfolioHoldingRepository.save(createPortfolioHolding(portfolio, stock)));
 
 		given(kisAccessTokenManager.createAuthorization()).willReturn(createAuthorization());
+		given(lastDayClosingPriceManager.hasPrice(anyString())).willReturn(false);
 		given(client.readRealTimeCurrentPrice(anyString(), anyString())).willThrow(
 			new KisException("초당 거래건수를 초과하였습니다."));
 		given(client.readLastDayClosingPrice(anyString(), anyString())).willThrow(
