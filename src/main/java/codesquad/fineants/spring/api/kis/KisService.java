@@ -108,27 +108,24 @@ public class KisService {
 	// 주식 현재가 갱신
 	public void refreshStockCurrentPrice(List<String> tickerSymbols) {
 		List<CompletableFuture<CurrentPriceResponse>> futures = tickerSymbols.parallelStream()
-			.map(tickerSymbol -> {
-				CompletableFuture<CurrentPriceResponse> future = new CompletableFuture<>();
-				future.completeOnTimeout(null, 10, TimeUnit.SECONDS);
-				future.exceptionally(e -> {
-					log.info(e.getMessage(), e);
-					return null;
-				});
-				executorService.schedule(createCurrentPriceRequest(tickerSymbol, future), 1L, TimeUnit.SECONDS);
-				return future;
-			}).collect(Collectors.toList());
+			.map(this::createCompletableFuture)
+			.collect(Collectors.toList());
 
 		futures.parallelStream()
-			.map(future -> {
-				try {
-					return future.get(10L, TimeUnit.SECONDS);
-				} catch (InterruptedException | ExecutionException | TimeoutException e) {
-					return null;
-				}
-			})
+			.map(this::getCurrentPriceResponseWithTimeout)
 			.filter(Objects::nonNull)
 			.forEach(currentPriceManager::addCurrentPrice);
+	}
+
+	private CompletableFuture<CurrentPriceResponse> createCompletableFuture(String tickerSymbol) {
+		CompletableFuture<CurrentPriceResponse> future = new CompletableFuture<>();
+		future.completeOnTimeout(null, 10, TimeUnit.SECONDS);
+		future.exceptionally(e -> {
+			log.info(e.getMessage(), e);
+			return null;
+		});
+		executorService.schedule(createCurrentPriceRequest(tickerSymbol, future), 1L, TimeUnit.SECONDS);
+		return future;
 	}
 
 	private Runnable createCurrentPriceRequest(final String tickerSymbol,
@@ -149,7 +146,14 @@ public class KisService {
 		return new CurrentPriceResponse(tickerSymbol, currentPrice);
 	}
 
-	// 종가 갱신 (매일 0시 1분 0초에 시작)
+	private CurrentPriceResponse getCurrentPriceResponseWithTimeout(CompletableFuture<CurrentPriceResponse> future) {
+		try {
+			return future.get(10L, TimeUnit.SECONDS);
+		} catch (InterruptedException | ExecutionException | TimeoutException e) {
+			return null;
+		}
+	}
+	
 	public void refreshLastDayClosingPrice(List<String> tickerSymbols) {
 		List<CompletableFuture<LastDayClosingPriceResponse>> futures = tickerSymbols.parallelStream()
 			.filter(tickerSymbol -> !lastDayClosingPriceManager.hasPrice(tickerSymbol))
