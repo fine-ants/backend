@@ -18,4 +18,6 @@ public interface PortfolioGainHistoryRepository extends JpaRepository<PortfolioG
 		@Param("portfolioId") Long portfolioId, @Param("createAt") LocalDateTime createAt);
 
 	List<PortfolioGainHistory> findAllByPortfolioId(Long portfolioId);
+
+	int deleteAllByPortfolioId(Long portfolioId);
 }
