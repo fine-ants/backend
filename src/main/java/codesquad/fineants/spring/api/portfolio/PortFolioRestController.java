@@ -58,7 +58,7 @@ public class PortFolioRestController {
 	public ApiResponse<Void> deletePortfolio(@PathVariable Long portfolioId,
 		@AuthPrincipalMember AuthMember authMember) {
 		log.info("포트폴리오 삭제 요청, portfolioId={}", portfolioId);
-		portFolioService.deletePortfolio(portfolioId);
+		portFolioService.deletePortfolio(portfolioId, authMember);
 		return ApiResponse.success(PortfolioSuccessCode.OK_DELETE_PORTFOLIO);
 	}
 
