@@ -109,11 +109,13 @@ public class PortFolioService {
 	}
 
 	@Transactional
-	public void deletePortfolio(Long portfolioId) {
-		log.info("포트폴리오 삭제 서비스 요청 : portfolioId={}", portfolioId);
+	public void deletePortfolio(Long portfolioId, AuthMember authMember) {
+		log.info("포트폴리오 삭제 서비스 요청 : portfolioId={}, authMember={}", portfolioId, authMember);
 
-		Portfolio portfolio = findPortfolio(portfolioId);
-		List<Long> portfolioHoldingIds = portfolioHoldingRepository.findAllByPortfolio(portfolio).stream()
+		Portfolio findPortfolio = findPortfolio(portfolioId);
+		validatePortfolioAuthorization(findPortfolio, authMember.getMemberId());
+
+		List<Long> portfolioHoldingIds = portfolioHoldingRepository.findAllByPortfolio(findPortfolio).stream()
 			.map(PortfolioHolding::getId)
 			.collect(Collectors.toList());
 
@@ -123,11 +125,11 @@ public class PortFolioService {
 		int delTradeHistoryCnt = purchaseHistoryRepository.deleteAllByPortfolioHoldingIdIn(portfolioHoldingIds);
 		log.info("매매이력 삭제 개수 : {}", delTradeHistoryCnt);
 
-		int delPortfolioCnt = portfolioHoldingRepository.deleteAllByPortfolioId(portfolio.getId());
+		int delPortfolioCnt = portfolioHoldingRepository.deleteAllByPortfolioId(findPortfolio.getId());
 		log.info("포트폴리오 종목 삭제 개수 : {}", delPortfolioCnt);
 
-		portfolioRepository.deleteById(portfolio.getId());
-		log.info("포트폴리오 삭제 : delPortfolio={}", portfolio);
+		portfolioRepository.deleteById(findPortfolio.getId());
+		log.info("포트폴리오 삭제 : delPortfolio={}", findPortfolio);
 	}
 
 	@Transactional
