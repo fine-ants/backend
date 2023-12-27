@@ -153,33 +153,38 @@ public class KisService {
 			return null;
 		}
 	}
-	
+
 	public void refreshLastDayClosingPrice(List<String> tickerSymbols) {
 		List<CompletableFuture<LastDayClosingPriceResponse>> futures = tickerSymbols.parallelStream()
 			.filter(tickerSymbol -> !lastDayClosingPriceManager.hasPrice(tickerSymbol))
-			.map(tickerSymbol -> {
-				CompletableFuture<LastDayClosingPriceResponse> future = new CompletableFuture<>();
-				future.completeOnTimeout(null, 10L, TimeUnit.SECONDS);
-				future.exceptionally(e -> {
-					log.error(e.getMessage(), e);
-					return null;
-				});
-				executorService.schedule(createLastDayClosingPriceRequest(tickerSymbol, future), 1L,
-					TimeUnit.SECONDS);
-				return future;
-			})
+			.map(this::createLastDayClosingPriceResponseCompletableFuture)
 			.collect(Collectors.toList());
 		futures.parallelStream()
-			.map(future -> {
-				try {
-					return future.get(10L, TimeUnit.SECONDS);
-				} catch (InterruptedException | ExecutionException | TimeoutException e) {
-					return null;
-				}
-			})
+			.map(this::getLastDayClosingPriceResponseWithTimeout)
 			.peek(response -> log.info("종가 갱신 응답 : {}", response))
 			.filter(Objects::nonNull)
 			.forEach(response -> lastDayClosingPriceManager.addPrice(response.getTickerSymbol(), response.getPrice()));
+	}
+
+	private LastDayClosingPriceResponse getLastDayClosingPriceResponseWithTimeout(
+		CompletableFuture<LastDayClosingPriceResponse> future) {
+		try {
+			return future.get(10L, TimeUnit.SECONDS);
+		} catch (InterruptedException | ExecutionException | TimeoutException e) {
+			return null;
+		}
+	}
+
+	private CompletableFuture<LastDayClosingPriceResponse> createLastDayClosingPriceResponseCompletableFuture(
+		String tickerSymbol) {
+		CompletableFuture<LastDayClosingPriceResponse> future = new CompletableFuture<>();
+		future.completeOnTimeout(null, 10L, TimeUnit.SECONDS);
+		future.exceptionally(e -> {
+			log.error(e.getMessage(), e);
+			return null;
+		});
+		executorService.schedule(createLastDayClosingPriceRequest(tickerSymbol, future), 1L, TimeUnit.SECONDS);
+		return future;
 	}
 
 	private Runnable createLastDayClosingPriceRequest(final String tickerSymbol,
