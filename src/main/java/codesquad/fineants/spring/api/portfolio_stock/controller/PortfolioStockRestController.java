@@ -1,10 +1,6 @@
-package codesquad.fineants.spring.api.portfolio_stock;
+package codesquad.fineants.spring.api.portfolio_stock.controller;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 import javax.validation.Valid;
 
@@ -21,9 +17,11 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.oauth.support.AuthPrincipalMember;
+import codesquad.fineants.spring.api.portfolio_stock.manager.SseEmitterManager;
 import codesquad.fineants.spring.api.portfolio_stock.request.PortfolioStockCreateRequest;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioChartResponse;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioHoldingsResponse;
+import codesquad.fineants.spring.api.portfolio_stock.service.PortfolioStockService;
 import codesquad.fineants.spring.api.response.ApiResponse;
 import codesquad.fineants.spring.api.success.code.PortfolioStockSuccessCode;
 import codesquad.fineants.spring.auth.HasPortfolioAuthorization;
@@ -36,10 +34,8 @@ import lombok.extern.slf4j.Slf4j;
 @RestController
 public class PortfolioStockRestController {
 
-	private static final ScheduledExecutorService sseExecutor = Executors.newScheduledThreadPool(100);
-
 	private final PortfolioStockService portfolioStockService;
-	private final StockMarketChecker stockMarketChecker;
+	private final SseEmitterManager manager;
 
 	@HasPortfolioAuthorization
 	@ResponseStatus(HttpStatus.CREATED)
@@ -72,44 +68,11 @@ public class PortfolioStockRestController {
 	@GetMapping("/holdings/realtime")
 	public SseEmitter readMyPortfolioStocksInRealTime(@PathVariable Long portfolioId,
 		@AuthPrincipalMember AuthMember authMember) {
-		SseEmitter emitter = new SseEmitter(Duration.ofHours(10).toMillis());
-		emitter.onTimeout(emitter::complete);
-
-		// 장시간 동안에는 스케줄러를 이용하여 지속적 응답
-		if (stockMarketChecker.isMarketOpen(LocalDateTime.now())) {
-			scheduleSseEventTask(portfolioId, emitter, false);
-		} else {
-			scheduleSseEventTask(portfolioId, emitter, true);
-		}
+		SseEmitter emitter = new SseEmitter(Duration.ofHours(10L).toMillis());
+		emitter.onTimeout(() -> manager.remove(portfolioId));
+		emitter.onCompletion(() -> manager.remove(portfolioId));
+		manager.add(portfolioId, emitter);
 		return emitter;
-	}
-
-	private void scheduleSseEventTask(Long portfolioId, SseEmitter emitter, boolean isComplete) {
-		Runnable task = () -> {
-			try {
-				emitter.send(SseEmitter.event()
-					.data(
-						portfolioStockService.readMyPortfolioStocksInRealTime(portfolioId))
-					.name("portfolioDetails"));
-				log.info("send message");
-				if (isComplete) {
-					Thread.sleep(2000L); // sse event - myPortfolioStocks 메시지와 전송 간격
-					emitter.send(SseEmitter.event()
-						.data("sse complete")
-						.name("complete"));
-					emitter.complete();
-					log.info("emitter complete");
-				}
-			} catch (Exception e) {
-				log.error(e.getMessage());
-				emitter.completeWithError(e);
-			}
-		};
-		if (isComplete) {
-			sseExecutor.schedule(task, 0, TimeUnit.SECONDS);
-		} else {
-			sseExecutor.scheduleAtFixedRate(task, 0, 5L, TimeUnit.SECONDS);
-		}
 	}
 
 	@HasPortfolioAuthorization

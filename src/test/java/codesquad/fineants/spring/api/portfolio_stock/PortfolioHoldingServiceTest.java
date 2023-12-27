@@ -24,8 +24,8 @@ import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.portfolio.Portfolio;
 import codesquad.fineants.domain.portfolio.PortfolioRepository;
 import codesquad.fineants.domain.portfolio_gain_history.PortfolioGainHistoryRepository;
-import codesquad.fineants.domain.portfolio_holding.PortfolioHoldingRepository;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
+import codesquad.fineants.domain.portfolio_holding.PortfolioHoldingRepository;
 import codesquad.fineants.domain.purchase_history.PurchaseHistory;
 import codesquad.fineants.domain.purchase_history.PurchaseHistoryRepository;
 import codesquad.fineants.domain.stock.Market;
@@ -35,6 +35,7 @@ import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
 import codesquad.fineants.spring.api.portfolio_stock.request.PortfolioStockCreateRequest;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioStockCreateResponse;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioStockDeleteResponse;
+import codesquad.fineants.spring.api.portfolio_stock.service.PortfolioStockService;
 
 @ActiveProfiles("test")
 @SpringBootTest
