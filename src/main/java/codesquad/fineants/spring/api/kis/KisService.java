@@ -115,7 +115,7 @@ public class KisService {
 					log.info(e.getMessage(), e);
 					return null;
 				});
-				executorService.schedule(createCurrentPriceRequest(tickerSymbol, future), 1L, TimeUnit.MILLISECONDS);
+				executorService.schedule(createCurrentPriceRequest(tickerSymbol, future), 1L, TimeUnit.SECONDS);
 				return future;
 			}).collect(Collectors.toList());
 
