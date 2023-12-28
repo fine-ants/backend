@@ -36,7 +36,7 @@ import codesquad.fineants.domain.stock_dividend.StockDividendRepository;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
 import codesquad.fineants.spring.api.kis.response.CurrentPriceResponse;
-import codesquad.fineants.spring.api.portfolio_stock.event.PortfolioEventPublisher;
+import codesquad.fineants.spring.api.portfolio_stock.event.publisher.PortfolioEventPublisher;
 import codesquad.fineants.spring.api.portfolio_stock.manager.SseEmitterManager;
 import codesquad.fineants.spring.api.portfolio_stock.service.PortfolioStockService;
 

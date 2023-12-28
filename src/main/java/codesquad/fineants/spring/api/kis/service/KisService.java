@@ -45,7 +45,7 @@ public class KisService {
 	}
 
 	// 주식 현재가 갱신
-	private void refreshStockCurrentPrice(List<String> tickerSymbols) {
+	public void refreshStockCurrentPrice(List<String> tickerSymbols) {
 		List<CompletableFuture<CurrentPriceResponse>> futures = tickerSymbols.parallelStream()
 			.map(this::createCompletableFuture)
 			.collect(Collectors.toList());

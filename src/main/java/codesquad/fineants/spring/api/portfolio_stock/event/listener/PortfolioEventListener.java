@@ -1,4 +1,4 @@
-package codesquad.fineants.spring.api.portfolio_stock.event;
+package codesquad.fineants.spring.api.portfolio_stock.event.listener;
 
 import java.io.IOException;
 
@@ -7,6 +7,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import codesquad.fineants.spring.api.portfolio_stock.event.PortfolioEvent;
 import codesquad.fineants.spring.api.portfolio_stock.manager.SseEmitterManager;
 import codesquad.fineants.spring.api.portfolio_stock.service.StockMarketChecker;
 import lombok.RequiredArgsConstructor;
@@ -44,4 +45,5 @@ public class PortfolioEventListener {
 			emitter.completeWithError(e);
 		}
 	}
+
 }
