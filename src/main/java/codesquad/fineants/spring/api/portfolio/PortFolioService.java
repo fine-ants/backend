@@ -24,7 +24,6 @@ import codesquad.fineants.spring.api.errors.exception.BadRequestException;
 import codesquad.fineants.spring.api.errors.exception.ConflictException;
 import codesquad.fineants.spring.api.errors.exception.ForBiddenException;
 import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
-import codesquad.fineants.spring.api.kis.KisService;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.portfolio.request.PortfolioCreateRequest;
 import codesquad.fineants.spring.api.portfolio.request.PortfolioModifyRequest;
@@ -47,7 +46,6 @@ public class PortFolioService {
 	private final PurchaseHistoryRepository purchaseHistoryRepository;
 	private final PortfolioGainHistoryRepository portfolioGainHistoryRepository;
 	private final CurrentPriceManager currentPriceManager;
-	private final KisService kisService;
 
 	@Transactional
 	public PortFolioCreateResponse addPortFolio(PortfolioCreateRequest request, AuthMember authMember) {
@@ -117,11 +115,14 @@ public class PortFolioService {
 		Portfolio findPortfolio = findPortfolio(portfolioId);
 		validatePortfolioAuthorization(findPortfolio, authMember.getMemberId());
 
-		List<Long> portfolioStockIds = portfolioHoldingRepository.findAllByPortfolio(findPortfolio).stream()
+		List<Long> portfolioHoldingIds = portfolioHoldingRepository.findAllByPortfolio(findPortfolio).stream()
 			.map(PortfolioHolding::getId)
 			.collect(Collectors.toList());
 
-		int delTradeHistoryCnt = purchaseHistoryRepository.deleteAllByPortfolioHoldingIdIn(portfolioStockIds);
+		int delPortfolioGainHistoryCnt = portfolioGainHistoryRepository.deleteAllByPortfolioId(portfolioId);
+		log.info("포트폴리오 손익 내역 삭제 개수 : {}", delPortfolioGainHistoryCnt);
+
+		int delTradeHistoryCnt = purchaseHistoryRepository.deleteAllByPortfolioHoldingIdIn(portfolioHoldingIds);
 		log.info("매매이력 삭제 개수 : {}", delTradeHistoryCnt);
 
 		int delPortfolioCnt = portfolioHoldingRepository.deleteAllByPortfolioId(findPortfolio.getId());
