@@ -54,6 +54,11 @@ public class KisService {
 			.map(this::getCurrentPriceResponseWithTimeout)
 			.filter(Objects::nonNull)
 			.forEach(currentPriceManager::addCurrentPrice);
+
+		long count = futures.parallelStream()
+			.filter(CompletableFuture::isDone)
+			.count();
+		log.info("종목 현재가 {}개중 {}개 갱신", tickerSymbols.size(), count);
 	}
 
 	private CompletableFuture<CurrentPriceResponse> createCompletableFuture(String tickerSymbol) {
@@ -98,9 +103,13 @@ public class KisService {
 			.collect(Collectors.toList());
 		futures.parallelStream()
 			.map(this::getLastDayClosingPriceResponseWithTimeout)
-			.peek(response -> log.info("종가 갱신 응답 : {}", response))
 			.filter(Objects::nonNull)
 			.forEach(response -> lastDayClosingPriceManager.addPrice(response.getTickerSymbol(), response.getPrice()));
+
+		long count = futures.parallelStream()
+			.filter(CompletableFuture::isDone)
+			.count();
+		log.info("종목 종가 {}개중 {}개 갱신", tickerSymbols.size(), count);
 	}
 
 	private LastDayClosingPriceResponse getLastDayClosingPriceResponseWithTimeout(
