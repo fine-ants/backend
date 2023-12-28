@@ -35,7 +35,6 @@ public class KisAccessTokenManager {
 		if (expirationDatetime == null) {
 			return true;
 		}
-		log.info("액세스 토큰 만료 체크, expirationDatetime : {}", expirationDatetime);
 		return dateTime.isAfter(expirationDatetime);
 	}
 

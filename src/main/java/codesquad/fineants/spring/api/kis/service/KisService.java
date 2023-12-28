@@ -1,6 +1,5 @@
 package codesquad.fineants.spring.api.kis.service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -46,7 +45,7 @@ public class KisService {
 	}
 
 	// 주식 현재가 갱신
-	public void refreshStockCurrentPrice(List<String> tickerSymbols) {
+	private void refreshStockCurrentPrice(List<String> tickerSymbols) {
 		List<CompletableFuture<CurrentPriceResponse>> futures = tickerSymbols.parallelStream()
 			.map(this::createCompletableFuture)
 			.collect(Collectors.toList());
@@ -61,7 +60,7 @@ public class KisService {
 		CompletableFuture<CurrentPriceResponse> future = new CompletableFuture<>();
 		future.completeOnTimeout(null, 10, TimeUnit.SECONDS);
 		future.exceptionally(e -> {
-			log.info(e.getMessage(), e);
+			log.error(e.getMessage(), e);
 			return null;
 		});
 		executorService.schedule(createCurrentPriceRequest(tickerSymbol, future), 1L, TimeUnit.SECONDS);
@@ -79,10 +78,8 @@ public class KisService {
 		};
 	}
 
-	// 제약조건 : kis 서버에 1초당 최대 5건, TR간격 0.1초 이하면 안됨
 	public CurrentPriceResponse readRealTimeCurrentPrice(String tickerSymbol) {
 		long currentPrice = kisClient.readRealTimeCurrentPrice(tickerSymbol, manager.createAuthorization());
-		log.info("tickerSymbol={}, currentPrice={}, time={}", tickerSymbol, currentPrice, LocalDateTime.now());
 		return new CurrentPriceResponse(tickerSymbol, currentPrice);
 	}
 

@@ -32,7 +32,6 @@ public class AccessTokenAspect {
 	@Before(value = "refreshStockPrice()")
 	public void checkAccessTokenExpiration() {
 		LocalDateTime now = LocalDateTime.now();
-		log.info("액세스 토큰 만료 체크, 현재 시간={}", now);
 		if (manager.isAccessTokenExpired(now)) {
 			final Optional<Map<String, Object>> optionalMap = redisService.getAccessTokenMap();
 			optionalMap.ifPresentOrElse(accessTokenMap -> {
