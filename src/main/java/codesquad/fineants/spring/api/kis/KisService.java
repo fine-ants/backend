@@ -5,14 +5,12 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -22,11 +20,8 @@ import codesquad.fineants.spring.api.kis.client.KisClient;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.kis.manager.KisAccessTokenManager;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
-import codesquad.fineants.spring.api.kis.manager.PortfolioSubscriptionManager;
 import codesquad.fineants.spring.api.kis.response.CurrentPriceResponse;
 import codesquad.fineants.spring.api.kis.response.LastDayClosingPriceResponse;
-import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioHoldingsResponse;
-import codesquad.fineants.spring.api.portfolio_stock.service.PortfolioStockService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -34,68 +29,13 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Service
 public class KisService {
-	private static final String SUBSCRIBE_PORTFOLIO_HOLDING_FORMAT = "/sub/portfolio/%d";
 	private static final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
 
 	private final KisClient kisClient;
 	private final PortfolioHoldingRepository portFolioHoldingRepository;
-	private final SimpMessagingTemplate messagingTemplate;
-	private final PortfolioStockService portfolioStockService;
 	private final KisAccessTokenManager manager;
 	private final CurrentPriceManager currentPriceManager;
-	private final PortfolioSubscriptionManager portfolioSubscriptionManager;
 	private final LastDayClosingPriceManager lastDayClosingPriceManager;
-	private final Executor portfolioDetailExecutor = Executors.newFixedThreadPool(100, r -> {
-		Thread thread = new Thread(r);
-		thread.setDaemon(true);
-		return thread;
-	});
-
-	public void addPortfolioSubscription(String sessionId, PortfolioSubscription subscription) {
-		subscription.getTickerSymbols().stream()
-			.filter(tickerSymbol -> !currentPriceManager.hasKey(tickerSymbol))
-			.forEach(currentPriceManager::addKey);
-		portfolioSubscriptionManager.addPortfolioSubscription(sessionId, subscription);
-	}
-
-	public void removePortfolioSubscription(String sessionId) {
-		portfolioSubscriptionManager.removePortfolioSubscription(sessionId);
-	}
-
-	@Scheduled(fixedRate = 5, timeUnit = TimeUnit.SECONDS)
-	protected void publishPortfolioDetail() {
-		List<CompletableFuture<PortfolioHoldingsResponse>> futures = portfolioSubscriptionManager.values()
-			.parallelStream()
-			.filter(this::hasAllCurrentPrice)
-			.map(PortfolioSubscription::getPortfolioId)
-			.map(portfolioId -> CompletableFuture.supplyAsync(
-					() -> portfolioStockService.readMyPortfolioStocks(portfolioId),
-					portfolioDetailExecutor)
-				.exceptionally(e -> {
-					log.info(e.getMessage(), e);
-					return null;
-				}))
-			.filter(Objects::nonNull)
-			.collect(Collectors.toList());
-
-		futures.parallelStream()
-			.map(CompletableFuture::join)
-			.forEach(response -> messagingTemplate.convertAndSend(
-				String.format(SUBSCRIBE_PORTFOLIO_HOLDING_FORMAT, response.getPortfolioId()), response));
-	}
-
-	public CompletableFuture<PortfolioHoldingsResponse> publishPortfolioDetail(Long portfolioId) {
-		return CompletableFuture.supplyAsync(() ->
-			portfolioSubscriptionManager.getPortfolioSubscription(portfolioId)
-				.map(PortfolioSubscription::getPortfolioId)
-				.map(portfolioStockService::readMyPortfolioStocks)
-				.orElse(null));
-	}
-
-	private boolean hasAllCurrentPrice(PortfolioSubscription subscription) {
-		return subscription.getTickerSymbols().stream()
-			.allMatch(currentPriceManager::hasCurrentPrice);
-	}
 
 	// 종목 가격정보 갱신
 	@Scheduled(fixedRate = 5, timeUnit = TimeUnit.SECONDS)
