@@ -9,9 +9,9 @@ import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.stereotype.Component;
 
-import codesquad.fineants.spring.api.kis.KisRedisService;
 import codesquad.fineants.spring.api.kis.client.KisClient;
 import codesquad.fineants.spring.api.kis.manager.KisAccessTokenManager;
+import codesquad.fineants.spring.api.kis.service.KisRedisService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -25,7 +25,7 @@ public class AccessTokenAspect {
 	private final KisClient client;
 	private final KisRedisService redisService;
 
-	@Pointcut("execution(* codesquad.fineants.spring.api.kis.KisService.refreshStockPrice())")
+	@Pointcut("execution(* codesquad.fineants.spring.api.kis.service.KisService.refreshStockPrice())")
 	public void refreshStockPrice() {
 	}
 

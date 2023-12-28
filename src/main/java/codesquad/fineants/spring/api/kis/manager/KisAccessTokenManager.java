@@ -1,6 +1,6 @@
 package codesquad.fineants.spring.api.kis.manager;
 
-import static codesquad.fineants.spring.api.kis.KisRedisService.*;
+import static codesquad.fineants.spring.api.kis.service.KisRedisService.*;
 
 import java.time.LocalDateTime;
 import java.util.Map;
