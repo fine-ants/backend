@@ -36,8 +36,8 @@ public class KisService {
 	private final CurrentPriceManager currentPriceManager;
 	private final LastDayClosingPriceManager lastDayClosingPriceManager;
 
-	// 종목 가격정보 갱신
-	@Scheduled(fixedRate = 5, timeUnit = TimeUnit.SECONDS)
+	// 종목 가격정보 갱신 (평일 9~16시 동안 5초마다 갱신)
+	@Scheduled(cron = "*/5 * 9-16 * * MON-FRI")
 	public void refreshStockPrice() {
 		List<String> tickerSymbols = portFolioHoldingRepository.findAllTickerSymbol();
 		refreshStockCurrentPrice(tickerSymbols);
