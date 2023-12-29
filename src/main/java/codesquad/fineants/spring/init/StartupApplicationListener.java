@@ -1,6 +1,7 @@
 package codesquad.fineants.spring.init;
 
 import org.springframework.context.ApplicationListener;
+import org.springframework.context.annotation.Profile;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.stereotype.Component;
 
@@ -8,6 +9,7 @@ import codesquad.fineants.spring.api.kis.service.KisService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+@Profile(value = {"local", "dev", "analyze"})
 @Component
 @RequiredArgsConstructor
 @Slf4j

@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -77,6 +78,7 @@ class KisServiceTest {
 		portfolioRepository.deleteAllInBatch();
 		memberRepository.deleteAllInBatch();
 		stockRepository.deleteAllInBatch();
+		Mockito.clearInvocations(client);
 	}
 
 	@DisplayName("주식 현재가 시세를 가져온다")
@@ -167,7 +169,7 @@ class KisServiceTest {
 		verify(client, times(16)).readLastDayClosingPrice(anyString(), anyString());
 	}
 
-	private static String createAuthorization() {
+	private String createAuthorization() {
 		return "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0b2tlbiIsImF1ZCI6Ijg5MjBlNjM2LTNkYmItNGU5MS04ZGJmLWJmZDU5ZmI2YjAwYiIsImlzcyI6InVub2d3IiwiZXhwIjoxNzAzNTcwOTA0LCJpYXQiOjE3MDM0ODQ1MDQsImp0aSI6IlBTRGc4WlVJd041eVl5ZkR6bnA0TDM2Z2xhRUpic2RJNGd6biJ9.z8dh9rlOyPq_ukm9KeCz0tkKI2QaHEe07LhXTcKQBrcP1-uiW3dwAwdknpAojJZ7aUWLUaQQn0HmjTCttjSJaA";
 	}
 
