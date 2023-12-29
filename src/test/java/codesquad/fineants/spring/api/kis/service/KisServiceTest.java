@@ -34,6 +34,7 @@ import codesquad.fineants.spring.api.kis.client.KisClient;
 import codesquad.fineants.spring.api.kis.manager.KisAccessTokenManager;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
 import codesquad.fineants.spring.api.kis.response.CurrentPriceResponse;
+import codesquad.fineants.spring.api.kis.response.LastDayClosingPriceResponse;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -106,9 +107,9 @@ class KisServiceTest {
 		assertThat(kisRedisService.getAccessTokenMap()).isNotNull();
 	}
 
-	@DisplayName("초당 거래건수가 초과되어 현재가 및 종가를 갱신할 수 없다")
+	@DisplayName("현재가 및 종가를 갱신한다")
 	@Test
-	void refreshStockPriceWhenExceedingTransactionPerSecond() {
+	void refreshStockPrices() {
 		// given
 		Member member = memberRepository.save(createMember());
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
@@ -124,15 +125,66 @@ class KisServiceTest {
 
 		given(kisAccessTokenManager.createAuthorization()).willReturn(createAuthorization());
 		given(lastDayClosingPriceManager.hasPrice(anyString())).willReturn(false);
-		given(client.readRealTimeCurrentPrice(anyString(), anyString())).willThrow(
-			new KisException("초당 거래건수를 초과하였습니다."));
-		given(client.readLastDayClosingPrice(anyString(), anyString())).willThrow(
-			new KisException("초당 거래건수를 초과하였습니다."));
+
+		for (String tickerSymbol : tickerSymbols) {
+			when(client.readRealTimeCurrentPrice(eq(tickerSymbol), anyString())).thenReturn(10000L);
+			when(client.readLastDayClosingPrice(eq(tickerSymbol), anyString())).thenReturn(
+				LastDayClosingPriceResponse.of(tickerSymbol, 10000L));
+		}
+
 		// when
 		kisService.refreshStockPrice();
 		// then
 		verify(client, times(16)).readRealTimeCurrentPrice(anyString(), anyString());
 		verify(client, times(16)).readLastDayClosingPrice(anyString(), anyString());
+	}
+
+	@DisplayName("현재가 갱신시 요청건수 초과로 실패하였다가 다시 시도하여 성공한다")
+	@Test
+	void refreshStockCurrentPriceWhenExceedingTransactionPerSecond() {
+		// given
+		Member member = memberRepository.save(createMember());
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
+		List<String> tickerSymbols = List.of("000270");
+		List<Stock> stocks = stockRepository.saveAll(tickerSymbols.stream()
+			.map(this::createStock)
+			.collect(Collectors.toList()));
+		stocks.forEach(stock -> portfolioHoldingRepository.save(createPortfolioHolding(portfolio, stock)));
+
+		given(kisAccessTokenManager.createAuthorization()).willReturn(createAuthorization());
+		given(client.readRealTimeCurrentPrice(anyString(), anyString()))
+			.willThrow(new KisException("요청건수가 초과되었습니다"))
+			.willReturn(10000L);
+
+		// when
+		kisService.refreshStockCurrentPrice(tickerSymbols);
+
+		// then
+		verify(client, times(2)).readRealTimeCurrentPrice(anyString(), anyString());
+	}
+
+	@DisplayName("종가 갱신시 요청건수 초과로 실패하였다가 다시 시도하여 성공한다")
+	@Test
+	void refreshLastDayClosingPriceWhenExceedingTransactionPerSecond() {
+		// given
+		Member member = memberRepository.save(createMember());
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
+		List<String> tickerSymbols = List.of("000270");
+		List<Stock> stocks = stockRepository.saveAll(tickerSymbols.stream()
+			.map(this::createStock)
+			.collect(Collectors.toList()));
+		stocks.forEach(stock -> portfolioHoldingRepository.save(createPortfolioHolding(portfolio, stock)));
+
+		given(kisAccessTokenManager.createAuthorization()).willReturn(createAuthorization());
+		given(client.readLastDayClosingPrice(anyString(), anyString()))
+			.willThrow(new KisException("요청건수가 초과되었습니다"))
+			.willReturn(LastDayClosingPriceResponse.of("000270", 10000L));
+
+		// when
+		kisService.refreshLastDayClosingPrice(tickerSymbols);
+
+		// then
+		verify(client, times(2)).readLastDayClosingPrice(anyString(), anyString());
 	}
 
 	private String createAuthorization() {
