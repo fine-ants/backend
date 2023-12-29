@@ -18,6 +18,7 @@ public class PortfolioDetailResponse {
 	private Integer targetReturnRate;
 	private Long maximumLoss;
 	private Integer maximumLossRate;
+	private Long currentValuation;
 	private Long investedAmount;
 	private Long totalGain;
 	private Integer totalGainRate;
@@ -33,10 +34,10 @@ public class PortfolioDetailResponse {
 
 	@Builder(access = AccessLevel.PRIVATE)
 	private PortfolioDetailResponse(Long id, String securitiesFirm, String name, Long budget, Long targetGain,
-		Integer targetReturnRate, Long maximumLoss, Integer maximumLossRate, Long investedAmount, Long totalGain,
-		Integer totalGainRate, Long dailyGain, Integer dailyGainRate, Long balance, Long totalAnnualDividend,
-		Integer totalAnnualDividendYield, Integer annualInvestmentDividendYield, Long provisionalLossBalance,
-		Boolean targetGainNotification, Boolean maxLossNotification) {
+		Integer targetReturnRate, Long maximumLoss, Integer maximumLossRate, Long currentValuation, Long investedAmount,
+		Long totalGain, Integer totalGainRate, Long dailyGain, Integer dailyGainRate, Long balance,
+		Long totalAnnualDividend, Integer totalAnnualDividendYield, Integer annualInvestmentDividendYield,
+		Long provisionalLossBalance, Boolean targetGainNotification, Boolean maxLossNotification) {
 		this.id = id;
 		this.securitiesFirm = securitiesFirm;
 		this.name = name;
@@ -45,6 +46,7 @@ public class PortfolioDetailResponse {
 		this.targetReturnRate = targetReturnRate;
 		this.maximumLoss = maximumLoss;
 		this.maximumLossRate = maximumLossRate;
+		this.currentValuation = currentValuation;
 		this.investedAmount = investedAmount;
 		this.totalGain = totalGain;
 		this.totalGainRate = totalGainRate;
@@ -69,6 +71,7 @@ public class PortfolioDetailResponse {
 			.targetReturnRate(portfolio.calculateTargetReturnRate())
 			.maximumLoss(portfolio.getMaximumLoss())
 			.maximumLossRate(portfolio.calculateMaximumLossRate())
+			.currentValuation(portfolio.calculateTotalCurrentValuation())
 			.investedAmount(portfolio.calculateTotalInvestmentAmount())
 			.totalGain(portfolio.calculateTotalGain())
 			.totalGainRate(portfolio.calculateTotalGainRate())
