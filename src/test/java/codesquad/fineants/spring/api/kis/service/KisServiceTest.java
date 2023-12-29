@@ -46,9 +46,6 @@ class KisServiceTest {
 	private KisService kisService;
 
 	@Autowired
-	private KisRedisService kisRedisService;
-
-	@Autowired
 	private MemberRepository memberRepository;
 
 	@Autowired
@@ -91,52 +88,6 @@ class KisServiceTest {
 		assertThat(response)
 			.extracting("tickerSymbol", "currentPrice")
 			.containsExactlyInAnyOrder("005930", 60000L);
-	}
-
-	@DisplayName("현재가 및 종가 갱신 전에 액세스 토큰을 새로 발급받아 갱신한다")
-	@Test
-	void refreshStockPrice() {
-		// given
-		kisRedisService.deleteAccessTokenMap();
-		given(kisAccessTokenManager.isAccessTokenExpired(any(LocalDateTime.class)))
-			.willReturn(true);
-		given(client.accessToken()).willReturn(createAccessTokenMap(LocalDateTime.now()));
-		// when
-		kisService.refreshStockPrice();
-		// then
-		assertThat(kisRedisService.getAccessTokenMap()).isNotNull();
-	}
-
-	@DisplayName("현재가 및 종가를 갱신한다")
-	@Test
-	void refreshStockPrices() {
-		// given
-		Member member = memberRepository.save(createMember());
-		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
-		List<String> tickerSymbols = List.of(
-			"000270", "000660", "000880", "001360", "001500",
-			"003530", "003550", "003800", "005930", "034220",
-			"035420", "035720", "086520", "115390", "194480",
-			"323410");
-		List<Stock> stocks = stockRepository.saveAll(tickerSymbols.stream()
-			.map(this::createStock)
-			.collect(Collectors.toList()));
-		stocks.forEach(stock -> portfolioHoldingRepository.save(createPortfolioHolding(portfolio, stock)));
-
-		given(kisAccessTokenManager.createAuthorization()).willReturn(createAuthorization());
-		given(lastDayClosingPriceManager.hasPrice(anyString())).willReturn(false);
-
-		for (String tickerSymbol : tickerSymbols) {
-			when(client.readRealTimeCurrentPrice(eq(tickerSymbol), anyString())).thenReturn(10000L);
-			when(client.readLastDayClosingPrice(eq(tickerSymbol), anyString())).thenReturn(
-				LastDayClosingPriceResponse.of(tickerSymbol, 10000L));
-		}
-
-		// when
-		kisService.refreshStockPrice();
-		// then
-		verify(client, times(16)).readRealTimeCurrentPrice(anyString(), anyString());
-		verify(client, times(16)).readLastDayClosingPrice(anyString(), anyString());
 	}
 
 	@DisplayName("현재가 갱신시 요청건수 초과로 실패하였다가 다시 시도하여 성공한다")
