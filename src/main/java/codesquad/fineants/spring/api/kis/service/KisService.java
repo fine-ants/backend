@@ -49,15 +49,25 @@ public class KisService {
 			.map(this::createCompletableFuture)
 			.collect(Collectors.toList());
 
-		futures.parallelStream()
+		List<CurrentPriceResponse> currentPrices = futures.parallelStream()
 			.map(this::getCurrentPriceResponseWithTimeout)
 			.filter(Objects::nonNull)
-			.forEach(currentPriceManager::addCurrentPrice);
+			.collect(Collectors.toList());
+		currentPrices.forEach(currentPriceManager::addCurrentPrice);
 
-		long count = futures.parallelStream()
-			.filter(CompletableFuture::isDone)
-			.count();
-		log.info("종목 현재가 {}개중 {}개 갱신", tickerSymbols.size(), count);
+		// 갱신 실패한 종목에 대해서 성공할때까지 갱신을 시도
+		int refreshedCount = currentPrices.size();
+		if (refreshedCount != tickerSymbols.size()) {
+			List<String> refreshedTickerSymbols = currentPrices.stream()
+				.map(CurrentPriceResponse::getTickerSymbol)
+				.collect(Collectors.toList());
+			List<String> failTickerSymbols = tickerSymbols.stream()
+				.filter(tickerSymbol -> !refreshedTickerSymbols.contains(tickerSymbol))
+				.collect(Collectors.toList());
+			refreshStockCurrentPrice(failTickerSymbols);
+		}
+
+		log.info("종목 현재가 {}개중 {}개 갱신", tickerSymbols.size(), refreshedCount);
 	}
 
 	private CompletableFuture<CurrentPriceResponse> createCompletableFuture(String tickerSymbol) {
@@ -100,14 +110,25 @@ public class KisService {
 			.filter(tickerSymbol -> !lastDayClosingPriceManager.hasPrice(tickerSymbol))
 			.map(this::createLastDayClosingPriceResponseCompletableFuture)
 			.collect(Collectors.toList());
-		futures.parallelStream()
+		List<LastDayClosingPriceResponse> lastDayClosingPrices = futures.parallelStream()
 			.map(this::getLastDayClosingPriceResponseWithTimeout)
 			.filter(Objects::nonNull)
-			.forEach(response -> lastDayClosingPriceManager.addPrice(response.getTickerSymbol(), response.getPrice()));
+			.collect(Collectors.toList());
+		lastDayClosingPrices.forEach(
+			response -> lastDayClosingPriceManager.addPrice(response.getTickerSymbol(), response.getPrice()));
 
-		long count = futures.parallelStream()
-			.filter(CompletableFuture::isDone)
-			.count();
+		// 종가 갱신 실패하 종목들을 성공할때가지 계속 시도합니다.
+		int count = lastDayClosingPrices.size();
+		if (count != tickerSymbols.size()) {
+			List<String> refreshedTickerSymbols = lastDayClosingPrices.stream()
+				.map(LastDayClosingPriceResponse::getTickerSymbol)
+				.collect(Collectors.toList());
+			List<String> failTickerSymbols = tickerSymbols.stream()
+				.filter(tickerSymbol -> !refreshedTickerSymbols.contains(tickerSymbol))
+				.collect(Collectors.toList());
+			refreshLastDayClosingPrice(failTickerSymbols);
+		}
+
 		log.info("종목 종가 {}개중 {}개 갱신", tickerSymbols.size(), count);
 	}
 
