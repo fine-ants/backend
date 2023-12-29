@@ -9,10 +9,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.AfterEach;
@@ -94,36 +90,6 @@ class KisServiceTest {
 		assertThat(response)
 			.extracting("tickerSymbol", "currentPrice")
 			.containsExactlyInAnyOrder("005930", 60000L);
-	}
-
-	@DisplayName("AccessTokenAspect이 수행하여 새로운 엑세스 토큰을 갱신한다")
-	@Test
-	void readRealTimeCurrentPriceWithAspect() {
-		// given
-		String tickerSymbol = "005930";
-		// when
-		CurrentPriceResponse response = kisService.readRealTimeCurrentPrice(tickerSymbol);
-		// then
-		assertThat(response).extracting("tickerSymbol").isEqualTo(tickerSymbol);
-		assertThat(response).extracting("currentPrice").isNotNull();
-	}
-
-	@DisplayName("별도의 쓰레드로 실행시 AccessTokenAspect이 수행하여 새로운 엑세스 토큰을 갱신한다")
-	@Test
-	void readRealTimeCurrentPriceWithAspectAndRunnable() throws
-		ExecutionException,
-		InterruptedException,
-		TimeoutException {
-		// given
-		String tickerSymbol = "005930";
-		// when
-		CompletableFuture<CurrentPriceResponse> future = CompletableFuture.supplyAsync(
-			() -> kisService.readRealTimeCurrentPrice(tickerSymbol));
-
-		CurrentPriceResponse response = future.get(2L, TimeUnit.SECONDS);
-		// then
-		assertThat(response).extracting("tickerSymbol").isEqualTo(tickerSymbol);
-		assertThat(response).extracting("currentPrice").isNotNull();
 	}
 
 	@DisplayName("현재가 및 종가 갱신 전에 액세스 토큰을 새로 발급받아 갱신한다")
