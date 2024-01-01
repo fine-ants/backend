@@ -27,10 +27,11 @@ import codesquad.fineants.domain.watch_stock.WatchStockRepository;
 import codesquad.fineants.spring.api.watch_list.request.CreateWatchListRequest;
 import codesquad.fineants.spring.api.watch_list.request.CreateWatchStockRequest;
 import codesquad.fineants.spring.api.watch_list.response.CreateWatchListResponse;
+import codesquad.fineants.spring.api.watch_list.response.ReadWatchListsResponse;
 
 @ActiveProfiles("test")
 @SpringBootTest
-class WatchListServiceTest {
+class WatchListResponseServiceTest {
 
 	@Autowired
 	private WatchListService watchListService;
@@ -83,6 +84,31 @@ class WatchListServiceTest {
 
 		// then
 		assertThat(response.getWatchlistId()).isNotNull();
+	}
+
+	@DisplayName("회원이 watchlist 목록을 조회한다.")
+	@Test
+	void readWatchLists() {
+		//given
+		AuthMember authMember = AuthMember.from(member);
+		WatchList watchList1 = watchListRepository.save(
+			WatchList.builder()
+				.name("My WatchList 1")
+				.member(member)
+				.build()
+		);
+		WatchList watchList2 = watchListRepository.save(
+			WatchList.builder()
+				.name("My WatchList 2")
+				.member(member)
+				.build()
+		);
+
+		//when
+		ReadWatchListsResponse response = watchListService.readWatchLists(authMember);
+
+		//then
+		assertThat(response.getWatchLists().size()).isEqualTo(2);
 	}
 
 	@DisplayName("회원이 watchlist에 종목을 추가한다.")
