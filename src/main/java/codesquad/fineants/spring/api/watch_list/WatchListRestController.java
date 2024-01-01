@@ -1,6 +1,7 @@
 package codesquad.fineants.spring.api.watch_list;
 
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -14,6 +15,7 @@ import codesquad.fineants.spring.api.success.code.WatchListSuccessCode;
 import codesquad.fineants.spring.api.watch_list.request.CreateWatchListRequest;
 import codesquad.fineants.spring.api.watch_list.request.CreateWatchStockRequest;
 import codesquad.fineants.spring.api.watch_list.response.CreateWatchListResponse;
+import codesquad.fineants.spring.api.watch_list.response.ReadWatchListsResponse;
 import lombok.RequiredArgsConstructor;
 
 
@@ -31,11 +33,9 @@ public class WatchListRestController {
 			watchListService.createWatchList(authMember, request));
 	}
 
-	@PostMapping("/{watchlistId}/stock")
-	public ApiResponse<Void> createWatchStock(@AuthPrincipalMember AuthMember authMember,
-		@PathVariable Long watchlistId, @RequestBody CreateWatchStockRequest request){
-		watchListService.createWatchStock(authMember, watchlistId, request);
-		return ApiResponse.success(WatchListSuccessCode.CREATED_WATCH_STOCK);
+	@GetMapping
+	public ApiResponse<ReadWatchListsResponse> readWatchLists(@AuthPrincipalMember AuthMember authMember){
+		return ApiResponse.success(WatchListSuccessCode.READ_WATCH_LISTS, watchListService.readWatchLists(authMember));
 	}
 
 	@DeleteMapping("/{watchlistId}")
@@ -43,6 +43,13 @@ public class WatchListRestController {
 		@PathVariable Long watchlistId){
 		watchListService.deleteWatchList(authMember, watchlistId);
 		return ApiResponse.success(WatchListSuccessCode.DELETED_WATCH_LIST);
+	}
+
+	@PostMapping("/{watchlistId}/stock")
+	public ApiResponse<Void> createWatchStock(@AuthPrincipalMember AuthMember authMember,
+		@PathVariable Long watchlistId, @RequestBody CreateWatchStockRequest request){
+		watchListService.createWatchStock(authMember, watchlistId, request);
+		return ApiResponse.success(WatchListSuccessCode.CREATED_WATCH_STOCK);
 	}
 
 	@DeleteMapping("/{watchlistId}/stock/{stockId}")

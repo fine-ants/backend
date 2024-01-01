@@ -1,5 +1,7 @@
 package codesquad.fineants.spring.api.watch_list;
 
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,12 +17,12 @@ import codesquad.fineants.domain.watch_stock.WatchStockRepository;
 import codesquad.fineants.spring.api.errors.errorcode.MemberErrorCode;
 import codesquad.fineants.spring.api.errors.errorcode.StockErrorCode;
 import codesquad.fineants.spring.api.errors.errorcode.WatchListErrorCode;
-import codesquad.fineants.spring.api.errors.exception.BadRequestException;
 import codesquad.fineants.spring.api.errors.exception.ForBiddenException;
 import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
 import codesquad.fineants.spring.api.watch_list.request.CreateWatchListRequest;
 import codesquad.fineants.spring.api.watch_list.request.CreateWatchStockRequest;
 import codesquad.fineants.spring.api.watch_list.response.CreateWatchListResponse;
+import codesquad.fineants.spring.api.watch_list.response.ReadWatchListsResponse;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -43,6 +45,22 @@ public class WatchListService {
 		return new CreateWatchListResponse(watchList.getId());
 	}
 
+	@Transactional(readOnly = true)
+	public ReadWatchListsResponse readWatchLists(AuthMember authMember) {
+		Member member = findMember(authMember.getMemberId());
+		List<WatchList> watchLists = watchListRepository.findByMember(member);
+		return ReadWatchListsResponse.from(watchLists);
+	}
+
+	@Transactional
+	public void deleteWatchList(AuthMember authMember, Long watchListId) {
+		Member member = findMember(authMember.getMemberId());
+
+		validateWatchListAuthorization(member.getId(), watchListId);
+
+		watchListRepository.deleteById(watchListId);
+	}
+
 	@Transactional
 	public void createWatchStock(AuthMember authMember, Long watchListId, CreateWatchStockRequest request) {
 		Member member = findMember(authMember.getMemberId());
@@ -59,15 +77,6 @@ public class WatchListService {
 			.stock(stock)
 			.build();
 		watchStockRepository.save(watchStock);
-	}
-
-	@Transactional
-	public void deleteWatchList(AuthMember authMember, Long watchListId) {
-		Member member = findMember(authMember.getMemberId());
-
-		validateWatchListAuthorization(member.getId(), watchListId);
-
-		watchListRepository.deleteById(watchListId);
 	}
 
 	@Transactional
