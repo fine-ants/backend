@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -31,6 +32,7 @@ import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.domain.stock.StockRepository;
 import codesquad.fineants.spring.api.errors.exception.KisException;
 import codesquad.fineants.spring.api.kis.client.KisClient;
+import codesquad.fineants.spring.api.kis.manager.HolidayManager;
 import codesquad.fineants.spring.api.kis.manager.KisAccessTokenManager;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
 import codesquad.fineants.spring.api.kis.response.CurrentPriceResponse;
@@ -65,6 +67,9 @@ class KisServiceTest {
 
 	@MockBean
 	private LastDayClosingPriceManager lastDayClosingPriceManager;
+
+	@MockBean
+	private HolidayManager holidayManager;
 
 	@AfterEach
 	void tearDown() {
@@ -136,6 +141,17 @@ class KisServiceTest {
 
 		// then
 		verify(client, times(2)).readLastDayClosingPrice(anyString(), anyString());
+	}
+
+	@DisplayName("휴장일에는 종목 가격 정보를 갱신하지 않는다")
+	@Test
+	void refreshStockPriceWhenHoliday() {
+		// given
+		given(holidayManager.isHoliday(any(LocalDate.class))).willReturn(true);
+		// when
+		kisService.refreshStockPrice();
+		// then
+		verify(holidayManager, times(1)).isHoliday(any(LocalDate.class));
 	}
 
 	private String createAuthorization() {
