@@ -1,5 +1,6 @@
 package codesquad.fineants.spring.api.kis.service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -17,6 +18,7 @@ import codesquad.fineants.domain.portfolio_holding.PortfolioHoldingRepository;
 import codesquad.fineants.spring.api.errors.exception.KisException;
 import codesquad.fineants.spring.api.kis.client.KisClient;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
+import codesquad.fineants.spring.api.kis.manager.HolidayManager;
 import codesquad.fineants.spring.api.kis.manager.KisAccessTokenManager;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
 import codesquad.fineants.spring.api.kis.response.CurrentPriceResponse;
@@ -35,10 +37,15 @@ public class KisService {
 	private final KisAccessTokenManager manager;
 	private final CurrentPriceManager currentPriceManager;
 	private final LastDayClosingPriceManager lastDayClosingPriceManager;
+	private final HolidayManager holidayManager;
 
 	// 평일 9~16시동안 5초마다 수행
 	@Scheduled(cron = "*/5 * 9-16 * * MON-FRI")
 	public void refreshStockPrice() {
+		// 휴장일인 경우 실행하지 않음
+		if (holidayManager.isHoliday(LocalDate.now())) {
+			return;
+		}
 		List<String> tickerSymbols = portFolioHoldingRepository.findAllTickerSymbol();
 		refreshStockCurrentPrice(tickerSymbols);
 		refreshLastDayClosingPrice(tickerSymbols);
