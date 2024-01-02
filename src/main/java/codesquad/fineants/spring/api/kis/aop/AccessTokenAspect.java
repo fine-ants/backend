@@ -25,7 +25,7 @@ public class AccessTokenAspect {
 	private final KisClient client;
 	private final KisRedisService redisService;
 
-	@Pointcut("execution(* codesquad.fineants.spring.api.kis.service.KisService.refreshStockPrice())")
+	@Pointcut("execution(* codesquad.fineants.spring.api.kis.service.KisService.refreshStockCurrentPrice())")
 	public void refreshStockPrice() {
 	}
 

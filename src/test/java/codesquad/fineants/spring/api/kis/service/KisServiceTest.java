@@ -107,6 +107,7 @@ class KisServiceTest {
 			.collect(Collectors.toList()));
 		stocks.forEach(stock -> portfolioHoldingRepository.save(createPortfolioHolding(portfolio, stock)));
 
+		given(holidayManager.isHoliday(any(LocalDate.class))).willReturn(true);
 		given(kisAccessTokenManager.createAuthorization()).willReturn(createAuthorization());
 		given(client.readRealTimeCurrentPrice(anyString(), anyString()))
 			.willThrow(new KisException("요청건수가 초과되었습니다"))
@@ -131,8 +132,10 @@ class KisServiceTest {
 			.collect(Collectors.toList()));
 		stocks.forEach(stock -> portfolioHoldingRepository.save(createPortfolioHolding(portfolio, stock)));
 
+		given(lastDayClosingPriceManager.hasPrice(anyString())).willReturn(false);
 		given(kisAccessTokenManager.createAuthorization()).willReturn(createAuthorization());
 		given(client.readLastDayClosingPrice(anyString(), anyString()))
+			.willThrow(new KisException("요청건수가 초과되었습니다"))
 			.willThrow(new KisException("요청건수가 초과되었습니다"))
 			.willReturn(LastDayClosingPriceResponse.of("000270", 10000L));
 
@@ -140,7 +143,7 @@ class KisServiceTest {
 		kisService.refreshLastDayClosingPrice(tickerSymbols);
 
 		// then
-		verify(client, times(2)).readLastDayClosingPrice(anyString(), anyString());
+		verify(client, times(3)).readLastDayClosingPrice(anyString(), anyString());
 	}
 
 	@DisplayName("휴장일에는 종목 가격 정보를 갱신하지 않는다")
@@ -149,7 +152,7 @@ class KisServiceTest {
 		// given
 		given(holidayManager.isHoliday(any(LocalDate.class))).willReturn(true);
 		// when
-		kisService.refreshStockPrice();
+		kisService.refreshStockCurrentPrice();
 		// then
 		verify(holidayManager, times(1)).isHoliday(any(LocalDate.class));
 	}

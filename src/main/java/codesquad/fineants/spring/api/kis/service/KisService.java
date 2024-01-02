@@ -39,16 +39,15 @@ public class KisService {
 	private final LastDayClosingPriceManager lastDayClosingPriceManager;
 	private final HolidayManager holidayManager;
 
-	// 평일 9~16시동안 5초마다 수행
+	// 평일 9~16시동안 5초마다 현재가 갱신 수행
 	@Scheduled(cron = "*/5 * 9-16 * * MON-FRI")
-	public void refreshStockPrice() {
+	public void refreshStockCurrentPrice() {
 		// 휴장일인 경우 실행하지 않음
 		if (holidayManager.isHoliday(LocalDate.now())) {
 			return;
 		}
 		List<String> tickerSymbols = portFolioHoldingRepository.findAllTickerSymbol();
 		refreshStockCurrentPrice(tickerSymbols);
-		refreshLastDayClosingPrice(tickerSymbols);
 	}
 
 	// 주식 현재가 갱신
@@ -70,11 +69,10 @@ public class KisService {
 				.map(CurrentPriceResponse::getTickerSymbol)
 				.collect(Collectors.toList());
 			List<String> failTickerSymbols = tickerSymbols.stream()
-				.filter(tickerSymbol -> !refreshedTickerSymbols.contains(tickerSymbol))
+				.filter(tickerSymbol -> !refreshedTickerSymbols.contains(tickerSymbols))
 				.collect(Collectors.toList());
 			refreshStockCurrentPrice(failTickerSymbols);
 		}
-
 		log.info("종목 현재가 {}개중 {}개 갱신", tickerSymbols.size(), refreshedCount);
 	}
 
@@ -113,18 +111,53 @@ public class KisService {
 		}
 	}
 
+	private List<LastDayClosingPriceResponse> readLastDayClosingPriceResponses(List<String> unknownTickerSymbols) {
+		List<CompletableFuture<LastDayClosingPriceResponse>> futures = unknownTickerSymbols.parallelStream()
+			.map(this::createLastDayClosingPriceResponseCompletableFuture)
+			.collect(Collectors.toList());
+		return futures.parallelStream()
+			.map(this::getLastDayClosingPriceResponseWithTimeout)
+			.filter(Objects::nonNull)
+			.collect(Collectors.toList());
+	}
+
+	// 평일 15시 30분에 종가 갱신 수행
+	@Scheduled(cron = "* 30 15 * * MON-FRI")
+	public void refreshLastDayClosingPrice() {
+		// 휴장일인 경우 실행하지 않음
+		if (holidayManager.isHoliday(LocalDate.now())) {
+			return;
+		}
+		List<String> tickerSymbols = portFolioHoldingRepository.findAllTickerSymbol();
+		refreshLastDayClosingPrice(tickerSymbols);
+	}
+
 	public void refreshLastDayClosingPrice(List<String> tickerSymbols) {
+		List<LastDayClosingPriceResponse> lastDayClosingPrices = readLastDayClosingPriceResponses(tickerSymbols);
+		lastDayClosingPrices.forEach(
+			response -> lastDayClosingPriceManager.addPrice(response.getTickerSymbol(), response.getPrice()));
+
+		// 종가 갱신 실패하 종목들을 성공할때가지 계속 시도합니다.
+		int count = lastDayClosingPrices.size();
+		if (count != tickerSymbols.size()) {
+			List<String> refreshedTickerSymbols = lastDayClosingPrices.stream()
+				.map(LastDayClosingPriceResponse::getTickerSymbol)
+				.collect(Collectors.toList());
+			List<String> failTickerSymbols = tickerSymbols.stream()
+				.filter(tickerSymbol -> !refreshedTickerSymbols.contains(tickerSymbol))
+				.collect(Collectors.toList());
+			refreshLastDayClosingPriceForFailedStock(failTickerSymbols);
+		}
+
+		log.info("종목 종가 {}개중 {}개 갱신", tickerSymbols.size(), count);
+	}
+
+	private void refreshLastDayClosingPriceForFailedStock(List<String> tickerSymbols) {
 		List<String> unknownTickerSymbols = tickerSymbols.stream()
 			.filter(tickerSymbol -> !lastDayClosingPriceManager.hasPrice(tickerSymbol))
 			.collect(Collectors.toList());
 
-		List<CompletableFuture<LastDayClosingPriceResponse>> futures = unknownTickerSymbols.parallelStream()
-			.map(this::createLastDayClosingPriceResponseCompletableFuture)
-			.collect(Collectors.toList());
-		List<LastDayClosingPriceResponse> lastDayClosingPrices = futures.parallelStream()
-			.map(this::getLastDayClosingPriceResponseWithTimeout)
-			.filter(Objects::nonNull)
-			.collect(Collectors.toList());
+		List<LastDayClosingPriceResponse> lastDayClosingPrices = readLastDayClosingPriceResponses(unknownTickerSymbols);
 		lastDayClosingPrices.forEach(
 			response -> lastDayClosingPriceManager.addPrice(response.getTickerSymbol(), response.getPrice()));
 
@@ -137,10 +170,10 @@ public class KisService {
 			List<String> failTickerSymbols = unknownTickerSymbols.stream()
 				.filter(tickerSymbol -> !refreshedTickerSymbols.contains(tickerSymbol))
 				.collect(Collectors.toList());
-			refreshLastDayClosingPrice(failTickerSymbols);
+			refreshLastDayClosingPriceForFailedStock(failTickerSymbols);
 		}
 
-		log.info("종목 종가 {}개중 {}개 갱신", unknownTickerSymbols.size(), count);
+		log.info("종목 종가 {}개중 {}개 갱신", tickerSymbols.size(), count);
 	}
 
 	private LastDayClosingPriceResponse getLastDayClosingPriceResponseWithTimeout(
