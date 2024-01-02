@@ -17,6 +17,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -42,6 +43,7 @@ import codesquad.fineants.domain.stock.StockRepository;
 import codesquad.fineants.domain.stock_dividend.StockDividend;
 import codesquad.fineants.spring.api.errors.exception.BadRequestException;
 import codesquad.fineants.spring.api.errors.exception.ConflictException;
+import codesquad.fineants.spring.api.errors.exception.ForBiddenException;
 import codesquad.fineants.spring.api.portfolio.request.PortfolioCreateRequest;
 import codesquad.fineants.spring.api.portfolio.request.PortfolioModifyRequest;
 import codesquad.fineants.spring.api.portfolio.request.PortfoliosDeleteRequest;
@@ -196,12 +198,7 @@ class PortFolioServiceTest {
 		Member member = memberRepository.save(createMember());
 		Portfolio originPortfolio = portfolioRepository.save(createPortfolio(member));
 
-		Map<String, Object> body = new HashMap<>();
-		body.put("name", "내꿈은 워렌버핏2");
-		body.put("securitiesFirm", "미래에셋증권");
-		body.put("budget", 1500000L);
-		body.put("targetGain", 2000000L);
-		body.put("maximumLoss", 900000L);
+		Map<String, Object> body = createModifiedPortfolioRequestBodyMap("내꿈은 워렌버핏2");
 
 		PortfolioModifyRequest request = objectMapper.readValue(objectMapper.writeValueAsString(body),
 			PortfolioModifyRequest.class);
@@ -215,6 +212,136 @@ class PortFolioServiceTest {
 		assertThat(changePortfolio)
 			.extracting("name", "securitiesFirm", "budget", "targetGain", "maximumLoss")
 			.containsExactly("내꿈은 워렌버핏2", "미래에셋증권", 1500000L, 2000000L, 900000L);
+	}
+
+	@DisplayName("회원은 포트폴리오의 정보를 수정시 이름이 그대로인 경우 그대로 수정합니다.")
+	@Test
+	void modifyPortfolio_whenNameUnchanged_thenNoDuplicateCheckAndApplyChanges() throws JsonProcessingException {
+		// given
+		Member member = memberRepository.save(createMember());
+		Portfolio originPortfolio = portfolioRepository.save(createPortfolio(member));
+
+		Map<String, Object> body = createModifiedPortfolioRequestBodyMap(originPortfolio.getName());
+
+		PortfolioModifyRequest request = objectMapper.readValue(objectMapper.writeValueAsString(body),
+			PortfolioModifyRequest.class);
+		Long portfolioId = originPortfolio.getId();
+
+		// when
+		service.modifyPortfolio(request, portfolioId, AuthMember.from(member));
+
+		// then
+		Portfolio changePortfolio = portfolioRepository.findById(portfolioId).orElseThrow();
+		assertThat(changePortfolio)
+			.extracting("name", "securitiesFirm", "budget", "targetGain", "maximumLoss")
+			.containsExactly("내꿈은 워렌버핏", "미래에셋증권", 1500000L, 2000000L, 900000L);
+	}
+
+	@DisplayName("회원이 포트폴리오의 이름을 수정할때 본인이 가지고 있는 다른 포트폴리오의 이름과 중복될 수 없다")
+	@Test
+	void modifyPortfolio_whenMemberChangeName_thenNoDuplicateWithNameInOtherMyPortfolios() throws
+		JsonProcessingException {
+		// given
+		Member member = memberRepository.save(createMember());
+		String duplicatedName = "내꿈은 찰리몽거";
+		portfolioRepository.save(createPortfolio(member, duplicatedName));
+		Portfolio originPortfolio = portfolioRepository.save(createPortfolio(member));
+
+		Map<String, Object> body = createModifiedPortfolioRequestBodyMap(duplicatedName);
+
+		PortfolioModifyRequest request = objectMapper.readValue(objectMapper.writeValueAsString(body),
+			PortfolioModifyRequest.class);
+		Long portfolioId = originPortfolio.getId();
+
+		// when
+		Throwable throwable = catchThrowable(
+			() -> service.modifyPortfolio(request, portfolioId, AuthMember.from(member)));
+
+		// then
+		assertThat(throwable)
+			.isInstanceOf(ConflictException.class)
+			.hasMessage("포트폴리오 이름이 중복되었습니다");
+	}
+
+	@DisplayName("회원은 다른사람의 포트폴리오 정보를 수정할 수 없다")
+	@Test
+	void modifyPortfolio_whenMemberTriesToUpdateOtherPersonPortfolio_thenModificationNotAllowed() throws
+		JsonProcessingException {
+		// given
+		Member member = memberRepository.save(createMember());
+		Portfolio originPortfolio = portfolioRepository.save(createPortfolio(member));
+
+		Map<String, Object> body = createModifiedPortfolioRequestBodyMap("내꿈은 찰리몽거");
+
+		PortfolioModifyRequest request = objectMapper.readValue(objectMapper.writeValueAsString(body),
+			PortfolioModifyRequest.class);
+		Long portfolioId = originPortfolio.getId();
+
+		Member hacker = memberRepository.save(createMember("hack1234@naver.com"));
+		// when
+		Throwable throwable = catchThrowable(
+			() -> service.modifyPortfolio(request, portfolioId, AuthMember.from(hacker)));
+
+		// then
+		assertThat(throwable)
+			.isInstanceOf(ForBiddenException.class)
+			.hasMessage("포트폴리오에 대한 권한이 없습니다");
+	}
+
+	@DisplayName("회원이 포트폴리오 정보 수정시 예산이 목표수익금액보다 같거나 작게 수정할 수 없다")
+	@CsvSource(value = {"900000", "1000000"})
+	@ParameterizedTest
+	void modifyPortfolio_whenMemberAttemptsToUpdateWithBudgetLessThanTargetGain_thenModificationNotAllowed(
+		long targetGain) throws
+		JsonProcessingException {
+		// given
+		Member member = memberRepository.save(createMember());
+		Portfolio originPortfolio = portfolioRepository.save(createPortfolio(member));
+
+		long budget = 1000000L;
+		long maximumLoss = 900000L;
+		Map<String, Object> body = createModifiedPortfolioRequestBodyMap("내꿈은 찰리몽거", budget, targetGain, maximumLoss);
+
+		PortfolioModifyRequest request = objectMapper.readValue(objectMapper.writeValueAsString(body),
+			PortfolioModifyRequest.class);
+		Long portfolioId = originPortfolio.getId();
+
+		// when
+		Throwable throwable = catchThrowable(
+			() -> service.modifyPortfolio(request, portfolioId, AuthMember.from(member)));
+
+		// then
+		assertThat(throwable)
+			.isInstanceOf(BadRequestException.class)
+			.hasMessage("목표 수익금액은 예산보다 커야 합니다");
+	}
+
+	@DisplayName("회원이 포트폴리오 정보 수정시 예산이 최대손실금액보다 같거나 작게 수정할 수 없다")
+	@CsvSource(value = {"1500000", "1000000"})
+	@ParameterizedTest
+	void modifyPortfolio_whenMemberAttemptsToUpdateWithBudgetLessThanMaximumLoss_thenModificationNotAllowed(
+		long maximumLoss) throws
+		JsonProcessingException {
+		// given
+		Member member = memberRepository.save(createMember());
+		Portfolio originPortfolio = portfolioRepository.save(createPortfolio(member));
+
+		long budget = 1000000L;
+		long targetGain = 1500000L;
+		Map<String, Object> body = createModifiedPortfolioRequestBodyMap("내꿈은 찰리몽거", budget, targetGain, maximumLoss);
+
+		PortfolioModifyRequest request = objectMapper.readValue(objectMapper.writeValueAsString(body),
+			PortfolioModifyRequest.class);
+		Long portfolioId = originPortfolio.getId();
+
+		// when
+		Throwable throwable = catchThrowable(
+			() -> service.modifyPortfolio(request, portfolioId, AuthMember.from(member)));
+
+		// then
+		assertThat(throwable)
+			.isInstanceOf(BadRequestException.class)
+			.hasMessage("최대 손실 금액은 예산 보다 작아야 합니다");
 	}
 
 	@DisplayName("회원이 포트폴리오를 삭제한다")
@@ -288,17 +415,25 @@ class PortFolioServiceTest {
 	}
 
 	private Member createMember() {
+		return createMember("kim1234@gmail.com");
+	}
+
+	private Member createMember(String email) {
 		return Member.builder()
 			.nickname("일개미1234")
-			.email("kim1234@gmail.com")
+			.email(email)
 			.password("kim1234@")
 			.provider("local")
 			.build();
 	}
 
 	private Portfolio createPortfolio(Member member) {
+		return createPortfolio(member, "내꿈은 워렌버핏");
+	}
+
+	private Portfolio createPortfolio(Member member, String name) {
 		return Portfolio.builder()
-			.name("내꿈은 워렌버핏")
+			.name(name)
 			.securitiesFirm("토스")
 			.budget(1000000L)
 			.targetGain(1500000L)
@@ -384,5 +519,24 @@ class PortFolioServiceTest {
 			Arguments.of(1000000L),
 			Arguments.of(1100000L)
 		);
+	}
+
+	private Map<String, Object> createModifiedPortfolioRequestBodyMap(String name) {
+		return createModifiedPortfolioRequestBodyMap(
+			name,
+			1500000L,
+			2000000L,
+			900000L);
+	}
+
+	private Map<String, Object> createModifiedPortfolioRequestBodyMap(String name, long budget, long targetGain,
+		long maximumLoss) {
+		Map<String, Object> body = new HashMap<>();
+		body.put("name", name);
+		body.put("securitiesFirm", "미래에셋증권");
+		body.put("budget", budget);
+		body.put("targetGain", targetGain);
+		body.put("maximumLoss", maximumLoss);
+		return body;
 	}
 }
