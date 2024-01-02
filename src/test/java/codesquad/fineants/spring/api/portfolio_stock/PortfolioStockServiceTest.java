@@ -109,7 +109,7 @@ class PortfolioStockServiceTest {
 					"provisionalLossBalance",
 					"targetGainNotification", "maxLossNotification")
 				.containsExactlyInAnyOrder("토스", "내꿈은 워렌버핏", 1000000L, 1500000L, 50, 900000L, 10, 150000L, 30000L,
-					20, 30000L, 20, 850000L, 1083L, 0, 0L, false, false),
+					20, 30000L, 20, 850000L, 3249L, 1, 0L, false, false),
 			() -> assertThat(response).extracting("portfolioHoldings")
 				.asList()
 				.hasSize(1)
@@ -124,7 +124,7 @@ class PortfolioStockServiceTest {
 				.extracting("portfolioHoldingId", "currentValuation", "currentPrice", "averageCostPerShare",
 					"numShares", "dailyChange", "dailyChangeRate", "totalGain", "totalReturnRate", "annualDividend")
 				.containsExactlyInAnyOrder(Tuple.tuple(
-					portfolioHolding.getId(), 180000L, 60000L, 50000.0, 3L, 10000L, 20, 30000L, 20, 1083L)),
+					portfolioHolding.getId(), 180000L, 60000L, 50000.0, 3L, 10000L, 20, 30000L, 20, 3249L)),
 			() -> assertThat(response).extracting("portfolioHoldings")
 				.asList()
 				.hasSize(1)
@@ -174,13 +174,13 @@ class PortfolioStockServiceTest {
 					Tuple.tuple(2, 0L),
 					Tuple.tuple(3, 0L),
 					Tuple.tuple(4, 0L),
-					Tuple.tuple(5, 0L),
+					Tuple.tuple(5, 1083L),
 					Tuple.tuple(6, 0L),
 					Tuple.tuple(7, 0L),
-					Tuple.tuple(8, 0L),
+					Tuple.tuple(8, 1083L),
 					Tuple.tuple(9, 0L),
 					Tuple.tuple(10, 0L),
-					Tuple.tuple(11, 1083L),
+					Tuple.tuple(11, 2166L),
 					Tuple.tuple(12, 0L)
 				),
 			() -> assertThat(response)
@@ -310,6 +310,21 @@ class PortfolioStockServiceTest {
 				LocalDate.of(2023, 9, 27),
 				LocalDate.of(2023, 9, 30),
 				LocalDate.of(2023, 11, 20),
+				stock),
+			createStockDividend(
+				LocalDate.of(2024, 3, 29),
+				LocalDate.of(2024, 3, 31),
+				LocalDate.of(2024, 5, 17),
+				stock),
+			createStockDividend(
+				LocalDate.of(2024, 6, 28),
+				LocalDate.of(2024, 6, 30),
+				LocalDate.of(2024, 8, 16),
+				stock),
+			createStockDividend(
+				LocalDate.of(2024, 9, 27),
+				LocalDate.of(2024, 9, 30),
+				LocalDate.of(2024, 11, 20),
 				stock)
 		);
 	}
