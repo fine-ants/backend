@@ -36,7 +36,8 @@ public class KisService {
 	private final CurrentPriceManager currentPriceManager;
 	private final LastDayClosingPriceManager lastDayClosingPriceManager;
 
-	@Scheduled(fixedRate = 5L, timeUnit = TimeUnit.SECONDS)
+	// 평일 9~16시동안 5초마다 수행
+	@Scheduled(cron = "*/5 * 9-16 * * MON-FRI")
 	public void refreshStockPrice() {
 		List<String> tickerSymbols = portFolioHoldingRepository.findAllTickerSymbol();
 		refreshStockCurrentPrice(tickerSymbols);
