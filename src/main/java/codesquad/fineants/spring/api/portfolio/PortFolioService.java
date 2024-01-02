@@ -95,7 +95,9 @@ public class PortFolioService {
 		Portfolio changePortfolio = request.toEntity(member);
 
 		validatePortfolioAuthorization(originalPortfolio, authMember.getMemberId());
-		validateUniquePortfolioName(changePortfolio.getName(), member);
+		if (!originalPortfolio.isSameName(changePortfolio)) {
+			validateUniquePortfolioName(changePortfolio.getName(), member);
+		}
 		originalPortfolio.change(changePortfolio);
 
 		log.info("변경된 포트폴리오 결과 : {}", originalPortfolio);

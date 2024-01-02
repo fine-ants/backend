@@ -314,4 +314,8 @@ public class Portfolio extends BaseEntity {
 			return new PortfolioSectorChartItem(entry.getKey(), weight);
 		};
 	}
+
+	public boolean isSameName(Portfolio changePortfolio) {
+		return this.name.equals(changePortfolio.name);
+	}
 }
