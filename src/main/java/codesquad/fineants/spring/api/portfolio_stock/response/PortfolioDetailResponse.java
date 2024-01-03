@@ -79,7 +79,7 @@ public class PortfolioDetailResponse {
 			.dailyGainRate(portfolio.calculateDailyGainRate(history))
 			.balance(portfolio.calculateBalance())
 			.annualDividend(portfolio.calculateAnnualDividend())
-			.annualInvestmentDividendYield(portfolio.calculateAnnualDividendYield())
+			.annualDividendYield(portfolio.calculateAnnualDividendYield())
 			.annualInvestmentDividendYield(portfolio.calculateAnnualInvestmentDividendYield())
 			.provisionalLossBalance(0L)
 			.targetGainNotification(portfolio.getTargetGainIsActive())
