@@ -56,7 +56,7 @@ VALUES (now(), 'dragonbead95@naver.com', '일개미2aa1c3d7',
 
 INSERT INTO fineAnts.portfolio (id, budget, maximum_loss, name, securities_firm, target_gain, target_gain_is_active,
                                 maximum_is_active, member_id)
-VALUES (1, 1000000, 900000, '내꿈은 워렌버핏', '토스', 1500000, false, false, 1);
+VALUES (1, 1000000, 900000, '내꿈은 워렌버핏', '토스증권', 1500000, false, false, 1);
 
 INSERT INTO fineAnts.portfolio_holding (id, create_at, modified_at, portfolio_id, ticker_symbol)
 VALUES (1, '2023-10-26 15:25:39.409612', '2023-10-26 15:25:39.409612', 1, '005930');
