@@ -1,5 +1,7 @@
 package codesquad.fineants.spring.api.watch_list;
 
+import java.util.List;
+
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,6 +17,7 @@ import codesquad.fineants.spring.api.success.code.WatchListSuccessCode;
 import codesquad.fineants.spring.api.watch_list.request.CreateWatchListRequest;
 import codesquad.fineants.spring.api.watch_list.request.CreateWatchStockRequest;
 import codesquad.fineants.spring.api.watch_list.response.CreateWatchListResponse;
+import codesquad.fineants.spring.api.watch_list.response.ReadWatchListResponse;
 import codesquad.fineants.spring.api.watch_list.response.ReadWatchListsResponse;
 import lombok.RequiredArgsConstructor;
 
@@ -36,6 +39,13 @@ public class WatchListRestController {
 	@GetMapping
 	public ApiResponse<ReadWatchListsResponse> readWatchLists(@AuthPrincipalMember AuthMember authMember){
 		return ApiResponse.success(WatchListSuccessCode.READ_WATCH_LISTS, watchListService.readWatchLists(authMember));
+	}
+
+	@GetMapping("/{watchlistId}")
+	public ApiResponse<List<ReadWatchListResponse>> readWatchList(@AuthPrincipalMember AuthMember authMember,
+		@PathVariable Long watchlistId){
+		return ApiResponse.success(WatchListSuccessCode.READ_WATCH_LIST,
+			watchListService.readWatchList(authMember, watchlistId));
 	}
 
 	@DeleteMapping("/{watchlistId}")
