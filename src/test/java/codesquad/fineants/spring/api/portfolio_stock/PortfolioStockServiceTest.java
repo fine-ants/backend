@@ -105,7 +105,7 @@ class PortfolioStockServiceTest {
 			() -> assertThat(response).extracting("portfolioDetails")
 				.extracting("securitiesFirm", "name", "budget", "targetGain", "targetReturnRate",
 					"maximumLoss", "maximumLossRate", "investedAmount", "totalGain", "totalGainRate", "dailyGain",
-					"dailyGainRate", "balance", "totalAnnualDividend", "totalAnnualDividendYield",
+					"dailyGainRate", "balance", "annualDividend", "annualDividendYield",
 					"provisionalLossBalance",
 					"targetGainNotification", "maxLossNotification")
 				.containsExactlyInAnyOrder("토스", "내꿈은 워렌버핏", 1000000L, 1500000L, 50, 900000L, 10, 150000L, 30000L,
