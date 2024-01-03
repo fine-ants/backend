@@ -121,8 +121,8 @@ public class KisService {
 			.collect(Collectors.toList());
 	}
 
-	// 평일 15시 30분에 종가 갱신 수행
-	@Scheduled(cron = "* 30 15 * * MON-FRI")
+	// 15시 30분에 종가 갱신 수행
+	@Scheduled(cron = "* 30 15 * * *")
 	public void refreshLastDayClosingPrice() {
 		// 휴장일인 경우 실행하지 않음
 		if (holidayManager.isHoliday(LocalDate.now())) {
