@@ -43,7 +43,7 @@ import codesquad.fineants.spring.api.watch_list.response.ReadWatchListsResponse;
 
 @ActiveProfiles("test")
 @SpringBootTest
-class WatchListResponseServiceTest {
+class WatchListServiceTest {
 
 	@Autowired
 	private WatchListService watchListService;

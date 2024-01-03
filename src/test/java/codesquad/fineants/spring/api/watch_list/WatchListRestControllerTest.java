@@ -8,7 +8,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -44,7 +43,7 @@ import codesquad.fineants.spring.config.SpringConfig;
 @WebMvcTest(controllers = WatchListRestController.class)
 @Import(value = {SpringConfig.class})
 @MockBean(JpaAuditingConfiguration.class)
-class WatchListResponseRestControllerTest {
+class WatchListRestControllerTest {
 
 	private MockMvc mockMvc;
 
