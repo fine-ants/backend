@@ -25,8 +25,8 @@ public class PortfolioDetailResponse {
 	private Long dailyGain;
 	private Integer dailyGainRate;
 	private Long balance;
-	private Long totalAnnualDividend;
-	private Integer totalAnnualDividendYield;
+	private Long annualDividend;
+	private Integer annualDividendYield;
 	private Integer annualInvestmentDividendYield;
 	private Long provisionalLossBalance;
 	private Boolean targetGainNotification;
@@ -36,7 +36,7 @@ public class PortfolioDetailResponse {
 	private PortfolioDetailResponse(Long id, String securitiesFirm, String name, Long budget, Long targetGain,
 		Integer targetReturnRate, Long maximumLoss, Integer maximumLossRate, Long currentValuation, Long investedAmount,
 		Long totalGain, Integer totalGainRate, Long dailyGain, Integer dailyGainRate, Long balance,
-		Long totalAnnualDividend, Integer totalAnnualDividendYield, Integer annualInvestmentDividendYield,
+		Long annualDividend, Integer annualDividendYield, Integer annualInvestmentDividendYield,
 		Long provisionalLossBalance, Boolean targetGainNotification, Boolean maxLossNotification) {
 		this.id = id;
 		this.securitiesFirm = securitiesFirm;
@@ -53,8 +53,8 @@ public class PortfolioDetailResponse {
 		this.dailyGain = dailyGain;
 		this.dailyGainRate = dailyGainRate;
 		this.balance = balance;
-		this.totalAnnualDividend = totalAnnualDividend;
-		this.totalAnnualDividendYield = totalAnnualDividendYield;
+		this.annualDividend = annualDividend;
+		this.annualDividendYield = annualDividendYield;
 		this.annualInvestmentDividendYield = annualInvestmentDividendYield;
 		this.provisionalLossBalance = provisionalLossBalance;
 		this.targetGainNotification = targetGainNotification;
@@ -78,8 +78,8 @@ public class PortfolioDetailResponse {
 			.dailyGain(portfolio.calculateDailyGain(history))
 			.dailyGainRate(portfolio.calculateDailyGainRate(history))
 			.balance(portfolio.calculateBalance())
-			.totalAnnualDividend(portfolio.calculateTotalAnnualDividend())
-			.totalAnnualDividendYield(portfolio.calculateTotalAnnualDividendYield())
+			.annualDividend(portfolio.calculateAnnualDividend())
+			.annualInvestmentDividendYield(portfolio.calculateAnnualDividendYield())
 			.annualInvestmentDividendYield(portfolio.calculateAnnualInvestmentDividendYield())
 			.provisionalLossBalance(0L)
 			.targetGainNotification(portfolio.getTargetGainIsActive())

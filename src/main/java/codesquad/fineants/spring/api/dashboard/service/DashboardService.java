@@ -52,7 +52,7 @@ public class DashboardService {
 			totalCurrentValuation += portfolio.calculateTotalCurrentValuation();
 			totalInvestment += portfolio.calculateTotalInvestmentAmount();
 			totalGain += portfolio.calculateTotalGain();
-			totalAnnualDividend += portfolio.calculateTotalAnnualDividend();
+			totalAnnualDividend += portfolio.calculateAnnualDividend();
 		}
 		Integer totalAnnualDividendYield = (int)((totalAnnualDividend / totalCurrentValuation) * 100);
 		Integer totalGainRate = (int)(((double)totalGain / (double)totalInvestment) * 100);
