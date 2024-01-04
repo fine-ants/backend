@@ -7,15 +7,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import javax.persistence.Convert;
 import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 
 import codesquad.fineants.domain.BaseEntity;
 import codesquad.fineants.domain.purchase_history.PurchaseHistory;
+import codesquad.fineants.domain.stock.converter.MarketConverter;
 import codesquad.fineants.domain.stock_dividend.StockDividend;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
@@ -37,7 +37,7 @@ public class Stock extends BaseEntity {
 	private String companyNameEng;
 	private String stockCode;
 	private String sector;
-	@Enumerated(value = EnumType.STRING)
+	@Convert(converter = MarketConverter.class)
 	private Market market;
 
 	@OneToMany(mappedBy = "stock", fetch = FetchType.LAZY)
