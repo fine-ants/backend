@@ -32,6 +32,7 @@ import codesquad.fineants.domain.purchase_history.PurchaseHistoryRepository;
 import codesquad.fineants.domain.stock.Market;
 import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.domain.stock.StockRepository;
+import codesquad.fineants.spring.api.errors.exception.FineAntsException;
 import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
 import codesquad.fineants.spring.api.purchase_history.request.PurchaseHistoryCreateRequest;
 import codesquad.fineants.spring.api.purchase_history.request.PurchaseHistoryModifyRequest;
@@ -156,6 +157,29 @@ class PurchaseHistoryServiceTest {
 			() -> assertThat(purchaseHistoryRepository.findById(
 				Long.valueOf(String.valueOf(map.get("id")))).isPresent()).isTrue()
 		);
+	}
+
+	@DisplayName("사용자가 매입 이력을 추가할 때 예산이 부족해 실패한다.")
+	@Test
+	void addPurchaseHistoryFailsWhenTotalInvestmentExceedsBudget() throws JsonProcessingException {
+		// given
+		Map<String, Object> requestBody = new HashMap<>();
+		requestBody.put("purchaseDate", LocalDateTime.now());
+		requestBody.put("numShares", 3L);
+		requestBody.put("purchasePricePerShare", 500000);
+		requestBody.put("memo", "첫구매");
+
+		PurchaseHistoryCreateRequest request = objectMapper.readValue(
+			objectMapper.writeValueAsString(requestBody), PurchaseHistoryCreateRequest.class);
+		Long portfolioId = portfolio.getId();
+		Long portfolioHoldingId = portfolioHolding.getId();
+
+		// 예산을 초과하는 조건 설정
+
+		// when & then
+		assertThrows(FineAntsException.class, () -> {
+			service.addPurchaseHistory(request, portfolioId, portfolioHoldingId);
+		});
 	}
 
 	@DisplayName("사용자는 매입 이력을 수정한다")
