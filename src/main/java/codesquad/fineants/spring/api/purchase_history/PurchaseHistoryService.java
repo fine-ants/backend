@@ -30,7 +30,6 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Service
 public class PurchaseHistoryService {
-	private final PortfolioRepository portfolioRepository;
 	private final PurchaseHistoryRepository repository;
 	private final PortfolioHoldingRepository portfolioHoldingRepository;
 
