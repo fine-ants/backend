@@ -1,4 +1,4 @@
-package codesquad.fineants.spring.api.kis;
+package codesquad.fineants.spring.api.kis.service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;

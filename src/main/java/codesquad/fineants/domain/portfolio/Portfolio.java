@@ -161,19 +161,19 @@ public class Portfolio extends BaseEntity {
 	}
 
 	// 총 연간 배당금 = 각 종목들의 연배당금의 합계
-	public Long calculateTotalAnnualDividend() {
+	public Long calculateAnnualDividend() {
 		return portfolioHoldings.stream()
 			.mapToLong(PortfolioHolding::calculateAnnualDividend)
 			.sum();
 	}
 
 	// 총 연간배당율 = 모든 종목들의 연 배당금 합계 / 모든 종목들의 총 가치의 합계) * 100
-	public Integer calculateTotalAnnualDividendYield() {
+	public Integer calculateAnnualDividendYield() {
 		double currentValuation = calculateTotalCurrentValuation();
 		if (currentValuation == 0) {
 			return 0;
 		}
-		double totalAnnualDividend = calculateTotalAnnualDividend();
+		double totalAnnualDividend = calculateAnnualDividend();
 		return (int)((totalAnnualDividend / currentValuation) * 100);
 	}
 
@@ -188,7 +188,7 @@ public class Portfolio extends BaseEntity {
 		if (totalInvestmentAmount == 0) {
 			return 0;
 		}
-		double totalAnnualDividend = calculateTotalAnnualDividend();
+		double totalAnnualDividend = calculateAnnualDividend();
 		return (int)((totalAnnualDividend / totalInvestmentAmount) * 100);
 	}
 
@@ -313,5 +313,9 @@ public class Portfolio extends BaseEntity {
 			Double weight = calculateWeightBy(currentValuation);
 			return new PortfolioSectorChartItem(entry.getKey(), weight);
 		};
+	}
+
+	public boolean isSameName(Portfolio changePortfolio) {
+		return this.name.equals(changePortfolio.name);
 	}
 }

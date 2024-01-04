@@ -9,7 +9,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum StockErrorCode implements ErrorCode {
 
-	NOT_FOUND_STOCK(HttpStatus.NOT_FOUND, "종목을 찾을 수 없습니다");
+	NOT_FOUND_STOCK(HttpStatus.NOT_FOUND, "종목을 찾을 수 없습니다"),
+	NOT_FOUND_MARKET(HttpStatus.NOT_FOUND, "시장 종류를 찾을 수 없습니다");
 
 	private final HttpStatus httpStatus;
 	private final String message;

@@ -1,18 +1,16 @@
-package codesquad.fineants.spring.api.kis;
+package codesquad.fineants.spring.api.kis.service;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -20,13 +18,11 @@ import codesquad.fineants.domain.portfolio_holding.PortfolioHoldingRepository;
 import codesquad.fineants.spring.api.errors.exception.KisException;
 import codesquad.fineants.spring.api.kis.client.KisClient;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
+import codesquad.fineants.spring.api.kis.manager.HolidayManager;
 import codesquad.fineants.spring.api.kis.manager.KisAccessTokenManager;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
-import codesquad.fineants.spring.api.kis.manager.PortfolioSubscriptionManager;
 import codesquad.fineants.spring.api.kis.response.CurrentPriceResponse;
 import codesquad.fineants.spring.api.kis.response.LastDayClosingPriceResponse;
-import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioHoldingsResponse;
-import codesquad.fineants.spring.api.portfolio_stock.service.PortfolioStockService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -34,75 +30,24 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Service
 public class KisService {
-	private static final String SUBSCRIBE_PORTFOLIO_HOLDING_FORMAT = "/sub/portfolio/%d";
 	private static final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
 
 	private final KisClient kisClient;
 	private final PortfolioHoldingRepository portFolioHoldingRepository;
-	private final SimpMessagingTemplate messagingTemplate;
-	private final PortfolioStockService portfolioStockService;
 	private final KisAccessTokenManager manager;
 	private final CurrentPriceManager currentPriceManager;
-	private final PortfolioSubscriptionManager portfolioSubscriptionManager;
 	private final LastDayClosingPriceManager lastDayClosingPriceManager;
-	private final Executor portfolioDetailExecutor = Executors.newFixedThreadPool(100, r -> {
-		Thread thread = new Thread(r);
-		thread.setDaemon(true);
-		return thread;
-	});
+	private final HolidayManager holidayManager;
 
-	public void addPortfolioSubscription(String sessionId, PortfolioSubscription subscription) {
-		subscription.getTickerSymbols().stream()
-			.filter(tickerSymbol -> !currentPriceManager.hasKey(tickerSymbol))
-			.forEach(currentPriceManager::addKey);
-		portfolioSubscriptionManager.addPortfolioSubscription(sessionId, subscription);
-	}
-
-	public void removePortfolioSubscription(String sessionId) {
-		portfolioSubscriptionManager.removePortfolioSubscription(sessionId);
-	}
-
-	@Scheduled(fixedRate = 5, timeUnit = TimeUnit.SECONDS)
-	protected void publishPortfolioDetail() {
-		List<CompletableFuture<PortfolioHoldingsResponse>> futures = portfolioSubscriptionManager.values()
-			.parallelStream()
-			.filter(this::hasAllCurrentPrice)
-			.map(PortfolioSubscription::getPortfolioId)
-			.map(portfolioId -> CompletableFuture.supplyAsync(
-					() -> portfolioStockService.readMyPortfolioStocks(portfolioId),
-					portfolioDetailExecutor)
-				.exceptionally(e -> {
-					log.info(e.getMessage(), e);
-					return null;
-				}))
-			.filter(Objects::nonNull)
-			.collect(Collectors.toList());
-
-		futures.parallelStream()
-			.map(CompletableFuture::join)
-			.forEach(response -> messagingTemplate.convertAndSend(
-				String.format(SUBSCRIBE_PORTFOLIO_HOLDING_FORMAT, response.getPortfolioId()), response));
-	}
-
-	public CompletableFuture<PortfolioHoldingsResponse> publishPortfolioDetail(Long portfolioId) {
-		return CompletableFuture.supplyAsync(() ->
-			portfolioSubscriptionManager.getPortfolioSubscription(portfolioId)
-				.map(PortfolioSubscription::getPortfolioId)
-				.map(portfolioStockService::readMyPortfolioStocks)
-				.orElse(null));
-	}
-
-	private boolean hasAllCurrentPrice(PortfolioSubscription subscription) {
-		return subscription.getTickerSymbols().stream()
-			.allMatch(currentPriceManager::hasCurrentPrice);
-	}
-
-	// 종목 가격정보 갱신
-	@Scheduled(fixedRate = 5, timeUnit = TimeUnit.SECONDS)
-	public void refreshStockPrice() {
+	// 평일 9~16시동안 5초마다 현재가 갱신 수행
+	@Scheduled(cron = "*/5 * 9-16 * * MON-FRI")
+	public void refreshStockCurrentPrice() {
+		// 휴장일인 경우 실행하지 않음
+		if (holidayManager.isHoliday(LocalDate.now())) {
+			return;
+		}
 		List<String> tickerSymbols = portFolioHoldingRepository.findAllTickerSymbol();
 		refreshStockCurrentPrice(tickerSymbols);
-		refreshLastDayClosingPrice(tickerSymbols);
 	}
 
 	// 주식 현재가 갱신
@@ -111,17 +56,31 @@ public class KisService {
 			.map(this::createCompletableFuture)
 			.collect(Collectors.toList());
 
-		futures.parallelStream()
+		List<CurrentPriceResponse> currentPrices = futures.parallelStream()
 			.map(this::getCurrentPriceResponseWithTimeout)
 			.filter(Objects::nonNull)
-			.forEach(currentPriceManager::addCurrentPrice);
+			.collect(Collectors.toList());
+		currentPrices.forEach(currentPriceManager::addCurrentPrice);
+
+		// 갱신 실패한 종목에 대해서 성공할때까지 갱신을 시도
+		int refreshedCount = currentPrices.size();
+		if (refreshedCount != tickerSymbols.size()) {
+			List<String> refreshedTickerSymbols = currentPrices.stream()
+				.map(CurrentPriceResponse::getTickerSymbol)
+				.collect(Collectors.toList());
+			List<String> failTickerSymbols = tickerSymbols.stream()
+				.filter(tickerSymbol -> !refreshedTickerSymbols.contains(tickerSymbols))
+				.collect(Collectors.toList());
+			refreshStockCurrentPrice(failTickerSymbols);
+		}
+		log.info("종목 현재가 {}개중 {}개 갱신", tickerSymbols.size(), refreshedCount);
 	}
 
 	private CompletableFuture<CurrentPriceResponse> createCompletableFuture(String tickerSymbol) {
 		CompletableFuture<CurrentPriceResponse> future = new CompletableFuture<>();
 		future.completeOnTimeout(null, 10, TimeUnit.SECONDS);
 		future.exceptionally(e -> {
-			log.info(e.getMessage(), e);
+			log.error(e.getMessage(), e);
 			return null;
 		});
 		executorService.schedule(createCurrentPriceRequest(tickerSymbol, future), 1L, TimeUnit.SECONDS);
@@ -139,10 +98,8 @@ public class KisService {
 		};
 	}
 
-	// 제약조건 : kis 서버에 1초당 최대 5건, TR간격 0.1초 이하면 안됨
 	public CurrentPriceResponse readRealTimeCurrentPrice(String tickerSymbol) {
 		long currentPrice = kisClient.readRealTimeCurrentPrice(tickerSymbol, manager.createAuthorization());
-		log.info("tickerSymbol={}, currentPrice={}, time={}", tickerSymbol, currentPrice, LocalDateTime.now());
 		return new CurrentPriceResponse(tickerSymbol, currentPrice);
 	}
 
@@ -154,16 +111,69 @@ public class KisService {
 		}
 	}
 
-	public void refreshLastDayClosingPrice(List<String> tickerSymbols) {
-		List<CompletableFuture<LastDayClosingPriceResponse>> futures = tickerSymbols.parallelStream()
-			.filter(tickerSymbol -> !lastDayClosingPriceManager.hasPrice(tickerSymbol))
+	private List<LastDayClosingPriceResponse> readLastDayClosingPriceResponses(List<String> unknownTickerSymbols) {
+		List<CompletableFuture<LastDayClosingPriceResponse>> futures = unknownTickerSymbols.parallelStream()
 			.map(this::createLastDayClosingPriceResponseCompletableFuture)
 			.collect(Collectors.toList());
-		futures.parallelStream()
+		return futures.parallelStream()
 			.map(this::getLastDayClosingPriceResponseWithTimeout)
-			.peek(response -> log.info("종가 갱신 응답 : {}", response))
 			.filter(Objects::nonNull)
-			.forEach(response -> lastDayClosingPriceManager.addPrice(response.getTickerSymbol(), response.getPrice()));
+			.collect(Collectors.toList());
+	}
+
+	// 15시 30분에 종가 갱신 수행
+	@Scheduled(cron = "* 30 15 * * *")
+	public void refreshLastDayClosingPrice() {
+		// 휴장일인 경우 실행하지 않음
+		if (holidayManager.isHoliday(LocalDate.now())) {
+			return;
+		}
+		List<String> tickerSymbols = portFolioHoldingRepository.findAllTickerSymbol();
+		refreshLastDayClosingPrice(tickerSymbols);
+	}
+
+	public void refreshLastDayClosingPrice(List<String> tickerSymbols) {
+		List<LastDayClosingPriceResponse> lastDayClosingPrices = readLastDayClosingPriceResponses(tickerSymbols);
+		lastDayClosingPrices.forEach(
+			response -> lastDayClosingPriceManager.addPrice(response.getTickerSymbol(), response.getPrice()));
+
+		// 종가 갱신 실패하 종목들을 성공할때가지 계속 시도합니다.
+		int count = lastDayClosingPrices.size();
+		if (count != tickerSymbols.size()) {
+			List<String> refreshedTickerSymbols = lastDayClosingPrices.stream()
+				.map(LastDayClosingPriceResponse::getTickerSymbol)
+				.collect(Collectors.toList());
+			List<String> failTickerSymbols = tickerSymbols.stream()
+				.filter(tickerSymbol -> !refreshedTickerSymbols.contains(tickerSymbol))
+				.collect(Collectors.toList());
+			refreshLastDayClosingPriceForFailedStock(failTickerSymbols);
+		}
+
+		log.info("종목 종가 {}개중 {}개 갱신", tickerSymbols.size(), count);
+	}
+
+	private void refreshLastDayClosingPriceForFailedStock(List<String> tickerSymbols) {
+		List<String> unknownTickerSymbols = tickerSymbols.stream()
+			.filter(tickerSymbol -> !lastDayClosingPriceManager.hasPrice(tickerSymbol))
+			.collect(Collectors.toList());
+
+		List<LastDayClosingPriceResponse> lastDayClosingPrices = readLastDayClosingPriceResponses(unknownTickerSymbols);
+		lastDayClosingPrices.forEach(
+			response -> lastDayClosingPriceManager.addPrice(response.getTickerSymbol(), response.getPrice()));
+
+		// 종가 갱신 실패하 종목들을 성공할때가지 계속 시도합니다.
+		int count = lastDayClosingPrices.size();
+		if (count != unknownTickerSymbols.size()) {
+			List<String> refreshedTickerSymbols = lastDayClosingPrices.stream()
+				.map(LastDayClosingPriceResponse::getTickerSymbol)
+				.collect(Collectors.toList());
+			List<String> failTickerSymbols = unknownTickerSymbols.stream()
+				.filter(tickerSymbol -> !refreshedTickerSymbols.contains(tickerSymbol))
+				.collect(Collectors.toList());
+			refreshLastDayClosingPriceForFailedStock(failTickerSymbols);
+		}
+
+		log.info("종목 종가 {}개중 {}개 갱신", tickerSymbols.size(), count);
 	}
 
 	private LastDayClosingPriceResponse getLastDayClosingPriceResponseWithTimeout(

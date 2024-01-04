@@ -1,4 +1,4 @@
-package codesquad.fineants.spring.api.portfolio_stock.event;
+package codesquad.fineants.spring.api.portfolio_stock.event.publisher;
 
 import static java.util.concurrent.TimeUnit.*;
 
@@ -13,6 +13,7 @@ import javax.annotation.PostConstruct;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
+import codesquad.fineants.spring.api.portfolio_stock.event.PortfolioEvent;
 import codesquad.fineants.spring.api.portfolio_stock.manager.SseEmitterManager;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioHoldingsRealTimeResponse;
 import codesquad.fineants.spring.api.portfolio_stock.service.PortfolioStockService;

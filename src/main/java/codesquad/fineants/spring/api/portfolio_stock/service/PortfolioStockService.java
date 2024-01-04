@@ -21,6 +21,7 @@ import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
 import codesquad.fineants.spring.api.portfolio_stock.chart.DividendChart;
 import codesquad.fineants.spring.api.portfolio_stock.chart.PieChart;
 import codesquad.fineants.spring.api.portfolio_stock.chart.SectorChart;
+import codesquad.fineants.spring.api.portfolio_stock.event.publisher.PortfolioHoldingEventPublisher;
 import codesquad.fineants.spring.api.portfolio_stock.factory.PortfolioDetailFactory;
 import codesquad.fineants.spring.api.portfolio_stock.factory.PortfolioHoldingDetailFactory;
 import codesquad.fineants.spring.api.portfolio_stock.request.PortfolioStockCreateRequest;
@@ -53,6 +54,7 @@ public class PortfolioStockService {
 	private final SectorChart sectorChart;
 	private final PortfolioDetailFactory portfolioDetailFactory;
 	private final PortfolioHoldingDetailFactory portfolioHoldingDetailFactory;
+	private final PortfolioHoldingEventPublisher publisher;
 
 	@Transactional
 	public PortfolioStockCreateResponse addPortfolioStock(Long portfolioId, PortfolioStockCreateRequest request,
@@ -66,6 +68,7 @@ public class PortfolioStockService {
 
 		PortfolioHolding portFolioHolding = portfolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
 
+		publisher.publishPortfolioHolding(stock.getTickerSymbol());
 		log.info("포트폴리오 종목 추가 결과 : {}", portFolioHolding);
 		return PortfolioStockCreateResponse.from(portFolioHolding);
 	}

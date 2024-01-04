@@ -1,4 +1,4 @@
-package codesquad.fineants.spring.api.kis;
+package codesquad.fineants.spring.api.kis.service;
 
 import static org.assertj.core.api.Assertions.*;
 
