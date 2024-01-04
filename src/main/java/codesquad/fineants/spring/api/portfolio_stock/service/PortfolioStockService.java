@@ -17,6 +17,7 @@ import codesquad.fineants.domain.stock.StockRepository;
 import codesquad.fineants.spring.api.errors.errorcode.PortfolioErrorCode;
 import codesquad.fineants.spring.api.errors.errorcode.PortfolioHoldingErrorCode;
 import codesquad.fineants.spring.api.errors.errorcode.StockErrorCode;
+import codesquad.fineants.spring.api.errors.exception.ForBiddenException;
 import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
 import codesquad.fineants.spring.api.portfolio_stock.chart.DividendChart;
 import codesquad.fineants.spring.api.portfolio_stock.chart.PieChart;
@@ -100,6 +101,9 @@ public class PortfolioStockService {
 		log.info("포트폴리오 종목 다수 삭제 서비스 : portfolioId={}, authMember={}, request={}", portfolioId, authMember, request);
 
 		List<Long> portfolioHoldingIds = request.getPortfolioHoldingIds();
+		validateExistPortfolioHolding(portfolioHoldingIds);
+		validateHasAuthorization(portfolioHoldingIds, authMember.getMemberId());
+
 		purchaseHistoryRepository.deleteAllByPortfolioHoldingIdIn(portfolioHoldingIds);
 		try {
 			portfolioHoldingRepository.deleteAllByIdIn(portfolioHoldingIds);
@@ -107,6 +111,22 @@ public class PortfolioStockService {
 			throw new NotFoundResourceException(PortfolioHoldingErrorCode.NOT_FOUND_PORTFOLIO_HOLDING);
 		}
 		return new PortfolioStockDeletesResponse(portfolioHoldingIds);
+	}
+
+	private void validateExistPortfolioHolding(List<Long> portfolioHoldingIds) {
+		portfolioHoldingIds.stream()
+			.filter(portfolioHoldingId -> !portfolioHoldingRepository.existsById(portfolioHoldingId))
+			.forEach(portfolioHoldingId -> {
+				throw new NotFoundResourceException(PortfolioHoldingErrorCode.NOT_FOUND_PORTFOLIO_HOLDING);
+			});
+	}
+
+	private void validateHasAuthorization(List<Long> portfolioHoldingIds, Long memberId) {
+		for (Long portfolioHoldingId : portfolioHoldingIds) {
+			if (!portfolioHoldingRepository.existsByIdAndMemberId(portfolioHoldingId, memberId)) {
+				throw new ForBiddenException(PortfolioHoldingErrorCode.FORBIDDEN_PORTFOLIO_HOLDING);
+			}
+		}
 	}
 
 	public PortfolioHoldingsResponse readMyPortfolioStocks(Long portfolioId) {
