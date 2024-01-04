@@ -1,4 +1,4 @@
-package codesquad.fineants.spring.api.portfolio_stock;
+package codesquad.fineants.spring.api.portfolio_stock.controller;
 
 import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -39,7 +39,6 @@ import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.spring.api.errors.errorcode.PortfolioErrorCode;
 import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
 import codesquad.fineants.spring.api.errors.handler.GlobalExceptionHandler;
-import codesquad.fineants.spring.api.portfolio_stock.controller.PortfolioStockRestController;
 import codesquad.fineants.spring.api.portfolio_stock.manager.SseEmitterManager;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioHoldingsResponse;
 import codesquad.fineants.spring.api.portfolio_stock.service.PortfolioStockService;

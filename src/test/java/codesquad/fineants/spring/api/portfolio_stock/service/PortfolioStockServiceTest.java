@@ -1,4 +1,4 @@
-package codesquad.fineants.spring.api.portfolio_stock;
+package codesquad.fineants.spring.api.portfolio_stock.service;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -35,7 +35,6 @@ import codesquad.fineants.spring.api.kis.response.CurrentPriceResponse;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioChartResponse;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioHoldingsRealTimeResponse;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioHoldingsResponse;
-import codesquad.fineants.spring.api.portfolio_stock.service.PortfolioStockService;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
