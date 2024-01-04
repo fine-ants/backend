@@ -37,11 +37,13 @@ import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
 import codesquad.fineants.spring.api.kis.response.CurrentPriceResponse;
 import codesquad.fineants.spring.api.portfolio_stock.request.PortfolioStockCreateRequest;
+import codesquad.fineants.spring.api.portfolio_stock.request.PortfolioStocksDeleteRequest;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioChartResponse;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioHoldingsRealTimeResponse;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioHoldingsResponse;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioStockCreateResponse;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioStockDeleteResponse;
+import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioStockDeletesResponse;
 import codesquad.fineants.spring.util.ObjectMapperUtil;
 import lombok.extern.slf4j.Slf4j;
 
@@ -334,7 +336,45 @@ class PortfolioStockServiceTest {
 			.isEqualTo("포트폴리오 종목이 존재하지 않습니다");
 	}
 
-	private static Member createMember() {
+	@DisplayName("사용자는 다수의 포트폴리오 종목을 삭제할 수 있다")
+	@Test
+	void deletePortfolioStocks() {
+		// given
+		Member member = memberRepository.save(createMember());
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
+		Stock stock1 = stockRepository.save(createStock());
+		Stock stock2 = stockRepository.save(
+			createStock("동화약품보통주", "000020", "DongwhaPharm", "KR7000020008", "의약품", Market.KOSPI));
+		PortfolioHolding portfolioHolding1 = portFolioHoldingRepository.save(createPortfolioHolding(portfolio, stock1));
+		PortfolioHolding portfolioHolding2 = portFolioHoldingRepository.save(createPortfolioHolding(portfolio, stock2));
+
+		PurchaseHistory purchaseHistory1 = purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding1));
+		PurchaseHistory purchaseHistory2 = purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding2));
+
+		Map<String, Object> requestBodyMap = new HashMap<>();
+		requestBodyMap.put("portfolioHoldingIds", List.of(portfolioHolding1.getId(), portfolioHolding2.getId()));
+		PortfolioStocksDeleteRequest request = ObjectMapperUtil.deserialize(
+			ObjectMapperUtil.serialize(requestBodyMap), PortfolioStocksDeleteRequest.class);
+
+		// when
+		PortfolioStockDeletesResponse response = service.deletePortfolioStocks(portfolio.getId(),
+			AuthMember.from(member), request);
+
+		// then
+		assertAll(
+			() -> assertThat(response)
+				.extracting("portfolioHoldingIds")
+				.asList()
+				.hasSize(2)
+				.containsExactlyInAnyOrder(portfolioHolding1.getId(), portfolioHolding2.getId()),
+			() -> assertThat(purchaseHistoryRepository.existsById(purchaseHistory1.getId())).isFalse(),
+			() -> assertThat(purchaseHistoryRepository.existsById(purchaseHistory2.getId())).isFalse(),
+			() -> assertThat(portFolioHoldingRepository.existsById(portfolioHolding1.getId())).isFalse(),
+			() -> assertThat(portFolioHoldingRepository.existsById(portfolioHolding2.getId())).isFalse()
+		);
+	}
+
+	private Member createMember() {
 		return Member.builder()
 			.nickname("일개미1234")
 			.email("kim1234@gmail.com")
@@ -343,7 +383,7 @@ class PortfolioStockServiceTest {
 			.build();
 	}
 
-	private static Portfolio createPortfolio(Member member) {
+	private Portfolio createPortfolio(Member member) {
 		return Portfolio.builder()
 			.name("내꿈은 워렌버핏")
 			.securitiesFirm("토스")
@@ -356,7 +396,7 @@ class PortfolioStockServiceTest {
 			.build();
 	}
 
-	private static Stock createStock() {
+	private Stock createStock() {
 		return Stock.builder()
 			.companyName("삼성전자보통주")
 			.tickerSymbol("005930")
@@ -364,6 +404,18 @@ class PortfolioStockServiceTest {
 			.stockCode("KR7005930003")
 			.sector("전기전자")
 			.market(Market.KOSPI)
+			.build();
+	}
+
+	private Stock createStock(String companyName, String tickerSymbol, String companyNameEng, String stockCode,
+		String sector, Market market) {
+		return Stock.builder()
+			.companyName(companyName)
+			.tickerSymbol(tickerSymbol)
+			.companyNameEng(companyNameEng)
+			.stockCode(stockCode)
+			.sector(sector)
+			.market(market)
 			.build();
 	}
 
@@ -378,14 +430,14 @@ class PortfolioStockServiceTest {
 			.build();
 	}
 
-	private static PortfolioHolding createPortfolioHolding(Portfolio portfolio, Stock stock) {
+	private PortfolioHolding createPortfolioHolding(Portfolio portfolio, Stock stock) {
 		return PortfolioHolding.builder()
 			.portfolio(portfolio)
 			.stock(stock)
 			.build();
 	}
 
-	private static PurchaseHistory createPurchaseHistory(PortfolioHolding portfolioHolding) {
+	private PurchaseHistory createPurchaseHistory(PortfolioHolding portfolioHolding) {
 		return PurchaseHistory.builder()
 			.purchaseDate(LocalDateTime.of(2023, 9, 26, 9, 30, 0))
 			.numShares(3L)

@@ -102,7 +102,7 @@ public class PortfolioStockService {
 		List<Long> portfolioHoldingIds = request.getPortfolioHoldingIds();
 		purchaseHistoryRepository.deleteAllByPortfolioHoldingIdIn(portfolioHoldingIds);
 		try {
-			portfolioHoldingRepository.deleteAllByIdInBatch(portfolioHoldingIds);
+			portfolioHoldingRepository.deleteAllByIdIn(portfolioHoldingIds);
 		} catch (EmptyResultDataAccessException e) {
 			throw new NotFoundResourceException(PortfolioHoldingErrorCode.NOT_FOUND_PORTFOLIO_HOLDING);
 		}

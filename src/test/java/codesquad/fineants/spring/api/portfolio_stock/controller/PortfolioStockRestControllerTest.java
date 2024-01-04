@@ -10,14 +10,19 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -43,8 +48,10 @@ import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
 import codesquad.fineants.spring.api.errors.handler.GlobalExceptionHandler;
 import codesquad.fineants.spring.api.portfolio_stock.manager.SseEmitterManager;
 import codesquad.fineants.spring.api.portfolio_stock.request.PortfolioStockCreateRequest;
+import codesquad.fineants.spring.api.portfolio_stock.request.PortfolioStocksDeleteRequest;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioHoldingsResponse;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioStockCreateResponse;
+import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioStockDeletesResponse;
 import codesquad.fineants.spring.api.portfolio_stock.service.PortfolioStockService;
 import codesquad.fineants.spring.api.portfolio_stock.service.StockMarketChecker;
 import codesquad.fineants.spring.auth.HasPortfolioAuthorizationAspect;
@@ -219,12 +226,65 @@ class PortfolioStockRestControllerTest {
 
 		given(portfolioRepository.findById(anyLong())).willReturn(Optional.of(portfolio));
 		// when & then
-		mockMvc.perform(delete("/api/portfolio/" + portfolioId + "/holdings/" + portfolioHoldingId))
+		mockMvc.perform(
+				delete("/api/portfolio/{portfolioId}/holdings/{portfolioHoldingId}", portfolioId, portfolioHoldingId))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
 			.andExpect(jsonPath("message").value(equalTo("포트폴리오 종목이 삭제되었습니다")))
 			.andExpect(jsonPath("data").value(equalTo(null)));
+	}
+
+	@DisplayName("사용자는 포트폴리오 종목을 다수 삭제한다")
+	@Test
+	void deletePortfolioStocks() throws Exception {
+		// given
+		Member member = createMember();
+		Portfolio portfolio = createPortfolio(member);
+
+		List<Long> delPortfolioHoldingIds = List.of(1L, 2L);
+		Map<String, Object> requestBodyMap = new HashMap<>();
+		requestBodyMap.put("portfolioHoldingIds", delPortfolioHoldingIds);
+		String body = ObjectMapperUtil.serialize(requestBodyMap);
+
+		PortfolioStockDeletesResponse mockResponse = new PortfolioStockDeletesResponse(delPortfolioHoldingIds);
+		given(portfolioStockService.deletePortfolioStocks(anyLong(), any(AuthMember.class), any(
+			PortfolioStocksDeleteRequest.class))).willReturn(mockResponse);
+		given(portfolioRepository.findById(anyLong())).willReturn(Optional.of(portfolio));
+		// when & then
+		mockMvc.perform(delete("/api/portfolio/{portfolioId}/holdings", portfolio.getId())
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(body))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("code").value(equalTo(200)))
+			.andExpect(jsonPath("status").value(equalTo("OK")))
+			.andExpect(jsonPath("message").value(equalTo("포트폴리오 종목들이 삭제되었습니다")))
+			.andExpect(jsonPath("data").value(equalTo(null)));
+	}
+
+	@DisplayName("사용자는 포트폴리오 종목을 다수 삭제할때 유효하지 않은 입력으로 삭제할 수 없다")
+	@MethodSource(value = "provideInvalidPortfolioHoldingIds")
+	@ParameterizedTest
+	void deletePortfolioStocks_withInvalidItems(List<Long> portfolioHoldingIds) throws Exception {
+		// given
+		Member member = createMember();
+		Portfolio portfolio = createPortfolio(member);
+
+		Map<String, Object> requestBodyMap = new HashMap<>();
+		requestBodyMap.put("portfolioHoldingIds", portfolioHoldingIds);
+		String body = ObjectMapperUtil.serialize(requestBodyMap);
+
+		given(portfolioRepository.findById(anyLong())).willReturn(Optional.of(portfolio));
+		// when & then
+		mockMvc.perform(delete("/api/portfolio/{portfolioId}/holdings", portfolio.getId())
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(body))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("code").value(equalTo(400)))
+			.andExpect(jsonPath("status").value(equalTo("Bad Request")))
+			.andExpect(jsonPath("message").value(equalTo("잘못된 입력형식입니다")))
+			.andExpect(jsonPath("data[0].field").value(equalTo("portfolioHoldingIds")))
+			.andExpect(jsonPath("data[0].defaultMessage").value(equalTo("삭제할 포트폴리오 종목들이 없습니다")));
 	}
 
 	private Stock createStock() {
@@ -237,7 +297,7 @@ class PortfolioStockRestControllerTest {
 			.build();
 	}
 
-	private static Member createMember() {
+	private Member createMember() {
 		return Member.builder()
 			.id(1L)
 			.nickname("일개미1234")
@@ -248,7 +308,7 @@ class PortfolioStockRestControllerTest {
 			.build();
 	}
 
-	private static Portfolio createPortfolio(Member member) {
+	private Portfolio createPortfolio(Member member) {
 		return Portfolio.builder()
 			.id(1L)
 			.name("내꿈은 워렌버핏")
@@ -260,7 +320,7 @@ class PortfolioStockRestControllerTest {
 			.build();
 	}
 
-	private static PortfolioHolding createPortfolioHolding(Portfolio portfolio, Stock stock) {
+	private PortfolioHolding createPortfolioHolding(Portfolio portfolio, Stock stock) {
 		return PortfolioHolding.builder()
 			.id(1L)
 			.portfolio(portfolio)
@@ -269,7 +329,7 @@ class PortfolioStockRestControllerTest {
 			.build();
 	}
 
-	private static PurchaseHistory createPurchaseHistory(PortfolioHolding portfolioHolding) {
+	private PurchaseHistory createPurchaseHistory(PortfolioHolding portfolioHolding) {
 		return PurchaseHistory.builder()
 			.purchaseDate(LocalDateTime.of(2023, 11, 1, 9, 30, 0))
 			.numShares(3L)
@@ -279,7 +339,14 @@ class PortfolioStockRestControllerTest {
 			.build();
 	}
 
-	private static PortfolioGainHistory createEmptyPortfolioGainHistory() {
+	private PortfolioGainHistory createEmptyPortfolioGainHistory() {
 		return PortfolioGainHistory.empty();
+	}
+
+	public static Stream<Arguments> provideInvalidPortfolioHoldingIds() {
+		return Stream.of(
+			Arguments.of(Collections.emptyList()),
+			Arguments.of((Object)null)
+		);
 	}
 }
