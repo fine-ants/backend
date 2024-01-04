@@ -92,12 +92,7 @@ class PortFolioServiceTest {
 	void addPortfolio() throws JsonProcessingException {
 		// given
 		Member member = memberRepository.save(createMember());
-		Map<String, Object> body = new HashMap<>();
-		body.put("name", "내꿈은 워렌버핏");
-		body.put("securitiesFirm", "토스");
-		body.put("budget", 1000000L);
-		body.put("targetGain", 1500000L);
-		body.put("maximumLoss", 900000L);
+		Map<String, Object> body = createAddPortfolioRequestBodyMap();
 
 		PortfolioCreateRequest request = objectMapper.readValue(objectMapper.writeValueAsString(body),
 			PortfolioCreateRequest.class);
@@ -120,7 +115,7 @@ class PortFolioServiceTest {
 		Member member = memberRepository.save(createMember());
 		Map<String, Object> body = new HashMap<>();
 		body.put("name", "내꿈은 워렌버핏");
-		body.put("securitiesFirm", "토스");
+		body.put("securitiesFirm", "토스증권");
 		body.put("budget", 1000000L);
 		body.put("targetGain", targetGain);
 		body.put("maximumLoss", 900000L);
@@ -146,7 +141,7 @@ class PortFolioServiceTest {
 		Member member = memberRepository.save(createMember());
 		Map<String, Object> body = new HashMap<>();
 		body.put("name", "내꿈은 워렌버핏");
-		body.put("securitiesFirm", "토스");
+		body.put("securitiesFirm", "토스증권");
 		body.put("budget", 1000000L);
 		body.put("targetGain", 1500000L);
 		body.put("maximumLoss", maximumLoss);
@@ -171,12 +166,7 @@ class PortFolioServiceTest {
 		Member member = memberRepository.save(createMember());
 		portfolioRepository.save(createPortfolio(member));
 
-		Map<String, Object> body = new HashMap<>();
-		body.put("name", "내꿈은 워렌버핏");
-		body.put("securitiesFirm", "토스");
-		body.put("budget", 1000000L);
-		body.put("targetGain", 1500000L);
-		body.put("maximumLoss", 900000L);
+		Map<String, Object> body = createAddPortfolioRequestBodyMap();
 
 		PortfolioCreateRequest request = objectMapper.readValue(objectMapper.writeValueAsString(body),
 			PortfolioCreateRequest.class);
@@ -189,6 +179,24 @@ class PortFolioServiceTest {
 			.isInstanceOf(ConflictException.class)
 			.extracting("message")
 			.isEqualTo("포트폴리오 이름이 중복되었습니다");
+	}
+
+	@DisplayName("회원은 포트폴리오 추가시 목록에 없는 증권사를 입력하여 추가할 수 없다")
+	@Test
+	void addPortfolio_shouldNotAllowNonExistingSecurities() throws JsonProcessingException {
+		Member member = memberRepository.save(createMember());
+		Map<String, Object> body = createAddPortfolioRequestBodyMap("없는증권");
+
+		PortfolioCreateRequest request = objectMapper.readValue(objectMapper.writeValueAsString(body),
+			PortfolioCreateRequest.class);
+
+		// when
+		Throwable throwable = catchThrowable(() -> service.addPortFolio(request, AuthMember.from(member)));
+
+		// then
+		assertThat(throwable)
+			.isInstanceOf(BadRequestException.class)
+			.hasMessage("해당 증권사는 포함되어 있지 않습니다");
 	}
 
 	@DisplayName("회원이 포트폴리오를 수정한다")
@@ -434,7 +442,7 @@ class PortFolioServiceTest {
 	private Portfolio createPortfolio(Member member, String name) {
 		return Portfolio.builder()
 			.name(name)
-			.securitiesFirm("토스")
+			.securitiesFirm("토스증권")
 			.budget(1000000L)
 			.targetGain(1500000L)
 			.maximumLoss(900000L)
@@ -448,7 +456,7 @@ class PortFolioServiceTest {
 		String randomPostfix = UUID.randomUUID().toString().substring(0, 10);
 		return Portfolio.builder()
 			.name("내꿈은 워렌버핏" + randomPostfix)
-			.securitiesFirm("토스")
+			.securitiesFirm("토스증권")
 			.budget(1000000L)
 			.targetGain(1500000L)
 			.maximumLoss(900000L)
@@ -537,6 +545,20 @@ class PortFolioServiceTest {
 		body.put("budget", budget);
 		body.put("targetGain", targetGain);
 		body.put("maximumLoss", maximumLoss);
+		return body;
+	}
+
+	private Map<String, Object> createAddPortfolioRequestBodyMap() {
+		return createAddPortfolioRequestBodyMap("토스증권");
+	}
+
+	private Map<String, Object> createAddPortfolioRequestBodyMap(String securitiesFirm) {
+		Map<String, Object> body = new HashMap<>();
+		body.put("name", "내꿈은 워렌버핏");
+		body.put("securitiesFirm", securitiesFirm);
+		body.put("budget", 1000000L);
+		body.put("targetGain", 1500000L);
+		body.put("maximumLoss", 900000L);
 		return body;
 	}
 }
