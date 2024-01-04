@@ -77,11 +77,6 @@ public class PurchaseHistoryService {
 		return PurchaseHistoryDeleteResponse.from(deletePurchaseHistory);
 	}
 
-	private Portfolio findPortfolio(Long portfolioId) {
-		return portfolioRepository.findById(portfolioId)
-			.orElseThrow(() -> new NotFoundResourceException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
-	}
-
 	private PortfolioHolding findPortfolioHolding(Long portfolioHoldingId) {
 		return portfolioHoldingRepository.findById(portfolioHoldingId)
 			.orElseThrow(() -> new NotFoundResourceException(PortfolioHoldingErrorCode.NOT_FOUND_PORTFOLIO_HOLDING));
@@ -90,11 +85,5 @@ public class PurchaseHistoryService {
 	private PurchaseHistory findPurchaseHistory(Long purchaseHistoryId) {
 		return repository.findById(purchaseHistoryId)
 			.orElseThrow(() -> new NotFoundResourceException(PurchaseHistoryErrorCode.NOT_FOUND_PURCHASE_HISTORY));
-	}
-
-	private void validatePortfolioAuthorization(Portfolio portfolio, Long memberId) {
-		if (!portfolio.hasAuthorization(memberId)) {
-			throw new ForBiddenException(PortfolioErrorCode.NOT_HAVE_AUTHORIZATION);
-		}
 	}
 }
