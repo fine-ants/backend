@@ -10,6 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -21,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -40,12 +42,15 @@ import codesquad.fineants.spring.api.errors.errorcode.PortfolioErrorCode;
 import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
 import codesquad.fineants.spring.api.errors.handler.GlobalExceptionHandler;
 import codesquad.fineants.spring.api.portfolio_stock.manager.SseEmitterManager;
+import codesquad.fineants.spring.api.portfolio_stock.request.PortfolioStockCreateRequest;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioHoldingsResponse;
+import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioStockCreateResponse;
 import codesquad.fineants.spring.api.portfolio_stock.service.PortfolioStockService;
 import codesquad.fineants.spring.api.portfolio_stock.service.StockMarketChecker;
 import codesquad.fineants.spring.auth.HasPortfolioAuthorizationAspect;
 import codesquad.fineants.spring.config.JpaAuditingConfiguration;
 import codesquad.fineants.spring.config.SpringConfig;
+import codesquad.fineants.spring.util.ObjectMapperUtil;
 
 @ActiveProfiles("test")
 @WebMvcTest(controllers = PortfolioStockRestController.class)
@@ -144,6 +149,82 @@ class PortfolioStockRestControllerTest {
 		mockMvc.perform(get("/api/portfolio/{portfolioId}/holdings/realtime", portfolioId))
 			.andExpect(status().isNotFound())
 			.andExpect(jsonPath("message").value(equalTo("포트폴리오를 찾을 수 없습니다")));
+	}
+
+	@DisplayName("사용자는 포트폴리오에 종목을 추가한다")
+	@Test
+	void addPortfolioStock() throws Exception {
+		Member member = createMember();
+		Portfolio portfolio = createPortfolio(member);
+		Stock stock = createStock();
+
+		PortfolioStockCreateResponse response = PortfolioStockCreateResponse.from(
+			PortfolioHolding.empty(portfolio, stock));
+		given(portfolioRepository.findById(anyLong())).willReturn(Optional.of(portfolio));
+		given(portfolioStockService.addPortfolioStock(anyLong(), any(PortfolioStockCreateRequest.class),
+			any(AuthMember.class))).willReturn(response);
+
+		Map<String, Object> requestBodyMap = new HashMap<>();
+		requestBodyMap.put("tickerSymbol", stock.getTickerSymbol());
+
+		String body = ObjectMapperUtil.serialize(requestBodyMap);
+		Long portfolioId = portfolio.getId();
+		// when & then
+		mockMvc.perform(post("/api/portfolio/" + portfolioId + "/holdings")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(body))
+			.andExpect(status().isCreated())
+			.andExpect(jsonPath("code").value(equalTo(201)))
+			.andExpect(jsonPath("status").value(equalTo("Created")))
+			.andExpect(jsonPath("message").value(equalTo("포트폴리오 종목이 추가되었습니다")))
+			.andExpect(jsonPath("data").value(equalTo(null)));
+	}
+
+	@DisplayName("사용자는 포트폴리오에 종목을 추가할때 stockId를 필수로 같이 전송해야 한다")
+	@Test
+	void addPortfolioStockWithStockIdIsNull() throws Exception {
+		Member member = createMember();
+		Portfolio portfolio = createPortfolio(member);
+
+		Map<String, Object> requestBodyMap = new HashMap<>();
+		requestBodyMap.put("stockId", null);
+
+		String body = ObjectMapperUtil.serialize(requestBodyMap);
+		Long portfolioId = portfolio.getId();
+
+		given(portfolioRepository.findById(anyLong())).willReturn(Optional.of(portfolio));
+
+		// when & then
+		mockMvc.perform(post("/api/portfolio/" + portfolioId + "/holdings")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(body))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("code").value(equalTo(400)))
+			.andExpect(jsonPath("status").value(equalTo("Bad Request")))
+			.andExpect(jsonPath("message").value(equalTo("잘못된 입력형식입니다")))
+			.andExpect(jsonPath("data").isArray());
+	}
+
+	@DisplayName("사용자는 포트폴리오 종목을 삭제한다")
+	@Test
+	void deletePortfolioStock() throws Exception {
+		// given
+		Member member = createMember();
+		Portfolio portfolio = createPortfolio(member);
+		Stock stock = createStock();
+		PortfolioHolding portfolioHolding = createPortfolioHolding(portfolio, stock);
+
+		Long portfolioHoldingId = portfolioHolding.getId();
+		Long portfolioId = portfolio.getId();
+
+		given(portfolioRepository.findById(anyLong())).willReturn(Optional.of(portfolio));
+		// when & then
+		mockMvc.perform(delete("/api/portfolio/" + portfolioId + "/holdings/" + portfolioHoldingId))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("code").value(equalTo(200)))
+			.andExpect(jsonPath("status").value(equalTo("OK")))
+			.andExpect(jsonPath("message").value(equalTo("포트폴리오 종목이 삭제되었습니다")))
+			.andExpect(jsonPath("data").value(equalTo(null)));
 	}
 
 	private Stock createStock() {
