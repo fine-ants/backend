@@ -32,6 +32,7 @@ import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.domain.stock.StockRepository;
 import codesquad.fineants.domain.stock_dividend.StockDividend;
 import codesquad.fineants.domain.stock_dividend.StockDividendRepository;
+import codesquad.fineants.spring.api.errors.exception.ForBiddenException;
 import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
@@ -374,10 +375,74 @@ class PortfolioStockServiceTest {
 		);
 	}
 
+	@DisplayName("사용자는 다수의 포트폴리오 삭제시 존재하지 않는 일부 포트폴리오 종목이 존재한다면 전부 삭제할 수 없다")
+	@Test
+	void deletePortfolioStocks_whenNotExistPortfolioHolding_thenError404() {
+		// given
+		Member member = memberRepository.save(createMember());
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
+		Stock stock1 = stockRepository.save(createStock());
+		PortfolioHolding portfolioHolding = portFolioHoldingRepository.save(createPortfolioHolding(portfolio, stock1));
+		PurchaseHistory purchaseHistory = purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding));
+
+		Map<String, Object> requestBodyMap = new HashMap<>();
+		requestBodyMap.put("portfolioHoldingIds", List.of(portfolioHolding.getId(), 9999L));
+		PortfolioStocksDeleteRequest request = ObjectMapperUtil.deserialize(
+			ObjectMapperUtil.serialize(requestBodyMap), PortfolioStocksDeleteRequest.class);
+
+		// when
+		Throwable throwable = catchThrowable(
+			() -> service.deletePortfolioStocks(portfolio.getId(), AuthMember.from(member), request));
+
+		// then
+		assertThat(throwable)
+			.isInstanceOf(NotFoundResourceException.class)
+			.hasMessage("포트폴리오 종목이 존재하지 않습니다");
+		assertThat(portFolioHoldingRepository.findById(portfolioHolding.getId()).isPresent()).isTrue();
+		assertThat(purchaseHistoryRepository.findById(purchaseHistory.getId()).isPresent()).isTrue();
+	}
+
+	@DisplayName("사용자는 다수의 포트폴리오 삭제시 다른 회원의 포트폴리오 종목이 존재한다면 전부 삭제할 수 없다")
+	@Test
+	void deletePortfolioStocks_whenNotExistPortfolioHolding_thenError403() {
+		// given
+		Member member = memberRepository.save(createMember());
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
+		Stock stock1 = stockRepository.save(createStock());
+		PortfolioHolding portfolioHolding = portFolioHoldingRepository.save(createPortfolioHolding(portfolio, stock1));
+		PurchaseHistory purchaseHistory = purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding));
+
+		Member member2 = memberRepository.save(createMember());
+		Portfolio portfolio2 = portfolioRepository.save(createPortfolio(member2));
+		PortfolioHolding portfolioHolding2 = portFolioHoldingRepository.save(
+			createPortfolioHolding(portfolio2, stock1));
+
+		Map<String, Object> requestBodyMap = new HashMap<>();
+		requestBodyMap.put("portfolioHoldingIds", List.of(portfolioHolding.getId(), portfolioHolding2.getId()));
+		PortfolioStocksDeleteRequest request = ObjectMapperUtil.deserialize(
+			ObjectMapperUtil.serialize(requestBodyMap), PortfolioStocksDeleteRequest.class);
+
+		// when
+		Throwable throwable = catchThrowable(
+			() -> service.deletePortfolioStocks(portfolio.getId(), AuthMember.from(member), request));
+
+		// then
+		assertThat(throwable)
+			.isInstanceOf(ForBiddenException.class)
+			.hasMessage("해당 포트폴리오 종목들에 대한 권한이 없습니다");
+		assertThat(portFolioHoldingRepository.findById(portfolioHolding.getId()).isPresent()).isTrue();
+		assertThat(portFolioHoldingRepository.findById(portfolioHolding2.getId()).isPresent()).isTrue();
+		assertThat(purchaseHistoryRepository.findById(purchaseHistory.getId()).isPresent()).isTrue();
+	}
+
 	private Member createMember() {
+		return createMember("일개미1234", "kim1234@gmail.com");
+	}
+
+	private Member createMember(String nickname, String email) {
 		return Member.builder()
-			.nickname("일개미1234")
-			.email("kim1234@gmail.com")
+			.nickname(nickname)
+			.email(email)
 			.password("kim1234@")
 			.provider("local")
 			.build();
