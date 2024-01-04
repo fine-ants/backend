@@ -1,10 +1,12 @@
 package codesquad.fineants.spring.api.purchase_history;
 
+import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.portfolio.Portfolio;
+import codesquad.fineants.domain.portfolio.PortfolioRepository;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHoldingRepository;
 import codesquad.fineants.domain.purchase_history.PurchaseHistory;
@@ -12,6 +14,7 @@ import codesquad.fineants.domain.purchase_history.PurchaseHistoryRepository;
 import codesquad.fineants.spring.api.errors.errorcode.PortfolioErrorCode;
 import codesquad.fineants.spring.api.errors.errorcode.PortfolioHoldingErrorCode;
 import codesquad.fineants.spring.api.errors.errorcode.PurchaseHistoryErrorCode;
+import codesquad.fineants.spring.api.errors.exception.FineAntsException;
 import codesquad.fineants.spring.api.errors.exception.ForBiddenException;
 import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
 import codesquad.fineants.spring.api.purchase_history.request.PurchaseHistoryCreateRequest;
@@ -27,14 +30,26 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Service
 public class PurchaseHistoryService {
+	private final PortfolioRepository portfolioRepository;
 	private final PurchaseHistoryRepository repository;
-	private final PortfolioHoldingRepository portFolioHoldingRepository;
+	private final PortfolioHoldingRepository portfolioHoldingRepository;
 
 	@Transactional
 	public PurchaseHistoryCreateResponse addPurchaseHistory(PurchaseHistoryCreateRequest request,
-		Long portfolioHoldingId) {
+		Long portfolioId, Long portfolioHoldingId) {
 		log.info("매입이력 추가 서비스 요청 : request={}, portfolioHoldingId={}", request, portfolioHoldingId);
+
 		PortfolioHolding portfolioHolding = findPortfolioHolding(portfolioHoldingId);
+		Portfolio portfolio = portfolioHolding.getPortfolio();
+		if (!portfolio.getId().equals(portfolioId)) {
+			throw new NotFoundResourceException(PortfolioHoldingErrorCode.NOT_FOUND_PORTFOLIO_HOLDING);
+		}
+
+		Double purchasedPrice = request.getNumShares() * request.getPurchasePricePerShare();
+		if (portfolio.calculateTotalInvestmentAmount() + purchasedPrice > portfolio.getBudget()) {
+			throw new FineAntsException(PortfolioErrorCode.TOTAL_INVESTMENT_PRICE_EXCEEDS_BUDGET);
+		}
+
 		PurchaseHistory newPurchaseHistory = repository.save(request.toEntity(portfolioHolding));
 		log.info("매입이력 저장 결과 : newPurchaseHistory={}", newPurchaseHistory);
 		return PurchaseHistoryCreateResponse.from(newPurchaseHistory);
@@ -62,8 +77,13 @@ public class PurchaseHistoryService {
 		return PurchaseHistoryDeleteResponse.from(deletePurchaseHistory);
 	}
 
+	private Portfolio findPortfolio(Long portfolioId) {
+		return portfolioRepository.findById(portfolioId)
+			.orElseThrow(() -> new NotFoundResourceException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
+	}
+
 	private PortfolioHolding findPortfolioHolding(Long portfolioHoldingId) {
-		return portFolioHoldingRepository.findById(portfolioHoldingId)
+		return portfolioHoldingRepository.findById(portfolioHoldingId)
 			.orElseThrow(() -> new NotFoundResourceException(PortfolioHoldingErrorCode.NOT_FOUND_PORTFOLIO_HOLDING));
 	}
 

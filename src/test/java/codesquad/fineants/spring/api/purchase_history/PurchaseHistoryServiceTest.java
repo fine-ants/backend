@@ -139,14 +139,17 @@ class PurchaseHistoryServiceTest {
 
 		PurchaseHistoryCreateRequest request = objectMapper.readValue(
 			objectMapper.writeValueAsString(requestBody), PurchaseHistoryCreateRequest.class);
+		Long portfolioId = portfolio.getId();
 		Long portfolioHoldingId = portfolioHolding.getId();
+
 		// when
-		PurchaseHistoryCreateResponse response = service.addPurchaseHistory(request, portfolioHoldingId);
+		PurchaseHistoryCreateResponse response = service.addPurchaseHistory(request, portfolioId, portfolioHoldingId);
 
 		TypeReference<Map<String, Object>> typeReference = new TypeReference<>() {
 		};
 		String json = objectMapper.writeValueAsString(response);
 		Map<String, Object> map = objectMapper.readValue(json, typeReference);
+
 		// then
 		assertAll(
 			() -> assertThat(response).extracting("id").isNotNull(),
