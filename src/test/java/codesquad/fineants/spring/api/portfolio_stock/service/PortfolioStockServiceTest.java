@@ -5,7 +5,9 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.AfterEach;
@@ -17,6 +19,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.member.MemberRepository;
+import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.portfolio.Portfolio;
 import codesquad.fineants.domain.portfolio.PortfolioRepository;
 import codesquad.fineants.domain.portfolio_gain_history.PortfolioGainHistoryRepository;
@@ -29,12 +32,17 @@ import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.domain.stock.StockRepository;
 import codesquad.fineants.domain.stock_dividend.StockDividend;
 import codesquad.fineants.domain.stock_dividend.StockDividendRepository;
+import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
 import codesquad.fineants.spring.api.kis.response.CurrentPriceResponse;
+import codesquad.fineants.spring.api.portfolio_stock.request.PortfolioStockCreateRequest;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioChartResponse;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioHoldingsRealTimeResponse;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioHoldingsResponse;
+import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioStockCreateResponse;
+import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioStockDeleteResponse;
+import codesquad.fineants.spring.util.ObjectMapperUtil;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -225,6 +233,105 @@ class PortfolioStockServiceTest {
 					"totalReturnRate")
 				.containsExactlyInAnyOrder(Tuple.tuple(180000L, 60000L, 10000L, 20, 30000L, 20))
 		);
+	}
+
+	@DisplayName("사용자는 포트폴리오에 종목을 추가한다")
+	@Test
+	void addPortfolioStock() {
+		// given
+		Member member = memberRepository.save(createMember());
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
+		Stock stock = stockRepository.save(createStock());
+
+		Map<String, Object> requestBodyMap = new HashMap<>();
+		requestBodyMap.put("tickerSymbol", stock.getTickerSymbol());
+		PortfolioStockCreateRequest request = ObjectMapperUtil.deserialize(ObjectMapperUtil.serialize(requestBodyMap),
+			PortfolioStockCreateRequest.class);
+
+		// when
+		PortfolioStockCreateResponse response = service.addPortfolioStock(portfolio.getId(), request,
+			AuthMember.from(member));
+
+		// then
+		assertAll(
+			() -> assertThat(response)
+				.extracting("portfolioStockId")
+				.isNotNull(),
+			() -> assertThat(portFolioHoldingRepository.findAll()).hasSize(1)
+		);
+	}
+
+	@DisplayName("사용자는 포트폴리오에 존재하지 않는 종목을 추가할 수 없다")
+	@Test
+	void addPortfolioStockWithNotExistStock() {
+		// given
+		Member member = memberRepository.save(createMember());
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
+		Stock stock = stockRepository.save(createStock());
+		Map<String, Object> requestBodyMap = new HashMap<>();
+		requestBodyMap.put("tickerSymbol", "999999");
+		PortfolioStockCreateRequest request = ObjectMapperUtil.deserialize(ObjectMapperUtil.serialize(requestBodyMap),
+			PortfolioStockCreateRequest.class);
+
+		// when
+		Throwable throwable = catchThrowable(() -> service.addPortfolioStock(portfolio.getId(),
+			request, AuthMember.from(member)));
+
+		// then
+		assertThat(throwable).isInstanceOf(NotFoundResourceException.class)
+			.extracting("message")
+			.isEqualTo("종목을 찾을 수 없습니다");
+	}
+
+	@DisplayName("사용자는 포트폴리오의 종목을 삭제한다")
+	@Test
+	void deletePortfolioStock() {
+		// given
+		Member member = memberRepository.save(createMember());
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
+		Stock stock = stockRepository.save(createStock());
+
+		PortfolioHolding portfolioHolding = portFolioHoldingRepository.save(
+			PortfolioHolding.empty(portfolio, stock)
+		);
+
+		purchaseHistoryRepository.save(
+			PurchaseHistory.builder()
+				.purchaseDate(LocalDateTime.now())
+				.purchasePricePerShare(10000.0)
+				.numShares(1L)
+				.memo("첫구매")
+				.build()
+		);
+
+		Long portfolioHoldingId = portfolioHolding.getId();
+		// when
+		PortfolioStockDeleteResponse response = service.deletePortfolioStock(
+			portfolioHoldingId, portfolio.getId(), AuthMember.from(member));
+
+		// then
+		assertAll(
+			() -> assertThat(response).extracting("portfolioHoldingId").isNotNull(),
+			() -> assertThat(portFolioHoldingRepository.findById(portfolioHoldingId).isEmpty()).isTrue(),
+			() -> assertThat(purchaseHistoryRepository.findAllByPortfolioHoldingId(portfolioHoldingId)).isEmpty()
+		);
+	}
+
+	@DisplayName("사용자는 존재하지 않은 포트폴리오의 종목을 삭제할 수 없다")
+	@Test
+	void deletePortfolioStockWithNotExistPortfolioStockId() {
+		// given
+		Member member = memberRepository.save(createMember());
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
+		Long portfolioStockId = 9999L;
+
+		// when
+		Throwable throwable = catchThrowable(() -> service.deletePortfolioStock(
+			portfolioStockId, portfolio.getId(), AuthMember.from(member)));
+
+		// then
+		assertThat(throwable).isInstanceOf(NotFoundResourceException.class).extracting("message")
+			.isEqualTo("포트폴리오 종목이 존재하지 않습니다");
 	}
 
 	private static Member createMember() {
