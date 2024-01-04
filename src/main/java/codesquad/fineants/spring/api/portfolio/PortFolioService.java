@@ -25,6 +25,7 @@ import codesquad.fineants.spring.api.errors.exception.ConflictException;
 import codesquad.fineants.spring.api.errors.exception.ForBiddenException;
 import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
+import codesquad.fineants.spring.api.portfolio.manager.PortfolioPropertiesManager;
 import codesquad.fineants.spring.api.portfolio.request.PortfolioCreateRequest;
 import codesquad.fineants.spring.api.portfolio.request.PortfolioModifyRequest;
 import codesquad.fineants.spring.api.portfolio.request.PortfoliosDeleteRequest;
@@ -46,11 +47,13 @@ public class PortFolioService {
 	private final PurchaseHistoryRepository purchaseHistoryRepository;
 	private final PortfolioGainHistoryRepository portfolioGainHistoryRepository;
 	private final CurrentPriceManager currentPriceManager;
+	private final PortfolioPropertiesManager portfolioPropertiesManager;
 
 	@Transactional
 	public PortFolioCreateResponse addPortFolio(PortfolioCreateRequest request, AuthMember authMember) {
 		validateTargetGainIsEqualLessThanBudget(request.getTargetGain(), request.getBudget());
 		validateMaximumLossIsEqualGraterThanBudget(request.getMaximumLoss(), request.getBudget());
+		validateSecuritiesFirm(request.getSecuritiesFirm());
 
 		Member member = findMember(authMember.getMemberId());
 
@@ -73,6 +76,12 @@ public class PortFolioService {
 	private void validateMaximumLossIsEqualGraterThanBudget(Long maximumLoss, Long budget) {
 		if (maximumLoss >= budget) {
 			throw new BadRequestException(PortfolioErrorCode.MAXIMUM_LOSS_IS_EQUAL_GREATER_THAN_BUDGET);
+		}
+	}
+
+	private void validateSecuritiesFirm(String securitiesFirm) {
+		if (!portfolioPropertiesManager.contains(securitiesFirm)) {
+			throw new BadRequestException(PortfolioErrorCode.SECURITIES_FIRM_IS_NOT_CONTAINS);
 		}
 	}
 
