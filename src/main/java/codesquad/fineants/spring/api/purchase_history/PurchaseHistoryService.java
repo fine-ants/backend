@@ -40,17 +40,6 @@ public class PurchaseHistoryService {
 		return PurchaseHistoryCreateResponse.from(newPurchaseHistory);
 	}
 
-	private PortfolioHolding findPortfolioHolding(Long portfolioHoldingId) {
-		return portFolioHoldingRepository.findById(portfolioHoldingId)
-			.orElseThrow(() -> new NotFoundResourceException(PortfolioHoldingErrorCode.NOT_FOUND_PORTFOLIO_HOLDING));
-	}
-
-	private void validatePortfolioAuthorization(Portfolio portfolio, Long memberId) {
-		if (!portfolio.hasAuthorization(memberId)) {
-			throw new ForBiddenException(PortfolioErrorCode.NOT_HAVE_AUTHORIZATION);
-		}
-	}
-
 	@Transactional
 	public PurchaseHistoryModifyResponse modifyPurchaseHistory(PurchaseHistoryModifyRequest request,
 		Long portfolioHoldingId, Long purchaseHistoryId, AuthMember authMember) {
@@ -64,11 +53,6 @@ public class PurchaseHistoryService {
 		return PurchaseHistoryModifyResponse.from(originalPurchaseHistory.change(changePurchaseHistory));
 	}
 
-	private PurchaseHistory findPurchaseHistory(Long purchaseHistoryId) {
-		return repository.findById(purchaseHistoryId)
-			.orElseThrow(() -> new NotFoundResourceException(PurchaseHistoryErrorCode.NOT_FOUND_PURCHASE_HISTORY));
-	}
-
 	@Transactional
 	public PurchaseHistoryDeleteResponse deletePurchaseHistory(Long portfolioHoldingId, Long purchaseHistoryId) {
 		log.info("매입 내역 삭제 서비스 요청 : portfolioHoldingId={}, purchaseHistoryId={}", portfolioHoldingId,
@@ -76,5 +60,21 @@ public class PurchaseHistoryService {
 		PurchaseHistory deletePurchaseHistory = findPurchaseHistory(purchaseHistoryId);
 		repository.deleteById(purchaseHistoryId);
 		return PurchaseHistoryDeleteResponse.from(deletePurchaseHistory);
+	}
+
+	private PortfolioHolding findPortfolioHolding(Long portfolioHoldingId) {
+		return portFolioHoldingRepository.findById(portfolioHoldingId)
+			.orElseThrow(() -> new NotFoundResourceException(PortfolioHoldingErrorCode.NOT_FOUND_PORTFOLIO_HOLDING));
+	}
+
+	private PurchaseHistory findPurchaseHistory(Long purchaseHistoryId) {
+		return repository.findById(purchaseHistoryId)
+			.orElseThrow(() -> new NotFoundResourceException(PurchaseHistoryErrorCode.NOT_FOUND_PURCHASE_HISTORY));
+	}
+
+	private void validatePortfolioAuthorization(Portfolio portfolio, Long memberId) {
+		if (!portfolio.hasAuthorization(memberId)) {
+			throw new ForBiddenException(PortfolioErrorCode.NOT_HAVE_AUTHORIZATION);
+		}
 	}
 }
