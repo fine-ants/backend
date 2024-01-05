@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
-import codesquad.fineants.spring.api.errors.errorcode.FileMakerErrorCode;
+import codesquad.fineants.spring.api.errors.errorcode.FileErrorCode;
 import codesquad.fineants.spring.api.errors.exception.ServerInternalException;
 import codesquad.fineants.spring.api.stock.response.StockDataResponse;
 
@@ -37,7 +37,7 @@ public class StockFileUtil {
 			}
 			writer.close();
 		} catch (IOException e) {
-			throw new ServerInternalException(FileMakerErrorCode.FAIL_FILE_MAKING);
+			throw new ServerInternalException(FileErrorCode.FAIL_FILE_MAKING);
 		}
 	}
 
@@ -53,7 +53,7 @@ public class StockFileUtil {
 				.map(parts -> StockDataResponse.StockInfo.of(parts[0], parts[1], parts[2], parts[3], parts[4]))
 				.collect(Collectors.toSet());
 		} catch (IOException e) {
-			throw new ServerInternalException(FileMakerErrorCode.FAIL_FILE_READ);
+			throw new ServerInternalException(FileErrorCode.FAIL_FILE_READ);
 		}
 	}
 }

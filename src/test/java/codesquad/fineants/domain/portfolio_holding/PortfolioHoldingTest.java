@@ -237,7 +237,7 @@ class PortfolioHoldingTest {
 			.stockCode("KR7005930003")
 			.companyName("삼성전자보통주")
 			.companyNameEng("SamsungElectronics")
-			.market(Market.KOSPI.getName())
+			.market(Market.KOSPI)
 			.build();
 	}
 
