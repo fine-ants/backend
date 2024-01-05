@@ -79,6 +79,52 @@ class PortfolioStockRestControllerTest {
 	@MockBean
 	private SseEmitterManager manager;
 
+	private static Member createMember() {
+		return Member.builder()
+			.id(1L)
+			.nickname("일개미1234")
+			.email("kim1234@gmail.com")
+			.provider("local")
+			.password("kim1234@")
+			.profileUrl("profileValue")
+			.build();
+	}
+
+	private static Portfolio createPortfolio(Member member) {
+		return Portfolio.builder()
+			.id(1L)
+			.name("내꿈은 워렌버핏")
+			.securitiesFirm("토스")
+			.budget(1000000L)
+			.targetGain(1500000L)
+			.maximumLoss(900000L)
+			.member(member)
+			.build();
+	}
+
+	private static PortfolioHolding createPortfolioHolding(Portfolio portfolio, Stock stock) {
+		return PortfolioHolding.builder()
+			.id(1L)
+			.portfolio(portfolio)
+			.stock(stock)
+			.currentPrice(60000L)
+			.build();
+	}
+
+	private static PurchaseHistory createPurchaseHistory(PortfolioHolding portfolioHolding) {
+		return PurchaseHistory.builder()
+			.purchaseDate(LocalDateTime.of(2023, 11, 1, 9, 30, 0))
+			.numShares(3L)
+			.purchasePricePerShare(50000.0)
+			.memo("첫구매")
+			.portfolioHolding(portfolioHolding)
+			.build();
+	}
+
+	private static PortfolioGainHistory createEmptyPortfolioGainHistory() {
+		return PortfolioGainHistory.empty();
+	}
+
 	@BeforeEach
 	void setup() {
 		mockMvc = MockMvcBuilders.standaloneSetup(portfolioStockRestController)
@@ -153,53 +199,7 @@ class PortfolioStockRestControllerTest {
 			.companyName("삼성전자보통주")
 			.companyNameEng("SamsungElectronics")
 			.stockCode("KR7005930003")
-			.market(Market.KOSPI)
+			.market(Market.KOSPI.getName())
 			.build();
-	}
-
-	private static Member createMember() {
-		return Member.builder()
-			.id(1L)
-			.nickname("일개미1234")
-			.email("kim1234@gmail.com")
-			.provider("local")
-			.password("kim1234@")
-			.profileUrl("profileValue")
-			.build();
-	}
-
-	private static Portfolio createPortfolio(Member member) {
-		return Portfolio.builder()
-			.id(1L)
-			.name("내꿈은 워렌버핏")
-			.securitiesFirm("토스")
-			.budget(1000000L)
-			.targetGain(1500000L)
-			.maximumLoss(900000L)
-			.member(member)
-			.build();
-	}
-
-	private static PortfolioHolding createPortfolioHolding(Portfolio portfolio, Stock stock) {
-		return PortfolioHolding.builder()
-			.id(1L)
-			.portfolio(portfolio)
-			.stock(stock)
-			.currentPrice(60000L)
-			.build();
-	}
-
-	private static PurchaseHistory createPurchaseHistory(PortfolioHolding portfolioHolding) {
-		return PurchaseHistory.builder()
-			.purchaseDate(LocalDateTime.of(2023, 11, 1, 9, 30, 0))
-			.numShares(3L)
-			.purchasePricePerShare(50000.0)
-			.memo("첫구매")
-			.portfolioHolding(portfolioHolding)
-			.build();
-	}
-
-	private static PortfolioGainHistory createEmptyPortfolioGainHistory() {
-		return PortfolioGainHistory.empty();
 	}
 }

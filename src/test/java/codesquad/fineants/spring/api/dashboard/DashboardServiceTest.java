@@ -92,7 +92,7 @@ public class DashboardServiceTest {
 			.tickerSymbol("005930")
 			.companyNameEng("SamsungElectronics")
 			.stockCode("KR7005930003")
-			.market(Market.KOSPI)
+			.market(Market.KOSPI.getName())
 			.build());
 
 		PortfolioHolding portfolioHolding = portfolioHoldingRepository.save(
@@ -144,7 +144,7 @@ public class DashboardServiceTest {
 			.tickerSymbol("005930")
 			.companyNameEng("SamsungElectronics")
 			.stockCode("KR7005930003")
-			.market(Market.KOSPI)
+			.market(Market.KOSPI.name())
 			.build());
 
 		PortfolioHolding portfolioHolding = portfolioHoldingRepository.save(

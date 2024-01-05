@@ -73,6 +73,56 @@ class PortfolioStockServiceTest {
 	@Autowired
 	private LastDayClosingPriceManager lastDayClosingPriceManager;
 
+	private static Member createMember() {
+		return Member.builder()
+			.nickname("일개미1234")
+			.email("kim1234@gmail.com")
+			.password("kim1234@")
+			.provider("local")
+			.build();
+	}
+
+	private static Portfolio createPortfolio(Member member) {
+		return Portfolio.builder()
+			.name("내꿈은 워렌버핏")
+			.securitiesFirm("토스")
+			.budget(1000000L)
+			.targetGain(1500000L)
+			.maximumLoss(900000L)
+			.member(member)
+			.targetGainIsActive(false)
+			.maximumIsActive(false)
+			.build();
+	}
+
+	private static Stock createStock() {
+		return Stock.builder()
+			.companyName("삼성전자보통주")
+			.tickerSymbol("005930")
+			.companyNameEng("SamsungElectronics")
+			.stockCode("KR7005930003")
+			.sector("전기전자")
+			.market(Market.KOSPI.getName())
+			.build();
+	}
+
+	private static PortfolioHolding createPortfolioHolding(Portfolio portfolio, Stock stock) {
+		return PortfolioHolding.builder()
+			.portfolio(portfolio)
+			.stock(stock)
+			.build();
+	}
+
+	private static PurchaseHistory createPurchaseHistory(PortfolioHolding portfolioHolding) {
+		return PurchaseHistory.builder()
+			.purchaseDate(LocalDateTime.of(2023, 9, 26, 9, 30, 0))
+			.numShares(3L)
+			.purchasePricePerShare(50000.0)
+			.memo("첫구매")
+			.portfolioHolding(portfolioHolding)
+			.build();
+	}
+
 	@AfterEach
 	void tearDown() {
 		purchaseHistoryRepository.deleteAllInBatch();
@@ -228,39 +278,6 @@ class PortfolioStockServiceTest {
 		);
 	}
 
-	private static Member createMember() {
-		return Member.builder()
-			.nickname("일개미1234")
-			.email("kim1234@gmail.com")
-			.password("kim1234@")
-			.provider("local")
-			.build();
-	}
-
-	private static Portfolio createPortfolio(Member member) {
-		return Portfolio.builder()
-			.name("내꿈은 워렌버핏")
-			.securitiesFirm("토스")
-			.budget(1000000L)
-			.targetGain(1500000L)
-			.maximumLoss(900000L)
-			.member(member)
-			.targetGainIsActive(false)
-			.maximumIsActive(false)
-			.build();
-	}
-
-	private static Stock createStock() {
-		return Stock.builder()
-			.companyName("삼성전자보통주")
-			.tickerSymbol("005930")
-			.companyNameEng("SamsungElectronics")
-			.stockCode("KR7005930003")
-			.sector("전기전자")
-			.market(Market.KOSPI)
-			.build();
-	}
-
 	private StockDividend createStockDividend(LocalDate exDividendDate, LocalDate recordDate, LocalDate paymentDate,
 		Stock stock) {
 		return StockDividend.builder()
@@ -269,23 +286,6 @@ class PortfolioStockServiceTest {
 			.recordDate(recordDate)
 			.paymentDate(paymentDate)
 			.stock(stock)
-			.build();
-	}
-
-	private static PortfolioHolding createPortfolioHolding(Portfolio portfolio, Stock stock) {
-		return PortfolioHolding.builder()
-			.portfolio(portfolio)
-			.stock(stock)
-			.build();
-	}
-
-	private static PurchaseHistory createPurchaseHistory(PortfolioHolding portfolioHolding) {
-		return PurchaseHistory.builder()
-			.purchaseDate(LocalDateTime.of(2023, 9, 26, 9, 30, 0))
-			.numShares(3L)
-			.purchasePricePerShare(50000.0)
-			.memo("첫구매")
-			.portfolioHolding(portfolioHolding)
 			.build();
 	}
 

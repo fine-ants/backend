@@ -8,7 +8,8 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum FileMakerErrorCode implements ErrorCode {
-	FAIL_FILE_MAKING(HttpStatus.INTERNAL_SERVER_ERROR, "파일 생성을 실패하였습니다.");
+	FAIL_FILE_MAKING(HttpStatus.INTERNAL_SERVER_ERROR, "파일 생성을 실패하였습니다."),
+	FAIL_FILE_READ(HttpStatus.INTERNAL_SERVER_ERROR, "파일 읽기에 실패하였습니다.");
 	private final HttpStatus httpStatus;
 	private final String message;
 

@@ -2,14 +2,13 @@ package codesquad.fineants.domain.stock;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
@@ -31,27 +30,28 @@ import lombok.ToString;
 @Entity
 public class Stock extends BaseEntity {
 
+	@OneToMany(mappedBy = "stock", fetch = FetchType.LAZY)
+	private final List<StockDividend> stockDividends = new ArrayList<>();
 	@Id
 	private String tickerSymbol;
 	private String companyName;
 	private String companyNameEng;
 	private String stockCode;
 	private String sector;
-	@Enumerated(value = EnumType.STRING)
 	private Market market;
-
-	@OneToMany(mappedBy = "stock", fetch = FetchType.LAZY)
-	private final List<StockDividend> stockDividends = new ArrayList<>();
 
 	@Builder
 	public Stock(String tickerSymbol, String companyName, String companyNameEng, String stockCode, String sector,
-		Market market) {
+		String market) {
 		this.tickerSymbol = tickerSymbol;
 		this.companyName = companyName;
 		this.companyNameEng = companyNameEng;
 		this.stockCode = stockCode;
 		this.sector = sector;
-		this.market = market;
+		this.market = Arrays.stream(Market.values())
+			.filter(v -> v.name().equals(market))
+			.findFirst()
+			.orElse(null);
 	}
 
 	public void addStockDividend(StockDividend stockDividend) {

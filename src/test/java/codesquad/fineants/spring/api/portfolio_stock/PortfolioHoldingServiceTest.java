@@ -95,7 +95,7 @@ class PortfolioHoldingServiceTest {
 			.tickerSymbol("005930")
 			.companyNameEng("SamsungElectronics")
 			.stockCode("KR7005930003")
-			.market(Market.KOSPI)
+			.market(Market.KOSPI.getName())
 			.build();
 		this.stock = stockRepository.save(stock);
 	}

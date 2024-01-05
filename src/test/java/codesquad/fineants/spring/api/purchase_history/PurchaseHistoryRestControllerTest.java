@@ -115,7 +115,7 @@ class PurchaseHistoryRestControllerTest {
 			.companyName("삼성전자보통주")
 			.companyNameEng("SamsungElectronics")
 			.stockCode("KR7005930003")
-			.market(Market.KOSPI)
+			.market(Market.KOSPI.getName())
 			.build();
 
 		portfolioHolding = PortfolioHolding.builder()

@@ -171,7 +171,7 @@ class PortfolioEventPublisherTest {
 			.companyNameEng("SamsungElectronics")
 			.stockCode("KR7005930003")
 			.sector("전기전자")
-			.market(Market.KOSPI)
+			.market(Market.KOSPI.getName())
 			.build();
 	}
 

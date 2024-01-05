@@ -4,27 +4,37 @@ import static org.springframework.http.HttpHeaders.*;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
+import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
+import codesquad.fineants.domain.portfolio_holding.PortfolioHoldingRepository;
+import codesquad.fineants.domain.purchase_history.PurchaseHistoryRepository;
 import codesquad.fineants.domain.stock.StockRepository;
+import codesquad.fineants.domain.stock_dividend.StockDividendRepository;
 import codesquad.fineants.spring.api.member.service.WebClientWrapper;
 import codesquad.fineants.spring.api.stock.request.StockSearchRequest;
 import codesquad.fineants.spring.api.stock.response.StockDataResponse;
 import codesquad.fineants.spring.api.stock.response.StockSearchItem;
-import codesquad.fineants.spring.util.FileMaker;
 import codesquad.fineants.spring.util.ObjectMapperUtil;
+import codesquad.fineants.spring.util.StockFileUtil;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @Service
 public class StockService {
 	private final StockRepository stockRepository;
+	private final PortfolioHoldingRepository portfolioHoldingRepository;
+	private final PurchaseHistoryRepository purchaseHistoryRepository;
+	private final StockDividendRepository stockDividendRepository;
 	private final WebClientWrapper webClient;
 
 	public List<StockSearchItem> search(StockSearchRequest request) {
@@ -34,12 +44,27 @@ public class StockService {
 			.collect(Collectors.toList());
 	}
 
-	@Scheduled(fixedRate = 100000L, initialDelay = 5000L)
+	@Scheduled(cron = "0 0 * * * ?")
+	@Transactional
 	public void refreshStockFile() {
 		String requestUri = "http://data.krx.co.kr/comm/bldAttendant/getJsonData.cmd";
 		String responseText = webClient.post(requestUri, createHeader(), createBody(), String.class);
-		StockDataResponse response = ObjectMapperUtil.deserialize(responseText, StockDataResponse.class);
-		FileMaker.convertToTsv(response.getStockInfos());
+		Set<StockDataResponse.StockInfo> response = ObjectMapperUtil.deserialize(responseText, StockDataResponse.class)
+			.getStockInfos();
+		Set<StockDataResponse.StockInfo> initialStockInfos = StockFileUtil.readStockFile();
+		initialStockInfos.removeAll(response);
+		for (StockDataResponse.StockInfo stockInfo : initialStockInfos) {
+			Optional<PortfolioHolding> portfolioHolding = portfolioHoldingRepository.findByTickerSymbol(
+				stockInfo.getTickerSymbol());
+			if (portfolioHolding.isPresent()) {
+				purchaseHistoryRepository.deleteByPortfolioHoldingId(portfolioHolding.get().getId());
+				portfolioHoldingRepository.deleteById(portfolioHolding.get().getId());
+			}
+			stockDividendRepository.deleteByTickerSymbol(stockInfo.getTickerSymbol());
+			stockRepository.deleteByTickerSymbol(stockInfo.getTickerSymbol());
+		}
+		StockFileUtil.convertToTsvFile(response);
+
 		System.out.println(0);
 	}
 

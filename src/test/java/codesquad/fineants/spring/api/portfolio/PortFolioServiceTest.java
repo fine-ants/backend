@@ -75,6 +75,20 @@ class PortFolioServiceTest {
 	@Autowired
 	private StockRepository stockRepository;
 
+	private static Stream<Arguments> provideInvalidTargetGain() {
+		return Stream.of(
+			Arguments.of(900000L),
+			Arguments.of(1000000L)
+		);
+	}
+
+	private static Stream<Arguments> provideInvalidMaximumLoss() {
+		return Stream.of(
+			Arguments.of(1000000L),
+			Arguments.of(1100000L)
+		);
+	}
+
 	@AfterEach
 	void tearDown() {
 		purchaseHistoryRepository.deleteAllInBatch();
@@ -340,7 +354,7 @@ class PortFolioServiceTest {
 			.companyNameEng("SamsungElectronics")
 			.stockCode("KR7005930003")
 			.sector("전기전자")
-			.market(Market.KOSPI)
+			.market(Market.KOSPI.getName())
 			.build();
 	}
 
@@ -370,19 +384,5 @@ class PortFolioServiceTest {
 			.memo("첫구매")
 			.portfolioHolding(portfolioHolding)
 			.build();
-	}
-
-	private static Stream<Arguments> provideInvalidTargetGain() {
-		return Stream.of(
-			Arguments.of(900000L),
-			Arguments.of(1000000L)
-		);
-	}
-
-	private static Stream<Arguments> provideInvalidMaximumLoss() {
-		return Stream.of(
-			Arguments.of(1000000L),
-			Arguments.of(1100000L)
-		);
 	}
 }

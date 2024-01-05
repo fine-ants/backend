@@ -1,9 +1,11 @@
 package codesquad.fineants.domain.portfolio_holding;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import codesquad.fineants.domain.portfolio.Portfolio;
 
@@ -15,4 +17,10 @@ public interface PortfolioHoldingRepository extends JpaRepository<PortfolioHoldi
 
 	@Query("select distinct s.tickerSymbol from PortfolioHolding p inner join Stock s on p.stock.tickerSymbol = s.tickerSymbol")
 	List<String> findAllTickerSymbol();
+
+	@Query("DELETE FROM PortfolioHolding p WHERE p.stock.tickerSymbol = :tickerSymbol")
+	void deleteByTickerSymbol(@Param("tickerSymbol") String tickerSymbol);
+
+	@Query("SELECT p FROM PortfolioHolding p WHERE p.stock.tickerSymbol = :tickerSymbol")
+	Optional<PortfolioHolding> findByTickerSymbol(@Param("tickerSymbol") String tickerSymbol);
 }
