@@ -318,4 +318,5 @@ public class Portfolio extends BaseEntity {
 	public boolean isSameName(Portfolio changePortfolio) {
 		return this.name.equals(changePortfolio.name);
 	}
+
 }

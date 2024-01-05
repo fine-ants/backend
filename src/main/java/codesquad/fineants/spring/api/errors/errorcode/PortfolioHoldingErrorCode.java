@@ -9,7 +9,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum PortfolioHoldingErrorCode implements ErrorCode {
 
-	NOT_FOUND_PORTFOLIO_HOLDING(HttpStatus.NOT_FOUND, "포트폴리오 종목이 존재하지 않습니다");
+	NOT_FOUND_PORTFOLIO_HOLDING(HttpStatus.NOT_FOUND, "포트폴리오 종목이 존재하지 않습니다"),
+	FORBIDDEN_PORTFOLIO_HOLDING(HttpStatus.FORBIDDEN, "해당 포트폴리오 종목들에 대한 권한이 없습니다");
 
 	private final HttpStatus httpStatus;
 	private final String message;

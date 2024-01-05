@@ -17,6 +17,7 @@ import codesquad.fineants.domain.stock.StockRepository;
 import codesquad.fineants.spring.api.errors.errorcode.PortfolioErrorCode;
 import codesquad.fineants.spring.api.errors.errorcode.PortfolioHoldingErrorCode;
 import codesquad.fineants.spring.api.errors.errorcode.StockErrorCode;
+import codesquad.fineants.spring.api.errors.exception.ForBiddenException;
 import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
 import codesquad.fineants.spring.api.portfolio_stock.chart.DividendChart;
 import codesquad.fineants.spring.api.portfolio_stock.chart.PieChart;
@@ -25,6 +26,7 @@ import codesquad.fineants.spring.api.portfolio_stock.event.publisher.PortfolioHo
 import codesquad.fineants.spring.api.portfolio_stock.factory.PortfolioDetailFactory;
 import codesquad.fineants.spring.api.portfolio_stock.factory.PortfolioHoldingDetailFactory;
 import codesquad.fineants.spring.api.portfolio_stock.request.PortfolioStockCreateRequest;
+import codesquad.fineants.spring.api.portfolio_stock.request.PortfolioStocksDeleteRequest;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioChartResponse;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioDetailRealTimeItem;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioDetailResponse;
@@ -37,6 +39,7 @@ import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioPieChartI
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioSectorChartItem;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioStockCreateResponse;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioStockDeleteResponse;
+import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioStockDeletesResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -92,6 +95,40 @@ public class PortfolioStockService {
 		return new PortfolioStockDeleteResponse(portfolioHoldingId);
 	}
 
+	@Transactional
+	public PortfolioStockDeletesResponse deletePortfolioStocks(Long portfolioId, AuthMember authMember,
+		PortfolioStocksDeleteRequest request) {
+		log.info("포트폴리오 종목 다수 삭제 서비스 : portfolioId={}, authMember={}, request={}", portfolioId, authMember, request);
+
+		List<Long> portfolioHoldingIds = request.getPortfolioHoldingIds();
+		validateExistPortfolioHolding(portfolioHoldingIds);
+		validateHasAuthorization(portfolioHoldingIds, authMember.getMemberId());
+
+		purchaseHistoryRepository.deleteAllByPortfolioHoldingIdIn(portfolioHoldingIds);
+		try {
+			portfolioHoldingRepository.deleteAllByIdIn(portfolioHoldingIds);
+		} catch (EmptyResultDataAccessException e) {
+			throw new NotFoundResourceException(PortfolioHoldingErrorCode.NOT_FOUND_PORTFOLIO_HOLDING);
+		}
+		return new PortfolioStockDeletesResponse(portfolioHoldingIds);
+	}
+
+	private void validateExistPortfolioHolding(List<Long> portfolioHoldingIds) {
+		portfolioHoldingIds.stream()
+			.filter(portfolioHoldingId -> !portfolioHoldingRepository.existsById(portfolioHoldingId))
+			.forEach(portfolioHoldingId -> {
+				throw new NotFoundResourceException(PortfolioHoldingErrorCode.NOT_FOUND_PORTFOLIO_HOLDING);
+			});
+	}
+
+	private void validateHasAuthorization(List<Long> portfolioHoldingIds, Long memberId) {
+		for (Long portfolioHoldingId : portfolioHoldingIds) {
+			if (!portfolioHoldingRepository.existsByIdAndMemberId(portfolioHoldingId, memberId)) {
+				throw new ForBiddenException(PortfolioHoldingErrorCode.FORBIDDEN_PORTFOLIO_HOLDING);
+			}
+		}
+	}
+
 	public PortfolioHoldingsResponse readMyPortfolioStocks(Long portfolioId) {
 		Portfolio portfolio = findPortfolio(portfolioId);
 		PortfolioDetailResponse portfolioDetail = portfolioDetailFactory.createPortfolioDetailItem(portfolio);
@@ -116,4 +153,5 @@ public class PortfolioStockService {
 		List<PortfolioSectorChartItem> sectorChartItems = sectorChart.createBy(portfolio);
 		return new PortfolioChartResponse(pieChartItems, dividendChartItems, sectorChartItems);
 	}
+
 }

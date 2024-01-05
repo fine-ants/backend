@@ -19,6 +19,7 @@ import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.oauth.support.AuthPrincipalMember;
 import codesquad.fineants.spring.api.portfolio_stock.manager.SseEmitterManager;
 import codesquad.fineants.spring.api.portfolio_stock.request.PortfolioStockCreateRequest;
+import codesquad.fineants.spring.api.portfolio_stock.request.PortfolioStocksDeleteRequest;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioChartResponse;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioHoldingsResponse;
 import codesquad.fineants.spring.api.portfolio_stock.service.PortfolioStockService;
@@ -54,6 +55,15 @@ public class PortfolioStockRestController {
 		@PathVariable Long portfolioHoldingId) {
 		portfolioStockService.deletePortfolioStock(portfolioHoldingId, portfolioId, authMember);
 		return ApiResponse.success(PortfolioStockSuccessCode.OK_DELETE_PORTFOLIO_STOCK);
+	}
+
+	@HasPortfolioAuthorization
+	@DeleteMapping("/holdings")
+	public ApiResponse<Void> deletePortfolioStocks(@PathVariable Long portfolioId,
+		@AuthPrincipalMember AuthMember authMember,
+		@Valid @RequestBody PortfolioStocksDeleteRequest request) {
+		portfolioStockService.deletePortfolioStocks(portfolioId, authMember, request);
+		return ApiResponse.success(PortfolioStockSuccessCode.OK_DELETE_PORTFOLIO_STOCKS);
 	}
 
 	@HasPortfolioAuthorization
