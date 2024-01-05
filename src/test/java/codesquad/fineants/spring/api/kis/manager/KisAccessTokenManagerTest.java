@@ -3,11 +3,11 @@ package codesquad.fineants.spring.api.kis.manager;
 import static org.assertj.core.api.Assertions.*;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
+import codesquad.fineants.spring.api.kis.client.KisAccessToken;
 
 class KisAccessTokenManagerTest {
 
@@ -15,12 +15,9 @@ class KisAccessTokenManagerTest {
 	@Test
 	void isAccessTokenExpired() {
 		// given
-		Map<String, Object> map = new HashMap<>();
-		map.put("access_token", "accessTokenValue");
-		map.put("token_type", "Bearer");
-		map.put("access_token_token_expired", "2023-12-23 14:08:26");
-		map.put("expires_in", 86400);
-		KisAccessTokenManager manager = KisAccessTokenManager.from(map);
+		KisAccessToken accessToken = new KisAccessToken("accessTokenValue", "Bearer",
+			LocalDateTime.of(2023, 12, 23, 14, 8, 26), 86400);
+		KisAccessTokenManager manager = new KisAccessTokenManager(accessToken);
 		LocalDateTime now = LocalDateTime.of(2023, 12, 22, 15, 0, 0);
 
 		// when
