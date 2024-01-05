@@ -157,6 +157,7 @@ public class PortFolioService {
 				.collect(Collectors.toList());
 			purchaseHistoryRepository.deleteAllByPortfolioHoldingIdIn(portfolioStockIds);
 			portfolioHoldingRepository.deleteAllByPortfolioId(portfolio.getId());
+			portfolioGainHistoryRepository.deleteAllByPortfolioId(portfolioId);
 			portfolioRepository.deleteById(portfolio.getId());
 		}
 	}

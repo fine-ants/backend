@@ -408,9 +408,11 @@ class PortFolioServiceTest {
 		PortfolioHolding portfolioHolding = portFolioHoldingRepository.save(createPortfolioHolding(portfolio, stock));
 		PurchaseHistory purchaseHistory1 = purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding));
 		PurchaseHistory purchaseHistory2 = purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding));
+		PortfolioGainHistory portfolioGainHistory = portfolioGainHistoryRepository.save(createPortfolioGainHistory(portfolio));
 		Portfolio portfolio2 = portfolioRepository.save(createPortfolioWithRandomName(member));
 
 		PortfoliosDeleteRequest request = new PortfoliosDeleteRequest(List.of(portfolio.getId(), portfolio2.getId()));
+
 		// when
 		service.deletePortfolios(request, AuthMember.from(member));
 
@@ -419,6 +421,7 @@ class PortFolioServiceTest {
 		assertThat(portFolioHoldingRepository.existsById(portfolioHolding.getId())).isFalse();
 		assertThat(purchaseHistoryRepository.existsById(purchaseHistory1.getId())).isFalse();
 		assertThat(purchaseHistoryRepository.existsById(purchaseHistory2.getId())).isFalse();
+		assertThat(portfolioGainHistoryRepository.existsById(portfolioGainHistory.getId())).isFalse();
 		assertThat(portfolioRepository.existsById(portfolio2.getId())).isFalse();
 	}
 
