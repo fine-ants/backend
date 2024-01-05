@@ -63,17 +63,19 @@ public class KisClient {
 			.flatMap(body -> Mono.error(() -> new KisException(body)));
 	}
 
-	public Map<String, Object> accessToken() {
+	public Mono<KisAccessToken> accessToken() {
 		Map<String, String> requestBodyMap = new HashMap<>();
 		requestBodyMap.put("grant_type", "client_credentials");
 		requestBodyMap.put("appkey", appkey);
 		requestBodyMap.put("appsecret", secretkey);
 
-		return postPerform(
-			tokenPURI,
-			new LinkedMultiValueMap<>(),
-			requestBodyMap
-		);
+		return webClient.build()
+			.post()
+			.uri(tokenPURI)
+			.bodyValue(requestBodyMap)
+			.retrieve()
+			.bodyToMono(KisAccessToken.class);
+		// return postPerform(tokenPURI, new LinkedMultiValueMap<>(), requestBodyMap);
 	}
 
 	public long readRealTimeCurrentPrice(String tickerSymbol, String authorization) {
