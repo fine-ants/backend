@@ -1,13 +1,18 @@
 package codesquad.fineants.domain.stock;
 
-import lombok.Getter;
+import java.util.Arrays;
 
-@Getter
+import codesquad.fineants.spring.api.errors.errorcode.StockErrorCode;
+import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
+
 public enum Market {
-	KOSPI("KOSPI"), KOSDAQ("KOSDAQ"), KONEX("KONEX"), KOSDAQ_GLOBAL("KOSDAQ GLOBAL");
-	private final String name;
+	KOSPI, KOSDAQ, KONEX, KOSDAQ_GLOBAL;
 
-	Market(String name) {
-		this.name = name;
+	public static Market ofMarket(String dbData) {
+		return Arrays.stream(values())
+			.filter(market -> market.name().equals(dbData))
+			.findAny()
+			.orElseThrow(() -> new NotFoundResourceException(StockErrorCode.NOT_FOUND_MARKET,
+				String.format("%s 종류는 찾을 수 없습니다", dbData)));
 	}
 }
