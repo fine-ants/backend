@@ -10,19 +10,12 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class ReadWatchListsResponse {
-	private List<WatchListResponse> watchLists;
+	private Long id;
+	private String name;
 
-	@Getter
-	@AllArgsConstructor
-	public static class WatchListResponse {
-		private Long id;
-		private String name;
-	}
-
-	public static ReadWatchListsResponse from(List<WatchList> watchLists) {
-		List<WatchListResponse> responses = watchLists.stream()
-			.map(watchList -> new WatchListResponse(watchList.getId(), watchList.getName()))
+	public static List<ReadWatchListsResponse> from(List<WatchList> watchLists) {
+		return watchLists.stream()
+			.map(watchList -> new ReadWatchListsResponse(watchList.getId(), watchList.getName()))
 			.collect(Collectors.toList());
-		return new ReadWatchListsResponse(responses);
 	}
 }

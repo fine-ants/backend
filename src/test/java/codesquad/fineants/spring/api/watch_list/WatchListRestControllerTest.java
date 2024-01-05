@@ -124,11 +124,9 @@ class WatchListRestControllerTest {
 		given(authPrincipalArgumentResolver.supportsParameter(any())).willReturn(true);
 		given(authPrincipalArgumentResolver.resolveArgument(any(), any(), any(), any())).willReturn(authMember);
 
-		ReadWatchListsResponse response = new ReadWatchListsResponse(
-			Arrays.asList(
-				new ReadWatchListsResponse.WatchListResponse(1L, "My WatchList 1"),
-				new ReadWatchListsResponse.WatchListResponse(2L, "My WatchList 2")
-			)
+		List<ReadWatchListsResponse> response = Arrays.asList(
+			new ReadWatchListsResponse(1L, "My WatchList 1"),
+			new ReadWatchListsResponse(2L, "My WatchList 2")
 		);
 		given(watchListService.readWatchLists(any(AuthMember.class))).willReturn(response);
 
@@ -139,10 +137,10 @@ class WatchListRestControllerTest {
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
 			.andExpect(jsonPath("message").value(equalTo("관심목록 목록 조회가 완료되었습니다")))
-			.andExpect(jsonPath("data.watchLists[0].id").value(1L))
-			.andExpect(jsonPath("data.watchLists[0].name").value("My WatchList 1"))
-			.andExpect(jsonPath("data.watchLists[1].id").value(2L))
-			.andExpect(jsonPath("data.watchLists[1].name").value("My WatchList 2"));
+			.andExpect(jsonPath("data[0].id").value(1L))
+			.andExpect(jsonPath("data[0].name").value("My WatchList 1"))
+			.andExpect(jsonPath("data[1].id").value(2L))
+			.andExpect(jsonPath("data[1].name").value("My WatchList 2"));
 	}
 
 	@DisplayName("사용자가 watchlist 단일 조회를 한다.")
