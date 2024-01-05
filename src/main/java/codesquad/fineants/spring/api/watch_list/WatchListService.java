@@ -1,5 +1,9 @@
 package codesquad.fineants.spring.api.watch_list;
 
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,12 +19,15 @@ import codesquad.fineants.domain.watch_stock.WatchStockRepository;
 import codesquad.fineants.spring.api.errors.errorcode.MemberErrorCode;
 import codesquad.fineants.spring.api.errors.errorcode.StockErrorCode;
 import codesquad.fineants.spring.api.errors.errorcode.WatchListErrorCode;
-import codesquad.fineants.spring.api.errors.exception.BadRequestException;
 import codesquad.fineants.spring.api.errors.exception.ForBiddenException;
 import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
+import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
+import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
 import codesquad.fineants.spring.api.watch_list.request.CreateWatchListRequest;
 import codesquad.fineants.spring.api.watch_list.request.CreateWatchStockRequest;
 import codesquad.fineants.spring.api.watch_list.response.CreateWatchListResponse;
+import codesquad.fineants.spring.api.watch_list.response.ReadWatchListResponse;
+import codesquad.fineants.spring.api.watch_list.response.ReadWatchListsResponse;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -31,6 +38,8 @@ public class WatchListService {
 	private final MemberRepository memberRepository;
 	private final StockRepository stockRepository;
 	private final WatchStockRepository watchStockRepository;
+	private final CurrentPriceManager currentPriceManager;
+	private final LastDayClosingPriceManager lastDayClosingPriceManager;
 
 	@Transactional
 	public CreateWatchListResponse createWatchList(AuthMember authMember, CreateWatchListRequest request) {
@@ -41,6 +50,39 @@ public class WatchListService {
 			.build();
 		watchList = watchListRepository.save(watchList);
 		return new CreateWatchListResponse(watchList.getId());
+	}
+
+	@Transactional(readOnly = true)
+	public ReadWatchListsResponse readWatchLists(AuthMember authMember) {
+		Member member = findMember(authMember.getMemberId());
+		List<WatchList> watchLists = watchListRepository.findByMember(member);
+		return ReadWatchListsResponse.from(watchLists);
+	}
+
+	@Transactional(readOnly = true)
+	public List<ReadWatchListResponse> readWatchList(AuthMember authMember, Long watchListId) {
+		Member member = findMember(authMember.getMemberId());
+		WatchList watchList = watchListRepository.findById(watchListId)
+			.orElseThrow(() -> new NotFoundResourceException(WatchListErrorCode.NOT_FOUND_WATCH_LIST));
+
+		validateWatchListAuthorization(member.getId(), watchList.getMember().getId());
+
+		List<WatchStock> watchStocks = watchStockRepository.findWithStockAndDividendsByWatchList(watchList);
+
+		return watchStocks.stream()
+			.map(watchStock -> ReadWatchListResponse.from(watchStock, currentPriceManager, lastDayClosingPriceManager))
+			.collect(Collectors.toList());
+	}
+
+	@Transactional
+	public void deleteWatchList(AuthMember authMember, Long watchListId) {
+		Member member = findMember(authMember.getMemberId());
+
+		Optional<WatchList> watchList = watchListRepository.findById(watchListId);
+		if(watchList.isPresent()){
+			validateWatchListAuthorization(member.getId(), watchList.get().getMember().getId());
+			watchListRepository.deleteById(watchListId);
+		}
 	}
 
 	@Transactional
@@ -59,15 +101,6 @@ public class WatchListService {
 			.stock(stock)
 			.build();
 		watchStockRepository.save(watchStock);
-	}
-
-	@Transactional
-	public void deleteWatchList(AuthMember authMember, Long watchListId) {
-		Member member = findMember(authMember.getMemberId());
-
-		validateWatchListAuthorization(member.getId(), watchListId);
-
-		watchListRepository.deleteById(watchListId);
 	}
 
 	@Transactional
@@ -90,8 +123,8 @@ public class WatchListService {
 			.orElseThrow(() -> new NotFoundResourceException(MemberErrorCode.NOT_FOUND_MEMBER));
 	}
 
-	private void validateWatchListAuthorization(Long memberId, Long watchListId){
-		if (!memberId.equals(watchListId)) {
+	private void validateWatchListAuthorization(Long memberId, Long watchListMemberId){
+		if (!memberId.equals(watchListMemberId)) {
 			throw new ForBiddenException(WatchListErrorCode.FORBIDDEN);
 		}
 	}

@@ -12,7 +12,7 @@ import codesquad.fineants.domain.purchase_history.PurchaseHistoryRepository;
 import codesquad.fineants.spring.api.errors.errorcode.PortfolioErrorCode;
 import codesquad.fineants.spring.api.errors.errorcode.PortfolioHoldingErrorCode;
 import codesquad.fineants.spring.api.errors.errorcode.PurchaseHistoryErrorCode;
-import codesquad.fineants.spring.api.errors.exception.ForBiddenException;
+import codesquad.fineants.spring.api.errors.exception.FineAntsException;
 import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
 import codesquad.fineants.spring.api.purchase_history.request.PurchaseHistoryCreateRequest;
 import codesquad.fineants.spring.api.purchase_history.request.PurchaseHistoryModifyRequest;
@@ -28,27 +28,27 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 public class PurchaseHistoryService {
 	private final PurchaseHistoryRepository repository;
-	private final PortfolioHoldingRepository portFolioHoldingRepository;
+	private final PortfolioHoldingRepository portfolioHoldingRepository;
 
 	@Transactional
 	public PurchaseHistoryCreateResponse addPurchaseHistory(PurchaseHistoryCreateRequest request,
-		Long portfolioHoldingId) {
+		Long portfolioId, Long portfolioHoldingId) {
 		log.info("매입이력 추가 서비스 요청 : request={}, portfolioHoldingId={}", request, portfolioHoldingId);
+
 		PortfolioHolding portfolioHolding = findPortfolioHolding(portfolioHoldingId);
+		Portfolio portfolio = portfolioHolding.getPortfolio();
+		if (!portfolio.getId().equals(portfolioId)) {
+			throw new NotFoundResourceException(PortfolioHoldingErrorCode.NOT_FOUND_PORTFOLIO_HOLDING);
+		}
+
+		Double purchasedPrice = request.getNumShares() * request.getPurchasePricePerShare();
+		if (portfolio.calculateTotalInvestmentAmount() + purchasedPrice > portfolio.getBudget()) {
+			throw new FineAntsException(PortfolioErrorCode.TOTAL_INVESTMENT_PRICE_EXCEEDS_BUDGET);
+		}
+
 		PurchaseHistory newPurchaseHistory = repository.save(request.toEntity(portfolioHolding));
 		log.info("매입이력 저장 결과 : newPurchaseHistory={}", newPurchaseHistory);
 		return PurchaseHistoryCreateResponse.from(newPurchaseHistory);
-	}
-
-	private PortfolioHolding findPortfolioHolding(Long portfolioHoldingId) {
-		return portFolioHoldingRepository.findById(portfolioHoldingId)
-			.orElseThrow(() -> new NotFoundResourceException(PortfolioHoldingErrorCode.NOT_FOUND_PORTFOLIO_HOLDING));
-	}
-
-	private void validatePortfolioAuthorization(Portfolio portfolio, Long memberId) {
-		if (!portfolio.hasAuthorization(memberId)) {
-			throw new ForBiddenException(PortfolioErrorCode.NOT_HAVE_AUTHORIZATION);
-		}
 	}
 
 	@Transactional
@@ -64,11 +64,6 @@ public class PurchaseHistoryService {
 		return PurchaseHistoryModifyResponse.from(originalPurchaseHistory.change(changePurchaseHistory));
 	}
 
-	private PurchaseHistory findPurchaseHistory(Long purchaseHistoryId) {
-		return repository.findById(purchaseHistoryId)
-			.orElseThrow(() -> new NotFoundResourceException(PurchaseHistoryErrorCode.NOT_FOUND_PURCHASE_HISTORY));
-	}
-
 	@Transactional
 	public PurchaseHistoryDeleteResponse deletePurchaseHistory(Long portfolioHoldingId, Long purchaseHistoryId) {
 		log.info("매입 내역 삭제 서비스 요청 : portfolioHoldingId={}, purchaseHistoryId={}", portfolioHoldingId,
@@ -76,5 +71,15 @@ public class PurchaseHistoryService {
 		PurchaseHistory deletePurchaseHistory = findPurchaseHistory(purchaseHistoryId);
 		repository.deleteById(purchaseHistoryId);
 		return PurchaseHistoryDeleteResponse.from(deletePurchaseHistory);
+	}
+
+	private PortfolioHolding findPortfolioHolding(Long portfolioHoldingId) {
+		return portfolioHoldingRepository.findById(portfolioHoldingId)
+			.orElseThrow(() -> new NotFoundResourceException(PortfolioHoldingErrorCode.NOT_FOUND_PORTFOLIO_HOLDING));
+	}
+
+	private PurchaseHistory findPurchaseHistory(Long purchaseHistoryId) {
+		return repository.findById(purchaseHistoryId)
+			.orElseThrow(() -> new NotFoundResourceException(PurchaseHistoryErrorCode.NOT_FOUND_PURCHASE_HISTORY));
 	}
 }

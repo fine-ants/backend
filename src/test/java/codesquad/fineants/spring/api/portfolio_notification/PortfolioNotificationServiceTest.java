@@ -71,15 +71,9 @@ class PortfolioNotificationServiceTest {
 	@MockBean
 	private MailService mailService;
 
-	private Member member;
-
 	private Portfolio portfolio;
 
-	private Stock stock;
-
 	private PortfolioHolding portfolioHolding;
-
-	private PurchaseHistory purchaseHistory;
 
 	@BeforeEach
 	void init() {
@@ -89,7 +83,7 @@ class PortfolioNotificationServiceTest {
 			.password("kim1234@")
 			.provider("local")
 			.build();
-		this.member = memberRepository.save(member);
+		member = memberRepository.save(member);
 
 		Portfolio portfolio = Portfolio.builder()
 			.name("내꿈은 워렌버핏")
@@ -97,7 +91,7 @@ class PortfolioNotificationServiceTest {
 			.budget(1000000L)
 			.targetGain(1500000L)
 			.maximumLoss(900000L)
-			.member(this.member)
+			.member(member)
 			.targetGainIsActive(true)
 			.maximumIsActive(true)
 			.build();
@@ -110,12 +104,12 @@ class PortfolioNotificationServiceTest {
 			.stockCode("KR7005930003")
 			.market(Market.KOSPI)
 			.build();
-		this.stock = stockRepository.save(stock);
+		stockRepository.save(stock);
 
 		PortfolioHolding portfolioHolding = PortfolioHolding.empty(portfolio, stock);
 		this.portfolioHolding = portFolioHoldingRepository.save(portfolioHolding);
 
-		this.purchaseHistory = purchaseHistoryRepository.save(PurchaseHistory.builder()
+		purchaseHistoryRepository.save(PurchaseHistory.builder()
 			.purchaseDate(LocalDateTime.now())
 			.numShares(3L)
 			.purchasePricePerShare(50000.0)

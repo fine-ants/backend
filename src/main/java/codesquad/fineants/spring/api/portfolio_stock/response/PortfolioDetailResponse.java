@@ -18,14 +18,15 @@ public class PortfolioDetailResponse {
 	private Integer targetReturnRate;
 	private Long maximumLoss;
 	private Integer maximumLossRate;
+	private Long currentValuation;
 	private Long investedAmount;
 	private Long totalGain;
 	private Integer totalGainRate;
 	private Long dailyGain;
 	private Integer dailyGainRate;
 	private Long balance;
-	private Long totalAnnualDividend;
-	private Integer totalAnnualDividendYield;
+	private Long annualDividend;
+	private Integer annualDividendYield;
 	private Integer annualInvestmentDividendYield;
 	private Long provisionalLossBalance;
 	private Boolean targetGainNotification;
@@ -33,10 +34,10 @@ public class PortfolioDetailResponse {
 
 	@Builder(access = AccessLevel.PRIVATE)
 	private PortfolioDetailResponse(Long id, String securitiesFirm, String name, Long budget, Long targetGain,
-		Integer targetReturnRate, Long maximumLoss, Integer maximumLossRate, Long investedAmount, Long totalGain,
-		Integer totalGainRate, Long dailyGain, Integer dailyGainRate, Long balance, Long totalAnnualDividend,
-		Integer totalAnnualDividendYield, Integer annualInvestmentDividendYield, Long provisionalLossBalance,
-		Boolean targetGainNotification, Boolean maxLossNotification) {
+		Integer targetReturnRate, Long maximumLoss, Integer maximumLossRate, Long currentValuation, Long investedAmount,
+		Long totalGain, Integer totalGainRate, Long dailyGain, Integer dailyGainRate, Long balance,
+		Long annualDividend, Integer annualDividendYield, Integer annualInvestmentDividendYield,
+		Long provisionalLossBalance, Boolean targetGainNotification, Boolean maxLossNotification) {
 		this.id = id;
 		this.securitiesFirm = securitiesFirm;
 		this.name = name;
@@ -45,14 +46,15 @@ public class PortfolioDetailResponse {
 		this.targetReturnRate = targetReturnRate;
 		this.maximumLoss = maximumLoss;
 		this.maximumLossRate = maximumLossRate;
+		this.currentValuation = currentValuation;
 		this.investedAmount = investedAmount;
 		this.totalGain = totalGain;
 		this.totalGainRate = totalGainRate;
 		this.dailyGain = dailyGain;
 		this.dailyGainRate = dailyGainRate;
 		this.balance = balance;
-		this.totalAnnualDividend = totalAnnualDividend;
-		this.totalAnnualDividendYield = totalAnnualDividendYield;
+		this.annualDividend = annualDividend;
+		this.annualDividendYield = annualDividendYield;
 		this.annualInvestmentDividendYield = annualInvestmentDividendYield;
 		this.provisionalLossBalance = provisionalLossBalance;
 		this.targetGainNotification = targetGainNotification;
@@ -69,14 +71,15 @@ public class PortfolioDetailResponse {
 			.targetReturnRate(portfolio.calculateTargetReturnRate())
 			.maximumLoss(portfolio.getMaximumLoss())
 			.maximumLossRate(portfolio.calculateMaximumLossRate())
+			.currentValuation(portfolio.calculateTotalCurrentValuation())
 			.investedAmount(portfolio.calculateTotalInvestmentAmount())
 			.totalGain(portfolio.calculateTotalGain())
 			.totalGainRate(portfolio.calculateTotalGainRate())
 			.dailyGain(portfolio.calculateDailyGain(history))
 			.dailyGainRate(portfolio.calculateDailyGainRate(history))
 			.balance(portfolio.calculateBalance())
-			.totalAnnualDividend(portfolio.calculateTotalAnnualDividend())
-			.totalAnnualDividendYield(portfolio.calculateTotalAnnualDividendYield())
+			.annualDividend(portfolio.calculateAnnualDividend())
+			.annualDividendYield(portfolio.calculateAnnualDividendYield())
 			.annualInvestmentDividendYield(portfolio.calculateAnnualInvestmentDividendYield())
 			.provisionalLossBalance(0L)
 			.targetGainNotification(portfolio.getTargetGainIsActive())
