@@ -1,9 +1,11 @@
 package codesquad.fineants.spring.api.kis.client;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -17,29 +19,31 @@ import codesquad.fineants.spring.api.kis.properties.OauthKisProperties;
 import codesquad.fineants.spring.api.kis.response.LastDayClosingPriceResponse;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
+import reactor.util.retry.Retry;
 
 @Slf4j
 @Component
 public class KisClient {
-	public static final String baseUrl = "https://openapivts.koreainvestment.com:29443";
+
 	private static final String tokenPURI = "https://openapivts.koreainvestment.com:29443/oauth2/tokenP";
 	public static final String currentPrice = "/uapi/domestic-stock/v1/quotations/inquire-price";
 	private static final String lastDayClosingPrice = "/uapi/domestic-stock/v1/quotations/inquire-daily-itemchartprice";
 
-	private final WebClient.Builder webClient;
+	private final WebClient webClient;
 
 	private final String appkey;
 	private final String secretkey;
 
-	public KisClient(OauthKisProperties properties) {
-		this.webClient = WebClient.builder().baseUrl(baseUrl);
+	public KisClient(OauthKisProperties properties,
+		@Qualifier(value = "kisWebClient") WebClient webClient) {
+		this.webClient = webClient;
 		this.appkey = properties.getAppkey();
 		this.secretkey = properties.getSecretkey();
 	}
 
 	private Map<String, Object> postPerform(String uri, MultiValueMap<String, String> headerMap,
 		Map<String, String> requestBodyMap) {
-		WebClient.ResponseSpec responseSpec = webClient.build()
+		WebClient.ResponseSpec responseSpec = webClient
 			.post()
 			.uri(uri)
 			.headers(header -> header.addAll(headerMap))
@@ -59,7 +63,7 @@ public class KisClient {
 
 	private Mono<? extends Throwable> handleError(ClientResponse clientResponse) {
 		return clientResponse.bodyToMono(String.class)
-			.doOnNext(body -> log.info("responseBody : {}", body))
+			.doOnNext(body -> log.error("responseBody : {}", body))
 			.flatMap(body -> Mono.error(() -> new KisException(body)));
 	}
 
@@ -69,13 +73,14 @@ public class KisClient {
 		requestBodyMap.put("appkey", appkey);
 		requestBodyMap.put("appsecret", secretkey);
 
-		return webClient.build()
+		return webClient
 			.post()
 			.uri(tokenPURI)
 			.bodyValue(requestBodyMap)
 			.retrieve()
-			.bodyToMono(KisAccessToken.class);
-		// return postPerform(tokenPURI, new LinkedMultiValueMap<>(), requestBodyMap);
+			.onStatus(HttpStatus::is4xxClientError, this::handleError)
+			.bodyToMono(KisAccessToken.class)
+			.retryWhen(Retry.fixedDelay(Long.MAX_VALUE, Duration.ofMinutes(1L)));
 	}
 
 	public long readRealTimeCurrentPrice(String tickerSymbol, String authorization) {
@@ -99,7 +104,7 @@ public class KisClient {
 
 	private Map<String, Object> getPerform(String uri, MultiValueMap<String, String> headerMap,
 		MultiValueMap<String, String> queryParamMap) {
-		WebClient.ResponseSpec responseSpec = webClient.build()
+		WebClient.ResponseSpec responseSpec = webClient
 			.get()
 			.uri(uriBuilder -> uriBuilder
 				.path(uri)

@@ -56,10 +56,10 @@ public class KisRedisService {
 	}
 
 	public void setAccessTokenMap(KisAccessToken accessToken, LocalDateTime now) {
-		String json = ObjectMapperUtil.serialize(accessToken);
-		Duration timeout = accessToken.betweenSecondFrom(now);
 		try {
-			redisTemplate.opsForValue().set(ACCESS_TOKEN_MAP_KEY, json, timeout);
+			redisTemplate.opsForValue().set(ACCESS_TOKEN_MAP_KEY,
+				ObjectMapperUtil.serialize(accessToken),
+				accessToken.betweenSecondFrom(now));
 		} catch (RedisSystemException e) {
 			log.error(e.getMessage(), e);
 			throw new RuntimeException(e.getMessage());
