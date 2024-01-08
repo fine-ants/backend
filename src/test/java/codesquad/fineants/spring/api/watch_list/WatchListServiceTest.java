@@ -124,10 +124,10 @@ class WatchListServiceTest {
 		);
 
 		//when
-		ReadWatchListsResponse response = watchListService.readWatchLists(authMember);
+		List<ReadWatchListsResponse> response = watchListService.readWatchLists(authMember);
 
 		//then
-		assertThat(response.getWatchLists().size()).isEqualTo(2);
+		assertThat(response.size()).isEqualTo(2);
 	}
 
 	@DisplayName("회원이 watchlist 단일 목록을 조회한다.")

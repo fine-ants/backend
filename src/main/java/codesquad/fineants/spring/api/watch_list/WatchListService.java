@@ -53,7 +53,7 @@ public class WatchListService {
 	}
 
 	@Transactional(readOnly = true)
-	public ReadWatchListsResponse readWatchLists(AuthMember authMember) {
+	public List<ReadWatchListsResponse> readWatchLists(AuthMember authMember) {
 		Member member = findMember(authMember.getMemberId());
 		List<WatchList> watchLists = watchListRepository.findByMember(member);
 		return ReadWatchListsResponse.from(watchLists);
