@@ -191,6 +191,7 @@ class WatchListServiceTest {
 		Stock stock = stockRepository.save(
 			Stock.builder()
 				.tickerSymbol(tickerSymbol)
+				.market(Market.KOSPI)
 				.build()
 		);
 
@@ -220,6 +221,7 @@ class WatchListServiceTest {
 		Stock stock = stockRepository.save(
 			Stock.builder()
 				.tickerSymbol(tickerSymbol)
+				.market(Market.KOSPI)
 				.build()
 		);
 
@@ -255,6 +257,7 @@ class WatchListServiceTest {
 		Stock stock = stockRepository.save(
 			Stock.builder()
 				.tickerSymbol(tickerSymbol)
+				.market(Market.KOSPI)
 				.build()
 		);
 
