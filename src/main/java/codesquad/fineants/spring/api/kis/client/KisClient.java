@@ -41,32 +41,6 @@ public class KisClient {
 		this.secretkey = properties.getSecretkey();
 	}
 
-	private Map<String, Object> postPerform(String uri, MultiValueMap<String, String> headerMap,
-		Map<String, String> requestBodyMap) {
-		WebClient.ResponseSpec responseSpec = webClient
-			.post()
-			.uri(uri)
-			.headers(header -> header.addAll(headerMap))
-			.bodyValue(requestBodyMap)
-			.retrieve();
-		return handleClientResponse(responseSpec);
-	}
-
-	private Map<String, Object> handleClientResponse(WebClient.ResponseSpec responseSpec) {
-		WebClient.ResponseSpec response = responseSpec.onStatus(HttpStatus::is4xxClientError,
-				this::handleError)
-			.onStatus(HttpStatus::is5xxServerError,
-				this::handleError);
-		return response.bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {
-		}).block();
-	}
-
-	private Mono<? extends Throwable> handleError(ClientResponse clientResponse) {
-		return clientResponse.bodyToMono(String.class)
-			.doOnNext(body -> log.error("responseBody : {}", body))
-			.flatMap(body -> Mono.error(() -> new KisException(body)));
-	}
-
 	public Mono<KisAccessToken> accessToken() {
 		Map<String, String> requestBodyMap = new HashMap<>();
 		requestBodyMap.put("grant_type", "client_credentials");
@@ -78,8 +52,9 @@ public class KisClient {
 			.uri(tokenPURI)
 			.bodyValue(requestBodyMap)
 			.retrieve()
-			.onStatus(HttpStatus::is4xxClientError, this::handleError)
+			.onStatus(HttpStatus::isError, this::handleError)
 			.bodyToMono(KisAccessToken.class)
+			.log()
 			.retryWhen(Retry.fixedDelay(Long.MAX_VALUE, Duration.ofMinutes(1L)));
 	}
 
@@ -100,20 +75,6 @@ public class KisClient {
 		}
 		Map<String, String> output = (Map<String, String>)responseMap.get("output");
 		return Long.parseLong(output.get("stck_prpr"));
-	}
-
-	private Map<String, Object> getPerform(String uri, MultiValueMap<String, String> headerMap,
-		MultiValueMap<String, String> queryParamMap) {
-		WebClient.ResponseSpec responseSpec = webClient
-			.get()
-			.uri(uriBuilder -> uriBuilder
-				.path(uri)
-				.queryParams(queryParamMap)
-				.build())
-			.headers(httpHeaders -> httpHeaders.addAll(headerMap))
-			.retrieve();
-
-		return handleClientResponse(responseSpec);
 	}
 
 	// 직전 거래일의 종가 조회
@@ -138,5 +99,27 @@ public class KisClient {
 		}
 		Map<String, String> output = (Map<String, String>)responseMap.get("output1");
 		return LastDayClosingPriceResponse.of(tickerSymbol, Long.parseLong(output.get("stck_prdy_clpr")));
+	}
+
+	private Map<String, Object> getPerform(String uri, MultiValueMap<String, String> headerMap,
+		MultiValueMap<String, String> queryParamMap) {
+		return webClient
+			.get()
+			.uri(uriBuilder -> uriBuilder
+				.path(uri)
+				.queryParams(queryParamMap)
+				.build())
+			.headers(httpHeaders -> httpHeaders.addAll(headerMap))
+			.retrieve()
+			.onStatus(HttpStatus::is4xxClientError, this::handleError)
+			.onStatus(HttpStatus::is5xxServerError, this::handleError)
+			.bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {
+			}).block();
+	}
+
+	private Mono<? extends Throwable> handleError(ClientResponse clientResponse) {
+		return clientResponse.bodyToMono(String.class)
+			.doOnNext(log::info)
+			.flatMap(body -> Mono.error(() -> new KisException(body)));
 	}
 }
