@@ -9,4 +9,6 @@ public interface PurchaseHistoryRepository extends JpaRepository<PurchaseHistory
 	int deleteAllByPortfolioHoldingIdIn(List<Long> portfolioId);
 
 	List<PurchaseHistory> findAllByPortfolioHoldingId(Long portfolioStockId);
+
+	void deleteByPortfolioHoldingId(Long portfolioHoldingId);
 }
