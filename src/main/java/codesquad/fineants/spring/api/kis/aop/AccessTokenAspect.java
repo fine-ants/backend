@@ -45,6 +45,7 @@ public class AccessTokenAspect {
 			.subscribe(accessToken -> {
 				redisService.setAccessTokenMap(accessToken, now);
 				manager.refreshAccessToken(accessToken);
+				log.info("새로운 액세스 토큰 갱신 완료");
 			});
 	}
 }

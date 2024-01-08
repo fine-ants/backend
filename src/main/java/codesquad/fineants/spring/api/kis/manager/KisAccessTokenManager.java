@@ -21,6 +21,9 @@ public class KisAccessTokenManager {
 	private KisAccessToken accessToken;
 
 	public boolean isAccessTokenExpired(LocalDateTime dateTime) {
+		if (accessToken == null) {
+			return true;
+		}
 		return accessToken.isAccessTokenExpired(dateTime);
 	}
 
