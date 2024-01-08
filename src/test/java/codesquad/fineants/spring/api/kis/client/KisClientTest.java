@@ -38,7 +38,7 @@ class KisClientTest {
 
 	@DisplayName("한국투자증권 서버로부터 액세스 토큰 발급이 한번 실패하는 경우 재발급을 다시 요청한다")
 	@Test
-	void accessToken() {
+	void accessToken_whenIssueAccessToken_thenRetryOnAccessTokenFailure() {
 		// given
 		WebClient.RequestBodyUriSpec requestBodyUriSpec = Mockito.mock(WebClient.RequestBodyUriSpec.class);
 		WebClient.RequestHeadersSpec requestHeadersSpec = Mockito.mock(WebClient.RequestHeadersSpec.class);
