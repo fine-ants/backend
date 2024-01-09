@@ -32,6 +32,7 @@ public class PortfolioEventListener {
 			emitter.send(SseEmitter.event()
 				.data(event.getResponse())
 				.name(EVENT_NAME));
+			log.info("emitter{} 포트폴리오 전송", event.getPortfolioId());
 
 			if (!stockMarketChecker.isMarketOpen(event.getEventDateTime())) {
 				Thread.sleep(2000L);

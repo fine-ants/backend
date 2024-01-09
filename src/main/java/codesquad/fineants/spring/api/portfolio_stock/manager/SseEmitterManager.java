@@ -30,4 +30,8 @@ public class SseEmitterManager {
 	public Set<Long> keys() {
 		return clients.keySet();
 	}
+
+	public void complete(Long portfolioId) {
+		clients.get(portfolioId).complete();
+	}
 }

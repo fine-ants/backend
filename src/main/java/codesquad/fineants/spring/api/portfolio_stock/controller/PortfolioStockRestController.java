@@ -78,9 +78,17 @@ public class PortfolioStockRestController {
 	@GetMapping("/holdings/realtime")
 	public SseEmitter readMyPortfolioStocksInRealTime(@PathVariable Long portfolioId,
 		@AuthPrincipalMember AuthMember authMember) {
-		SseEmitter emitter = new SseEmitter(Duration.ofHours(10L).toMillis());
-		emitter.onTimeout(() -> manager.remove(portfolioId));
-		emitter.onCompletion(() -> manager.remove(portfolioId));
+		SseEmitter emitter = new SseEmitter(Duration.ofSeconds(30).toMillis());
+		emitter.onTimeout(() -> {
+			log.info("emitter{} timeout으로 인한 제거", portfolioId);
+			manager.complete(portfolioId);
+			manager.remove(portfolioId);
+		});
+		emitter.onCompletion(() -> {
+			log.info("emitter{} completion으로 인한 제거", portfolioId);
+			manager.complete(portfolioId);
+			manager.remove(portfolioId);
+		});
 		manager.add(portfolioId, emitter);
 		return emitter;
 	}
