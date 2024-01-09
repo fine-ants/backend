@@ -42,6 +42,7 @@ public class PortfolioEventPublisher {
 				PortfolioHoldingsRealTimeResponse response = portfolioStockService.readMyPortfolioStocksInRealTime(id);
 				PortfolioEvent portfolioEvent = new PortfolioEvent(id, response, eventDatetime);
 				eventPublisher.publishEvent(portfolioEvent);
+				log.info("{}", portfolioEvent);
 			} catch (Exception e) {
 				log.error(e.getMessage(), e);
 				manager.get(id).completeWithError(e);
