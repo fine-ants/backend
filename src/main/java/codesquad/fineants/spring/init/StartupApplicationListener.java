@@ -22,5 +22,6 @@ public class StartupApplicationListener implements ApplicationListener<ContextRe
 		log.info("애플리케이션 시작시 종목 현재가 및 종가 초기화 시작");
 		kisService.refreshStockCurrentPrice();
 		kisService.refreshLastDayClosingPrice();
+		log.info("애플리케이션 시작시 종목 현재가 및 종가 초기화 종료");
 	}
 }
