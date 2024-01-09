@@ -89,7 +89,9 @@ spring:
 
 logging:
   level:
-    codesquard: info
+    codesquad: info
+    com.zaxxer.hikari.HikariConfig: DEBUG
+    com.zaxxer.hikari: TRACE
 ---
 spring:
   config:
