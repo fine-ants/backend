@@ -16,6 +16,7 @@ import codesquad.fineants.spring.api.response.ApiResponse;
 import codesquad.fineants.spring.api.success.code.WatchListSuccessCode;
 import codesquad.fineants.spring.api.watch_list.request.CreateWatchListRequest;
 import codesquad.fineants.spring.api.watch_list.request.CreateWatchStockRequest;
+import codesquad.fineants.spring.api.watch_list.request.DeleteWatchListsRequests;
 import codesquad.fineants.spring.api.watch_list.response.CreateWatchListResponse;
 import codesquad.fineants.spring.api.watch_list.response.ReadWatchListResponse;
 import codesquad.fineants.spring.api.watch_list.response.ReadWatchListsResponse;
@@ -48,10 +49,10 @@ public class WatchListRestController {
 			watchListService.readWatchList(authMember, watchlistId));
 	}
 
-	@DeleteMapping("/{watchlistId}")
-	public ApiResponse<Void> deleteWatchList(@AuthPrincipalMember AuthMember authMember,
-		@PathVariable Long watchlistId){
-		watchListService.deleteWatchList(authMember, watchlistId);
+	@DeleteMapping
+	public ApiResponse<Void> deleteWatchLists(@AuthPrincipalMember AuthMember authMember,
+		@RequestBody DeleteWatchListsRequests deleteWatchListsRequests){
+		watchListService.deleteWatchList(authMember, deleteWatchListsRequests);
 		return ApiResponse.success(WatchListSuccessCode.DELETED_WATCH_LIST);
 	}
 

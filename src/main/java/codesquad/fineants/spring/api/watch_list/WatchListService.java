@@ -25,6 +25,7 @@ import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
 import codesquad.fineants.spring.api.watch_list.request.CreateWatchListRequest;
 import codesquad.fineants.spring.api.watch_list.request.CreateWatchStockRequest;
+import codesquad.fineants.spring.api.watch_list.request.DeleteWatchListsRequests;
 import codesquad.fineants.spring.api.watch_list.response.CreateWatchListResponse;
 import codesquad.fineants.spring.api.watch_list.response.ReadWatchListResponse;
 import codesquad.fineants.spring.api.watch_list.response.ReadWatchListsResponse;
@@ -75,13 +76,15 @@ public class WatchListService {
 	}
 
 	@Transactional
-	public void deleteWatchList(AuthMember authMember, Long watchListId) {
+	public void deleteWatchList(AuthMember authMember, DeleteWatchListsRequests deleteWatchListsRequests) {
 		Member member = findMember(authMember.getMemberId());
 
-		Optional<WatchList> watchList = watchListRepository.findById(watchListId);
-		if(watchList.isPresent()){
-			validateWatchListAuthorization(member.getId(), watchList.get().getMember().getId());
-			watchListRepository.deleteById(watchListId);
+		for(Long watchListId: deleteWatchListsRequests.getWatchlistIds()){
+			Optional<WatchList> watchList = watchListRepository.findById(watchListId);
+			if(watchList.isPresent()){
+				validateWatchListAuthorization(member.getId(), watchList.get().getMember().getId());
+				watchListRepository.deleteById(watchListId);
+			}
 		}
 	}
 
