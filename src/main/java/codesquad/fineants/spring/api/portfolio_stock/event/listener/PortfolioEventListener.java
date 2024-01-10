@@ -3,7 +3,6 @@ package codesquad.fineants.spring.api.portfolio_stock.event.listener;
 import java.io.IOException;
 
 import org.springframework.context.event.EventListener;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -24,7 +23,6 @@ public class PortfolioEventListener {
 	private final StockMarketChecker stockMarketChecker;
 	private final SseEmitterManager manager;
 
-	@Async
 	@EventListener
 	public void handleMessage(PortfolioEvent event) {
 		SseEmitter emitter = manager.get(event.getPortfolioId());
