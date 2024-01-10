@@ -80,10 +80,12 @@ public class WatchListService {
 		Member member = findMember(authMember.getMemberId());
 		List<WatchList> watchLists = watchListRepository.findAllById(deleteWatchListsRequests.getWatchlistIds());
 
-		watchLists.stream()
-			.filter(watchList -> watchList.getMember().getId().equals(member.getId()))
-			.forEach(watchList -> watchListRepository.deleteById(watchList.getId()));
-
+		watchLists.forEach(watchList -> {
+			if (!watchList.getMember().getId().equals(member.getId())) {
+				throw new ForBiddenException(WatchListErrorCode.FORBIDDEN);
+			}
+			watchListRepository.deleteById(watchList.getId());
+		});
 	}
 
 	@Transactional
