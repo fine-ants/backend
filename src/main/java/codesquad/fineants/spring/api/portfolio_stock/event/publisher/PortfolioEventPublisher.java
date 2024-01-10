@@ -36,6 +36,7 @@ public class PortfolioEventPublisher {
 	}
 
 	public void sendEventToPortfolio(LocalDateTime eventDatetime) {
+		log.info("sseEmitter 개수 : {}", manager.size());
 		List<Long> deadEmitters = new ArrayList<>();
 		for (Long id : manager.keys()) {
 			try {

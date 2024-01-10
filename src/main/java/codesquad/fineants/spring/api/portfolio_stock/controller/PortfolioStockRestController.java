@@ -87,6 +87,11 @@ public class PortfolioStockRestController {
 			log.info("emitter{} completion으로 인한 제거", portfolioId);
 			manager.remove(portfolioId);
 		});
+		emitter.onError(throwable -> {
+			log.error(throwable.getMessage());
+			emitter.completeWithError(throwable);
+			manager.remove(portfolioId);
+		});
 		manager.add(portfolioId, emitter);
 		return emitter;
 	}
