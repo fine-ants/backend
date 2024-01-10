@@ -161,7 +161,7 @@ class WatchListRestControllerTest {
 		given(authPrincipalArgumentResolver.supportsParameter(any())).willReturn(true);
 		given(authPrincipalArgumentResolver.resolveArgument(any(), any(), any(), any())).willReturn(authMember);
 
-		List<ReadWatchListResponse> response = Arrays.asList(
+		List<ReadWatchListResponse> response = List.of(
 			new ReadWatchListResponse(1L, "삼성전자", "005930", 68000,
 				1200, 1.85f, 2.12f, "제조업",
 				LocalDateTime.of(2023, 12, 2, 15, 0, 0)));
@@ -189,7 +189,7 @@ class WatchListRestControllerTest {
 
 	@DisplayName("사용자가 watchlist에 종목을 추가한다.")
 	@Test
-	void createWatchStock() throws Exception {
+	void createWatchStocks() throws Exception {
 		// given
 		Member member = Member.builder()
 			.id(1L)
@@ -202,12 +202,13 @@ class WatchListRestControllerTest {
 		AuthMember authMember = AuthMember.from(member);
 
 		Map<String, Object> requestBodyMap = new HashMap<>();
-		requestBodyMap.put("tickerSymbol", "005930");
+		List<String> tickerSymbols = List.of("005930");
+		requestBodyMap.put("tickerSymbols", tickerSymbols);
 		String body = objectMapper.writeValueAsString(requestBodyMap);
 
 		given(authPrincipalArgumentResolver.supportsParameter(any())).willReturn(true);
 		given(authPrincipalArgumentResolver.resolveArgument(any(), any(), any(), any())).willReturn(authMember);
-		doNothing().when(watchListService).createWatchStock(any(AuthMember.class), any(Long.class), any(CreateWatchStockRequest.class));
+		doNothing().when(watchListService).createWatchStocks(any(AuthMember.class), any(Long.class), any(CreateWatchStockRequest.class));
 
 		// when & then
 		mockMvc.perform(post("/api/watchlists/1/stock")

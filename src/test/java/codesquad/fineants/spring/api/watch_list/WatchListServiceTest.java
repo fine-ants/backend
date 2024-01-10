@@ -186,7 +186,7 @@ class WatchListServiceTest {
 
 	@DisplayName("회원이 watchlist에 종목을 추가한다.")
 	@Test
-	void createWatchStock() {
+	void createWatchStocks() {
 		// given
 		String tickerSymbol = "005930";
 		Stock stock = stockRepository.save(
@@ -197,7 +197,7 @@ class WatchListServiceTest {
 		);
 
 		AuthMember authMember = AuthMember.from(member);
-		CreateWatchStockRequest request = new CreateWatchStockRequest(tickerSymbol);
+		CreateWatchStockRequest request = new CreateWatchStockRequest(List.of(tickerSymbol));
 
 		WatchList watchList = watchListRepository.save(WatchList.builder()
 			.name("My WatchList")
@@ -206,7 +206,7 @@ class WatchListServiceTest {
 		Long watchListId = watchList.getId();
 
 		// when
-		watchListService.createWatchStock(authMember, watchListId, request);
+		watchListService.createWatchStocks(authMember, watchListId, request);
 
 		// then
 		assertThat(watchStockRepository.findByWatchList(watchList)).hasSize(1);
@@ -227,7 +227,6 @@ class WatchListServiceTest {
 		);
 
 		AuthMember authMember = AuthMember.from(member);
-		CreateWatchStockRequest request = new CreateWatchStockRequest(tickerSymbol);
 
 		WatchList watchList = watchListRepository.save(WatchList.builder()
 			.name("My WatchList")
@@ -263,7 +262,6 @@ class WatchListServiceTest {
 		);
 
 		AuthMember authMember = AuthMember.from(member);
-		CreateWatchStockRequest request = new CreateWatchStockRequest(tickerSymbol);
 
 		WatchList watchList = watchListRepository.save(WatchList.builder()
 			.name("My WatchList")
