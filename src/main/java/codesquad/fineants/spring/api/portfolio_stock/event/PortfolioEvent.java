@@ -20,4 +20,11 @@ public class PortfolioEvent extends ApplicationEvent {
 		this.response = response;
 		this.eventDateTime = eventDateTime;
 	}
+
+	@Override
+	public String toString() {
+		return String.format("%s, %s(portfolioId=%d)", "포트폴리오 발행 이벤트",
+			this.getClass().getSimpleName(),
+			portfolioId);
+	}
 }

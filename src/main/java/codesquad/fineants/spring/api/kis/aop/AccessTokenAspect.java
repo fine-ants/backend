@@ -29,7 +29,11 @@ public class AccessTokenAspect {
 	public void refreshStockPrice() {
 	}
 
-	@Before(value = "refreshStockPrice()")
+	@Pointcut("execution(* codesquad.fineants.spring.api.kis.service.KisService.refreshLastDayClosingPrice())")
+	public void refreshLastDayClosingPrice() {
+	}
+
+	@Before(value = "refreshStockPrice() || refreshLastDayClosingPrice()")
 	public void checkAccessTokenExpiration() {
 		LocalDateTime now = LocalDateTime.now();
 		if (manager.isAccessTokenExpired(now)) {

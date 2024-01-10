@@ -11,8 +11,6 @@ import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpHeaders;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -64,7 +62,7 @@ public class MemberService {
 	private final AmazonS3Service amazonS3Service;
 	private final AuthorizationCodeRandomGenerator authorizationCodeRandomGenerator;
 	private final MemberFactory memberFactory;
-  private final PasswordEncoder passwordEncoder;
+	private final PasswordEncoder passwordEncoder;
 
 	public OauthMemberLoginResponse login(OauthMemberLoginRequest request) {
 		log.info("로그인 서비스 요청 : loginRequest={}", request);
@@ -140,8 +138,8 @@ public class MemberService {
 		long accessTokenExpiration;
 		long refreshTokenExpiration;
 		try {
-			accessTokenExpiration = ((Integer)jwtProvider.getClaims(accessToken).get("exp")).longValue();
-			refreshTokenExpiration = ((Integer)jwtProvider.getClaims(accessToken).get("exp")).longValue();
+			accessTokenExpiration = ((Integer)jwtProvider.getAccessTokenClaims(accessToken).get("exp")).longValue();
+			refreshTokenExpiration = ((Integer)jwtProvider.getRefreshTokenClaims(accessToken).get("exp")).longValue();
 		} catch (FineAntsException e) {
 			log.error(e.getMessage(), e);
 			return;
@@ -152,7 +150,7 @@ public class MemberService {
 
 	public OauthMemberRefreshResponse refreshAccessToken(OauthMemberRefreshRequest request, LocalDateTime now) {
 		String refreshToken = request.getRefreshToken();
-		Claims claims = jwtProvider.getClaims(refreshToken);
+		Claims claims = jwtProvider.getRefreshTokenClaims(refreshToken);
 		Jwt jwt = jwtProvider.createJwtWithRefreshToken(claims, refreshToken, now);
 		return OauthMemberRefreshResponse.from(jwt);
 	}
