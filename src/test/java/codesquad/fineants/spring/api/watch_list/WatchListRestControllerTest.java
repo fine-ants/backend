@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -33,6 +34,7 @@ import codesquad.fineants.domain.oauth.support.AuthPrincipalArgumentResolver;
 import codesquad.fineants.spring.api.errors.handler.GlobalExceptionHandler;
 import codesquad.fineants.spring.api.watch_list.request.CreateWatchListRequest;
 import codesquad.fineants.spring.api.watch_list.request.CreateWatchStockRequest;
+import codesquad.fineants.spring.api.watch_list.request.DeleteWatchListsRequests;
 import codesquad.fineants.spring.api.watch_list.response.CreateWatchListResponse;
 import codesquad.fineants.spring.api.watch_list.response.ReadWatchListResponse;
 import codesquad.fineants.spring.api.watch_list.response.ReadWatchListsResponse;
@@ -220,7 +222,7 @@ class WatchListRestControllerTest {
 
 	@DisplayName("사용자가 watchlist를 삭제한다.")
 	@Test
-	void deleteWatchList() throws Exception {
+	void deleteWatchLists() throws Exception {
 		// given
 		Member member = Member.builder()
 			.id(1L)
@@ -232,13 +234,19 @@ class WatchListRestControllerTest {
 			.build();
 		AuthMember authMember = AuthMember.from(member);
 
+		Map<String, Object> requestBodyMap = new HashMap<>();
+		List<Long> watchListIds = new ArrayList<>();
+		requestBodyMap.put("watchlistIds", watchListIds);
+		String body = objectMapper.writeValueAsString(requestBodyMap);
+
 		given(authPrincipalArgumentResolver.supportsParameter(any())).willReturn(true);
 		given(authPrincipalArgumentResolver.resolveArgument(any(), any(), any(), any())).willReturn(authMember);
-		doNothing().when(watchListService).deleteWatchList(any(AuthMember.class), any(Long.class));
+		doNothing().when(watchListService).deleteWatchList(any(AuthMember.class), any(DeleteWatchListsRequests.class));
 
 		// when & then
-		mockMvc.perform(delete("/api/watchlists/1")
-				.contentType(MediaType.APPLICATION_JSON))
+		mockMvc.perform(delete("/api/watchlists")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(body))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))

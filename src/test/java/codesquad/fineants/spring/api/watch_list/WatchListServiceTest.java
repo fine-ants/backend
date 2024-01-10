@@ -37,6 +37,7 @@ import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
 import codesquad.fineants.spring.api.watch_list.request.CreateWatchListRequest;
 import codesquad.fineants.spring.api.watch_list.request.CreateWatchStockRequest;
+import codesquad.fineants.spring.api.watch_list.request.DeleteWatchListsRequests;
 import codesquad.fineants.spring.api.watch_list.response.CreateWatchListResponse;
 import codesquad.fineants.spring.api.watch_list.response.ReadWatchListResponse;
 import codesquad.fineants.spring.api.watch_list.response.ReadWatchListsResponse;
@@ -215,7 +216,7 @@ class WatchListServiceTest {
 
 	@DisplayName("회원이 watchlist를 삭제한다.")
 	@Test
-	void deleteWatchList() {
+	void deleteWatchLists() {
 		// given
 		String tickerSymbol = "005930";
 		Stock stock = stockRepository.save(
@@ -242,7 +243,7 @@ class WatchListServiceTest {
 		);
 
 		// when
-		watchListService.deleteWatchList(authMember, watchListId);
+		watchListService.deleteWatchList(authMember, new DeleteWatchListsRequests(List.of(watchListId)));
 
 		// then
 		assertThat(watchListRepository.findById(watchListId).isPresent()).isFalse();
