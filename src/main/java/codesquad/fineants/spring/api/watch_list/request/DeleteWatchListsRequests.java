@@ -10,6 +10,6 @@ import lombok.NoArgsConstructor;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class CreateWatchStockRequest {
-	private List<String> tickerSymbols;
+public class DeleteWatchListsRequests {
+	private List<Long> watchlistIds;
 }
