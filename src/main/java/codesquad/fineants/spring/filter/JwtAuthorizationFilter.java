@@ -64,7 +64,7 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
 		try {
 			String token = extractJwt(request).orElseThrow(
 				() -> new UnAuthorizationException(JwtErrorCode.EMPTY_TOKEN));
-			jwtProvider.validateToken(token);
+			jwtProvider.validateAccessToken(token);
 			redisService.validateAlreadyLogout(token);
 			authenticationContext.setAuthMember(jwtProvider.extractAuthMember(token));
 		} catch (FineAntsException e) {
