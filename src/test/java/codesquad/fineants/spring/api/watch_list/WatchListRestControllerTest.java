@@ -35,6 +35,7 @@ import codesquad.fineants.spring.api.errors.handler.GlobalExceptionHandler;
 import codesquad.fineants.spring.api.watch_list.request.CreateWatchListRequest;
 import codesquad.fineants.spring.api.watch_list.request.CreateWatchStockRequest;
 import codesquad.fineants.spring.api.watch_list.request.DeleteWatchListsRequests;
+import codesquad.fineants.spring.api.watch_list.request.DeleteWatchStocksRequest;
 import codesquad.fineants.spring.api.watch_list.response.CreateWatchListResponse;
 import codesquad.fineants.spring.api.watch_list.response.ReadWatchListResponse;
 import codesquad.fineants.spring.api.watch_list.response.ReadWatchListsResponse;
@@ -64,9 +65,8 @@ class WatchListRestControllerTest {
 	@MockBean
 	private WatchListService watchListService;
 
-
 	@BeforeEach
-	void setUp(){
+	void setUp() {
 		mockMvc = MockMvcBuilders.standaloneSetup(watchListRestController)
 			.setControllerAdvice(globalExceptionHandler)
 			.setCustomArgumentResolvers(authPrincipalArgumentResolver)
@@ -101,8 +101,8 @@ class WatchListRestControllerTest {
 
 		// when & then
 		mockMvc.perform(post("/api/watchlists")
-			.contentType(MediaType.APPLICATION_JSON)
-			.content(body))
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(body))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
@@ -166,7 +166,6 @@ class WatchListRestControllerTest {
 				1200, 1.85f, 2.12f, "제조업",
 				LocalDateTime.of(2023, 12, 2, 15, 0, 0)));
 
-
 		given(watchListService.readWatchList(any(AuthMember.class), any(Long.class))).willReturn(response);
 
 		// when & then
@@ -202,13 +201,13 @@ class WatchListRestControllerTest {
 		AuthMember authMember = AuthMember.from(member);
 
 		Map<String, Object> requestBodyMap = new HashMap<>();
-		List<String> tickerSymbols = List.of("005930");
-		requestBodyMap.put("tickerSymbols", tickerSymbols);
+		requestBodyMap.put("tickerSymbols", List.of("005930"));
 		String body = objectMapper.writeValueAsString(requestBodyMap);
 
 		given(authPrincipalArgumentResolver.supportsParameter(any())).willReturn(true);
 		given(authPrincipalArgumentResolver.resolveArgument(any(), any(), any(), any())).willReturn(authMember);
-		doNothing().when(watchListService).createWatchStocks(any(AuthMember.class), any(Long.class), any(CreateWatchStockRequest.class));
+		doNothing().when(watchListService)
+			.createWatchStocks(any(AuthMember.class), any(Long.class), any(CreateWatchStockRequest.class));
 
 		// when & then
 		mockMvc.perform(post("/api/watchlists/1/stock")
@@ -242,7 +241,7 @@ class WatchListRestControllerTest {
 
 		given(authPrincipalArgumentResolver.supportsParameter(any())).willReturn(true);
 		given(authPrincipalArgumentResolver.resolveArgument(any(), any(), any(), any())).willReturn(authMember);
-		doNothing().when(watchListService).deleteWatchList(any(AuthMember.class), any(DeleteWatchListsRequests.class));
+		doNothing().when(watchListService).deleteWatchLists(any(AuthMember.class), any(DeleteWatchListsRequests.class));
 
 		// when & then
 		mockMvc.perform(delete("/api/watchlists")
@@ -257,7 +256,7 @@ class WatchListRestControllerTest {
 
 	@DisplayName("사용자가 watchlist에서 종목을 삭제한다.")
 	@Test
-	void deleteWatchStock() throws Exception {
+	void deleteWatchStocks() throws Exception {
 		// given
 		Member member = Member.builder()
 			.id(1L)
@@ -269,13 +268,20 @@ class WatchListRestControllerTest {
 			.build();
 		AuthMember authMember = AuthMember.from(member);
 
+		Map<String, Object> requestBodyMap = new HashMap<>();
+		requestBodyMap.put("tickerSymbols", List.of("005930"));
+		String body = objectMapper.writeValueAsString(requestBodyMap);
+
+
 		given(authPrincipalArgumentResolver.supportsParameter(any())).willReturn(true);
 		given(authPrincipalArgumentResolver.resolveArgument(any(), any(), any(), any())).willReturn(authMember);
-		doNothing().when(watchListService).deleteWatchStock(any(AuthMember.class), any(Long.class), any(Long.class));
+		doNothing().when(watchListService)
+			.deleteWatchStocks(any(AuthMember.class), any(Long.class), any(DeleteWatchStocksRequest.class));
 
 		// when & then
-		mockMvc.perform(delete("/api/watchlists/1/stock/1")
-				.contentType(MediaType.APPLICATION_JSON))
+		mockMvc.perform(delete("/api/watchlists/1/stock")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(body))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
