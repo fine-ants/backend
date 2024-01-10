@@ -28,6 +28,7 @@ public class PortfolioEventListener {
 	@EventListener
 	public void handleMessage(PortfolioEvent event) {
 		SseEmitter emitter = manager.get(event.getPortfolioId());
+		log.info("emitter 전송준비 : {}", emitter);
 		try {
 			emitter.send(SseEmitter.event()
 				.data(event.getResponse())
@@ -42,8 +43,10 @@ public class PortfolioEventListener {
 				emitter.complete();
 			}
 		} catch (IOException | InterruptedException e) {
-			log.info(e.getMessage(), e);
+			log.error(e.getMessage(), e);
 			emitter.completeWithError(e);
+		} catch (Exception e) {
+			log.error(e.getMessage(), e);
 		}
 	}
 

@@ -81,12 +81,12 @@ public class PortfolioStockRestController {
 		SseEmitter emitter = new SseEmitter(Duration.ofSeconds(30).toMillis());
 		emitter.onTimeout(() -> {
 			log.info("emitter{} timeout으로 인한 제거", portfolioId);
-			manager.complete(portfolioId);
+			emitter.complete();
 			manager.remove(portfolioId);
 		});
 		emitter.onCompletion(() -> {
 			log.info("emitter{} completion으로 인한 제거", portfolioId);
-			manager.complete(portfolioId);
+			emitter.complete();
 			manager.remove(portfolioId);
 		});
 		manager.add(portfolioId, emitter);
