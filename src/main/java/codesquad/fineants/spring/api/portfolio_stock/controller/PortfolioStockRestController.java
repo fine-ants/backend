@@ -82,11 +82,9 @@ public class PortfolioStockRestController {
 		emitter.onTimeout(() -> {
 			log.info("emitter{} timeout으로 인한 제거", portfolioId);
 			emitter.complete();
-			manager.remove(portfolioId);
 		});
 		emitter.onCompletion(() -> {
 			log.info("emitter{} completion으로 인한 제거", portfolioId);
-			emitter.complete();
 			manager.remove(portfolioId);
 		});
 		manager.add(portfolioId, emitter);
