@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 
 import codesquad.fineants.spring.api.kis.client.KisClient;
 import codesquad.fineants.spring.api.kis.manager.KisAccessTokenManager;
+import codesquad.fineants.spring.api.kis.properties.OauthKisProperties;
 import codesquad.fineants.spring.api.kis.service.KisRedisService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +23,7 @@ public class AccessTokenAspect {
 	private final KisAccessTokenManager manager;
 	private final KisClient client;
 	private final KisRedisService redisService;
+	private final OauthKisProperties oauthKisProperties;
 
 	@Pointcut("execution(* codesquad.fineants.spring.api.kis.service.KisService.refreshStockCurrentPrice())")
 	public void refreshStockPrice() {
@@ -41,7 +43,7 @@ public class AccessTokenAspect {
 	}
 
 	private Runnable handleNewAccessToken(LocalDateTime now) {
-		return () -> client.accessToken()
+		return () -> client.accessToken(oauthKisProperties.getTokenURI())
 			.subscribe(accessToken -> {
 				redisService.setAccessTokenMap(accessToken, now);
 				manager.refreshAccessToken(accessToken);

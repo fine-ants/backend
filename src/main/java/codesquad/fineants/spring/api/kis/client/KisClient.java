@@ -25,51 +25,44 @@ import reactor.util.retry.Retry;
 @Component
 public class KisClient {
 
-	private static final String tokenPURI = "https://openapivts.koreainvestment.com:29443/oauth2/tokenP";
-	public static final String currentPrice = "/uapi/domestic-stock/v1/quotations/inquire-price";
-	private static final String lastDayClosingPrice = "/uapi/domestic-stock/v1/quotations/inquire-daily-itemchartprice";
-
 	private final WebClient webClient;
-
-	private final String appkey;
-	private final String secretkey;
+	private final OauthKisProperties oauthKisProperties;
 
 	public KisClient(OauthKisProperties properties,
 		@Qualifier(value = "kisWebClient") WebClient webClient) {
 		this.webClient = webClient;
-		this.appkey = properties.getAppkey();
-		this.secretkey = properties.getSecretkey();
+		this.oauthKisProperties = properties;
 	}
 
-	public Mono<KisAccessToken> accessToken() {
+	public Mono<KisAccessToken> accessToken(String uri) {
 		Map<String, String> requestBodyMap = new HashMap<>();
 		requestBodyMap.put("grant_type", "client_credentials");
-		requestBodyMap.put("appkey", appkey);
-		requestBodyMap.put("appsecret", secretkey);
+		requestBodyMap.put("appkey", oauthKisProperties.getAppkey());
+		requestBodyMap.put("appsecret", oauthKisProperties.getSecretkey());
 
 		return webClient
 			.post()
-			.uri(tokenPURI)
+			.uri(uri)
 			.bodyValue(requestBodyMap)
 			.retrieve()
 			.onStatus(HttpStatus::isError, this::handleError)
 			.bodyToMono(KisAccessToken.class)
-			.log()
-			.retryWhen(Retry.fixedDelay(Long.MAX_VALUE, Duration.ofMinutes(1L)));
+			.retryWhen(Retry.fixedDelay(Long.MAX_VALUE, Duration.ofMinutes(1)))
+			.log();
 	}
 
 	public long readRealTimeCurrentPrice(String tickerSymbol, String authorization) {
 		MultiValueMap<String, String> headerMap = new LinkedMultiValueMap<>();
 		headerMap.add("authorization", authorization);
-		headerMap.add("appkey", appkey);
-		headerMap.add("appsecret", secretkey);
+		headerMap.add("appkey", oauthKisProperties.getAppkey());
+		headerMap.add("appsecret", oauthKisProperties.getSecretkey());
 		headerMap.add("tr_id", "FHKST01010100");
 
 		MultiValueMap<String, String> queryParamMap = new LinkedMultiValueMap<>();
 		queryParamMap.add("fid_cond_mrkt_div_code", "J");
 		queryParamMap.add("fid_input_iscd", tickerSymbol);
 
-		Map<String, Object> responseMap = getPerform(currentPrice, headerMap, queryParamMap);
+		Map<String, Object> responseMap = getPerform(oauthKisProperties.getCurrentPriceURI(), headerMap, queryParamMap);
 		if (!responseMap.containsKey("output")) {
 			throw new KisException((String)responseMap.get("msg1"));
 		}
@@ -81,8 +74,8 @@ public class KisClient {
 	public LastDayClosingPriceResponse readLastDayClosingPrice(String tickerSymbol, String authorization) {
 		MultiValueMap<String, String> headerMap = new LinkedMultiValueMap<>();
 		headerMap.add("authorization", authorization);
-		headerMap.add("appkey", appkey);
-		headerMap.add("appsecret", secretkey);
+		headerMap.add("appkey", oauthKisProperties.getAppkey());
+		headerMap.add("appsecret", oauthKisProperties.getSecretkey());
 		headerMap.add("tr_id", "FHKST03010100");
 
 		MultiValueMap<String, String> queryParamMap = new LinkedMultiValueMap<>();
@@ -93,7 +86,8 @@ public class KisClient {
 		queryParamMap.add("FID_PERIOD_DIV_CODE", "D");
 		queryParamMap.add("FID_ORG_ADJ_PRC", "0");
 
-		Map<String, Object> responseMap = getPerform(lastDayClosingPrice, headerMap, queryParamMap);
+		Map<String, Object> responseMap = getPerform(oauthKisProperties.getLastDayClosingPriceURI(), headerMap,
+			queryParamMap);
 		if (!responseMap.containsKey("output1")) {
 			throw new KisException((String)responseMap.get("msg1"));
 		}
