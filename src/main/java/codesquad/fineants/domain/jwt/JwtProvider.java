@@ -29,7 +29,7 @@ public class JwtProvider {
 
 	public Jwt createJwtWithRefreshToken(Claims claims, String refreshToken, LocalDateTime now) {
 		Date expireDateAccessToken = jwtProperties.createExpireAccessTokenDate(now);
-		Date expireDateRefreshToken = getClaims(refreshToken).getExpiration();
+		Date expireDateRefreshToken = getRefreshTokenClaims(refreshToken).getExpiration();
 		return createJwt(claims, expireDateAccessToken, expireDateRefreshToken);
 	}
 
@@ -54,7 +54,22 @@ public class JwtProvider {
 			.compact();
 	}
 
-	public Claims getClaims(String token) {
+	public Claims getAccessTokenClaims(String token) {
+		// token을 비밀키로 복호화하여 Claims 추출
+		try {
+			return Jwts.parserBuilder()
+				.setSigningKey(jwtProperties.getKey())
+				.build()
+				.parseClaimsJws(token)
+				.getBody();
+		} catch (ExpiredJwtException e) {
+			throw new UnAuthorizationException(JwtErrorCode.REFRESH_TOKEN_EXPIRE_TOKEN);
+		} catch (JwtException e) {
+			throw new BadRequestException(JwtErrorCode.INVALID_TOKEN);
+		}
+	}
+
+	public Claims getRefreshTokenClaims(String token) {
 		// token을 비밀키로 복호화하여 Claims 추출
 		try {
 			return Jwts.parserBuilder()
