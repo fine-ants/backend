@@ -40,6 +40,7 @@ public class PortfolioEventListener {
 					.name(COMPLETE_NAME));
 				emitter.complete();
 			}
+			throw new IOException("에러 발생");
 		} catch (IOException | InterruptedException e) {
 			log.error(e.getMessage(), e);
 			emitter.completeWithError(e);
