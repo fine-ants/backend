@@ -32,6 +32,8 @@ public class SseEmitterManager {
 	}
 
 	public void complete(Long portfolioId) {
-		clients.get(portfolioId).complete();
+		if (clients.containsKey(portfolioId)) {
+			clients.get(portfolioId).complete();
+		}
 	}
 }
