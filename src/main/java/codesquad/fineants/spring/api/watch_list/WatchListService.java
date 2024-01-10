@@ -10,7 +10,6 @@ import org.springframework.transaction.annotation.Transactional;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.member.MemberRepository;
 import codesquad.fineants.domain.oauth.support.AuthMember;
-import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.domain.stock.StockRepository;
 import codesquad.fineants.domain.watch_list.WatchList;
 import codesquad.fineants.domain.watch_list.WatchListRepository;
@@ -26,6 +25,7 @@ import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
 import codesquad.fineants.spring.api.watch_list.request.CreateWatchListRequest;
 import codesquad.fineants.spring.api.watch_list.request.CreateWatchStockRequest;
 import codesquad.fineants.spring.api.watch_list.request.DeleteWatchListsRequests;
+import codesquad.fineants.spring.api.watch_list.request.DeleteWatchStocksRequest;
 import codesquad.fineants.spring.api.watch_list.response.CreateWatchListResponse;
 import codesquad.fineants.spring.api.watch_list.response.ReadWatchListResponse;
 import codesquad.fineants.spring.api.watch_list.response.ReadWatchListsResponse;
@@ -76,15 +76,14 @@ public class WatchListService {
 	}
 
 	@Transactional
-	public void deleteWatchList(AuthMember authMember, DeleteWatchListsRequests deleteWatchListsRequests) {
+	public void deleteWatchLists(AuthMember authMember, DeleteWatchListsRequests deleteWatchListsRequests) {
 		Member member = findMember(authMember.getMemberId());
+		List<WatchList> watchLists = watchListRepository.findAllById(deleteWatchListsRequests.getWatchlistIds());
 
-		deleteWatchListsRequests.getWatchlistIds().stream()
-			.map(watchListRepository::findById)
-			.filter(Optional::isPresent)
-			.map(Optional::get)
+		watchLists.stream()
 			.filter(watchList -> watchList.getMember().getId().equals(member.getId()))
 			.forEach(watchList -> watchListRepository.deleteById(watchList.getId()));
+
 	}
 
 	@Transactional
@@ -106,18 +105,13 @@ public class WatchListService {
 	}
 
 	@Transactional
-	public void deleteWatchStock(AuthMember authMember, Long watchListId, Long stockId) {
+	public void deleteWatchStocks(AuthMember authMember, Long watchListId, DeleteWatchStocksRequest request) {
 		Member member = findMember(authMember.getMemberId());
-		validateWatchListAuthorization(member.getId(), watchListId);
+		WatchList watchList = watchListRepository.findById(watchListId)
+			.orElseThrow(() -> new NotFoundResourceException(WatchListErrorCode.NOT_FOUND_WATCH_LIST));
+		validateWatchListAuthorization(member.getId(), watchList.getMember().getId());
 
-		WatchStock watchStock = watchStockRepository.findById(stockId)
-			.orElseThrow(() -> new NotFoundResourceException(WatchListErrorCode.NOT_FOUND_WATCH_STOCK));
-
-		if (!watchStock.getWatchList().getId().equals(watchListId)) {
-			throw new NotFoundResourceException(WatchListErrorCode.NOT_FOUND_WATCH_STOCK);
-		}
-
-		watchStockRepository.deleteById(stockId);
+		watchStockRepository.deleteByWatchListAndStock_TickerSymbolIn(watchList, request.getTickerSymbols());
 	}
 
 	private Member findMember(Long memberId) {
