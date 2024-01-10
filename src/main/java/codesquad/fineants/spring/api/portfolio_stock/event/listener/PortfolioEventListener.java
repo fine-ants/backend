@@ -6,8 +6,6 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import codesquad.fineants.spring.api.errors.errorcode.PortfolioHoldingErrorCode;
-import codesquad.fineants.spring.api.errors.exception.FineAntsException;
 import codesquad.fineants.spring.api.portfolio_stock.event.PortfolioEvent;
 import codesquad.fineants.spring.api.portfolio_stock.manager.SseEmitterManager;
 import codesquad.fineants.spring.api.portfolio_stock.service.StockMarketChecker;
@@ -42,8 +40,7 @@ public class PortfolioEventListener {
 					.name(COMPLETE_NAME));
 				emitter.complete();
 			}
-			throw new FineAntsException(PortfolioHoldingErrorCode.NOT_FOUND_PORTFOLIO_HOLDING, "에러 발생");
-		} catch (IOException | InterruptedException | FineAntsException e) {
+		} catch (IOException | InterruptedException e) {
 			log.error(e.getMessage(), e);
 			emitter.completeWithError(e);
 		} catch (Exception e) {
