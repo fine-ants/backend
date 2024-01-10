@@ -79,31 +79,30 @@ public class WatchListService {
 	public void deleteWatchList(AuthMember authMember, DeleteWatchListsRequests deleteWatchListsRequests) {
 		Member member = findMember(authMember.getMemberId());
 
-		for(Long watchListId: deleteWatchListsRequests.getWatchlistIds()){
-			Optional<WatchList> watchList = watchListRepository.findById(watchListId);
-			if(watchList.isPresent()){
-				validateWatchListAuthorization(member.getId(), watchList.get().getMember().getId());
-				watchListRepository.deleteById(watchListId);
-			}
-		}
+		deleteWatchListsRequests.getWatchlistIds().stream()
+			.map(watchListRepository::findById)
+			.filter(Optional::isPresent)
+			.map(Optional::get)
+			.filter(watchList -> watchList.getMember().getId().equals(member.getId()))
+			.forEach(watchList -> watchListRepository.deleteById(watchList.getId()));
 	}
 
 	@Transactional
-	public void createWatchStock(AuthMember authMember, Long watchListId, CreateWatchStockRequest request) {
+	public void createWatchStocks(AuthMember authMember, Long watchListId, CreateWatchStockRequest request) {
 		Member member = findMember(authMember.getMemberId());
 		WatchList watchList = watchListRepository.findById(watchListId)
 			.orElseThrow(() -> new NotFoundResourceException(WatchListErrorCode.NOT_FOUND_WATCH_LIST));
 
 		validateWatchListAuthorization(member.getId(), watchList.getMember().getId());
 
-		Stock stock = stockRepository.findByTickerSymbol(request.getTickerSymbol())
-			.orElseThrow(() -> new NotFoundResourceException(StockErrorCode.NOT_FOUND_STOCK));
-
-		WatchStock watchStock = WatchStock.builder()
-			.watchList(watchList)
-			.stock(stock)
-			.build();
-		watchStockRepository.save(watchStock);
+		request.getTickerSymbols().stream()
+			.map(tickerSymbol -> stockRepository.findByTickerSymbol(tickerSymbol)
+				.orElseThrow(() -> new NotFoundResourceException(StockErrorCode.NOT_FOUND_STOCK)))
+			.map(stock -> WatchStock.builder()
+				.watchList(watchList)
+				.stock(stock)
+				.build())
+			.forEach(watchStockRepository::save);
 	}
 
 	@Transactional
@@ -114,7 +113,7 @@ public class WatchListService {
 		WatchStock watchStock = watchStockRepository.findById(stockId)
 			.orElseThrow(() -> new NotFoundResourceException(WatchListErrorCode.NOT_FOUND_WATCH_STOCK));
 
-		if(!watchStock.getWatchList().getId().equals(watchListId)){
+		if (!watchStock.getWatchList().getId().equals(watchListId)) {
 			throw new NotFoundResourceException(WatchListErrorCode.NOT_FOUND_WATCH_STOCK);
 		}
 
@@ -126,7 +125,7 @@ public class WatchListService {
 			.orElseThrow(() -> new NotFoundResourceException(MemberErrorCode.NOT_FOUND_MEMBER));
 	}
 
-	private void validateWatchListAuthorization(Long memberId, Long watchListMemberId){
+	private void validateWatchListAuthorization(Long memberId, Long watchListMemberId) {
 		if (!memberId.equals(watchListMemberId)) {
 			throw new ForBiddenException(WatchListErrorCode.FORBIDDEN);
 		}

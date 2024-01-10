@@ -57,9 +57,9 @@ public class WatchListRestController {
 	}
 
 	@PostMapping("/{watchlistId}/stock")
-	public ApiResponse<Void> createWatchStock(@AuthPrincipalMember AuthMember authMember,
+	public ApiResponse<Void> createWatchStocks(@AuthPrincipalMember AuthMember authMember,
 		@PathVariable Long watchlistId, @RequestBody CreateWatchStockRequest request){
-		watchListService.createWatchStock(authMember, watchlistId, request);
+		watchListService.createWatchStocks(authMember, watchlistId, request);
 		return ApiResponse.success(WatchListSuccessCode.CREATED_WATCH_STOCK);
 	}
 
