@@ -63,7 +63,7 @@ public class JwtProvider {
 				.parseClaimsJws(token)
 				.getBody();
 		} catch (ExpiredJwtException e) {
-			throw new UnAuthorizationException(JwtErrorCode.REFRESH_TOKEN_EXPIRE_TOKEN);
+			throw new ForBiddenException(JwtErrorCode.ACCESS_TOKEN_EXPIRE_TOKEN);
 		} catch (JwtException e) {
 			throw new BadRequestException(JwtErrorCode.INVALID_TOKEN);
 		}
