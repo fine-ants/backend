@@ -171,8 +171,15 @@ class PortfolioStockRestControllerTest {
 		given(portfolioStockService.addPortfolioStock(anyLong(), any(PortfolioStockCreateRequest.class),
 			any(AuthMember.class))).willReturn(response);
 
+		Map<String, Object> purchaseHistoryMap = new HashMap<>();
+		purchaseHistoryMap.put("purchaseDate", LocalDateTime.now().toString());
+		purchaseHistoryMap.put("numShares", 10L);
+		purchaseHistoryMap.put("purchasePricePerShare", 100.0);
+
 		Map<String, Object> requestBodyMap = new HashMap<>();
-		requestBodyMap.put("tickerSymbol", stock.getTickerSymbol());
+		requestBodyMap.put("tickerSymbol", "005930");
+		requestBodyMap.put("purchaseHistory", purchaseHistoryMap);
+
 
 		String body = ObjectMapperUtil.serialize(requestBodyMap);
 		Long portfolioId = portfolio.getId();
