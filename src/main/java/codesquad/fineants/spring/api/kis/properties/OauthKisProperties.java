@@ -11,10 +11,17 @@ public class OauthKisProperties {
 
 	private final String appkey;
 	private final String secretkey;
+	private final String tokenURI;
+	private final String currentPriceURI;
+	private final String lastDayClosingPriceURI;
 
 	@ConstructorBinding
-	public OauthKisProperties(String appkey, String secretkey) {
+	public OauthKisProperties(String appkey, String secretkey, String tokenURI, String currentPriceURI,
+		String lastDayClosingPriceURI) {
 		this.appkey = appkey;
 		this.secretkey = secretkey;
+		this.tokenURI = tokenURI;
+		this.currentPriceURI = currentPriceURI;
+		this.lastDayClosingPriceURI = lastDayClosingPriceURI;
 	}
 }

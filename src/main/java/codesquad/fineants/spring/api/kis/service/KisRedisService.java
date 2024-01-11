@@ -11,9 +11,10 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import codesquad.fineants.spring.api.kis.client.KisAccessToken;
+import codesquad.fineants.spring.util.ObjectMapperUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -27,22 +28,12 @@ public class KisRedisService {
 	private final RedisTemplate<String, Object> redisTemplate;
 	private final ObjectMapper objectMapper;
 
-	public Optional<Map<String, Object>> getAccessTokenMap() {
-		if (Boolean.FALSE.equals(redisTemplate.hasKey(ACCESS_TOKEN_MAP_KEY))) {
-			return Optional.empty();
-		}
-
+	public Optional<KisAccessToken> getAccessTokenMap() {
 		Object result = redisTemplate.opsForValue().get(ACCESS_TOKEN_MAP_KEY);
 		if (result == null) {
 			return Optional.empty();
 		}
-		try {
-			Map<String, Object> accessTokenMap = objectMapper.readValue((String)result, new TypeReference<>() {
-			});
-			return Optional.ofNullable(accessTokenMap);
-		} catch (JsonProcessingException e) {
-			throw new RuntimeException(e);
-		}
+		return Optional.ofNullable(ObjectMapperUtil.deserialize((String)result, KisAccessToken.class));
 	}
 
 	public void setAccessTokenMap(Map<String, Object> accessTokenMap, LocalDateTime now) {
@@ -62,7 +53,17 @@ public class KisRedisService {
 			log.error(e.getMessage(), e);
 			throw new RuntimeException(e.getMessage());
 		}
+	}
 
+	public void setAccessTokenMap(KisAccessToken accessToken, LocalDateTime now) {
+		try {
+			redisTemplate.opsForValue().set(ACCESS_TOKEN_MAP_KEY,
+				ObjectMapperUtil.serialize(accessToken),
+				accessToken.betweenSecondFrom(now));
+		} catch (RedisSystemException e) {
+			log.error(e.getMessage(), e);
+			throw new RuntimeException(e.getMessage());
+		}
 	}
 
 	public void deleteAccessTokenMap() {

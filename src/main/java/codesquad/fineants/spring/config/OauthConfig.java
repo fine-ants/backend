@@ -6,11 +6,10 @@ import org.springframework.context.annotation.Configuration;
 
 import codesquad.fineants.domain.oauth.properties.OauthProperties;
 import codesquad.fineants.domain.oauth.repository.InMemoryOauthClientRepository;
-import codesquad.fineants.spring.api.kis.properties.OauthKisProperties;
 import codesquad.fineants.spring.api.member.service.WebClientWrapper;
 import lombok.RequiredArgsConstructor;
 
-@EnableConfigurationProperties({OauthProperties.class, OauthKisProperties.class})
+@EnableConfigurationProperties({OauthProperties.class})
 @RequiredArgsConstructor
 @Configuration
 public class OauthConfig {
