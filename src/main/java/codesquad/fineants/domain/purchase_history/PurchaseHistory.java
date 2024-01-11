@@ -13,6 +13,7 @@ import javax.persistence.ManyToOne;
 
 import codesquad.fineants.domain.BaseEntity;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
+import codesquad.fineants.spring.api.portfolio_stock.request.PortfolioStockCreateRequest;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -46,6 +47,17 @@ public class PurchaseHistory extends BaseEntity {
 		this.numShares = numShares;
 		this.memo = memo;
 		this.portfolioHolding = portfolioHolding;
+	}
+
+	public static PurchaseHistory of(PortfolioHolding portFolioHolding,
+		PortfolioStockCreateRequest.PurchaseHistoryCreateRequest purchaseHistory) {
+		return PurchaseHistory.builder()
+			.portfolioHolding(portFolioHolding)
+			.purchaseDate(purchaseHistory.getPurchasedDate())
+			.purchasePricePerShare(purchaseHistory.getPurchasePricePerShare())
+			.numShares(purchaseHistory.getNumShares())
+			.memo(purchaseHistory.getMemo())
+			.build();
 	}
 
 	// 투자 금액 = 주당 매입가 * 개수
