@@ -37,6 +37,11 @@ public class PortfolioEventPublisher {
 
 	public void sendEventToPortfolio(LocalDateTime eventDatetime) {
 		log.info("sseEmitter 개수 : {}", manager.size());
+		publishPortfolioEvent(eventDatetime);
+		this.executor.schedule(() -> this.sendEventToPortfolio(LocalDateTime.now()), 5, SECONDS);
+	}
+
+	public void publishPortfolioEvent(LocalDateTime eventDatetime) {
 		List<Long> deadEmitters = new ArrayList<>();
 		for (Long id : manager.keys()) {
 			try {
@@ -51,6 +56,5 @@ public class PortfolioEventPublisher {
 			}
 		}
 		deadEmitters.forEach(manager::remove);
-		this.executor.schedule(() -> this.sendEventToPortfolio(LocalDateTime.now()), 5, SECONDS);
 	}
 }
