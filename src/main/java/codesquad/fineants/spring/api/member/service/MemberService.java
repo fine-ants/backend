@@ -188,6 +188,7 @@ public class MemberService {
 			.nickname(request.getNickname())
 			.profileUrl(url)
 			.password(passwordEncoder.encode(request.getPassword()))
+			.provider("local")
 			.build();
 		saveMemberToRepository(member);
 	}
@@ -245,7 +246,7 @@ public class MemberService {
 
 	@Transactional(readOnly = true)
 	public LoginResponse login(LoginRequest request) {
-		Member member = memberRepository.findMemberByEmailAndProvider(request.getEmail(), null)
+		Member member = memberRepository.findMemberByEmailAndProvider(request.getEmail(), "local")
 			.orElseThrow(() -> new BadRequestException(MemberErrorCode.LOGIN_FAIL));
 		if (!passwordEncoder.matches(request.getPassword(), member.getPassword())) {
 			throw new BadRequestException(MemberErrorCode.LOGIN_FAIL);
