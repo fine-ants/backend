@@ -51,7 +51,7 @@ spring:
         format_sql: true
         dialect: org.hibernate.dialect.MySQL8Dialect
     defer-datasource-initialization: true
-  #    show-sql: true
+    show-sql: true
   redis:
     host: localhost
     port: 6379

@@ -5,15 +5,9 @@ import static org.mockito.BDDMockito.*;
 import static org.springframework.web.servlet.mvc.method.annotation.SseEmitter.*;
 
 import java.io.IOException;
-import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.IntStream;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
@@ -149,42 +143,6 @@ class PortfolioEventPublisherTest {
 		Assertions.assertThat(manager.size()).isZero();
 	}
 
-	@DisplayName("포트폴리오 이벤트 전송시 hikari connection pool이 고갈되어 전송할 수 없다")
-	@Test
-	void publishPortfolioEvent_whenConnectionPoolExhaustionOnPortfolioEventTransmission_thenError() throws
-		InterruptedException {
-		// given
-		Stock stock = stockRepository.save(createStock());
-		stockDividendRepository.saveAll(createStockDividendWith(stock));
-		Member member = memberRepository.save(createMember());
-		List<Portfolio> portfolios = new ArrayList<>();
-		IntStream.rangeClosed(1, 15).forEach(i -> {
-			Portfolio portfolio = portfolioRepository.save(createPortfolio(member, "제목1"));
-			portfolios.add(portfolio);
-			PortfolioHolding portfolioHolding = portfolioHoldingRepository.save(
-				createPortfolioHolding(portfolio, stock));
-			purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding));
-			currentPriceManager.addCurrentPrice(new CurrentPriceResponse("005930", 60000L));
-			lastDayClosingPriceManager.addPrice("005930", 50000);
-		});
-
-		portfolios.stream()
-			.map(Portfolio::getId)
-			.forEach(portfolioId -> {
-				SseEmitter sseEmitter = createSseEmitter(portfolioId);
-				manager.add(portfolioId, sseEmitter);
-			});
-
-		ScheduledExecutorService executor = Executors.newScheduledThreadPool(10);
-		// when
-		for (int i = 0; i < 10; i++) {
-			executor.schedule(() -> publisher.sendEventToPortfolio(LocalDateTime.of(2023, 12, 22, 10, 0, 0)), 0L,
-				TimeUnit.SECONDS);
-		}
-		// then
-		Thread.sleep(30000L);
-	}
-
 	private Member createMember() {
 		return Member.builder()
 			.nickname("일개미1234")
@@ -273,22 +231,5 @@ class PortfolioEventPublisherTest {
 				LocalDate.of(2023, 11, 20),
 				stock)
 		);
-	}
-
-	private SseEmitter createSseEmitter(Long portfolioId) {
-		SseEmitter emitter = new SseEmitter(Duration.ofSeconds(30).toMillis());
-		emitter.onTimeout(() -> {
-			log.info("emitter{} timeout으로 인한 제거", portfolioId);
-			emitter.complete();
-		});
-		emitter.onCompletion(() -> {
-			log.info("emitter{} completion으로 인한 제거", portfolioId);
-			manager.remove(portfolioId);
-		});
-		emitter.onError(throwable -> {
-			log.error(throwable.getMessage());
-			emitter.complete();
-		});
-		return emitter;
 	}
 }
