@@ -45,7 +45,6 @@ public class AccessTokenAspect {
 
 	private void handleNewAccessToken(LocalDateTime now) {
 		CountDownLatch latch = new CountDownLatch(1);
-
 		client.accessToken(oauthKisProperties.getTokenURI())
 			.subscribe(accessToken -> {
 					redisService.setAccessTokenMap(accessToken, now);
@@ -53,10 +52,9 @@ public class AccessTokenAspect {
 					log.info("새로운 액세스 토큰 갱신 완료");
 				},
 				error -> {
-					log.error("새로운 액세스 토큰 발급중 에러 발생", error);
+					log.error("새로운 액세스 토큰 발급 에러", error);
 					latch.countDown();
-				},
-				latch::countDown);
+				}, latch::countDown);
 		try {
 			latch.await();
 		} catch (InterruptedException e) {
