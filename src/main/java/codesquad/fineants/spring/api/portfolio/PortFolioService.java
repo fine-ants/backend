@@ -179,4 +179,10 @@ public class PortFolioService {
 
 		return PortfoliosResponse.of(portfolios, portfolioGainHistoryMap, currentPriceManager);
 	}
+
+	public boolean hasAuthorizationBy(Long portfolioId, Long memberId) {
+		Portfolio portfolio = portfolioRepository.findByPortfolioId(portfolioId)
+			.orElseThrow(() -> new NotFoundResourceException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
+		return portfolio.hasAuthorization(memberId);
+	}
 }
