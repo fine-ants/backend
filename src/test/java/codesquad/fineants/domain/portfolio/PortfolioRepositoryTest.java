@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.*;
 
 import java.util.List;
 
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -70,6 +71,21 @@ class PortfolioRepositoryTest {
 		// then
 		assertThat(portfolios)
 			.hasSize(1);
+	}
+
+	@DisplayName("특정한 한 포트폴리오를 조회합니다")
+	@Test
+	void findById() {
+		// given
+		Member member = memberRepository.save(createMember());
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
+
+		// when
+		Portfolio findPortfolio = portfolioRepository.findById(portfolio.getId())
+			.orElseThrow();
+
+		// then
+		Assertions.assertThat(portfolio.getId()).isEqualTo(findPortfolio.getId());
 	}
 
 	private Member createMember() {
