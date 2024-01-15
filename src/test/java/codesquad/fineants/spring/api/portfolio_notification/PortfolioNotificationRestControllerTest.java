@@ -38,6 +38,7 @@ import codesquad.fineants.domain.purchase_history.PurchaseHistory;
 import codesquad.fineants.domain.stock.Market;
 import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.spring.api.errors.handler.GlobalExceptionHandler;
+import codesquad.fineants.spring.api.portfolio.PortFolioService;
 import codesquad.fineants.spring.api.portfolio_notification.request.PortfolioNotificationModifyRequest;
 import codesquad.fineants.spring.api.portfolio_notification.response.PortfolioNotificationModifyResponse;
 import codesquad.fineants.spring.auth.HasPortfolioAuthorizationAspect;
@@ -69,6 +70,9 @@ class PortfolioNotificationRestControllerTest {
 
 	@MockBean
 	private PortfolioRepository portfolioRepository;
+
+	@MockBean
+	private PortFolioService portFolioService;
 
 	private Member member;
 	private Portfolio portfolio;
@@ -130,6 +134,8 @@ class PortfolioNotificationRestControllerTest {
 			.numShares(3L)
 			.memo("첫구매")
 			.build();
+
+		given(portFolioService.hasAuthorizationBy(anyLong(), anyLong())).willReturn(true);
 	}
 
 	@DisplayName("사용자는 포트폴리오의 목표수익금액 알람을 활성화합니다.")
