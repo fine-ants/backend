@@ -9,25 +9,25 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 @Component
 public class SseEmitterManager {
-	private final Map<Long, SseEmitter> clients = new ConcurrentHashMap<>();
+	private final Map<SseEmitterKey, SseEmitter> clients = new ConcurrentHashMap<>();
 
-	public void add(Long portfolioId, SseEmitter emitter) {
-		clients.put(portfolioId, emitter);
+	public void add(SseEmitterKey key, SseEmitter emitter) {
+		clients.put(key, emitter);
 	}
 
-	public void remove(Long portfolioId) {
-		clients.remove(portfolioId);
+	public void remove(SseEmitterKey key) {
+		clients.remove(key);
 	}
 
 	public int size() {
 		return clients.size();
 	}
 
-	public SseEmitter get(Long id) {
-		return clients.get(id);
+	public SseEmitter get(SseEmitterKey key) {
+		return clients.get(key);
 	}
 
-	public Set<Long> keys() {
+	public Set<SseEmitterKey> keys() {
 		return clients.keySet();
 	}
 }

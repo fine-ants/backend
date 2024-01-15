@@ -36,6 +36,7 @@ import codesquad.fineants.domain.stock_dividend.StockDividendRepository;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
 import codesquad.fineants.spring.api.kis.response.CurrentPriceResponse;
+import codesquad.fineants.spring.api.portfolio_stock.manager.SseEmitterKey;
 import codesquad.fineants.spring.api.portfolio_stock.manager.SseEmitterManager;
 import codesquad.fineants.spring.api.portfolio_stock.service.PortfolioStockService;
 import lombok.extern.slf4j.Slf4j;
@@ -106,9 +107,10 @@ class PortfolioEventPublisherTest {
 		lastDayClosingPriceManager.addPrice("005930", 50000);
 
 		SseEmitter emitter = mock(SseEmitter.class);
-		emitter.onTimeout(() -> manager.remove(portfolio.getId()));
-		emitter.onCompletion(() -> manager.remove(portfolio.getId()));
-		manager.add(portfolio.getId(), emitter);
+		SseEmitterKey key = SseEmitterKey.create(portfolio.getId());
+		emitter.onTimeout(() -> manager.remove(key));
+		emitter.onCompletion(() -> manager.remove(key));
+		manager.add(key, emitter);
 
 		// when
 		publisher.sendEventToPortfolio(LocalDateTime.of(2023, 12, 22, 10, 0, 0));
@@ -132,10 +134,11 @@ class PortfolioEventPublisherTest {
 		given(portfolioStockService.readMyPortfolioStocksInRealTime(anyLong()))
 			.willThrow(new IllegalArgumentException("005930 종목에 대한 가격을 찾을 수 없습니다."));
 
-		SseEmitter emitter = new SseEmitter();
-		emitter.onTimeout(() -> manager.remove(portfolio.getId()));
-		emitter.onCompletion(() -> manager.remove(portfolio.getId()));
-		manager.add(portfolio.getId(), emitter);
+		SseEmitter emitter = mock(SseEmitter.class);
+		SseEmitterKey key = SseEmitterKey.create(portfolio.getId());
+		emitter.onTimeout(() -> manager.remove(key));
+		emitter.onCompletion(() -> manager.remove(key));
+		manager.add(key, emitter);
 
 		// when
 		publisher.sendEventToPortfolio(LocalDateTime.of(2023, 12, 22, 10, 0, 0));

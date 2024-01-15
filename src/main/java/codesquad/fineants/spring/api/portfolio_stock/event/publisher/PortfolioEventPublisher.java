@@ -14,6 +14,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
 import codesquad.fineants.spring.api.portfolio_stock.event.PortfolioEvent;
+import codesquad.fineants.spring.api.portfolio_stock.manager.SseEmitterKey;
 import codesquad.fineants.spring.api.portfolio_stock.manager.SseEmitterManager;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioHoldingsRealTimeResponse;
 import codesquad.fineants.spring.api.portfolio_stock.service.PortfolioStockService;
@@ -42,17 +43,18 @@ public class PortfolioEventPublisher {
 	}
 
 	public void publishPortfolioEvent(LocalDateTime eventDatetime) {
-		List<Long> deadEmitters = new ArrayList<>();
-		for (Long id : manager.keys()) {
+		List<SseEmitterKey> deadEmitters = new ArrayList<>();
+		for (SseEmitterKey key : manager.keys()) {
 			try {
-				PortfolioHoldingsRealTimeResponse response = portfolioStockService.readMyPortfolioStocksInRealTime(id);
-				PortfolioEvent portfolioEvent = new PortfolioEvent(id, response, eventDatetime);
+				PortfolioHoldingsRealTimeResponse response = portfolioStockService.readMyPortfolioStocksInRealTime(
+					key.getPortfolioId());
+				PortfolioEvent portfolioEvent = new PortfolioEvent(key, response, eventDatetime);
 				eventPublisher.publishEvent(portfolioEvent);
 				log.info("{}", portfolioEvent);
 			} catch (Exception e) {
 				log.error(e.getMessage(), e);
-				manager.get(id).completeWithError(e);
-				deadEmitters.add(id);
+				manager.get(key).completeWithError(e);
+				deadEmitters.add(key);
 			}
 		}
 		deadEmitters.forEach(manager::remove);

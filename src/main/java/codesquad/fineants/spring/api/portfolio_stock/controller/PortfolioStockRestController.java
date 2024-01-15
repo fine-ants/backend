@@ -18,6 +18,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.oauth.support.AuthPrincipalMember;
+import codesquad.fineants.spring.api.portfolio_stock.manager.SseEmitterKey;
 import codesquad.fineants.spring.api.portfolio_stock.manager.SseEmitterManager;
 import codesquad.fineants.spring.api.portfolio_stock.request.PortfolioStockCreateRequest;
 import codesquad.fineants.spring.api.portfolio_stock.request.PortfolioStocksDeleteRequest;
@@ -80,19 +81,20 @@ public class PortfolioStockRestController {
 	public SseEmitter readMyPortfolioStocksInRealTime(@PathVariable Long portfolioId,
 		@AuthPrincipalMember AuthMember authMember) {
 		SseEmitter emitter = new SseEmitter(Duration.ofSeconds(30).toMillis());
+		SseEmitterKey key = SseEmitterKey.create(portfolioId);
 		emitter.onTimeout(() -> {
 			log.info("emitter{} timeout으로 인한 제거", portfolioId);
 			emitter.complete();
 		});
 		emitter.onCompletion(() -> {
 			log.info("emitter{} completion으로 인한 제거", portfolioId);
-			manager.remove(portfolioId);
+			manager.remove(key);
 		});
 		emitter.onError(throwable -> {
 			log.error(throwable.getMessage(), throwable);
 			emitter.complete();
 		});
-		manager.add(portfolioId, emitter);
+		manager.add(key, emitter);
 		return emitter;
 	}
 
