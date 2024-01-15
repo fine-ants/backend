@@ -1,7 +1,5 @@
 package codesquad.fineants.spring.api.portfolio_stock.event.listener;
 
-import java.io.IOException;
-
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -40,11 +38,9 @@ public class PortfolioEventListener {
 					.name(COMPLETE_NAME));
 				emitter.complete();
 			}
-		} catch (IOException | InterruptedException e) {
-			log.error(e.getMessage(), e);
-			emitter.completeWithError(e);
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
+			emitter.completeWithError(e);
 		}
 	}
 
