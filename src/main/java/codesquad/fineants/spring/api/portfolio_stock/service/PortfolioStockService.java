@@ -11,12 +11,15 @@ import codesquad.fineants.domain.portfolio.Portfolio;
 import codesquad.fineants.domain.portfolio.PortfolioRepository;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHoldingRepository;
+import codesquad.fineants.domain.purchase_history.PurchaseHistory;
 import codesquad.fineants.domain.purchase_history.PurchaseHistoryRepository;
 import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.domain.stock.StockRepository;
 import codesquad.fineants.spring.api.errors.errorcode.PortfolioErrorCode;
 import codesquad.fineants.spring.api.errors.errorcode.PortfolioHoldingErrorCode;
+import codesquad.fineants.spring.api.errors.errorcode.PurchaseHistoryErrorCode;
 import codesquad.fineants.spring.api.errors.errorcode.StockErrorCode;
+import codesquad.fineants.spring.api.errors.exception.FineAntsException;
 import codesquad.fineants.spring.api.errors.exception.ForBiddenException;
 import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
 import codesquad.fineants.spring.api.portfolio_stock.chart.DividendChart;
@@ -71,14 +74,16 @@ public class PortfolioStockService {
 
 		PortfolioHolding portFolioHolding = portfolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
 
+		if (request.isPurchaseHistoryComplete()) {
+			validateInvestAmountNotExceedsBudget(request, portfolio);
+			purchaseHistoryRepository.save(PurchaseHistory.of(portFolioHolding, request.getPurchaseHistory()));
+		} else if (!request.isPurchaseHistoryAllNull()) {
+			throw new FineAntsException(PurchaseHistoryErrorCode.BAD_INPUT);
+		}
+
 		publisher.publishPortfolioHolding(stock.getTickerSymbol());
 		log.info("포트폴리오 종목 추가 결과 : {}", portFolioHolding);
 		return PortfolioStockCreateResponse.from(portFolioHolding);
-	}
-
-	public Portfolio findPortfolio(Long portfolioId) {
-		return portfolioRepository.findById(portfolioId)
-			.orElseThrow(() -> new NotFoundResourceException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
 	}
 
 	@Transactional
@@ -111,6 +116,20 @@ public class PortfolioStockService {
 			throw new NotFoundResourceException(PortfolioHoldingErrorCode.NOT_FOUND_PORTFOLIO_HOLDING);
 		}
 		return new PortfolioStockDeletesResponse(portfolioHoldingIds);
+	}
+
+	public Portfolio findPortfolio(Long portfolioId) {
+		return portfolioRepository.findById(portfolioId)
+			.orElseThrow(() -> new NotFoundResourceException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
+	}
+
+	private void validateInvestAmountNotExceedsBudget(PortfolioStockCreateRequest request, Portfolio portfolio){
+		Double purchasedAmount =
+			request.getPurchaseHistory().getNumShares() * request.getPurchaseHistory()
+				.getPurchasePricePerShare();
+		if (portfolio.calculateTotalInvestmentAmount() + purchasedAmount > portfolio.getBudget()) {
+			throw new FineAntsException(PortfolioErrorCode.TOTAL_INVESTMENT_PRICE_EXCEEDS_BUDGET);
+		}
 	}
 
 	private void validateExistPortfolioHolding(List<Long> portfolioHoldingIds) {
@@ -153,5 +172,4 @@ public class PortfolioStockService {
 		List<PortfolioSectorChartItem> sectorChartItems = sectorChart.createBy(portfolio);
 		return new PortfolioChartResponse(pieChartItems, dividendChartItems, sectorChartItems);
 	}
-
 }

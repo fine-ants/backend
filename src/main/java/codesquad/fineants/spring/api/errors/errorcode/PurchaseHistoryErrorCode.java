@@ -9,7 +9,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum PurchaseHistoryErrorCode implements ErrorCode {
 
-	NOT_FOUND_PURCHASE_HISTORY(HttpStatus.NOT_FOUND, "매입 이력을 찾을 수 없습니다.");
+	NOT_FOUND_PURCHASE_HISTORY(HttpStatus.NOT_FOUND, "매입 이력을 찾을 수 없습니다."),
+	BAD_INPUT(HttpStatus.BAD_REQUEST, "잘못된 입력 형식입니다.");
 
 	private final HttpStatus httpStatus;
 	private final String message;

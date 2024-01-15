@@ -33,6 +33,7 @@ import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.domain.stock.StockRepository;
 import codesquad.fineants.domain.stock_dividend.StockDividend;
 import codesquad.fineants.domain.stock_dividend.StockDividendRepository;
+import codesquad.fineants.spring.api.errors.exception.FineAntsException;
 import codesquad.fineants.spring.api.errors.exception.ForBiddenException;
 import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
@@ -245,7 +246,7 @@ class PortfolioStockServiceTest {
 
 	@DisplayName("사용자는 포트폴리오에 종목을 추가한다")
 	@Test
-	void addPortfolioStock() {
+	void addPortfolioStockOnly() {
 		// given
 		Member member = memberRepository.save(createMember());
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
@@ -269,13 +270,71 @@ class PortfolioStockServiceTest {
 		);
 	}
 
+	@DisplayName("사용자는 포트폴리오에 종목과 매입이력을 추가한다")
+	@Test
+	void addPortfolioStock() {
+		// given
+		Member member = memberRepository.save(createMember());
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
+		Stock stock = stockRepository.save(createStock());
+
+		Map<Object, Object> purchaseHistory = new HashMap<>();
+		purchaseHistory.put("purchasedDate", LocalDateTime.now());
+		purchaseHistory.put("numShares", Long.valueOf(2));
+		purchaseHistory.put("purchasePricePerShare", Double.valueOf(1000));
+
+		Map<String, Object> requestBodyMap = new HashMap<>();
+		requestBodyMap.put("tickerSymbol", stock.getTickerSymbol());
+		requestBodyMap.put("purchaseHistory", purchaseHistory);
+		PortfolioStockCreateRequest request = ObjectMapperUtil.deserialize(ObjectMapperUtil.serialize(requestBodyMap),
+			PortfolioStockCreateRequest.class);
+		// when
+		PortfolioStockCreateResponse response = service.addPortfolioStock(portfolio.getId(), request,
+			AuthMember.from(member));
+
+		// then
+		assertAll(
+			() -> assertThat(response)
+				.extracting("portfolioStockId")
+				.isNotNull(),
+			() -> assertThat(portFolioHoldingRepository.findAll()).hasSize(1)
+		);
+	}
+
+	@DisplayName("사용자는 포트폴리오에 종목과 매입이력 중 일부를 추가할 수 없다")
+	@Test
+	void addPortfolioStockWithInvalidInput() {
+		// given
+		Member member = memberRepository.save(createMember());
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
+		Stock stock = stockRepository.save(createStock());
+
+		Map<Object, Object> purchaseHistory = new HashMap<>();
+		purchaseHistory.put("purchasedDate", LocalDateTime.now());
+		purchaseHistory.put("purchasePricePerShare", Double.valueOf(1000));
+
+		Map<String, Object> requestBodyMap = new HashMap<>();
+		requestBodyMap.put("tickerSymbol", stock.getTickerSymbol());
+		requestBodyMap.put("purchaseHistory", purchaseHistory);
+		PortfolioStockCreateRequest request = ObjectMapperUtil.deserialize(ObjectMapperUtil.serialize(requestBodyMap),
+			PortfolioStockCreateRequest.class);
+
+		// when
+		Throwable throwable = catchThrowable(() ->  service.addPortfolioStock(portfolio.getId(), request,
+			AuthMember.from(member)));
+
+		// then
+		assertThat(throwable).isInstanceOf(FineAntsException.class)
+			.extracting("message")
+			.isEqualTo("잘못된 입력 형식입니다.");
+	}
+
 	@DisplayName("사용자는 포트폴리오에 존재하지 않는 종목을 추가할 수 없다")
 	@Test
 	void addPortfolioStockWithNotExistStock() {
 		// given
 		Member member = memberRepository.save(createMember());
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
-		Stock stock = stockRepository.save(createStock());
 		Map<String, Object> requestBodyMap = new HashMap<>();
 		requestBodyMap.put("tickerSymbol", "999999");
 		PortfolioStockCreateRequest request = ObjectMapperUtil.deserialize(ObjectMapperUtil.serialize(requestBodyMap),
