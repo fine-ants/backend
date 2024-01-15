@@ -202,7 +202,6 @@ class PortfolioStockRestControllerTest {
 
 		PortfolioStockCreateResponse response = PortfolioStockCreateResponse.from(
 			PortfolioHolding.empty(portfolio, stock));
-		given(portfolioRepository.findById(anyLong())).willReturn(Optional.of(portfolio));
 		given(portfolioStockService.addPortfolioStock(anyLong(), any(PortfolioStockCreateRequest.class),
 			any(AuthMember.class))).willReturn(response);
 

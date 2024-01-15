@@ -174,15 +174,16 @@ class WatchListServiceTest {
 		given(lastDayClosingPriceManager.getPrice(any(String.class))).willReturn(77000L);
 
 		// when
-		List<ReadWatchListResponse> response = watchListService.readWatchList(authMember, watchList.getId());
+		ReadWatchListResponse response = watchListService.readWatchList(authMember, watchList.getId());
 
 		// then
-		assertThat(response.get(0).getCompanyName()).isEqualTo(stock.getCompanyName());
-		assertThat(response.get(0).getTickerSymbol()).isEqualTo(stock.getTickerSymbol());
-		assertThat(response.get(0).getCurrentPrice()).isEqualTo(77000L);
-		assertThat(response.get(0).getDailyChange()).isEqualTo(0);
-		assertThat(response.get(0).getAnnualDividendYield()).isEqualTo((362f/77000)*100);
-		assertThat(response.get(0).getSector()).isEqualTo("전기전자");
+		assertThat(response.getName()).isEqualTo(watchList.getName());
+		assertThat(response.getWatchStocks().get(0).getCompanyName()).isEqualTo(stock.getCompanyName());
+		assertThat(response.getWatchStocks().get(0).getTickerSymbol()).isEqualTo(stock.getTickerSymbol());
+		assertThat(response.getWatchStocks().get(0).getCurrentPrice()).isEqualTo(77000L);
+		assertThat(response.getWatchStocks().get(0).getDailyChange()).isEqualTo(0);
+		assertThat(response.getWatchStocks().get(0).getAnnualDividendYield()).isEqualTo((362f/77000)*100);
+		assertThat(response.getWatchStocks().get(0).getSector()).isEqualTo("전기전자");
 	}
 
 	@DisplayName("회원이 watchlist에 종목을 추가한다.")
