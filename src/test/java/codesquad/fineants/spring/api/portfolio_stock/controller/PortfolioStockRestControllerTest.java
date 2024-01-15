@@ -158,7 +158,7 @@ class PortfolioStockRestControllerTest {
 			.andExpect(jsonPath("message").value(equalTo("포트폴리오를 찾을 수 없습니다")));
 	}
 
-	@DisplayName("사용자는 포트폴리오에 종목을 추가한다")
+	@DisplayName("사용자는 포트폴리오에 종목과 매입이력을 추가한다")
 	@Test
 	void addPortfolioStock() throws Exception {
 		Member member = createMember();
@@ -180,6 +180,35 @@ class PortfolioStockRestControllerTest {
 		requestBodyMap.put("tickerSymbol", "005930");
 		requestBodyMap.put("purchaseHistory", purchaseHistoryMap);
 
+
+		String body = ObjectMapperUtil.serialize(requestBodyMap);
+		Long portfolioId = portfolio.getId();
+		// when & then
+		mockMvc.perform(post("/api/portfolio/" + portfolioId + "/holdings")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(body))
+			.andExpect(status().isCreated())
+			.andExpect(jsonPath("code").value(equalTo(201)))
+			.andExpect(jsonPath("status").value(equalTo("Created")))
+			.andExpect(jsonPath("message").value(equalTo("포트폴리오 종목이 추가되었습니다")))
+			.andExpect(jsonPath("data").value(equalTo(null)));
+	}
+
+	@DisplayName("사용자는 포트폴리오에 종목만 추가한다")
+	@Test
+	void addPortfolioStockOnly() throws Exception {
+		Member member = createMember();
+		Portfolio portfolio = createPortfolio(member);
+		Stock stock = createStock();
+
+		PortfolioStockCreateResponse response = PortfolioStockCreateResponse.from(
+			PortfolioHolding.empty(portfolio, stock));
+		given(portfolioRepository.findById(anyLong())).willReturn(Optional.of(portfolio));
+		given(portfolioStockService.addPortfolioStock(anyLong(), any(PortfolioStockCreateRequest.class),
+			any(AuthMember.class))).willReturn(response);
+
+		Map<String, Object> requestBodyMap = new HashMap<>();
+		requestBodyMap.put("tickerSymbol", "005930");
 
 		String body = ObjectMapperUtil.serialize(requestBodyMap);
 		Long portfolioId = portfolio.getId();

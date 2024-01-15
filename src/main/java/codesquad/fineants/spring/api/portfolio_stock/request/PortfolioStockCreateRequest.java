@@ -3,12 +3,8 @@ package codesquad.fineants.spring.api.portfolio_stock.request;
 import java.time.LocalDateTime;
 
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 
-import org.springframework.data.relational.core.sql.TrueCondition;
-
-import codesquad.fineants.domain.purchase_history.PurchaseHistory;
 import lombok.Getter;
 import lombok.ToString;
 
