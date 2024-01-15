@@ -62,6 +62,8 @@ dependencies {
     //encoder 추가
     implementation 'org.springframework.security:spring-security-crypto'
 
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+
     compileOnly 'org.projectlombok:lombok'
     runtimeOnly 'com.mysql:mysql-connector-j'
     annotationProcessor 'org.projectlombok:lombok'
