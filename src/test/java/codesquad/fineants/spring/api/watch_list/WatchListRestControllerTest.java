@@ -263,7 +263,7 @@ class WatchListRestControllerTest {
 			.andExpect(jsonPath("data").value(equalTo(null)));
 	}
 
-	@DisplayName("사용자가 watchlist에서 종목을 삭제한다.")
+	@DisplayName("사용자가 watchlist에서 종목을 여러개 삭제한다.")
 	@Test
 	void deleteWatchStocks() throws Exception {
 		// given
@@ -291,6 +291,36 @@ class WatchListRestControllerTest {
 		mockMvc.perform(delete("/api/watchlists/1/stock")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(body))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("code").value(equalTo(200)))
+			.andExpect(jsonPath("status").value(equalTo("OK")))
+			.andExpect(jsonPath("message").value(equalTo("관심목록 종목이 삭제되었습니다")))
+			.andExpect(jsonPath("data").value(equalTo(null)));
+	}
+
+	@DisplayName("사용자가 watchlist에서 종목을 삭제한다.")
+	@Test
+	void deleteWatchStock() throws Exception {
+		// given
+		Member member = Member.builder()
+			.id(1L)
+			.nickname("일개미1234")
+			.email("kim1234@gmail.com")
+			.provider("local")
+			.password("kim1234@")
+			.profileUrl("profileValue")
+			.build();
+		AuthMember authMember = AuthMember.from(member);
+
+
+		given(authPrincipalArgumentResolver.supportsParameter(any())).willReturn(true);
+		given(authPrincipalArgumentResolver.resolveArgument(any(), any(), any(), any())).willReturn(authMember);
+		doNothing().when(watchListService)
+			.deleteWatchStocks(any(AuthMember.class), any(Long.class), any(DeleteWatchStocksRequest.class));
+
+		// when & then
+		mockMvc.perform(delete("/api/watchlists/1/stock/\"005930\"")
+				.contentType(MediaType.APPLICATION_JSON))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))

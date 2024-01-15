@@ -251,7 +251,7 @@ class WatchListServiceTest {
 		assertThat(watchStockRepository.findByWatchList(watchList)).hasSize(0);
 	}
 
-	@DisplayName("회원이 watchlist에서 종목을 삭제한다.")
+	@DisplayName("회원이 watchlist에서 종목을 여러개 삭제한다.")
 	@Test
 	void deleteWatchStocks() {
 		// given
@@ -283,6 +283,41 @@ class WatchListServiceTest {
 
 		// when
 		watchListService.deleteWatchStocks(authMember, watchListId, request);
+
+		// then
+		assertThat(watchStockRepository.findById(watchStockId).isPresent()).isFalse();
+	}
+
+	@DisplayName("회원이 watchlist에서 종목을 삭제한다.")
+	@Test
+	void deleteWatchStock() {
+		// given
+		String tickerSymbol = "005930";
+		Stock stock = stockRepository.save(
+			Stock.builder()
+				.tickerSymbol(tickerSymbol)
+				.market(Market.KOSPI)
+				.build()
+		);
+
+		AuthMember authMember = AuthMember.from(member);
+
+		WatchList watchList = watchListRepository.save(WatchList.builder()
+			.name("My WatchList")
+			.member(member)
+			.build());
+		Long watchListId = watchList.getId();
+
+		WatchStock watchStock = watchStockRepository.save(
+			WatchStock.builder()
+				.watchList(watchList)
+				.stock(stock)
+				.build()
+		);
+		Long watchStockId = watchStock.getId();
+
+		// when
+		watchListService.deleteWatchStock(authMember, watchListId, stock.getTickerSymbol());
 
 		// then
 		assertThat(watchStockRepository.findById(watchStockId).isPresent()).isFalse();
