@@ -25,14 +25,14 @@ public class PortfolioEventListener {
 
 	@EventListener
 	public void handleMessage(PortfolioEvent event) {
-		SseEmitter emitter = manager.get(event.getPortfolioId());
+		SseEmitter emitter = manager.get(event.getKey());
 		log.info("emitter 전송준비 : {}", emitter);
 		try {
 			emitter.send(SseEmitter.event()
+				.id(event.getKey().getEventId().toString())
 				.data(event.getResponse())
 				.name(EVENT_NAME));
-			log.info("emitter{} 포트폴리오 전송", event.getPortfolioId());
-
+			log.info("emitter{} 포트폴리오 전송", event.getKey().getPortfolioId());
 			if (!stockMarketChecker.isMarketOpen(event.getEventDateTime())) {
 				Thread.sleep(2000L);
 				emitter.send(SseEmitter.event()
@@ -40,6 +40,7 @@ public class PortfolioEventListener {
 					.name(COMPLETE_NAME));
 				emitter.complete();
 			}
+
 		} catch (IOException | InterruptedException e) {
 			log.error(e.getMessage(), e);
 			emitter.completeWithError(e);
