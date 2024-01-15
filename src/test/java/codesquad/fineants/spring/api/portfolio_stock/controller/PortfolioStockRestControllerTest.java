@@ -179,7 +179,6 @@ class PortfolioStockRestControllerTest {
 		requestBodyMap.put("tickerSymbol", "005930");
 		requestBodyMap.put("purchaseHistory", purchaseHistoryMap);
 
-
 		String body = ObjectMapperUtil.serialize(requestBodyMap);
 		Long portfolioId = portfolio.getId();
 		// when & then
@@ -202,7 +201,6 @@ class PortfolioStockRestControllerTest {
 
 		PortfolioStockCreateResponse response = PortfolioStockCreateResponse.from(
 			PortfolioHolding.empty(portfolio, stock));
-		given(portfolioRepository.findById(anyLong())).willReturn(Optional.of(portfolio));
 		given(portfolioStockService.addPortfolioStock(anyLong(), any(PortfolioStockCreateRequest.class),
 			any(AuthMember.class))).willReturn(response);
 
