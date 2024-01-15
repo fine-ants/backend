@@ -174,15 +174,16 @@ class WatchListServiceTest {
 		given(lastDayClosingPriceManager.getPrice(any(String.class))).willReturn(77000L);
 
 		// when
-		List<ReadWatchListResponse> response = watchListService.readWatchList(authMember, watchList.getId());
+		ReadWatchListResponse response = watchListService.readWatchList(authMember, watchList.getId());
 
 		// then
-		assertThat(response.get(0).getCompanyName()).isEqualTo(stock.getCompanyName());
-		assertThat(response.get(0).getTickerSymbol()).isEqualTo(stock.getTickerSymbol());
-		assertThat(response.get(0).getCurrentPrice()).isEqualTo(77000L);
-		assertThat(response.get(0).getDailyChange()).isEqualTo(0);
-		assertThat(response.get(0).getAnnualDividendYield()).isEqualTo((362f/77000)*100);
-		assertThat(response.get(0).getSector()).isEqualTo("전기전자");
+		assertThat(response.getName()).isEqualTo(watchList.getName());
+		assertThat(response.getWatchStocks().get(0).getCompanyName()).isEqualTo(stock.getCompanyName());
+		assertThat(response.getWatchStocks().get(0).getTickerSymbol()).isEqualTo(stock.getTickerSymbol());
+		assertThat(response.getWatchStocks().get(0).getCurrentPrice()).isEqualTo(77000L);
+		assertThat(response.getWatchStocks().get(0).getDailyChange()).isEqualTo(0);
+		assertThat(response.getWatchStocks().get(0).getAnnualDividendYield()).isEqualTo((362f/77000)*100);
+		assertThat(response.getWatchStocks().get(0).getSector()).isEqualTo("전기전자");
 	}
 
 	@DisplayName("회원이 watchlist에 종목을 추가한다.")
@@ -250,7 +251,7 @@ class WatchListServiceTest {
 		assertThat(watchStockRepository.findByWatchList(watchList)).hasSize(0);
 	}
 
-	@DisplayName("회원이 watchlist에서 종목을 삭제한다.")
+	@DisplayName("회원이 watchlist에서 종목을 여러개 삭제한다.")
 	@Test
 	void deleteWatchStocks() {
 		// given
@@ -282,6 +283,41 @@ class WatchListServiceTest {
 
 		// when
 		watchListService.deleteWatchStocks(authMember, watchListId, request);
+
+		// then
+		assertThat(watchStockRepository.findById(watchStockId).isPresent()).isFalse();
+	}
+
+	@DisplayName("회원이 watchlist에서 종목을 삭제한다.")
+	@Test
+	void deleteWatchStock() {
+		// given
+		String tickerSymbol = "005930";
+		Stock stock = stockRepository.save(
+			Stock.builder()
+				.tickerSymbol(tickerSymbol)
+				.market(Market.KOSPI)
+				.build()
+		);
+
+		AuthMember authMember = AuthMember.from(member);
+
+		WatchList watchList = watchListRepository.save(WatchList.builder()
+			.name("My WatchList")
+			.member(member)
+			.build());
+		Long watchListId = watchList.getId();
+
+		WatchStock watchStock = watchStockRepository.save(
+			WatchStock.builder()
+				.watchList(watchList)
+				.stock(stock)
+				.build()
+		);
+		Long watchStockId = watchStock.getId();
+
+		// when
+		watchListService.deleteWatchStock(authMember, watchListId, stock.getTickerSymbol());
 
 		// then
 		assertThat(watchStockRepository.findById(watchStockId).isPresent()).isFalse();

@@ -161,10 +161,19 @@ class WatchListRestControllerTest {
 		given(authPrincipalArgumentResolver.supportsParameter(any())).willReturn(true);
 		given(authPrincipalArgumentResolver.resolveArgument(any(), any(), any(), any())).willReturn(authMember);
 
-		List<ReadWatchListResponse> response = List.of(
-			new ReadWatchListResponse(1L, "삼성전자", "005930", 68000,
-				1200, 1.85f, 2.12f, "제조업",
-				LocalDateTime.of(2023, 12, 2, 15, 0, 0)));
+		ReadWatchListResponse.WatchStockResponse watchStockResponse = ReadWatchListResponse.WatchStockResponse.builder()
+			.id(1L)
+			.companyName("삼성전자")
+			.tickerSymbol("005930")
+			.currentPrice(68000)
+			.dailyChange(1200)
+			.dailyChangeRate(1.85f)
+			.annualDividendYield(2.12f)
+			.sector("제조업")
+			.dateAdded(LocalDateTime.of(2023, 12, 2, 15, 0, 0))
+			.build();
+
+		ReadWatchListResponse response = new ReadWatchListResponse("My Watchlist", List.of(watchStockResponse));
 
 		given(watchListService.readWatchList(any(AuthMember.class), any(Long.class))).willReturn(response);
 
@@ -175,15 +184,15 @@ class WatchListRestControllerTest {
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
 			.andExpect(jsonPath("message").value(equalTo("관심종목 단일 목록 조회가 완료되었습니다")))
-			.andExpect(jsonPath("data[0].id").value(equalTo(1)))
-			.andExpect(jsonPath("data[0].companyName").value(equalTo("삼성전자")))
-			.andExpect(jsonPath("data[0].tickerSymbol").value(equalTo("005930")))
-			.andExpect(jsonPath("data[0].currentPrice").value(equalTo(68000)))
-			.andExpect(jsonPath("data[0].dailyChange").value(equalTo(1200)))
-			.andExpect(jsonPath("data[0].dailyChangeRate").value(equalTo(1.85)))
-			.andExpect(jsonPath("data[0].annualDividendYield").value(equalTo(2.12)))
-			.andExpect(jsonPath("data[0].sector").value(equalTo("제조업")))
-			.andExpect(jsonPath("data[0].dateAdded").value(equalTo("2023-12-02T15:00:00")));
+			.andExpect(jsonPath("data.watchStocks[0].id").value(equalTo(1)))
+			.andExpect(jsonPath("data.watchStocks[0].companyName").value(equalTo("삼성전자")))
+			.andExpect(jsonPath("data.watchStocks[0].tickerSymbol").value(equalTo("005930")))
+			.andExpect(jsonPath("data.watchStocks[0].currentPrice").value(equalTo(68000)))
+			.andExpect(jsonPath("data.watchStocks[0].dailyChange").value(equalTo(1200)))
+			.andExpect(jsonPath("data.watchStocks[0].dailyChangeRate").value(equalTo(1.85)))
+			.andExpect(jsonPath("data.watchStocks[0].annualDividendYield").value(equalTo(2.12)))
+			.andExpect(jsonPath("data.watchStocks[0].sector").value(equalTo("제조업")))
+			.andExpect(jsonPath("data.watchStocks[0].dateAdded").value(equalTo("2023-12-02T15:00:00")));
 	}
 
 	@DisplayName("사용자가 watchlist에 종목을 추가한다.")
@@ -254,7 +263,7 @@ class WatchListRestControllerTest {
 			.andExpect(jsonPath("data").value(equalTo(null)));
 	}
 
-	@DisplayName("사용자가 watchlist에서 종목을 삭제한다.")
+	@DisplayName("사용자가 watchlist에서 종목을 여러개 삭제한다.")
 	@Test
 	void deleteWatchStocks() throws Exception {
 		// given
@@ -282,6 +291,36 @@ class WatchListRestControllerTest {
 		mockMvc.perform(delete("/api/watchlists/1/stock")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(body))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("code").value(equalTo(200)))
+			.andExpect(jsonPath("status").value(equalTo("OK")))
+			.andExpect(jsonPath("message").value(equalTo("관심목록 종목이 삭제되었습니다")))
+			.andExpect(jsonPath("data").value(equalTo(null)));
+	}
+
+	@DisplayName("사용자가 watchlist에서 종목을 삭제한다.")
+	@Test
+	void deleteWatchStock() throws Exception {
+		// given
+		Member member = Member.builder()
+			.id(1L)
+			.nickname("일개미1234")
+			.email("kim1234@gmail.com")
+			.provider("local")
+			.password("kim1234@")
+			.profileUrl("profileValue")
+			.build();
+		AuthMember authMember = AuthMember.from(member);
+
+
+		given(authPrincipalArgumentResolver.supportsParameter(any())).willReturn(true);
+		given(authPrincipalArgumentResolver.resolveArgument(any(), any(), any(), any())).willReturn(authMember);
+		doNothing().when(watchListService)
+			.deleteWatchStocks(any(AuthMember.class), any(Long.class), any(DeleteWatchStocksRequest.class));
+
+		// when & then
+		mockMvc.perform(delete("/api/watchlists/1/stock/\"005930\"")
+				.contentType(MediaType.APPLICATION_JSON))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))

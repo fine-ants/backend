@@ -1,7 +1,6 @@
 package codesquad.fineants.spring.api.watch_list;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -61,7 +60,7 @@ public class WatchListService {
 	}
 
 	@Transactional(readOnly = true)
-	public List<ReadWatchListResponse> readWatchList(AuthMember authMember, Long watchListId) {
+	public ReadWatchListResponse readWatchList(AuthMember authMember, Long watchListId) {
 		Member member = findMember(authMember.getMemberId());
 		WatchList watchList = watchListRepository.findById(watchListId)
 			.orElseThrow(() -> new NotFoundResourceException(WatchListErrorCode.NOT_FOUND_WATCH_LIST));
@@ -70,9 +69,10 @@ public class WatchListService {
 
 		List<WatchStock> watchStocks = watchStockRepository.findWithStockAndDividendsByWatchList(watchList);
 
-		return watchStocks.stream()
+		List<ReadWatchListResponse.WatchStockResponse> watchStockResponses = watchStocks.stream()
 			.map(watchStock -> ReadWatchListResponse.from(watchStock, currentPriceManager, lastDayClosingPriceManager))
 			.collect(Collectors.toList());
+		return new ReadWatchListResponse(watchList.getName(), watchStockResponses);
 	}
 
 	@Transactional
@@ -114,6 +114,16 @@ public class WatchListService {
 		validateWatchListAuthorization(member.getId(), watchList.getMember().getId());
 
 		watchStockRepository.deleteByWatchListAndStock_TickerSymbolIn(watchList, request.getTickerSymbols());
+	}
+
+	@Transactional
+	public void deleteWatchStock(AuthMember authMember, Long watchListId, String tickerSymbol) {
+		Member member = findMember(authMember.getMemberId());
+		WatchList watchList = watchListRepository.findById(watchListId)
+			.orElseThrow(() -> new NotFoundResourceException(WatchListErrorCode.NOT_FOUND_WATCH_LIST));
+		validateWatchListAuthorization(member.getId(), watchList.getMember().getId());
+
+		watchStockRepository.deleteByWatchListAndStock_TickerSymbolIn(watchList, List.of(tickerSymbol));
 	}
 
 	private Member findMember(Long memberId) {

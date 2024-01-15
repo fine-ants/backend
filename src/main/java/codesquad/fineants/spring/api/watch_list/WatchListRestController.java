@@ -23,7 +23,6 @@ import codesquad.fineants.spring.api.watch_list.response.ReadWatchListResponse;
 import codesquad.fineants.spring.api.watch_list.response.ReadWatchListsResponse;
 import lombok.RequiredArgsConstructor;
 
-
 @RequestMapping("/api/watchlists")
 @RequiredArgsConstructor
 @RestController
@@ -33,41 +32,48 @@ public class WatchListRestController {
 
 	@PostMapping
 	public ApiResponse<CreateWatchListResponse> createWatchList(@AuthPrincipalMember AuthMember authMember,
-		@RequestBody CreateWatchListRequest request){
+		@RequestBody CreateWatchListRequest request) {
 		return ApiResponse.success(WatchListSuccessCode.CREATED_WATCH_LIST,
 			watchListService.createWatchList(authMember, request));
 	}
 
 	@GetMapping
-	public ApiResponse<List<ReadWatchListsResponse>> readWatchLists(@AuthPrincipalMember AuthMember authMember){
+	public ApiResponse<List<ReadWatchListsResponse>> readWatchLists(@AuthPrincipalMember AuthMember authMember) {
 		return ApiResponse.success(WatchListSuccessCode.READ_WATCH_LISTS, watchListService.readWatchLists(authMember));
 	}
 
 	@GetMapping("/{watchlistId}")
-	public ApiResponse<List<ReadWatchListResponse>> readWatchList(@AuthPrincipalMember AuthMember authMember,
-		@PathVariable Long watchlistId){
+	public ApiResponse<ReadWatchListResponse> readWatchList(@AuthPrincipalMember AuthMember authMember,
+		@PathVariable Long watchlistId) {
 		return ApiResponse.success(WatchListSuccessCode.READ_WATCH_LIST,
 			watchListService.readWatchList(authMember, watchlistId));
 	}
 
 	@DeleteMapping
 	public ApiResponse<Void> deleteWatchLists(@AuthPrincipalMember AuthMember authMember,
-		@RequestBody DeleteWatchListsRequests deleteWatchListsRequests){
+		@RequestBody DeleteWatchListsRequests deleteWatchListsRequests) {
 		watchListService.deleteWatchLists(authMember, deleteWatchListsRequests);
 		return ApiResponse.success(WatchListSuccessCode.DELETED_WATCH_LIST);
 	}
 
 	@PostMapping("/{watchlistId}/stock")
 	public ApiResponse<Void> createWatchStocks(@AuthPrincipalMember AuthMember authMember,
-		@PathVariable Long watchlistId, @RequestBody CreateWatchStockRequest request){
+		@PathVariable Long watchlistId, @RequestBody CreateWatchStockRequest request) {
 		watchListService.createWatchStocks(authMember, watchlistId, request);
 		return ApiResponse.success(WatchListSuccessCode.CREATED_WATCH_STOCK);
 	}
 
 	@DeleteMapping("/{watchlistId}/stock")
 	public ApiResponse<Void> deleteWatchStocks(@AuthPrincipalMember AuthMember authMember,
-		@PathVariable("watchlistId") Long watchListId, @RequestBody DeleteWatchStocksRequest deleteWatchStocksRequest){
+		@PathVariable("watchlistId") Long watchListId, @RequestBody DeleteWatchStocksRequest deleteWatchStocksRequest) {
 		watchListService.deleteWatchStocks(authMember, watchListId, deleteWatchStocksRequest);
+		return ApiResponse.success(WatchListSuccessCode.DELETED_WATCH_STOCK);
+	}
+
+	@DeleteMapping("/{watchlistId}/stock/{tickerSymbol}")
+	public ApiResponse<Void> deleteWatchStock(@AuthPrincipalMember AuthMember authMember,
+		@PathVariable("watchlistId") Long watchListId, @PathVariable("tickerSymbol") String tickerSymbol) {
+		watchListService.deleteWatchStock(authMember, watchListId, tickerSymbol);
 		return ApiResponse.success(WatchListSuccessCode.DELETED_WATCH_STOCK);
 	}
 }
