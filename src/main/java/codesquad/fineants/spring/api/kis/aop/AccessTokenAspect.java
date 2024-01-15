@@ -1,8 +1,7 @@
 package codesquad.fineants.spring.api.kis.aop;
 
 import java.time.LocalDateTime;
-import java.util.Map;
-import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
 
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
@@ -11,6 +10,7 @@ import org.springframework.stereotype.Component;
 
 import codesquad.fineants.spring.api.kis.client.KisClient;
 import codesquad.fineants.spring.api.kis.manager.KisAccessTokenManager;
+import codesquad.fineants.spring.api.kis.properties.OauthKisProperties;
 import codesquad.fineants.spring.api.kis.service.KisRedisService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,27 +24,41 @@ public class AccessTokenAspect {
 	private final KisAccessTokenManager manager;
 	private final KisClient client;
 	private final KisRedisService redisService;
+	private final OauthKisProperties oauthKisProperties;
 
 	@Pointcut("execution(* codesquad.fineants.spring.api.kis.service.KisService.refreshStockCurrentPrice())")
 	public void refreshStockPrice() {
 	}
 
-	@Before(value = "refreshStockPrice()")
+	@Pointcut("execution(* codesquad.fineants.spring.api.kis.service.KisService.refreshLastDayClosingPrice())")
+	public void refreshLastDayClosingPrice() {
+	}
+
+	@Before(value = "refreshStockPrice() || refreshLastDayClosingPrice()")
 	public void checkAccessTokenExpiration() {
 		LocalDateTime now = LocalDateTime.now();
 		if (manager.isAccessTokenExpired(now)) {
-			final Optional<Map<String, Object>> optionalMap = redisService.getAccessTokenMap();
-			optionalMap.ifPresentOrElse(accessTokenMap -> {
-				log.info("기존 accessToken 존재로 인한 재사용 : {}", accessTokenMap);
-				manager.refreshAccessToken(accessTokenMap);
-				log.info("기존 accessToken으로 갱신한 manager : {}", manager);
-			}, () -> {
-				final Map<String, Object> newAccessTokenMap = client.accessToken();
-				log.info("kis accessToken 만료로 인한 새로운 accessToken 갱신, newAccessTokenMap : {}", newAccessTokenMap);
-				redisService.setAccessTokenMap(newAccessTokenMap, now);
-				manager.refreshAccessToken(newAccessTokenMap);
-				log.info("새로 발급한 accessToken으로 갱신한 manager : {}", manager);
-			});
+			redisService.getAccessTokenMap()
+				.ifPresentOrElse(manager::refreshAccessToken, () -> handleNewAccessToken(now));
+		}
+	}
+
+	private void handleNewAccessToken(LocalDateTime now) {
+		CountDownLatch latch = new CountDownLatch(1);
+		client.accessToken(oauthKisProperties.getTokenURI())
+			.subscribe(accessToken -> {
+					redisService.setAccessTokenMap(accessToken, now);
+					manager.refreshAccessToken(accessToken);
+					log.info("새로운 액세스 토큰 갱신 완료");
+				},
+				error -> {
+					log.error("새로운 액세스 토큰 발급 에러", error);
+					latch.countDown();
+				}, latch::countDown);
+		try {
+			latch.await();
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
 		}
 	}
 }

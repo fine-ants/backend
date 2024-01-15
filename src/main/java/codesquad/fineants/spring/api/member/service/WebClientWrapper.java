@@ -19,7 +19,9 @@ public class WebClientWrapper {
 	private final WebClient webClient;
 
 	public WebClientWrapper() {
-		this.webClient = WebClient.create();
+		this.webClient = WebClient.builder()
+			.codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(10 * 1024 * 1024))
+			.build();
 	}
 
 	public <T> T get(String uri, MultiValueMap<String, String> headerMap, Class<T> responseTYpe) {

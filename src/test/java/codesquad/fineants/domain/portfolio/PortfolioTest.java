@@ -2,7 +2,6 @@ package codesquad.fineants.domain.portfolio;
 
 import static org.assertj.core.api.Assertions.*;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -14,7 +13,6 @@ import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
 import codesquad.fineants.domain.purchase_history.PurchaseHistory;
 import codesquad.fineants.domain.stock.Market;
 import codesquad.fineants.domain.stock.Stock;
-import codesquad.fineants.domain.stock_dividend.StockDividend;
 
 @ActiveProfiles("test")
 class PortfolioTest {

@@ -20,6 +20,8 @@ spring:
           timeout: 5000
           starttls:
             enable: true
+  jpa:
+    open-in-view: false
   config:
     import:
       - ./secret/application-secret.yml
@@ -61,6 +63,8 @@ spring:
 logging:
   level:
     codesquad: debug
+    com.zaxxer.hikari.HikariConfig: DEBUG
+    com.zaxxer.hikari: TRACE
 ---
 
 spring:
@@ -87,7 +91,9 @@ spring:
 
 logging:
   level:
-    codesquard: info
+    codesquad: info
+    com.zaxxer.hikari.HikariConfig: DEBUG
+    com.zaxxer.hikari: TRACE
 ---
 spring:
   config:
@@ -115,7 +121,9 @@ spring:
 
 logging:
   level:
-    codesquard: info
+    codesquad: debug
+    com.zaxxer.hikari.HikariConfig: DEBUG
+    com.zaxxer.hikari: TRACE
 ---
 spring:
   config:

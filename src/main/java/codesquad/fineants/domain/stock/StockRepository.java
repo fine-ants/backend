@@ -13,4 +13,6 @@ public interface StockRepository extends JpaRepository<Stock, Long> {
 
 	@Query("select s from Stock s where s.stockCode like %:keyword% or s.tickerSymbol like %:keyword% or s.companyName like %:keyword% or s.companyNameEng like %:keyword%")
 	List<Stock> search(@Param("keyword") String keyword);
+
+	void deleteByTickerSymbol(String tickerSymbol);
 }

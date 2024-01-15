@@ -5,6 +5,7 @@ import java.time.Duration;
 import javax.validation.Valid;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -75,12 +76,22 @@ public class PortfolioStockRestController {
 	}
 
 	@HasPortfolioAuthorization
-	@GetMapping("/holdings/realtime")
+	@GetMapping(value = "/holdings/realtime", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
 	public SseEmitter readMyPortfolioStocksInRealTime(@PathVariable Long portfolioId,
 		@AuthPrincipalMember AuthMember authMember) {
-		SseEmitter emitter = new SseEmitter(Duration.ofHours(10L).toMillis());
-		emitter.onTimeout(() -> manager.remove(portfolioId));
-		emitter.onCompletion(() -> manager.remove(portfolioId));
+		SseEmitter emitter = new SseEmitter(Duration.ofSeconds(30).toMillis());
+		emitter.onTimeout(() -> {
+			log.info("emitter{} timeout으로 인한 제거", portfolioId);
+			emitter.complete();
+		});
+		emitter.onCompletion(() -> {
+			log.info("emitter{} completion으로 인한 제거", portfolioId);
+			manager.remove(portfolioId);
+		});
+		emitter.onError(throwable -> {
+			log.error(throwable.getMessage(), throwable);
+			emitter.complete();
+		});
 		manager.add(portfolioId, emitter);
 		return emitter;
 	}

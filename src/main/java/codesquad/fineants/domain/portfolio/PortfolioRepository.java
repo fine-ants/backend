@@ -1,8 +1,11 @@
 package codesquad.fineants.domain.portfolio;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import codesquad.fineants.domain.member.Member;
 
@@ -10,7 +13,10 @@ public interface PortfolioRepository extends JpaRepository<Portfolio, Long> {
 
 	boolean existsByNameAndMember(String name, Member member);
 
-	List<Portfolio> findAllByMemberIdOrderByIdDesc(Long memberId);
+	List<Portfolio> findAllByMemberIdOrderByIdDesc(@Param("memberId") Long memberId);
 
-	List<Portfolio> findAllByMemberId(Long memberId);
+	List<Portfolio> findAllByMemberId(@Param("memberId") Long memberId);
+
+	@Query("select p from Portfolio p join fetch p.member where p.id = :id")
+	Optional<Portfolio> findByPortfolioId(@Param("id") Long id);
 }

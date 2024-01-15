@@ -11,6 +11,7 @@ import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.spring.api.errors.errorcode.JwtErrorCode;
 import codesquad.fineants.spring.api.errors.exception.BadRequestException;
 import codesquad.fineants.spring.api.errors.exception.ForBiddenException;
+import codesquad.fineants.spring.api.errors.exception.UnAuthorizationException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
@@ -28,7 +29,7 @@ public class JwtProvider {
 
 	public Jwt createJwtWithRefreshToken(Claims claims, String refreshToken, LocalDateTime now) {
 		Date expireDateAccessToken = jwtProperties.createExpireAccessTokenDate(now);
-		Date expireDateRefreshToken = getClaims(refreshToken).getExpiration();
+		Date expireDateRefreshToken = getRefreshTokenClaims(refreshToken).getExpiration();
 		return createJwt(claims, expireDateAccessToken, expireDateRefreshToken);
 	}
 
@@ -53,7 +54,7 @@ public class JwtProvider {
 			.compact();
 	}
 
-	public Claims getClaims(String token) {
+	public Claims getAccessTokenClaims(String token) {
 		// token을 비밀키로 복호화하여 Claims 추출
 		try {
 			return Jwts.parserBuilder()
@@ -62,20 +63,35 @@ public class JwtProvider {
 				.parseClaimsJws(token)
 				.getBody();
 		} catch (ExpiredJwtException e) {
-			throw new ForBiddenException(JwtErrorCode.EXPIRE_TOKEN);
+			throw new ForBiddenException(JwtErrorCode.ACCESS_TOKEN_EXPIRE_TOKEN);
 		} catch (JwtException e) {
 			throw new BadRequestException(JwtErrorCode.INVALID_TOKEN);
 		}
 	}
 
-	public void validateToken(String token) {
+	public Claims getRefreshTokenClaims(String token) {
+		// token을 비밀키로 복호화하여 Claims 추출
+		try {
+			return Jwts.parserBuilder()
+				.setSigningKey(jwtProperties.getKey())
+				.build()
+				.parseClaimsJws(token)
+				.getBody();
+		} catch (ExpiredJwtException e) {
+			throw new UnAuthorizationException(JwtErrorCode.REFRESH_TOKEN_EXPIRE_TOKEN);
+		} catch (JwtException e) {
+			throw new BadRequestException(JwtErrorCode.INVALID_TOKEN);
+		}
+	}
+
+	public void validateAccessToken(String token) {
 		try {
 			Jwts.parserBuilder()
 				.setSigningKey(jwtProperties.getKey())
 				.build()
 				.parseClaimsJws(token);
 		} catch (ExpiredJwtException e) {
-			throw new ForBiddenException(JwtErrorCode.EXPIRE_TOKEN);
+			throw new ForBiddenException(JwtErrorCode.ACCESS_TOKEN_EXPIRE_TOKEN);
 		} catch (JwtException e) {
 			throw new BadRequestException(JwtErrorCode.INVALID_TOKEN);
 		}

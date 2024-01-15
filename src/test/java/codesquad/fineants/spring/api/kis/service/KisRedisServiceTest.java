@@ -3,8 +3,7 @@ package codesquad.fineants.spring.api.kis.service;
 import static org.assertj.core.api.Assertions.*;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Optional;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -12,6 +11,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+
+import codesquad.fineants.spring.api.kis.client.KisAccessToken;
 
 @ActiveProfiles("test")
 @SpringBootTest
@@ -29,10 +30,10 @@ class KisRedisServiceTest {
 	@Test
 	void setAccessTokenMap() {
 		// given
-		Map<String, Object> accessTokenMap = createAccessTokenMap();
+		KisAccessToken kisAccessToken = createKisAccessToken();
 
 		// when
-		service.setAccessTokenMap(accessTokenMap, createNow());
+		service.setAccessTokenMap(kisAccessToken, createNow());
 
 		// then
 		assertThat(service.getAccessTokenMap().isPresent()).isTrue();
@@ -42,10 +43,10 @@ class KisRedisServiceTest {
 	@Test
 	void setAccessTokenMapWithExpiredAccessToken() {
 		// given
-		Map<String, Object> accessTokenMap = createAccessTokenMap();
+		KisAccessToken accessToken = createKisAccessToken();
 		// when
 		Throwable throwable = catchThrowable(
-			() -> service.setAccessTokenMap(accessTokenMap, LocalDateTime.of(2023, 12, 8, 15, 0, 0)));
+			() -> service.setAccessTokenMap(accessToken, LocalDateTime.of(2023, 12, 8, 15, 0, 0)));
 
 		// then
 		assertThat(throwable)
@@ -56,25 +57,44 @@ class KisRedisServiceTest {
 	@Test
 	void getAccessTokenMap() {
 		// given
-		service.setAccessTokenMap(createAccessTokenMap(), createNow());
+		service.setAccessTokenMap(createKisAccessToken(), createNow());
+
 		// when
-		Map<String, Object> accessTokenMap = service.getAccessTokenMap().orElseThrow();
+		KisAccessToken accessToken = service.getAccessTokenMap().orElseThrow();
+
 		// then
-		assertThat(accessTokenMap).isNotNull();
+		assertThat(accessToken)
+			.extracting("accessToken", "tokenType", "accessTokenExpired", "expiresIn")
+			.containsExactlyInAnyOrder(
+				"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0b2tlbiIsImF1ZCI6ImE1OGY4YzAyLWMzMzYtNGY3ZC04OGE0LWZkZDRhZTA3NmQ5YyIsImlzcyI6InVub2d3IiwiZXhwIjoxNzAxOTE2ODg3LCJpYXQiOjE3MDE4MzA0ODcsImp0aSI6IlBTRGc4WlVJd041eVl5ZkR6bnA0TDM2Z2xhRUpic2RJNGd6biJ9.uLZAu9_ompf8ycwiRJ5jrdoB-MiUG9a8quoQ3OeVOrUDGxyEhHmzZTPnCdLRWOEHowFlmyNOf3v-lPZGZqi9Kw",
+				"Bearer",
+				LocalDateTime.of(2023, 12, 7, 11, 41, 27),
+				86400
+			);
+	}
+
+	@DisplayName("redis에 accessToken이 없는 경우 Optional.empty()를 반환한다")
+	@Test
+	void getAccessTokenMap_whenEmptyAccessToken_thenReturnEmptyOptional() {
+		// given
+		service.deleteAccessTokenMap();
+		// when
+		Optional<KisAccessToken> optionalKisAccessToken = service.getAccessTokenMap();
+		// then
+		assertThat(optionalKisAccessToken.isEmpty()).isTrue();
 	}
 
 	private LocalDateTime createNow() {
 		return LocalDateTime.of(2023, 12, 6, 14, 0, 0);
 	}
 
-	private Map<String, Object> createAccessTokenMap() {
-		Map<String, Object> accessTokenMap = new HashMap<>();
-		accessTokenMap.put("access_token",
-			"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0b2tlbiIsImF1ZCI6ImE1OGY4YzAyLWMzMzYtNGY3ZC04OGE0LWZkZDRhZTA3NmQ5YyIsImlzcyI6InVub2d3IiwiZXhwIjoxNzAxOTE2ODg3LCJpYXQiOjE3MDE4MzA0ODcsImp0aSI6IlBTRGc4WlVJd041eVl5ZkR6bnA0TDM2Z2xhRUpic2RJNGd6biJ9.uLZAu9_ompf8ycwiRJ5jrdoB-MiUG9a8quoQ3OeVOrUDGxyEhHmzZTPnCdLRWOEHowFlmyNOf3v-lPZGZqi9Kw");
-		accessTokenMap.put("access_token_token_expired", "2023-12-07 11:41:27");
-		accessTokenMap.put("token_type", "Bearer");
-		accessTokenMap.put("expires_in", 86400);
-		return accessTokenMap;
+	private KisAccessToken createKisAccessToken() {
+		return new KisAccessToken(
+			"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0b2tlbiIsImF1ZCI6ImE1OGY4YzAyLWMzMzYtNGY3ZC04OGE0LWZkZDRhZTA3NmQ5YyIsImlzcyI6InVub2d3IiwiZXhwIjoxNzAxOTE2ODg3LCJpYXQiOjE3MDE4MzA0ODcsImp0aSI6IlBTRGc4WlVJd041eVl5ZkR6bnA0TDM2Z2xhRUpic2RJNGd6biJ9.uLZAu9_ompf8ycwiRJ5jrdoB-MiUG9a8quoQ3OeVOrUDGxyEhHmzZTPnCdLRWOEHowFlmyNOf3v-lPZGZqi9Kw",
+			"Bearer",
+			LocalDateTime.of(2023, 12, 7, 11, 41, 27),
+			86400
+		);
 	}
 
 }

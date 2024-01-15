@@ -14,7 +14,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -37,7 +36,6 @@ import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.oauth.support.AuthPrincipalArgumentResolver;
 import codesquad.fineants.domain.portfolio.Portfolio;
-import codesquad.fineants.domain.portfolio.PortfolioRepository;
 import codesquad.fineants.domain.portfolio_gain_history.PortfolioGainHistory;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
 import codesquad.fineants.domain.purchase_history.PurchaseHistory;
@@ -46,6 +44,7 @@ import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.spring.api.errors.errorcode.PortfolioErrorCode;
 import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
 import codesquad.fineants.spring.api.errors.handler.GlobalExceptionHandler;
+import codesquad.fineants.spring.api.portfolio.PortFolioService;
 import codesquad.fineants.spring.api.portfolio_stock.manager.SseEmitterManager;
 import codesquad.fineants.spring.api.portfolio_stock.request.PortfolioStockCreateRequest;
 import codesquad.fineants.spring.api.portfolio_stock.request.PortfolioStocksDeleteRequest;
@@ -85,7 +84,7 @@ class PortfolioStockRestControllerTest {
 	private StockMarketChecker stockMarketChecker;
 
 	@MockBean
-	private PortfolioRepository portfolioRepository; // HasAuthorizationAspect 목빈 객체
+	private PortFolioService portFolioService;
 
 	@MockBean
 	private SseEmitterManager manager;
@@ -104,6 +103,7 @@ class PortfolioStockRestControllerTest {
 		given(authPrincipalArgumentResolver.resolveArgument(any(), any(), any(), any())).willReturn(authMember);
 		given(authPrincipalArgumentResolver.supportsParameter(any())).willReturn(true);
 		given(stockMarketChecker.isMarketOpen(any())).willReturn(false);
+		given(portFolioService.hasAuthorizationBy(anyLong(), anyLong())).willReturn(true);
 	}
 
 	@DisplayName("사용자의 포트폴리오 상세 정보를 가져온다")
@@ -124,7 +124,6 @@ class PortfolioStockRestControllerTest {
 			lastDayClosingPriceMap);
 
 		given(portfolioStockService.readMyPortfolioStocks(anyLong())).willReturn(mockResponse);
-		given(portfolioRepository.findById(anyLong())).willReturn(Optional.of(portfolio));
 		// when & then
 		mockMvc.perform(get("/api/portfolio/{portfolioId}/holdings", portfolio.getId()))
 			.andExpect(status().isOk());
@@ -151,7 +150,8 @@ class PortfolioStockRestControllerTest {
 		long portfolioId = 9999L;
 		given(portfolioStockService.readMyPortfolioStocksInRealTime(anyLong()))
 			.willThrow(new NotFoundResourceException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
-
+		given(portFolioService.hasAuthorizationBy(anyLong(), anyLong()))
+			.willThrow(new NotFoundResourceException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
 		// when & then
 		mockMvc.perform(get("/api/portfolio/{portfolioId}/holdings/realtime", portfolioId))
 			.andExpect(status().isNotFound())
@@ -167,7 +167,6 @@ class PortfolioStockRestControllerTest {
 
 		PortfolioStockCreateResponse response = PortfolioStockCreateResponse.from(
 			PortfolioHolding.empty(portfolio, stock));
-		given(portfolioRepository.findById(anyLong())).willReturn(Optional.of(portfolio));
 		given(portfolioStockService.addPortfolioStock(anyLong(), any(PortfolioStockCreateRequest.class),
 			any(AuthMember.class))).willReturn(response);
 
@@ -235,8 +234,6 @@ class PortfolioStockRestControllerTest {
 		String body = ObjectMapperUtil.serialize(requestBodyMap);
 		Long portfolioId = portfolio.getId();
 
-		given(portfolioRepository.findById(anyLong())).willReturn(Optional.of(portfolio));
-
 		// when & then
 		mockMvc.perform(post("/api/portfolio/" + portfolioId + "/holdings")
 				.contentType(MediaType.APPLICATION_JSON)
@@ -260,7 +257,6 @@ class PortfolioStockRestControllerTest {
 		Long portfolioHoldingId = portfolioHolding.getId();
 		Long portfolioId = portfolio.getId();
 
-		given(portfolioRepository.findById(anyLong())).willReturn(Optional.of(portfolio));
 		// when & then
 		mockMvc.perform(
 				delete("/api/portfolio/{portfolioId}/holdings/{portfolioHoldingId}", portfolioId, portfolioHoldingId))
@@ -286,7 +282,6 @@ class PortfolioStockRestControllerTest {
 		PortfolioStockDeletesResponse mockResponse = new PortfolioStockDeletesResponse(delPortfolioHoldingIds);
 		given(portfolioStockService.deletePortfolioStocks(anyLong(), any(AuthMember.class), any(
 			PortfolioStocksDeleteRequest.class))).willReturn(mockResponse);
-		given(portfolioRepository.findById(anyLong())).willReturn(Optional.of(portfolio));
 		// when & then
 		mockMvc.perform(delete("/api/portfolio/{portfolioId}/holdings", portfolio.getId())
 				.contentType(MediaType.APPLICATION_JSON)
@@ -310,7 +305,6 @@ class PortfolioStockRestControllerTest {
 		requestBodyMap.put("portfolioHoldingIds", portfolioHoldingIds);
 		String body = ObjectMapperUtil.serialize(requestBodyMap);
 
-		given(portfolioRepository.findById(anyLong())).willReturn(Optional.of(portfolio));
 		// when & then
 		mockMvc.perform(delete("/api/portfolio/{portfolioId}/holdings", portfolio.getId())
 				.contentType(MediaType.APPLICATION_JSON)

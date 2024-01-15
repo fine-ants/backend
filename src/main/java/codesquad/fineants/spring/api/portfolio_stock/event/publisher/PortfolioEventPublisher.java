@@ -36,12 +36,19 @@ public class PortfolioEventPublisher {
 	}
 
 	public void sendEventToPortfolio(LocalDateTime eventDatetime) {
+		log.info("sseEmitter 개수 : {}", manager.size());
+		publishPortfolioEvent(eventDatetime);
+		this.executor.schedule(() -> this.sendEventToPortfolio(LocalDateTime.now()), 5, SECONDS);
+	}
+
+	public void publishPortfolioEvent(LocalDateTime eventDatetime) {
 		List<Long> deadEmitters = new ArrayList<>();
 		for (Long id : manager.keys()) {
 			try {
 				PortfolioHoldingsRealTimeResponse response = portfolioStockService.readMyPortfolioStocksInRealTime(id);
 				PortfolioEvent portfolioEvent = new PortfolioEvent(id, response, eventDatetime);
 				eventPublisher.publishEvent(portfolioEvent);
+				log.info("{}", portfolioEvent);
 			} catch (Exception e) {
 				log.error(e.getMessage(), e);
 				manager.get(id).completeWithError(e);
@@ -49,6 +56,5 @@ public class PortfolioEventPublisher {
 			}
 		}
 		deadEmitters.forEach(manager::remove);
-		this.executor.schedule(() -> this.sendEventToPortfolio(LocalDateTime.now()), 5, SECONDS);
 	}
 }
