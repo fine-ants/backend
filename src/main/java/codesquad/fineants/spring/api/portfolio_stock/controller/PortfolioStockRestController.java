@@ -89,7 +89,7 @@ public class PortfolioStockRestController {
 			manager.remove(portfolioId);
 		});
 		emitter.onError(throwable -> {
-			log.error(throwable.getMessage());
+			log.error(throwable.getMessage(), throwable);
 			emitter.complete();
 		});
 		manager.add(portfolioId, emitter);

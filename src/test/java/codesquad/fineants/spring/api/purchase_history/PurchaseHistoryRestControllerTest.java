@@ -40,6 +40,7 @@ import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.spring.api.errors.errorcode.PortfolioErrorCode;
 import codesquad.fineants.spring.api.errors.exception.FineAntsException;
 import codesquad.fineants.spring.api.errors.handler.GlobalExceptionHandler;
+import codesquad.fineants.spring.api.portfolio.PortFolioService;
 import codesquad.fineants.spring.api.purchase_history.request.PurchaseHistoryCreateRequest;
 import codesquad.fineants.spring.auth.HasPortfolioAuthorizationAspect;
 import codesquad.fineants.spring.config.JpaAuditingConfiguration;
@@ -70,6 +71,9 @@ class PurchaseHistoryRestControllerTest {
 
 	@MockBean
 	private PortfolioRepository portfolioRepository;
+
+	@MockBean
+	private PortFolioService portFolioService;
 
 	private Member member;
 	private Portfolio portfolio;
@@ -134,6 +138,8 @@ class PurchaseHistoryRestControllerTest {
 			.numShares(3L)
 			.memo("첫구매")
 			.build();
+		
+		given(portFolioService.hasAuthorizationBy(anyLong(), anyLong())).willReturn(true);
 	}
 
 	@DisplayName("사용자가 매입 이력을 추가한다")

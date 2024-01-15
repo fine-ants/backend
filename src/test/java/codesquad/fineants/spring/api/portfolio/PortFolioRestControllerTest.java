@@ -89,6 +89,7 @@ class PortFolioRestControllerTest {
 		AuthMember authMember = AuthMember.from(member);
 
 		given(authPrincipalArgumentResolver.resolveArgument(any(), any(), any(), any())).willReturn(authMember);
+		given(portFolioService.hasAuthorizationBy(anyLong(), anyLong())).willReturn(true);
 	}
 
 	@DisplayName("사용자는 포트폴리오 추가를 요청한다")

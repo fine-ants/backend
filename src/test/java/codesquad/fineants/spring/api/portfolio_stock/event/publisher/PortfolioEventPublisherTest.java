@@ -38,7 +38,9 @@ import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
 import codesquad.fineants.spring.api.kis.response.CurrentPriceResponse;
 import codesquad.fineants.spring.api.portfolio_stock.manager.SseEmitterManager;
 import codesquad.fineants.spring.api.portfolio_stock.service.PortfolioStockService;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @ActiveProfiles("test")
 @SpringBootTest
 class PortfolioEventPublisherTest {
@@ -151,8 +153,12 @@ class PortfolioEventPublisherTest {
 	}
 
 	private Portfolio createPortfolio(Member member) {
+		return createPortfolio(member, "내꿈은 워렌버핏");
+	}
+
+	private Portfolio createPortfolio(Member member, String name) {
 		return Portfolio.builder()
-			.name("내꿈은 워렌버핏")
+			.name(name)
 			.securitiesFirm("토스")
 			.budget(1000000L)
 			.targetGain(1500000L)
