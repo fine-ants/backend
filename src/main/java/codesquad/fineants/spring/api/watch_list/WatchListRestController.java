@@ -44,7 +44,7 @@ public class WatchListRestController {
 	}
 
 	@GetMapping("/{watchlistId}")
-	public ApiResponse<List<ReadWatchListResponse>> readWatchList(@AuthPrincipalMember AuthMember authMember,
+	public ApiResponse<ReadWatchListResponse> readWatchList(@AuthPrincipalMember AuthMember authMember,
 		@PathVariable Long watchlistId){
 		return ApiResponse.success(WatchListSuccessCode.READ_WATCH_LIST,
 			watchListService.readWatchList(authMember, watchlistId));

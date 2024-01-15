@@ -61,7 +61,7 @@ public class WatchListService {
 	}
 
 	@Transactional(readOnly = true)
-	public List<ReadWatchListResponse> readWatchList(AuthMember authMember, Long watchListId) {
+	public ReadWatchListResponse readWatchList(AuthMember authMember, Long watchListId) {
 		Member member = findMember(authMember.getMemberId());
 		WatchList watchList = watchListRepository.findById(watchListId)
 			.orElseThrow(() -> new NotFoundResourceException(WatchListErrorCode.NOT_FOUND_WATCH_LIST));
@@ -70,9 +70,10 @@ public class WatchListService {
 
 		List<WatchStock> watchStocks = watchStockRepository.findWithStockAndDividendsByWatchList(watchList);
 
-		return watchStocks.stream()
+		List<ReadWatchListResponse.WatchStockResponse> watchStockResponses = watchStocks.stream()
 			.map(watchStock -> ReadWatchListResponse.from(watchStock, currentPriceManager, lastDayClosingPriceManager))
 			.collect(Collectors.toList());
+		return new ReadWatchListResponse(watchList.getName(), watchStockResponses);
 	}
 
 	@Transactional

@@ -1,6 +1,7 @@
 package codesquad.fineants.spring.api.watch_list.response;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
@@ -15,20 +16,29 @@ import lombok.Getter;
 @Builder
 @AllArgsConstructor
 public class ReadWatchListResponse {
-	private long id;
-	private String companyName;
-	private String tickerSymbol;
-	private long currentPrice;
-	private long dailyChange;
-	private float dailyChangeRate;
-	private float annualDividendYield;
-	private String sector;
-	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
-	private LocalDateTime dateAdded;
+	private String name;
+	private List<WatchStockResponse> watchStocks;
 
-	public static ReadWatchListResponse from(WatchStock watchStock, CurrentPriceManager currentPriceManager,
+
+	@Builder
+	@Getter
+	public static class WatchStockResponse {
+		private long id;
+		private String companyName;
+		private String tickerSymbol;
+		private long currentPrice;
+		private long dailyChange;
+		private float dailyChangeRate;
+		private float annualDividendYield;
+		private String sector;
+		@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
+		private LocalDateTime dateAdded;
+	}
+
+
+	public static ReadWatchListResponse.WatchStockResponse from(WatchStock watchStock, CurrentPriceManager currentPriceManager,
 		LastDayClosingPriceManager lastDayClosingPriceManager) {
-		return ReadWatchListResponse.builder()
+		return ReadWatchListResponse.WatchStockResponse.builder()
 			.id(watchStock.getId())
 			.companyName(watchStock.getStock().getCompanyName())
 			.tickerSymbol(watchStock.getStock().getTickerSymbol())
