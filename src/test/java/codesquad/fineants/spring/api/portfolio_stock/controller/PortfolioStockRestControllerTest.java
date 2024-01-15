@@ -179,7 +179,6 @@ class PortfolioStockRestControllerTest {
 		requestBodyMap.put("tickerSymbol", "005930");
 		requestBodyMap.put("purchaseHistory", purchaseHistoryMap);
 
-
 		String body = ObjectMapperUtil.serialize(requestBodyMap);
 		Long portfolioId = portfolio.getId();
 		// when & then
