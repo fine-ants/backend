@@ -40,7 +40,7 @@ public class KisService {
 	private final HolidayManager holidayManager;
 
 	// 평일 9am ~ 15:59pm 5초마다 현재가 갱신 수행
-	// @Scheduled(cron = "0/5 * 9-15 ? * MON,TUE,WED,THU,FRI")
+	@Scheduled(cron = "0/5 * 9-15 ? * MON,TUE,WED,THU,FRI")
 	public void refreshStockCurrentPrice() {
 		// 휴장일인 경우 실행하지 않음
 		if (holidayManager.isHoliday(LocalDate.now())) {
