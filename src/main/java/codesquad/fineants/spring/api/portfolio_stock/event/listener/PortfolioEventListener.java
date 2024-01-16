@@ -1,7 +1,5 @@
 package codesquad.fineants.spring.api.portfolio_stock.event.listener;
 
-import java.io.IOException;
-
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -25,13 +23,13 @@ public class PortfolioEventListener {
 
 	@EventListener
 	public void handleMessage(PortfolioEvent event) {
-		SseEmitter emitter = manager.get(event.getPortfolioId());
+		SseEmitter emitter = manager.get(event.getKey());
 		log.info("emitter 전송준비 : {}", emitter);
 		try {
 			emitter.send(SseEmitter.event()
 				.data(event.getResponse())
 				.name(EVENT_NAME));
-			log.info("emitter{} 포트폴리오 전송", event.getPortfolioId());
+			log.info("포트폴리오 이벤트 전송 : {}", event);
 
 			if (!stockMarketChecker.isMarketOpen(event.getEventDateTime())) {
 				Thread.sleep(2000L);
@@ -40,12 +38,10 @@ public class PortfolioEventListener {
 					.name(COMPLETE_NAME));
 				emitter.complete();
 			}
-		} catch (IOException | InterruptedException e) {
-			log.error(e.getMessage(), e);
-			emitter.completeWithError(e);
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
+			emitter.completeWithError(e);
+			manager.remove(event.getKey());
 		}
 	}
-
 }

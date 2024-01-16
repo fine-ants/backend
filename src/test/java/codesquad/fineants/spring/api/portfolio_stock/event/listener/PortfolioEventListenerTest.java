@@ -1,21 +1,19 @@
-package codesquad.fineants.spring.api.portfolio_stock.event.publisher;
+package codesquad.fineants.spring.api.portfolio_stock.event.listener;
 
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.BDDMockito.*;
-import static org.springframework.web.servlet.mvc.method.annotation.SseEmitter.*;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.BDDMockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -36,21 +34,18 @@ import codesquad.fineants.domain.stock_dividend.StockDividendRepository;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
 import codesquad.fineants.spring.api.kis.response.CurrentPriceResponse;
+import codesquad.fineants.spring.api.portfolio_stock.event.PortfolioEvent;
 import codesquad.fineants.spring.api.portfolio_stock.manager.SseEmitterKey;
 import codesquad.fineants.spring.api.portfolio_stock.manager.SseEmitterManager;
+import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioHoldingsRealTimeResponse;
 import codesquad.fineants.spring.api.portfolio_stock.service.PortfolioStockService;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 @ActiveProfiles("test")
 @SpringBootTest
-class PortfolioEventPublisherTest {
+class PortfolioEventListenerTest {
 
 	@Autowired
-	private PortfolioEventPublisher publisher;
-
-	@Autowired
-	private SseEmitterManager manager;
+	private PortfolioEventListener portfolioEventListener;
 
 	@Autowired
 	private MemberRepository memberRepository;
@@ -79,8 +74,11 @@ class PortfolioEventPublisherTest {
 	@Autowired
 	private LastDayClosingPriceManager lastDayClosingPriceManager;
 
-	@MockBean
+	@Autowired
 	private PortfolioStockService portfolioStockService;
+
+	@Autowired
+	private SseEmitterManager manager;
 
 	@AfterEach
 	void tearDown() {
@@ -91,11 +89,12 @@ class PortfolioEventPublisherTest {
 		memberRepository.deleteAllInBatch();
 		stockDividendRepository.deleteAllInBatch();
 		stockRepository.deleteAllInBatch();
+		manager.clear();
 	}
 
-	@DisplayName("포트폴리오 이벤트를 전송한다")
+	@DisplayName("장시간에 포트폴리오 리스너는 포트폴리오 이벤트를 받고 이벤트 스트림으로 데이터를 전송한다")
 	@Test
-	void sendEventToPortfolio() throws IOException {
+	void handleMessage() throws IOException {
 		// given
 		Member member = memberRepository.save(createMember());
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
@@ -112,15 +111,22 @@ class PortfolioEventPublisherTest {
 		emitter.onCompletion(() -> manager.remove(key));
 		manager.add(key, emitter);
 
+		PortfolioHoldingsRealTimeResponse response = portfolioStockService.readMyPortfolioStocksInRealTime(
+			portfolio.getId());
+		LocalDateTime eventDateTime = LocalDateTime.of(2024, 1, 16, 9, 30);
+
+		PortfolioEvent event = new PortfolioEvent(key, response, eventDateTime);
+
 		// when
-		publisher.sendEventToPortfolio(LocalDateTime.of(2023, 12, 22, 10, 0, 0));
+		portfolioEventListener.handleMessage(event);
+
 		// then
-		verify(emitter, times(1)).send(any(SseEventBuilder.class));
+		BDDMockito.verify(emitter, times(1)).send(any(SseEmitter.SseEventBuilder.class));
 	}
 
-	@DisplayName("포트폴리오 이벤트 전송전에 예외가 발생하여 emitter가 제거된다")
+	@DisplayName("장시간에 포트폴리오 리스너는 포트폴리오 이벤트를 받고 데이터를 전송하려고 했으나 Emitter가 이미 완료되어 해당 emitter를 제거합니다")
 	@Test
-	void sendEventToPortfolioWithException() throws IOException {
+	void handleMessage_whenEmitterIsAlreadyCompleted_thenRemoveEmitter() throws IOException {
 		// given
 		Member member = memberRepository.save(createMember());
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
@@ -131,19 +137,26 @@ class PortfolioEventPublisherTest {
 		currentPriceManager.addCurrentPrice(new CurrentPriceResponse("005930", 60000L));
 		lastDayClosingPriceManager.addPrice("005930", 50000);
 
-		given(portfolioStockService.readMyPortfolioStocksInRealTime(anyLong()))
-			.willThrow(new IllegalArgumentException("005930 종목에 대한 가격을 찾을 수 없습니다."));
-
 		SseEmitter emitter = mock(SseEmitter.class);
 		SseEmitterKey key = SseEmitterKey.create(portfolio.getId());
 		emitter.onTimeout(() -> manager.remove(key));
 		emitter.onCompletion(() -> manager.remove(key));
+		BDDMockito.willThrow(new IllegalArgumentException("ResponseBodyEmitter has already completed"))
+			.given(emitter)
+			.send(any(SseEmitter.SseEventBuilder.class));
 		manager.add(key, emitter);
 
+		PortfolioHoldingsRealTimeResponse response = portfolioStockService.readMyPortfolioStocksInRealTime(
+			portfolio.getId());
+		LocalDateTime eventDateTime = LocalDateTime.of(2024, 1, 16, 9, 30);
+
+		PortfolioEvent event = new PortfolioEvent(key, response, eventDateTime);
+
 		// when
-		publisher.sendEventToPortfolio(LocalDateTime.of(2023, 12, 22, 10, 0, 0));
+		portfolioEventListener.handleMessage(event);
+
 		// then
-		Assertions.assertThat(manager.size()).isZero();
+		assertThat(manager.size()).isZero();
 	}
 
 	private Member createMember() {

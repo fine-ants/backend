@@ -43,11 +43,7 @@ public class Member extends BaseEntity {
 		claims.put("email", email);
 		return claims;
 	}
-
-	public String createRedisKey() {
-		return "RT:" + email;
-	}
-
+	
 	public boolean hasAuthorization(Long memberId) {
 		return id.equals(memberId);
 	}
