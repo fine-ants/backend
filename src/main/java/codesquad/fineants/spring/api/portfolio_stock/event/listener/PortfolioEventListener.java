@@ -41,7 +41,7 @@ public class PortfolioEventListener {
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 			emitter.completeWithError(e);
+			manager.remove(event.getKey());
 		}
 	}
-
 }
