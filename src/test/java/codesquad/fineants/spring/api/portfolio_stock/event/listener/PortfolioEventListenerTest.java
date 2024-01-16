@@ -89,6 +89,7 @@ class PortfolioEventListenerTest {
 		memberRepository.deleteAllInBatch();
 		stockDividendRepository.deleteAllInBatch();
 		stockRepository.deleteAllInBatch();
+		manager.clear();
 	}
 
 	@DisplayName("장시간에 포트폴리오 리스너는 포트폴리오 이벤트를 받고 이벤트 스트림으로 데이터를 전송한다")

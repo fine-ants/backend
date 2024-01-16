@@ -30,4 +30,8 @@ public class SseEmitterManager {
 	public Set<SseEmitterKey> keys() {
 		return clients.keySet();
 	}
+
+	public void clear() {
+		clients.clear();
+	}
 }
