@@ -76,13 +76,18 @@ public class Stock extends BaseEntity {
 			.collect(Collectors.toList());
 	}
 
-	public Map<Integer, Long> createMonthlyDividends(List<PurchaseHistory> purchaseHistories) {
+	public Map<Integer, Long> createMonthlyDividends(List<PurchaseHistory> purchaseHistories,
+		LocalDate currentLocalDate) {
 		Map<Integer, Long> result = new HashMap<>();
 		for (int month = 1; month <= 12; month++) {
 			result.put(month, 0L);
 		}
 
-		for (StockDividend stockDividend : stockDividends) {
+		List<StockDividend> currentYearStockDividends = stockDividends.stream()
+			.filter(stockDividend -> stockDividend.isCurrentYearRecordDate(currentLocalDate))
+			.collect(Collectors.toList());
+
+		for (StockDividend stockDividend : currentYearStockDividends) {
 			for (PurchaseHistory purchaseHistory : purchaseHistories) {
 				if (stockDividend.isSatisfied(purchaseHistory.getPurchaseLocalDate())) {
 					int paymentMonth = stockDividend.getMonthValueByPaymentDate();
@@ -95,21 +100,21 @@ public class Stock extends BaseEntity {
 		return result;
 	}
 
-	public Map<Integer, Long> createMonthlyExpectedDividends(List<PurchaseHistory> purchaseHistories) {
+	public Map<Integer, Long> createMonthlyExpectedDividends(List<PurchaseHistory> purchaseHistories,
+		LocalDate currentLocalDate) {
 		Map<Integer, Long> result = new HashMap<>();
 		for (int month = 1; month <= 12; month++) {
 			result.put(month, 0L);
 		}
 
 		// 0. 현재년도에 해당하는 배당금 정보를 필터링하여 별도 저장합니다.
-		LocalDate currentYearLocalDate = LocalDate.now();
 		List<StockDividend> currentYearStockDividends = stockDividends.stream()
-			.filter(stockDividend -> stockDividend.isCurrentYearRecordDate(currentYearLocalDate))
+			.filter(stockDividend -> stockDividend.isCurrentYearRecordDate(currentLocalDate))
 			.collect(Collectors.toList());
 
 		// 1. 배당금 데이터 중에서 현금지급일자가 작년도에 해당하는 배당금 정보를 필터링합니다.
 		// 2. 1단계에서 필터링한 배당금 데이터들중 0단계에서 별도 저장한 현재년도의 분기 배당금과 중복되는 배당금 정보를 필터링합니다.
-		LocalDate lastYearLocalDate = LocalDate.now().minusYears(1L);
+		LocalDate lastYearLocalDate = currentLocalDate.minusYears(1L);
 		stockDividends.stream()
 			.filter(stockDividend -> stockDividend.isLastYearPaymentDate(lastYearLocalDate))
 			.filter(stockDividend -> !stockDividend.isDuplicatedRecordDate(currentYearStockDividends))

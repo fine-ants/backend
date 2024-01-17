@@ -1,5 +1,6 @@
 package codesquad.fineants.domain.portfolio_holding;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -178,7 +179,9 @@ public class PortfolioHolding extends BaseEntity {
 	// 예상 연간 배당금 계산
 	public long calculateAnnualExpectedDividend() {
 		long annualDividend = calculateAnnualDividend();
-		long annualExpectedDividend = stock.createMonthlyExpectedDividends(purchaseHistory).values().stream()
+		long annualExpectedDividend = stock.createMonthlyExpectedDividends(purchaseHistory, LocalDate.now())
+			.values()
+			.stream()
 			.mapToLong(Long::valueOf)
 			.sum();
 		return annualDividend + annualExpectedDividend;
@@ -201,9 +204,10 @@ public class PortfolioHolding extends BaseEntity {
 	}
 
 	// 월별 배당금 계산, key=월, value=배당금 합계
-	public Map<Integer, Long> createMonthlyDividendMap() {
-		Map<Integer, Long> monthlyDividends = stock.createMonthlyDividends(purchaseHistory);
-		Map<Integer, Long> monthlyExpectedDividends = stock.createMonthlyExpectedDividends(purchaseHistory);
+	public Map<Integer, Long> createMonthlyDividendMap(LocalDate currentLocalDate) {
+		Map<Integer, Long> monthlyDividends = stock.createMonthlyDividends(purchaseHistory, currentLocalDate);
+		Map<Integer, Long> monthlyExpectedDividends = stock.createMonthlyExpectedDividends(purchaseHistory,
+			currentLocalDate);
 		monthlyExpectedDividends.forEach((month, dividend) -> monthlyDividends.merge(month, dividend, Long::sum));
 		return monthlyDividends;
 	}

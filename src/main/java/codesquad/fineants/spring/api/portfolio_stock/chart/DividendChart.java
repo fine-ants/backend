@@ -1,5 +1,6 @@
 package codesquad.fineants.spring.api.portfolio_stock.chart;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.stereotype.Component;
@@ -15,8 +16,8 @@ public class DividendChart {
 
 	private final CurrentPriceManager manager;
 
-	public List<PortfolioDividendChartItem> createBy(Portfolio portfolio) {
+	public List<PortfolioDividendChartItem> createBy(Portfolio portfolio, LocalDate currentLocalDate) {
 		portfolio.applyCurrentPriceAllHoldingsBy(manager);
-		return portfolio.createDividendChart();
+		return portfolio.createDividendChart(currentLocalDate);
 	}
 }

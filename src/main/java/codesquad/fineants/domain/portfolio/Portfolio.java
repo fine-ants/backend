@@ -1,5 +1,6 @@
 package codesquad.fineants.domain.portfolio;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -282,9 +283,10 @@ public class Portfolio extends BaseEntity {
 	}
 
 	// 배당금 차트 생성
-	public List<PortfolioDividendChartItem> createDividendChart() {
+	public List<PortfolioDividendChartItem> createDividendChart(LocalDate currentLocalDate) {
 		Map<Integer, Long> totalDividendMap = portfolioHoldings.stream()
-			.flatMap(portfolioHolding -> portfolioHolding.createMonthlyDividendMap().entrySet().stream())
+			.flatMap(
+				portfolioHolding -> portfolioHolding.createMonthlyDividendMap(currentLocalDate).entrySet().stream())
 			.collect(Collectors.groupingBy(Map.Entry::getKey, Collectors.summingLong(Map.Entry::getValue)));
 
 		return totalDividendMap.entrySet().stream()
