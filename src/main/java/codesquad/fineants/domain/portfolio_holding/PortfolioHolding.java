@@ -183,7 +183,10 @@ public class PortfolioHolding extends BaseEntity {
 
 	// 월별 배당금 계산, key=월, value=배당금 합계
 	public Map<Integer, Long> createMonthlyDividendMap() {
-		return stock.createMonthlyDividends(purchaseHistory);
+		Map<Integer, Long> monthlyDividends = stock.createMonthlyDividends(purchaseHistory);
+		Map<Integer, Long> monthlyExpectedDividends = stock.createMonthlyExpectedDividends(purchaseHistory);
+		monthlyExpectedDividends.forEach((month, dividend) -> monthlyDividends.merge(month, dividend, Long::sum));
+		return monthlyDividends;
 	}
 
 	public void applyCurrentPrice(CurrentPriceManager manager) {
