@@ -92,4 +92,9 @@ public class StockDividend extends BaseEntity {
 	private int getQuarter() {
 		return recordDate.getMonthValue() / 4 + 1;
 	}
+
+	// 현금지급일자를 기준으로 현재년도인지 검사
+	public boolean isCurrentYearPaymentDate(LocalDate today) {
+		return paymentDate != null && paymentDate.getYear() == today.getYear();
+	}
 }

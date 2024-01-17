@@ -72,8 +72,7 @@ public class Stock extends BaseEntity {
 	public List<StockDividend> getCurrentYearDividends() {
 		LocalDate today = LocalDate.now();
 		return stockDividends.stream()
-			.filter(dividend -> dividend.getPaymentDate() != null)
-			.filter(dividend -> dividend.getPaymentDate().getYear() == today.getYear())
+			.filter(dividend -> dividend.isCurrentYearPaymentDate(today))
 			.collect(Collectors.toList());
 	}
 

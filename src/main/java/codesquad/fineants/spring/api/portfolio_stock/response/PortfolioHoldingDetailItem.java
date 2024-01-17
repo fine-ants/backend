@@ -45,8 +45,8 @@ public class PortfolioHoldingDetailItem {
 			.dailyChangeRate(portfolioHolding.calculateDailyChangeRate(lastDayClosingPrice))
 			.totalGain(portfolioHolding.calculateTotalGain())
 			.totalReturnRate(portfolioHolding.calculateTotalReturnRate())
-			.annualDividend(portfolioHolding.calculateAnnualDividend())
-			.annualDividendYield(portfolioHolding.calculateAnnualDividendYield())
+			.annualDividend(portfolioHolding.calculateAnnualExpectedDividend())
+			.annualDividendYield(portfolioHolding.calculateAnnualExpectedDividendYield())
 			.build();
 	}
 }

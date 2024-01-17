@@ -76,4 +76,11 @@ public class PurchaseHistory extends BaseEntity {
 	public LocalDate getPurchaseLocalDate() {
 		return purchaseDate.toLocalDate();
 	}
+
+	// 배당금을 받을 수 있는지 검사
+	public boolean isSatisfiedDividend(LocalDate exDividendDate) {
+		LocalDate purcahseLocalDate = purchaseDate.toLocalDate();
+		return purcahseLocalDate.equals(exDividendDate)
+			|| purcahseLocalDate.isBefore(exDividendDate);
+	}
 }
