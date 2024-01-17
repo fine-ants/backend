@@ -196,9 +196,10 @@ class PortfolioStockRestControllerTest {
 			any(AuthMember.class))).willReturn(response);
 
 		Map<String, Object> purchaseHistoryMap = new HashMap<>();
-		purchaseHistoryMap.put("purchaseDate", LocalDateTime.now().toString());
+		purchaseHistoryMap.put("purchasedDate", LocalDateTime.now().toString());
 		purchaseHistoryMap.put("numShares", 10L);
 		purchaseHistoryMap.put("purchasePricePerShare", 100.0);
+		purchaseHistoryMap.put("memo", null);
 
 		Map<String, Object> requestBodyMap = new HashMap<>();
 		requestBodyMap.put("tickerSymbol", "005930");
@@ -252,7 +253,7 @@ class PortfolioStockRestControllerTest {
 		Portfolio portfolio = createPortfolio(member);
 
 		Map<String, Object> requestBodyMap = new HashMap<>();
-		requestBodyMap.put("stockId", null);
+		requestBodyMap.put("tickerSymbol", null);
 
 		String body = ObjectMapperUtil.serialize(requestBodyMap);
 		Long portfolioId = portfolio.getId();
@@ -358,11 +359,12 @@ class PortfolioStockRestControllerTest {
 			portfolioHolding.getCurrentPrice());
 
 		List<PortfolioPieChartItem> pieChartItems = this.pieChart.createBy(portfolio);
-		List<PortfolioDividendChartItem> dividendChartItems = this.dividendChart.createBy(portfolio);
+		List<PortfolioDividendChartItem> dividendChartItems = this.dividendChart.createBy(portfolio,
+			LocalDate.of(2024, 1, 16));
 		List<PortfolioSectorChartItem> sectorChartItems = this.sectorChart.createBy(portfolio);
 		PortfolioChartResponse response = new PortfolioChartResponse(pieChartItems, dividendChartItems,
 			sectorChartItems);
-		given(portfolioStockService.readMyPortfolioCharts(anyLong()))
+		given(portfolioStockService.readMyPortfolioCharts(anyLong(), any(LocalDate.class)))
 			.willReturn(response);
 
 		// when & then

@@ -140,7 +140,7 @@ class PortfolioStockServiceTest {
 				.extracting("portfolioHoldingId", "currentValuation", "currentPrice", "averageCostPerShare",
 					"numShares", "dailyChange", "dailyChangeRate", "totalGain", "totalReturnRate", "annualDividend")
 				.containsExactlyInAnyOrder(Tuple.tuple(
-					portfolioHolding.getId(), 180000L, 60000L, 50000.0, 3L, 10000L, 20, 30000L, 20, 3249L)),
+					portfolioHolding.getId(), 180000L, 60000L, 50000.0, 3L, 10000L, 20, 30000L, 20, 4332L)),
 			() -> assertThat(response).extracting("portfolioHoldings")
 				.asList()
 				.hasSize(1)
@@ -167,7 +167,7 @@ class PortfolioStockServiceTest {
 		lastDayClosingPriceManager.addPrice("005930", 50000);
 
 		// when
-		PortfolioChartResponse response = service.readMyPortfolioCharts(portfolio.getId());
+		PortfolioChartResponse response = service.readMyPortfolioCharts(portfolio.getId(), LocalDate.of(2023, 12, 15));
 
 		// then
 		assertAll(
@@ -190,13 +190,13 @@ class PortfolioStockServiceTest {
 					Tuple.tuple(2, 0L),
 					Tuple.tuple(3, 0L),
 					Tuple.tuple(4, 0L),
-					Tuple.tuple(5, 1083L),
+					Tuple.tuple(5, 0L),
 					Tuple.tuple(6, 0L),
 					Tuple.tuple(7, 0L),
-					Tuple.tuple(8, 1083L),
+					Tuple.tuple(8, 0L),
 					Tuple.tuple(9, 0L),
 					Tuple.tuple(10, 0L),
-					Tuple.tuple(11, 2166L),
+					Tuple.tuple(11, 1083L),
 					Tuple.tuple(12, 0L)
 				),
 			() -> assertThat(response)
@@ -320,7 +320,7 @@ class PortfolioStockServiceTest {
 			PortfolioStockCreateRequest.class);
 
 		// when
-		Throwable throwable = catchThrowable(() ->  service.addPortfolioStock(portfolio.getId(), request,
+		Throwable throwable = catchThrowable(() -> service.addPortfolioStock(portfolio.getId(), request,
 			AuthMember.from(member)));
 
 		// then
