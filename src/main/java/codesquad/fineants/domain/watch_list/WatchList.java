@@ -27,7 +27,7 @@ import lombok.NoArgsConstructor;
 @Entity
 public class WatchList extends BaseEntity {
 	@Id
-	@GeneratedValue(strategy = GenerationType.SEQUENCE)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "id", nullable = false)
 	private Long id;
 
