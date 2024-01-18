@@ -8,9 +8,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class SignUpRequest {
-	private String nickname;
+public class VerifCodeRequest {
 	private String email;
-	private String password;
-	private String passwordConfirm;
+	private String code;
 }
