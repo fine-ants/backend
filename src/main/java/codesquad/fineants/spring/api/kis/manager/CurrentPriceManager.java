@@ -23,10 +23,7 @@ public class CurrentPriceManager {
 
 	public Long getCurrentPrice(String tickerSymbol) {
 		String currentPrice = redisTemplate.opsForValue().get(String.format(format, tickerSymbol));
-		if (currentPrice == null) {
-			throw new IllegalArgumentException(String.format("%s 종목에 대한 가격을 찾을 수 없습니다.", tickerSymbol));
-		}
-		return Long.valueOf(currentPrice);
+		return currentPrice != null ? Long.valueOf(currentPrice) : null;
 	}
 
 	public boolean hasCurrentPrice(String tickerSymbol) {
