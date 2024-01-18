@@ -14,7 +14,7 @@ public enum MemberErrorCode implements ErrorCode {
 	REDUNDANT_NICKNAME(HttpStatus.BAD_REQUEST, "닉네임이 중복되었습니다"),
 	REDUNDANT_EMAIL(HttpStatus.BAD_REQUEST, "이메일이 중복되었습니다."),
 	PASSWORD_CHECK_FAIL(HttpStatus.BAD_REQUEST, "비밀번호가 일치하지 않습니다."),
-	VERIFICATION_CODE_CHECK_FAIL(HttpStatus.BAD_REQUEST, "검증코드가 일치하지 않습니다."),
+	VERIFICATION_CODE_CHECK_FAIL(HttpStatus.BAD_REQUEST, "인증번호가 일치하지 않습니다."),
 	SEND_EMAIL_VERIF_FAIL(HttpStatus.BAD_REQUEST, "이메일 전송이 실패하였습니다"),
 	PROFILE_IMAGE_UPLOAD_FAIL(HttpStatus.BAD_REQUEST, "이미지 파일 업로드가 실패하였습니다."),
 	BAD_SIGNUP_INPUT(HttpStatus.BAD_REQUEST, "잘못된 입력형식입니다."),
