@@ -1,6 +1,8 @@
 package codesquad.fineants.spring.api.member.service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
@@ -10,6 +12,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -24,6 +27,17 @@ import codesquad.fineants.domain.oauth.client.AuthorizationCodeRandomGenerator;
 import codesquad.fineants.domain.oauth.client.OauthClient;
 import codesquad.fineants.domain.oauth.repository.OauthClientRepository;
 import codesquad.fineants.domain.oauth.support.AuthMember;
+import codesquad.fineants.domain.portfolio.Portfolio;
+import codesquad.fineants.domain.portfolio.PortfolioRepository;
+import codesquad.fineants.domain.portfolio_gain_history.PortfolioGainHistory;
+import codesquad.fineants.domain.portfolio_gain_history.PortfolioGainHistoryRepository;
+import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
+import codesquad.fineants.domain.portfolio_holding.PortfolioHoldingRepository;
+import codesquad.fineants.domain.purchase_history.PurchaseHistoryRepository;
+import codesquad.fineants.domain.watch_list.WatchList;
+import codesquad.fineants.domain.watch_list.WatchListRepository;
+import codesquad.fineants.domain.watch_stock.WatchStock;
+import codesquad.fineants.domain.watch_stock.WatchStockRepository;
 import codesquad.fineants.spring.api.S3.service.AmazonS3Service;
 import codesquad.fineants.spring.api.errors.errorcode.MemberErrorCode;
 import codesquad.fineants.spring.api.errors.errorcode.OauthErrorCode;
@@ -65,6 +79,12 @@ public class MemberService {
 	private final AuthorizationCodeRandomGenerator authorizationCodeRandomGenerator;
 	private final MemberFactory memberFactory;
 	private final PasswordEncoder passwordEncoder;
+	private final WatchListRepository watchListRepository;
+	private final WatchStockRepository watchStockRepository;
+	private final PortfolioHoldingRepository portfolioHoldingRepository;
+	private final PortfolioRepository portfolioRepository;
+	private final PortfolioGainHistoryRepository portfolioGainHistoryRepository;
+	private final PurchaseHistoryRepository purchaseHistoryRepository;
 
 	public OauthMemberLoginResponse login(OauthMemberLoginRequest request) {
 		log.info("로그인 서비스 요청 : loginRequest={}", request);
@@ -286,5 +306,30 @@ public class MemberService {
 		if (verifCode == null || !verifCode.equals(request.getCode())) {
 			throw new BadRequestException(MemberErrorCode.VERIFICATION_CODE_CHECK_FAIL);
 		}
+	}
+
+	@Transactional
+	public void deleteMember(AuthMember authMember) {
+		Member member = memberRepository.findById(authMember.getMemberId())
+			.orElseThrow(() -> new BadRequestException(MemberErrorCode.NOT_FOUND_MEMBER));
+		List<Portfolio> portfolios = portfolioRepository.findAllByMemberId(authMember.getMemberId());
+		List<PortfolioHolding> portfolioHoldings = new ArrayList<>();
+		portfolios.forEach(
+			portfolio -> portfolioHoldings.addAll(portfolioHoldingRepository.findAllByPortfolio(portfolio)));
+		List<PortfolioGainHistory> portfolioGainHistories = new ArrayList<>();
+		portfolios.forEach(portfolio -> portfolioGainHistories.addAll(
+			portfolioGainHistoryRepository.findAllByPortfolioId(portfolio.getId())));
+		purchaseHistoryRepository.deleteAllByPortfolioHoldingIdIn(
+			portfolioHoldings.stream().map(PortfolioHolding::getId).collect(
+				Collectors.toList()));
+		portfolioGainHistoryRepository.deleteAll(portfolioGainHistories);
+		portfolioHoldingRepository.deleteAll(portfolioHoldings);
+		portfolioRepository.deleteAll(portfolios);
+		List<WatchList> watchList = watchListRepository.findByMember(member);
+		List<WatchStock> watchStocks = new ArrayList<>();
+		watchList.forEach(w -> watchStocks.addAll(watchStockRepository.findByWatchList(w)));
+		watchStockRepository.deleteAll(watchStocks);
+		watchListRepository.deleteAll(watchList);
+		memberRepository.delete(member);
 	}
 }

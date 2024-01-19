@@ -4,6 +4,7 @@ import static org.springframework.http.HttpStatus.*;
 
 import java.time.LocalDateTime;
 
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -123,5 +124,13 @@ public class MemberRestController {
 		@AuthPrincipalMember AuthMember authMember) {
 		memberService.modifyPassword(request, authMember);
 		return ApiResponse.success(MemberSuccessCode.OK_PASSWORD_CHANGED);
+	}
+
+	@DeleteMapping("/account")
+	public ApiResponse<Void> changePassword(@RequestAttribute final String accessToken,
+		@RequestBody final OauthMemberLogoutRequest request, @AuthPrincipalMember AuthMember authMember) {
+		memberService.logout(accessToken, request);
+		memberService.deleteMember(authMember);
+		return ApiResponse.success(MemberSuccessCode.OK_DELETED_ACCOUNT);
 	}
 }
