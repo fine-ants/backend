@@ -43,12 +43,16 @@ public class Member extends BaseEntity {
 		claims.put("email", email);
 		return claims;
 	}
-	
+
 	public boolean hasAuthorization(Long memberId) {
 		return id.equals(memberId);
 	}
 
 	public void updateProfileImage(String profileUrl) {
 		this.profileUrl = profileUrl;
+	}
+
+	public void updatePassword(String newEncodedPassword) {
+		this.password = newEncodedPassword;
 	}
 }

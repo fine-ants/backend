@@ -32,6 +32,7 @@ import codesquad.fineants.spring.api.errors.exception.FineAntsException;
 import codesquad.fineants.spring.api.member.manager.AuthorizationRequestManager;
 import codesquad.fineants.spring.api.member.request.AuthorizationRequest;
 import codesquad.fineants.spring.api.member.request.LoginRequest;
+import codesquad.fineants.spring.api.member.request.ModifyPasswordRequest;
 import codesquad.fineants.spring.api.member.request.OauthMemberLoginRequest;
 import codesquad.fineants.spring.api.member.request.OauthMemberLogoutRequest;
 import codesquad.fineants.spring.api.member.request.OauthMemberRefreshRequest;
@@ -267,5 +268,19 @@ public class MemberService {
 			url = amazonS3Service.upload(profileImageFile);
 		}
 		member.updateProfileImage(url);
+	}
+
+	@Transactional(readOnly = true)
+	public void modifyPassword(ModifyPasswordRequest request, AuthMember authMember) {
+		Member member = memberRepository.findById(authMember.getMemberId())
+			.orElseThrow(() -> new BadRequestException(MemberErrorCode.NOT_FOUND_MEMBER));
+		if (!passwordEncoder.matches(request.getCurrentPassword(), member.getPassword())) {
+			throw new BadRequestException(MemberErrorCode.PASSWORD_CHECK_FAIL);
+		}
+		if (!request.getNewPassword().equals(request.getNewPasswordConfirm())) {
+			throw new BadRequestException(MemberErrorCode.NEW_PASSWORD_CONFIRM_FAIL);
+		}
+		String newEncodedPassword = passwordEncoder.encode(request.getNewPassword());
+		member.updatePassword(newEncodedPassword);
 	}
 }

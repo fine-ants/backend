@@ -14,6 +14,7 @@ public enum MemberSuccessCode implements SuccessCode {
 	OK_SEND_EMAIL_VERIF(HttpStatus.OK, "이메일로 검증 코드를 전송하였습니다."),
 	OK_NICKNAME_CHECK(HttpStatus.OK, "닉네임이 사용가능합니다."),
 	OK_EMAIL_CHECK(HttpStatus.OK, "이메일이 사용가능합니다."),
+	OK_PASSWORD_CHANGED(HttpStatus.OK, "비밀번호를 성공적으로 변경했습니다."),
 	OK_LOGIN(HttpStatus.OK, "로그인에 성공하였습니다.");
 	private final HttpStatus httpStatus;
 	private final String message;
