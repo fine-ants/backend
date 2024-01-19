@@ -131,7 +131,7 @@ public class MemberRestController {
 	}
 
 	@DeleteMapping("/account")
-	public ApiResponse<Void> changePassword(@RequestAttribute final String accessToken,
+	public ApiResponse<Void> deleteAccount(@RequestAttribute final String accessToken,
 		@RequestBody final OauthMemberLogoutRequest request, @AuthPrincipalMember AuthMember authMember) {
 		memberService.logout(accessToken, request);
 		memberService.deleteMember(authMember);
