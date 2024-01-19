@@ -10,10 +10,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -22,8 +27,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.oauth.support.AuthMember;
@@ -38,6 +41,7 @@ import codesquad.fineants.spring.api.portfolio.response.PortfolioModifyResponse;
 import codesquad.fineants.spring.auth.HasPortfolioAuthorizationAspect;
 import codesquad.fineants.spring.config.JpaAuditingConfiguration;
 import codesquad.fineants.spring.config.SpringConfig;
+import codesquad.fineants.spring.util.ObjectMapperUtil;
 
 @ActiveProfiles("test")
 @WebMvcTest(controllers = PortFolioRestController.class)
@@ -52,9 +56,6 @@ class PortFolioRestControllerTest {
 
 	@Autowired
 	private GlobalExceptionHandler globalExceptionHandler;
-
-	@Autowired
-	private ObjectMapper objectMapper;
 
 	@MockBean
 	private AuthPrincipalArgumentResolver authPrincipalArgumentResolver;
@@ -77,45 +78,30 @@ class PortFolioRestControllerTest {
 
 		given(authPrincipalArgumentResolver.supportsParameter(any())).willReturn(true);
 
-		member = Member.builder()
-			.id(1L)
-			.nickname("일개미1234")
-			.email("kim1234@gmail.com")
-			.provider("local")
-			.password("kim1234@")
-			.profileUrl("profileValue")
-			.build();
-
+		member = createMember();
 		AuthMember authMember = AuthMember.from(member);
-
 		given(authPrincipalArgumentResolver.resolveArgument(any(), any(), any(), any())).willReturn(authMember);
 		given(portFolioService.hasAuthorizationBy(anyLong(), anyLong())).willReturn(true);
 	}
 
 	@DisplayName("사용자는 포트폴리오 추가를 요청한다")
-	@Test
-	void addPortfolio() throws Exception {
+	@CsvSource(value = {"1000000,1500000,900000", "0,0,0"})
+	@ParameterizedTest
+	void addPortfolio(Long budget, Long targetGain, Long maximumLoss) throws Exception {
 		// given
-		PortFolioCreateResponse response = PortFolioCreateResponse.from(Portfolio.builder()
-			.id(1L)
-			.name("내꿈은 워렌버핏")
-			.securitiesFirm("토스")
-			.budget(1000000L)
-			.targetGain(1500000L)
-			.maximumLoss(900000L)
-			.member(member)
-			.build());
+		PortFolioCreateResponse response = PortFolioCreateResponse.from(createPortfolio(Portfolio.builder()
+			.id(1L), budget, targetGain, maximumLoss));
 		given(portFolioService.addPortFolio(any(PortfolioCreateRequest.class), any(AuthMember.class)))
 			.willReturn(response);
 
 		Map<String, Object> requestBodyMap = new HashMap<>();
 		requestBodyMap.put("name", "내꿈은 워렌버핏");
 		requestBodyMap.put("securitiesFirm", "토스");
-		requestBodyMap.put("budget", 1000000L);
-		requestBodyMap.put("targetGain", 1500000L);
-		requestBodyMap.put("maximumLoss", 900000L);
+		requestBodyMap.put("budget", budget);
+		requestBodyMap.put("targetGain", targetGain);
+		requestBodyMap.put("maximumLoss", maximumLoss);
 
-		String body = objectMapper.writeValueAsString(requestBodyMap);
+		String body = ObjectMapperUtil.serialize(requestBodyMap);
 		// when & then
 		mockMvc.perform(post("/api/portfolios")
 				.contentType(MediaType.APPLICATION_JSON)
@@ -124,21 +110,23 @@ class PortFolioRestControllerTest {
 			.andExpect(jsonPath("code").value(equalTo(201)))
 			.andExpect(jsonPath("status").value(equalTo("Created")))
 			.andExpect(jsonPath("message").value(equalTo("포트폴리오가 추가되었습니다")))
-			.andExpect(jsonPath("data.portfolioId").value(notNullValue()));
+			.andExpect(jsonPath("data.portfolioId").value(equalTo(1)));
 	}
 
 	@DisplayName("사용자는 포트폴리오 추가시 유효하지 않은 입력 정보로 추가할 수 없다")
-	@Test
-	void addPortfolioWithInvalidInput() throws Exception {
+	@MethodSource(value = "invalidPortfolioInput")
+	@ParameterizedTest
+	void addPortfolioWithInvalidInput(String name, String securitiesFirm, Long budget, Long targetGain,
+		Long maximumLoss) throws Exception {
 		// given
 		Map<String, Object> requestBodyMap = new HashMap<>();
-		requestBodyMap.put("name", "");
-		requestBodyMap.put("securitiesFirm", "");
-		requestBodyMap.put("budget", 0);
-		requestBodyMap.put("targetGain", null);
-		requestBodyMap.put("maximumLoss", -1);
+		requestBodyMap.put("name", name);
+		requestBodyMap.put("securitiesFirm", securitiesFirm);
+		requestBodyMap.put("budget", budget);
+		requestBodyMap.put("targetGain", targetGain);
+		requestBodyMap.put("maximumLoss", maximumLoss);
 
-		String body = objectMapper.writeValueAsString(requestBodyMap);
+		String body = ObjectMapperUtil.serialize(requestBodyMap);
 		// when & then
 		mockMvc.perform(post("/api/portfolios")
 				.contentType(MediaType.APPLICATION_JSON)
@@ -154,14 +142,7 @@ class PortFolioRestControllerTest {
 	@Test
 	void modifyPortfolio() throws Exception {
 		// given
-		Portfolio portfolio = Portfolio.builder()
-			.name("내꿈은 워렌버핏")
-			.securitiesFirm("토스")
-			.budget(1000000L)
-			.targetGain(1500000L)
-			.maximumLoss(900000L)
-			.member(member)
-			.build();
+		Portfolio portfolio = createPortfolio(Portfolio.builder(), 1000000L, 1500000L, 900000L);
 		PortfolioModifyResponse response = PortfolioModifyResponse.from(portfolio);
 
 		given(portFolioService.modifyPortfolio(any(PortfolioModifyRequest.class), anyLong(), any(AuthMember.class)))
@@ -175,7 +156,7 @@ class PortFolioRestControllerTest {
 		requestBodyMap.put("targetGain", 1500000L);
 		requestBodyMap.put("maximumLoss", 900000L);
 
-		String body = objectMapper.writeValueAsString(requestBodyMap);
+		String body = ObjectMapperUtil.serialize(requestBodyMap);
 		// when & then
 		mockMvc.perform(put("/api/portfolios/1")
 				.contentType(MediaType.APPLICATION_JSON)
@@ -198,7 +179,7 @@ class PortFolioRestControllerTest {
 		requestBodyMap.put("targetGain", null);
 		requestBodyMap.put("maximumLoss", -1);
 
-		String body = objectMapper.writeValueAsString(requestBodyMap);
+		String body = ObjectMapperUtil.serialize(requestBodyMap);
 		// when & then
 		mockMvc.perform(put("/api/portfolios/1")
 				.contentType(MediaType.APPLICATION_JSON)
@@ -214,14 +195,7 @@ class PortFolioRestControllerTest {
 	@Test
 	void deletePortfolio() throws Exception {
 		// given
-		Portfolio portfolio = Portfolio.builder()
-			.name("내꿈은 워렌버핏")
-			.securitiesFirm("토스")
-			.budget(1000000L)
-			.targetGain(1500000L)
-			.maximumLoss(900000L)
-			.member(member)
-			.build();
+		Portfolio portfolio = createPortfolio(Portfolio.builder(), 1000000L, 1500000L, 900000L);
 		given(portfolioRepository.findById(anyLong())).willReturn(Optional.of(portfolio));
 
 		// when & then
@@ -231,5 +205,33 @@ class PortFolioRestControllerTest {
 			.andExpect(jsonPath("status").value(equalTo("OK")))
 			.andExpect(jsonPath("message").value(equalTo("포트폴리오 삭제가 완료되었습니다")))
 			.andExpect(jsonPath("data").value(equalTo(null)));
+	}
+
+	public static Stream<Arguments> invalidPortfolioInput() {
+		return Stream.of(
+			Arguments.of("", "", 0L, null, -1L)
+		);
+	}
+
+	private Member createMember() {
+		return Member.builder()
+			.id(1L)
+			.nickname("일개미1234")
+			.email("kim1234@gmail.com")
+			.provider("local")
+			.password("kim1234@")
+			.profileUrl("profileValue")
+			.build();
+	}
+
+	private Portfolio createPortfolio(Portfolio.PortfolioBuilder id, Long budget, Long targetGain, Long maximumLoss) {
+		return id
+			.name("내꿈은 워렌버핏")
+			.securitiesFirm("토스")
+			.budget(budget)
+			.targetGain(targetGain)
+			.maximumLoss(maximumLoss)
+			.member(member)
+			.build();
 	}
 }

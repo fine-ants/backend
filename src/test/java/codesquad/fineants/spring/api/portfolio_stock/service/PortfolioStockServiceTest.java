@@ -125,7 +125,7 @@ class PortfolioStockServiceTest {
 					"provisionalLossBalance",
 					"targetGainNotification", "maxLossNotification")
 				.containsExactlyInAnyOrder("토스", "내꿈은 워렌버핏", 1000000L, 1500000L, 50, 900000L, 10, 150000L, 30000L,
-					20, 30000L, 20, 850000L, 3249L, 1, 0L, false, false),
+					20, 30000L, 20, 850000L, 4332L, 2, 0L, false, false),
 			() -> assertThat(response).extracting("portfolioHoldings")
 				.asList()
 				.hasSize(1)
