@@ -323,4 +323,8 @@ public class Portfolio extends BaseEntity {
 		return this.name.equals(changePortfolio.name);
 	}
 
+	// 예산이 0원인지 검사합니다.
+	public boolean isBudgetEmpty() {
+		return this.budget == 0;
+	}
 }
