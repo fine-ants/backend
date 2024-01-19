@@ -85,7 +85,7 @@ class PortFolioRestControllerTest {
 	}
 
 	@DisplayName("사용자는 포트폴리오 추가를 요청한다")
-	@CsvSource(value = {"1000000,1500000,900000", "0,0,0"})
+	@CsvSource(value = {"1000000,1500000,900000", "0,0,0", "0,1500000,900000"})
 	@ParameterizedTest
 	void addPortfolio(Long budget, Long targetGain, Long maximumLoss) throws Exception {
 		// given
@@ -139,8 +139,9 @@ class PortFolioRestControllerTest {
 	}
 
 	@DisplayName("사용자는 포트폴리오 수정을 요청한다")
-	@Test
-	void modifyPortfolio() throws Exception {
+	@CsvSource(value = {"1000000,1500000,900000", "0,0,0", "0,1500000,900000"})
+	@ParameterizedTest
+	void modifyPortfolio(Long budget, Long targetGain, Long maximumLoss) throws Exception {
 		// given
 		Portfolio portfolio = createPortfolio(Portfolio.builder(), 1000000L, 1500000L, 900000L);
 		PortfolioModifyResponse response = PortfolioModifyResponse.from(portfolio);
@@ -152,9 +153,9 @@ class PortFolioRestControllerTest {
 		Map<String, Object> requestBodyMap = new HashMap<>();
 		requestBodyMap.put("name", "내꿈은 찰리몽거");
 		requestBodyMap.put("securitiesFirm", "토스");
-		requestBodyMap.put("budget", 1000000L);
-		requestBodyMap.put("targetGain", 1500000L);
-		requestBodyMap.put("maximumLoss", 900000L);
+		requestBodyMap.put("budget", budget);
+		requestBodyMap.put("targetGain", targetGain);
+		requestBodyMap.put("maximumLoss", maximumLoss);
 
 		String body = ObjectMapperUtil.serialize(requestBodyMap);
 		// when & then
@@ -169,7 +170,8 @@ class PortFolioRestControllerTest {
 	}
 
 	@DisplayName("사용자는 포트폴리오 수정시 유효하지 않은 입력 정보로 추가할 수 없다")
-	@Test
+	@MethodSource("invalidPortfolioInput")
+	@ParameterizedTest
 	void modifyPortfolioWithInvalidInput() throws Exception {
 		// given
 		Map<String, Object> requestBodyMap = new HashMap<>();

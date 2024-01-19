@@ -24,8 +24,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.member.MemberRepository;
 import codesquad.fineants.domain.oauth.support.AuthMember;
@@ -109,7 +107,7 @@ class PortFolioServiceTest {
 	@DisplayName("회원은 포트폴리오를 추가할때 목표수익금액이 예산보다 같거나 작으면 안된다")
 	@MethodSource("provideInvalidTargetGain")
 	@ParameterizedTest
-	void addPortfolioWithTargetGainIsEqualLessThanBudget(Long targetGain) throws JsonProcessingException {
+	void addPortfolioWithTargetGainIsEqualLessThanBudget(Long targetGain) {
 		// given
 		Member member = memberRepository.save(createMember());
 		Map<String, Object> body = new HashMap<>();
@@ -199,13 +197,16 @@ class PortFolioServiceTest {
 	}
 
 	@DisplayName("회원이 포트폴리오를 수정한다")
-	@Test
-	void modifyPortfolio() {
+	@CsvSource(value = {"내꿈은 워렌버핏2,미래에셋증권,1000000,1500000,900000", "내꿈은 워렌버핏2,미래에셋증권,0,0,0",
+		"내꿈은 워렌버핏2,미래에셋증권,0,1500000,900000"})
+	@ParameterizedTest
+	void modifyPortfolio(String name, String securitiesFirm, Long budget, Long targetGain, Long maximumLoss) {
 		// given
 		Member member = memberRepository.save(createMember());
 		Portfolio originPortfolio = portfolioRepository.save(createPortfolio(member));
 
-		Map<String, Object> body = createModifiedPortfolioRequestBodyMap("내꿈은 워렌버핏2");
+		Map<String, Object> body = createModifiedPortfolioRequestBodyMap(name, securitiesFirm, budget, targetGain,
+			maximumLoss);
 
 		PortfolioModifyRequest request = ObjectMapperUtil.deserialize(ObjectMapperUtil.serialize(body),
 			PortfolioModifyRequest.class);
@@ -218,7 +219,7 @@ class PortFolioServiceTest {
 		Portfolio changePortfolio = portfolioRepository.findById(portfolioId).orElseThrow();
 		assertThat(changePortfolio)
 			.extracting("name", "securitiesFirm", "budget", "targetGain", "maximumLoss")
-			.containsExactly("내꿈은 워렌버핏2", "미래에셋증권", 1500000L, 2000000L, 900000L);
+			.containsExactly(name, securitiesFirm, budget, targetGain, maximumLoss);
 	}
 
 	@DisplayName("회원은 포트폴리오의 정보를 수정시 이름이 그대로인 경우 그대로 수정합니다.")
@@ -304,7 +305,8 @@ class PortFolioServiceTest {
 
 		long budget = 1000000L;
 		long maximumLoss = 900000L;
-		Map<String, Object> body = createModifiedPortfolioRequestBodyMap("내꿈은 찰리몽거", budget, targetGain, maximumLoss);
+		Map<String, Object> body = createModifiedPortfolioRequestBodyMap("내꿈은 찰리몽거", "미래애셋증권", budget, targetGain,
+			maximumLoss);
 
 		PortfolioModifyRequest request = ObjectMapperUtil.deserialize(ObjectMapperUtil.serialize(body),
 			PortfolioModifyRequest.class);
@@ -331,7 +333,8 @@ class PortFolioServiceTest {
 
 		long budget = 1000000L;
 		long targetGain = 1500000L;
-		Map<String, Object> body = createModifiedPortfolioRequestBodyMap("내꿈은 찰리몽거", budget, targetGain, maximumLoss);
+		Map<String, Object> body = createModifiedPortfolioRequestBodyMap("내꿈은 찰리몽거", "미래에셋증권", budget, targetGain,
+			maximumLoss);
 
 		PortfolioModifyRequest request = ObjectMapperUtil.deserialize(ObjectMapperUtil.serialize(body),
 			PortfolioModifyRequest.class);
@@ -531,16 +534,18 @@ class PortFolioServiceTest {
 	private Map<String, Object> createModifiedPortfolioRequestBodyMap(String name) {
 		return createModifiedPortfolioRequestBodyMap(
 			name,
+			"미래에셋증권",
 			1500000L,
 			2000000L,
 			900000L);
 	}
 
-	private Map<String, Object> createModifiedPortfolioRequestBodyMap(String name, long budget, long targetGain,
+	private Map<String, Object> createModifiedPortfolioRequestBodyMap(String name, String securitiesFirm, long budget,
+		long targetGain,
 		long maximumLoss) {
 		Map<String, Object> body = new HashMap<>();
 		body.put("name", name);
-		body.put("securitiesFirm", "미래에셋증권");
+		body.put("securitiesFirm", securitiesFirm);
 		body.put("budget", budget);
 		body.put("targetGain", targetGain);
 		body.put("maximumLoss", maximumLoss);
