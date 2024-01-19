@@ -31,6 +31,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import codesquad.fineants.domain.member.Member;
@@ -137,6 +138,8 @@ class PortfolioStockRestControllerTest {
 		Member member = createMember();
 		Portfolio portfolio = createPortfolio(member);
 		Stock stock = createStock();
+		List<StockDividend> stockDividends = createStockDividendWith(stock);
+		stockDividends.forEach(stock::addStockDividend);
 		PortfolioHolding portfolioHolding = createPortfolioHolding(portfolio, stock);
 		portfolioHolding.addPurchaseHistory(
 			createPurchaseHistory(portfolioHolding, LocalDateTime.of(2023, 11, 1, 9, 30, 0)));
@@ -150,8 +153,56 @@ class PortfolioStockRestControllerTest {
 
 		given(portfolioStockService.readMyPortfolioStocks(anyLong())).willReturn(mockResponse);
 		// when & then
-		mockMvc.perform(get("/api/portfolio/{portfolioId}/holdings", portfolio.getId()))
+		ResultActions resultActions = mockMvc.perform(get("/api/portfolio/{portfolioId}/holdings", portfolio.getId()))
 			.andExpect(status().isOk());
+
+		resultActions
+			.andExpect(jsonPath("code").value(equalTo(200)))
+			.andExpect(jsonPath("status").value(equalTo("OK")))
+			.andExpect(jsonPath("message").value(equalTo("포트폴리오 상세 정보 및 포트폴리오 종목 목록 조회가 완료되었습니다")))
+			.andExpect(jsonPath("data.portfolioDetails.id").value(equalTo(1)))
+			.andExpect(jsonPath("data.portfolioDetails.securitiesFirm").value(equalTo("토스")))
+			.andExpect(jsonPath("data.portfolioDetails.name").value(equalTo("내꿈은 워렌버핏")))
+			.andExpect(jsonPath("data.portfolioDetails.budget").value(equalTo(1000000)))
+			.andExpect(jsonPath("data.portfolioDetails.targetGain").value(equalTo(1500000)))
+			.andExpect(jsonPath("data.portfolioDetails.targetReturnRate").value(equalTo(50)))
+			.andExpect(jsonPath("data.portfolioDetails.maximumLoss").value(equalTo(900000)))
+			.andExpect(jsonPath("data.portfolioDetails.maximumLossRate").value(equalTo(10)))
+			.andExpect(jsonPath("data.portfolioDetails.currentValuation").value(equalTo(180000)))
+			.andExpect(jsonPath("data.portfolioDetails.investedAmount").value(equalTo(150000)))
+			.andExpect(jsonPath("data.portfolioDetails.totalGain").value(equalTo(30000)))
+			.andExpect(jsonPath("data.portfolioDetails.totalGainRate").value(equalTo(20)))
+			.andExpect(jsonPath("data.portfolioDetails.balance").value(equalTo(850000)))
+			.andExpect(jsonPath("data.portfolioDetails.annualDividend").value(equalTo(4332)))
+			.andExpect(jsonPath("data.portfolioDetails.annualDividendYield").value(equalTo(2)))
+			.andExpect(jsonPath("data.portfolioDetails.annualInvestmentDividendYield").value(equalTo(2)))
+			.andExpect(jsonPath("data.portfolioDetails.provisionalLossBalance").value(equalTo(0)))
+			.andExpect(jsonPath("data.portfolioDetails.targetGainNotification").value(equalTo(false)))
+			.andExpect(jsonPath("data.portfolioDetails.maxLossNotification").value(equalTo(false)));
+
+		resultActions
+			.andExpect(jsonPath("data.portfolioHoldings[0].companyName").value(equalTo("삼성전자보통주")))
+			.andExpect(jsonPath("data.portfolioHoldings[0].tickerSymbol").value(equalTo("005930")))
+			.andExpect(jsonPath("data.portfolioHoldings[0].portfolioHoldingId").value(equalTo(1)))
+			.andExpect(jsonPath("data.portfolioHoldings[0].currentValuation").value(equalTo(180000)))
+			.andExpect(jsonPath("data.portfolioHoldings[0].currentPrice").value(equalTo(60000)))
+			.andExpect(jsonPath("data.portfolioHoldings[0].averageCostPerShare").value(equalTo(50000.00)))
+			.andExpect(jsonPath("data.portfolioHoldings[0].numShares").value(equalTo(3)))
+			.andExpect(jsonPath("data.portfolioHoldings[0].dailyChange").value(equalTo(10000)))
+			.andExpect(jsonPath("data.portfolioHoldings[0].dailyChangeRate").value(equalTo(20)))
+			.andExpect(jsonPath("data.portfolioHoldings[0].totalGain").value(equalTo(30000)))
+			.andExpect(jsonPath("data.portfolioHoldings[0].totalReturnRate").value(equalTo(20)))
+			.andExpect(jsonPath("data.portfolioHoldings[0].annualDividend").value(equalTo(4332)))
+			.andExpect(jsonPath("data.portfolioHoldings[0].annualDividendYield").value(equalTo(2)));
+
+		resultActions
+			.andExpect(jsonPath("data.portfolioHoldings[0].purchaseHistory[0].purchaseHistoryId").value(equalTo(1)))
+			.andExpect(jsonPath("data.portfolioHoldings[0].purchaseHistory[0].purchaseDate").value(
+				equalTo("2023-11-01T09:30:00")))
+			.andExpect(jsonPath("data.portfolioHoldings[0].purchaseHistory[0].numShares").value(equalTo(3)))
+			.andExpect(
+				jsonPath("data.portfolioHoldings[0].purchaseHistory[0].purchasePricePerShare").value(equalTo(50000.00)))
+			.andExpect(jsonPath("data.portfolioHoldings[0].purchaseHistory[0].memo").value(equalTo("첫구매")));
 	}
 
 	@DisplayName("존재하지 않는 포트폴리오 번호를 가지고 포트폴리오 상세 정보를 가져올 수 없다")
@@ -437,6 +488,8 @@ class PortfolioStockRestControllerTest {
 			.budget(1000000L)
 			.targetGain(1500000L)
 			.maximumLoss(900000L)
+			.targetGainIsActive(false)
+			.maximumIsActive(false)
 			.member(member)
 			.build();
 	}
@@ -452,6 +505,7 @@ class PortfolioStockRestControllerTest {
 
 	private PurchaseHistory createPurchaseHistory(PortfolioHolding portfolioHolding, LocalDateTime purchaseDate) {
 		return PurchaseHistory.builder()
+			.id(1L)
 			.purchaseDate(purchaseDate)
 			.numShares(3L)
 			.purchasePricePerShare(50000.0)
