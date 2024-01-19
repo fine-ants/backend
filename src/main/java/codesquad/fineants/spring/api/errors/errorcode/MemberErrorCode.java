@@ -19,6 +19,7 @@ public enum MemberErrorCode implements ErrorCode {
 	PROFILE_IMAGE_UPLOAD_FAIL(HttpStatus.BAD_REQUEST, "이미지 파일 업로드가 실패하였습니다."),
 	BAD_SIGNUP_INPUT(HttpStatus.BAD_REQUEST, "잘못된 입력형식입니다."),
 	NEW_PASSWORD_CONFIRM_FAIL(HttpStatus.BAD_REQUEST, "새 비밀번호와 확인 비밀번호가 같아야 합니다."),
+	IMAGE_SIZE_EXCEEDED(HttpStatus.BAD_REQUEST, "이미지 사이즈 제한을 초과했습니다."),
 	LOGIN_FAIL(HttpStatus.BAD_REQUEST, "로그인에 실패하였습니다."),
 	FORBIDDEN_MEMBER(HttpStatus.FORBIDDEN, "권한이 없습니다.");
 

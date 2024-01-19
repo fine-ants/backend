@@ -50,6 +50,7 @@ import codesquad.fineants.spring.api.member.request.ModifyPasswordRequest;
 import codesquad.fineants.spring.api.member.request.OauthMemberLoginRequest;
 import codesquad.fineants.spring.api.member.request.OauthMemberLogoutRequest;
 import codesquad.fineants.spring.api.member.request.OauthMemberRefreshRequest;
+import codesquad.fineants.spring.api.member.request.ProfileChangeRequest;
 import codesquad.fineants.spring.api.member.request.SignUpRequest;
 import codesquad.fineants.spring.api.member.request.VerifCodeRequest;
 import codesquad.fineants.spring.api.member.request.VerifyEmailRequest;
@@ -59,6 +60,7 @@ import codesquad.fineants.spring.api.member.response.OauthMemberRefreshResponse;
 import codesquad.fineants.spring.api.member.response.OauthMemberResponse;
 import codesquad.fineants.spring.api.member.response.OauthSaveUrlResponse;
 import codesquad.fineants.spring.api.member.response.OauthUserProfile;
+import codesquad.fineants.spring.api.member.response.ProfileChangeResponse;
 import codesquad.fineants.spring.api.portfolio_notification.MailService;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
@@ -277,14 +279,21 @@ public class MemberService {
 	}
 
 	@Transactional
-	public void changeProfileImage(MultipartFile profileImageFile, AuthMember authMember) {
+	public ProfileChangeResponse changeProfile(MultipartFile profileImageFile, AuthMember authMember,
+		ProfileChangeRequest request) {
 		Member member = memberRepository.findById(authMember.getMemberId())
 			.orElseThrow(() -> new BadRequestException(MemberErrorCode.NOT_FOUND_MEMBER));
-		String url = null;
 		if (profileImageFile != null) {
-			url = amazonS3Service.upload(profileImageFile);
+			String url = amazonS3Service.upload(profileImageFile);
+			member.updateProfileImage(url);
 		}
-		member.updateProfileImage(url);
+		if (!isValidNickname(request.getNickname())) {
+			throw new BadRequestException(MemberErrorCode.BAD_SIGNUP_INPUT);
+		}
+		if (memberRepository.existsByNickname(request.getNickname())) {
+			throw new BadRequestException(MemberErrorCode.REDUNDANT_NICKNAME);
+		}
+		return ProfileChangeResponse.from(member);
 	}
 
 	@Transactional(readOnly = true)

@@ -25,6 +25,7 @@ import codesquad.fineants.spring.api.member.request.ModifyPasswordRequest;
 import codesquad.fineants.spring.api.member.request.OauthMemberLoginRequest;
 import codesquad.fineants.spring.api.member.request.OauthMemberLogoutRequest;
 import codesquad.fineants.spring.api.member.request.OauthMemberRefreshRequest;
+import codesquad.fineants.spring.api.member.request.ProfileChangeRequest;
 import codesquad.fineants.spring.api.member.request.SignUpRequest;
 import codesquad.fineants.spring.api.member.request.VerifCodeRequest;
 import codesquad.fineants.spring.api.member.request.VerifyEmailRequest;
@@ -32,6 +33,7 @@ import codesquad.fineants.spring.api.member.response.LoginResponse;
 import codesquad.fineants.spring.api.member.response.OauthMemberLoginResponse;
 import codesquad.fineants.spring.api.member.response.OauthMemberRefreshResponse;
 import codesquad.fineants.spring.api.member.response.OauthSaveUrlResponse;
+import codesquad.fineants.spring.api.member.response.ProfileChangeResponse;
 import codesquad.fineants.spring.api.member.service.MemberService;
 import codesquad.fineants.spring.api.response.ApiResponse;
 import codesquad.fineants.spring.api.success.code.MemberSuccessCode;
@@ -112,11 +114,13 @@ public class MemberRestController {
 		return ApiResponse.success(MemberSuccessCode.OK_LOGIN, memberService.login(request));
 	}
 
-	@PutMapping("/profile/image")
-	public ApiResponse<Void> changeProfileImage(@RequestPart MultipartFile profileImageFile,
+	@PutMapping("/profile")
+	public ApiResponse<ProfileChangeResponse> changeProfile(
+		@RequestPart(required = false) MultipartFile profileImageFile,
+		@RequestPart(value = "profileInformation") ProfileChangeRequest request,
 		@AuthPrincipalMember AuthMember authMember) {
-		memberService.changeProfileImage(profileImageFile, authMember);
-		return ApiResponse.success(MemberSuccessCode.OK_MODIFIED_PROFILE_IMAGE);
+		return ApiResponse.success(MemberSuccessCode.OK_MODIFIED_PROFILE,
+			memberService.changeProfile(profileImageFile, authMember, request));
 	}
 
 	@PutMapping("/account/password")
