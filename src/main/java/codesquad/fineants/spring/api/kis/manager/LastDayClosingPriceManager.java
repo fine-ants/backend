@@ -20,10 +20,7 @@ public class LastDayClosingPriceManager {
 
 	public Long getPrice(String tickerSymbol) {
 		String price = redisTemplate.opsForValue().get(String.format(format, tickerSymbol));
-		if (price == null) {
-			throw new IllegalArgumentException(String.format("%s 종목에 대한 가격을 찾을 수 없습니다.", tickerSymbol));
-		}
-		return Long.valueOf(price);
+		return price != null ? Long.valueOf(price) : null;
 	}
 
 	public boolean hasPrice(String tickerSymbol) {
