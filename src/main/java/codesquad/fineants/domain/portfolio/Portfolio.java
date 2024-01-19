@@ -164,7 +164,9 @@ public class Portfolio extends BaseEntity {
 	// 총 연간 배당금 = 각 종목들의 연배당금의 합계
 	public Long calculateAnnualDividend() {
 		return portfolioHoldings.stream()
-			.mapToLong(PortfolioHolding::calculateAnnualDividend)
+			.map(portfolioHolding -> portfolioHolding.createMonthlyDividendMap(LocalDate.now()))
+			.mapToLong(map -> map.values().stream()
+				.mapToLong(Long::longValue).sum())
 			.sum();
 	}
 
