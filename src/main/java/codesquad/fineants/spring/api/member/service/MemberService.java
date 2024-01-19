@@ -37,6 +37,7 @@ import codesquad.fineants.spring.api.member.request.OauthMemberLoginRequest;
 import codesquad.fineants.spring.api.member.request.OauthMemberLogoutRequest;
 import codesquad.fineants.spring.api.member.request.OauthMemberRefreshRequest;
 import codesquad.fineants.spring.api.member.request.SignUpRequest;
+import codesquad.fineants.spring.api.member.request.VerifCodeRequest;
 import codesquad.fineants.spring.api.member.request.VerifyEmailRequest;
 import codesquad.fineants.spring.api.member.response.LoginResponse;
 import codesquad.fineants.spring.api.member.response.OauthMemberLoginResponse;
@@ -176,10 +177,6 @@ public class MemberService {
 		if (!request.getPassword().equals(request.getPasswordConfirm())) {
 			throw new BadRequestException(MemberErrorCode.PASSWORD_CHECK_FAIL);
 		}
-		String verifCode = redisService.get(request.getEmail());
-		if (verifCode == null || !verifCode.equals(request.getVerificationCode())) {
-			throw new BadRequestException(MemberErrorCode.VERIFICATION_CODE_CHECK_FAIL);
-		}
 		String url = null;
 		if (imageFile != null) {
 			url = amazonS3Service.upload(imageFile);
@@ -282,5 +279,12 @@ public class MemberService {
 		}
 		String newEncodedPassword = passwordEncoder.encode(request.getNewPassword());
 		member.updatePassword(newEncodedPassword);
+	}
+
+	public void checkVerifCode(VerifCodeRequest request) {
+		String verifCode = redisService.get(request.getEmail());
+		if (verifCode == null || !verifCode.equals(request.getCode())) {
+			throw new BadRequestException(MemberErrorCode.VERIFICATION_CODE_CHECK_FAIL);
+		}
 	}
 }
