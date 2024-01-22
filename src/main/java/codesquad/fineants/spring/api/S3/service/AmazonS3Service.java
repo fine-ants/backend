@@ -43,12 +43,16 @@ public class AmazonS3Service {
 	}
 
 	private Optional<File> convertMultiPartFileToFile(MultipartFile file) {
+		if (file.getSize() > 2 * 1024 * 1024) {
+			throw new BadRequestException(MemberErrorCode.IMAGE_SIZE_EXCEEDED);
+		}
 		File convertedFile = new File(file.getOriginalFilename());
 		try (FileOutputStream fos = new FileOutputStream(convertedFile)) {
 			fos.write(file.getBytes());
 		} catch (IOException e) {
 			throw new BadRequestException(MemberErrorCode.PROFILE_IMAGE_UPLOAD_FAIL);
 		}
+
 		return Optional.of(convertedFile);
 	}
 }
