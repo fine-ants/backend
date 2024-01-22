@@ -10,9 +10,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -34,6 +35,7 @@ import codesquad.fineants.domain.stock.Market;
 import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.domain.stock.StockRepository;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
+import codesquad.fineants.spring.api.portfolio_notification.manager.MailRedisManager;
 import codesquad.fineants.spring.api.portfolio_notification.request.PortfolioNotificationModifyRequest;
 import codesquad.fineants.spring.api.portfolio_notification.response.PortfolioNotificationModifyResponse;
 
@@ -71,52 +73,8 @@ class PortfolioNotificationServiceTest {
 	@MockBean
 	private MailService mailService;
 
-	private Portfolio portfolio;
-
-	private PortfolioHolding portfolioHolding;
-
-	@BeforeEach
-	void init() {
-		Member member = Member.builder()
-			.nickname("일개미1234")
-			.email("kim1234@gmail.com")
-			.password("kim1234@")
-			.provider("local")
-			.build();
-		member = memberRepository.save(member);
-
-		Portfolio portfolio = Portfolio.builder()
-			.name("내꿈은 워렌버핏")
-			.securitiesFirm("토스")
-			.budget(1000000L)
-			.targetGain(1500000L)
-			.maximumLoss(900000L)
-			.member(member)
-			.targetGainIsActive(true)
-			.maximumIsActive(true)
-			.build();
-		this.portfolio = portfolioRepository.save(portfolio);
-
-		Stock stock = Stock.builder()
-			.companyName("삼성전자보통주")
-			.tickerSymbol("005930")
-			.companyNameEng("SamsungElectronics")
-			.stockCode("KR7005930003")
-			.market(Market.KOSPI)
-			.build();
-		stockRepository.save(stock);
-
-		PortfolioHolding portfolioHolding = PortfolioHolding.empty(portfolio, stock);
-		this.portfolioHolding = portFolioHoldingRepository.save(portfolioHolding);
-
-		purchaseHistoryRepository.save(PurchaseHistory.builder()
-			.purchaseDate(LocalDateTime.now())
-			.numShares(3L)
-			.purchasePricePerShare(50000.0)
-			.memo("첫구매")
-			.portfolioHolding(this.portfolioHolding)
-			.build());
-	}
+	@MockBean
+	private MailRedisManager manager;
 
 	@AfterEach
 	void tearDown() {
@@ -132,21 +90,27 @@ class PortfolioNotificationServiceTest {
 	@Test
 	void modifyPortfolioTargetGainNotification() throws JsonProcessingException {
 		// given
-		long portfolioId = portfolio.getId();
+		Member member = memberRepository.save(createMember());
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
+		Stock stock = stockRepository.save(createStock());
+		PortfolioHolding portfolioHolding = portFolioHoldingRepository.save(createPortfolioHolding(portfolio, stock));
+		purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding));
+
 		Map<String, Boolean> requestBodyMap = new HashMap<>();
 		requestBodyMap.put("isActive", true);
 		PortfolioNotificationModifyRequest request = objectMapper.readValue(
 			objectMapper.writeValueAsString(requestBodyMap), PortfolioNotificationModifyRequest.class);
 
 		// when
-		PortfolioNotificationModifyResponse response = service.modifyPortfolioTargetGainNotification(
-			request, portfolioId);
+		PortfolioNotificationModifyResponse response = service.modifyPortfolioTargetGainNotification(request,
+			portfolio.getId());
 
 		// then
 		assertAll(
 			() -> assertThat(response).extracting("portfolioId", "isActive")
-				.containsExactlyInAnyOrder(portfolioId, true),
-			() -> assertThat(portfolioRepository.findById(portfolioId).orElseThrow().getTargetGainIsActive()).isTrue()
+				.containsExactlyInAnyOrder(portfolio.getId(), true),
+			() -> assertThat(
+				portfolioRepository.findById(portfolio.getId()).orElseThrow().getTargetGainIsActive()).isTrue()
 		);
 	}
 
@@ -154,6 +118,12 @@ class PortfolioNotificationServiceTest {
 	@Test
 	void modifyPortfolioMaximumLossNotification() throws JsonProcessingException {
 		// given
+		Member member = memberRepository.save(createMember());
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
+		Stock stock = stockRepository.save(createStock());
+		PortfolioHolding portfolioHolding = portFolioHoldingRepository.save(createPortfolioHolding(portfolio, stock));
+		purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding));
+
 		long portfolioId = portfolio.getId();
 		Map<String, Boolean> requestBodyMap = new HashMap<>();
 		requestBodyMap.put("isActive", true);
@@ -172,10 +142,16 @@ class PortfolioNotificationServiceTest {
 		);
 	}
 
-	@DisplayName("사용자에게 최대손익금액 도달 안내 메일을 전송합니다.")
+	@DisplayName("사용자에게 목표수익금액 도달 안내 메일을 전송합니다.")
 	@Test
 	void notifyTargetGain() {
 		// given
+		Member member = memberRepository.save(createMember());
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
+		Stock stock = stockRepository.save(createStock());
+		PortfolioHolding portfolioHolding = portFolioHoldingRepository.save(createPortfolioHolding(portfolio, stock));
+		purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding));
+
 		purchaseHistoryRepository.save(PurchaseHistory.builder()
 			.purchaseDate(LocalDateTime.now())
 			.numShares(100L)
@@ -186,12 +162,112 @@ class PortfolioNotificationServiceTest {
 
 		given(currentPriceManager.hasCurrentPrice("005930")).willReturn(true);
 		given(currentPriceManager.getCurrentPrice("005930")).willReturn(100000L);
-		doNothing().when(mailService).sendEmail(anyString(),
-			anyString(),
-			anyString());
+		given(manager.hasMailSentHistoryForTargetGain(any(Portfolio.class))).willReturn(false);
+
 		// when
 		service.notifyTargetGain();
+
 		// then
+		assertAll(
+			() -> verify(mailService, times(1)).sendEmail(anyString(), anyString(), anyString()),
+			() -> verify(manager, times(1)).setMailSentHistoryForTargetGain(any(Portfolio.class))
+		);
 	}
 
+	@DisplayName("예산이 0원이라서 사용자에게 목표수익금액 도달 안내 메일을 전송하지 않는다")
+	@CsvSource(value = {"0,0,0", "0,1500000,900000"})
+	@ParameterizedTest
+	void notifyTargetGain_whenBudgetIsZero_thenNotSendMail(Long budget, Long targetGain, Long maximumLoss) {
+		// given
+		Member member = memberRepository.save(createMember());
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member, budget, targetGain, maximumLoss));
+		Stock stock = stockRepository.save(createStock());
+		PortfolioHolding portfolioHolding = portFolioHoldingRepository.save(createPortfolioHolding(portfolio, stock));
+		purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding));
+
+		given(currentPriceManager.hasCurrentPrice("005930")).willReturn(true);
+		given(currentPriceManager.getCurrentPrice("005930")).willReturn(100000L);
+		given(manager.hasMailSentHistoryForTargetGain(any(Portfolio.class))).willReturn(false);
+
+		// when
+		service.notifyTargetGain();
+
+		// then
+		verify(mailService, times(0))
+			.sendEmail(anyString(), anyString(), anyString());
+	}
+
+	@DisplayName("사용자에게 최대손실금액 도달 안내 메일을 전송합니다.")
+	@Test
+	void notifyMaximumLoss() {
+		// given
+		Member member = memberRepository.save(createMember());
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
+		Stock stock = stockRepository.save(createStock());
+		PortfolioHolding portfolioHolding = portFolioHoldingRepository.save(createPortfolioHolding(portfolio, stock));
+		purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding));
+
+		given(currentPriceManager.hasCurrentPrice("005930")).willReturn(true);
+		given(currentPriceManager.getCurrentPrice("005930")).willReturn(10L);
+		given(manager.hasMailSentHistoryForMaximumLoss(any(Portfolio.class))).willReturn(false);
+
+		// when
+		service.notifyMaximumLoss();
+
+		// then
+		assertAll(
+			() -> verify(mailService, times(1)).sendEmail(anyString(), anyString(), anyString()),
+			() -> verify(manager, times(1)).setMailSentHistoryMaximumLoss(any(Portfolio.class))
+		);
+	}
+
+	private Member createMember() {
+		return Member.builder()
+			.nickname("일개미1234")
+			.email("kim1234@gmail.com")
+			.password("kim1234@")
+			.provider("local")
+			.build();
+	}
+
+	private Portfolio createPortfolio(Member member) {
+		return createPortfolio(member, 1000000L, 1500000L, 900000L);
+	}
+
+	private Portfolio createPortfolio(Member member, Long budget, Long targetGain, Long maximumLoss) {
+		return Portfolio.builder()
+			.name("내꿈은 워렌버핏")
+			.securitiesFirm("토스")
+			.budget(budget)
+			.targetGain(targetGain)
+			.maximumLoss(maximumLoss)
+			.member(member)
+			.targetGainIsActive(true)
+			.maximumIsActive(true)
+			.build();
+	}
+
+	private Stock createStock() {
+		return Stock.builder()
+			.companyName("삼성전자보통주")
+			.tickerSymbol("005930")
+			.companyNameEng("SamsungElectronics")
+			.stockCode("KR7005930003")
+			.market(Market.KOSPI)
+			.build();
+	}
+
+	private PortfolioHolding createPortfolioHolding(Portfolio portfolio, Stock stock) {
+		return PortfolioHolding.empty(portfolio, stock);
+	}
+
+	private PurchaseHistory createPurchaseHistory(PortfolioHolding portfolioHolding) {
+		return PurchaseHistory.builder()
+			.purchaseDate(LocalDateTime.now())
+			.numShares(3L)
+			.purchasePricePerShare(50000.0)
+			.memo("첫구매")
+			.portfolioHolding(portfolioHolding)
+			.build();
+	}
 }

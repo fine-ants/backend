@@ -1,5 +1,6 @@
 package codesquad.fineants.domain.portfolio;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -163,7 +164,9 @@ public class Portfolio extends BaseEntity {
 	// 총 연간 배당금 = 각 종목들의 연배당금의 합계
 	public Long calculateAnnualDividend() {
 		return portfolioHoldings.stream()
-			.mapToLong(PortfolioHolding::calculateAnnualDividend)
+			.map(portfolioHolding -> portfolioHolding.createMonthlyDividendMap(LocalDate.now()))
+			.mapToLong(map -> map.values().stream()
+				.mapToLong(Long::longValue).sum())
 			.sum();
 	}
 
@@ -282,9 +285,10 @@ public class Portfolio extends BaseEntity {
 	}
 
 	// 배당금 차트 생성
-	public List<PortfolioDividendChartItem> createDividendChart() {
+	public List<PortfolioDividendChartItem> createDividendChart(LocalDate currentLocalDate) {
 		Map<Integer, Long> totalDividendMap = portfolioHoldings.stream()
-			.flatMap(portfolioHolding -> portfolioHolding.createMonthlyDividendMap().entrySet().stream())
+			.flatMap(
+				portfolioHolding -> portfolioHolding.createMonthlyDividendMap(currentLocalDate).entrySet().stream())
 			.collect(Collectors.groupingBy(Map.Entry::getKey, Collectors.summingLong(Map.Entry::getValue)));
 
 		return totalDividendMap.entrySet().stream()
@@ -319,4 +323,8 @@ public class Portfolio extends BaseEntity {
 		return this.name.equals(changePortfolio.name);
 	}
 
+	// 예산이 0원인지 검사합니다.
+	public boolean isBudgetEmpty() {
+		return this.budget == 0;
+	}
 }

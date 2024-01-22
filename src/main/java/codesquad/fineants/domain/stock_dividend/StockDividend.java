@@ -1,6 +1,7 @@
 package codesquad.fineants.domain.stock_dividend;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -70,5 +71,30 @@ public class StockDividend extends BaseEntity {
 	// 현금 배당 지급일의 월을 반환
 	public int getMonthValueByPaymentDate() {
 		return paymentDate.getMonthValue();
+	}
+
+	// 배정기준일이 현재 년도인지 검사
+	public boolean isCurrentYearRecordDate(LocalDate localDate) {
+		return localDate.getYear() == recordDate.getYear();
+	}
+
+	// 현금지급일자가 작년도인지 검사
+	public boolean isLastYearPaymentDate(LocalDate lastYearLocalDate) {
+		return lastYearLocalDate.getYear() == paymentDate.getYear();
+	}
+
+	// 입력으로 받은 배당금 데이터들중 배정기준일이 같은 분기에 해당하는 데이터가 존재하는지 검사
+	public boolean isDuplicatedRecordDate(List<StockDividend> currentYearStockDividends) {
+		return currentYearStockDividends.stream()
+			.anyMatch(stockDividend -> stockDividend.getQuarter() == getQuarter());
+	}
+
+	private int getQuarter() {
+		return recordDate.getMonthValue() / 4 + 1;
+	}
+
+	// 현금지급일자를 기준으로 현재년도인지 검사
+	public boolean isCurrentYearPaymentDate(LocalDate today) {
+		return paymentDate != null && paymentDate.getYear() == today.getYear();
 	}
 }

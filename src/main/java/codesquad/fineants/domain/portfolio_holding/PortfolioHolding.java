@@ -1,5 +1,6 @@
 package codesquad.fineants.domain.portfolio_holding;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -150,6 +151,16 @@ public class PortfolioHolding extends BaseEntity {
 		return (int)((annualDividend / currentValuation) * 100);
 	}
 
+	// 예상 연간 배당율 = (예상 연간 배당금 / 현재 가치) * 100
+	public Integer calculateAnnualExpectedDividendYield() {
+		double currentValuation = calculateCurrentValuation();
+		if (currentValuation == 0) {
+			return 0;
+		}
+		double annualDividend = calculateAnnualExpectedDividend();
+		return (int)((annualDividend / currentValuation) * 100);
+	}
+
 	// 연간 배당금 = 종목의 배당금 합계
 	public long calculateAnnualDividend() {
 		List<StockDividend> stockDividends = stock.getCurrentYearDividends();
@@ -157,12 +168,23 @@ public class PortfolioHolding extends BaseEntity {
 		long totalDividend = 0;
 		for (PurchaseHistory history : purchaseHistory) {
 			for (StockDividend stockDividend : stockDividends) {
-				if (history.getPurchaseDate().isBefore(stockDividend.getExDividendDate().atStartOfDay())) {
-					totalDividend += history.getNumShares() * stockDividend.getDividend();
+				if (history.isSatisfiedDividend(stockDividend.getExDividendDate())) {
+					totalDividend += stockDividend.calculateDividendSum(history.getNumShares());
 				}
 			}
 		}
 		return totalDividend;
+	}
+
+	// 예상 연간 배당금 계산
+	public long calculateAnnualExpectedDividend() {
+		long annualDividend = calculateAnnualDividend();
+		long annualExpectedDividend = stock.createMonthlyExpectedDividends(purchaseHistory, LocalDate.now())
+			.values()
+			.stream()
+			.mapToLong(Long::valueOf)
+			.sum();
+		return annualDividend + annualExpectedDividend;
 	}
 
 	public void changeCurrentPrice(long currentPrice) {
@@ -182,8 +204,12 @@ public class PortfolioHolding extends BaseEntity {
 	}
 
 	// 월별 배당금 계산, key=월, value=배당금 합계
-	public Map<Integer, Long> createMonthlyDividendMap() {
-		return stock.createMonthlyDividends(purchaseHistory);
+	public Map<Integer, Long> createMonthlyDividendMap(LocalDate currentLocalDate) {
+		Map<Integer, Long> monthlyDividends = stock.createMonthlyDividends(purchaseHistory, currentLocalDate);
+		Map<Integer, Long> monthlyExpectedDividends = stock.createMonthlyExpectedDividends(purchaseHistory,
+			currentLocalDate);
+		monthlyExpectedDividends.forEach((month, dividend) -> monthlyDividends.merge(month, dividend, Long::sum));
+		return monthlyDividends;
 	}
 
 	public void applyCurrentPrice(CurrentPriceManager manager) {

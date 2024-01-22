@@ -2,7 +2,7 @@ package codesquad.fineants.spring.api.portfolio.request;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.portfolio.Portfolio;
@@ -20,15 +20,15 @@ public class PortfolioCreateRequest {
 	private String securitiesFirm;
 
 	@NotNull(message = "예산은 필수 정보입니다.")
-	@Positive(message = "예산은 양수여야 합니다")
+	@PositiveOrZero(message = "예산은 양수여야 합니다")
 	private Long budget;
 
 	@NotNull(message = "목표 수익 금액은 필수 정보입니다.")
-	@Positive(message = "목표 수익 금액은 양수여야 합니다")
+	@PositiveOrZero(message = "목표 수익 금액은 양수여야 합니다")
 	private Long targetGain;
 
 	@NotNull(message = "최대 손실 금액은 필수 정보입니다.")
-	@Positive(message = "최대 손실 금액은 양수여야 합니다")
+	@PositiveOrZero(message = "최대 손실 금액은 양수여야 합니다")
 	private Long maximumLoss;
 
 	public Portfolio toEntity(Member member) {

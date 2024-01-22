@@ -164,9 +164,8 @@ class PortfolioHoldingTest {
 			portfolioHolding
 		);
 		portfolioHolding.addPurchaseHistory(purchaseHistory);
-
 		// when
-		Map<Integer, Long> result = portfolioHolding.createMonthlyDividendMap();
+		Map<Integer, Long> result = portfolioHolding.createMonthlyDividendMap(LocalDate.of(2023, 12, 15));
 
 		// then
 		Map<Integer, Long> expected = new HashMap<>();

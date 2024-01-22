@@ -1,5 +1,6 @@
 package codesquad.fineants.spring.api.portfolio_stock.service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -123,7 +124,7 @@ public class PortfolioStockService {
 			.orElseThrow(() -> new NotFoundResourceException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
 	}
 
-	private void validateInvestAmountNotExceedsBudget(PortfolioStockCreateRequest request, Portfolio portfolio){
+	private void validateInvestAmountNotExceedsBudget(PortfolioStockCreateRequest request, Portfolio portfolio) {
 		Double purchasedAmount =
 			request.getPurchaseHistory().getNumShares() * request.getPurchaseHistory()
 				.getPurchasePricePerShare();
@@ -165,10 +166,10 @@ public class PortfolioStockService {
 		return PortfolioHoldingsRealTimeResponse.of(portfolioDetail, portfolioHoldingDetails);
 	}
 
-	public PortfolioChartResponse readMyPortfolioCharts(Long portfolioId) {
+	public PortfolioChartResponse readMyPortfolioCharts(Long portfolioId, LocalDate currentLocalDate) {
 		Portfolio portfolio = findPortfolio(portfolioId);
 		List<PortfolioPieChartItem> pieChartItems = pieChart.createBy(portfolio);
-		List<PortfolioDividendChartItem> dividendChartItems = dividendChart.createBy(portfolio);
+		List<PortfolioDividendChartItem> dividendChartItems = dividendChart.createBy(portfolio, currentLocalDate);
 		List<PortfolioSectorChartItem> sectorChartItems = sectorChart.createBy(portfolio);
 		return new PortfolioChartResponse(pieChartItems, dividendChartItems, sectorChartItems);
 	}

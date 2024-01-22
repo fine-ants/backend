@@ -68,13 +68,13 @@ public class PortFolioService {
 	}
 
 	private void validateTargetGainIsEqualLessThanBudget(Long targetGain, Long budget) {
-		if (targetGain <= budget) {
+		if (budget > 0 && targetGain <= budget) {
 			throw new BadRequestException(PortfolioErrorCode.TARGET_GAIN_LOSS_IS_EQUAL_LESS_THAN_BUDGET);
 		}
 	}
 
 	private void validateMaximumLossIsEqualGraterThanBudget(Long maximumLoss, Long budget) {
-		if (maximumLoss >= budget) {
+		if (budget > 0 && maximumLoss >= budget) {
 			throw new BadRequestException(PortfolioErrorCode.MAXIMUM_LOSS_IS_EQUAL_GREATER_THAN_BUDGET);
 		}
 	}

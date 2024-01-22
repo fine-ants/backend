@@ -1,6 +1,7 @@
 package codesquad.fineants.spring.api.portfolio_stock.controller;
 
 import java.time.Duration;
+import java.time.LocalDate;
 
 import javax.validation.Valid;
 
@@ -102,7 +103,7 @@ public class PortfolioStockRestController {
 	@GetMapping("/charts")
 	public ApiResponse<PortfolioChartResponse> readMyPortfolioCharts(@PathVariable Long portfolioId,
 		@AuthPrincipalMember AuthMember authMember) {
-		PortfolioChartResponse response = portfolioStockService.readMyPortfolioCharts(portfolioId);
+		PortfolioChartResponse response = portfolioStockService.readMyPortfolioCharts(portfolioId, LocalDate.now());
 		return ApiResponse.success(PortfolioStockSuccessCode.OK_READ_PORTFOLIO_CHARTS, response);
 	}
 }

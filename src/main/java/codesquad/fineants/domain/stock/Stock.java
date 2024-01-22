@@ -72,18 +72,22 @@ public class Stock extends BaseEntity {
 	public List<StockDividend> getCurrentYearDividends() {
 		LocalDate today = LocalDate.now();
 		return stockDividends.stream()
-			.filter(dividend -> dividend.getPaymentDate() != null)
-			.filter(dividend -> dividend.getPaymentDate().getYear() == today.getYear())
+			.filter(dividend -> dividend.isCurrentYearPaymentDate(today))
 			.collect(Collectors.toList());
 	}
 
-	public Map<Integer, Long> createMonthlyDividends(List<PurchaseHistory> purchaseHistories) {
+	public Map<Integer, Long> createMonthlyDividends(List<PurchaseHistory> purchaseHistories,
+		LocalDate currentLocalDate) {
 		Map<Integer, Long> result = new HashMap<>();
 		for (int month = 1; month <= 12; month++) {
 			result.put(month, 0L);
 		}
 
-		for (StockDividend stockDividend : stockDividends) {
+		List<StockDividend> currentYearStockDividends = stockDividends.stream()
+			.filter(stockDividend -> stockDividend.isCurrentYearRecordDate(currentLocalDate))
+			.collect(Collectors.toList());
+
+		for (StockDividend stockDividend : currentYearStockDividends) {
 			for (PurchaseHistory purchaseHistory : purchaseHistories) {
 				if (stockDividend.isSatisfied(purchaseHistory.getPurchaseLocalDate())) {
 					int paymentMonth = stockDividend.getMonthValueByPaymentDate();
@@ -92,6 +96,36 @@ public class Stock extends BaseEntity {
 				}
 			}
 		}
+
+		return result;
+	}
+
+	public Map<Integer, Long> createMonthlyExpectedDividends(List<PurchaseHistory> purchaseHistories,
+		LocalDate currentLocalDate) {
+		Map<Integer, Long> result = new HashMap<>();
+		for (int month = 1; month <= 12; month++) {
+			result.put(month, 0L);
+		}
+
+		// 0. 현재년도에 해당하는 배당금 정보를 필터링하여 별도 저장합니다.
+		List<StockDividend> currentYearStockDividends = stockDividends.stream()
+			.filter(stockDividend -> stockDividend.isCurrentYearRecordDate(currentLocalDate))
+			.collect(Collectors.toList());
+
+		// 1. 배당금 데이터 중에서 현금지급일자가 작년도에 해당하는 배당금 정보를 필터링합니다.
+		// 2. 1단계에서 필터링한 배당금 데이터들중 0단계에서 별도 저장한 현재년도의 분기 배당금과 중복되는 배당금 정보를 필터링합니다.
+		LocalDate lastYearLocalDate = currentLocalDate.minusYears(1L);
+		stockDividends.stream()
+			.filter(stockDividend -> stockDividend.isLastYearPaymentDate(lastYearLocalDate))
+			.filter(stockDividend -> !stockDividend.isDuplicatedRecordDate(currentYearStockDividends))
+			.forEach(stockDividend -> {
+				// 3. 필터링한 배당금 정보들을 이용하여 배당금을 계산합니다.
+				for (PurchaseHistory purchaseHistory : purchaseHistories) {
+					int paymentMonth = stockDividend.getMonthValueByPaymentDate();
+					long dividendSum = stockDividend.calculateDividendSum(purchaseHistory.getNumShares());
+					result.put(paymentMonth, result.getOrDefault(paymentMonth, 0L) + dividendSum);
+				}
+			});
 		return result;
 	}
 
