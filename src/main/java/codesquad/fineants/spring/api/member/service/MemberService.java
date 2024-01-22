@@ -293,6 +293,9 @@ public class MemberService {
 		if (memberRepository.existsByNickname(request.getNickname())) {
 			throw new BadRequestException(MemberErrorCode.REDUNDANT_NICKNAME);
 		}
+		member.updateNickname(request.getNickname());
+		int count = memberRepository.updateMember(member.getNickname(), member.getProfileUrl(), member.getId());
+		log.info("회원 프로필 정보 변경 개수 : {}", count);
 		return ProfileChangeResponse.from(member);
 	}
 

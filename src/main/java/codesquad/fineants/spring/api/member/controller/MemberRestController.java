@@ -4,6 +4,7 @@ import static org.springframework.http.HttpStatus.*;
 
 import java.time.LocalDateTime;
 
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -114,7 +115,7 @@ public class MemberRestController {
 		return ApiResponse.success(MemberSuccessCode.OK_LOGIN, memberService.login(request));
 	}
 
-	@PutMapping("/profile")
+	@PutMapping(value = "/profile", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
 	public ApiResponse<ProfileChangeResponse> changeProfile(
 		@RequestPart(required = false) MultipartFile profileImageFile,
 		@RequestPart(value = "profileInformation") ProfileChangeRequest request,

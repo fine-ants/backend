@@ -3,6 +3,9 @@ package codesquad.fineants.domain.member;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface MemberRepository extends JpaRepository<Member, Long> {
 	Optional<Member> findMemberByEmailAndProvider(String email, String provider);
@@ -12,4 +15,8 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 	boolean existsByEmail(String email);
 
 	boolean existsByNickname(String nickname);
+
+	@Modifying
+	@Query("update Member m set m.nickname = :nickname, m.profileUrl = :profileUrl where m.id = :id")
+	int updateMember(@Param("nickname") String nickname, @Param("profileUrl") String profileUrl, @Param("id") Long id);
 }
