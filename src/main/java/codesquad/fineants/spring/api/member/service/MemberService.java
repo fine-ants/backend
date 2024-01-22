@@ -71,6 +71,8 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Service
 public class MemberService {
+
+	private static final String LOCAL_PROVIDER = "local";
 	private final AuthorizationRequestManager authorizationRequestManager;
 	private final OauthClientRepository oauthClientRepository;
 	private final MemberRepository memberRepository;
@@ -190,7 +192,7 @@ public class MemberService {
 	@Transactional
 	public void signup(MultipartFile imageFile, SignUpRequest request) {
 		checkForm(request);
-		if (memberRepository.existsByEmail(request.getEmail())) {
+		if (memberRepository.existsMemberByEmailAndProvider(request.getEmail(), LOCAL_PROVIDER)) {
 			throw new BadRequestException(MemberErrorCode.REDUNDANT_EMAIL);
 		}
 		if (memberRepository.existsByNickname(request.getNickname())) {
@@ -208,7 +210,7 @@ public class MemberService {
 			.nickname(request.getNickname())
 			.profileUrl(url)
 			.password(passwordEncoder.encode(request.getPassword()))
-			.provider("local")
+			.provider(LOCAL_PROVIDER)
 			.build();
 		saveMemberToRepository(member);
 	}
@@ -259,14 +261,14 @@ public class MemberService {
 	}
 
 	public void checkEmail(String email) {
-		if (memberRepository.existsByEmail(email)) {
+		if (memberRepository.existsMemberByEmailAndProvider(email, LOCAL_PROVIDER)) {
 			throw new BadRequestException(MemberErrorCode.REDUNDANT_EMAIL);
 		}
 	}
 
 	@Transactional(readOnly = true)
 	public LoginResponse login(LoginRequest request) {
-		Member member = memberRepository.findMemberByEmailAndProvider(request.getEmail(), "local")
+		Member member = memberRepository.findMemberByEmailAndProvider(request.getEmail(), LOCAL_PROVIDER)
 			.orElseThrow(() -> new BadRequestException(MemberErrorCode.LOGIN_FAIL));
 		if (!passwordEncoder.matches(request.getPassword(), member.getPassword())) {
 			throw new BadRequestException(MemberErrorCode.LOGIN_FAIL);

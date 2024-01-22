@@ -79,9 +79,12 @@ public class MemberRestController {
 		return ApiResponse.success(OauthSuccessCode.OK_REFRESH_TOKEN, response);
 	}
 
-	@PostMapping("/auth/signup")
-	public ApiResponse<Void> signup(@RequestPart(required = false) MultipartFile profileImageFile,
-		@RequestPart("signupData") SignUpRequest request) {
+	@PostMapping(value = "/auth/signup", consumes = {MediaType.APPLICATION_JSON_VALUE,
+		MediaType.MULTIPART_FORM_DATA_VALUE})
+	public ApiResponse<Void> signup(
+		@RequestPart(value = "profileImageFile", required = false) MultipartFile profileImageFile,
+		@RequestPart(value = "signupData") SignUpRequest request) {
+		log.info("signupData : {}", request);
 		memberService.signup(profileImageFile, request);
 		return ApiResponse.success(MemberSuccessCode.OK_SIGNUP);
 	}
@@ -117,7 +120,7 @@ public class MemberRestController {
 
 	@PutMapping(value = "/profile", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
 	public ApiResponse<ProfileChangeResponse> changeProfile(
-		@RequestPart(required = false) MultipartFile profileImageFile,
+		@RequestPart(value = "profileImageFile", required = false) MultipartFile profileImageFile,
 		@RequestPart(value = "profileInformation") ProfileChangeRequest request,
 		@AuthPrincipalMember AuthMember authMember) {
 		return ApiResponse.success(MemberSuccessCode.OK_MODIFIED_PROFILE,

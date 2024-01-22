@@ -1,13 +1,14 @@
 package codesquad.fineants.spring.api.member.request;
 
-import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Getter
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@ToString
+@NoArgsConstructor
+@AllArgsConstructor
 public class SignUpRequest {
 	private String nickname;
 	private String email;

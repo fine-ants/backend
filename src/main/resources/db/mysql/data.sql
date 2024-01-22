@@ -82,8 +82,3 @@ VALUES (7, '2023-10-26 15:25:39.409612', '2023-10-26 15:25:39.409612', 1, '00008
 INSERT INTO fineAnts.purchase_history (id, create_at, modified_at, memo, num_shares, purchase_date,
                                        purchase_price_per_share, portfolio_holding_id)
 VALUES (1, '2023-10-26 15:26:11.219793', '2023-10-26 15:26:11.219793', null, 3, '2023-10-23 13:00:00.000000', 50000, 1);
-
-
-INSERT INTO member(create_at, email, nickname, profile_url, provider)
-VALUES (now(), 'dragonbead95@naver.com', '일개미ab12isa',
-        'http://k.kakaocdn.net/dn/dpk9l1/btqmGhA2lKL/Oz0wDuJn1YV2DIn92f6DVK/img_640x640.jpg', 'local');
