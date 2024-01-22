@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -22,9 +23,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.member.MemberRepository;
@@ -49,15 +47,13 @@ import codesquad.fineants.spring.api.portfolio.request.PortfolioModifyRequest;
 import codesquad.fineants.spring.api.portfolio.request.PortfoliosDeleteRequest;
 import codesquad.fineants.spring.api.portfolio.response.PortFolioCreateResponse;
 import codesquad.fineants.spring.api.portfolio.response.PortfoliosResponse;
+import codesquad.fineants.spring.util.ObjectMapperUtil;
 
 @ActiveProfiles("test")
 @SpringBootTest
 class PortFolioServiceTest {
 	@Autowired
 	private PortFolioService service;
-
-	@Autowired
-	private ObjectMapper objectMapper;
 
 	@Autowired
 	private MemberRepository memberRepository;
@@ -88,13 +84,14 @@ class PortFolioServiceTest {
 	}
 
 	@DisplayName("회원이 포트폴리오를 추가한다")
-	@Test
-	void addPortfolio() throws JsonProcessingException {
+	@CsvSource(value = {"토스증권,1000000,1500000,900000", "토스증권,0,0,0", "토스증권,0,1500000,900000"})
+	@ParameterizedTest
+	void addPortfolio(String securitiesFirm, Long budget, Long targetGain, Long maximumLoss) {
 		// given
 		Member member = memberRepository.save(createMember());
-		Map<String, Object> body = createAddPortfolioRequestBodyMap();
+		Map<String, Object> body = createAddPortfolioRequestBodyMap(securitiesFirm, budget, targetGain, maximumLoss);
 
-		PortfolioCreateRequest request = objectMapper.readValue(objectMapper.writeValueAsString(body),
+		PortfolioCreateRequest request = ObjectMapperUtil.deserialize(ObjectMapperUtil.serialize(body),
 			PortfolioCreateRequest.class);
 
 		// when
@@ -103,14 +100,14 @@ class PortFolioServiceTest {
 		// then
 		assertAll(
 			() -> assertThat(response).isNotNull(),
-			() -> assertThat(portfolioRepository.existsById(response.getPortfolioId())).isTrue()
+			() -> assertThat(portfolioRepository.existsById(Objects.requireNonNull(response).getPortfolioId())).isTrue()
 		);
 	}
 
 	@DisplayName("회원은 포트폴리오를 추가할때 목표수익금액이 예산보다 같거나 작으면 안된다")
 	@MethodSource("provideInvalidTargetGain")
 	@ParameterizedTest
-	void addPortfolioWithTargetGainIsEqualLessThanBudget(Long targetGain) throws JsonProcessingException {
+	void addPortfolioWithTargetGainIsEqualLessThanBudget(Long targetGain) {
 		// given
 		Member member = memberRepository.save(createMember());
 		Map<String, Object> body = new HashMap<>();
@@ -120,7 +117,7 @@ class PortFolioServiceTest {
 		body.put("targetGain", targetGain);
 		body.put("maximumLoss", 900000L);
 
-		PortfolioCreateRequest request = objectMapper.readValue(objectMapper.writeValueAsString(body),
+		PortfolioCreateRequest request = ObjectMapperUtil.deserialize(ObjectMapperUtil.serialize(body),
 			PortfolioCreateRequest.class);
 
 		// when
@@ -136,7 +133,7 @@ class PortFolioServiceTest {
 	@DisplayName("회원은 포트폴리오를 추가할때 최대손실율이 예산보다 같거나 크면 안된다")
 	@MethodSource("provideInvalidMaximumLoss")
 	@ParameterizedTest
-	void addPortfolioWithMaximumLossIsEqualGreaterThanBudget(Long maximumLoss) throws JsonProcessingException {
+	void addPortfolioWithMaximumLossIsEqualGreaterThanBudget(Long maximumLoss) {
 		// given
 		Member member = memberRepository.save(createMember());
 		Map<String, Object> body = new HashMap<>();
@@ -146,7 +143,7 @@ class PortFolioServiceTest {
 		body.put("targetGain", 1500000L);
 		body.put("maximumLoss", maximumLoss);
 
-		PortfolioCreateRequest request = objectMapper.readValue(objectMapper.writeValueAsString(body),
+		PortfolioCreateRequest request = ObjectMapperUtil.deserialize(ObjectMapperUtil.serialize(body),
 			PortfolioCreateRequest.class);
 
 		// when
@@ -161,14 +158,14 @@ class PortFolioServiceTest {
 
 	@DisplayName("회원은 내가 가지고 있는 포트폴리오들중에서 동일한 이름을 가지는 포트폴리오를 추가할 수는 없다")
 	@Test
-	void addPortfolioWithDuplicateName() throws JsonProcessingException {
+	void addPortfolioWithDuplicateName() {
 		// given
 		Member member = memberRepository.save(createMember());
 		portfolioRepository.save(createPortfolio(member));
 
 		Map<String, Object> body = createAddPortfolioRequestBodyMap();
 
-		PortfolioCreateRequest request = objectMapper.readValue(objectMapper.writeValueAsString(body),
+		PortfolioCreateRequest request = ObjectMapperUtil.deserialize(ObjectMapperUtil.serialize(body),
 			PortfolioCreateRequest.class);
 
 		// when
@@ -183,11 +180,11 @@ class PortFolioServiceTest {
 
 	@DisplayName("회원은 포트폴리오 추가시 목록에 없는 증권사를 입력하여 추가할 수 없다")
 	@Test
-	void addPortfolio_shouldNotAllowNonExistingSecurities() throws JsonProcessingException {
+	void addPortfolio_shouldNotAllowNonExistingSecurities() {
 		Member member = memberRepository.save(createMember());
 		Map<String, Object> body = createAddPortfolioRequestBodyMap("없는증권");
 
-		PortfolioCreateRequest request = objectMapper.readValue(objectMapper.writeValueAsString(body),
+		PortfolioCreateRequest request = ObjectMapperUtil.deserialize(ObjectMapperUtil.serialize(body),
 			PortfolioCreateRequest.class);
 
 		// when
@@ -200,15 +197,18 @@ class PortFolioServiceTest {
 	}
 
 	@DisplayName("회원이 포트폴리오를 수정한다")
-	@Test
-	void modifyPortfolio() throws JsonProcessingException {
+	@CsvSource(value = {"내꿈은 워렌버핏2,미래에셋증권,1000000,1500000,900000", "내꿈은 워렌버핏2,미래에셋증권,0,0,0",
+		"내꿈은 워렌버핏2,미래에셋증권,0,1500000,900000"})
+	@ParameterizedTest
+	void modifyPortfolio(String name, String securitiesFirm, Long budget, Long targetGain, Long maximumLoss) {
 		// given
 		Member member = memberRepository.save(createMember());
 		Portfolio originPortfolio = portfolioRepository.save(createPortfolio(member));
 
-		Map<String, Object> body = createModifiedPortfolioRequestBodyMap("내꿈은 워렌버핏2");
+		Map<String, Object> body = createModifiedPortfolioRequestBodyMap(name, securitiesFirm, budget, targetGain,
+			maximumLoss);
 
-		PortfolioModifyRequest request = objectMapper.readValue(objectMapper.writeValueAsString(body),
+		PortfolioModifyRequest request = ObjectMapperUtil.deserialize(ObjectMapperUtil.serialize(body),
 			PortfolioModifyRequest.class);
 		Long portfolioId = originPortfolio.getId();
 
@@ -219,19 +219,19 @@ class PortFolioServiceTest {
 		Portfolio changePortfolio = portfolioRepository.findById(portfolioId).orElseThrow();
 		assertThat(changePortfolio)
 			.extracting("name", "securitiesFirm", "budget", "targetGain", "maximumLoss")
-			.containsExactly("내꿈은 워렌버핏2", "미래에셋증권", 1500000L, 2000000L, 900000L);
+			.containsExactly(name, securitiesFirm, budget, targetGain, maximumLoss);
 	}
 
 	@DisplayName("회원은 포트폴리오의 정보를 수정시 이름이 그대로인 경우 그대로 수정합니다.")
 	@Test
-	void modifyPortfolio_whenNameUnchanged_thenNoDuplicateCheckAndApplyChanges() throws JsonProcessingException {
+	void modifyPortfolio_whenNameUnchanged_thenNoDuplicateCheckAndApplyChanges() {
 		// given
 		Member member = memberRepository.save(createMember());
 		Portfolio originPortfolio = portfolioRepository.save(createPortfolio(member));
 
 		Map<String, Object> body = createModifiedPortfolioRequestBodyMap(originPortfolio.getName());
 
-		PortfolioModifyRequest request = objectMapper.readValue(objectMapper.writeValueAsString(body),
+		PortfolioModifyRequest request = ObjectMapperUtil.deserialize(ObjectMapperUtil.serialize(body),
 			PortfolioModifyRequest.class);
 		Long portfolioId = originPortfolio.getId();
 
@@ -247,8 +247,7 @@ class PortFolioServiceTest {
 
 	@DisplayName("회원이 포트폴리오의 이름을 수정할때 본인이 가지고 있는 다른 포트폴리오의 이름과 중복될 수 없다")
 	@Test
-	void modifyPortfolio_whenMemberChangeName_thenNoDuplicateWithNameInOtherMyPortfolios() throws
-		JsonProcessingException {
+	void modifyPortfolio_whenMemberChangeName_thenNoDuplicateWithNameInOtherMyPortfolios() {
 		// given
 		Member member = memberRepository.save(createMember());
 		String duplicatedName = "내꿈은 찰리몽거";
@@ -257,7 +256,7 @@ class PortFolioServiceTest {
 
 		Map<String, Object> body = createModifiedPortfolioRequestBodyMap(duplicatedName);
 
-		PortfolioModifyRequest request = objectMapper.readValue(objectMapper.writeValueAsString(body),
+		PortfolioModifyRequest request = ObjectMapperUtil.deserialize(ObjectMapperUtil.serialize(body),
 			PortfolioModifyRequest.class);
 		Long portfolioId = originPortfolio.getId();
 
@@ -273,15 +272,14 @@ class PortFolioServiceTest {
 
 	@DisplayName("회원은 다른사람의 포트폴리오 정보를 수정할 수 없다")
 	@Test
-	void modifyPortfolio_whenMemberTriesToUpdateOtherPersonPortfolio_thenModificationNotAllowed() throws
-		JsonProcessingException {
+	void modifyPortfolio_whenMemberTriesToUpdateOtherPersonPortfolio_thenModificationNotAllowed() {
 		// given
 		Member member = memberRepository.save(createMember());
 		Portfolio originPortfolio = portfolioRepository.save(createPortfolio(member));
 
 		Map<String, Object> body = createModifiedPortfolioRequestBodyMap("내꿈은 찰리몽거");
 
-		PortfolioModifyRequest request = objectMapper.readValue(objectMapper.writeValueAsString(body),
+		PortfolioModifyRequest request = ObjectMapperUtil.deserialize(ObjectMapperUtil.serialize(body),
 			PortfolioModifyRequest.class);
 		Long portfolioId = originPortfolio.getId();
 
@@ -300,17 +298,17 @@ class PortFolioServiceTest {
 	@CsvSource(value = {"900000", "1000000"})
 	@ParameterizedTest
 	void modifyPortfolio_whenMemberAttemptsToUpdateWithBudgetLessThanTargetGain_thenModificationNotAllowed(
-		long targetGain) throws
-		JsonProcessingException {
+		long targetGain) {
 		// given
 		Member member = memberRepository.save(createMember());
 		Portfolio originPortfolio = portfolioRepository.save(createPortfolio(member));
 
 		long budget = 1000000L;
 		long maximumLoss = 900000L;
-		Map<String, Object> body = createModifiedPortfolioRequestBodyMap("내꿈은 찰리몽거", budget, targetGain, maximumLoss);
+		Map<String, Object> body = createModifiedPortfolioRequestBodyMap("내꿈은 찰리몽거", "미래애셋증권", budget, targetGain,
+			maximumLoss);
 
-		PortfolioModifyRequest request = objectMapper.readValue(objectMapper.writeValueAsString(body),
+		PortfolioModifyRequest request = ObjectMapperUtil.deserialize(ObjectMapperUtil.serialize(body),
 			PortfolioModifyRequest.class);
 		Long portfolioId = originPortfolio.getId();
 
@@ -328,17 +326,17 @@ class PortFolioServiceTest {
 	@CsvSource(value = {"1500000", "1000000"})
 	@ParameterizedTest
 	void modifyPortfolio_whenMemberAttemptsToUpdateWithBudgetLessThanMaximumLoss_thenModificationNotAllowed(
-		long maximumLoss) throws
-		JsonProcessingException {
+		long maximumLoss) {
 		// given
 		Member member = memberRepository.save(createMember());
 		Portfolio originPortfolio = portfolioRepository.save(createPortfolio(member));
 
 		long budget = 1000000L;
 		long targetGain = 1500000L;
-		Map<String, Object> body = createModifiedPortfolioRequestBodyMap("내꿈은 찰리몽거", budget, targetGain, maximumLoss);
+		Map<String, Object> body = createModifiedPortfolioRequestBodyMap("내꿈은 찰리몽거", "미래에셋증권", budget, targetGain,
+			maximumLoss);
 
-		PortfolioModifyRequest request = objectMapper.readValue(objectMapper.writeValueAsString(body),
+		PortfolioModifyRequest request = ObjectMapperUtil.deserialize(ObjectMapperUtil.serialize(body),
 			PortfolioModifyRequest.class);
 		Long portfolioId = originPortfolio.getId();
 
@@ -408,7 +406,8 @@ class PortFolioServiceTest {
 		PortfolioHolding portfolioHolding = portFolioHoldingRepository.save(createPortfolioHolding(portfolio, stock));
 		PurchaseHistory purchaseHistory1 = purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding));
 		PurchaseHistory purchaseHistory2 = purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding));
-		PortfolioGainHistory portfolioGainHistory = portfolioGainHistoryRepository.save(createPortfolioGainHistory(portfolio));
+		PortfolioGainHistory portfolioGainHistory = portfolioGainHistoryRepository.save(
+			createPortfolioGainHistory(portfolio));
 		Portfolio portfolio2 = portfolioRepository.save(createPortfolioWithRandomName(member));
 
 		PortfoliosDeleteRequest request = new PortfoliosDeleteRequest(List.of(portfolio.getId(), portfolio2.getId()));
@@ -535,16 +534,18 @@ class PortFolioServiceTest {
 	private Map<String, Object> createModifiedPortfolioRequestBodyMap(String name) {
 		return createModifiedPortfolioRequestBodyMap(
 			name,
+			"미래에셋증권",
 			1500000L,
 			2000000L,
 			900000L);
 	}
 
-	private Map<String, Object> createModifiedPortfolioRequestBodyMap(String name, long budget, long targetGain,
+	private Map<String, Object> createModifiedPortfolioRequestBodyMap(String name, String securitiesFirm, long budget,
+		long targetGain,
 		long maximumLoss) {
 		Map<String, Object> body = new HashMap<>();
 		body.put("name", name);
-		body.put("securitiesFirm", "미래에셋증권");
+		body.put("securitiesFirm", securitiesFirm);
 		body.put("budget", budget);
 		body.put("targetGain", targetGain);
 		body.put("maximumLoss", maximumLoss);
@@ -556,12 +557,17 @@ class PortFolioServiceTest {
 	}
 
 	private Map<String, Object> createAddPortfolioRequestBodyMap(String securitiesFirm) {
+		return createAddPortfolioRequestBodyMap(securitiesFirm, 1000000L, 1500000L, 900000L);
+	}
+
+	private Map<String, Object> createAddPortfolioRequestBodyMap(String securitiesFirm, Long budget, Long targetGain,
+		Long maximumLoss) {
 		Map<String, Object> body = new HashMap<>();
 		body.put("name", "내꿈은 워렌버핏");
 		body.put("securitiesFirm", securitiesFirm);
-		body.put("budget", 1000000L);
-		body.put("targetGain", 1500000L);
-		body.put("maximumLoss", 900000L);
+		body.put("budget", budget);
+		body.put("targetGain", targetGain);
+		body.put("maximumLoss", maximumLoss);
 		return body;
 	}
 }
