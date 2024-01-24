@@ -135,9 +135,9 @@ public class MemberRestController {
 	}
 
 	@DeleteMapping("/account")
-	public ApiResponse<Void> deleteAccount(@RequestAttribute final String accessToken,
-		@RequestBody final OauthMemberLogoutRequest request, @AuthPrincipalMember AuthMember authMember) {
-		memberService.logout(accessToken, request);
+	public ApiResponse<Void> deleteAccount(@RequestBody final OauthMemberLogoutRequest request,
+		@AuthPrincipalMember AuthMember authMember) {
+		memberService.logout(authMember.getAccessToken(), request);
 		memberService.deleteMember(authMember);
 		return ApiResponse.success(MemberSuccessCode.OK_DELETED_ACCOUNT);
 	}
