@@ -19,4 +19,8 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 	@Modifying
 	@Query("update Member m set m.nickname = :nickname, m.profileUrl = :profileUrl where m.id = :id")
 	int updateMember(@Param("nickname") String nickname, @Param("profileUrl") String profileUrl, @Param("id") Long id);
+
+	@Modifying
+	@Query("update Member m set m.password = :password where m.id = :id")
+	int modifyMemberPassword(@Param("password") String password, @Param("id") Long id);
 }

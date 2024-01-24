@@ -302,7 +302,7 @@ public class MemberService {
 		return ProfileChangeResponse.from(member);
 	}
 
-	@Transactional(readOnly = true)
+	@Transactional
 	public void modifyPassword(ModifyPasswordRequest request, AuthMember authMember) {
 		Member member = memberRepository.findById(authMember.getMemberId())
 			.orElseThrow(() -> new BadRequestException(MemberErrorCode.NOT_FOUND_MEMBER));
@@ -314,6 +314,8 @@ public class MemberService {
 		}
 		String newEncodedPassword = passwordEncoder.encode(request.getNewPassword());
 		member.updatePassword(newEncodedPassword);
+		int count = memberRepository.modifyMemberPassword(member.getPassword(), member.getId());
+		log.info("회원 비밀번호 변경 결과 : {}", count);
 	}
 
 	public void checkVerifCode(VerifCodeRequest request) {
