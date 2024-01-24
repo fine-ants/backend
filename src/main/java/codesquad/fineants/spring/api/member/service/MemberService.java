@@ -212,7 +212,8 @@ public class MemberService {
 			.password(passwordEncoder.encode(request.getPassword()))
 			.provider(LOCAL_PROVIDER)
 			.build();
-		saveMemberToRepository(member);
+		Member saveMember = saveMemberToRepository(member);
+		log.info("회원 저장 결과 : {}", saveMember);
 	}
 
 	private void checkForm(SignUpRequest request) {

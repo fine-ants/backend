@@ -11,6 +11,7 @@ import codesquad.fineants.domain.oauth.support.AuthenticationContext;
 import codesquad.fineants.spring.api.member.service.OauthMemberRedisService;
 import codesquad.fineants.spring.filter.JwtAuthorizationFilter;
 import codesquad.fineants.spring.filter.LogoutFilter;
+import codesquad.fineants.spring.filter.SignupLoggingFilter;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -37,5 +38,13 @@ public class FilterConfig {
 		logoutFilerBean.setFilter(new LogoutFilter(redisService, objectMapper));
 		logoutFilerBean.addUrlPatterns("/api/auth/logout");
 		return logoutFilerBean;
+	}
+
+	@Bean
+	public FilterRegistrationBean<SignupLoggingFilter> signupLoggingFilter() {
+		FilterRegistrationBean<SignupLoggingFilter> filter = new FilterRegistrationBean<>();
+		filter.setFilter(new SignupLoggingFilter());
+		filter.addUrlPatterns("/api/auth/signup");
+		return filter;
 	}
 }
