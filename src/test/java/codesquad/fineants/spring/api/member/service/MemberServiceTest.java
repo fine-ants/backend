@@ -296,12 +296,6 @@ public class MemberServiceTest {
 		);
 	}
 
-	public static Stream<Arguments> invalidChangeProfileMethodSource() {
-		return Stream.of(
-			Arguments.of(null, null)
-		);
-	}
-
 	public static MultipartFile createMockMultipartFile() {
 		ClassPathResource classPathResource = new ClassPathResource("profile.jpeg");
 		Path path = null;
