@@ -124,7 +124,6 @@ public class MemberRestController {
 		@RequestPart(value = "profileImageFile", required = false) MultipartFile profileImageFile,
 		@RequestPart(value = "profileInformation", required = false) ProfileChangeRequest request,
 		@AuthPrincipalMember AuthMember authMember) {
-
 		ProfileChangeServiceRequest serviceRequest = new ProfileChangeServiceRequest(profileImageFile,
 			request, authMember);
 		return ApiResponse.success(MemberSuccessCode.OK_MODIFIED_PROFILE,
