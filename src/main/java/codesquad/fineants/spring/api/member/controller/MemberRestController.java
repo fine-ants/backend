@@ -36,6 +36,7 @@ import codesquad.fineants.spring.api.member.response.OauthMemberRefreshResponse;
 import codesquad.fineants.spring.api.member.response.OauthSaveUrlResponse;
 import codesquad.fineants.spring.api.member.response.ProfileChangeResponse;
 import codesquad.fineants.spring.api.member.service.MemberService;
+import codesquad.fineants.spring.api.member.service.request.ProfileChangeServiceRequest;
 import codesquad.fineants.spring.api.response.ApiResponse;
 import codesquad.fineants.spring.api.success.code.MemberSuccessCode;
 import codesquad.fineants.spring.api.success.code.OauthSuccessCode;
@@ -121,10 +122,13 @@ public class MemberRestController {
 	@PutMapping(value = "/profile", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE, MediaType.APPLICATION_JSON_VALUE})
 	public ApiResponse<ProfileChangeResponse> changeProfile(
 		@RequestPart(value = "profileImageFile", required = false) MultipartFile profileImageFile,
-		@RequestPart(value = "profileInformation") ProfileChangeRequest request,
+		@RequestPart(value = "profileInformation", required = false) ProfileChangeRequest request,
 		@AuthPrincipalMember AuthMember authMember) {
+
+		ProfileChangeServiceRequest serviceRequest = new ProfileChangeServiceRequest(profileImageFile,
+			request, authMember);
 		return ApiResponse.success(MemberSuccessCode.OK_MODIFIED_PROFILE,
-			memberService.changeProfile(profileImageFile, authMember, request));
+			memberService.changeProfile(serviceRequest));
 	}
 
 	@PutMapping("/account/password")

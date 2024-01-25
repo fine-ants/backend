@@ -61,6 +61,7 @@ import codesquad.fineants.spring.api.member.response.OauthMemberResponse;
 import codesquad.fineants.spring.api.member.response.OauthSaveUrlResponse;
 import codesquad.fineants.spring.api.member.response.OauthUserProfile;
 import codesquad.fineants.spring.api.member.response.ProfileChangeResponse;
+import codesquad.fineants.spring.api.member.service.request.ProfileChangeServiceRequest;
 import codesquad.fineants.spring.api.portfolio_notification.MailService;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
@@ -282,30 +283,51 @@ public class MemberService {
 	}
 
 	@Transactional
-	public ProfileChangeResponse changeProfile(MultipartFile profileImageFile, AuthMember authMember,
-		ProfileChangeRequest request) {
-		Member member = memberRepository.findById(authMember.getMemberId())
+	public ProfileChangeResponse changeProfile(ProfileChangeServiceRequest serviceRequest) {
+		verifyNoProfileChanges(serviceRequest);
+		Member member = findMemberById(serviceRequest.getMemberId());
+		extractMemberProfileImage(serviceRequest)
+			.map(amazonS3Service::upload)
+			.ifPresent(member::updateProfileUrl);
+		extractNickname(serviceRequest)
+			.ifPresent(member::updateNickname);
+		return ProfileChangeResponse.from(member);
+	}
+
+	private void verifyNoProfileChanges(ProfileChangeServiceRequest serviceRequest) {
+		if (serviceRequest.getProfileImageFile().isEmpty() && serviceRequest.getRequest().isEmpty()) {
+			throw new BadRequestException(MemberErrorCode.NO_PROFILE_CHANGES);
+		}
+	}
+
+	private Member findMemberById(Optional<Long> optionalMemberId) {
+		return optionalMemberId
+			.flatMap(memberRepository::findById)
 			.orElseThrow(() -> new BadRequestException(MemberErrorCode.NOT_FOUND_MEMBER));
-		if (profileImageFile != null) {
-			String url = amazonS3Service.upload(profileImageFile);
-			member.updateProfileImage(url);
-		}
-		if (!isValidNickname(request.getNickname())) {
-			throw new BadRequestException(MemberErrorCode.BAD_SIGNUP_INPUT);
-		}
-		if (memberRepository.existsByNickname(request.getNickname())) {
+	}
+
+	private Optional<MultipartFile> extractMemberProfileImage(ProfileChangeServiceRequest serviceRequest) {
+		return serviceRequest.getProfileImageFile();
+	}
+
+	private Optional<String> extractNickname(ProfileChangeServiceRequest serviceRequest) {
+		return serviceRequest.getRequest()
+			.map(ProfileChangeRequest::getNickname)
+			.map(nickname -> {
+				verifyUniqueNickname(nickname);
+				return nickname;
+			});
+	}
+
+	private void verifyUniqueNickname(String nickname) {
+		if (memberRepository.existsByNickname(nickname)) {
 			throw new BadRequestException(MemberErrorCode.REDUNDANT_NICKNAME);
 		}
-		member.updateNickname(request.getNickname());
-		int count = memberRepository.updateMember(member.getNickname(), member.getProfileUrl(), member.getId());
-		log.info("회원 프로필 정보 변경 개수 : {}", count);
-		return ProfileChangeResponse.from(member);
 	}
 
 	@Transactional
 	public void modifyPassword(ModifyPasswordRequest request, AuthMember authMember) {
-		Member member = memberRepository.findById(authMember.getMemberId())
-			.orElseThrow(() -> new BadRequestException(MemberErrorCode.NOT_FOUND_MEMBER));
+		Member member = findMember(authMember.getMemberId());
 		if (!passwordEncoder.matches(request.getCurrentPassword(), member.getPassword())) {
 			throw new BadRequestException(MemberErrorCode.PASSWORD_CHECK_FAIL);
 		}
@@ -318,6 +340,11 @@ public class MemberService {
 		log.info("회원 비밀번호 변경 결과 : {}", count);
 	}
 
+	private Member findMember(Long id) {
+		return memberRepository.findById(id)
+			.orElseThrow(() -> new BadRequestException(MemberErrorCode.NOT_FOUND_MEMBER));
+	}
+
 	public void checkVerifCode(VerifCodeRequest request) {
 		String verifCode = redisService.get(request.getEmail());
 		if (verifCode == null || !verifCode.equals(request.getCode())) {
@@ -327,8 +354,7 @@ public class MemberService {
 
 	@Transactional
 	public void deleteMember(AuthMember authMember) {
-		Member member = memberRepository.findById(authMember.getMemberId())
-			.orElseThrow(() -> new BadRequestException(MemberErrorCode.NOT_FOUND_MEMBER));
+		Member member = findMember(authMember.getMemberId());
 		List<Portfolio> portfolios = portfolioRepository.findAllByMemberId(authMember.getMemberId());
 		List<PortfolioHolding> portfolioHoldings = new ArrayList<>();
 		portfolios.forEach(
