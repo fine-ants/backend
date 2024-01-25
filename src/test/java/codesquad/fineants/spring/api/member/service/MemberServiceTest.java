@@ -223,7 +223,7 @@ public class MemberServiceTest {
 
 	@DisplayName("사용자가 변경할 정보 없이 프로필을 변경하는 경우 예외가 발생한다")
 	@Test
-	void changeProfile() {
+	void changeProfile_whenNoChangeInformation_thenResponse400Error() {
 		// given
 		Member member = memberRepository.save(createMember());
 		MultipartFile profileImageFile = null;
@@ -238,6 +238,25 @@ public class MemberServiceTest {
 		assertThat(throwable)
 			.isInstanceOf(BadRequestException.class)
 			.hasMessage("변경할 회원 정보가 없습니다");
+	}
+
+	@DisplayName("사용자가 중복된 닉네임으로 프로필을 변경하려고 하면 400 에러를 응답합니다")
+	@Test
+	void changeProfile_whenDuplicatedNickname_thenResponse400Error() {
+		// given
+		Member member = memberRepository.save(createMember());
+		ProfileChangeServiceRequest serviceRequest = new ProfileChangeServiceRequest(
+			createMockMultipartFile(),
+			createProfileChangeRequest(member.getNickname()),
+			AuthMember.from(member));
+
+		// when
+		Throwable throwable = catchThrowable(() -> memberService.changeProfile(serviceRequest));
+
+		// then
+		assertThat(throwable)
+			.isInstanceOf(BadRequestException.class)
+			.hasMessage("닉네임이 중복되었습니다");
 	}
 
 	private AuthorizationRequest createAuthorizationRequest(String state) {
