@@ -5,33 +5,49 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Stream;
 
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.web.multipart.MultipartFile;
 
+import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.member.MemberRepository;
 import codesquad.fineants.domain.oauth.client.AuthorizationCodeRandomGenerator;
 import codesquad.fineants.domain.oauth.client.OauthClient;
 import codesquad.fineants.domain.oauth.repository.OauthClientRepository;
+import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.spring.api.errors.errorcode.OauthErrorCode;
 import codesquad.fineants.spring.api.errors.exception.BadRequestException;
 import codesquad.fineants.spring.api.errors.exception.FineAntsException;
 import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
 import codesquad.fineants.spring.api.member.request.AuthorizationRequest;
 import codesquad.fineants.spring.api.member.request.OauthMemberLoginRequest;
+import codesquad.fineants.spring.api.member.request.ProfileChangeRequest;
 import codesquad.fineants.spring.api.member.response.OauthMemberLoginResponse;
 import codesquad.fineants.spring.api.member.response.OauthUserProfile;
+import codesquad.fineants.spring.api.member.response.ProfileChangeResponse;
+import codesquad.fineants.spring.api.member.service.request.ProfileChangeServiceRequest;
 import codesquad.fineants.spring.util.ObjectMapperUtil;
 
 @ActiveProfiles("test")
@@ -187,6 +203,62 @@ public class MemberServiceTest {
 		);
 	}
 
+	@DisplayName("사용자는 회원의 프로필을 변경한다")
+	@MethodSource(value = "changeProfileMethodSource")
+	@ParameterizedTest
+	void changeProfile(MultipartFile profileImageFile, ProfileChangeRequest request) {
+		// given
+		Member member = memberRepository.save(createMember());
+		ProfileChangeServiceRequest serviceRequest = new ProfileChangeServiceRequest(profileImageFile, request,
+			AuthMember.from(member));
+
+		// when
+		ProfileChangeResponse response = memberService.changeProfile(serviceRequest);
+
+		// then
+		Member findMember = memberRepository.findById(member.getId()).orElseThrow();
+		ProfileChangeResponse expected = ProfileChangeResponse.from(findMember);
+		assertThat(response).isEqualTo(expected);
+	}
+
+	@DisplayName("사용자가 변경할 정보 없이 프로필을 변경하는 경우 예외가 발생한다")
+	@Test
+	void changeProfile_whenNoChangeInformation_thenResponse400Error() {
+		// given
+		Member member = memberRepository.save(createMember());
+		MultipartFile profileImageFile = null;
+		ProfileChangeRequest request = null;
+		ProfileChangeServiceRequest serviceRequest = new ProfileChangeServiceRequest(profileImageFile, request,
+			AuthMember.from(member));
+
+		// when
+		Throwable throwable = catchThrowable(() -> memberService.changeProfile(serviceRequest));
+
+		// then
+		assertThat(throwable)
+			.isInstanceOf(BadRequestException.class)
+			.hasMessage("변경할 회원 정보가 없습니다");
+	}
+
+	@DisplayName("사용자가 중복된 닉네임으로 프로필을 변경하려고 하면 400 에러를 응답합니다")
+	@Test
+	void changeProfile_whenDuplicatedNickname_thenResponse400Error() {
+		// given
+		Member member = memberRepository.save(createMember());
+		ProfileChangeServiceRequest serviceRequest = new ProfileChangeServiceRequest(
+			createMockMultipartFile(),
+			createProfileChangeRequest(member.getNickname()),
+			AuthMember.from(member));
+
+		// when
+		Throwable throwable = catchThrowable(() -> memberService.changeProfile(serviceRequest));
+
+		// then
+		assertThat(throwable)
+			.isInstanceOf(BadRequestException.class)
+			.hasMessage("닉네임이 중복되었습니다");
+	}
+
 	private AuthorizationRequest createAuthorizationRequest(String state) {
 		String codeVerifier = "1234";
 		String codeChallenge = "1234";
@@ -205,5 +277,59 @@ public class MemberServiceTest {
 		String state = "1234";
 		return OauthMemberLoginRequest.of(provider,
 			code, redirectUrl, state, LocalDate.of(2023, 11, 8).atStartOfDay());
+	}
+
+	private static Member createMember() {
+		return createMember("nemo1234");
+	}
+
+	private static Member createMember(String nickname) {
+		return createMember(nickname, "profileUrl");
+	}
+
+	private static Member createMember(String nickname, String profileUrl) {
+		return Member.builder()
+			.email("dragonbead95@naver.com")
+			.nickname(nickname)
+			.provider("local")
+			.password("nemo1234@")
+			.profileUrl(profileUrl)
+			.build();
+	}
+
+	public static Stream<Arguments> changeProfileMethodSource() {
+		String nickname = "nemo12345";
+		return Stream.of(
+			Arguments.of(
+				null,
+				createProfileChangeRequest(nickname)
+			),
+			Arguments.of(
+				createMockMultipartFile(),
+				null
+			),
+			Arguments.of(
+				createMockMultipartFile(),
+				createProfileChangeRequest(nickname)
+			)
+		);
+	}
+
+	public static MultipartFile createMockMultipartFile() {
+		ClassPathResource classPathResource = new ClassPathResource("profile.jpeg");
+		Path path = null;
+		try {
+			path = Paths.get(classPathResource.getURI());
+			byte[] profile = Files.readAllBytes(path);
+			return new MockMultipartFile("profileImageFile", "profile.jpeg", "image/jpeg",
+				profile);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@NotNull
+	private static ProfileChangeRequest createProfileChangeRequest(String nickname) {
+		return new ProfileChangeRequest(nickname);
 	}
 }

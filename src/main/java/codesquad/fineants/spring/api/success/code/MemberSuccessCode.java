@@ -8,7 +8,7 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum MemberSuccessCode implements SuccessCode {
-	OK_MODIFIED_PROFILE(HttpStatus.OK, "프로필이 수정되었습니다."),
+	OK_MODIFIED_PROFILE(HttpStatus.OK, "프로필이 수정되었습니다"),
 	OK_MEMBER_TOWNS(HttpStatus.OK, "회원 동네 목록 조회를 완료하였습니다."),
 	OK_SIGNUP(HttpStatus.CREATED, "회원가입이 완료되었습니다."),
 	OK_SEND_EMAIL_VERIF(HttpStatus.OK, "이메일로 검증 코드를 전송하였습니다."),
