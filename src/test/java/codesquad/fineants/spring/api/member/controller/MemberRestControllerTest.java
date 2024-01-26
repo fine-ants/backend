@@ -247,6 +247,34 @@ class MemberRestControllerTest {
 			.andExpect(jsonPath("message").value(equalTo("회원가입이 완료되었습니다")));
 	}
 
+	@DisplayName("사용자는 프로필을 건너뛰고 회원가입 할 수 있다")
+	@Test
+	void signup_whenSkipProfileImageFile_then200OK() throws Exception {
+		// given
+		given(memberService.signup(any(SignUpServiceRequest.class)))
+			.willReturn(SignUpServiceResponse.from(createMember()));
+
+		Map<String, Object> profileInformationMap = Map.of(
+			"nickname", "일개미1234",
+			"email", "dragonbead95@naver.com",
+			"password", "nemo1234@",
+			"passwordConfirm", "nemo1234@");
+		String json = ObjectMapperUtil.serialize(profileInformationMap);
+		MockMultipartFile signupData = new MockMultipartFile(
+			"signupData",
+			"signupData",
+			MediaType.APPLICATION_JSON_VALUE,
+			json.getBytes(StandardCharsets.UTF_8));
+
+		// when & then
+		mockMvc.perform(multipart(POST, "/api/auth/signup")
+				.file(signupData))
+			.andExpect(status().isCreated())
+			.andExpect(jsonPath("code").value(equalTo(201)))
+			.andExpect(jsonPath("status").value(equalTo("Created")))
+			.andExpect(jsonPath("message").value(equalTo("회원가입이 완료되었습니다")));
+	}
+
 	@DisplayName("사용자는 유효하지 않은 회원가입 데이터로 요청시 400 에러를 응답받는다")
 	@MethodSource(value = "invalidSignupData")
 	@ParameterizedTest
@@ -360,6 +388,20 @@ class MemberRestControllerTest {
 			.andExpect(jsonPath("code").value(equalTo(400)))
 			.andExpect(jsonPath("status").value(equalTo("Bad Request")))
 			.andExpect(jsonPath("message").value(equalTo("비밀번호가 일치하지 않습니다")));
+	}
+
+	@DisplayName("사용자는 signupData 필드 없이 회원가입 할 수 없다")
+	@Test
+	void signup_whenNotExistSignupDataField_thenResponse400Error() throws Exception {
+		// given
+
+		// when & then
+		mockMvc.perform(multipart(POST, "/api/auth/signup")
+				.file((MockMultipartFile)createMockMultipartFile()))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("code").value(equalTo(400)))
+			.andExpect(jsonPath("status").value(equalTo("Bad Request")))
+			.andExpect(jsonPath("message").value(equalTo("Required request part 'signupData' is not present")));
 	}
 
 	private Member createMember() {
