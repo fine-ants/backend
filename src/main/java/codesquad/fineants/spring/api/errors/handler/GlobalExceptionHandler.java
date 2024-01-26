@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 
 import codesquad.fineants.spring.api.errors.exception.FineAntsException;
 import codesquad.fineants.spring.api.response.ApiResponse;
@@ -43,6 +44,14 @@ public class GlobalExceptionHandler {
 			data
 		);
 		return ResponseEntity.badRequest().body(body);
+	}
+
+	@ExceptionHandler(MissingServletRequestPartException.class)
+	public ResponseEntity<ApiResponse<Object>> handleMissingServletRequestPartException(
+		MissingServletRequestPartException exception) {
+		log.error(exception.getMessage(), exception);
+		ApiResponse<Object> body = ApiResponse.of(HttpStatus.BAD_REQUEST, exception.getMessage(), null);
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
 	}
 
 	@ExceptionHandler(Exception.class)
