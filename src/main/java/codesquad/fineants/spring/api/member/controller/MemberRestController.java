@@ -39,6 +39,8 @@ import codesquad.fineants.spring.api.member.response.OauthSaveUrlResponse;
 import codesquad.fineants.spring.api.member.response.ProfileChangeResponse;
 import codesquad.fineants.spring.api.member.service.MemberService;
 import codesquad.fineants.spring.api.member.service.request.ProfileChangeServiceRequest;
+import codesquad.fineants.spring.api.member.service.request.SignUpServiceRequest;
+import codesquad.fineants.spring.api.member.service.response.SignUpServiceResponse;
 import codesquad.fineants.spring.api.response.ApiResponse;
 import codesquad.fineants.spring.api.success.code.MemberSuccessCode;
 import codesquad.fineants.spring.api.success.code.OauthSuccessCode;
@@ -82,13 +84,15 @@ public class MemberRestController {
 		return ApiResponse.success(OauthSuccessCode.OK_REFRESH_TOKEN, response);
 	}
 
+	@ResponseStatus(CREATED)
 	@PostMapping(value = "/auth/signup", consumes = {MediaType.APPLICATION_JSON_VALUE,
 		MediaType.MULTIPART_FORM_DATA_VALUE})
 	public ApiResponse<Void> signup(
-		@RequestPart(value = "signupData") SignUpRequest request,
+		@Valid @RequestPart(value = "signupData") SignUpRequest request,
 		@RequestPart(value = "profileImageFile", required = false) MultipartFile profileImageFile) {
-		log.info("signupData : {}", request);
-		memberService.signup(profileImageFile, request);
+		SignUpServiceRequest serviceRequest = SignUpServiceRequest.of(request, profileImageFile);
+		SignUpServiceResponse response = memberService.signup(serviceRequest);
+		log.info("일반 회원 가입 컨트롤러 결과 : {}", response);
 		return ApiResponse.success(MemberSuccessCode.OK_SIGNUP);
 	}
 

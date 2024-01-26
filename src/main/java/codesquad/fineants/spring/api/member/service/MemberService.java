@@ -51,7 +51,6 @@ import codesquad.fineants.spring.api.member.request.OauthMemberLoginRequest;
 import codesquad.fineants.spring.api.member.request.OauthMemberLogoutRequest;
 import codesquad.fineants.spring.api.member.request.OauthMemberRefreshRequest;
 import codesquad.fineants.spring.api.member.request.ProfileChangeRequest;
-import codesquad.fineants.spring.api.member.request.SignUpRequest;
 import codesquad.fineants.spring.api.member.request.VerifCodeRequest;
 import codesquad.fineants.spring.api.member.request.VerifyEmailRequest;
 import codesquad.fineants.spring.api.member.response.LoginResponse;
@@ -62,6 +61,8 @@ import codesquad.fineants.spring.api.member.response.OauthSaveUrlResponse;
 import codesquad.fineants.spring.api.member.response.OauthUserProfile;
 import codesquad.fineants.spring.api.member.response.ProfileChangeResponse;
 import codesquad.fineants.spring.api.member.service.request.ProfileChangeServiceRequest;
+import codesquad.fineants.spring.api.member.service.request.SignUpServiceRequest;
+import codesquad.fineants.spring.api.member.service.response.SignUpServiceResponse;
 import codesquad.fineants.spring.api.portfolio_notification.MailService;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
@@ -191,54 +192,52 @@ public class MemberService {
 	}
 
 	@Transactional
-	public void signup(MultipartFile imageFile, SignUpRequest request) {
-		checkForm(request);
-		if (memberRepository.existsMemberByEmailAndProvider(request.getEmail(), LOCAL_PROVIDER)) {
+	public SignUpServiceResponse signup(SignUpServiceRequest request) {
+		verifyEmail(request.getEmail());
+		verifyNickname(request.getNickname());
+		verifyPassword(request.getPassword(), request.getPasswordConfirm());
+
+		// 프로필 이미지 파일 S3에 업로드
+		String profileUrl = uploadProfileImageFile(request.getProfileImageFile());
+		// 비밀번호 암호화
+		String encryptedPassword = encryptPassword(request.getPassword());
+		// 회원 데이터베이스 저장
+		Member member = saveMemberToRepository(
+			request.toEntity(
+				profileUrl,
+				encryptedPassword
+			)
+		);
+		log.info("일반 회원가입 결과 : {}", member);
+		return SignUpServiceResponse.from(member);
+	}
+
+	private String encryptPassword(String password) {
+		return passwordEncoder.encode(password);
+	}
+
+	private String uploadProfileImageFile(MultipartFile profileImageFile) {
+		return Optional.ofNullable(profileImageFile)
+			.map(amazonS3Service::upload)
+			.orElse(null);
+	}
+
+	private void verifyEmail(String email) {
+		if (memberRepository.existsMemberByEmailAndProvider(email, LOCAL_PROVIDER)) {
 			throw new BadRequestException(MemberErrorCode.REDUNDANT_EMAIL);
 		}
-		if (memberRepository.existsByNickname(request.getNickname())) {
+	}
+
+	private void verifyNickname(String nickname) {
+		if (memberRepository.existsByNickname(nickname)) {
 			throw new BadRequestException(MemberErrorCode.REDUNDANT_NICKNAME);
 		}
-		if (!request.getPassword().equals(request.getPasswordConfirm())) {
+	}
+
+	private void verifyPassword(String password, String passwordConfirm) {
+		if (!password.equals(passwordConfirm)) {
 			throw new BadRequestException(MemberErrorCode.PASSWORD_CHECK_FAIL);
 		}
-		String url = null;
-		if (imageFile != null) {
-			url = amazonS3Service.upload(imageFile);
-		}
-		Member member = Member.builder()
-			.email(request.getEmail())
-			.nickname(request.getNickname())
-			.profileUrl(url)
-			.password(passwordEncoder.encode(request.getPassword()))
-			.provider(LOCAL_PROVIDER)
-			.build();
-		Member saveMember = saveMemberToRepository(member);
-		log.info("회원 저장 결과 : {}", saveMember);
-	}
-
-	private void checkForm(SignUpRequest request) {
-		if (!isValidNickname(request.getNickname())) {
-			throw new BadRequestException(MemberErrorCode.BAD_SIGNUP_INPUT);
-		}
-		if (!isValidEmail(request.getEmail())) {
-			throw new BadRequestException(MemberErrorCode.BAD_SIGNUP_INPUT);
-		}
-		if (!isValidPassword(request.getPassword())) {
-			throw new BadRequestException(MemberErrorCode.BAD_SIGNUP_INPUT);
-		}
-	}
-
-	private boolean isValidNickname(String nickname) {
-		return nickname != null && nickname.matches("^[가-힣a-zA-Z0-9]{2,10}$");
-	}
-
-	private boolean isValidEmail(String email) {
-		return email != null && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6}$");
-	}
-
-	private boolean isValidPassword(String password) {
-		return password != null && password.matches("^(?=.*[a-zA-Z])(?=.*[0-9])(?=.*[!@#$%^&*]).{8,16}$");
 	}
 
 	@Transactional
@@ -314,15 +313,9 @@ public class MemberService {
 		return serviceRequest.getRequest()
 			.map(ProfileChangeRequest::getNickname)
 			.map(nickname -> {
-				verifyUniqueNickname(nickname);
+				verifyNickname(nickname);
 				return nickname;
 			});
-	}
-
-	private void verifyUniqueNickname(String nickname) {
-		if (memberRepository.existsByNickname(nickname)) {
-			throw new BadRequestException(MemberErrorCode.REDUNDANT_NICKNAME);
-		}
 	}
 
 	@Transactional
