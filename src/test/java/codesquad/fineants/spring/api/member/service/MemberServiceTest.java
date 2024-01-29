@@ -399,7 +399,32 @@ public class MemberServiceTest {
 		// then
 		assertThat(throwable)
 			.isInstanceOf(BadRequestException.class)
-			.hasMessage("닉네임이 중복되었습니다");
+			.hasMessage(MemberErrorCode.REDUNDANT_NICKNAME.getMessage());
+	}
+
+	@DisplayName("사용자는 이메일이 중복되었는지 검사한다")
+	@Test
+	void checkEmail() {
+		// given
+		String email = "dragonbead95@naver.com";
+		// when & then
+		assertDoesNotThrow(() -> memberService.checkEmail(email));
+	}
+
+	@DisplayName("사용자는 이메일 중복 검사 요청시 로컬 이메일이 존재하여 예외가 발생한다")
+	@Test
+	void checkEmail_whenDuplicatedLocalEmail_thenThrowBadRequestException() {
+		// given
+		Member member = memberRepository.save(createMember());
+		String email = member.getEmail();
+
+		// when
+		Throwable throwable = catchThrowable(() -> memberService.checkEmail(email));
+
+		// then
+		assertThat(throwable)
+			.isInstanceOf(BadRequestException.class)
+			.hasMessage(MemberErrorCode.REDUNDANT_EMAIL.getMessage());
 	}
 
 	private AuthorizationRequest createAuthorizationRequest(String state) {
