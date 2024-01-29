@@ -353,6 +353,30 @@ public class MemberServiceTest {
 			.hasMessage(MemberErrorCode.PASSWORD_CHECK_FAIL.getMessage());
 	}
 
+	@DisplayName("사용자는 프로필 이미지 사이즈를 초과하여 회원가입 할 수 없다")
+	@Test
+	void signup_whenOverProfileImageFile_thenResponse400Error() {
+		// given
+		given(amazonS3Service.upload(any(MultipartFile.class)))
+			.willThrow(new BadRequestException(MemberErrorCode.PROFILE_IMAGE_UPLOAD_FAIL));
+
+		SignUpRequest request = new SignUpRequest(
+			"일개미4567",
+			"nemo1234@naver.com",
+			"nemo1234@",
+			"nemo1234@"
+		);
+		SignUpServiceRequest serviceRequest = SignUpServiceRequest.of(request, createMockMultipartFile());
+
+		// when
+		Throwable throwable = catchThrowable(() -> memberService.signup(serviceRequest));
+
+		// then
+		assertThat(throwable)
+			.isInstanceOf(BadRequestException.class)
+			.hasMessage(MemberErrorCode.PROFILE_IMAGE_UPLOAD_FAIL.getMessage());
+	}
+
 	private AuthorizationRequest createAuthorizationRequest(String state) {
 		String codeVerifier = "1234";
 		String codeChallenge = "1234";

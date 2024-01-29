@@ -18,7 +18,9 @@ import com.amazonaws.services.s3.model.PutObjectRequest;
 import codesquad.fineants.spring.api.errors.errorcode.MemberErrorCode;
 import codesquad.fineants.spring.api.errors.exception.BadRequestException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AmazonS3Service {
@@ -38,7 +40,8 @@ public class AmazonS3Service {
 		// get S3
 		String path = amazonS3.getUrl(bucketName, key).toString();
 		// delete object
-		file.delete();
+		boolean delete = file.delete();
+		log.info("임시 저장 파일의 삭제 결과 : {}", delete);
 		return path;
 	}
 
