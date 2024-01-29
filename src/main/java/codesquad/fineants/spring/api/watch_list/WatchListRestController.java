@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -14,6 +15,7 @@ import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.oauth.support.AuthPrincipalMember;
 import codesquad.fineants.spring.api.response.ApiResponse;
 import codesquad.fineants.spring.api.success.code.WatchListSuccessCode;
+import codesquad.fineants.spring.api.watch_list.request.ChangeWatchListNameRequest;
 import codesquad.fineants.spring.api.watch_list.request.CreateWatchListRequest;
 import codesquad.fineants.spring.api.watch_list.request.CreateWatchStockRequest;
 import codesquad.fineants.spring.api.watch_list.request.DeleteWatchListsRequests;
@@ -21,6 +23,7 @@ import codesquad.fineants.spring.api.watch_list.request.DeleteWatchStocksRequest
 import codesquad.fineants.spring.api.watch_list.response.CreateWatchListResponse;
 import codesquad.fineants.spring.api.watch_list.response.ReadWatchListResponse;
 import codesquad.fineants.spring.api.watch_list.response.ReadWatchListsResponse;
+import codesquad.fineants.spring.api.watch_list.response.WatchListHasStockResponse;
 import lombok.RequiredArgsConstructor;
 
 @RequestMapping("/api/watchlists")
@@ -42,6 +45,13 @@ public class WatchListRestController {
 		return ApiResponse.success(WatchListSuccessCode.READ_WATCH_LISTS, watchListService.readWatchLists(authMember));
 	}
 
+	@DeleteMapping
+	public ApiResponse<Void> deleteWatchLists(@AuthPrincipalMember AuthMember authMember,
+		@RequestBody DeleteWatchListsRequests deleteWatchListsRequests) {
+		watchListService.deleteWatchLists(authMember, deleteWatchListsRequests);
+		return ApiResponse.success(WatchListSuccessCode.DELETED_WATCH_LIST);
+	}
+
 	@GetMapping("/{watchlistId}")
 	public ApiResponse<ReadWatchListResponse> readWatchList(@AuthPrincipalMember AuthMember authMember,
 		@PathVariable Long watchlistId) {
@@ -49,11 +59,11 @@ public class WatchListRestController {
 			watchListService.readWatchList(authMember, watchlistId));
 	}
 
-	@DeleteMapping
-	public ApiResponse<Void> deleteWatchLists(@AuthPrincipalMember AuthMember authMember,
-		@RequestBody DeleteWatchListsRequests deleteWatchListsRequests) {
-		watchListService.deleteWatchLists(authMember, deleteWatchListsRequests);
-		return ApiResponse.success(WatchListSuccessCode.DELETED_WATCH_LIST);
+	@PutMapping("/{watchlistId}")
+	public ApiResponse<Void> changeWatchListName(@AuthPrincipalMember AuthMember authMember,
+		@PathVariable Long watchlistId, @RequestBody ChangeWatchListNameRequest request) {
+		watchListService.changeWatchListName(authMember, watchlistId, request);
+		return ApiResponse.success(WatchListSuccessCode.CHANGE_WATCH_LIST_NAME);
 	}
 
 	@PostMapping("/{watchlistId}/stock")
@@ -75,5 +85,12 @@ public class WatchListRestController {
 		@PathVariable("watchlistId") Long watchListId, @PathVariable("tickerSymbol") String tickerSymbol) {
 		watchListService.deleteWatchStock(authMember, watchListId, tickerSymbol);
 		return ApiResponse.success(WatchListSuccessCode.DELETED_WATCH_STOCK);
+	}
+
+	@GetMapping("/has-stock/{tickerSymbol}")
+	public ApiResponse<List<WatchListHasStockResponse>> watchListHasStock(@AuthPrincipalMember AuthMember authMember,
+		@PathVariable("tickerSymbol") String tickerSymbol) {
+		return ApiResponse.success(WatchListSuccessCode.HAS_STOCK,
+			watchListService.hasStock(authMember, tickerSymbol));
 	}
 }

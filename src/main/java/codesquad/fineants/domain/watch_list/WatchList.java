@@ -45,4 +45,8 @@ public class WatchList extends BaseEntity {
 		this.name = name;
 		this.member = member;
 	}
+
+	public void change(String name) {
+		this.name = name;
+	}
 }

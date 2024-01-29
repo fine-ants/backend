@@ -32,6 +32,7 @@ import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.oauth.support.AuthPrincipalArgumentResolver;
 import codesquad.fineants.spring.api.errors.handler.GlobalExceptionHandler;
+import codesquad.fineants.spring.api.watch_list.request.ChangeWatchListNameRequest;
 import codesquad.fineants.spring.api.watch_list.request.CreateWatchListRequest;
 import codesquad.fineants.spring.api.watch_list.request.CreateWatchStockRequest;
 import codesquad.fineants.spring.api.watch_list.request.DeleteWatchListsRequests;
@@ -39,6 +40,7 @@ import codesquad.fineants.spring.api.watch_list.request.DeleteWatchStocksRequest
 import codesquad.fineants.spring.api.watch_list.response.CreateWatchListResponse;
 import codesquad.fineants.spring.api.watch_list.response.ReadWatchListResponse;
 import codesquad.fineants.spring.api.watch_list.response.ReadWatchListsResponse;
+import codesquad.fineants.spring.api.watch_list.response.WatchListHasStockResponse;
 import codesquad.fineants.spring.config.JpaAuditingConfiguration;
 import codesquad.fineants.spring.config.SpringConfig;
 
@@ -326,5 +328,76 @@ class WatchListRestControllerTest {
 			.andExpect(jsonPath("status").value(equalTo("OK")))
 			.andExpect(jsonPath("message").value(equalTo("관심목록 종목이 삭제되었습니다")))
 			.andExpect(jsonPath("data").value(equalTo(null)));
+	}
+
+	@DisplayName("사용자가 watchlist 이름을 변경한다.")
+	@Test
+	void changeWatchListName() throws Exception {
+		Member member = Member.builder()
+			.id(1L)
+			.nickname("일개미1234")
+			.email("kim1234@gmail.com")
+			.provider("local")
+			.password("kim1234@")
+			.profileUrl("profileValue")
+			.build();
+		AuthMember authMember = AuthMember.from(member);
+
+		Map<String, Object> requestBodyMap = new HashMap<>();
+		requestBodyMap.put("name", "My watchlist");
+		String body = objectMapper.writeValueAsString(requestBodyMap);
+
+		given(authPrincipalArgumentResolver.supportsParameter(any())).willReturn(true);
+		given(authPrincipalArgumentResolver.resolveArgument(any(), any(), any(), any())).willReturn(authMember);
+		doNothing().when(watchListService)
+			.changeWatchListName(any(AuthMember.class), any(Long.class), any(ChangeWatchListNameRequest.class));
+
+		// when & then
+		mockMvc.perform(put("/api/watchlists/1")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(body))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("code").value(equalTo(200)))
+			.andExpect(jsonPath("status").value(equalTo("OK")))
+			.andExpect(jsonPath("message").value(equalTo("관심종목 목록 이름이 변경되었습니다")))
+			.andExpect(jsonPath("data").value(equalTo(null)));
+	}
+
+	@DisplayName("사용자가 모든 watchlist에 대해 tickerSymbol 보유 여부롤 조회한다.")
+	@Test
+	void watchListHasStock() throws Exception {
+		// given
+		Member member = Member.builder()
+			.id(1L)
+			.nickname("일개미1234")
+			.email("kim1234@gmail.com")
+			.provider("local")
+			.password("kim1234@")
+			.profileUrl("profileValue")
+			.build();
+		AuthMember authMember = AuthMember.from(member);
+		given(authPrincipalArgumentResolver.supportsParameter(any())).willReturn(true);
+		given(authPrincipalArgumentResolver.resolveArgument(any(), any(), any(), any())).willReturn(authMember);
+
+		String tickerSymbol = "005930";
+		List<WatchListHasStockResponse> response = List.of(
+			new WatchListHasStockResponse(1L, "My WatchList1", true),
+			new WatchListHasStockResponse(2L, "My WatchList2", false)
+		);
+		given(watchListService.hasStock(any(AuthMember.class), any(String.class))).willReturn(response);
+
+		// when & then
+		mockMvc.perform(get("/api/watchlists/has-stock/" + tickerSymbol)
+				.contentType(MediaType.APPLICATION_JSON))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("code").value(equalTo(200)))
+			.andExpect(jsonPath("status").value(equalTo("OK")))
+			.andExpect(jsonPath("message").value(equalTo("관심목록의 주식 포함 여부 조회가 완료되었습니다")))
+			.andExpect(jsonPath("data[0].id").value(equalTo(1)))
+			.andExpect(jsonPath("data[0].name").value(equalTo("My WatchList1")))
+			.andExpect(jsonPath("data[0].hasStock").value(equalTo(true)))
+			.andExpect(jsonPath("data[1].id").value(equalTo(2)))
+			.andExpect(jsonPath("data[1].name").value(equalTo("My WatchList2")))
+			.andExpect(jsonPath("data[1].hasStock").value(equalTo(false)));
 	}
 }

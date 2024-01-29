@@ -21,6 +21,7 @@ import codesquad.fineants.spring.api.errors.exception.ForBiddenException;
 import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
+import codesquad.fineants.spring.api.watch_list.request.ChangeWatchListNameRequest;
 import codesquad.fineants.spring.api.watch_list.request.CreateWatchListRequest;
 import codesquad.fineants.spring.api.watch_list.request.CreateWatchStockRequest;
 import codesquad.fineants.spring.api.watch_list.request.DeleteWatchListsRequests;
@@ -28,6 +29,7 @@ import codesquad.fineants.spring.api.watch_list.request.DeleteWatchStocksRequest
 import codesquad.fineants.spring.api.watch_list.response.CreateWatchListResponse;
 import codesquad.fineants.spring.api.watch_list.response.ReadWatchListResponse;
 import codesquad.fineants.spring.api.watch_list.response.ReadWatchListsResponse;
+import codesquad.fineants.spring.api.watch_list.response.WatchListHasStockResponse;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -124,6 +126,22 @@ public class WatchListService {
 		validateWatchListAuthorization(member.getId(), watchList.getMember().getId());
 
 		watchStockRepository.deleteByWatchListAndStock_TickerSymbolIn(watchList, List.of(tickerSymbol));
+	}
+
+	@Transactional
+	public void changeWatchListName(AuthMember authMember, Long watchListId, ChangeWatchListNameRequest request) {
+		Member member = findMember(authMember.getMemberId());
+		WatchList watchList = watchListRepository.findById(watchListId)
+			.orElseThrow(() -> new NotFoundResourceException(WatchListErrorCode.NOT_FOUND_WATCH_LIST));
+		validateWatchListAuthorization(member.getId(), watchList.getMember().getId());
+
+		watchList.change(request.getName());
+	}
+
+	@Transactional(readOnly = true)
+	public List<WatchListHasStockResponse> hasStock(AuthMember authMember, String tickerSymbol) {
+		Member member = findMember(authMember.getMemberId());
+		return watchListRepository.findWatchListsAndStockPresenceByMemberAndTickerSymbol(member, tickerSymbol);
 	}
 
 	private Member findMember(Long memberId) {
