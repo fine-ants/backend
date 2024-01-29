@@ -35,6 +35,7 @@ import codesquad.fineants.domain.watch_stock.WatchStock;
 import codesquad.fineants.domain.watch_stock.WatchStockRepository;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
+import codesquad.fineants.spring.api.watch_list.request.ChangeWatchListNameRequest;
 import codesquad.fineants.spring.api.watch_list.request.CreateWatchListRequest;
 import codesquad.fineants.spring.api.watch_list.request.CreateWatchStockRequest;
 import codesquad.fineants.spring.api.watch_list.request.DeleteWatchListsRequests;
@@ -42,6 +43,7 @@ import codesquad.fineants.spring.api.watch_list.request.DeleteWatchStocksRequest
 import codesquad.fineants.spring.api.watch_list.response.CreateWatchListResponse;
 import codesquad.fineants.spring.api.watch_list.response.ReadWatchListResponse;
 import codesquad.fineants.spring.api.watch_list.response.ReadWatchListsResponse;
+import codesquad.fineants.spring.api.watch_list.response.WatchListHasStockResponse;
 
 @ActiveProfiles("test")
 @SpringBootTest
@@ -182,7 +184,7 @@ class WatchListServiceTest {
 		assertThat(response.getWatchStocks().get(0).getTickerSymbol()).isEqualTo(stock.getTickerSymbol());
 		assertThat(response.getWatchStocks().get(0).getCurrentPrice()).isEqualTo(77000L);
 		assertThat(response.getWatchStocks().get(0).getDailyChange()).isEqualTo(0);
-		assertThat(response.getWatchStocks().get(0).getAnnualDividendYield()).isEqualTo((362f/77000)*100);
+		assertThat(response.getWatchStocks().get(0).getAnnualDividendYield()).isEqualTo((362f / 77000) * 100);
 		assertThat(response.getWatchStocks().get(0).getSector()).isEqualTo("전기전자");
 	}
 
@@ -279,7 +281,8 @@ class WatchListServiceTest {
 		);
 		Long watchStockId = watchStock.getId();
 
-		DeleteWatchStocksRequest request = new DeleteWatchStocksRequest(List.of(watchStock.getStock().getTickerSymbol()));
+		DeleteWatchStocksRequest request = new DeleteWatchStocksRequest(
+			List.of(watchStock.getStock().getTickerSymbol()));
 
 		// when
 		watchListService.deleteWatchStocks(authMember, watchListId, request);
@@ -321,5 +324,79 @@ class WatchListServiceTest {
 
 		// then
 		assertThat(watchStockRepository.findById(watchStockId).isPresent()).isFalse();
+	}
+
+	@DisplayName("회원이 watchlist의 이름을 수정한다.")
+	@Test
+	void changeWatchListName() {
+		// given
+		AuthMember authMember = AuthMember.from(member);
+
+		WatchList watchList = watchListRepository.save(WatchList.builder()
+			.name("My WatchList")
+			.member(member)
+			.build());
+		Long watchListId = watchList.getId();
+
+		ChangeWatchListNameRequest request = new ChangeWatchListNameRequest("New Name");
+
+		// when
+		watchListService.changeWatchListName(authMember, watchListId, request);
+
+		// then
+		assertThat(watchListRepository.findById(watchListId).get().getName()).isEqualTo(request.getName());
+	}
+
+	@DisplayName("회원이 watchlist들이 주식을 포함하고 있는지 조회한다.")
+	@Test
+	void hasStock() {
+		// given
+		AuthMember authMember = AuthMember.from(member);
+		Stock stock = stockRepository.save(
+			Stock.builder()
+				.companyName("삼성전자보통주")
+				.tickerSymbol("005930")
+				.companyNameEng("SamsungElectronics")
+				.stockCode("KR7005930003")
+				.sector("전기전자")
+				.market(Market.KOSPI)
+				.build()
+		);
+		WatchList watchList1 = watchListRepository.save(WatchList.builder()
+			.name("My WatchList 1")
+			.member(member)
+			.build());
+
+		WatchStock watchStock = watchStockRepository.save(
+			WatchStock.builder()
+				.watchList(watchList1)
+				.stock(stock)
+				.build()
+		);
+
+		WatchList watchList2 = watchListRepository.save(WatchList.builder()
+			.name("My WatchList 2")
+			.member(member)
+			.build());
+
+		// when
+		List<WatchListHasStockResponse> responseList = watchListService.hasStock(authMember, stock.getTickerSymbol());
+
+		// then
+		assertThat(responseList.size()).isEqualTo(2);
+
+		boolean hasStockForWatchList1 = false;
+		boolean hasStockForWatchList2 = false;
+
+		for (WatchListHasStockResponse response : responseList) {
+			if (response.getId() == watchList1.getId()) {
+				hasStockForWatchList1 = response.isHasStock();
+			} else if (response.getId() == watchList2.getId()) {
+				hasStockForWatchList2 = response.isHasStock();
+			}
+		}
+
+		assertThat(hasStockForWatchList1).isTrue();
+		assertThat(hasStockForWatchList2).isFalse();
 	}
 }
