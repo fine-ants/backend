@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutionException;
@@ -91,6 +90,7 @@ public class MemberService {
 	private final PortfolioRepository portfolioRepository;
 	private final PortfolioGainHistoryRepository portfolioGainHistoryRepository;
 	private final PurchaseHistoryRepository purchaseHistoryRepository;
+	private final VerifyCodeGenerator verifyCodeGenerator;
 
 	public OauthMemberLoginResponse login(OauthMemberLoginRequest request) {
 		log.info("로그인 서비스 요청 : loginRequest={}", request);
@@ -240,18 +240,21 @@ public class MemberService {
 		}
 	}
 
-	@Transactional
-	public void sendEmailVerif(VerifyEmailRequest request) {
-		Random random = new Random();
-		int code = random.nextInt(1000000); // Generates a number between 0 and 999999
-		String verifCode = String.format("%06d", code);
-		redisService.saveEmailVerifCode(request.getEmail(), verifCode);
+	@Transactional(readOnly = true)
+	public void sendVerifyCode(VerifyEmailRequest request) {
+		String email = request.getEmail();
+		String verifyCode = verifyCodeGenerator.generate();
+
+		// Redis에 생성한 검증 코드 임시 저장
+		redisService.saveEmailVerifCode(email, verifyCode);
+
 		try {
-			mailService.sendEmail(request.getEmail(),
+			// 사용자에게 검증 코드 메일 전송
+			mailService.sendEmail(email,
 				"Finants 회원가입 인증 코드",
-				String.format("인증코드를 회원가입 페이지에 입력해주세요: %s", verifCode));
+				String.format("인증코드를 회원가입 페이지에 입력해주세요: %s", verifyCode));
 		} catch (Exception e) {
-			throw new BadRequestException(MemberErrorCode.SEND_EMAIL_VERIF_FAIL);
+			throw new BadRequestException(MemberErrorCode.SEND_EMAIL_VERIFY_CODE_FAIL);
 		}
 	}
 

@@ -11,7 +11,7 @@ public enum MemberSuccessCode implements SuccessCode {
 	OK_MODIFIED_PROFILE(HttpStatus.OK, "프로필이 수정되었습니다"),
 	OK_MEMBER_TOWNS(HttpStatus.OK, "회원 동네 목록 조회를 완료하였습니다."),
 	OK_SIGNUP(HttpStatus.CREATED, "회원가입이 완료되었습니다"),
-	OK_SEND_EMAIL_VERIF(HttpStatus.OK, "이메일로 검증 코드를 전송하였습니다."),
+	OK_SEND_VERIFY_CODE(HttpStatus.OK, "이메일로 검증 코드를 전송하였습니다"),
 	OK_NICKNAME_CHECK(HttpStatus.OK, "닉네임이 사용가능합니다"),
 	OK_EMAIL_CHECK(HttpStatus.OK, "이메일이 사용가능합니다"),
 	OK_PASSWORD_CHANGED(HttpStatus.OK, "비밀번호를 성공적으로 변경했습니다."),

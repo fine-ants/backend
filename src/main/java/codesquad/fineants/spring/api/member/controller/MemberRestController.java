@@ -97,9 +97,9 @@ public class MemberRestController {
 	}
 
 	@PostMapping("/auth/signup/verifyEmail")
-	public ApiResponse<Void> sendEmailVerif(@RequestBody final VerifyEmailRequest request) {
-		memberService.sendEmailVerif(request);
-		return ApiResponse.success(MemberSuccessCode.OK_SEND_EMAIL_VERIF);
+	public ApiResponse<Void> sendVerifyCode(@Valid @RequestBody final VerifyEmailRequest request) {
+		memberService.sendVerifyCode(request);
+		return ApiResponse.success(MemberSuccessCode.OK_SEND_VERIFY_CODE);
 	}
 
 	@PostMapping("/auth/signup/verifyCode")
