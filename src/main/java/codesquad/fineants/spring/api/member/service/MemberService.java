@@ -50,7 +50,7 @@ import codesquad.fineants.spring.api.member.request.OauthMemberLoginRequest;
 import codesquad.fineants.spring.api.member.request.OauthMemberLogoutRequest;
 import codesquad.fineants.spring.api.member.request.OauthMemberRefreshRequest;
 import codesquad.fineants.spring.api.member.request.ProfileChangeRequest;
-import codesquad.fineants.spring.api.member.request.VerifCodeRequest;
+import codesquad.fineants.spring.api.member.request.VerifyCodeRequest;
 import codesquad.fineants.spring.api.member.request.VerifyEmailRequest;
 import codesquad.fineants.spring.api.member.response.LoginResponse;
 import codesquad.fineants.spring.api.member.response.OauthMemberLoginResponse;
@@ -341,9 +341,11 @@ public class MemberService {
 			.orElseThrow(() -> new BadRequestException(MemberErrorCode.NOT_FOUND_MEMBER));
 	}
 
-	public void checkVerifCode(VerifCodeRequest request) {
-		String verifCode = redisService.get(request.getEmail());
-		if (verifCode == null || !verifCode.equals(request.getCode())) {
+	@Transactional(readOnly = true)
+	public void checkVerifyCode(VerifyCodeRequest request) {
+		Optional<String> verifyCode = redisService.get(request.getEmail());
+
+		if (verifyCode.isEmpty() || !verifyCode.get().equals(request.getCode())) {
 			throw new BadRequestException(MemberErrorCode.VERIFICATION_CODE_CHECK_FAIL);
 		}
 	}
