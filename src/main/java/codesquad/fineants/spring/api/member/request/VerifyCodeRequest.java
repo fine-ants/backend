@@ -1,5 +1,7 @@
 package codesquad.fineants.spring.api.member.request;
 
+import javax.validation.constraints.NotBlank;
+
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -8,7 +10,9 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class VerifCodeRequest {
+public class VerifyCodeRequest {
+	@NotBlank(message = "이메일은 필수 정보입니다")
 	private String email;
+	@NotBlank(message = "검증코드는 필수 정보입니다")
 	private String code;
 }

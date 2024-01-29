@@ -30,7 +30,7 @@ import codesquad.fineants.spring.api.member.request.OauthMemberLogoutRequest;
 import codesquad.fineants.spring.api.member.request.OauthMemberRefreshRequest;
 import codesquad.fineants.spring.api.member.request.ProfileChangeRequest;
 import codesquad.fineants.spring.api.member.request.SignUpRequest;
-import codesquad.fineants.spring.api.member.request.VerifCodeRequest;
+import codesquad.fineants.spring.api.member.request.VerifyCodeRequest;
 import codesquad.fineants.spring.api.member.request.VerifyEmailRequest;
 import codesquad.fineants.spring.api.member.response.LoginResponse;
 import codesquad.fineants.spring.api.member.response.OauthMemberLoginResponse;
@@ -97,14 +97,14 @@ public class MemberRestController {
 	}
 
 	@PostMapping("/auth/signup/verifyEmail")
-	public ApiResponse<Void> sendEmailVerif(@RequestBody final VerifyEmailRequest request) {
-		memberService.sendEmailVerif(request);
-		return ApiResponse.success(MemberSuccessCode.OK_SEND_EMAIL_VERIF);
+	public ApiResponse<Void> sendVerifyCode(@Valid @RequestBody VerifyEmailRequest request) {
+		memberService.sendVerifyCode(request);
+		return ApiResponse.success(MemberSuccessCode.OK_SEND_VERIFY_CODE);
 	}
 
 	@PostMapping("/auth/signup/verifyCode")
-	public ApiResponse<Void> checkVerifCode(@RequestBody VerifCodeRequest request) {
-		memberService.checkVerifCode(request);
+	public ApiResponse<Void> checkVerifyCode(@Valid @RequestBody VerifyCodeRequest request) {
+		memberService.checkVerifyCode(request);
 		return ApiResponse.success(MemberSuccessCode.OK_VERIF_CODE);
 	}
 

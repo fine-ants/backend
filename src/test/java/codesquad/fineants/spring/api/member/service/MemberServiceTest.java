@@ -12,6 +12,7 @@ import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.jetbrains.annotations.NotNull;
@@ -47,12 +48,15 @@ import codesquad.fineants.spring.api.member.request.AuthorizationRequest;
 import codesquad.fineants.spring.api.member.request.OauthMemberLoginRequest;
 import codesquad.fineants.spring.api.member.request.ProfileChangeRequest;
 import codesquad.fineants.spring.api.member.request.SignUpRequest;
+import codesquad.fineants.spring.api.member.request.VerifyCodeRequest;
+import codesquad.fineants.spring.api.member.request.VerifyEmailRequest;
 import codesquad.fineants.spring.api.member.response.OauthMemberLoginResponse;
 import codesquad.fineants.spring.api.member.response.OauthUserProfile;
 import codesquad.fineants.spring.api.member.response.ProfileChangeResponse;
 import codesquad.fineants.spring.api.member.service.request.ProfileChangeServiceRequest;
 import codesquad.fineants.spring.api.member.service.request.SignUpServiceRequest;
 import codesquad.fineants.spring.api.member.service.response.SignUpServiceResponse;
+import codesquad.fineants.spring.api.portfolio_notification.MailService;
 import codesquad.fineants.spring.util.ObjectMapperUtil;
 
 @ActiveProfiles("test")
@@ -77,6 +81,14 @@ public class MemberServiceTest {
 	@MockBean
 	private AmazonS3Service amazonS3Service;
 
+	@MockBean
+	private MailService mailService;
+
+	@MockBean
+	private OauthMemberRedisService redisService;
+
+	@MockBean
+	private VerifyCodeGenerator verifyCodeGenerator;
 	@AfterEach
 	void tearDown() {
 		memberRepository.deleteAllInBatch();
@@ -377,6 +389,111 @@ public class MemberServiceTest {
 			.hasMessage(MemberErrorCode.PROFILE_IMAGE_UPLOAD_FAIL.getMessage());
 	}
 
+	@DisplayName("사용자는 닉네임이 중복되었는지 체크한다")
+	@Test
+	void checkNickname() {
+		// given
+		String nickname = "일개미1234";
+		// when & then
+		assertDoesNotThrow(() -> memberService.checkNickname(nickname));
+	}
+
+	@DisplayName("사용자는 닉네임이 중복되어 에러를 받는다")
+	@Test
+	void checkNickname_whenDuplicatedNickname_thenThrow400Error() {
+		// given
+		memberRepository.save(createMember("일개미1234"));
+		String nickname = "일개미1234";
+
+		// when
+		Throwable throwable = catchThrowable(() -> memberService.checkNickname(nickname));
+
+		// then
+		assertThat(throwable)
+			.isInstanceOf(BadRequestException.class)
+			.hasMessage(MemberErrorCode.REDUNDANT_NICKNAME.getMessage());
+	}
+
+	@DisplayName("사용자는 이메일이 중복되었는지 검사한다")
+	@Test
+	void checkEmail() {
+		// given
+		String email = "dragonbead95@naver.com";
+		// when & then
+		assertDoesNotThrow(() -> memberService.checkEmail(email));
+	}
+
+	@DisplayName("사용자는 이메일 중복 검사 요청시 로컬 이메일이 존재하여 예외가 발생한다")
+	@Test
+	void checkEmail_whenDuplicatedLocalEmail_thenThrowBadRequestException() {
+		// given
+		Member member = memberRepository.save(createMember());
+		String email = member.getEmail();
+
+		// when
+		Throwable throwable = catchThrowable(() -> memberService.checkEmail(email));
+
+		// then
+		assertThat(throwable)
+			.isInstanceOf(BadRequestException.class)
+			.hasMessage(MemberErrorCode.REDUNDANT_EMAIL.getMessage());
+	}
+
+	@DisplayName("사용자는 이메일에 대한 검증 코드를 이메일로 전송받는다")
+	@Test
+	void sendVerifyCode() {
+		// given
+		given(verifyCodeGenerator.generate()).willReturn("123456");
+
+		VerifyEmailRequest request = ObjectMapperUtil.deserialize(
+			ObjectMapperUtil.serialize(Map.of("email", "dragonbead95@naver.com")),
+			VerifyEmailRequest.class);
+
+		// when
+		memberService.sendVerifyCode(request);
+
+		// then
+		verify(redisService, times(1))
+			.saveEmailVerifCode("dragonbead95@naver.com", "123456");
+		verify(mailService, times(1))
+			.sendEmail("dragonbead95@naver.com", "Finants 회원가입 인증 코드", "인증코드를 회원가입 페이지에 입력해주세요: 123456");
+	}
+
+	@DisplayName("사용자는 검증코드를 제출하여 검증코드가 일치하는지 검사한다")
+	@Test
+	void checkVerifyCode() {
+		// given
+		given(redisService.get("dragonbead95@naver.com"))
+			.willReturn(Optional.of("123456"));
+
+		VerifyCodeRequest request = ObjectMapperUtil.deserialize(
+			ObjectMapperUtil.serialize(Map.of("email", "dragonbead95@naver.com", "code", "123456")),
+			VerifyCodeRequest.class);
+
+		// when & then
+		assertDoesNotThrow(() -> memberService.checkVerifyCode(request));
+	}
+
+	@DisplayName("사용자는 매치되지 않은 검증 코드를 전달하며 검사를 요청했을때 예외가 발생한다")
+	@Test
+	void checkVerifyCode_whenNotMatchVerifyCode_thenThrowException() {
+		// given
+		given(redisService.get("dragonbead95@naver.com"))
+			.willReturn(Optional.of("123456"));
+
+		VerifyCodeRequest request = ObjectMapperUtil.deserialize(
+			ObjectMapperUtil.serialize(Map.of("email", "dragonbead95@naver.com", "code", "234567")),
+			VerifyCodeRequest.class);
+
+		// when
+		Throwable throwable = catchThrowable(() -> memberService.checkVerifyCode(request));
+
+		// then
+		assertThat(throwable)
+			.isInstanceOf(BadRequestException.class)
+			.hasMessage(MemberErrorCode.VERIFICATION_CODE_CHECK_FAIL.getMessage());
+	}
+  
 	private AuthorizationRequest createAuthorizationRequest(String state) {
 		String codeVerifier = "1234";
 		String codeChallenge = "1234";

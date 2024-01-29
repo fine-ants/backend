@@ -1,5 +1,6 @@
 package codesquad.fineants.spring.api.member.service;
 
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.core.RedisTemplate;
@@ -17,8 +18,8 @@ public class OauthMemberRedisService {
 
 	private final RedisTemplate<String, String> redisTemplate;
 
-	public String get(String key) {
-		return redisTemplate.opsForValue().get(key);
+	public Optional<String> get(String key) {
+		return Optional.ofNullable(redisTemplate.opsForValue().get(key));
 	}
 
 	public void banToken(String token, long expiration) {

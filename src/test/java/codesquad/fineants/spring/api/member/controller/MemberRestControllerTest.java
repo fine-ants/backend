@@ -404,6 +404,131 @@ class MemberRestControllerTest {
 			.andExpect(jsonPath("message").value(equalTo("Required request part 'signupData' is not present")));
 	}
 
+	@DisplayName("사용자는 회원가입 과정중 닉네임이 중복되었는지 검사할 수 있다")
+	@Test
+	void nicknameDuplicationCheck() throws Exception {
+		// given
+		String nickname = "일개미1234";
+		// when & then
+		mockMvc.perform(get("/api/auth/signup/duplicationcheck/nickname/{nickname}", nickname))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("code").value(equalTo(200)))
+			.andExpect(jsonPath("status").value(equalTo("OK")))
+			.andExpect(jsonPath("message").value(equalTo("닉네임이 사용가능합니다")));
+	}
+
+	@DisplayName("사용자는 회원가입 과정중 닉네임이 중복되어 400 응답을 받는다")
+	@Test
+	void nicknameDuplicationCheck_whenDuplicatedNickname_thenResponse400Error() throws Exception {
+		// given
+		doThrow(new BadRequestException(MemberErrorCode.REDUNDANT_NICKNAME))
+			.when(memberService)
+			.checkNickname(anyString());
+		String nickname = "일개미1234";
+
+		// when & then
+		mockMvc.perform(get("/api/auth/signup/duplicationcheck/nickname/{nickname}", nickname))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("code").value(equalTo(400)))
+			.andExpect(jsonPath("status").value(equalTo("Bad Request")))
+			.andExpect(jsonPath("message").value(equalTo("닉네임이 중복되었습니다")));
+	}
+
+	@DisplayName("사용자는 로컬 이메일이 중복되었는지 검사한다")
+	@Test
+	void emailDuplicationCheck() throws Exception {
+		// given
+		String email = "dragonbead95@naver.com";
+
+		// when & then
+		mockMvc.perform(get("/api/auth/signup/duplicationcheck/email/{email}", email))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("code").value(equalTo(200)))
+			.andExpect(jsonPath("status").value(equalTo("OK")))
+			.andExpect(jsonPath("message").value(equalTo("이메일이 사용가능합니다")));
+	}
+
+	@DisplayName("사용자는 로컬 이메일이 중복되어 400 에러를 응답받는다")
+	@Test
+	void emailDuplicationCheck_whenDuplicatedEmail_thenResponse400Error() throws Exception {
+		// given
+		String email = "dragonbead95@naver.com";
+		doThrow(new BadRequestException(MemberErrorCode.REDUNDANT_EMAIL))
+			.when(memberService)
+			.checkEmail(anyString());
+
+		// when & then
+		mockMvc.perform(get("/api/auth/signup/duplicationcheck/email/{email}", email))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("code").value(equalTo(400)))
+			.andExpect(jsonPath("status").value(equalTo("Bad Request")))
+			.andExpect(jsonPath("message").value(equalTo("이메일이 중복되었습니다")));
+	}
+
+	@DisplayName("사용자는 이메일을 전달하고 이메일로 검증 코드를 받는다")
+	@Test
+	void sendVerifyCode() throws Exception {
+		// given
+		String body = ObjectMapperUtil.serialize(Map.of("email", "dragonbead95@naver.com"));
+
+		// when & then
+		mockMvc.perform(post("/api/auth/signup/verifyEmail")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(body))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("code").value(equalTo(200)))
+			.andExpect(jsonPath("status").value(equalTo("OK")))
+			.andExpect(jsonPath("message").value(equalTo("이메일로 검증 코드를 전송하였습니다")));
+	}
+
+	@DisplayName("사용자는 유효하지 않은 형식의 이메일을 가지고 검증 코드를 받을 수 없다")
+	@Test
+	void sendVerifyCode_whenInvalidEmail_thenResponse400Error() throws Exception {
+		// given
+		String body = ObjectMapperUtil.serialize(Map.of("email", ""));
+
+		// when & then
+		mockMvc.perform(post("/api/auth/signup/verifyEmail")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(body))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("code").value(equalTo(400)))
+			.andExpect(jsonPath("status").value(equalTo("Bad Request")))
+			.andExpect(jsonPath("message").value(equalTo("잘못된 입력형식입니다")));
+	}
+
+	@DisplayName("사용자는 검증코드를 제출하고 검증 완료 응답을 받는다")
+	@Test
+	void checkVerifyCode() throws Exception {
+		// given
+		String body = ObjectMapperUtil.serialize(Map.of("email", "dragonbead95@naver.com", "code", "123456"));
+
+		// when & then
+		mockMvc.perform(post("/api/auth/signup/verifyCode")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(body))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("code").value(equalTo(200)))
+			.andExpect(jsonPath("status").value(equalTo("OK")))
+			.andExpect(jsonPath("message").value(equalTo("일치하는 인증번호 입니다")));
+	}
+
+	@DisplayName("사용자는 유효하지 않은 이메일과 검증코드를 제출하고 에러 응답을 받는다")
+	@Test
+	void checkVerifyCode_whenInvalidEmailAndCode_thenResponse400Error() throws Exception {
+		// given
+		String body = ObjectMapperUtil.serialize(Map.of("email", "", "code", ""));
+
+		// when & then
+		mockMvc.perform(post("/api/auth/signup/verifyCode")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(body))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("code").value(equalTo(400)))
+			.andExpect(jsonPath("status").value(equalTo("Bad Request")))
+			.andExpect(jsonPath("message").value(equalTo("잘못된 입력형식입니다")));
+	}
+	
 	private Member createMember() {
 		return createMember("일개미1234");
 	}
