@@ -404,6 +404,36 @@ class MemberRestControllerTest {
 			.andExpect(jsonPath("message").value(equalTo("Required request part 'signupData' is not present")));
 	}
 
+	@DisplayName("사용자는 회원가입 과정중 닉네임이 중복되었는지 검사할 수 있다")
+	@Test
+	void nicknameDuplicationCheck() throws Exception {
+		// given
+		String nickname = "일개미1234";
+		// when & then
+		mockMvc.perform(get("/api/auth/signup/duplicationcheck/nickname/{nickname}", nickname))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("code").value(equalTo(200)))
+			.andExpect(jsonPath("status").value(equalTo("OK")))
+			.andExpect(jsonPath("message").value(equalTo("닉네임이 사용가능합니다")));
+	}
+
+	@DisplayName("사용자는 회원가입 과정중 닉네임이 중복되어 400 응답을 받는다")
+	@Test
+	void nicknameDuplicationCheck_whenDuplicatedNickname_thenResponse400Error() throws Exception {
+		// given
+		doThrow(new BadRequestException(MemberErrorCode.REDUNDANT_NICKNAME))
+			.when(memberService)
+			.checkNickname(anyString());
+		String nickname = "일개미1234";
+
+		// when & then
+		mockMvc.perform(get("/api/auth/signup/duplicationcheck/nickname/{nickname}", nickname))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("code").value(equalTo(400)))
+			.andExpect(jsonPath("status").value(equalTo("Bad Request")))
+			.andExpect(jsonPath("message").value(equalTo("닉네임이 중복되었습니다")));
+	}
+
 	private Member createMember() {
 		return createMember("일개미1234");
 	}
