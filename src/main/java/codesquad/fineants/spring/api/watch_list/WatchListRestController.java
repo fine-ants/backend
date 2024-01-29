@@ -23,6 +23,7 @@ import codesquad.fineants.spring.api.watch_list.request.DeleteWatchStocksRequest
 import codesquad.fineants.spring.api.watch_list.response.CreateWatchListResponse;
 import codesquad.fineants.spring.api.watch_list.response.ReadWatchListResponse;
 import codesquad.fineants.spring.api.watch_list.response.ReadWatchListsResponse;
+import codesquad.fineants.spring.api.watch_list.response.WatchListHasStockResponse;
 import lombok.RequiredArgsConstructor;
 
 @RequestMapping("/api/watchlists")
@@ -84,5 +85,12 @@ public class WatchListRestController {
 		@PathVariable("watchlistId") Long watchListId, @PathVariable("tickerSymbol") String tickerSymbol) {
 		watchListService.deleteWatchStock(authMember, watchListId, tickerSymbol);
 		return ApiResponse.success(WatchListSuccessCode.DELETED_WATCH_STOCK);
+	}
+
+	@GetMapping("/has-stock/{tickerSymbol}")
+	public ApiResponse<List<WatchListHasStockResponse>> watchListHasStock(@AuthPrincipalMember AuthMember authMember,
+		@PathVariable("tickerSymbol") String tickerSymbol) {
+		return ApiResponse.success(WatchListSuccessCode.HAS_STOCK,
+			watchListService.hasStock(authMember, tickerSymbol));
 	}
 }

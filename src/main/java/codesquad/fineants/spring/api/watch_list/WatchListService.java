@@ -1,5 +1,6 @@
 package codesquad.fineants.spring.api.watch_list;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -29,6 +30,7 @@ import codesquad.fineants.spring.api.watch_list.request.DeleteWatchStocksRequest
 import codesquad.fineants.spring.api.watch_list.response.CreateWatchListResponse;
 import codesquad.fineants.spring.api.watch_list.response.ReadWatchListResponse;
 import codesquad.fineants.spring.api.watch_list.response.ReadWatchListsResponse;
+import codesquad.fineants.spring.api.watch_list.response.WatchListHasStockResponse;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -135,6 +137,12 @@ public class WatchListService {
 		validateWatchListAuthorization(member.getId(), watchList.getMember().getId());
 
 		watchList.change(request.getName());
+	}
+
+	@Transactional(readOnly = true)
+	public List<WatchListHasStockResponse> hasStock(AuthMember authMember, String tickerSymbol) {
+		Member member = findMember(authMember.getMemberId());
+		return watchListRepository.findWatchListsAndStockPresenceByMemberAndTickerSymbol(member, tickerSymbol);
 	}
 
 	private Member findMember(Long memberId) {
