@@ -434,6 +434,37 @@ class MemberRestControllerTest {
 			.andExpect(jsonPath("message").value(equalTo("닉네임이 중복되었습니다")));
 	}
 
+	@DisplayName("사용자는 로컬 이메일이 중복되었는지 검사한다")
+	@Test
+	void emailDuplicationCheck() throws Exception {
+		// given
+		String email = "dragonbead95@naver.com";
+
+		// when & then
+		mockMvc.perform(get("/api/auth/signup/duplicationcheck/email/{email}", email))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("code").value(equalTo(200)))
+			.andExpect(jsonPath("status").value(equalTo("OK")))
+			.andExpect(jsonPath("message").value(equalTo("이메일이 사용가능합니다")));
+	}
+
+	@DisplayName("사용자는 로컬 이메일이 중복되어 400 에러를 응답받는다")
+	@Test
+	void emailDuplicationCheck_whenDuplicatedEmail_thenResponse400Error() throws Exception {
+		// given
+		String email = "dragonbead95@naver.com";
+		doThrow(new BadRequestException(MemberErrorCode.REDUNDANT_EMAIL))
+			.when(memberService)
+			.checkEmail(anyString());
+
+		// when & then
+		mockMvc.perform(get("/api/auth/signup/duplicationcheck/email/{email}", email))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("code").value(equalTo(400)))
+			.andExpect(jsonPath("status").value(equalTo("Bad Request")))
+			.andExpect(jsonPath("message").value(equalTo("이메일이 중복되었습니다")));
+	}
+
 	private Member createMember() {
 		return createMember("일개미1234");
 	}
