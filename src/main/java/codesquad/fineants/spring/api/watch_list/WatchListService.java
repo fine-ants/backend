@@ -1,6 +1,5 @@
 package codesquad.fineants.spring.api.watch_list;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
