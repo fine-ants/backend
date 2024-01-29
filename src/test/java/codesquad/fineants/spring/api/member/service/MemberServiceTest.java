@@ -377,6 +377,31 @@ public class MemberServiceTest {
 			.hasMessage(MemberErrorCode.PROFILE_IMAGE_UPLOAD_FAIL.getMessage());
 	}
 
+	@DisplayName("사용자는 닉네임이 중복되었는지 체크한다")
+	@Test
+	void checkNickname() {
+		// given
+		String nickname = "일개미1234";
+		// when & then
+		assertDoesNotThrow(() -> memberService.checkNickname(nickname));
+	}
+
+	@DisplayName("사용자는 닉네임이 중복되어 에러를 받는다")
+	@Test
+	void checkNickname_whenDuplicatedNickname_thenThrow400Error() {
+		// given
+		memberRepository.save(createMember("일개미1234"));
+		String nickname = "일개미1234";
+
+		// when
+		Throwable throwable = catchThrowable(() -> memberService.checkNickname(nickname));
+
+		// then
+		assertThat(throwable)
+			.isInstanceOf(BadRequestException.class)
+			.hasMessage("닉네임이 중복되었습니다");
+	}
+
 	private AuthorizationRequest createAuthorizationRequest(String state) {
 		String codeVerifier = "1234";
 		String codeChallenge = "1234";
