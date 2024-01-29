@@ -47,12 +47,14 @@ import codesquad.fineants.spring.api.member.request.AuthorizationRequest;
 import codesquad.fineants.spring.api.member.request.OauthMemberLoginRequest;
 import codesquad.fineants.spring.api.member.request.ProfileChangeRequest;
 import codesquad.fineants.spring.api.member.request.SignUpRequest;
+import codesquad.fineants.spring.api.member.request.VerifyEmailRequest;
 import codesquad.fineants.spring.api.member.response.OauthMemberLoginResponse;
 import codesquad.fineants.spring.api.member.response.OauthUserProfile;
 import codesquad.fineants.spring.api.member.response.ProfileChangeResponse;
 import codesquad.fineants.spring.api.member.service.request.ProfileChangeServiceRequest;
 import codesquad.fineants.spring.api.member.service.request.SignUpServiceRequest;
 import codesquad.fineants.spring.api.member.service.response.SignUpServiceResponse;
+import codesquad.fineants.spring.api.portfolio_notification.MailService;
 import codesquad.fineants.spring.util.ObjectMapperUtil;
 
 @ActiveProfiles("test")
@@ -76,6 +78,15 @@ public class MemberServiceTest {
 
 	@MockBean
 	private AmazonS3Service amazonS3Service;
+
+	@MockBean
+	private MailService mailService;
+
+	@MockBean
+	private OauthMemberRedisService redisService;
+
+	@MockBean
+	private VerifyCodeGenerator verifyCodeGenerator;
 
 	@AfterEach
 	void tearDown() {
@@ -427,6 +438,26 @@ public class MemberServiceTest {
 			.hasMessage(MemberErrorCode.REDUNDANT_EMAIL.getMessage());
 	}
 
+	@DisplayName("사용자는 이메일에 대한 검증 코드를 이메일로 전송받는다")
+	@Test
+	void sendVerifyCode() {
+		// given
+		given(verifyCodeGenerator.generate()).willReturn("123456");
+
+		VerifyEmailRequest request = ObjectMapperUtil.deserialize(
+			ObjectMapperUtil.serialize(Map.of("email", "dragonbead95@naver.com")),
+			VerifyEmailRequest.class);
+
+		// when
+		memberService.sendVerifyCode(request);
+
+		// then
+		verify(redisService, times(1))
+			.saveEmailVerifCode("dragonbead95@naver.com", "123456");
+		verify(mailService, times(1))
+			.sendEmail("dragonbead95@naver.com", "Finants 회원가입 인증 코드", "인증코드를 회원가입 페이지에 입력해주세요: 123456");
+	}
+	
 	private AuthorizationRequest createAuthorizationRequest(String state) {
 		String codeVerifier = "1234";
 		String codeChallenge = "1234";
