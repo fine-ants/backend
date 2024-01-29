@@ -16,10 +16,14 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentMatchers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
@@ -55,6 +59,8 @@ import codesquad.fineants.spring.api.member.response.ProfileChangeResponse;
 import codesquad.fineants.spring.api.member.service.MemberService;
 import codesquad.fineants.spring.api.member.service.WebClientWrapper;
 import codesquad.fineants.spring.api.member.service.request.ProfileChangeServiceRequest;
+import codesquad.fineants.spring.api.member.service.request.SignUpServiceRequest;
+import codesquad.fineants.spring.api.member.service.response.SignUpServiceResponse;
 import codesquad.fineants.spring.config.JpaAuditingConfiguration;
 import codesquad.fineants.spring.config.OauthConfig;
 import codesquad.fineants.spring.util.ObjectMapperUtil;
@@ -212,6 +218,192 @@ class MemberRestControllerTest {
 			.andExpect(jsonPath("message").value(equalTo("변경할 회원 정보가 없습니다")));
 	}
 
+	@DisplayName("사용자는 일반 회원가입을 한다")
+	@Test
+	void signup() throws Exception {
+		// given
+		given(memberService.signup(any(SignUpServiceRequest.class)))
+			.willReturn(SignUpServiceResponse.from(createMember()));
+
+		Map<String, Object> profileInformationMap = Map.of(
+			"nickname", "일개미1234",
+			"email", "dragonbead95@naver.com",
+			"password", "nemo1234@",
+			"passwordConfirm", "nemo1234@");
+		String json = ObjectMapperUtil.serialize(profileInformationMap);
+		MockMultipartFile signupData = new MockMultipartFile(
+			"signupData",
+			"signupData",
+			MediaType.APPLICATION_JSON_VALUE,
+			json.getBytes(StandardCharsets.UTF_8));
+
+		// when & then
+		mockMvc.perform(multipart(POST, "/api/auth/signup")
+				.file((MockMultipartFile)createMockMultipartFile())
+				.file(signupData))
+			.andExpect(status().isCreated())
+			.andExpect(jsonPath("code").value(equalTo(201)))
+			.andExpect(jsonPath("status").value(equalTo("Created")))
+			.andExpect(jsonPath("message").value(equalTo("회원가입이 완료되었습니다")));
+	}
+
+	@DisplayName("사용자는 프로필을 건너뛰고 회원가입 할 수 있다")
+	@Test
+	void signup_whenSkipProfileImageFile_then200OK() throws Exception {
+		// given
+		given(memberService.signup(any(SignUpServiceRequest.class)))
+			.willReturn(SignUpServiceResponse.from(createMember()));
+
+		Map<String, Object> profileInformationMap = Map.of(
+			"nickname", "일개미1234",
+			"email", "dragonbead95@naver.com",
+			"password", "nemo1234@",
+			"passwordConfirm", "nemo1234@");
+		String json = ObjectMapperUtil.serialize(profileInformationMap);
+		MockMultipartFile signupData = new MockMultipartFile(
+			"signupData",
+			"signupData",
+			MediaType.APPLICATION_JSON_VALUE,
+			json.getBytes(StandardCharsets.UTF_8));
+
+		// when & then
+		mockMvc.perform(multipart(POST, "/api/auth/signup")
+				.file(signupData))
+			.andExpect(status().isCreated())
+			.andExpect(jsonPath("code").value(equalTo(201)))
+			.andExpect(jsonPath("status").value(equalTo("Created")))
+			.andExpect(jsonPath("message").value(equalTo("회원가입이 완료되었습니다")));
+	}
+
+	@DisplayName("사용자는 유효하지 않은 회원가입 데이터로 요청시 400 에러를 응답받는다")
+	@MethodSource(value = "invalidSignupData")
+	@ParameterizedTest
+	void signup_whenInvalidSignupData_thenResponse400Error(String nickname, String email, String password,
+		String passwordConfirm) throws Exception {
+		// given
+		Map<String, Object> profileInformationMap = Map.of(
+			"nickname", nickname,
+			"email", email,
+			"password", password,
+			"passwordConfirm", passwordConfirm);
+		String json = ObjectMapperUtil.serialize(profileInformationMap);
+		MockMultipartFile signupData = new MockMultipartFile(
+			"signupData",
+			"signupData",
+			MediaType.APPLICATION_JSON_VALUE,
+			json.getBytes(StandardCharsets.UTF_8));
+
+		// when & then
+		mockMvc.perform(multipart(POST, "/api/auth/signup")
+				.file((MockMultipartFile)createMockMultipartFile())
+				.file(signupData))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("code").value(equalTo(400)))
+			.andExpect(jsonPath("status").value(equalTo("Bad Request")))
+			.andExpect(jsonPath("message").value(equalTo("잘못된 입력형식입니다")));
+	}
+
+	@DisplayName("사용자는 중복된 닉네임으로는 회원가입 할 수 없다")
+	@Test
+	void signup_whenDuplicatedNickname_thenResponse400Error() throws Exception {
+		// given
+		given(memberService.signup(any(SignUpServiceRequest.class)))
+			.willThrow(new BadRequestException(MemberErrorCode.REDUNDANT_NICKNAME));
+
+		Map<String, Object> profileInformationMap = Map.of(
+			"nickname", "일개미1234",
+			"email", "dragonbead95@naver.com",
+			"password", "nemo1234@",
+			"passwordConfirm", "nemo1234@");
+		String json = ObjectMapperUtil.serialize(profileInformationMap);
+		MockMultipartFile signupData = new MockMultipartFile(
+			"signupData",
+			"signupData",
+			MediaType.APPLICATION_JSON_VALUE,
+			json.getBytes(StandardCharsets.UTF_8));
+
+		// when & then
+		mockMvc.perform(multipart(POST, "/api/auth/signup")
+				.file((MockMultipartFile)createMockMultipartFile())
+				.file(signupData))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("code").value(equalTo(400)))
+			.andExpect(jsonPath("status").value(equalTo("Bad Request")))
+			.andExpect(jsonPath("message").value(equalTo("닉네임이 중복되었습니다")));
+	}
+
+	@DisplayName("사용자는 중복된 이메일로는 회원가입 할 수 없다")
+	@Test
+	void signup_whenDuplicatedEmail_thenResponse400Error() throws Exception {
+		// given
+		given(memberService.signup(any(SignUpServiceRequest.class)))
+			.willThrow(new BadRequestException(MemberErrorCode.REDUNDANT_EMAIL));
+
+		Map<String, Object> profileInformationMap = Map.of(
+			"nickname", "일개미1234",
+			"email", "dragonbead95@naver.com",
+			"password", "nemo1234@",
+			"passwordConfirm", "nemo1234@");
+		String json = ObjectMapperUtil.serialize(profileInformationMap);
+		MockMultipartFile signupData = new MockMultipartFile(
+			"signupData",
+			"signupData",
+			MediaType.APPLICATION_JSON_VALUE,
+			json.getBytes(StandardCharsets.UTF_8));
+
+		// when & then
+		mockMvc.perform(multipart(POST, "/api/auth/signup")
+				.file((MockMultipartFile)createMockMultipartFile())
+				.file(signupData))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("code").value(equalTo(400)))
+			.andExpect(jsonPath("status").value(equalTo("Bad Request")))
+			.andExpect(jsonPath("message").value(equalTo("이메일이 중복되었습니다")));
+	}
+
+	@DisplayName("사용자는 비밀번호가 불일치하여 회원가입 할 수 없다")
+	@Test
+	void signup_whenNotMatchPasswordAndPasswordConfirm_thenResponse400Error() throws Exception {
+		// given
+		given(memberService.signup(any(SignUpServiceRequest.class)))
+			.willThrow(new BadRequestException(MemberErrorCode.PASSWORD_CHECK_FAIL));
+
+		Map<String, Object> profileInformationMap = Map.of(
+			"nickname", "일개미1234",
+			"email", "dragonbead95@naver.com",
+			"password", "nemo1234@",
+			"passwordConfirm", "nemo1234@");
+		String json = ObjectMapperUtil.serialize(profileInformationMap);
+		MockMultipartFile signupData = new MockMultipartFile(
+			"signupData",
+			"signupData",
+			MediaType.APPLICATION_JSON_VALUE,
+			json.getBytes(StandardCharsets.UTF_8));
+
+		// when & then
+		mockMvc.perform(multipart(POST, "/api/auth/signup")
+				.file((MockMultipartFile)createMockMultipartFile())
+				.file(signupData))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("code").value(equalTo(400)))
+			.andExpect(jsonPath("status").value(equalTo("Bad Request")))
+			.andExpect(jsonPath("message").value(equalTo("비밀번호가 일치하지 않습니다")));
+	}
+
+	@DisplayName("사용자는 signupData 필드 없이 회원가입 할 수 없다")
+	@Test
+	void signup_whenNotExistSignupDataField_thenResponse400Error() throws Exception {
+		// given
+
+		// when & then
+		mockMvc.perform(multipart(POST, "/api/auth/signup")
+				.file((MockMultipartFile)createMockMultipartFile()))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("code").value(equalTo(400)))
+			.andExpect(jsonPath("status").value(equalTo("Bad Request")))
+			.andExpect(jsonPath("message").value(equalTo("Required request part 'signupData' is not present")));
+	}
+
 	private Member createMember() {
 		return createMember("일개미1234");
 	}
@@ -242,5 +434,12 @@ class MemberRestControllerTest {
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	public static Stream<Arguments> invalidSignupData() {
+		return Stream.of(
+			Arguments.of("", "", "", ""),
+			Arguments.of("a", "a", "a", "a")
+		);
 	}
 }

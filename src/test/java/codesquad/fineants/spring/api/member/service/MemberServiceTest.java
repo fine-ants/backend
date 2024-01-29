@@ -37,6 +37,8 @@ import codesquad.fineants.domain.oauth.client.AuthorizationCodeRandomGenerator;
 import codesquad.fineants.domain.oauth.client.OauthClient;
 import codesquad.fineants.domain.oauth.repository.OauthClientRepository;
 import codesquad.fineants.domain.oauth.support.AuthMember;
+import codesquad.fineants.spring.api.S3.service.AmazonS3Service;
+import codesquad.fineants.spring.api.errors.errorcode.MemberErrorCode;
 import codesquad.fineants.spring.api.errors.errorcode.OauthErrorCode;
 import codesquad.fineants.spring.api.errors.exception.BadRequestException;
 import codesquad.fineants.spring.api.errors.exception.FineAntsException;
@@ -44,10 +46,13 @@ import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
 import codesquad.fineants.spring.api.member.request.AuthorizationRequest;
 import codesquad.fineants.spring.api.member.request.OauthMemberLoginRequest;
 import codesquad.fineants.spring.api.member.request.ProfileChangeRequest;
+import codesquad.fineants.spring.api.member.request.SignUpRequest;
 import codesquad.fineants.spring.api.member.response.OauthMemberLoginResponse;
 import codesquad.fineants.spring.api.member.response.OauthUserProfile;
 import codesquad.fineants.spring.api.member.response.ProfileChangeResponse;
 import codesquad.fineants.spring.api.member.service.request.ProfileChangeServiceRequest;
+import codesquad.fineants.spring.api.member.service.request.SignUpServiceRequest;
+import codesquad.fineants.spring.api.member.service.response.SignUpServiceResponse;
 import codesquad.fineants.spring.util.ObjectMapperUtil;
 
 @ActiveProfiles("test")
@@ -68,6 +73,9 @@ public class MemberServiceTest {
 
 	@MockBean
 	private OauthClient oauthClient;
+
+	@MockBean
+	private AmazonS3Service amazonS3Service;
 
 	@AfterEach
 	void tearDown() {
@@ -259,6 +267,116 @@ public class MemberServiceTest {
 			.hasMessage("닉네임이 중복되었습니다");
 	}
 
+	@DisplayName("사용자는 일반 회원가입한다")
+	@MethodSource(value = "signupMethodSource")
+	@ParameterizedTest
+	void signup(SignUpRequest request, MultipartFile profileImageFile, String expectedProfileUrl) {
+		// given
+		given(amazonS3Service.upload(any(MultipartFile.class)))
+			.willReturn("profileUrl");
+		SignUpServiceRequest serviceRequest = SignUpServiceRequest.of(request, profileImageFile);
+
+		// when
+		SignUpServiceResponse response = memberService.signup(serviceRequest);
+
+		// then
+		assertThat(response)
+			.extracting("nickname", "email", "profileUrl", "provider")
+			.containsExactlyInAnyOrder("일개미1234", "dragonbead95@naver.com", expectedProfileUrl, "local");
+	}
+
+	@DisplayName("사용자는 닉네임이 중복되어 회원가입 할 수 없다")
+	@Test
+	void signup_whenDuplicatedNickname_thenResponse400Error() {
+		// given
+		String duplicatedNickname = "일개미1234";
+		memberRepository.save(createMember(duplicatedNickname));
+		SignUpRequest request = new SignUpRequest(
+			duplicatedNickname,
+			"nemo1234@naver.com",
+			"nemo1234@",
+			"nemo1234@"
+		);
+		SignUpServiceRequest serviceRequest = SignUpServiceRequest.of(request, createMockMultipartFile());
+
+		// when
+		Throwable throwable = catchThrowable(() -> memberService.signup(serviceRequest));
+
+		// then
+		assertThat(throwable)
+			.isInstanceOf(BadRequestException.class)
+			.hasMessage(MemberErrorCode.REDUNDANT_NICKNAME.getMessage());
+	}
+
+	@DisplayName("사용자는 이메일이 중복되어 회원가입 할 수 없다")
+	@Test
+	void signup_whenDuplicatedEmail_thenResponse400Error() {
+		// given
+		String duplicatedEmail = "dragonbead95@naver.com";
+		memberRepository.save(createMember("일개미1234"));
+		SignUpRequest request = new SignUpRequest(
+			"일개미4567",
+			duplicatedEmail,
+			"nemo1234@",
+			"nemo1234@"
+		);
+		SignUpServiceRequest serviceRequest = SignUpServiceRequest.of(request, createMockMultipartFile());
+
+		// when
+		Throwable throwable = catchThrowable(() -> memberService.signup(serviceRequest));
+
+		// then
+		assertThat(throwable)
+			.isInstanceOf(BadRequestException.class)
+			.hasMessage(MemberErrorCode.REDUNDANT_EMAIL.getMessage());
+	}
+
+	@DisplayName("사용자는 비밀번호와 비밀번호 확인이 일치하지 않아 회원가입 할 수 없다")
+	@Test
+	void signup_whenNotMatchPasswordAndPasswordConfirm_thenResponse400Error() {
+		// given
+		memberRepository.save(createMember("일개미1234"));
+		SignUpRequest request = new SignUpRequest(
+			"일개미4567",
+			"nemo1234@naver.com",
+			"nemo1234@",
+			"nemo4567@"
+		);
+		SignUpServiceRequest serviceRequest = SignUpServiceRequest.of(request, createMockMultipartFile());
+
+		// when
+		Throwable throwable = catchThrowable(() -> memberService.signup(serviceRequest));
+
+		// then
+		assertThat(throwable)
+			.isInstanceOf(BadRequestException.class)
+			.hasMessage(MemberErrorCode.PASSWORD_CHECK_FAIL.getMessage());
+	}
+
+	@DisplayName("사용자는 프로필 이미지 사이즈를 초과하여 회원가입 할 수 없다")
+	@Test
+	void signup_whenOverProfileImageFile_thenResponse400Error() {
+		// given
+		given(amazonS3Service.upload(any(MultipartFile.class)))
+			.willThrow(new BadRequestException(MemberErrorCode.PROFILE_IMAGE_UPLOAD_FAIL));
+
+		SignUpRequest request = new SignUpRequest(
+			"일개미4567",
+			"nemo1234@naver.com",
+			"nemo1234@",
+			"nemo1234@"
+		);
+		SignUpServiceRequest serviceRequest = SignUpServiceRequest.of(request, createMockMultipartFile());
+
+		// when
+		Throwable throwable = catchThrowable(() -> memberService.signup(serviceRequest));
+
+		// then
+		assertThat(throwable)
+			.isInstanceOf(BadRequestException.class)
+			.hasMessage(MemberErrorCode.PROFILE_IMAGE_UPLOAD_FAIL.getMessage());
+	}
+
 	private AuthorizationRequest createAuthorizationRequest(String state) {
 		String codeVerifier = "1234";
 		String codeChallenge = "1234";
@@ -331,5 +449,19 @@ public class MemberServiceTest {
 	@NotNull
 	private static ProfileChangeRequest createProfileChangeRequest(String nickname) {
 		return new ProfileChangeRequest(nickname);
+	}
+
+	public static Stream<Arguments> signupMethodSource() {
+		SignUpRequest request = new SignUpRequest(
+			"일개미1234",
+			"dragonbead95@naver.com",
+			"nemo1234@",
+			"nemo1234@"
+		);
+		MultipartFile profileImageFile = createMockMultipartFile();
+		return Stream.of(
+			Arguments.of(request, profileImageFile, "profileUrl"),
+			Arguments.of(request, null, null)
+		);
 	}
 }
