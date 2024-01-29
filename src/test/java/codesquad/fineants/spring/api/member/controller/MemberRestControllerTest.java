@@ -497,6 +497,38 @@ class MemberRestControllerTest {
 			.andExpect(jsonPath("message").value(equalTo("잘못된 입력형식입니다")));
 	}
 
+	@DisplayName("사용자는 검증코드를 제출하고 검증 완료 응답을 받는다")
+	@Test
+	void checkVerifyCode() throws Exception {
+		// given
+		String body = ObjectMapperUtil.serialize(Map.of("email", "dragonbead95@naver.com", "code", "123456"));
+
+		// when & then
+		mockMvc.perform(post("/api/auth/signup/verifyCode")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(body))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("code").value(equalTo(200)))
+			.andExpect(jsonPath("status").value(equalTo("OK")))
+			.andExpect(jsonPath("message").value(equalTo("일치하는 인증번호 입니다")));
+	}
+
+	@DisplayName("사용자는 유효하지 않은 이메일과 검증코드를 제출하고 에러 응답을 받는다")
+	@Test
+	void checkVerifyCode_whenInvalidEmailAndCode_thenResponse400Error() throws Exception {
+		// given
+		String body = ObjectMapperUtil.serialize(Map.of("email", "", "code", ""));
+
+		// when & then
+		mockMvc.perform(post("/api/auth/signup/verifyCode")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(body))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("code").value(equalTo(400)))
+			.andExpect(jsonPath("status").value(equalTo("Bad Request")))
+			.andExpect(jsonPath("message").value(equalTo("잘못된 입력형식입니다")));
+	}
+	
 	private Member createMember() {
 		return createMember("일개미1234");
 	}
