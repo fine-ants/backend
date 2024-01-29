@@ -1,6 +1,7 @@
 package codesquad.fineants.spring.api.dashboard;
 
 import static org.assertj.core.api.AssertionsForClassTypes.*;
+import static org.mockito.BDDMockito.*;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -10,6 +11,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 
 import codesquad.fineants.domain.member.Member;
@@ -30,24 +32,27 @@ import codesquad.fineants.spring.api.dashboard.response.DashboardLineChartRespon
 import codesquad.fineants.spring.api.dashboard.response.DashboardPieChartResponse;
 import codesquad.fineants.spring.api.dashboard.response.OverviewResponse;
 import codesquad.fineants.spring.api.dashboard.service.DashboardService;
+import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 
 @ActiveProfiles("test")
 @SpringBootTest
 public class DashboardServiceTest {
 	@Autowired
-	MemberRepository memberRepository;
+	private MemberRepository memberRepository;
 	@Autowired
-	PortfolioRepository portfolioRepository;
+	private PortfolioRepository portfolioRepository;
 	@Autowired
-	DashboardService dashboardService;
+	private DashboardService dashboardService;
 	@Autowired
-	PurchaseHistoryRepository purchaseHistoryRepository;
+	private PurchaseHistoryRepository purchaseHistoryRepository;
 	@Autowired
-	PortfolioGainHistoryRepository portfolioGainHistoryRepository;
+	private PortfolioGainHistoryRepository portfolioGainHistoryRepository;
 	@Autowired
-	PortfolioHoldingRepository portfolioHoldingRepository;
+	private PortfolioHoldingRepository portfolioHoldingRepository;
 	@Autowired
-	StockRepository stockRepository;
+	private StockRepository stockRepository;
+	@MockBean
+	private CurrentPriceManager currentPriceManager;
 
 	@AfterEach
 	void tearDown() {
@@ -107,6 +112,10 @@ public class DashboardServiceTest {
 				.build()
 		);
 
+		given(currentPriceManager.hasCurrentPrice(anyString()))
+			.willReturn(true);
+		given(currentPriceManager.getCurrentPrice(anyString()))
+			.willReturn(60000L);
 		// when
 		OverviewResponse response = dashboardService.getOverview(authMember);
 
@@ -147,11 +156,13 @@ public class DashboardServiceTest {
 			.market(Market.KOSPI)
 			.build());
 
-		PortfolioHolding portfolioHolding = portfolioHoldingRepository.save(
-			PortfolioHolding.of(portfolio, stock, 100L));
-		PortfolioHolding portfolioHolding1 = portfolioHoldingRepository.save(
-			PortfolioHolding.of(portfolio1, stock, 100L));
+		portfolioHoldingRepository.save(PortfolioHolding.of(portfolio, stock, 100L));
+		portfolioHoldingRepository.save(PortfolioHolding.of(portfolio1, stock, 100L));
 
+		given(currentPriceManager.hasCurrentPrice(anyString()))
+			.willReturn(true);
+		given(currentPriceManager.getCurrentPrice(anyString()))
+			.willReturn(60000L);
 		// when
 		List<DashboardPieChartResponse> responses = dashboardService.getPieChart(authMember);
 
