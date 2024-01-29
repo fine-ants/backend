@@ -89,7 +89,6 @@ public class MemberServiceTest {
 
 	@MockBean
 	private VerifyCodeGenerator verifyCodeGenerator;
-
 	@AfterEach
 	void tearDown() {
 		memberRepository.deleteAllInBatch();
@@ -494,7 +493,7 @@ public class MemberServiceTest {
 			.isInstanceOf(BadRequestException.class)
 			.hasMessage(MemberErrorCode.VERIFICATION_CODE_CHECK_FAIL.getMessage());
 	}
-
+  
 	private AuthorizationRequest createAuthorizationRequest(String state) {
 		String codeVerifier = "1234";
 		String codeChallenge = "1234";

@@ -28,6 +28,7 @@ import codesquad.fineants.domain.purchase_history.PurchaseHistoryRepository;
 import codesquad.fineants.domain.stock.Market;
 import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.domain.stock.StockRepository;
+import codesquad.fineants.domain.stock_dividend.StockDividendRepository;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.portfolio_gain_history.response.PortfolioGainHistoryCreateResponse;
 
@@ -55,6 +56,9 @@ class PortfolioGainHistoryServiceTest {
 
 	@Autowired
 	private PurchaseHistoryRepository purchaseHistoryRepository;
+
+	@Autowired
+	private StockDividendRepository stockDividendRepository;
 
 	@MockBean
 	private CurrentPriceManager currentPriceManager;
@@ -102,6 +106,7 @@ class PortfolioGainHistoryServiceTest {
 		portFolioHoldingRepository.deleteAllInBatch();
 		portfolioRepository.deleteAllInBatch();
 		memberRepository.deleteAllInBatch();
+		stockDividendRepository.deleteAllInBatch();
 		stockRepository.deleteAllInBatch();
 	}
 
