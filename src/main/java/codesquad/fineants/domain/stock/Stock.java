@@ -129,6 +129,13 @@ public class Stock extends BaseEntity {
 		return result;
 	}
 
+	public long getAnnualDividend() {
+		return stockDividends.stream()
+			.filter(dividend -> dividend.isCurrentYearPaymentDate(LocalDate.now()))
+			.mapToLong(StockDividend::getDividend)
+			.sum();
+	}
+
 	public float getAnnualDividendYield(CurrentPriceManager manager) {
 		long dividends = stockDividends.stream()
 			.filter(dividend -> dividend.getPaymentDate().getYear() == LocalDate.now().getYear())
@@ -150,11 +157,28 @@ public class Stock extends BaseEntity {
 		return currentPrice - lastDayClosingPrice;
 	}
 
+	public Float getDailyChangeRate(CurrentPriceManager currentPriceManager,
+		LastDayClosingPriceManager lastDayClosingPriceManager) {
+		Long currentPrice = currentPriceManager.getCurrentPrice(tickerSymbol);
+		Long lastDayClosingPrice = lastDayClosingPriceManager.getPrice(tickerSymbol);
+		if (currentPrice == null || lastDayClosingPrice == null || lastDayClosingPrice == 0L) {
+			return null;
+		}
+		return ((currentPrice - lastDayClosingPrice) / (float)lastDayClosingPrice) * 100;
+	}
+
 	public Long getCurrentPrice(CurrentPriceManager manager) {
 		return manager.getCurrentPrice(tickerSymbol);
 	}
 
 	public Long getLastDayClosingPrice(LastDayClosingPriceManager manager) {
 		return manager.getPrice(tickerSymbol);
+	}
+
+	public List<Integer> getDividendMonths() {
+		return stockDividends.stream()
+			.filter(dividend -> dividend.isCurrentYearPaymentDate(LocalDate.now()))
+			.map(dividend -> dividend.getPaymentDate().getMonthValue())
+			.collect(Collectors.toList());
 	}
 }

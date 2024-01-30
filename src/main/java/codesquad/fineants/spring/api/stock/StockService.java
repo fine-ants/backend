@@ -18,10 +18,16 @@ import org.springframework.util.MultiValueMap;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHoldingRepository;
 import codesquad.fineants.domain.purchase_history.PurchaseHistoryRepository;
+import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.domain.stock.StockRepository;
 import codesquad.fineants.domain.stock_dividend.StockDividendRepository;
+import codesquad.fineants.spring.api.errors.errorcode.StockErrorCode;
+import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
+import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
+import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
 import codesquad.fineants.spring.api.member.service.WebClientWrapper;
 import codesquad.fineants.spring.api.stock.request.StockSearchRequest;
+import codesquad.fineants.spring.api.stock.response.StockResponse;
 import codesquad.fineants.spring.api.stock.response.StockDataResponse;
 import codesquad.fineants.spring.api.stock.response.StockSearchItem;
 import codesquad.fineants.spring.util.ObjectMapperUtil;
@@ -36,6 +42,8 @@ public class StockService {
 	private final PurchaseHistoryRepository purchaseHistoryRepository;
 	private final StockDividendRepository stockDividendRepository;
 	private final WebClientWrapper webClient;
+	private final CurrentPriceManager currentPriceManager;
+	private final LastDayClosingPriceManager lastDayClosingPriceManager;
 
 	public List<StockSearchItem> search(StockSearchRequest request) {
 		return stockRepository.search(request.getSearchTerm())
@@ -66,6 +74,13 @@ public class StockService {
 		StockFileUtil.convertToTsvFile(response);
 
 		System.out.println(0);
+	}
+
+	@Transactional(readOnly = true)
+	public StockResponse getStock(String tickerSymbol) {
+		Stock stock = stockRepository.findByTickerSymbol(tickerSymbol)
+			.orElseThrow(() -> new NotFoundResourceException(StockErrorCode.NOT_FOUND_STOCK));
+		return StockResponse.of(stock, currentPriceManager, lastDayClosingPriceManager);
 	}
 
 	private MultiValueMap<String, String> createBody() {
