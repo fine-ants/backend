@@ -29,7 +29,7 @@ public class StockRestController {
 	}
 
 	@GetMapping("/{tickerSymbol}")
-	public ApiResponse<GetStockResponse> getStock(@PathVariable("tickerSymbol") String tickerSymbol) {
+	public ApiResponse<GetStockResponse> getStock(@PathVariable String tickerSymbol) {
 		return ApiResponse.success(StockSuccessCode.GET_STOCK, stockService.getStock(tickerSymbol));
 	}
 }
