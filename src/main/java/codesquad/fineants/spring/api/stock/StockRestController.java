@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import codesquad.fineants.spring.api.response.ApiResponse;
 import codesquad.fineants.spring.api.stock.request.StockSearchRequest;
-import codesquad.fineants.spring.api.stock.response.GetStockResponse;
+import codesquad.fineants.spring.api.stock.response.StockResponse;
 import codesquad.fineants.spring.api.stock.response.StockSearchItem;
 import codesquad.fineants.spring.api.success.code.StockSuccessCode;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +29,7 @@ public class StockRestController {
 	}
 
 	@GetMapping("/{tickerSymbol}")
-	public ApiResponse<GetStockResponse> getStock(@PathVariable String tickerSymbol) {
+	public ApiResponse<StockResponse> getStock(@PathVariable String tickerSymbol) {
 		return ApiResponse.success(StockSuccessCode.GET_STOCK, stockService.getStock(tickerSymbol));
 	}
 }

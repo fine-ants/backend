@@ -11,7 +11,7 @@ import lombok.Getter;
 
 @Getter
 @Builder
-public class GetStockResponse {
+public class StockResponse {
 	private String stockCode;
 	private String tickerSymbol;
 	private String companyName;
@@ -25,9 +25,9 @@ public class GetStockResponse {
 	private Float annualDividendYield;
 	private List<Integer> dividendMonths;
 
-	public static GetStockResponse of(Stock stock, CurrentPriceManager currentPriceManager,
+	public static StockResponse of(Stock stock, CurrentPriceManager currentPriceManager,
 		LastDayClosingPriceManager lastDayClosingPriceManager) {
-		return GetStockResponse.builder()
+		return StockResponse.builder()
 			.stockCode(stock.getStockCode())
 			.tickerSymbol(stock.getTickerSymbol())
 			.companyName(stock.getCompanyName())

@@ -3,14 +3,11 @@ package codesquad.fineants.spring.api.stock;
 import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.*;
-import static org.mockito.Mockito.doNothing;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -26,13 +23,10 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import codesquad.fineants.domain.member.Member;
-import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.oauth.support.AuthPrincipalArgumentResolver;
 import codesquad.fineants.domain.stock.Market;
 import codesquad.fineants.spring.api.errors.handler.GlobalExceptionHandler;
-import codesquad.fineants.spring.api.stock.response.GetStockResponse;
-import codesquad.fineants.spring.api.watch_list.request.ChangeWatchListNameRequest;
+import codesquad.fineants.spring.api.stock.response.StockResponse;
 import codesquad.fineants.spring.config.JpaAuditingConfiguration;
 import codesquad.fineants.spring.config.SpringConfig;
 
@@ -73,7 +67,7 @@ public class StockRestControllerTest {
 	void getStock() throws Exception {
 		// given
 		String tickerSymbol = "006660";
-		GetStockResponse response = GetStockResponse.builder()
+		StockResponse response = StockResponse.builder()
 			.stockCode("KR7006660005")
 			.tickerSymbol("006660")
 			.companyName("삼성공조보통주")

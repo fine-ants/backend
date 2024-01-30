@@ -27,7 +27,7 @@ import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
 import codesquad.fineants.spring.api.member.service.WebClientWrapper;
 import codesquad.fineants.spring.api.stock.request.StockSearchRequest;
-import codesquad.fineants.spring.api.stock.response.GetStockResponse;
+import codesquad.fineants.spring.api.stock.response.StockResponse;
 import codesquad.fineants.spring.api.stock.response.StockDataResponse;
 import codesquad.fineants.spring.api.stock.response.StockSearchItem;
 import codesquad.fineants.spring.util.ObjectMapperUtil;
@@ -77,10 +77,10 @@ public class StockService {
 	}
 
 	@Transactional(readOnly = true)
-	public GetStockResponse getStock(String tickerSymbol) {
+	public StockResponse getStock(String tickerSymbol) {
 		Stock stock = stockRepository.findByTickerSymbol(tickerSymbol)
 			.orElseThrow(() -> new NotFoundResourceException(StockErrorCode.NOT_FOUND_STOCK));
-		return GetStockResponse.of(stock, currentPriceManager, lastDayClosingPriceManager);
+		return StockResponse.of(stock, currentPriceManager, lastDayClosingPriceManager);
 	}
 
 	private MultiValueMap<String, String> createBody() {
