@@ -2,6 +2,8 @@ package codesquad.fineants.spring.api.stock;
 
 import java.util.List;
 
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -9,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import codesquad.fineants.spring.api.response.ApiResponse;
 import codesquad.fineants.spring.api.stock.request.StockSearchRequest;
+import codesquad.fineants.spring.api.stock.response.GetStockResponse;
 import codesquad.fineants.spring.api.stock.response.StockSearchItem;
 import codesquad.fineants.spring.api.success.code.StockSuccessCode;
 import lombok.RequiredArgsConstructor;
@@ -23,5 +26,10 @@ public class StockRestController {
 	@PostMapping("/search")
 	public ApiResponse<List<StockSearchItem>> search(@RequestBody final StockSearchRequest request) {
 		return ApiResponse.success(StockSuccessCode.OK_SEARCH_STOCKS, stockService.search(request));
+	}
+
+	@GetMapping("/{tickerSymbol}")
+	public ApiResponse<GetStockResponse> getStock(@PathVariable("tickerSymbol") String tickerSymbol) {
+		return ApiResponse.success(StockSuccessCode.GET_STOCK, stockService.getStock(tickerSymbol));
 	}
 }
