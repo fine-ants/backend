@@ -387,7 +387,7 @@ class WatchListRestControllerTest {
 		given(watchListService.hasStock(any(AuthMember.class), any(String.class))).willReturn(response);
 
 		// when & then
-		mockMvc.perform(get("/api/watchlists/has-stock/" + tickerSymbol)
+		mockMvc.perform(get("/api/watchlists/stockExists/" + tickerSymbol)
 				.contentType(MediaType.APPLICATION_JSON))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("code").value(equalTo(200)))

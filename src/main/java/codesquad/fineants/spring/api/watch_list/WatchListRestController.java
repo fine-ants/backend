@@ -87,7 +87,7 @@ public class WatchListRestController {
 		return ApiResponse.success(WatchListSuccessCode.DELETED_WATCH_STOCK);
 	}
 
-	@GetMapping("/has-stock/{tickerSymbol}")
+	@GetMapping("/stockExists/{tickerSymbol}")
 	public ApiResponse<List<WatchListHasStockResponse>> watchListHasStock(@AuthPrincipalMember AuthMember authMember,
 		@PathVariable("tickerSymbol") String tickerSymbol) {
 		return ApiResponse.success(WatchListSuccessCode.HAS_STOCK,
