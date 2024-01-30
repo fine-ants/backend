@@ -10,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 public enum StockSuccessCode implements SuccessCode {
 	OK_SEARCH_STOCKS(HttpStatus.OK, "종목 검색이 완료되었습니다"),
 	OK_SEARCH_DETAIL_STOCK(HttpStatus.OK, "종목 상세정보 조회가 완료되었습니다");
-``
 
 	private final HttpStatus httpStatus;
 	private final String message;
