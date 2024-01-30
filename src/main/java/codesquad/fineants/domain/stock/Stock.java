@@ -131,7 +131,7 @@ public class Stock extends BaseEntity {
 
 	public long getAnnualDividend() {
 		return stockDividends.stream()
-			.filter(dividend -> dividend.getPaymentDate().getYear() == LocalDate.now().getYear())
+			.filter(dividend -> dividend.isCurrentYearPaymentDate(LocalDate.now().getYear()))
 			.mapToLong(StockDividend::getDividend)
 			.sum();
 	}
