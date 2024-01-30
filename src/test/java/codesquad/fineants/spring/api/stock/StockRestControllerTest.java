@@ -90,7 +90,7 @@ public class StockRestControllerTest {
 		given(stockService.getStock(any(String.class))).willReturn(response);
 
 		// when & then
-		mockMvc.perform(get("/api/stocks/" + tickerSymbol)
+		mockMvc.perform(get("/api/stocks/{tickerSymbol}", tickerSymbol)
 				.contentType(MediaType.APPLICATION_JSON))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("code").value(equalTo(200)))
