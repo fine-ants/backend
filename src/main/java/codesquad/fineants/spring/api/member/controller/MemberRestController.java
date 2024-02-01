@@ -37,6 +37,7 @@ import codesquad.fineants.spring.api.member.response.OauthMemberLoginResponse;
 import codesquad.fineants.spring.api.member.response.OauthMemberRefreshResponse;
 import codesquad.fineants.spring.api.member.response.OauthSaveUrlResponse;
 import codesquad.fineants.spring.api.member.response.ProfileChangeResponse;
+import codesquad.fineants.spring.api.member.response.ProfileResponse;
 import codesquad.fineants.spring.api.member.service.MemberService;
 import codesquad.fineants.spring.api.member.service.request.ProfileChangeServiceRequest;
 import codesquad.fineants.spring.api.member.service.request.SignUpServiceRequest;
@@ -134,6 +135,13 @@ public class MemberRestController {
 			request, authMember);
 		return ApiResponse.success(MemberSuccessCode.OK_MODIFIED_PROFILE,
 			memberService.changeProfile(serviceRequest));
+	}
+
+	@GetMapping(value = "/profile")
+	public ApiResponse<ProfileResponse> readProfile(
+		@AuthPrincipalMember AuthMember authMember) {
+		return ApiResponse.success(MemberSuccessCode.OK_READ_PROFILE,
+			memberService.readProfile(authMember));
 	}
 
 	@PutMapping("/account/password")
