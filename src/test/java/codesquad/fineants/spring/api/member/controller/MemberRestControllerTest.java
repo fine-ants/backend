@@ -56,6 +56,7 @@ import codesquad.fineants.spring.api.member.response.OauthMemberLoginResponse;
 import codesquad.fineants.spring.api.member.response.OauthMemberResponse;
 import codesquad.fineants.spring.api.member.response.OauthSaveUrlResponse;
 import codesquad.fineants.spring.api.member.response.ProfileChangeResponse;
+import codesquad.fineants.spring.api.member.response.ProfileResponse;
 import codesquad.fineants.spring.api.member.service.MemberService;
 import codesquad.fineants.spring.api.member.service.WebClientWrapper;
 import codesquad.fineants.spring.api.member.service.request.ProfileChangeServiceRequest;
@@ -528,7 +529,47 @@ class MemberRestControllerTest {
 			.andExpect(jsonPath("status").value(equalTo("Bad Request")))
 			.andExpect(jsonPath("message").value(equalTo("잘못된 입력형식입니다")));
 	}
-	
+
+	@DisplayName("사용자는 사용자의 프로필을 조회합니다.")
+	@Test
+	void readProfile() throws Exception {
+		// given
+		given(memberService.readProfile(any(AuthMember.class)))
+			.willReturn(
+				ProfileResponse.builder()
+					.user(ProfileResponse.MemberProfile.builder()
+						.id(1L)
+						.nickname("일개미1234")
+						.email("dragonbead95@naver.com")
+						.profileUrl("profileUrl")
+						.notificationPreferences(ProfileResponse.NotificationPreference.builder()
+							.browserNotify(false)
+							.targetGainNotify(true)
+							.maxLossNotify(true)
+							.targetPriceNotify(true)
+							.build())
+						.build())
+					.build()
+			);
+
+		// when
+		mockMvc.perform(get("/api/profile"))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("code").value(equalTo(200)))
+			.andExpect(jsonPath("status").value(equalTo("OK")))
+			.andExpect(jsonPath("message").value(equalTo("프로필 정보 조회에 성공하였습니다")))
+			.andExpect(jsonPath("data.user.id").value(equalTo(1)))
+			.andExpect(jsonPath("data.user.nickname").value(equalTo("일개미1234")))
+			.andExpect(jsonPath("data.user.email").value(equalTo("dragonbead95@naver.com")))
+			.andExpect(jsonPath("data.user.profileUrl").value(equalTo("profileUrl")))
+			.andExpect(jsonPath("data.user.notificationPreferences.browserNotify").value(equalTo(false)))
+			.andExpect(jsonPath("data.user.notificationPreferences.targetGainNotify").value(equalTo(true)))
+			.andExpect(jsonPath("data.user.notificationPreferences.maxLossNotify").value(equalTo(true)))
+			.andExpect(jsonPath("data.user.notificationPreferences.targetPriceNotify").value(equalTo(true)));
+		// then
+
+	}
+
 	private Member createMember() {
 		return createMember("일개미1234");
 	}

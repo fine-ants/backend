@@ -13,17 +13,13 @@ import lombok.NoArgsConstructor;
 @Builder
 public class ProfileResponse {
 
-	private Long id;
-	private String nickname;
-
-	private String profileUrl;
-
-	private NotificationPreference notificationPreferences;
+	private MemberProfile user;
 
 	public static ProfileResponse from(Member member) {
-		return ProfileResponse.builder()
+		MemberProfile user = MemberProfile.builder()
 			.id(member.getId())
 			.nickname(member.getNickname())
+			.email(member.getEmail())
 			.profileUrl(member.getProfileUrl())
 			.notificationPreferences(
 				NotificationPreference.builder()
@@ -34,13 +30,28 @@ public class ProfileResponse {
 					.build()
 			)
 			.build();
+		return ProfileResponse.builder()
+			.user(user)
+			.build();
 	}
 
 	@Getter
 	@NoArgsConstructor(access = AccessLevel.PRIVATE)
 	@AllArgsConstructor(access = AccessLevel.PRIVATE)
 	@Builder
-	static class NotificationPreference {
+	public static class MemberProfile {
+		private Long id;
+		private String nickname;
+		private String email;
+		private String profileUrl;
+		private NotificationPreference notificationPreferences;
+	}
+
+	@Getter
+	@NoArgsConstructor(access = AccessLevel.PRIVATE)
+	@AllArgsConstructor(access = AccessLevel.PRIVATE)
+	@Builder
+	public static class NotificationPreference {
 		private Boolean browserNotify;
 		private Boolean targetGainNotify;
 		private Boolean maxLossNotify;
