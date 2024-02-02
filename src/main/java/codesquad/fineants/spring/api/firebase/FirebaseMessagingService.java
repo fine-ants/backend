@@ -8,15 +8,13 @@ import com.google.firebase.messaging.Message;
 import com.google.firebase.messaging.Notification;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class FirebaseMessagingService {
 	private final FirebaseMessaging firebaseMessaging;
 
-	public String sendNotification(NotificationMessage notificationMessage) {
+	public String sendNotificationByToken(NotificationMessage notificationMessage) {
 		Notification notification = Notification
 			.builder()
 			.setTitle(notificationMessage.getTitle())
@@ -30,11 +28,10 @@ public class FirebaseMessagingService {
 			.build();
 
 		try {
-			String messageId = firebaseMessaging.send(message);
-			log.info("푸시 알림 전송, messageId={}", messageId);
+			firebaseMessaging.send(message);
 			return "Success Sending Notification";
 		} catch (FirebaseMessagingException e) {
-			log.error(e.getMessage(), e);
+			e.printStackTrace();
 			return "Error Sending Notification";
 		}
 	}
