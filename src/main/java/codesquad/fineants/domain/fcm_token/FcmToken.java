@@ -29,7 +29,7 @@ public class FcmToken extends BaseEntity {
 	private Member member;
 
 	private String token;
-
+private LocalDateTime latestActivationTime
 	@Builder
 	public FcmToken(Long id, Member member, String token) {
 		this.id = id;
