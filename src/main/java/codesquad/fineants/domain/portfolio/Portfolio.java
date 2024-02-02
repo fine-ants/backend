@@ -52,10 +52,13 @@ public class Portfolio extends BaseEntity {
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "member_id")
 	private Member member;
+	private Boolean targetGainNotification;
+	private Boolean maxLossNotification;
 
 	@Builder
 	public Portfolio(Long id, String name, String securitiesFirm, Long budget, Long targetGain, Long maximumLoss,
-		Boolean targetGainIsActive, Boolean maximumIsActive, Member member) {
+		Boolean targetGainIsActive, Boolean maximumIsActive, Member member, Boolean targetGainNotification,
+		Boolean maxLossNotification) {
 		this.id = id;
 		this.name = name;
 		this.securitiesFirm = securitiesFirm;
@@ -65,6 +68,8 @@ public class Portfolio extends BaseEntity {
 		this.targetGainIsActive = targetGainIsActive;
 		this.maximumIsActive = maximumIsActive;
 		this.member = member;
+		this.targetGainNotification = targetGainNotification;
+		this.maxLossNotification = maxLossNotification;
 	}
 
 	//== 연관관계 메소드 ==//
