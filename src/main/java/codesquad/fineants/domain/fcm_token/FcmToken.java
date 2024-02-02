@@ -1,5 +1,7 @@
 package codesquad.fineants.domain.fcm_token;
 
+import java.time.LocalDateTime;
+
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
@@ -29,11 +31,14 @@ public class FcmToken extends BaseEntity {
 	private Member member;
 
 	private String token;
-private LocalDateTime latestActivationTime
+
+	private LocalDateTime latestActivationTime;
+
 	@Builder
-	public FcmToken(Long id, Member member, String token) {
+	public FcmToken(Long id, Member member, String token, LocalDateTime latestActivationTime) {
 		this.id = id;
 		this.member = member;
 		this.token = token;
+		this.latestActivationTime = latestActivationTime;
 	}
 }
