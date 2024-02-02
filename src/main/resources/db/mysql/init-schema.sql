@@ -29,6 +29,8 @@ create table if not exists fineAnts.portfolio
     securities_firm       varchar(255) null,
     target_gain           bigint       null,
     target_gain_is_active bit          null,
+    target_gain_notification boolean default false,
+    max_loss_notification boolean default false,
     member_id             bigint       null,
     constraint FKhkjiiwx38ctlby4yt4y82tua7
         foreign key (member_id) references fineAnts.member (id)
@@ -132,4 +134,43 @@ create table if not exists fineAnts.watch_stock
         foreign key (watch_list_id) references fineAnts.watch_list (id),
     constraint FKk1yabpeilnrrys4og9yid2cw1
         foreign key (ticker_symbol) references fineAnts.stock (ticker_symbol)
+);
+
+
+create table if not exists fineAnts.fcm_token
+(
+    id bigint not null primary key,
+    create_at datetime(6) DEFAULT NULL,
+    modified_at datetime(6) DEFAULT NULL,
+    latest_activation_time datetime(6) DEFAULT NULL,
+    token varchar(255) DEFAULT NULL,
+    member_id bigint DEFAULT NULL,
+    CONSTRAINT FKf1rbjf8lle4r2in6ovkcgl0w8 FOREIGN KEY (member_id) REFERENCES fineAnts.member (id)
+);
+
+
+create table if not exists fineAnts.notification_preference (
+    id bigint NOT NULL primary key,
+    create_at datetime(6) DEFAULT NULL,
+    modified_at datetime(6) DEFAULT NULL,
+    browser_notify bit(1) NOT NULL,
+    max_loss_notify bit(1) NOT NULL,
+    target_gain_notify bit(1) NOT NULL,
+    target_price_notify bit(1) NOT NULL,
+    member_id bigint DEFAULT NULL,
+    CONSTRAINT FKpn714rk5pvp6wjlwd77sngm08 FOREIGN KEY (member_id) REFERENCES fineAnts.member (id)
+);
+
+
+
+create table if not exists fineAnts.stock_target_price (
+    id bigint NOT NULL primary key,
+    create_at datetime(6) DEFAULT NULL,
+    modified_at datetime(6) DEFAULT NULL,
+    target_price bigint DEFAULT NULL,
+    member_id bigint DEFAULT NULL,
+    ticker_symbol varchar(255) DEFAULT NULL,
+    UNIQUE KEY UKb01jhjkq681lpyfjx5glikxee (member_id, ticker_symbol, target_price),
+    CONSTRAINT FK2r0grp1n205hnw3ysp179f5l3 FOREIGN KEY (member_id) REFERENCES fineAnts.member (id),
+    CONSTRAINT FKcup8hchscft8jniri3wkk72kx FOREIGN KEY (ticker_symbol) REFERENCES fineAnts.stock (ticker_symbol)
 );
