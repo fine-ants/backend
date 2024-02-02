@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -67,7 +68,7 @@ class FcmRestControllerTest {
 
 	@DisplayName("사용자는 FCM 토큰을 등록한다")
 	@Test
-	void FirebaseAuth() throws Exception {
+	void registerToken() throws Exception {
 		// given
 		given(fcmService.registerToken(
 			any(FcmRegisterRequest.class),
@@ -87,6 +88,23 @@ class FcmRestControllerTest {
 			.andExpect(jsonPath("status").value(equalTo("Created")))
 			.andExpect(jsonPath("message").value(equalTo("FCM 토큰을 성공적으로 등록하였습니다")))
 			.andExpect(jsonPath("data.fcmTokenId").value(equalTo(1)));
+	}
+
+	@DisplayName("사용자는 유효하지 않은 형식의 토큰을 전달하여 등록할 수 없다")
+	@Test
+	void registerToken_whenInvalidFcmToken_thenResponse400Error() throws Exception {
+		// given
+		Map<String, String> body = new HashMap<>();
+		body.put("fcmToken", null);
+
+		// when
+		mockMvc.perform(post("/api/fcm/tokens")
+				.content(ObjectMapperUtil.serialize(body))
+				.contentType(MediaType.APPLICATION_JSON))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("code").value(equalTo(400)))
+			.andExpect(jsonPath("status").value(equalTo("Bad Request")))
+			.andExpect(jsonPath("message").value(equalTo("잘못된 입력형식입니다")));
 	}
 
 	private Member createMember() {
