@@ -23,13 +23,13 @@ public class NotificationPreference extends BaseEntity {
 	@JoinColumn(name = "member_id")
 	private Member member;
 
-	private boolean browser;
+	private boolean browserNotify;
 
-	private boolean portfolioTargetGain;
+	private boolean targetGainNotify;
 
-	private boolean portfolioMaxLoss;
+	private boolean maxLossNotify;
 
-	private boolean stockTargetPrice;
+	private boolean targetPriceNotify;
 
 	@Builder
 	public NotificationPreference(Member member, boolean browser, boolean portfolioTargetGain, boolean portfolioMaxLoss,
