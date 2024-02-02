@@ -16,7 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 public class FirebaseMessagingService {
 	private final FirebaseMessaging firebaseMessaging;
 
-	public String sendNotificationByToken(NotificationMessage notificationMessage) {
+	public String sendNotification(NotificationMessage notificationMessage) {
 		Notification notification = Notification
 			.builder()
 			.setTitle(notificationMessage.getTitle())
@@ -30,7 +30,8 @@ public class FirebaseMessagingService {
 			.build();
 
 		try {
-			firebaseMessaging.send(message);
+			String messageId = firebaseMessaging.send(message);
+			log.info("푸시 알림 전송, messageId={}", messageId);
 			return "Success Sending Notification";
 		} catch (FirebaseMessagingException e) {
 			log.error(e.getMessage(), e);
