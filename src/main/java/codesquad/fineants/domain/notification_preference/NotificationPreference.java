@@ -2,9 +2,12 @@ package codesquad.fineants.domain.notification_preference;
 
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 
 import codesquad.fineants.domain.BaseEntity;
 import codesquad.fineants.domain.member.Member;
@@ -19,7 +22,10 @@ import lombok.NoArgsConstructor;
 public class NotificationPreference extends BaseEntity {
 
 	@Id
-	@ManyToOne(fetch = FetchType.LAZY)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
+
+	@OneToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "member_id")
 	private Member member;
 
@@ -32,12 +38,12 @@ public class NotificationPreference extends BaseEntity {
 	private boolean targetPriceNotify;
 
 	@Builder
-	public NotificationPreference(Member member, boolean browser, boolean portfolioTargetGain, boolean portfolioMaxLoss,
-		boolean stockTargetPrice) {
+	public NotificationPreference(Member member, boolean browserNotify, boolean targetGainNotify, boolean maxLossNotify,
+		boolean targetPriceNotify) {
 		this.member = member;
-		this.browser = browser;
-		this.portfolioTargetGain = portfolioTargetGain;
-		this.portfolioMaxLoss = portfolioMaxLoss;
-		this.stockTargetPrice = stockTargetPrice;
+		this.browserNotify = browserNotify;
+		this.targetGainNotify = targetGainNotify;
+		this.maxLossNotify = maxLossNotify;
+		this.targetPriceNotify = targetPriceNotify;
 	}
 }
