@@ -53,6 +53,7 @@ import codesquad.fineants.spring.api.member.request.VerifyEmailRequest;
 import codesquad.fineants.spring.api.member.response.OauthMemberLoginResponse;
 import codesquad.fineants.spring.api.member.response.OauthUserProfile;
 import codesquad.fineants.spring.api.member.response.ProfileChangeResponse;
+import codesquad.fineants.spring.api.member.response.ProfileResponse;
 import codesquad.fineants.spring.api.member.service.request.ProfileChangeServiceRequest;
 import codesquad.fineants.spring.api.member.service.request.SignUpServiceRequest;
 import codesquad.fineants.spring.api.member.service.response.SignUpServiceResponse;
@@ -89,6 +90,7 @@ public class MemberServiceTest {
 
 	@MockBean
 	private VerifyCodeGenerator verifyCodeGenerator;
+
 	@AfterEach
 	void tearDown() {
 		memberRepository.deleteAllInBatch();
@@ -493,7 +495,27 @@ public class MemberServiceTest {
 			.isInstanceOf(BadRequestException.class)
 			.hasMessage(MemberErrorCode.VERIFICATION_CODE_CHECK_FAIL.getMessage());
 	}
-  
+
+	@DisplayName("사용자는 프로필을 조회합니다.")
+	@Test
+	void readProfile() {
+		// given
+		Member member = memberRepository.save(createMember());
+
+		// when
+		ProfileResponse response = memberService.readProfile(AuthMember.from(member));
+
+		// then
+		assertThat(response)
+			.extracting("user")
+			.extracting("id", "nickname", "email", "profileUrl")
+			.containsExactlyInAnyOrder(member.getId(), "nemo1234", "dragonbead95@naver.com", "profileUrl");
+		assertThat(response)
+			.extracting("user.notificationPreferences")
+			.extracting("browserNotify", "targetGainNotify", "maxLossNotify", "targetPriceNotify")
+			.containsExactlyInAnyOrder(false, true, true, true);
+	}
+
 	private AuthorizationRequest createAuthorizationRequest(String state) {
 		String codeVerifier = "1234";
 		String codeChallenge = "1234";

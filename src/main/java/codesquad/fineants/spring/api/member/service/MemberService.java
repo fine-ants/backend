@@ -59,6 +59,7 @@ import codesquad.fineants.spring.api.member.response.OauthMemberResponse;
 import codesquad.fineants.spring.api.member.response.OauthSaveUrlResponse;
 import codesquad.fineants.spring.api.member.response.OauthUserProfile;
 import codesquad.fineants.spring.api.member.response.ProfileChangeResponse;
+import codesquad.fineants.spring.api.member.response.ProfileResponse;
 import codesquad.fineants.spring.api.member.service.request.ProfileChangeServiceRequest;
 import codesquad.fineants.spring.api.member.service.request.SignUpServiceRequest;
 import codesquad.fineants.spring.api.member.service.response.SignUpServiceResponse;
@@ -372,5 +373,10 @@ public class MemberService {
 		watchStockRepository.deleteAll(watchStocks);
 		watchListRepository.deleteAll(watchList);
 		memberRepository.delete(member);
+	}
+
+	@Transactional(readOnly = true)
+	public ProfileResponse readProfile(AuthMember authMember) {
+		return ProfileResponse.from(findMember(authMember.getMemberId()));
 	}
 }
