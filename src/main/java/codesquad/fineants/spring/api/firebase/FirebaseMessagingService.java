@@ -8,7 +8,9 @@ import com.google.firebase.messaging.Message;
 import com.google.firebase.messaging.Notification;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class FirebaseMessagingService {
@@ -32,7 +34,7 @@ public class FirebaseMessagingService {
 			log.info("푸시 알림 전송, messageId={}", messageId);
 			return "Success Sending Notification";
 		} catch (FirebaseMessagingException e) {
-			e.printStackTrace();
+			log.error(e.getMessage(), e);
 			return "Error Sending Notification";
 		}
 	}
