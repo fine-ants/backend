@@ -35,21 +35,23 @@ public class FcmService {
 	@Transactional
 	public FcmRegisterResponse registerToken(FcmRegisterRequest request, AuthMember authMember) {
 		Member member = findMember(authMember);
+		verifyFcmToken(request.getFcmToken());
+		FcmToken saveFcmToken = fcmRepository.save(request.toEntity(member));
+		return FcmRegisterResponse.from(saveFcmToken);
+	}
+
+	private void verifyFcmToken(String token) {
 		Message message = Message.builder()
-			.setToken(request.getFcmToken())
+			.setToken(token)
 			.setNotification(Notification.builder().build())
 			.build();
 
 		try {
-			String messageResult = firebaseMessaging.send(message, true);
-			log.info("messageReulst : {}", messageResult);
+			firebaseMessaging.send(message, true);
 		} catch (FirebaseMessagingException e) {
 			log.info(e.getMessage(), e);
 			throw new BadRequestException(FcmErrorCode.BAD_REQUEST_FCM_TOKEN);
 		}
-		FcmToken saveFcmToken = fcmRepository.save(request.toEntity(member));
-
-		return FcmRegisterResponse.from(saveFcmToken);
 	}
 
 	private Member findMember(AuthMember authMember) {
