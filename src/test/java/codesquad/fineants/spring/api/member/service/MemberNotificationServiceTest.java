@@ -228,6 +228,7 @@ class MemberNotificationServiceTest {
 			.createAt(createAt)
 			.type(type)
 			.referenceId(referenceId)
+			.isDeleted(false)
 			.member(member)
 			.build();
 	}
