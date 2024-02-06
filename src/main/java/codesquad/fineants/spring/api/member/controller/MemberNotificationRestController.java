@@ -44,6 +44,7 @@ public class MemberNotificationRestController {
 		return ApiResponse.success(MemberSuccessCode.OK_FETCH_ALL_NOTIFICATIONS);
 	}
 
+	// 회원의 알림 특정 읽기
 	@PatchMapping("/notifications/{notificationId}")
 	public ApiResponse<Void> readNotification(
 		@PathVariable Long memberId,

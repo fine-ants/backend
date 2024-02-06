@@ -78,7 +78,7 @@ class MemberNotificationRestControllerTest {
 		// given
 		Member member = createMember();
 
-		List<MemberNotification> mockNotifications = createNotifications();
+		List<MemberNotification> mockNotifications = createMemberNotifications();
 		given(notificationService.fetchNotifications(anyLong()))
 			.willReturn(new MemberNotificationResponse(mockNotifications));
 
@@ -100,7 +100,7 @@ class MemberNotificationRestControllerTest {
 		// given
 		Member member = createMember();
 
-		List<MemberNotification> mockNotifications = createNotifications();
+		List<MemberNotification> mockNotifications = createMemberNotifications();
 		given(notificationService.readAllNotifications(anyLong(), anyList()))
 			.willReturn(
 				List.of(
@@ -128,7 +128,7 @@ class MemberNotificationRestControllerTest {
 		// given
 		Member member = createMember();
 
-		List<MemberNotification> mockNotifications = createNotifications();
+		List<MemberNotification> mockNotifications = createMemberNotifications();
 		given(notificationService.readAllNotifications(anyLong(), anyList()))
 			.willReturn(
 				List.of(
@@ -154,7 +154,7 @@ class MemberNotificationRestControllerTest {
 		// given
 		Member member = createMember();
 
-		List<MemberNotification> mockNotifications = createNotifications();
+		List<MemberNotification> mockNotifications = createMemberNotifications();
 		given(notificationService.readAllNotifications(anyLong(), anyList()))
 			.willReturn(
 				List.of(
@@ -175,6 +175,34 @@ class MemberNotificationRestControllerTest {
 			.andExpect(jsonPath("message").value(equalTo("잘못된 입력형식입니다")));
 	}
 
+	@DisplayName("사용자는 특정 알림을 읽습니다")
+	@Test
+	void readNotification() throws Exception {
+		// given
+		Member member = createMember();
+
+		MemberNotification mockNotification = MemberNotification.builder()
+			.notificationId(3L)
+			.title("포트폴리오")
+			.content("포트폴리오2의 최대 손실율을 초과했습니다")
+			.timestamp(LocalDateTime.of(2024, 1, 24, 10, 10, 10))
+			.isRead(false)
+			.type("portfolio")
+			.referenceId("2")
+			.build();
+		given(notificationService.readAllNotifications(anyLong(), anyList()))
+			.willReturn(List.of(mockNotification.getNotificationId()));
+
+		// when & then
+		mockMvc.perform(patch("/api/members/{memberId}/notifications/{notificationId}",
+				member.getId(),
+				mockNotification.getNotificationId()))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("code").value(equalTo(200)))
+			.andExpect(jsonPath("status").value(equalTo("OK")))
+			.andExpect(jsonPath("message").value(equalTo("알림을 모두 읽음 처리했습니다")));
+	}
+
 	private Member createMember() {
 		return Member.builder()
 			.id(1L)
@@ -186,7 +214,7 @@ class MemberNotificationRestControllerTest {
 			.build();
 	}
 
-	private List<MemberNotification> createNotifications() {
+	private List<MemberNotification> createMemberNotifications() {
 		return List.of(MemberNotification.builder()
 				.notificationId(3L)
 				.title("포트폴리오")
