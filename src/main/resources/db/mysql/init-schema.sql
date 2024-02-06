@@ -179,15 +179,20 @@ create table if not exists fineAnts.stock_target_price
 
 create table if not exists fineAnts.notification
 (
-    id          bigint auto_increment
+    id           bigint auto_increment
         primary key,
-    create_at   datetime(6)  null,
-    modified_at datetime(6)  null,
-    content     varchar(255) null,
-    is_read     bit          null,
-    title       varchar(255) null,
-    member_id   bigint       null,
+    create_at    datetime(6)  null,
+    modified_at  datetime(6)  null,
+    content      varchar(255) null,
+    is_read      bit          null,
+    reference_id varchar(255) null,
+    title        varchar(255) null,
+    type         varchar(255) null,
+    member_id    bigint       null,
     constraint FK1xep8o2ge7if6diclyyx53v4q
         foreign key (member_id) references fineAnts.member (id)
 );
+
+
+
 

@@ -28,19 +28,23 @@ public class Notification extends BaseEntity {
 	private String title;
 	private String content;
 	private Boolean isRead;
+	private String type;
+	private String referenceId;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "member_id")
 	private Member member;
 
 	@Builder
-	private Notification(LocalDateTime createAt, LocalDateTime modifiedAt, Long id, String title,
-		String content, Boolean isRead, Member member) {
+	public Notification(LocalDateTime createAt, LocalDateTime modifiedAt, Long id, String title, String content,
+		Boolean isRead, String type, String referenceId, Member member) {
 		super(createAt, modifiedAt);
 		this.id = id;
 		this.title = title;
 		this.content = content;
 		this.isRead = isRead;
+		this.type = type;
+		this.referenceId = referenceId;
 		this.member = member;
 	}
 }
