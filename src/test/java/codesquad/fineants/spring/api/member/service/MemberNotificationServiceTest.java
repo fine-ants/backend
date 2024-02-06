@@ -46,6 +46,8 @@ class MemberNotificationServiceTest {
 			.content("삼성전자가 지정가 KRW60000에 도달했습니다")
 			.isRead(true)
 			.createAt(LocalDateTime.of(2024, 1, 22, 10, 10, 10))
+			.type("stock")
+			.referenceId("005930")
 			.member(member)
 			.build());
 		Notification notification2 = notificationRepository.save(Notification.builder()
@@ -53,6 +55,8 @@ class MemberNotificationServiceTest {
 			.content("포트폴리오1의 목표 수익률을 달성했습니다")
 			.isRead(false)
 			.createAt(LocalDateTime.of(2024, 1, 23, 10, 10, 10))
+			.type("portfolio")
+			.referenceId("1")
 			.member(member)
 			.build());
 		Notification notification3 = notificationRepository.save(Notification.builder()
@@ -60,6 +64,8 @@ class MemberNotificationServiceTest {
 			.content("포트폴리오2의 최대 손실율을 초과했습니다")
 			.isRead(false)
 			.createAt(LocalDateTime.of(2024, 1, 24, 10, 10, 10))
+			.type("portfolio")
+			.referenceId("2")
 			.member(member)
 			.build());
 
@@ -78,6 +84,8 @@ class MemberNotificationServiceTest {
 					.content("포트폴리오2의 최대 손실율을 초과했습니다")
 					.timestamp(LocalDateTime.of(2024, 1, 24, 10, 10, 10))
 					.isRead(false)
+					.type("portfolio")
+					.referenceId(notification3.getReferenceId())
 					.build(),
 				MemberNotification.builder()
 					.notificationId(notification2.getId())
@@ -85,6 +93,8 @@ class MemberNotificationServiceTest {
 					.content("포트폴리오1의 목표 수익률을 달성했습니다")
 					.timestamp(LocalDateTime.of(2024, 1, 23, 10, 10, 10))
 					.isRead(false)
+					.type("portfolio")
+					.referenceId(notification2.getReferenceId())
 					.build(),
 				MemberNotification.builder()
 					.notificationId(notification1.getId())
@@ -92,6 +102,8 @@ class MemberNotificationServiceTest {
 					.content("삼성전자가 지정가 KRW60000에 도달했습니다")
 					.timestamp(LocalDateTime.of(2024, 1, 22, 10, 10, 10))
 					.isRead(true)
+					.type("stock")
+					.referenceId(notification1.getReferenceId())
 					.build()
 			);
 
