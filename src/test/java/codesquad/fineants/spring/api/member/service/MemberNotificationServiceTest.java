@@ -137,6 +137,48 @@ class MemberNotificationServiceTest {
 			.hasMessage(NotificationErrorCode.NOT_FOUND_NOTIFICATION.getMessage());
 	}
 
+	@DisplayName("사용자는 알림을 전체 삭제합니다")
+	@Test
+	void deleteAllNotifications() {
+		// given
+		Member member = memberRepository.save(createMember());
+		List<Notification> notifications = notificationRepository.saveAll(createNotifications(member));
+		List<Long> notificationIds = notifications.stream()
+			.map(Notification::getId)
+			.collect(Collectors.toList());
+
+		// when
+		List<Long> deletedAllNotifications = notificationService.deleteAllNotifications(member.getId(),
+			notificationIds);
+
+		// then
+		assertThat(deletedAllNotifications).hasSize(3);
+		assertThat(notificationRepository.findAllByMemberIdAndIds(member.getId(), notificationIds)
+			.stream()
+			.allMatch(Notification::getIsDeleted)).isTrue();
+	}
+
+	@DisplayName("사용자는 존재하지 않은 알람들을 삭제할 수 없습니다")
+	@Test
+	void deleteAllNotifications_whenNotExistNotificationId_then404Error() {
+		// given
+		Member member = memberRepository.save(createMember());
+		List<Notification> notifications = notificationRepository.saveAll(createNotifications(member));
+		List<Long> notificationIds = notifications.stream()
+			.map(Notification::getId)
+			.collect(Collectors.toList());
+		notificationIds.add(9999L);
+
+		// when
+		Throwable throwable = catchThrowable(() -> notificationService.deleteAllNotifications(member.getId(),
+			notificationIds));
+
+		// then
+		assertThat(throwable)
+			.isInstanceOf(NotFoundResourceException.class)
+			.hasMessage(NotificationErrorCode.NOT_FOUND_NOTIFICATION.getMessage());
+	}
+
 	private Member createMember() {
 		return Member.builder()
 			.nickname("일개미1234")
