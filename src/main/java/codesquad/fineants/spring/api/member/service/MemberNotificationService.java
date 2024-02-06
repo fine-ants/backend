@@ -8,6 +8,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import codesquad.fineants.domain.notification.Notification;
 import codesquad.fineants.domain.notification.NotificationRepository;
+import codesquad.fineants.spring.api.errors.errorcode.NotificationErrorCode;
+import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
 import codesquad.fineants.spring.api.member.response.MemberNotification;
 import codesquad.fineants.spring.api.member.response.MemberNotificationResponse;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +35,8 @@ public class MemberNotificationService {
 	// 입력 받은 알림들 중에서 안 읽은 알람들을 읽음 처리하고 읽은 알림의 등록번호 리스트를 반환
 	@Transactional
 	public List<Long> readAllNotifications(Long memberId, List<Long> notificationIds) {
+		verifyExistNotifications(memberId, notificationIds);
+
 		// 읽지 않은 알림 조회
 		List<Notification> notifications = notificationRepository.findAllByMemberIdAndIds(memberId, notificationIds)
 			.stream()
@@ -47,5 +51,13 @@ public class MemberNotificationService {
 		return notifications.stream()
 			.map(Notification::getId)
 			.collect(Collectors.toList());
+	}
+
+	private void verifyExistNotifications(Long memberId, List<Long> notificationIds) {
+		List<Notification> findNotifications = notificationRepository.findAllByMemberIdAndIds(memberId,
+			notificationIds);
+		if (notificationIds.size() != findNotifications.size()) {
+			throw new NotFoundResourceException(NotificationErrorCode.NOT_FOUND_NOTIFICATION);
+		}
 	}
 }
