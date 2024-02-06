@@ -203,6 +203,30 @@ class MemberNotificationRestControllerTest {
 			.andExpect(jsonPath("message").value(equalTo("알림을 모두 읽음 처리했습니다")));
 	}
 
+	@DisplayName("사용자는 알람을 모두 삭제합니다")
+	@Test
+	void deleteAllNotifications() throws Exception {
+		// given
+		Member member = createMember();
+
+		List<MemberNotification> mockNotifications = createMemberNotifications();
+		List<Long> notificationIds = mockNotifications.stream()
+			.map(MemberNotification::getNotificationId)
+			.collect(Collectors.toList());
+		given(notificationService.readAllNotifications(anyLong(), anyList()))
+			.willReturn(notificationIds);
+
+		// when & then
+		mockMvc.perform(delete("/api/members/{memberId}/notifications",
+				member.getId())
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(ObjectMapperUtil.serialize(Map.of("notificationIds", notificationIds))))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("code").value(equalTo(200)))
+			.andExpect(jsonPath("status").value(equalTo("OK")))
+			.andExpect(jsonPath("message").value(equalTo("알림 전체 삭제를 성공하였습니다")));
+	}
+
 	private Member createMember() {
 		return Member.builder()
 			.id(1L)
