@@ -60,4 +60,20 @@ public class MemberNotificationService {
 			throw new NotFoundResourceException(NotificationErrorCode.NOT_FOUND_NOTIFICATION);
 		}
 	}
+
+	@Transactional
+	public List<Long> deleteAllNotifications(Long memberId, List<Long> notificationIds) {
+		verifyExistNotifications(memberId, notificationIds);
+
+		List<Notification> notifications = notificationRepository.findAllByMemberIdAndIds(memberId,
+			notificationIds);
+
+		// 알림 삭제 처리
+		notifications.forEach(Notification::deleteNotification);
+
+		// 삭제한 알림들의 등록번호를 반환
+		return notifications.stream()
+			.map(Notification::getId)
+			.collect(Collectors.toList());
+	}
 }
