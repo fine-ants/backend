@@ -19,6 +19,8 @@ import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.member.MemberRepository;
 import codesquad.fineants.domain.notification.Notification;
 import codesquad.fineants.domain.notification.NotificationRepository;
+import codesquad.fineants.spring.api.errors.errorcode.NotificationErrorCode;
+import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
 import codesquad.fineants.spring.api.member.response.MemberNotification;
 import codesquad.fineants.spring.api.member.response.MemberNotificationResponse;
 
@@ -110,6 +112,29 @@ class MemberNotificationServiceTest {
 				.stream()
 				.allMatch(Notification::getIsRead)).isTrue()
 		);
+	}
+
+	@DisplayName("사용자는 존재하지 않는 알람을 읽음 처리할 수 없다")
+	@Test
+	void readAllNotifications_whenNotExistNotificationIds_thenThrow404Error() {
+		// given
+		Member member = memberRepository.save(createMember());
+		List<Notification> notifications = notificationRepository.saveAll(createNotifications(member));
+		List<Long> notificationIds = notifications.stream()
+			.map(Notification::getId)
+			.collect(Collectors.toList());
+
+		Long notExistNotificationId = 9999L;
+		notificationIds.add(notExistNotificationId);
+
+		// when
+		Throwable throwable = catchThrowable(
+			() -> notificationService.readAllNotifications(member.getId(), notificationIds));
+
+		// then
+		assertThat(throwable)
+			.isInstanceOf(NotFoundResourceException.class)
+			.hasMessage(NotificationErrorCode.NOT_FOUND_NOTIFICATION.getMessage());
 	}
 
 	private Member createMember() {
