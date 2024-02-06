@@ -67,12 +67,12 @@ class MemberNotificationRestControllerTest {
 
 	@DisplayName("사용자는 알림 목록 조회합니다")
 	@Test
-	void readNotifications() throws Exception {
+	void fetchNotifications() throws Exception {
 		// given
 		Member member = createMember();
 
 		List<MemberNotification> mockNotifications = createNotifications();
-		given(notificationService.readNotifications(anyLong()))
+		given(notificationService.fetchNotifications(anyLong()))
 			.willReturn(new MemberNotificationResponse(mockNotifications));
 
 		// when & then
