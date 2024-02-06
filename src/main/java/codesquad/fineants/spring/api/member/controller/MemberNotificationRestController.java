@@ -43,4 +43,13 @@ public class MemberNotificationRestController {
 		log.info("회원 알림 모두 읽기 처리 결과 : memberId={}, 읽은 알림 등록 번호={}", memberId, notificationIds);
 		return ApiResponse.success(MemberSuccessCode.OK_FETCH_ALL_NOTIFICATIONS);
 	}
+
+	@PatchMapping("/notifications/{notificationId}")
+	public ApiResponse<Void> readNotification(
+		@PathVariable Long memberId,
+		@PathVariable Long notificationId) {
+		List<Long> notificationIds = notificationService.readAllNotifications(memberId, List.of(notificationId));
+		log.info("회원 알림 모두 읽기 처리 결과 : memberId={}, 읽은 알림 등록 번호={}", memberId, notificationIds);
+		return ApiResponse.success(MemberSuccessCode.OK_FETCH_ALL_NOTIFICATIONS);
+	}
 }
