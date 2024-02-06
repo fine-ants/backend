@@ -23,6 +23,8 @@ public class MemberNotification {
 	private String content;
 	private LocalDateTime timestamp;
 	private Boolean isRead;
+	private String type;
+	private String referenceId;
 
 	public static MemberNotification from(Notification notification) {
 		return MemberNotification.builder()
@@ -31,6 +33,8 @@ public class MemberNotification {
 			.content(notification.getContent())
 			.timestamp(notification.getCreateAt())
 			.isRead(notification.getIsRead())
+			.type(notification.getType())
+			.referenceId(notification.getReferenceId())
 			.build();
 	}
 }

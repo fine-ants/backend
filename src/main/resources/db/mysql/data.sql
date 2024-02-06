@@ -82,3 +82,9 @@ VALUES (7, '2023-10-26 15:25:39.409612', '2023-10-26 15:25:39.409612', 1, '00008
 INSERT INTO fineAnts.purchase_history (id, create_at, modified_at, memo, num_shares, purchase_date,
                                        purchase_price_per_share, portfolio_holding_id)
 VALUES (1, '2023-10-26 15:26:11.219793', '2023-10-26 15:26:11.219793', null, 3, '2023-10-23 13:00:00.000000', 50000, 1);
+
+INSERT INTO fineAnts.notification(id, create_at, title, content, is_read, type, reference_id, member_id)
+VALUES (1, '2024-01-22 10:10:10.0', '지정가', '삼성전자가 지정가 KRW60000에 도달했습니다', true, 'stock', '005930', 1);
+
+INSERT INTO fineAnts.notification(id, create_at, title, content, is_read, type, reference_id, member_id)
+VALUES (2, '2024-01-23 10:10:10.0', '포트폴리오', '내꿈은 워렌버핏의 목표 수익률을 달성했습니다', false, 'portfolio', '1', 1);
