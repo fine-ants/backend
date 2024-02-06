@@ -47,4 +47,9 @@ public class Notification extends BaseEntity {
 		this.referenceId = referenceId;
 		this.member = member;
 	}
+
+	// 알림을 읽음 처리
+	public void readNotification() {
+		this.isRead = true;
+	}
 }
