@@ -153,8 +153,9 @@ class MemberNotificationServiceTest {
 
 		// then
 		assertThat(deletedAllNotifications).hasSize(3);
-		assertThat(notificationRepository.findAllByMemberIdAndIds(member.getId(), notificationIds).size())
-			.isZero();
+		assertThat(notificationRepository.findAllByMemberIdAndIds(member.getId(), notificationIds)
+			.stream()
+			.allMatch(Notification::getIsDeleted)).isTrue();
 	}
 
 	@DisplayName("사용자는 존재하지 않은 알람들을 삭제할 수 없습니다")
@@ -227,6 +228,7 @@ class MemberNotificationServiceTest {
 			.createAt(createAt)
 			.type(type)
 			.referenceId(referenceId)
+			.isDeleted(false)
 			.member(member)
 			.build();
 	}

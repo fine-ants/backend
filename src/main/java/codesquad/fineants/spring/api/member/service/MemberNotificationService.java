@@ -65,10 +65,15 @@ public class MemberNotificationService {
 	public List<Long> deleteAllNotifications(Long memberId, List<Long> notificationIds) {
 		verifyExistNotifications(memberId, notificationIds);
 
+		List<Notification> notifications = notificationRepository.findAllByMemberIdAndIds(memberId,
+			notificationIds);
+
 		// 알림 삭제 처리
-		notificationRepository.deleteAllById(notificationIds);
+		notifications.forEach(Notification::deleteNotification);
 
 		// 삭제한 알림들의 등록번호를 반환
-		return notificationIds;
+		return notifications.stream()
+			.map(Notification::getId)
+			.collect(Collectors.toList());
 	}
 }
