@@ -67,4 +67,16 @@ public class MemberNotificationRestController {
 		log.info("회원 알림 모두 삭제 처리 결과 : memberId={}, 삭제한 알림 등록 번호={}", memberId, deletedNotificationIds);
 		return ApiResponse.success(MemberSuccessCode.OK_DELETED_ALL_NOTIFICATIONS);
 	}
+
+	@DeleteMapping("/notifications/{notificationId}")
+	public ApiResponse<Void> deleteNotification(
+		@PathVariable Long memberId,
+		@PathVariable Long notificationId) {
+		List<Long> deletedNotificationIds = notificationService.deleteAllNotifications(
+			memberId,
+			List.of(notificationId)
+		);
+		log.info("회원 알림 모두 삭제 처리 결과 : memberId={}, 삭제한 알림 등록 번호={}", memberId, deletedNotificationIds);
+		return ApiResponse.success(MemberSuccessCode.OK_DELETD_NOTIFICATION);
+	}
 }
