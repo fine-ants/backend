@@ -30,14 +30,15 @@ public class Notification extends BaseEntity {
 	private Boolean isRead;
 	private String type;
 	private String referenceId;
+	private Boolean isDeleted;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "member_id")
 	private Member member;
 
 	@Builder
-	public Notification(LocalDateTime createAt, LocalDateTime modifiedAt, Long id, String title, String content,
-		Boolean isRead, String type, String referenceId, Member member) {
+	public Notification(LocalDateTime createAt, LocalDateTime modifiedAt, Long id, String title,
+		String content, Boolean isRead, String type, String referenceId, Boolean isDeleted, Member member) {
 		super(createAt, modifiedAt);
 		this.id = id;
 		this.title = title;
@@ -45,6 +46,16 @@ public class Notification extends BaseEntity {
 		this.isRead = isRead;
 		this.type = type;
 		this.referenceId = referenceId;
+		this.isDeleted = isDeleted;
 		this.member = member;
+	}
+
+	// 알림을 읽음 처리
+	public void readNotification() {
+		this.isRead = true;
+	}
+
+	public void deleteNotification() {
+		this.isDeleted = true;
 	}
 }

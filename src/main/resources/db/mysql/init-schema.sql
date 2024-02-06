@@ -184,6 +184,7 @@ create table if not exists fineAnts.notification
     create_at    datetime(6)  null,
     modified_at  datetime(6)  null,
     content      varchar(255) null,
+    is_deleted bit null,
     is_read      bit          null,
     reference_id varchar(255) null,
     title        varchar(255) null,
@@ -192,7 +193,3 @@ create table if not exists fineAnts.notification
     constraint FK1xep8o2ge7if6diclyyx53v4q
         foreign key (member_id) references fineAnts.member (id)
 );
-
-
-
-

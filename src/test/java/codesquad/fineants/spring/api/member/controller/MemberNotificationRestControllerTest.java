@@ -2,6 +2,7 @@ package codesquad.fineants.spring.api.member.controller;
 
 import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.anyList;
 import static org.mockito.BDDMockito.anyLong;
 import static org.mockito.BDDMockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -9,7 +10,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -19,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.MethodParameter;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -31,6 +37,7 @@ import codesquad.fineants.spring.api.member.response.MemberNotification;
 import codesquad.fineants.spring.api.member.response.MemberNotificationResponse;
 import codesquad.fineants.spring.api.member.service.MemberNotificationService;
 import codesquad.fineants.spring.config.JpaAuditingConfiguration;
+import codesquad.fineants.spring.util.ObjectMapperUtil;
 
 @ActiveProfiles("test")
 @WebMvcTest(controllers = MemberNotificationRestController.class)
@@ -67,12 +74,12 @@ class MemberNotificationRestControllerTest {
 
 	@DisplayName("사용자는 알림 목록 조회합니다")
 	@Test
-	void readNotifications() throws Exception {
+	void fetchNotifications() throws Exception {
 		// given
 		Member member = createMember();
 
-		List<MemberNotification> mockNotifications = createNotifications();
-		given(notificationService.readNotifications(anyLong()))
+		List<MemberNotification> mockNotifications = createMemberNotifications();
+		given(notificationService.fetchNotifications(anyLong()))
 			.willReturn(new MemberNotificationResponse(mockNotifications));
 
 		// when & then
@@ -87,6 +94,167 @@ class MemberNotificationRestControllerTest {
 			.andExpect(jsonPath("data.notifications[2].notificationId").value(equalTo(1)));
 	}
 
+	@DisplayName("사용자는 알림 모두 읽습니다")
+	@Test
+	void readAllNotifications() throws Exception {
+		// given
+		Member member = createMember();
+
+		List<MemberNotification> mockNotifications = createMemberNotifications();
+		given(notificationService.readAllNotifications(anyLong(), anyList()))
+			.willReturn(
+				List.of(
+					mockNotifications.get(0).getNotificationId(),
+					mockNotifications.get(1).getNotificationId()
+				)
+			);
+
+		List<Long> notificationIds = mockNotifications.stream()
+			.map(MemberNotification::getNotificationId)
+			.collect(Collectors.toList());
+		// when & then
+		mockMvc.perform(patch("/api/members/{memberId}/notifications", member.getId())
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(ObjectMapperUtil.serialize(Map.of("notificationIds", notificationIds))))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("code").value(equalTo(200)))
+			.andExpect(jsonPath("status").value(equalTo("OK")))
+			.andExpect(jsonPath("message").value(equalTo("알림을 모두 읽음 처리했습니다")));
+	}
+
+	@DisplayName("사용자는 빈 리스트를 전달하여 알림을 읽을 수 없습니다")
+	@Test
+	void readAllNotifications_whenEmptyList_thenResponse400Error() throws Exception {
+		// given
+		Member member = createMember();
+
+		List<MemberNotification> mockNotifications = createMemberNotifications();
+		given(notificationService.readAllNotifications(anyLong(), anyList()))
+			.willReturn(
+				List.of(
+					mockNotifications.get(0).getNotificationId(),
+					mockNotifications.get(1).getNotificationId()
+				)
+			);
+
+		List<Long> notificationIds = Collections.emptyList();
+		// when & then
+		mockMvc.perform(patch("/api/members/{memberId}/notifications", member.getId())
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(ObjectMapperUtil.serialize(Map.of("notificationIds", notificationIds))))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("code").value(equalTo(400)))
+			.andExpect(jsonPath("status").value(equalTo("Bad Request")))
+			.andExpect(jsonPath("message").value(equalTo("잘못된 입력형식입니다")));
+	}
+
+	@DisplayName("사용자는 유효하지 않은 입력으로 알림을 읽을 수 없습니다")
+	@Test
+	void readAllNotifications_whenInvalidInput_thenResponse400Error() throws Exception {
+		// given
+		Member member = createMember();
+
+		List<MemberNotification> mockNotifications = createMemberNotifications();
+		given(notificationService.readAllNotifications(anyLong(), anyList()))
+			.willReturn(
+				List.of(
+					mockNotifications.get(0).getNotificationId(),
+					mockNotifications.get(1).getNotificationId()
+				)
+			);
+
+		Map<String, Object> requestBodyMap = new HashMap<>();
+		requestBodyMap.put("notificationIds", null);
+		// when & then
+		mockMvc.perform(patch("/api/members/{memberId}/notifications", member.getId())
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(ObjectMapperUtil.serialize(requestBodyMap)))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("code").value(equalTo(400)))
+			.andExpect(jsonPath("status").value(equalTo("Bad Request")))
+			.andExpect(jsonPath("message").value(equalTo("잘못된 입력형식입니다")));
+	}
+
+	@DisplayName("사용자는 특정 알림을 읽습니다")
+	@Test
+	void readNotification() throws Exception {
+		// given
+		Member member = createMember();
+
+		MemberNotification mockNotification = MemberNotification.builder()
+			.notificationId(3L)
+			.title("포트폴리오")
+			.content("포트폴리오2의 최대 손실율을 초과했습니다")
+			.timestamp(LocalDateTime.of(2024, 1, 24, 10, 10, 10))
+			.isRead(false)
+			.type("portfolio")
+			.referenceId("2")
+			.build();
+		given(notificationService.readAllNotifications(anyLong(), anyList()))
+			.willReturn(List.of(mockNotification.getNotificationId()));
+
+		// when & then
+		mockMvc.perform(patch("/api/members/{memberId}/notifications/{notificationId}",
+				member.getId(),
+				mockNotification.getNotificationId()))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("code").value(equalTo(200)))
+			.andExpect(jsonPath("status").value(equalTo("OK")))
+			.andExpect(jsonPath("message").value(equalTo("알림을 모두 읽음 처리했습니다")));
+	}
+
+	@DisplayName("사용자는 알람을 모두 삭제합니다")
+	@Test
+	void deleteAllNotifications() throws Exception {
+		// given
+		Member member = createMember();
+
+		List<MemberNotification> mockNotifications = createMemberNotifications();
+		List<Long> notificationIds = mockNotifications.stream()
+			.map(MemberNotification::getNotificationId)
+			.collect(Collectors.toList());
+		given(notificationService.readAllNotifications(anyLong(), anyList()))
+			.willReturn(notificationIds);
+
+		// when & then
+		mockMvc.perform(delete("/api/members/{memberId}/notifications",
+				member.getId())
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(ObjectMapperUtil.serialize(Map.of("notificationIds", notificationIds))))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("code").value(equalTo(200)))
+			.andExpect(jsonPath("status").value(equalTo("OK")))
+			.andExpect(jsonPath("message").value(equalTo("알림 전체 삭제를 성공하였습니다")));
+	}
+
+	@DisplayName("사용자는 특정 알람을 삭제합니다")
+	@Test
+	void deleteNotification() throws Exception {
+		// given
+		Member member = createMember();
+
+		MemberNotification mockNotification = MemberNotification.builder()
+			.notificationId(3L)
+			.title("포트폴리오")
+			.content("포트폴리오2의 최대 손실율을 초과했습니다")
+			.timestamp(LocalDateTime.of(2024, 1, 24, 10, 10, 10))
+			.isRead(false)
+			.type("portfolio")
+			.referenceId("2")
+			.build();
+		given(notificationService.deleteAllNotifications(anyLong(), anyList()))
+			.willReturn(List.of(mockNotification.getNotificationId()));
+
+		// when & then
+		mockMvc.perform(delete("/api/members/{memberId}/notifications/{notificationId}",
+				member.getId(),
+				mockNotification.getNotificationId()))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("code").value(equalTo(200)))
+			.andExpect(jsonPath("status").value(equalTo("OK")))
+			.andExpect(jsonPath("message").value(equalTo("알림 삭제를 성공하였습니다")));
+	}
+
 	private Member createMember() {
 		return Member.builder()
 			.id(1L)
@@ -98,7 +266,7 @@ class MemberNotificationRestControllerTest {
 			.build();
 	}
 
-	private List<MemberNotification> createNotifications() {
+	private List<MemberNotification> createMemberNotifications() {
 		return List.of(MemberNotification.builder()
 				.notificationId(3L)
 				.title("포트폴리오")
