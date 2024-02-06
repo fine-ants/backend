@@ -227,6 +227,34 @@ class MemberNotificationRestControllerTest {
 			.andExpect(jsonPath("message").value(equalTo("알림 전체 삭제를 성공하였습니다")));
 	}
 
+	@DisplayName("사용자는 특정 알람을 삭제합니다")
+	@Test
+	void deleteNotification() throws Exception {
+		// given
+		Member member = createMember();
+
+		MemberNotification mockNotification = MemberNotification.builder()
+			.notificationId(3L)
+			.title("포트폴리오")
+			.content("포트폴리오2의 최대 손실율을 초과했습니다")
+			.timestamp(LocalDateTime.of(2024, 1, 24, 10, 10, 10))
+			.isRead(false)
+			.type("portfolio")
+			.referenceId("2")
+			.build();
+		given(notificationService.deleteAllNotifications(anyLong(), anyList()))
+			.willReturn(List.of(mockNotification.getNotificationId()));
+
+		// when & then
+		mockMvc.perform(delete("/api/members/{memberId}/notifications/{notificationId}",
+				member.getId(),
+				mockNotification.getNotificationId()))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("code").value(equalTo(200)))
+			.andExpect(jsonPath("status").value(equalTo("OK")))
+			.andExpect(jsonPath("message").value(equalTo("알림 삭제를 성공하였습니다")));
+	}
+
 	private Member createMember() {
 		return Member.builder()
 			.id(1L)
