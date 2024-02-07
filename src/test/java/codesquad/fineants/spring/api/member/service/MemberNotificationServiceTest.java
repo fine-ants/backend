@@ -19,6 +19,8 @@ import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.member.MemberRepository;
 import codesquad.fineants.domain.notification.Notification;
 import codesquad.fineants.domain.notification.NotificationRepository;
+import codesquad.fineants.spring.api.errors.errorcode.NotificationErrorCode;
+import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
 import codesquad.fineants.spring.api.member.response.MemberNotification;
 import codesquad.fineants.spring.api.member.response.MemberNotificationResponse;
 
