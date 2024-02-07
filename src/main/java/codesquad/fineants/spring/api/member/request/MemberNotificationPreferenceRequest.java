@@ -2,11 +2,15 @@ package codesquad.fineants.spring.api.member.request;
 
 import codesquad.fineants.domain.notification_preference.NotificationPreference;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@Builder
 public class MemberNotificationPreferenceRequest {
 	private Boolean browserNotify;
 	private Boolean targetGainNotify;
