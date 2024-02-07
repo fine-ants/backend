@@ -88,10 +88,10 @@ public class MemberNotificationRestController {
 	@PutMapping("/notification/settings")
 	public ApiResponse<Void> updateNotificationSettings(
 		@PathVariable Long memberId,
-		@Valid MemberNotificationPreferenceRequest request) {
+		@Valid @RequestBody MemberNotificationPreferenceRequest request) {
 		MemberNotificationPreferenceResponse response = notificationPreferenceService.updateNotificationPreference(
-			memberId,
-			request);
+			memberId, request);
+		log.info("회원 알림 설정 수정 처리 결과 : memberId={}, response={}", memberId, response);
 		return ApiResponse.success(MemberSuccessCode.OK_UPDATE_NOTIFICATION_PREFERENCE);
 	}
 }

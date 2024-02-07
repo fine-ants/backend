@@ -33,8 +33,11 @@ import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.oauth.support.AuthPrincipalArgumentResolver;
 import codesquad.fineants.spring.api.errors.handler.GlobalExceptionHandler;
+import codesquad.fineants.spring.api.member.request.MemberNotificationPreferenceRequest;
 import codesquad.fineants.spring.api.member.response.MemberNotification;
+import codesquad.fineants.spring.api.member.response.MemberNotificationPreferenceResponse;
 import codesquad.fineants.spring.api.member.response.MemberNotificationResponse;
+import codesquad.fineants.spring.api.member.service.MemberNotificationPreferenceService;
 import codesquad.fineants.spring.api.member.service.MemberNotificationService;
 import codesquad.fineants.spring.config.JpaAuditingConfiguration;
 import codesquad.fineants.spring.util.ObjectMapperUtil;
@@ -57,6 +60,9 @@ class MemberNotificationRestControllerTest {
 
 	@MockBean
 	private MemberNotificationService notificationService;
+
+	@MockBean
+	private MemberNotificationPreferenceService preferenceService;
 
 	@BeforeEach
 	void setup() {
@@ -253,6 +259,36 @@ class MemberNotificationRestControllerTest {
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
 			.andExpect(jsonPath("message").value(equalTo("알림 삭제를 성공하였습니다")));
+	}
+
+	@DisplayName("사용자는 계정의 알림 설정을 수정합니다")
+	@Test
+	void updateNotificationSettings() throws Exception {
+		// given
+		Member member = createMember();
+		Map<String, Object> body = Map.of(
+			"browserNotify", true,
+			"targetGainNotify", true,
+			"maxLossNotify", true,
+			"targetPriceNotify", false
+		);
+
+		given(preferenceService.updateNotificationPreference(anyLong(), any(MemberNotificationPreferenceRequest.class)))
+			.willReturn(MemberNotificationPreferenceResponse.builder()
+				.browserNotify(true)
+				.targetGainNotify(true)
+				.maxLossNotify(true)
+				.targetPriceNotify(false)
+				.build());
+
+		// when & then
+		mockMvc.perform(put("/api/members/{memberId}/notification/settings", member.getId())
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(ObjectMapperUtil.serialize(body)))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("code").value(equalTo(200)))
+			.andExpect(jsonPath("status").value(equalTo("OK")))
+			.andExpect(jsonPath("message").value(equalTo("알림 설정을 변경했습니다")));
 	}
 
 	private Member createMember() {
