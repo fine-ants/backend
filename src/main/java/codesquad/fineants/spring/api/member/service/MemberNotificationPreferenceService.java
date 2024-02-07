@@ -4,8 +4,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import codesquad.fineants.domain.member.Member;
+import codesquad.fineants.domain.member.MemberRepository;
 import codesquad.fineants.domain.notification_preference.NotificationPreference;
 import codesquad.fineants.domain.notification_preference.NotificationPreferenceRepository;
+import codesquad.fineants.spring.api.errors.errorcode.MemberErrorCode;
 import codesquad.fineants.spring.api.errors.errorcode.NotificationPreferenceErrorCode;
 import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
 import codesquad.fineants.spring.api.member.request.MemberNotificationPreferenceRequest;
@@ -18,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 public class MemberNotificationPreferenceService {
 
 	private final NotificationPreferenceRepository notificationPreferenceRepository;
+	private final MemberRepository memberRepository;
 
 	@Transactional
 	public MemberNotificationPreferenceResponse registerDefaultNotificationPreference(Member member) {
@@ -31,14 +34,16 @@ public class MemberNotificationPreferenceService {
 	public MemberNotificationPreferenceResponse updateNotificationPreference(
 		Long memberId,
 		MemberNotificationPreferenceRequest request) {
-		NotificationPreference preference = findNotificationPreference(memberId);
-		preference.changePreference(request.toEntity());
-		return MemberNotificationPreferenceResponse.from(preference);
-	}
-
-	private NotificationPreference findNotificationPreference(Long memberId) {
-		return notificationPreferenceRepository.findByMemberId(memberId)
+		notificationPreferenceRepository.findByMemberId(memberId)
+			.ifPresentOrElse(notificationPreference -> notificationPreference.changePreference(request.toEntity()),
+				() -> {
+					Member member = memberRepository.findById(memberId)
+						.orElseThrow(() -> new NotFoundResourceException(MemberErrorCode.NOT_FOUND_MEMBER));
+					notificationPreferenceRepository.save(NotificationPreference.defaultSetting(member));
+				});
+		NotificationPreference preference = notificationPreferenceRepository.findByMemberId(memberId)
 			.orElseThrow(() ->
 				new NotFoundResourceException(NotificationPreferenceErrorCode.NOT_FOUND_NOTIFICATION_PREFERENCE));
+		return MemberNotificationPreferenceResponse.from(preference);
 	}
 }

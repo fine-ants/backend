@@ -90,7 +90,7 @@ public class MemberNotificationRestController {
 		@Valid @RequestBody MemberNotificationPreferenceRequest request) {
 		MemberNotificationPreferenceResponse response = preferenceService.updateNotificationPreference(memberId,
 			request);
-		log.info("회원 알림 설정 수정 처리 결과 : memberId={}, response={}", memberId, request);
+		log.info("회원 알림 설정 수정 처리 결과 : memberId={}, response={}", memberId, response);
 		return ApiResponse.success(MemberSuccessCode.OK_UPDATE_NOTIFICATION_PREFERENCE);
 	}
 }
