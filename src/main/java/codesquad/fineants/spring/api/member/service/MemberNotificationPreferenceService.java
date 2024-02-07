@@ -3,6 +3,7 @@ package codesquad.fineants.spring.api.member.service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.notification_preference.NotificationPreference;
 import codesquad.fineants.domain.notification_preference.NotificationPreferenceRepository;
 import codesquad.fineants.spring.api.errors.errorcode.NotificationPreferenceErrorCode;
@@ -19,12 +20,20 @@ public class MemberNotificationPreferenceService {
 	private final NotificationPreferenceRepository notificationPreferenceRepository;
 
 	@Transactional
+	public MemberNotificationPreferenceResponse registerDefaultNotificationPreference(Member member) {
+		NotificationPreference preference = notificationPreferenceRepository.findByMemberId(member.getId())
+			.orElseGet(() -> NotificationPreference.defaultSetting(member));
+		NotificationPreference saveNotificationPreference = notificationPreferenceRepository.save(preference);
+		return MemberNotificationPreferenceResponse.from(saveNotificationPreference);
+	}
+
+	@Transactional
 	public MemberNotificationPreferenceResponse updateNotificationPreference(
 		Long memberId,
 		MemberNotificationPreferenceRequest request) {
-		NotificationPreference notificationPreference = findNotificationPreference(memberId);
-		notificationPreference.changePreference(request.toEntity());
-		return MemberNotificationPreferenceResponse.from(notificationPreference);
+		NotificationPreference preference = findNotificationPreference(memberId);
+		preference.changePreference(request.toEntity());
+		return MemberNotificationPreferenceResponse.from(preference);
 	}
 
 	private NotificationPreference findNotificationPreference(Long memberId) {
