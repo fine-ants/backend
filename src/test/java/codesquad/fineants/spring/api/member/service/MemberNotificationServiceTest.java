@@ -19,8 +19,6 @@ import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.member.MemberRepository;
 import codesquad.fineants.domain.notification.Notification;
 import codesquad.fineants.domain.notification.NotificationRepository;
-import codesquad.fineants.spring.api.errors.errorcode.NotificationErrorCode;
-import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
 import codesquad.fineants.spring.api.member.response.MemberNotification;
 import codesquad.fineants.spring.api.member.response.MemberNotificationResponse;
 
@@ -178,7 +176,7 @@ class MemberNotificationServiceTest {
 			.isInstanceOf(NotFoundResourceException.class)
 			.hasMessage(NotificationErrorCode.NOT_FOUND_NOTIFICATION.getMessage());
 	}
-	
+
 	private Member createMember() {
 		return Member.builder()
 			.nickname("일개미1234")
