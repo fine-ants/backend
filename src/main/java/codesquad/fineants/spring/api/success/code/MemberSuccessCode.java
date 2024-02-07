@@ -21,6 +21,7 @@ public enum MemberSuccessCode implements SuccessCode {
 	OK_LOGIN(HttpStatus.OK, "로그인에 성공하였습니다."),
 	OK_READ_NOTIFICATIONS(HttpStatus.OK, "현재 알림 목록 조회를 성공했습니다"),
 	OK_FETCH_ALL_NOTIFICATIONS(HttpStatus.OK, "알림을 모두 읽음 처리했습니다"),
+	OK_DELETED_NOTIFICATION(HttpStatus.OK, "알림 삭제를 성공하였습니다"),
 	OK_DELETED_ALL_NOTIFICATIONS(HttpStatus.OK, "알림 전체 삭제를 성공하였습니다");
 
 	private final HttpStatus httpStatus;

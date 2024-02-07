@@ -68,7 +68,7 @@ class MemberNotificationPreferenceServiceTest {
 		service.registerDefaultNotificationPreference(member);
 
 		// then
-		List<NotificationPreference> preferences = repository.findAllById(List.of(member.getId()));
+		List<NotificationPreference> preferences = repository.findAll();
 		assertThat(preferences).hasSize(1);
 	}
 
