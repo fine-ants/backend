@@ -34,6 +34,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.member.MemberRepository;
+import codesquad.fineants.domain.notification_preference.NotificationPreferenceRepository;
 import codesquad.fineants.domain.oauth.client.AuthorizationCodeRandomGenerator;
 import codesquad.fineants.domain.oauth.client.OauthClient;
 import codesquad.fineants.domain.oauth.repository.OauthClientRepository;
@@ -70,6 +71,9 @@ public class MemberServiceTest {
 	@Autowired
 	private MemberRepository memberRepository;
 
+	@Autowired
+	private NotificationPreferenceRepository preferenceRepository;
+
 	@MockBean
 	private AuthorizationCodeRandomGenerator authorizationCodeRandomGenerator;
 
@@ -93,6 +97,7 @@ public class MemberServiceTest {
 
 	@AfterEach
 	void tearDown() {
+		preferenceRepository.deleteAllInBatch();
 		memberRepository.deleteAllInBatch();
 	}
 
