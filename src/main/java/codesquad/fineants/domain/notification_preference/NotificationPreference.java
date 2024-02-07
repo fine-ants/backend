@@ -45,4 +45,11 @@ public class NotificationPreference extends BaseEntity {
 		this.maxLossNotify = maxLossNotify;
 		this.targetPriceNotify = targetPriceNotify;
 	}
+
+	public void changePreference(NotificationPreference notificationPreference) {
+		this.browserNotify = notificationPreference.browserNotify;
+		this.targetGainNotify = notificationPreference.targetGainNotify;
+		this.maxLossNotify = notificationPreference.maxLossNotify;
+		this.targetPriceNotify = notificationPreference.targetPriceNotify;
+	}
 }
