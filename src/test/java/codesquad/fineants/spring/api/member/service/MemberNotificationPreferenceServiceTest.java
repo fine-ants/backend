@@ -101,6 +101,33 @@ class MemberNotificationPreferenceServiceTest {
 		);
 	}
 
+	@DisplayName("사용자가 계정 설정시 기존 설정이 없다면 새로 등록한다")
+	@Test
+	void updateNotificationPreference_whenNotExistPreference_thenRegisterPreference() {
+		// given
+		Member member = memberRepository.save(createMember());
+		MemberNotificationPreferenceRequest request = MemberNotificationPreferenceRequest.builder()
+			.browserNotify(false)
+			.targetGainNotify(true)
+			.maxLossNotify(true)
+			.targetPriceNotify(true)
+			.build();
+
+		// when
+		MemberNotificationPreferenceResponse response = service.updateNotificationPreference(member.getId(), request);
+
+		// then
+		NotificationPreference preference = repository.findByMemberId(member.getId()).orElseThrow();
+		assertAll(
+			() -> assertThat(response)
+				.extracting("browserNotify", "targetGainNotify", "maxLossNotify", "targetPriceNotify")
+				.containsExactly(false, true, true, true),
+			() -> assertThat(preference)
+				.extracting("browserNotify", "targetGainNotify", "maxLossNotify", "targetPriceNotify")
+				.containsExactly(false, true, true, true)
+		);
+	}
+
 	private Member createMember() {
 		return Member.builder()
 			.nickname("일개미1234")
