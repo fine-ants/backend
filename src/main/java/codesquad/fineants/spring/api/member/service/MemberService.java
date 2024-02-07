@@ -92,6 +92,7 @@ public class MemberService {
 	private final PortfolioGainHistoryRepository portfolioGainHistoryRepository;
 	private final PurchaseHistoryRepository purchaseHistoryRepository;
 	private final VerifyCodeGenerator verifyCodeGenerator;
+	private final MemberNotificationPreferenceService preferenceService;
 
 	public OauthMemberLoginResponse login(OauthMemberLoginRequest request) {
 		log.info("로그인 서비스 요청 : loginRequest={}", request);
@@ -100,6 +101,7 @@ public class MemberService {
 			.supplyAsync(supplyOauthClient(provider))
 			.thenApply(fetchProfile(request))
 			.thenCompose(saveMember(provider))
+			.thenCompose(registerNotificationPreference())
 			.thenApply(createLoginResponse(request.getRequestTime()));
 
 		try {
@@ -136,6 +138,17 @@ public class MemberService {
 	private Supplier<Member> supplyMember(String provider, OauthUserProfile profile) {
 		return () -> findMember(profile.getEmail(), provider)
 			.orElseGet(() -> memberFactory.createMember(profile));
+	}
+
+	private Function<Member, CompletionStage<Member>> registerNotificationPreference() {
+		return member -> {
+			saveDefaultNotificationPreference(member);
+			return CompletableFuture.supplyAsync(() -> member);
+		};
+	}
+
+	private void saveDefaultNotificationPreference(Member member) {
+		preferenceService.registerDefaultNotificationPreference(member);
 	}
 
 	private Optional<Member> findMember(String email, String provider) {
@@ -209,6 +222,8 @@ public class MemberService {
 				encryptedPassword
 			)
 		);
+		saveDefaultNotificationPreference(member);
+		
 		log.info("일반 회원가입 결과 : {}", member);
 		return SignUpServiceResponse.from(member);
 	}
