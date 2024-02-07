@@ -3,6 +3,8 @@ package codesquad.fineants.spring.api.member.service;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.List;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -34,6 +36,40 @@ class MemberNotificationPreferenceServiceTest {
 	void tearDown() {
 		repository.deleteAllInBatch();
 		memberRepository.deleteAllInBatch();
+	}
+
+	@DisplayName("사용자는 계정 알림 설정을 등록합니다")
+	@Test
+	void registerDefaultNotificationPreference() {
+		// given
+		Member member = memberRepository.save(createMember());
+
+		// when
+		MemberNotificationPreferenceResponse response = service.registerDefaultNotificationPreference(member);
+
+		// then
+		assertAll(
+			() -> assertThat(response)
+				.extracting("browserNotify", "targetGainNotify", "maxLossNotify", "targetPriceNotify")
+				.containsExactly(false, true, true, true),
+			() -> assertThat(repository.findByMemberId(member.getId()).isPresent())
+				.isTrue()
+		);
+	}
+
+	@DisplayName("사용자는 이미 등록한 계정 알림 설정은 새로 등록하지 않는다")
+	@Test
+	void registerDefaultNotificationPreference_whenExistNotificationPreference_thenNotRegister() {
+		// given
+		Member member = memberRepository.save(createMember());
+		repository.save(NotificationPreference.defaultSetting(member));
+
+		// when
+		service.registerDefaultNotificationPreference(member);
+
+		// then
+		List<NotificationPreference> preferences = repository.findAllById(List.of(member.getId()));
+		assertThat(preferences).hasSize(1);
 	}
 
 	@DisplayName("사용자는 계정의 알림 설정을 변경한다")
