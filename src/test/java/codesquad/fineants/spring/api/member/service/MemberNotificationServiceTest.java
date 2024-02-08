@@ -15,14 +15,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
+import codesquad.fineants.domain.fcm_token.FcmRepository;
+import codesquad.fineants.domain.fcm_token.FcmToken;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.member.MemberRepository;
 import codesquad.fineants.domain.notification.Notification;
 import codesquad.fineants.domain.notification.NotificationRepository;
 import codesquad.fineants.spring.api.errors.errorcode.NotificationErrorCode;
 import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
+import codesquad.fineants.spring.api.member.request.MemberNotificationSendRequest;
 import codesquad.fineants.spring.api.member.response.MemberNotification;
 import codesquad.fineants.spring.api.member.response.MemberNotificationResponse;
+import codesquad.fineants.spring.api.member.response.MemberNotificationSendResponse;
 
 @ActiveProfiles("test")
 @SpringBootTest
@@ -37,8 +41,12 @@ class MemberNotificationServiceTest {
 	@Autowired
 	private NotificationRepository notificationRepository;
 
+	@Autowired
+	private FcmRepository fcmRepository;
+
 	@AfterEach
 	void tearDown() {
+		fcmRepository.deleteAllInBatch();
 		notificationRepository.deleteAllInBatch();
 		memberRepository.deleteAllInBatch();
 	}
@@ -178,6 +186,93 @@ class MemberNotificationServiceTest {
 			.hasMessage(NotificationErrorCode.NOT_FOUND_NOTIFICATION.getMessage());
 	}
 
+	@DisplayName("사용자는 알림 발송합니다")
+	@Test
+	void sendNotification() {
+		// given
+		Member member = memberRepository.save(createMember());
+		fcmRepository.save(createFcmToken(member));
+		MemberNotificationSendRequest request = MemberNotificationSendRequest.builder()
+			.title("포트폴리오")
+			.content("포트폴리오1의 최대 손실율을 초과했습니다")
+			.type("portfolio")
+			.referenceId("1")
+			.build();
+
+		// when
+		MemberNotificationSendResponse response = notificationService.sendNotificationToUsers(member.getId(), request);
+
+		// then
+		assertAll(
+			() -> assertThat(response)
+				.extracting("title", "content", "isRead", "type", "referenceId")
+				.containsExactly("포트폴리오", "포트폴리오1의 최대 손실율을 초과했습니다", false, "portfolio", "1"),
+			() -> assertThat(response)
+				.extracting("sendMessageIds")
+				.asList()
+				.hasSize(1)
+		);
+	}
+
+	@DisplayName("사용자는 알림 발송시 유효하지 않은 토큰이 들어있는 경우 제거합니다")
+	@Test
+	void sendNotification_whenInvalidTokenOfTokens_thenDeleteInvalidToken() {
+		// given
+		Member member = memberRepository.save(createMember());
+		fcmRepository.save(createFcmToken(member));
+		FcmToken saveFcmToken = fcmRepository.save(createFcmToken(member, "fcmToken"));
+		MemberNotificationSendRequest request = MemberNotificationSendRequest.builder()
+			.title("포트폴리오")
+			.content("포트폴리오1의 최대 손실율을 초과했습니다")
+			.type("portfolio")
+			.referenceId("1")
+			.build();
+
+		// when
+		MemberNotificationSendResponse response = notificationService.sendNotificationToUsers(member.getId(), request);
+
+		// then
+		assertAll(
+			() -> assertThat(response)
+				.extracting("title", "content", "isRead", "type", "referenceId")
+				.containsExactly("포트폴리오", "포트폴리오1의 최대 손실율을 초과했습니다", false, "portfolio", "1"),
+			() -> assertThat(response)
+				.extracting("sendMessageIds")
+				.asList()
+				.hasSize(1),
+			() -> assertThat(fcmRepository.findById(saveFcmToken.getId()).isEmpty()).isTrue()
+		);
+	}
+
+	@DisplayName("사용자는 토큰을 등록하지 않은 상태로 알림 발송시 전송되지 않는다")
+	@Test
+	void sendNotification_whenEmptyToken_thenDoNotSendNotification() {
+		// given
+		Member member = memberRepository.save(createMember());
+		MemberNotificationSendRequest request = MemberNotificationSendRequest.builder()
+			.title("포트폴리오")
+			.content("포트폴리오1의 최대 손실율을 초과했습니다")
+			.type("portfolio")
+			.referenceId("1")
+			.build();
+
+		// when
+		MemberNotificationSendResponse response = notificationService.sendNotificationToUsers(member.getId(), request);
+
+		// then
+		assertAll(
+			() -> assertThat(response)
+				.extracting("title", "content", "isRead", "type", "referenceId")
+				.containsExactly("포트폴리오", "포트폴리오1의 최대 손실율을 초과했습니다", false, "portfolio", "1"),
+			() -> assertThat(response)
+				.extracting("sendMessageIds")
+				.asList()
+				.hasSize(0),
+			() -> assertThat(notificationRepository.findAllByMemberId(member.getId()))
+				.hasSize(0)
+		);
+	}
+
 	private Member createMember() {
 		return Member.builder()
 			.nickname("일개미1234")
@@ -231,4 +326,16 @@ class MemberNotificationServiceTest {
 			.build();
 	}
 
+	private FcmToken createFcmToken(Member member) {
+		return createFcmToken(member,
+			"fahY76rRwq8HGy0m1lwckx:APA91bEovbLJyqdSRq8MWDbsIN8sbk90JiNHbIBs6rDoiOKeC-aa5P1QydiRa6okGrIZELrxx_cYieWUN44iX-AD6jma-cYRUR7e3bTMXwkqZFLRZh5s7-bcksGniB7Y2DkoONHtSjos");
+	}
+
+	private FcmToken createFcmToken(Member member, String fcmToken) {
+		return FcmToken.builder()
+			.token(fcmToken)
+			.latestActivationTime(LocalDateTime.now())
+			.member(member)
+			.build();
+	}
 }

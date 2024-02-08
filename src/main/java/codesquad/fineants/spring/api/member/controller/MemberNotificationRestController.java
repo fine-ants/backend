@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,8 +17,10 @@ import org.springframework.web.bind.annotation.RestController;
 import codesquad.fineants.spring.api.member.request.MemberNotificationAllDeleteRequest;
 import codesquad.fineants.spring.api.member.request.MemberNotificationAllReadRequest;
 import codesquad.fineants.spring.api.member.request.MemberNotificationPreferenceRequest;
+import codesquad.fineants.spring.api.member.request.MemberNotificationSendRequest;
 import codesquad.fineants.spring.api.member.response.MemberNotificationPreferenceResponse;
 import codesquad.fineants.spring.api.member.response.MemberNotificationResponse;
+import codesquad.fineants.spring.api.member.response.MemberNotificationSendResponse;
 import codesquad.fineants.spring.api.member.service.MemberNotificationPreferenceService;
 import codesquad.fineants.spring.api.member.service.MemberNotificationService;
 import codesquad.fineants.spring.api.response.ApiResponse;
@@ -34,6 +37,16 @@ public class MemberNotificationRestController {
 
 	private final MemberNotificationService notificationService;
 	private final MemberNotificationPreferenceService preferenceService;
+
+	// 회원의 알림 메시지 생성
+	@PostMapping("/notifications")
+	public ApiResponse<Void> sendNotification(
+		@PathVariable Long memberId,
+		@Valid @RequestBody MemberNotificationSendRequest request) {
+		MemberNotificationSendResponse response = notificationService.sendNotificationToUsers(memberId, request);
+		log.info("알림 메시지 발송 컨트롤러 처리 결과 : {}", response);
+		return ApiResponse.success(MemberSuccessCode.OK_SEND_NOTIFICATION);
+	}
 
 	// 회원의 알림 목록 조회
 	@HasNotificationAuthorization
