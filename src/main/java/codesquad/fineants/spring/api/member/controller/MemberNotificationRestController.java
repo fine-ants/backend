@@ -44,6 +44,7 @@ public class MemberNotificationRestController {
 	}
 
 	// 회원의 알림 모두 읽기
+	@HasNotificationAuthorization
 	@PatchMapping("/notifications")
 	public ApiResponse<Void> readAllNotifications(
 		@PathVariable Long memberId,
