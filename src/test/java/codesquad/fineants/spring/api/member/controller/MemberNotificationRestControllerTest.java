@@ -33,8 +33,10 @@ import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.oauth.support.AuthPrincipalArgumentResolver;
 import codesquad.fineants.spring.api.errors.handler.GlobalExceptionHandler;
+import codesquad.fineants.spring.api.member.request.MemberNotificationSendRequest;
 import codesquad.fineants.spring.api.member.response.MemberNotification;
 import codesquad.fineants.spring.api.member.response.MemberNotificationResponse;
+import codesquad.fineants.spring.api.member.response.MemberNotificationSendResponse;
 import codesquad.fineants.spring.api.member.service.MemberNotificationPreferenceService;
 import codesquad.fineants.spring.api.member.service.MemberNotificationService;
 import codesquad.fineants.spring.config.JpaAuditingConfiguration;
@@ -257,6 +259,40 @@ class MemberNotificationRestControllerTest {
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
 			.andExpect(jsonPath("message").value(equalTo("알림 삭제를 성공하였습니다")));
+	}
+
+	@DisplayName("사용자는 알림 메시지를 발송한다")
+	@Test
+	void sendNotification() throws Exception {
+		// given
+		Member member = createMember();
+		MemberNotificationSendRequest request = MemberNotificationSendRequest.builder()
+			.title("포트폴리오")
+			.content("포트폴리오1의 최대 손실율을 초과했습니다")
+			.type("portfolio")
+			.referenceId("1")
+			.build();
+		MemberNotificationSendResponse response = MemberNotificationSendResponse.builder()
+			.notificationId(1L)
+			.title("포트폴리오")
+			.content("포트폴리오1의 최대 손실율을 초과했습니다")
+			.timestamp(LocalDateTime.now())
+			.isRead(false)
+			.type("portfolio")
+			.referenceId("1")
+			.sendMessageIds(List.of("messageId"))
+			.build();
+		given(notificationService.sendNotificationToUsers(anyLong(), any(MemberNotificationSendRequest.class)))
+			.willReturn(response);
+
+		// when & then
+		mockMvc.perform(post("/api/members/{memberId}/notifications", member.getId())
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(ObjectMapperUtil.serialize(request)))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("code").value(equalTo(200)))
+			.andExpect(jsonPath("status").value(equalTo("OK")))
+			.andExpect(jsonPath("message").value(equalTo("알림 메시지가 발송하였습니다")));
 	}
 
 	private Member createMember() {

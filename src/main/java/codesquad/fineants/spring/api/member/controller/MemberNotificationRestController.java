@@ -45,7 +45,7 @@ public class MemberNotificationRestController {
 		@Valid @RequestBody MemberNotificationSendRequest request) {
 		MemberNotificationSendResponse response = notificationService.sendNotificationToUsers(memberId, request);
 		log.info("알림 메시지 발송 컨트롤러 처리 결과 : {}", response);
-		return ApiResponse.success(MemberSuccessCode.OK_CREATE_NOTIFICATION);
+		return ApiResponse.success(MemberSuccessCode.OK_SEND_NOTIFICATION);
 	}
 
 	// 회원의 알림 목록 조회
