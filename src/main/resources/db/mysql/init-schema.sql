@@ -137,7 +137,7 @@ create table if not exists fineAnts.watch_stock
 );
 
 
-create table fineAnts.fcm_token
+create table if not exists fineAnts.fcm_token
 (
     id                     bigint auto_increment primary key,
     create_at              datetime(6)  null,
