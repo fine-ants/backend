@@ -15,7 +15,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import codesquad.fineants.spring.api.member.request.MemberNotificationAllDeleteRequest;
 import codesquad.fineants.spring.api.member.request.MemberNotificationAllReadRequest;
+import codesquad.fineants.spring.api.member.request.MemberNotificationCreateRequest;
 import codesquad.fineants.spring.api.member.request.MemberNotificationPreferenceRequest;
+import codesquad.fineants.spring.api.member.response.MemberNotificationCreateResponse;
 import codesquad.fineants.spring.api.member.response.MemberNotificationPreferenceResponse;
 import codesquad.fineants.spring.api.member.response.MemberNotificationResponse;
 import codesquad.fineants.spring.api.member.service.MemberNotificationPreferenceService;
@@ -34,6 +36,14 @@ public class MemberNotificationRestController {
 
 	private final MemberNotificationService notificationService;
 	private final MemberNotificationPreferenceService preferenceService;
+
+	// 회원의 알림 메시지 생성
+	public ApiResponse<Void> createNotification(
+		@PathVariable Long memberId,
+		@Valid @RequestBody MemberNotificationCreateRequest request) {
+		MemberNotificationCreateResponse response = notificationService.createNotification(memberId, request);
+		return ApiResponse.success(MemberSuccessCode.OK_CREATE_NOTIFICATION);
+	}
 
 	// 회원의 알림 목록 조회
 	@HasNotificationAuthorization
