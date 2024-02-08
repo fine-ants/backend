@@ -1,27 +1,29 @@
 package codesquad.fineants.spring.api.member.service;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.firebase.messaging.BatchResponse;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
 
 import codesquad.fineants.domain.fcm_token.FcmRepository;
 import codesquad.fineants.domain.fcm_token.FcmToken;
+import codesquad.fineants.domain.member.Member;
+import codesquad.fineants.domain.member.MemberRepository;
 import codesquad.fineants.domain.notification.Notification;
 import codesquad.fineants.domain.notification.NotificationRepository;
+import codesquad.fineants.spring.api.errors.errorcode.MemberErrorCode;
 import codesquad.fineants.spring.api.errors.errorcode.NotificationErrorCode;
 import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
-import codesquad.fineants.spring.api.member.request.MemberNotificationCreateRequest;
+import codesquad.fineants.spring.api.member.request.MemberNotificationSendRequest;
 import codesquad.fineants.spring.api.member.response.MemberNotification;
-import codesquad.fineants.spring.api.member.response.MemberNotificationCreateResponse;
 import codesquad.fineants.spring.api.member.response.MemberNotificationResponse;
+import codesquad.fineants.spring.api.member.response.MemberNotificationSendResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -33,6 +35,7 @@ public class MemberNotificationService {
 
 	private final NotificationRepository notificationRepository;
 	private final FcmRepository fcmRepository;
+	private final MemberRepository memberRepository;
 	private final FirebaseMessaging firebaseMessaging;
 
 	public MemberNotificationResponse fetchNotifications(Long memberId) {
@@ -85,39 +88,52 @@ public class MemberNotificationService {
 	}
 
 	@Transactional
-	public MemberNotificationCreateResponse createNotification(Long memberId, MemberNotificationCreateRequest request) {
+	public MemberNotificationSendResponse sendNotificationToUsers(Long memberId,
+		MemberNotificationSendRequest request) {
 		// 알림 데이터 등록
-		Notification notification = notificationRepository.save(request.toEntity());
+		Member member = findMember(memberId);
+		Notification notification = notificationRepository.save(request.toEntity(member));
 
 		// 알림 데이터 전송
 		List<String> tokens = fcmRepository.findAllByMemberId(memberId).stream()
 			.map(FcmToken::getToken)
 			.collect(Collectors.toList());
-		Optional<BatchResponse> batchResponse = sendNotification(tokens, notification);
-		batchResponse.ifPresentOrElse(
-			response -> log.info("메시지 전송 결과 : {}", response),
-			() -> log.info("메시지 전송 결과 없음"));
-
-		return MemberNotificationCreateResponse.from(notification);
+		List<String> sendMessageIds = sendNotificationToUsers(tokens, notification);
+		if (sendMessageIds.isEmpty()) {
+			notificationRepository.deleteById(notification.getId());
+			log.info("알림 메시지 전송 실패로 인한 알림 메시지 삭제, id={}", notification.getId());
+		}
+		return MemberNotificationSendResponse.from(notification, sendMessageIds);
 	}
 
-	private Optional<BatchResponse> sendNotification(List<String> tokens, Notification notification) {
-		List<Message> messages = tokens.stream()
-			.map(token -> Message.builder()
+	private Member findMember(Long memberId) {
+		return memberRepository.findById(memberId)
+			.orElseThrow(() -> new NotFoundResourceException(MemberErrorCode.NOT_FOUND_MEMBER));
+	}
+
+	private List<String> sendNotificationToUsers(List<String> tokens, Notification notification) {
+		List<String> messageIds = new ArrayList<>();
+		List<String> deadTokens = new ArrayList<>();
+		for (String token : tokens) {
+			Message message = Message.builder()
 				.setToken(token)
 				.setNotification(
 					com.google.firebase.messaging.Notification.builder()
 						.setTitle(notification.getTitle())
 						.setBody(notification.getContent())
 						.build())
-				.build())
-			.collect(Collectors.toList());
-
-		try {
-			return Optional.ofNullable(firebaseMessaging.sendAll(messages));
-		} catch (FirebaseMessagingException e) {
-			log.info(e.getMessage(), e);
+				.build();
+			try {
+				String messageId = firebaseMessaging.send(message);
+				messageIds.add(messageId);
+				log.info("알림 메시지 전송 결과 : messageId={}", messageId);
+			} catch (FirebaseMessagingException e) {
+				log.info("알림 메시지 전송 실패, token={}, message={}", token, e.getMessage());
+				deadTokens.add(token);
+			}
 		}
-		return Optional.empty();
+		int deleteTokenCount = fcmRepository.deleteAllByTokens(deadTokens);
+		log.info("토큰 삭제 결과 deleteTokenCount={}", deleteTokenCount);
+		return messageIds;
 	}
 }
