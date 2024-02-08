@@ -22,6 +22,7 @@ import codesquad.fineants.spring.api.member.service.MemberNotificationPreference
 import codesquad.fineants.spring.api.member.service.MemberNotificationService;
 import codesquad.fineants.spring.api.response.ApiResponse;
 import codesquad.fineants.spring.api.success.code.MemberSuccessCode;
+import codesquad.fineants.spring.auth.HasNotificationAuthorization;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -35,6 +36,7 @@ public class MemberNotificationRestController {
 	private final MemberNotificationPreferenceService preferenceService;
 
 	// 회원의 알림 목록 조회
+	@HasNotificationAuthorization
 	@GetMapping("/notifications")
 	public ApiResponse<MemberNotificationResponse> fetchNotifications(@PathVariable Long memberId) {
 		return ApiResponse.success(MemberSuccessCode.OK_READ_NOTIFICATIONS,
@@ -51,6 +53,7 @@ public class MemberNotificationRestController {
 		return ApiResponse.success(MemberSuccessCode.OK_FETCH_ALL_NOTIFICATIONS);
 	}
 
+	@HasNotificationAuthorization
 	@PatchMapping("/notifications/{notificationId}")
 	public ApiResponse<Void> readNotification(
 		@PathVariable Long memberId,
@@ -60,6 +63,7 @@ public class MemberNotificationRestController {
 		return ApiResponse.success(MemberSuccessCode.OK_FETCH_ALL_NOTIFICATIONS);
 	}
 
+	@HasNotificationAuthorization
 	@DeleteMapping("/notifications")
 	public ApiResponse<Void> deleteAllNotifications(
 		@PathVariable Long memberId,
@@ -72,6 +76,7 @@ public class MemberNotificationRestController {
 		return ApiResponse.success(MemberSuccessCode.OK_DELETED_ALL_NOTIFICATIONS);
 	}
 
+	@HasNotificationAuthorization
 	@DeleteMapping("/notifications/{notificationId}")
 	public ApiResponse<Void> deleteNotification(
 		@PathVariable Long memberId,
@@ -84,6 +89,7 @@ public class MemberNotificationRestController {
 		return ApiResponse.success(MemberSuccessCode.OK_DELETED_NOTIFICATION);
 	}
 
+	@HasNotificationAuthorization
 	@PutMapping("/notification/settings")
 	public ApiResponse<Void> updateNotificationPreference(
 		@PathVariable Long memberId,
