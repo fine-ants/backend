@@ -218,12 +218,20 @@ class PortfolioStockServiceTest {
 		Member member = memberRepository.save(createMember());
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Stock stock = stockRepository.save(createStock());
+		Stock stock2 = stockRepository.save(
+			createStock("카카오보통주", "035720", "Kakao", "KR7035720002", "서비스업", Market.KOSPI));
 		stockDividendRepository.saveAll(createStockDividendWith(stock));
 		PortfolioHolding portfolioHolding = portFolioHoldingRepository.save(createPortfolioHolding(portfolio, stock));
+		PortfolioHolding portfolioHolding2 = portFolioHoldingRepository.save(createPortfolioHolding(portfolio, stock2));
 		purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding));
+		purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding));
+		purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding2));
+		purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding2));
 
 		currentPriceManager.addCurrentPrice(new CurrentPriceResponse("005930", 60000L));
+		currentPriceManager.addCurrentPrice(new CurrentPriceResponse("035720", 60000L));
 		lastDayClosingPriceManager.addPrice("005930", 50000);
+		lastDayClosingPriceManager.addPrice("035720", 50000);
 
 		// when
 		PortfolioHoldingsRealTimeResponse response = service.readMyPortfolioStocksInRealTime(portfolio.getId());
@@ -233,14 +241,16 @@ class PortfolioStockServiceTest {
 			() -> assertThat(response).extracting("portfolioDetails")
 				.extracting("currentValuation", "totalGain", "totalGainRate", "dailyGain", "dailyGainRate",
 					"provisionalLossBalance")
-				.containsExactlyInAnyOrder(180000L, 30000L, 20, 30000L, 20, 0L),
+				.containsExactlyInAnyOrder(720000L, 120000L, 20, 120000L, 20, 0L),
 
 			() -> assertThat(response).extracting("portfolioHoldings")
 				.asList()
-				.hasSize(1)
+				.hasSize(2)
 				.extracting("currentValuation", "currentPrice", "dailyChange", "dailyChangeRate", "totalGain",
 					"totalReturnRate")
-				.containsExactlyInAnyOrder(Tuple.tuple(180000L, 60000L, 10000L, 20, 30000L, 20))
+				.containsExactlyInAnyOrder(
+					Tuple.tuple(360000L, 60000L, 10000L, 20, 60000L, 20),
+					Tuple.tuple(360000L, 60000L, 10000L, 20, 60000L, 20))
 		);
 	}
 
