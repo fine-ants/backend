@@ -124,6 +124,11 @@ public class PortfolioStockService {
 			.orElseThrow(() -> new NotFoundResourceException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
 	}
 
+	public Portfolio findPortfolioUsingFetchJoin(Long portfolioId) {
+		return portfolioRepository.findByPortfolioIdWithAll(portfolioId)
+			.orElseThrow(() -> new NotFoundResourceException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
+	}
+
 	private void validateInvestAmountNotExceedsBudget(PortfolioStockCreateRequest request, Portfolio portfolio) {
 		Double purchasedAmount =
 			request.getPurchaseHistory().getNumShares() * request.getPurchaseHistory()
@@ -158,11 +163,14 @@ public class PortfolioStockService {
 	}
 
 	public PortfolioHoldingsRealTimeResponse readMyPortfolioStocksInRealTime(Long portfolioId) {
-		Portfolio portfolio = findPortfolio(portfolioId);
+		Portfolio portfolio = findPortfolioUsingFetchJoin(portfolioId);
+		log.info("step1: portfolio={}", portfolio);
 		PortfolioDetailRealTimeItem portfolioDetail = portfolioDetailFactory.createPortfolioDetailRealTimeItem(
 			portfolio);
+		log.info("step2: portfolioDetail={}", portfolioDetail);
 		List<PortfolioHoldingRealTimeItem> portfolioHoldingDetails = portfolioHoldingDetailFactory.createPortfolioHoldingRealTimeItems(
 			portfolio);
+		log.info("step3: portfolioHoldingDetails.size={}", portfolioHoldingDetails.size());
 		return PortfolioHoldingsRealTimeResponse.of(portfolioDetail, portfolioHoldingDetails);
 	}
 
