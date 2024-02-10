@@ -211,7 +211,7 @@ class PortfolioStockServiceTest {
 		);
 	}
 
-	@DisplayName("사용자는 포트폴리오에 실시간 상세 데이터를 조회한다.")
+	@DisplayName("사용자는 포트폴리오에 실시간 상세 데이터를 조회한다")
 	@Test
 	void readMyPortfolioStocksInRealTime() {
 		// given
