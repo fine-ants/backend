@@ -42,7 +42,6 @@ import lombok.extern.slf4j.Slf4j;
 	}, subgraphs = {
 		@NamedSubgraph(name = "portfolioHoldings", attributeNodes = {
 			@NamedAttributeNode("stock")
-			// @NamedAttributeNode("purchaseHistory")
 		})})
 })
 @Slf4j
