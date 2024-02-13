@@ -17,9 +17,11 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@ToString(exclude = {"member", "stock"})
 @Entity
 @Table(name = "stock_target_price", uniqueConstraints = {
 	@UniqueConstraint(columnNames = {"member_id", "ticker_symbol", "targetPrice"})
