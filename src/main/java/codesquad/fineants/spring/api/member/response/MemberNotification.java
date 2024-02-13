@@ -20,7 +20,7 @@ import lombok.ToString;
 public class MemberNotification {
 	private Long notificationId;
 	private String title;
-	private String content;
+	private String body;
 	private LocalDateTime timestamp;
 	private Boolean isRead;
 	private String type;
@@ -30,7 +30,7 @@ public class MemberNotification {
 		return MemberNotification.builder()
 			.notificationId(notification.getId())
 			.title(notification.getTitle())
-			.content(notification.getContent())
+			.body(notification.getContent())
 			.timestamp(notification.getCreateAt())
 			.isRead(notification.getIsRead())
 			.type(notification.getType())
