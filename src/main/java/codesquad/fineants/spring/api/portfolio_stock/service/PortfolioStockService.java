@@ -164,13 +164,10 @@ public class PortfolioStockService {
 
 	public PortfolioHoldingsRealTimeResponse readMyPortfolioStocksInRealTime(Long portfolioId) {
 		Portfolio portfolio = findPortfolioUsingFetchJoin(portfolioId);
-		log.info("step1: portfolio={}", portfolio);
 		PortfolioDetailRealTimeItem portfolioDetail = portfolioDetailFactory.createPortfolioDetailRealTimeItem(
 			portfolio);
-		log.info("step2: portfolioDetail={}", portfolioDetail);
 		List<PortfolioHoldingRealTimeItem> portfolioHoldingDetails = portfolioHoldingDetailFactory.createPortfolioHoldingRealTimeItems(
 			portfolio);
-		log.info("step3: portfolioHoldingDetails.size={}", portfolioHoldingDetails.size());
 		return PortfolioHoldingsRealTimeResponse.of(portfolioDetail, portfolioHoldingDetails);
 	}
 
