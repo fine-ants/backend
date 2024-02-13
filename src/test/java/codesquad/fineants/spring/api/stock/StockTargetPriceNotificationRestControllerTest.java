@@ -2,6 +2,7 @@ package codesquad.fineants.spring.api.stock;
 
 import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.anyList;
 import static org.mockito.BDDMockito.anyLong;
 import static org.mockito.BDDMockito.anyString;
 import static org.mockito.BDDMockito.*;
@@ -9,7 +10,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -35,6 +38,7 @@ import codesquad.fineants.domain.oauth.support.AuthPrincipalArgumentResolver;
 import codesquad.fineants.spring.api.errors.handler.GlobalExceptionHandler;
 import codesquad.fineants.spring.api.stock.request.TargetPriceNotificationCreateRequest;
 import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationCreateResponse;
+import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationDeleteResponse;
 import codesquad.fineants.spring.config.JpaAuditingConfiguration;
 import codesquad.fineants.spring.util.ObjectMapperUtil;
 
@@ -122,6 +126,83 @@ class StockTargetPriceNotificationRestControllerTest {
 			.andExpect(jsonPath("data").isArray());
 	}
 
+	@DisplayName("사용자는 종목 지정가 알림들을 삭제합니다")
+	@Test
+	void deleteAllStockTargetPriceNotification() throws Exception {
+		// given
+		given(service.deleteStockTargetPriceNotification(
+				anyString(),
+				anyList(),
+				anyLong()
+			)
+		).willReturn(TargetPriceNotificationDeleteResponse.builder()
+			.deletedIds(List.of(1L, 2L))
+			.build());
+
+		String tickerSymbol = "005930";
+		Map<String, Object> body = new HashMap<>();
+		body.put("targetPriceNotificationIds", List.of(1L, 2L));
+
+		// when & then
+		mockMvc.perform(delete("/api/stocks/{tickerSymbol}/target-price/notifications", tickerSymbol)
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(ObjectMapperUtil.serialize(body)))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("code").value(equalTo(200)))
+			.andExpect(jsonPath("status").value(equalTo("OK")))
+			.andExpect(jsonPath("message").value(equalTo("해당 종목 지정가 알림을 제거했습니다")))
+			.andExpect(jsonPath("data").value(equalTo(null)));
+	}
+
+	@DisplayName("사용자는 유효하지 않은 입력 형식으로 종목 지정가를 삭제할 수 없다")
+	@MethodSource(value = "invalidTargetPriceNotificationIds")
+	@ParameterizedTest
+	void deleteAllStockTargetPriceNotification_whenInvalidTargetPriceNotificationIds_thenResponse400Error(
+		List<Long> targetPriceNotificationIds)
+		throws Exception {
+		// given
+		String tickerSymbol = "005930";
+		Map<String, Object> body = new HashMap<>();
+		body.put("targetPriceNotificationIds", targetPriceNotificationIds);
+
+		// when & then
+		mockMvc.perform(delete("/api/stocks/{tickerSymbol}/target-price/notifications", tickerSymbol)
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(ObjectMapperUtil.serialize(body)))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("code").value(equalTo(400)))
+			.andExpect(jsonPath("status").value(equalTo("Bad Request")))
+			.andExpect(jsonPath("message").value(equalTo("잘못된 입력형식입니다")))
+			.andExpect(jsonPath("data").isArray());
+	}
+
+	@DisplayName("사용자는 종목 지정가 알림을 삭제합니다")
+	@Test
+	void deleteStockTargetPriceNotification() throws Exception {
+		// given
+		given(service.deleteStockTargetPriceNotification(
+				anyString(),
+				anyList(),
+				anyLong()
+			)
+		).willReturn(TargetPriceNotificationDeleteResponse.builder()
+			.deletedIds(List.of(1L))
+			.build());
+
+		String tickerSymbol = "005930";
+		Long targetPriceNotificationId = 1L;
+		// when & then
+		mockMvc.perform(
+				delete("/api/stocks/{tickerSymbol}/target-price/notifications/{targetPriceNotificationId}",
+					tickerSymbol,
+					targetPriceNotificationId))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("code").value(equalTo(200)))
+			.andExpect(jsonPath("status").value(equalTo("OK")))
+			.andExpect(jsonPath("message").value(equalTo("해당 종목 지정가 알림을 제거했습니다")))
+			.andExpect(jsonPath("data").value(equalTo(null)));
+	}
+
 	private Member createMember() {
 		return Member.builder()
 			.id(1L)
@@ -135,6 +216,13 @@ class StockTargetPriceNotificationRestControllerTest {
 	public static Stream<Arguments> invalidTargetPrice() {
 		return Stream.of(
 			Arguments.of(-1L),
+			Arguments.of((Object)null)
+		);
+	}
+
+	public static Stream<Arguments> invalidTargetPriceNotificationIds() {
+		return Stream.of(
+			Arguments.of(Collections.emptyList()),
 			Arguments.of((Object)null)
 		);
 	}
