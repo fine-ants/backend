@@ -14,6 +14,10 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.NamedAttributeNode;
+import javax.persistence.NamedEntityGraph;
+import javax.persistence.NamedEntityGraphs;
+import javax.persistence.NamedSubgraph;
 import javax.persistence.OneToMany;
 
 import codesquad.fineants.domain.BaseEntity;
@@ -31,6 +35,15 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
+@NamedEntityGraphs({
+	@NamedEntityGraph(name = "Portfolio.withAll", attributeNodes = {
+		@NamedAttributeNode("member"),
+		@NamedAttributeNode(value = "portfolioHoldings", subgraph = "portfolioHoldings")
+	}, subgraphs = {
+		@NamedSubgraph(name = "portfolioHoldings", attributeNodes = {
+			@NamedAttributeNode("stock")
+		})})
+})
 @Slf4j
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -106,10 +119,6 @@ public class Portfolio extends BaseEntity {
 		if (totalInvestmentAmount == 0) {
 			return 0;
 		}
-		long totalGain = calculateTotalGain();
-		log.info("totalGain : {}", totalGain);
-		log.info("totalInvestmentAmount : {}", totalInvestmentAmount);
-		log.info("result : {}", (int)(((double)calculateTotalGain() / (double)totalInvestmentAmount) * 100));
 		return (int)(((double)calculateTotalGain() / (double)totalInvestmentAmount) * 100);
 	}
 
@@ -228,7 +237,9 @@ public class Portfolio extends BaseEntity {
 
 	// 포트폴리오 모든 종목들에 주식 현재가 적용
 	public void applyCurrentPriceAllHoldingsBy(CurrentPriceManager manager) {
+		log.info("start applyCurrentPriceAllHoldingsBy method");
 		for (PortfolioHolding portfolioHolding : portfolioHoldings) {
+			log.info("portfolioHolding : {}", portfolioHolding);
 			portfolioHolding.applyCurrentPrice(manager);
 		}
 	}

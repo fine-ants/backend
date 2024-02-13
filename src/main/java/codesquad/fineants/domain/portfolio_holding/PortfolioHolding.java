@@ -16,6 +16,8 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Transient;
 
+import org.hibernate.annotations.BatchSize;
+
 import codesquad.fineants.domain.BaseEntity;
 import codesquad.fineants.domain.portfolio.Portfolio;
 import codesquad.fineants.domain.purchase_history.PurchaseHistory;
@@ -49,7 +51,8 @@ public class PortfolioHolding extends BaseEntity {
 	@JoinColumn(name = "ticker_symbol")
 	private Stock stock;
 
-	@OneToMany(mappedBy = "portfolioHolding")
+	@BatchSize(size = 100)
+	@OneToMany(mappedBy = "portfolioHolding", fetch = FetchType.LAZY)
 	private final List<PurchaseHistory> purchaseHistory = new ArrayList<>();
 
 	@Transient
@@ -117,9 +120,7 @@ public class PortfolioHolding extends BaseEntity {
 			return 0;
 		}
 		double totalGain = (double)calculateTotalGain();
-		int result = (int)((totalGain / totalInvestmentAmount) * 100);
-		log.debug("totalReturnRate : {}", result);
-		return result;
+		return (int)((totalGain / totalInvestmentAmount) * 100);
 	}
 
 	// 평가 금액(현재 가치) = 현재가 * 개수
