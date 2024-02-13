@@ -1,8 +1,10 @@
 package codesquad.fineants.spring.api.stock;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -20,8 +22,10 @@ import codesquad.fineants.domain.stock_target_price.StockTargetPrice;
 import codesquad.fineants.domain.stock_target_price.StockTargetPriceRepository;
 import codesquad.fineants.spring.api.errors.errorcode.StockErrorCode;
 import codesquad.fineants.spring.api.errors.exception.BadRequestException;
+import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
 import codesquad.fineants.spring.api.stock.request.TargetPriceNotificationCreateRequest;
 import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationCreateResponse;
+import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationDeleteResponse;
 
 @ActiveProfiles("test")
 @SpringBootTest
@@ -119,6 +123,59 @@ class StockTargetPriceNotificationServiceTest {
 			.hasMessage(StockErrorCode.BAD_REQUEST_TARGET_PRICE_NOTIFICATION_EXIST.getMessage());
 	}
 
+	@DisplayName("사용자는 종목 지정가 알림을 제거합니다")
+	@Test
+	void deleteStockTargetPriceNotification() {
+		// given
+		Member member = memberRepository.save(createMember());
+		Stock stock = stockRepository.save(createStock());
+		List<StockTargetPrice> stockTargetPrices = repository.saveAll(List.of(
+			createStockTargetPrice(member, stock, 60000L),
+			createStockTargetPrice(member, stock, 70000L)
+		));
+		List<Long> ids = stockTargetPrices.stream()
+			.map(StockTargetPrice::getId)
+			.collect(Collectors.toList());
+
+		// when
+		TargetPriceNotificationDeleteResponse response = service.deleteStockTargetPriceNotification(
+			stock.getTickerSymbol(), ids, member.getId());
+
+		// then
+		assertAll(
+			() -> assertThat(response)
+				.extracting("deletedIds")
+				.asList()
+				.hasSize(2),
+			() -> assertThat(repository.findAllById(ids).size()).isZero()
+		);
+	}
+
+	@DisplayName("사용자는 존재하지 않는 지정가를 삭제할 수 없습니다")
+	@Test
+	void deleteStockTargetPriceNotification_whenNotExistTargetPriceNotificationIds_thenThrow404Error() {
+		// given
+		Member member = memberRepository.save(createMember());
+		Stock stock = stockRepository.save(createStock());
+		List<StockTargetPrice> stockTargetPrices = repository.saveAll(List.of(
+			createStockTargetPrice(member, stock, 60000L),
+			createStockTargetPrice(member, stock, 70000L)
+		));
+		List<Long> ids = stockTargetPrices.stream()
+			.map(StockTargetPrice::getId)
+			.collect(Collectors.toList());
+		ids.add(9999L);
+
+		// when
+		Throwable throwable = catchThrowable(() -> service.deleteStockTargetPriceNotification(
+			stock.getTickerSymbol(), ids, member.getId()));
+
+		// then
+		assertThat(throwable)
+			.isInstanceOf(NotFoundResourceException.class)
+			.hasMessage(StockErrorCode.NOT_FOUND_TARGET_PRICE.getMessage());
+	}
+	
 	private StockTargetPrice createStockTargetPrice(Member member, Stock stock, Long targetPrice) {
 		return StockTargetPrice.builder()
 			.member(member)
