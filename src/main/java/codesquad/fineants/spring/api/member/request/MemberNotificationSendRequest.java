@@ -18,7 +18,7 @@ public class MemberNotificationSendRequest {
 	@NotBlank(message = "필수 정보입니다")
 	private String title;
 	@NotBlank(message = "필수 정보입니다")
-	private String content;
+	private String body;
 	@NotBlank(message = "필수 정보입니다")
 	private String type;
 	@NotBlank(message = "필수 정보입니다")
@@ -27,7 +27,7 @@ public class MemberNotificationSendRequest {
 	public Notification toEntity(Member member) {
 		return Notification.builder()
 			.title(title)
-			.content(content)
+			.content(body)
 			.isRead(false)
 			.type(type)
 			.referenceId(referenceId)

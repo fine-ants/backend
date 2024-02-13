@@ -70,7 +70,7 @@ class MemberNotificationServiceTest {
 				MemberNotification.builder()
 					.notificationId(notifications.get(2).getId())
 					.title("포트폴리오")
-					.content("포트폴리오2의 최대 손실율을 초과했습니다")
+					.body("포트폴리오2의 최대 손실율을 초과했습니다")
 					.timestamp(LocalDateTime.of(2024, 1, 24, 10, 10, 10))
 					.isRead(false)
 					.type("portfolio")
@@ -79,7 +79,7 @@ class MemberNotificationServiceTest {
 				MemberNotification.builder()
 					.notificationId(notifications.get(1).getId())
 					.title("포트폴리오")
-					.content("포트폴리오1의 목표 수익률을 달성했습니다")
+					.body("포트폴리오1의 목표 수익률을 달성했습니다")
 					.timestamp(LocalDateTime.of(2024, 1, 23, 10, 10, 10))
 					.isRead(false)
 					.type("portfolio")
@@ -88,7 +88,7 @@ class MemberNotificationServiceTest {
 				MemberNotification.builder()
 					.notificationId(notifications.get(0).getId())
 					.title("지정가")
-					.content("삼성전자가 지정가 KRW60000에 도달했습니다")
+					.body("삼성전자가 지정가 KRW60000에 도달했습니다")
 					.timestamp(LocalDateTime.of(2024, 1, 22, 10, 10, 10))
 					.isRead(true)
 					.type("stock")
@@ -194,7 +194,7 @@ class MemberNotificationServiceTest {
 		fcmRepository.save(createFcmToken(member));
 		MemberNotificationSendRequest request = MemberNotificationSendRequest.builder()
 			.title("포트폴리오")
-			.content("포트폴리오1의 최대 손실율을 초과했습니다")
+			.body("포트폴리오1의 최대 손실율을 초과했습니다")
 			.type("portfolio")
 			.referenceId("1")
 			.build();
@@ -223,7 +223,7 @@ class MemberNotificationServiceTest {
 		FcmToken saveFcmToken = fcmRepository.save(createFcmToken(member, "fcmToken"));
 		MemberNotificationSendRequest request = MemberNotificationSendRequest.builder()
 			.title("포트폴리오")
-			.content("포트폴리오1의 최대 손실율을 초과했습니다")
+			.body("포트폴리오1의 최대 손실율을 초과했습니다")
 			.type("portfolio")
 			.referenceId("1")
 			.build();
@@ -251,7 +251,7 @@ class MemberNotificationServiceTest {
 		Member member = memberRepository.save(createMember());
 		MemberNotificationSendRequest request = MemberNotificationSendRequest.builder()
 			.title("포트폴리오")
-			.content("포트폴리오1의 최대 손실율을 초과했습니다")
+			.body("포트폴리오1의 최대 손실율을 초과했습니다")
 			.type("portfolio")
 			.referenceId("1")
 			.build();
