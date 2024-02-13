@@ -20,7 +20,7 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class StockNotificationService {
+public class StockTargetPriceNotificationService {
 
 	private static final int TARGET_PRICE_NOTIFICATION_LIMIT = 5;
 

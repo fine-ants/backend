@@ -25,10 +25,10 @@ import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationCreat
 
 @ActiveProfiles("test")
 @SpringBootTest
-class StockNotificationServiceTest {
+class StockTargetPriceNotificationServiceTest {
 
 	@Autowired
-	private StockNotificationService service;
+	private StockTargetPriceNotificationService service;
 
 	@Autowired
 	private MemberRepository memberRepository;
@@ -119,7 +119,7 @@ class StockNotificationServiceTest {
 			.hasMessage(StockErrorCode.BAD_REQUEST_TARGET_PRICE_NOTIFICATION_EXIST.getMessage());
 	}
 
-	private static StockTargetPrice createStockTargetPrice(Member member, Stock stock, Long targetPrice) {
+	private StockTargetPrice createStockTargetPrice(Member member, Stock stock, Long targetPrice) {
 		return StockTargetPrice.builder()
 			.member(member)
 			.stock(stock)
@@ -128,13 +128,10 @@ class StockNotificationServiceTest {
 	}
 
 	private Member createMember() {
-		return createMember("일개미1234", "kim1234@gmail.com");
-	}
-
-	private Member createMember(String nickname, String email) {
 		return Member.builder()
-			.nickname(nickname)
-			.email(email)
+			.id(1L)
+			.nickname("일개미1234")
+			.email("kim1234@gmail.com")
 			.password("kim1234@")
 			.provider("local")
 			.build();
