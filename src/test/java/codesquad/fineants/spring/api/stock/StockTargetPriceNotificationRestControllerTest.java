@@ -80,7 +80,6 @@ class StockTargetPriceNotificationRestControllerTest {
 	void createStockTargetPriceNotification() throws Exception {
 		// given
 		given(service.createStockTargetPriceNotification(
-			anyString(),
 			any(TargetPriceNotificationCreateRequest.class),
 			anyLong()))
 			.willReturn(TargetPriceNotificationCreateResponse.builder()
@@ -90,10 +89,12 @@ class StockTargetPriceNotificationRestControllerTest {
 				.build());
 
 		String tickerSymbol = "005930";
-		Map<String, Long> body = Map.of("targetPrice", 60000L);
+		Map<String, Object> body = Map.of(
+			"tickerSymbol", tickerSymbol,
+			"targetPrice", 60000L);
 
 		// when & then
-		mockMvc.perform(post("/api/stocks/{tickerSymbol}/target-price/notifications", tickerSymbol)
+		mockMvc.perform(post("/api/stocks/target-price/notifications")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(ObjectMapperUtil.serialize(body)))
 			.andExpect(status().isCreated())
@@ -108,15 +109,16 @@ class StockTargetPriceNotificationRestControllerTest {
 	@DisplayName("사용자는 유효하지 않은 입력으로 종목 지정가 알림을 추가할 수 없습니다")
 	@MethodSource(value = "invalidTargetPrice")
 	@ParameterizedTest
-	void createStockTargetPriceNotification_whenInvalidTargetPrice_thenResponse400Error(Long targetPrice) throws
+	void createStockTargetPriceNotification_whenInvalidTargetPrice_thenResponse400Error(String tickerSymbol,
+		Long targetPrice) throws
 		Exception {
 		// given
-		String tickerSymbol = "005930";
-		Map<String, Long> body = new HashMap<>();
+		Map<String, Object> body = new HashMap<>();
+		body.put("tickerSymbol", tickerSymbol);
 		body.put("targetPrice", targetPrice);
 
 		// when & then
-		mockMvc.perform(post("/api/stocks/{tickerSymbol}/target-price/notifications", tickerSymbol)
+		mockMvc.perform(post("/api/stocks/target-price/notifications")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(ObjectMapperUtil.serialize(body)))
 			.andExpect(status().isBadRequest())
@@ -131,20 +133,20 @@ class StockTargetPriceNotificationRestControllerTest {
 	void deleteAllStockTargetPriceNotification() throws Exception {
 		// given
 		given(service.deleteStockTargetPriceNotification(
-				anyString(),
 				anyList(),
+			anyString(),
 				anyLong()
 			)
 		).willReturn(TargetPriceNotificationDeleteResponse.builder()
 			.deletedIds(List.of(1L, 2L))
 			.build());
 
-		String tickerSymbol = "005930";
 		Map<String, Object> body = new HashMap<>();
+		body.put("tickerSymbol", "005930");
 		body.put("targetPriceNotificationIds", List.of(1L, 2L));
 
 		// when & then
-		mockMvc.perform(delete("/api/stocks/{tickerSymbol}/target-price/notifications", tickerSymbol)
+		mockMvc.perform(delete("/api/stocks/target-price/notifications")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(ObjectMapperUtil.serialize(body)))
 			.andExpect(status().isOk())
@@ -158,11 +160,12 @@ class StockTargetPriceNotificationRestControllerTest {
 	@MethodSource(value = "invalidTargetPriceNotificationIds")
 	@ParameterizedTest
 	void deleteAllStockTargetPriceNotification_whenInvalidTargetPriceNotificationIds_thenResponse400Error(
+		String tickerSymbol,
 		List<Long> targetPriceNotificationIds)
 		throws Exception {
 		// given
-		String tickerSymbol = "005930";
 		Map<String, Object> body = new HashMap<>();
+		body.put("tickerSymbol", tickerSymbol);
 		body.put("targetPriceNotificationIds", targetPriceNotificationIds);
 
 		// when & then
@@ -181,21 +184,22 @@ class StockTargetPriceNotificationRestControllerTest {
 	void deleteStockTargetPriceNotification() throws Exception {
 		// given
 		given(service.deleteStockTargetPriceNotification(
-				anyString(),
 				anyList(),
+			anyString(),
 				anyLong()
 			)
 		).willReturn(TargetPriceNotificationDeleteResponse.builder()
 			.deletedIds(List.of(1L))
 			.build());
 
-		String tickerSymbol = "005930";
 		Long targetPriceNotificationId = 1L;
+		Map<String, Object> body = Map.of("tickerSymbol", "005930");
 		// when & then
 		mockMvc.perform(
-				delete("/api/stocks/{tickerSymbol}/target-price/notifications/{targetPriceNotificationId}",
-					tickerSymbol,
-					targetPriceNotificationId))
+				delete("/api/stocks/target-price/notifications/{targetPriceNotificationId}",
+					targetPriceNotificationId)
+					.contentType(MediaType.APPLICATION_JSON)
+					.content(ObjectMapperUtil.serialize(body)))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
@@ -215,15 +219,15 @@ class StockTargetPriceNotificationRestControllerTest {
 
 	public static Stream<Arguments> invalidTargetPrice() {
 		return Stream.of(
-			Arguments.of(-1L),
-			Arguments.of((Object)null)
+			Arguments.of(null, -1L),
+			Arguments.of(null, null)
 		);
 	}
 
 	public static Stream<Arguments> invalidTargetPriceNotificationIds() {
 		return Stream.of(
-			Arguments.of(Collections.emptyList()),
-			Arguments.of((Object)null)
+			Arguments.of(null, Collections.emptyList()),
+			Arguments.of(null, null)
 		);
 	}
 }

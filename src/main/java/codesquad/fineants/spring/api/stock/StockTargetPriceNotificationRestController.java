@@ -18,6 +18,7 @@ import codesquad.fineants.domain.oauth.support.AuthPrincipalMember;
 import codesquad.fineants.spring.api.response.ApiResponse;
 import codesquad.fineants.spring.api.stock.request.TargetPriceNotificationCreateRequest;
 import codesquad.fineants.spring.api.stock.request.TargetPriceNotificationDeleteRequest;
+import codesquad.fineants.spring.api.stock.request.TargetPriceNotificationSingleDeleteRequest;
 import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationCreateResponse;
 import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationDeleteResponse;
 import codesquad.fineants.spring.api.success.code.StockSuccessCode;
@@ -26,7 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/stocks/{tickerSymbol}/target-price/notifications")
+@RequestMapping("/api/stocks/target-price/notifications")
 @RequiredArgsConstructor
 public class StockTargetPriceNotificationRestController {
 
@@ -35,11 +36,9 @@ public class StockTargetPriceNotificationRestController {
 	@ResponseStatus(HttpStatus.CREATED)
 	@PostMapping
 	public ApiResponse<TargetPriceNotificationCreateResponse> createStockTargetPriceNotification(
-		@PathVariable String tickerSymbol,
 		@Valid @RequestBody TargetPriceNotificationCreateRequest request,
 		@AuthPrincipalMember AuthMember authMember) {
 		TargetPriceNotificationCreateResponse response = service.createStockTargetPriceNotification(
-			tickerSymbol,
 			request,
 			authMember.getMemberId()
 		);
@@ -49,13 +48,13 @@ public class StockTargetPriceNotificationRestController {
 
 	@DeleteMapping("/{targetPriceNotificationId}")
 	public ApiResponse<Void> deleteStockTargetPriceNotification(
-		@PathVariable String tickerSymbol,
 		@PathVariable Long targetPriceNotificationId,
+		@Valid @RequestBody TargetPriceNotificationSingleDeleteRequest request,
 		@AuthPrincipalMember AuthMember authMember
 	) {
 		TargetPriceNotificationDeleteResponse response = service.deleteStockTargetPriceNotification(
-			tickerSymbol,
 			List.of(targetPriceNotificationId),
+			request.getTickerSymbol(),
 			authMember.getMemberId()
 		);
 		log.info("종목 지정가 알림 제거 결과 : {}", response);
@@ -64,12 +63,11 @@ public class StockTargetPriceNotificationRestController {
 
 	@DeleteMapping
 	public ApiResponse<Void> deleteAllStockTargetPriceNotification(
-		@PathVariable String tickerSymbol,
 		@Valid @RequestBody TargetPriceNotificationDeleteRequest request,
 		@AuthPrincipalMember AuthMember authMember) {
 		TargetPriceNotificationDeleteResponse response = service.deleteStockTargetPriceNotification(
-			tickerSymbol,
 			request.getTargetPriceNotificationIds(),
+			request.getTickerSymbol(),
 			authMember.getMemberId());
 		log.info("종목 지정가 알림 제거 결과 : {}", response);
 		return ApiResponse.success(StockSuccessCode.OK_DELETE_TARGET_PRICE_NOTIFICATIONS);

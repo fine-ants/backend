@@ -35,10 +35,10 @@ public class StockTargetPriceNotificationService {
 
 	@Transactional
 	public TargetPriceNotificationCreateResponse createStockTargetPriceNotification(
-		String tickerSymbol,
 		TargetPriceNotificationCreateRequest request,
 		Long memberId
 	) {
+		String tickerSymbol = request.getTickerSymbol();
 		// 현재 종목 지정가 알림 개수가 최대 갯수를 초과 했는지 검증
 		verifyNumberOfLimitNotifications(tickerSymbol);
 		// 종목에 따른 지정가가 이미 존재하는지 검증
@@ -75,8 +75,8 @@ public class StockTargetPriceNotificationService {
 
 	@Transactional
 	public TargetPriceNotificationDeleteResponse deleteStockTargetPriceNotification(
-		String tickerSymbol,
 		List<Long> targetPriceNotificationIds,
+		String tickerSymbol,
 		Long memberId
 	) {
 		// 존재하지 않는 종목 지정가가 있는지 검증
