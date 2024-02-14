@@ -58,8 +58,7 @@ public class DashboardService {
 		Integer totalGainRate = (int)(((double)totalGain / (double)totalInvestment) * 100);
 
 		return OverviewResponse.of(member.getNickname(), totalValuation, totalInvestment,
-			totalGainRate,
-			totalAnnualDividend, totalAnnualDividendYield);
+			totalGain, totalGainRate, totalAnnualDividend, totalAnnualDividendYield);
 	}
 
 	@Transactional(readOnly = true)
