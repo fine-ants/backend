@@ -57,12 +57,13 @@ class StockTargetPriceNotificationServiceTest {
 		Member member = memberRepository.save(createMember());
 		Stock stock = stockRepository.save(createStock());
 		TargetPriceNotificationCreateRequest request = TargetPriceNotificationCreateRequest.builder()
+			.tickerSymbol(stock.getTickerSymbol())
 			.targetPrice(60000L)
 			.build();
 
 		// when
-		TargetPriceNotificationCreateResponse response = service.createStockTargetPriceNotification(
-			stock.getTickerSymbol(), request, member.getId());
+		TargetPriceNotificationCreateResponse response = service.createStockTargetPriceNotification(request,
+			member.getId());
 
 		// then
 		StockTargetPrice stockTargetPrice = repository.findById(response.getTargetPriceNotificationId()).orElseThrow();
@@ -80,6 +81,7 @@ class StockTargetPriceNotificationServiceTest {
 		Member member = memberRepository.save(createMember());
 		Stock stock = stockRepository.save(createStock());
 		TargetPriceNotificationCreateRequest request = TargetPriceNotificationCreateRequest.builder()
+			.tickerSymbol(stock.getTickerSymbol())
 			.targetPrice(60000L)
 			.build();
 		repository.saveAll(
@@ -94,7 +96,7 @@ class StockTargetPriceNotificationServiceTest {
 
 		// when
 		Throwable throwable = catchThrowable(() ->
-			service.createStockTargetPriceNotification(stock.getTickerSymbol(), request, member.getId()));
+			service.createStockTargetPriceNotification(request, member.getId()));
 
 		// then
 		assertThat(throwable)
@@ -109,13 +111,14 @@ class StockTargetPriceNotificationServiceTest {
 		Member member = memberRepository.save(createMember());
 		Stock stock = stockRepository.save(createStock());
 		TargetPriceNotificationCreateRequest request = TargetPriceNotificationCreateRequest.builder()
+			.tickerSymbol(stock.getTickerSymbol())
 			.targetPrice(60000L)
 			.build();
 		repository.save(createStockTargetPrice(member, stock, 60000L));
 
 		// when
 		Throwable throwable = catchThrowable(() ->
-			service.createStockTargetPriceNotification(stock.getTickerSymbol(), request, member.getId()));
+			service.createStockTargetPriceNotification(request, member.getId()));
 
 		// then
 		assertThat(throwable)
@@ -139,7 +142,7 @@ class StockTargetPriceNotificationServiceTest {
 
 		// when
 		TargetPriceNotificationDeleteResponse response = service.deleteStockTargetPriceNotification(
-			stock.getTickerSymbol(), ids, member.getId());
+			ids, stock.getTickerSymbol(), member.getId());
 
 		// then
 		assertAll(
@@ -168,14 +171,14 @@ class StockTargetPriceNotificationServiceTest {
 
 		// when
 		Throwable throwable = catchThrowable(() -> service.deleteStockTargetPriceNotification(
-			stock.getTickerSymbol(), ids, member.getId()));
+			ids, stock.getTickerSymbol(), member.getId()));
 
 		// then
 		assertThat(throwable)
 			.isInstanceOf(NotFoundResourceException.class)
 			.hasMessage(StockErrorCode.NOT_FOUND_TARGET_PRICE.getMessage());
 	}
-	
+
 	private StockTargetPrice createStockTargetPrice(Member member, Stock stock, Long targetPrice) {
 		return StockTargetPrice.builder()
 			.member(member)

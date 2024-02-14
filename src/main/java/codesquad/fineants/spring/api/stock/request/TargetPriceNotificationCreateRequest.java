@@ -17,6 +17,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
 public class TargetPriceNotificationCreateRequest {
+
+	@NotNull(message = "필수 정보입니다")
+	private String tickerSymbol;
+
 	@NotNull(message = "필수 정보입니다")
 	@PositiveOrZero(message = "지정가는 0포함 양수여야 합니다")
 	private Long targetPrice;
