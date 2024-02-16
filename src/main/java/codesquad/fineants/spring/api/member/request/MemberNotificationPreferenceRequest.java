@@ -22,6 +22,7 @@ public class MemberNotificationPreferenceRequest {
 	private Boolean maxLossNotify;
 	@NotNull(message = "필수 정보입니다")
 	private Boolean targetPriceNotify;
+	private Long fcmTokenId;
 
 	public NotificationPreference toEntity() {
 		return NotificationPreference.builder()

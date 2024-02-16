@@ -62,4 +62,11 @@ public class NotificationPreference extends BaseEntity {
 		this.maxLossNotify = notificationPreference.maxLossNotify;
 		this.targetPriceNotify = notificationPreference.targetPriceNotify;
 	}
+
+	public boolean isAllInActive() {
+		return !this.browserNotify
+			&& !this.targetGainNotify
+			&& !this.maxLossNotify
+			&& !this.targetPriceNotify;
+	}
 }
