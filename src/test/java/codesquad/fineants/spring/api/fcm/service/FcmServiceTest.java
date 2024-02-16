@@ -4,6 +4,8 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
 
+import java.time.LocalDateTime;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -17,11 +19,13 @@ import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
 
 import codesquad.fineants.domain.fcm_token.FcmRepository;
+import codesquad.fineants.domain.fcm_token.FcmToken;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.member.MemberRepository;
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.spring.api.errors.errorcode.FcmErrorCode;
 import codesquad.fineants.spring.api.errors.exception.BadRequestException;
+import codesquad.fineants.spring.api.errors.exception.ConflictException;
 import codesquad.fineants.spring.api.fcm.request.FcmRegisterRequest;
 import codesquad.fineants.spring.api.fcm.response.FcmRegisterResponse;
 
@@ -86,6 +90,28 @@ class FcmServiceTest {
 		assertThat(throwable)
 			.isInstanceOf(BadRequestException.class)
 			.hasMessage(FcmErrorCode.BAD_REQUEST_FCM_TOKEN.getMessage());
+	}
+
+	@DisplayName("사용자는 이미 동일한 FCM 토큰이 존재하면 등록할 수 없다")
+	@Test
+	void registerToken_whenAlreadyFcmToken_thenThrow409Error() {
+		// given
+		Member member = memberRepository.save(createMember());
+		fcmRepository.save(FcmToken.builder()
+			.latestActivationTime(LocalDateTime.now())
+			.token("fcmToken")
+			.member(member)
+			.build());
+		FcmRegisterRequest request = FcmRegisterRequest.builder()
+			.fcmToken("fcmToken")
+			.build();
+		// when
+		Throwable throwable = catchThrowable(() -> fcmService.registerToken(request, AuthMember.from(member)));
+
+		// then
+		assertThat(throwable)
+			.isInstanceOf(ConflictException.class)
+			.hasMessage(FcmErrorCode.CONFLICT_FCM_TOKEN.getMessage());
 	}
 
 	private Member createMember() {
