@@ -16,7 +16,6 @@ import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.spring.api.errors.errorcode.FcmErrorCode;
 import codesquad.fineants.spring.api.errors.errorcode.MemberErrorCode;
 import codesquad.fineants.spring.api.errors.exception.BadRequestException;
-import codesquad.fineants.spring.api.errors.exception.ConflictException;
 import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
 import codesquad.fineants.spring.api.fcm.request.FcmRegisterRequest;
 import codesquad.fineants.spring.api.fcm.response.FcmDeleteResponse;
@@ -37,7 +36,6 @@ public class FcmService {
 	@Transactional
 	public FcmRegisterResponse registerToken(FcmRegisterRequest request, AuthMember authMember) {
 		Member member = findMember(authMember);
-		verifyUniqueFcmToken(request.getFcmToken(), authMember.getMemberId());
 		verifyFcmToken(request.getFcmToken());
 
 		FcmToken fcmToken = fcmRepository.findByTokenAndMemberId(request.getFcmToken(), authMember.getMemberId())
@@ -57,7 +55,6 @@ public class FcmService {
 			firebaseMessaging.send(message, true);
 		} catch (FirebaseMessagingException e) {
 			log.info(e.getMessage(), e);
-			
 			throw new BadRequestException(FcmErrorCode.BAD_REQUEST_FCM_TOKEN);
 		}
 	}
@@ -67,12 +64,6 @@ public class FcmService {
 			.orElseThrow(() -> new NotFoundResourceException(MemberErrorCode.NOT_FOUND_MEMBER));
 	}
 
-	private void verifyUniqueFcmToken(String fcmToken, Long memberId) {
-		if (fcmRepository.findByToken(fcmToken, memberId).isPresent()) {
-			throw new ConflictException(FcmErrorCode.CONFLICT_FCM_TOKEN);
-		}
-	}
-  
 	@Transactional
 	public FcmDeleteResponse deleteToken(Long fcmTokenId) {
 		int deleteCount = fcmRepository.deleteByFcmTokenId(fcmTokenId);
