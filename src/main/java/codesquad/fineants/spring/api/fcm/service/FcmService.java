@@ -68,7 +68,7 @@ public class FcmService {
 			throw new ConflictException(FcmErrorCode.CONFLICT_FCM_TOKEN);
 		}
 	}
-
+  
 	@Transactional
 	public FcmDeleteResponse deleteToken(Long fcmTokenId) {
 		int deleteCount = fcmRepository.deleteByFcmTokenId(fcmTokenId);
