@@ -2,9 +2,7 @@ package codesquad.fineants.spring.api.stock;
 
 import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.anyList;
 import static org.mockito.BDDMockito.anyLong;
-import static org.mockito.BDDMockito.anyString;
 import static org.mockito.BDDMockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
@@ -133,13 +131,11 @@ class StockTargetPriceNotificationRestControllerTest {
 	void deleteAllStockTargetPriceNotification() throws Exception {
 		// given
 		given(service.deleteStockTargetPriceNotification(
-				anyList(),
-			anyString(),
-				anyLong()
-			)
-		).willReturn(TargetPriceNotificationDeleteResponse.builder()
-			.deletedIds(List.of(1L, 2L))
-			.build());
+			anyLong(),
+			anyLong()))
+			.willReturn(TargetPriceNotificationDeleteResponse.builder()
+				.deletedIds(List.of(1L, 2L))
+				.build());
 
 		Map<String, Object> body = new HashMap<>();
 		body.put("tickerSymbol", "005930");
@@ -169,7 +165,7 @@ class StockTargetPriceNotificationRestControllerTest {
 		body.put("targetPriceNotificationIds", targetPriceNotificationIds);
 
 		// when & then
-		mockMvc.perform(delete("/api/stocks/{tickerSymbol}/target-price/notifications", tickerSymbol)
+		mockMvc.perform(delete("/api/stocks/target-price/notifications")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(ObjectMapperUtil.serialize(body)))
 			.andExpect(status().isBadRequest())
@@ -184,13 +180,11 @@ class StockTargetPriceNotificationRestControllerTest {
 	void deleteStockTargetPriceNotification() throws Exception {
 		// given
 		given(service.deleteStockTargetPriceNotification(
-				anyList(),
-			anyString(),
-				anyLong()
-			)
-		).willReturn(TargetPriceNotificationDeleteResponse.builder()
-			.deletedIds(List.of(1L))
-			.build());
+			anyLong(),
+			anyLong()))
+			.willReturn(TargetPriceNotificationDeleteResponse.builder()
+				.deletedIds(List.of(1L))
+				.build());
 
 		Long targetPriceNotificationId = 1L;
 		Map<String, Object> body = Map.of("tickerSymbol", "005930");

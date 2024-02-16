@@ -3,9 +3,8 @@ package codesquad.fineants.spring.api.stock.request;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.PositiveOrZero;
 
-import codesquad.fineants.domain.member.Member;
-import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.domain.stock_target_price.StockTargetPrice;
+import codesquad.fineants.domain.target_price_notification.TargetPriceNotification;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -25,11 +24,10 @@ public class TargetPriceNotificationCreateRequest {
 	@PositiveOrZero(message = "지정가는 0포함 양수여야 합니다")
 	private Long targetPrice;
 
-	public StockTargetPrice toEntity(Member member, Stock stock) {
-		return StockTargetPrice.builder()
-			.member(member)
-			.stock(stock)
+	public TargetPriceNotification toEntity(StockTargetPrice stockTargetPrice) {
+		return TargetPriceNotification.builder()
 			.targetPrice(targetPrice)
+			.stockTargetPrice(stockTargetPrice)
 			.build();
 	}
 }
