@@ -1,6 +1,7 @@
 package codesquad.fineants.spring.api.stock.response;
 
 import codesquad.fineants.domain.stock_target_price.StockTargetPrice;
+import codesquad.fineants.domain.target_price_notification.TargetPriceNotification;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,11 +17,12 @@ public class TargetPriceNotificationCreateResponse {
 	private String tickerSymbol;
 	private Long targetPrice;
 
-	public static TargetPriceNotificationCreateResponse from(StockTargetPrice stockTargetPrice) {
+	public static TargetPriceNotificationCreateResponse from(StockTargetPrice stockTargetPrice,
+		TargetPriceNotification targetPriceNotification) {
 		return TargetPriceNotificationCreateResponse.builder()
-			.targetPriceNotificationId(stockTargetPrice.getId())
+			.targetPriceNotificationId(targetPriceNotification.getId())
 			.tickerSymbol(stockTargetPrice.getStock().getTickerSymbol())
-			.targetPrice(stockTargetPrice.getTargetPrice())
+			.targetPrice(targetPriceNotification.getTargetPrice())
 			.build();
 	}
 }
