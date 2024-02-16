@@ -18,6 +18,7 @@ import codesquad.fineants.spring.api.errors.errorcode.MemberErrorCode;
 import codesquad.fineants.spring.api.errors.exception.BadRequestException;
 import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
 import codesquad.fineants.spring.api.fcm.request.FcmRegisterRequest;
+import codesquad.fineants.spring.api.fcm.response.FcmDeleteResponse;
 import codesquad.fineants.spring.api.fcm.response.FcmRegisterResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -57,5 +58,12 @@ public class FcmService {
 	private Member findMember(AuthMember authMember) {
 		return memberRepository.findById(authMember.getMemberId())
 			.orElseThrow(() -> new NotFoundResourceException(MemberErrorCode.NOT_FOUND_MEMBER));
+	}
+
+	@Transactional
+	public FcmDeleteResponse deleteToken(Long fcmTokenId) {
+		int deleteCount = fcmRepository.deleteByFcmTokenId(fcmTokenId);
+		log.info("FCM 토큰 삭제 개수 : deleteCount={}", deleteCount);
+		return FcmDeleteResponse.from(fcmTokenId);
 	}
 }
