@@ -9,7 +9,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum FcmErrorCode implements ErrorCode {
 
-	BAD_REQUEST_FCM_TOKEN(HttpStatus.BAD_REQUEST, "유효하지 않은 FCM 토큰입니다");
+	BAD_REQUEST_FCM_TOKEN(HttpStatus.BAD_REQUEST, "유효하지 않은 FCM 토큰입니다"),
+	CONFLICT_FCM_TOKEN(HttpStatus.CONFLICT, "중복된 FCM 토큰입니다");
 
 	private final HttpStatus httpStatus;
 	private final String message;
