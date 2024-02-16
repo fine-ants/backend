@@ -165,7 +165,7 @@ class StockTargetPriceNotificationRestControllerTest {
 		body.put("targetPriceNotificationIds", targetPriceNotificationIds);
 
 		// when & then
-		mockMvc.perform(delete("/api/stocks/{tickerSymbol}/target-price/notifications", tickerSymbol)
+		mockMvc.perform(delete("/api/stocks/target-price/notifications")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(ObjectMapperUtil.serialize(body)))
 			.andExpect(status().isBadRequest())

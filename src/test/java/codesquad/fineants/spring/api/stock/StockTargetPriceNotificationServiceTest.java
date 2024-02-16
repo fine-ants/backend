@@ -236,6 +236,90 @@ class StockTargetPriceNotificationServiceTest {
 		);
 	}
 
+	@DisplayName("사용자는 종목 지정가 알림을 전체 삭제할 때, 존재하지 않는 지정가 알림을 제거할 수 없습니다.")
+	@Test
+	void deleteAllStockTargetPriceNotification_whenNotExistTargetPriceNotificationIds_thenThrow404Error() {
+		// given
+		Member member = memberRepository.save(createMember());
+		Stock stock = stockRepository.save(createStock());
+		StockTargetPrice stockTargetPrice = repository.save(createStockTargetPrice(member, stock));
+		List<TargetPriceNotification> targetPriceNotifications = targetPriceNotificationRepository.saveAll(
+			createTargetPriceNotification(stockTargetPrice, List.of(60000L, 70000L)));
+
+		List<Long> ids = targetPriceNotifications.stream()
+			.map(TargetPriceNotification::getId)
+			.collect(Collectors.toList());
+		ids.add(9999L);
+
+		// when
+		Throwable throwable = catchThrowable(() -> service.deleteAllStockTargetPriceNotification(
+			ids,
+			stock.getTickerSymbol(),
+			member.getId()
+		));
+
+		// then
+		assertThat(throwable)
+			.isInstanceOf(NotFoundResourceException.class)
+			.hasMessage(StockErrorCode.NOT_FOUND_TARGET_PRICE.getMessage());
+	}
+
+	@DisplayName("사용자는 종목 지정가 알림을 전체 삭제할 때, 존재하지 않는 종목에 대해서 제거할 수 없습니다.")
+	@Test
+	void deleteAllStockTargetPriceNotification_whenNotExistStock_thenThrow404Error() {
+		// given
+		Member member = memberRepository.save(createMember());
+		Stock stock = stockRepository.save(createStock());
+		StockTargetPrice stockTargetPrice = repository.save(createStockTargetPrice(member, stock));
+		List<TargetPriceNotification> targetPriceNotifications = targetPriceNotificationRepository.saveAll(
+			createTargetPriceNotification(stockTargetPrice, List.of(60000L, 70000L)));
+
+		List<Long> ids = targetPriceNotifications.stream()
+			.map(TargetPriceNotification::getId)
+			.collect(Collectors.toList());
+
+		// when
+		Throwable throwable = catchThrowable(() -> service.deleteAllStockTargetPriceNotification(
+			ids,
+			"999999",
+			member.getId()
+		));
+
+		// then
+		assertThat(throwable)
+			.isInstanceOf(NotFoundResourceException.class)
+			.hasMessage(StockErrorCode.NOT_FOUND_STOCK.getMessage());
+	}
+
+	@DisplayName("사용자는 종목 지정가 알림을 전체 삭제할 때, 다른 사용자의 지정가 알림을 삭제할 수 없습니다")
+	@Test
+	void deleteAllStockTargetPriceNotification_whenForbiddenTargetPriceNotifications_thenThrow403Error() {
+		// given
+		Member member = memberRepository.save(createMember());
+		Stock stock = stockRepository.save(createStock());
+		StockTargetPrice stockTargetPrice = repository.save(createStockTargetPrice(member, stock));
+		List<TargetPriceNotification> targetPriceNotifications = targetPriceNotificationRepository.saveAll(
+			createTargetPriceNotification(stockTargetPrice, List.of(60000L, 70000L)));
+
+		List<Long> ids = targetPriceNotifications.stream()
+			.map(TargetPriceNotification::getId)
+			.collect(Collectors.toList());
+
+		Member hacker = createMember("일개미4567", "kim2@gmail.com");
+
+		// when
+		Throwable throwable = catchThrowable(() -> service.deleteAllStockTargetPriceNotification(
+			ids,
+			stock.getTickerSymbol(),
+			hacker.getId()
+		));
+
+		// then
+		assertThat(throwable)
+			.isInstanceOf(ForBiddenException.class)
+			.hasMessage(StockErrorCode.FORBIDDEN_DELETE_TARGET_PRICE_NOTIFICATION.getMessage());
+	}
+
 	private StockTargetPrice createStockTargetPrice(Member member, Stock stock) {
 		return StockTargetPrice.builder()
 			.member(member)
