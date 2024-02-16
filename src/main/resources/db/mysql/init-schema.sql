@@ -170,15 +170,27 @@ create table if not exists fineAnts.stock_target_price
         primary key,
     create_at     datetime(6)  null,
     modified_at   datetime(6)  null,
-    target_price  bigint       null,
+    is_active bit null,
     member_id     bigint       null,
     ticker_symbol varchar(255) null,
-    constraint UKb01jhjkq681lpyfjx5glikxee
-        unique (member_id, ticker_symbol, target_price),
+    constraint UKhwlfu5x3iqpei19soxhmjcfs3
+        unique (member_id, ticker_symbol),
     constraint FK2r0grp1n205hnw3ysp179f5l3
         foreign key (member_id) references fineAnts.member (id),
     constraint FKcup8hchscft8jniri3wkk72kx
         foreign key (ticker_symbol) references fineAnts.stock (ticker_symbol)
+);
+
+create table if not exists fineAnts.target_price_notification
+(
+    id                    bigint auto_increment
+        primary key,
+    create_at             datetime(6) null,
+    modified_at           datetime(6) null,
+    target_price          bigint      null,
+    stock_target_price_id bigint      null,
+    constraint FKnds69ucw684g4c2a09g0fa5bq
+        foreign key (stock_target_price_id) references fineAnts.stock_target_price (id)
 );
 
 create table if not exists fineAnts.notification
