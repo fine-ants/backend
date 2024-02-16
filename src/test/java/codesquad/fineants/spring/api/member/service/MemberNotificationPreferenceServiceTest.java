@@ -3,6 +3,7 @@ package codesquad.fineants.spring.api.member.service;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.junit.jupiter.api.AfterEach;
@@ -12,6 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
+import codesquad.fineants.domain.fcm_token.FcmRepository;
+import codesquad.fineants.domain.fcm_token.FcmToken;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.member.MemberRepository;
 import codesquad.fineants.domain.notification_preference.NotificationPreference;
@@ -32,8 +35,12 @@ class MemberNotificationPreferenceServiceTest {
 	@Autowired
 	private NotificationPreferenceRepository repository;
 
+	@Autowired
+	private FcmRepository fcmRepository;
+
 	@AfterEach
 	void tearDown() {
+		fcmRepository.deleteAllInBatch();
 		repository.deleteAllInBatch();
 		memberRepository.deleteAllInBatch();
 	}
@@ -126,6 +133,75 @@ class MemberNotificationPreferenceServiceTest {
 				.extracting("browserNotify", "targetGainNotify", "maxLossNotify", "targetPriceNotify")
 				.containsExactly(false, true, true, true)
 		);
+	}
+
+	@DisplayName("사용자는 회원 알림 설정 수정시 설정값을 모두 비활성화하는 경우 FcmToken을 제거하도록 합니다")
+	@Test
+	void updateNotificationPreference_whenPreferenceIsAllInActive_thenDeleteFcmToken() {
+		// given
+		Member member = memberRepository.save(createMember());
+		FcmToken fcmToken = fcmRepository.save(createFcmToken(member));
+		repository.save(createNotificationPreference(member));
+		MemberNotificationPreferenceRequest request = MemberNotificationPreferenceRequest.builder()
+			.browserNotify(false)
+			.targetGainNotify(false)
+			.maxLossNotify(false)
+			.targetPriceNotify(false)
+			.fcmTokenId(fcmToken.getId())
+			.build();
+
+		// when
+		MemberNotificationPreferenceResponse response = service.updateNotificationPreference(member.getId(), request);
+
+		// then
+		NotificationPreference preference = repository.findByMemberId(member.getId()).orElseThrow();
+		assertAll(
+			() -> assertThat(response)
+				.extracting("browserNotify", "targetGainNotify", "maxLossNotify", "targetPriceNotify")
+				.containsExactly(false, false, false, false),
+			() -> assertThat(preference)
+				.extracting("browserNotify", "targetGainNotify", "maxLossNotify", "targetPriceNotify")
+				.containsExactly(false, false, false, false),
+			() -> assertThat(fcmRepository.findById(fcmToken.getId()).isEmpty()).isTrue()
+		);
+	}
+
+	@DisplayName("사용자는 푸시 알림을 허용하지 않은 상태(FCM 토큰 미등록 상태)에서 회원 알람 설정 수정시 FCM 토큰을 삭제하지 않는다")
+	@Test
+	void updateNotificationPreference_whenPreferenceIsAllInActiveAndFcmTokenIsNotStored_thenNotDeleteFcmToken() {
+		// given
+		Member member = memberRepository.save(createMember());
+		repository.save(createNotificationPreference(member));
+		MemberNotificationPreferenceRequest request = MemberNotificationPreferenceRequest.builder()
+			.browserNotify(false)
+			.targetGainNotify(false)
+			.maxLossNotify(false)
+			.targetPriceNotify(false)
+			.fcmTokenId(null)
+			.build();
+
+		// when
+		MemberNotificationPreferenceResponse response = service.updateNotificationPreference(member.getId(), request);
+
+		// then
+		NotificationPreference preference = repository.findByMemberId(member.getId()).orElseThrow();
+		assertAll(
+			() -> assertThat(response)
+				.extracting("browserNotify", "targetGainNotify", "maxLossNotify", "targetPriceNotify")
+				.containsExactly(false, false, false, false),
+			() -> assertThat(preference)
+				.extracting("browserNotify", "targetGainNotify", "maxLossNotify", "targetPriceNotify")
+				.containsExactly(false, false, false, false),
+			() -> assertThat(fcmRepository.findAllByMemberId(member.getId()).isEmpty()).isTrue()
+		);
+	}
+
+	private FcmToken createFcmToken(Member member) {
+		return FcmToken.builder()
+			.token("token")
+			.latestActivationTime(LocalDateTime.now())
+			.member(member)
+			.build();
 	}
 
 	private Member createMember() {
