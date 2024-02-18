@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 public class FcmRegisterResponse {
 	private Long fcmTokenId;
 
-	public static FcmRegisterResponse from(FcmToken fcmTOkenn) {
-		return new FcmRegisterResponse(fcmTOkenn.getId());
+	public static FcmRegisterResponse from(FcmToken fcmToken) {
+		return new FcmRegisterResponse(fcmToken.getId());
 	}
 }

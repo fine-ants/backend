@@ -13,7 +13,7 @@ public interface FcmRepository extends JpaRepository<FcmToken, Long> {
 	List<FcmToken> findAllByMemberId(@Param("memberId") Long memberId);
 
 	@Query("select f from FcmToken f where f.token = :token and f.member.id = :memberId")
-	Optional<FcmToken> findByToken(@Param("token") String token, @Param("memberId") Long memberId);
+	Optional<FcmToken> findByTokenAndMemberId(@Param("token") String token, @Param("memberId") Long memberId);
 
 	@Modifying
 	@Query("delete from FcmToken f where f.token in (:tokens)")
