@@ -41,4 +41,8 @@ public class FcmToken extends BaseEntity {
 		this.token = token;
 		this.latestActivationTime = latestActivationTime;
 	}
+
+	public void refreshLatestActivationTime() {
+		this.latestActivationTime = LocalDateTime.now();
+	}
 }

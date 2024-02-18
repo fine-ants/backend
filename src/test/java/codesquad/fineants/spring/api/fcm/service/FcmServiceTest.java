@@ -7,6 +7,7 @@ import static org.mockito.BDDMockito.*;
 import java.time.LocalDateTime;
 
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +26,6 @@ import codesquad.fineants.domain.member.MemberRepository;
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.spring.api.errors.errorcode.FcmErrorCode;
 import codesquad.fineants.spring.api.errors.exception.BadRequestException;
-import codesquad.fineants.spring.api.errors.exception.ConflictException;
 import codesquad.fineants.spring.api.fcm.request.FcmRegisterRequest;
 import codesquad.fineants.spring.api.fcm.response.FcmRegisterResponse;
 
@@ -92,12 +92,12 @@ class FcmServiceTest {
 			.hasMessage(FcmErrorCode.BAD_REQUEST_FCM_TOKEN.getMessage());
 	}
 
-	@DisplayName("사용자는 이미 동일한 FCM 토큰이 존재하면 등록할 수 없다")
+	@DisplayName("사용자는 이미 동일한 FCM 토큰이 등록되어 있는 경우 최신 활성화 시간을 업데이트한다")
 	@Test
 	void registerToken_whenAlreadyFcmToken_thenThrow409Error() {
 		// given
 		Member member = memberRepository.save(createMember());
-		fcmRepository.save(FcmToken.builder()
+		FcmToken token = fcmRepository.save(FcmToken.builder()
 			.latestActivationTime(LocalDateTime.now())
 			.token("fcmToken")
 			.member(member)
@@ -106,12 +106,18 @@ class FcmServiceTest {
 			.fcmToken("fcmToken")
 			.build();
 		// when
-		Throwable throwable = catchThrowable(() -> fcmService.registerToken(request, AuthMember.from(member)));
+		FcmRegisterResponse response = fcmService.registerToken(request, AuthMember.from(member));
 
 		// then
-		assertThat(throwable)
-			.isInstanceOf(ConflictException.class)
-			.hasMessage(FcmErrorCode.CONFLICT_FCM_TOKEN.getMessage());
+		Assertions.assertAll(
+			() -> assertThat(response)
+				.extracting("fcmTokenId")
+				.isEqualTo(token.getId()),
+			() -> {
+				FcmToken findFcmToken = fcmRepository.findById(token.getId()).orElseThrow();
+				assertThat(token.getLatestActivationTime().isBefore(findFcmToken.getLatestActivationTime())).isTrue();
+			}
+		);
 	}
 
 	private Member createMember() {

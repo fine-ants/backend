@@ -39,7 +39,11 @@ public class FcmService {
 		Member member = findMember(authMember);
 		verifyUniqueFcmToken(request.getFcmToken(), authMember.getMemberId());
 		verifyFcmToken(request.getFcmToken());
-		FcmToken saveFcmToken = fcmRepository.save(request.toEntity(member));
+
+		FcmToken fcmToken = fcmRepository.findByTokenAndMemberId(request.getFcmToken(), authMember.getMemberId())
+			.orElseGet(() -> request.toEntity(member));
+		fcmToken.refreshLatestActivationTime();
+		FcmToken saveFcmToken = fcmRepository.save(fcmToken);
 		return FcmRegisterResponse.from(saveFcmToken);
 	}
 
