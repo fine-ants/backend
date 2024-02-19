@@ -6,10 +6,8 @@ import codesquad.fineants.domain.member.Member;
 import io.jsonwebtoken.Claims;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.ToString;
 
 @Getter
-@ToString
 public class AuthMember {
 
 	private Long memberId;

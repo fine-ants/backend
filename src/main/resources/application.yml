@@ -1,10 +1,9 @@
 spring:
   profiles:
     group:
-      local: local, secret, s3
-      dev: dev, secret, s3
-      test: test, secret, s3
-      analyze: analyze, secret, s3
+      local: local, secret
+      dev: dev, secret
+      test: test, secret
     default: local
   main:
     allow-bean-definition-overriding: true
@@ -22,149 +21,17 @@ spring:
             enable: true
   jpa:
     open-in-view: false
+  servlet:
+    multipart:
+      max-file-size: 10MB
   config:
     import:
       - ./secret/application-secret.yml
       - ./member.yml
-  servlet:
-    multipart:
-      max-file-size: 10MB
 portfolio:
   securities-firm: BNK투자증권,부국증권,케이프투자증권,대신증권,다올투자증권,DB금융투자,이베스트투자증권,유진투자증권,하나증권,한화투자증권,하이투자증권
     ,현대차증권,IBK투자증권,카카오페이증권,KB증권,키움증권,한국투자증권,한국포스증권,교보증권,메리츠증권,미래에셋증권,나무증권,삼성증권,상상인증권,신한투자증권
     ,신영증권,SK증권,토스증권,유안타증권,FineAnts
----
-spring:
-  config:
-    activate:
-      on-profile: local
-  datasource:
-    url: ${db.local.datasource.url}
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    username: ${db.local.datasource.username}
-    password: ${db.local.datasource.password}
-  jpa:
-    database: mysql
-    database-platform: org.hibernate.dialect.MySQL8Dialect
-    hibernate:
-      ddl-auto: create
-    properties:
-      hibernate:
-        format_sql: true
-        dialect: org.hibernate.dialect.MySQL8Dialect
-    defer-datasource-initialization: true
-    show-sql: true
-  redis:
-    host: localhost
-    port: 6379
-  sql:
-    init:
-      mode: always
-      data-locations: classpath*:db/mysql/data.sql
-
-logging:
-  level:
-    codesquad: debug
-    com.zaxxer.hikari.HikariConfig: DEBUG
-    com.zaxxer.hikari: TRACE
----
-
-spring:
-  config:
-    activate:
-      on-profile: dev
-  datasource:
-    url: ${db.dev.datasource.url}
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    username: ${db.dev.datasource.username}
-    password: ${db.dev.datasource.password}
-  jpa:
-    database: mysql
-    database-platform: org.hibernate.dialect.MySQL8Dialect
-    hibernate:
-      ddl-auto: none
-    properties:
-      hibernate:
-        format_sql: true
-        dialect: org.hibernate.dialect.MySQL8Dialect
-  redis:
-    host: redis
-    port: 6379
-
-logging:
-  level:
-    codesquad: info
-    com.zaxxer.hikari.HikariConfig: DEBUG
-    com.zaxxer.hikari: TRACE
----
-spring:
-  config:
-    activate:
-      on-profile: test
-  datasource:
-    url: ${db.local.datasource.url}
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    username: ${db.local.datasource.username}
-    password: ${db.local.datasource.password}
-  jpa:
-    database: mysql
-    database-platform: org.hibernate.dialect.MySQL8Dialect
-    hibernate:
-      ddl-auto: create
-    properties:
-      hibernate:
-        format_sql: true
-        dialect: org.hibernate.dialect.MySQL8Dialect
-    defer-datasource-initialization: true
-    show-sql: true
-  redis:
-    host: localhost
-    port: 6379
-
-logging:
-  level:
-    codesquad: debug
-    com.zaxxer.hikari.HikariConfig: DEBUG
-    com.zaxxer.hikari: TRACE
----
-spring:
-  config:
-    activate:
-      on-profile: analyze
-  datasource:
-    url: ${db.analyze.datasource.url}
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    username: ${db.analyze.datasource.username}
-    password: ${db.analyze.datasource.password}
-  jpa:
-    database: mysql
-    database-platform: org.hibernate.dialect.MySQL8Dialect
-    hibernate:
-      ddl-auto: create
-    properties:
-      hibernate:
-        format_sql: true
-        dialect: org.hibernate.dialect.MySQL8Dialect
-    defer-datasource-initialization: true
-    show-sql: true
-  redis:
-    host: redis
-    port: 6379
-  sql:
-    init:
-      mode: always
-      data-locations: classpath*:db/mysql/data.sql
-
-logging:
-  level:
-    codesquad: debug
----
-
-spring:
-  config:
-    activate:
-      on-profile: s3
-
 cloud:
   aws:
     credentials:
@@ -176,3 +43,7 @@ cloud:
       auto: false
     s3:
       bucket: ${aws.s3.bucket}
+logging:
+  level:
+    com.zaxxer.hikari.HikariConfig: DEBUG
+    com.zaxxer.hikari: TRACE

@@ -1,0 +1,24 @@
+spring:
+  datasource:
+    url: ${db.test.datasource.url}
+    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
+    username: ${db.test.datasource.username}
+    password: ${db.test.datasource.password}
+  jpa:
+    database: mysql
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+    hibernate:
+      ddl-auto: create
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQL8Dialect
+    defer-datasource-initialization: true
+    show-sql: true
+  redis:
+    host: localhost
+    port: 6379
+
+logging:
+  level:
+    codesquad: debug
