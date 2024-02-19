@@ -38,11 +38,13 @@ import codesquad.fineants.domain.stock.Market;
 import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.spring.api.errors.handler.GlobalExceptionHandler;
 import codesquad.fineants.spring.api.stock.request.TargetPriceNotificationCreateRequest;
+import codesquad.fineants.spring.api.stock.request.TargetPriceNotificationUpdateRequest;
 import codesquad.fineants.spring.api.stock.response.TargetPriceItem;
 import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationCreateResponse;
 import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationDeleteResponse;
 import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationSearchItem;
 import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationSearchResponse;
+import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationUpdateResponse;
 import codesquad.fineants.spring.config.JpaAuditingConfiguration;
 import codesquad.fineants.spring.util.ObjectMapperUtil;
 
@@ -178,6 +180,52 @@ class StockTargetPriceNotificationRestControllerTest {
 			.andExpect(jsonPath("data.stocks[0].targetPrices[1].dateAdded").isNotEmpty())
 			.andExpect(jsonPath("data.stocks[0].isActive").value(equalTo(true)))
 			.andExpect(jsonPath("data.stocks[0].lastUpdated").isNotEmpty());
+	}
+
+	@DisplayName("사용자는 종목 지정가 알림의 정보를 수정한다")
+	@Test
+	void updateStockTargetPriceNotification() throws Exception {
+		// given
+		Stock stock = createStock();
+		Map<String, Object> body = Map.of(
+			"tickerSymbol", stock.getTickerSymbol(),
+			"isActive", false
+		);
+
+		given(service.updateStockTargetPriceNotification(any(TargetPriceNotificationUpdateRequest.class), anyLong()))
+			.willReturn(TargetPriceNotificationUpdateResponse.builder()
+				.stockTargetPriceId(1L)
+				.tickerSymbol(stock.getTickerSymbol())
+				.isActive(false)
+				.build());
+
+		// when & then
+		mockMvc.perform(put("/api/stocks/target-price/notifications")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(ObjectMapperUtil.serialize(body)))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("code").value(equalTo(200)))
+			.andExpect(jsonPath("status").value(equalTo("OK")))
+			.andExpect(jsonPath("message").value(equalTo("종목 지정가 알림을 비 활성화하였습니다")));
+	}
+
+	@DisplayName("사용자는 유효하지 않은 입력으로 종목 지정가 알림의 정보를  수정할 수 없다")
+	@Test
+	void updateStockTargetPriceNotification_whenInvalidInput_thenResponse400Error() throws Exception {
+		// given
+		Map<String, Object> body = new HashMap<>();
+		body.put("tickerSymbol", null);
+		body.put("isActive", null);
+
+		// when & then
+		mockMvc.perform(put("/api/stocks/target-price/notifications")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(ObjectMapperUtil.serialize(body)))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("code").value(equalTo(400)))
+			.andExpect(jsonPath("status").value(equalTo("Bad Request")))
+			.andExpect(jsonPath("message").value(equalTo("잘못된 입력형식입니다")))
+			.andExpect(jsonPath("data").isArray());
 	}
 
 	@DisplayName("사용자는 종목 지정가 알림들을 삭제합니다")

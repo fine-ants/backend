@@ -31,9 +31,11 @@ import codesquad.fineants.spring.api.errors.exception.ForBiddenException;
 import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
 import codesquad.fineants.spring.api.stock.request.TargetPriceNotificationCreateRequest;
+import codesquad.fineants.spring.api.stock.request.TargetPriceNotificationUpdateRequest;
 import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationCreateResponse;
 import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationDeleteResponse;
 import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationSearchResponse;
+import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationUpdateResponse;
 
 class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest {
 
@@ -170,6 +172,66 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 					Tuple.tuple(targetPriceNotifications.get(0).getId(), 60000L),
 					Tuple.tuple(targetPriceNotifications.get(1).getId(), 70000L))
 		);
+	}
+
+	@DisplayName("사용자는 종목 지정가 알림을 수정한다")
+	@Test
+	void updateStockTargetPriceNotification() {
+		// given
+		Member member = memberRepository.save(createMember());
+		Stock stock = stockRepository.save(createStock());
+		StockTargetPrice stockTargetPrice = repository.save(createStockTargetPrice(member, stock));
+		targetPriceNotificationRepository.saveAll(
+			createTargetPriceNotification(
+				stockTargetPrice,
+				List.of(10000L, 20000L)
+			)
+		);
+		TargetPriceNotificationUpdateRequest request = TargetPriceNotificationUpdateRequest.builder()
+			.tickerSymbol(stock.getTickerSymbol())
+			.isActive(false)
+			.build();
+
+		// when
+		TargetPriceNotificationUpdateResponse response = service.updateStockTargetPriceNotification(
+			request, member.getId());
+
+		// then
+		StockTargetPrice findStockTargetPrice = repository.findByTickerSymbolAndMemberId(stock.getTickerSymbol(),
+			member.getId()).orElseThrow();
+		assertAll(
+			() -> assertThat(findStockTargetPrice.getIsActive()).isFalse(),
+			() -> assertThat(response)
+				.extracting("isActive")
+				.isEqualTo(false)
+		);
+	}
+
+	@DisplayName("사용자는 자신이 지정하지 않은 종목 지정가를 수정할 수 없다")
+	@Test
+	void updateStockTargetPriceNotification_whenNotExistTickerSymbol_thenThrow404Error() {
+		// given
+		Member member = memberRepository.save(createMember());
+		Stock stock = stockRepository.save(createStock());
+		StockTargetPrice stockTargetPrice = repository.save(createStockTargetPrice(member, stock));
+		targetPriceNotificationRepository.saveAll(
+			createTargetPriceNotification(
+				stockTargetPrice,
+				List.of(10000L, 20000L)
+			)
+		);
+		TargetPriceNotificationUpdateRequest request = TargetPriceNotificationUpdateRequest.builder()
+			.tickerSymbol("999999")
+			.isActive(false)
+			.build();
+
+		// when
+		Throwable throwable = catchThrowable(() -> service.updateStockTargetPriceNotification(request, member.getId()));
+
+		// then
+		assertThat(throwable)
+			.isInstanceOf(NotFoundResourceException.class)
+			.hasMessage(StockErrorCode.NOT_FOUND_STOCK_TARGET_PRICE.getMessage());
 	}
 
 	@DisplayName("사용자는 종목 지정가 알림을 제거합니다")
