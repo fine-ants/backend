@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -33,10 +34,15 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.oauth.support.AuthPrincipalArgumentResolver;
+import codesquad.fineants.domain.stock.Market;
+import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.spring.api.errors.handler.GlobalExceptionHandler;
 import codesquad.fineants.spring.api.stock.request.TargetPriceNotificationCreateRequest;
+import codesquad.fineants.spring.api.stock.response.TargetPriceItem;
 import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationCreateResponse;
 import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationDeleteResponse;
+import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationSearchItem;
+import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationSearchResponse;
 import codesquad.fineants.spring.config.JpaAuditingConfiguration;
 import codesquad.fineants.spring.util.ObjectMapperUtil;
 
@@ -126,6 +132,54 @@ class StockTargetPriceNotificationRestControllerTest {
 			.andExpect(jsonPath("data").isArray());
 	}
 
+	@DisplayName("사용자는 종목 지정가 알림 목록을 조회합니다")
+	@Test
+	void searchStockTargetPriceNotification() throws Exception {
+		// given
+		Stock stock = createStock();
+		LocalDateTime now = LocalDateTime.now();
+		given(service.searchStockTargetPriceNotification(anyLong()))
+			.willReturn(TargetPriceNotificationSearchResponse.builder()
+				.stocks(List.of(TargetPriceNotificationSearchItem.builder()
+					.companyName(stock.getCompanyName())
+					.tickerSymbol(stock.getTickerSymbol())
+					.lastPrice(50000L)
+					.targetPrices(List.of(
+						TargetPriceItem.builder()
+							.notificationId(1L)
+							.targetPrice(60000L)
+							.dateAdded(now)
+							.build(),
+						TargetPriceItem.builder()
+							.notificationId(2L)
+							.targetPrice(70000L)
+							.dateAdded(now)
+							.build()
+					))
+					.isActive(true)
+					.lastUpdated(now)
+					.build()))
+				.build());
+
+		// when & then
+		mockMvc.perform(get("/api/stocks/target-price/notifications"))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("code").value(equalTo(200)))
+			.andExpect(jsonPath("status").value(equalTo("OK")))
+			.andExpect(jsonPath("message").value(equalTo("모든 알림 조회를 성공했습니다")))
+			.andExpect(jsonPath("data.stocks[0].companyName").value(equalTo(stock.getCompanyName())))
+			.andExpect(jsonPath("data.stocks[0].tickerSymbol").value(equalTo(stock.getTickerSymbol())))
+			.andExpect(jsonPath("data.stocks[0].lastPrice").value(equalTo(50000)))
+			.andExpect(jsonPath("data.stocks[0].targetPrices[0].notificationId").value(equalTo(1)))
+			.andExpect(jsonPath("data.stocks[0].targetPrices[0].targetPrice").value(equalTo(60000)))
+			.andExpect(jsonPath("data.stocks[0].targetPrices[0].dateAdded").isNotEmpty())
+			.andExpect(jsonPath("data.stocks[0].targetPrices[1].notificationId").value(equalTo(2)))
+			.andExpect(jsonPath("data.stocks[0].targetPrices[1].targetPrice").value(equalTo(70000)))
+			.andExpect(jsonPath("data.stocks[0].targetPrices[1].dateAdded").isNotEmpty())
+			.andExpect(jsonPath("data.stocks[0].isActive").value(equalTo(true)))
+			.andExpect(jsonPath("data.stocks[0].lastUpdated").isNotEmpty());
+	}
+
 	@DisplayName("사용자는 종목 지정가 알림들을 삭제합니다")
 	@Test
 	void deleteAllStockTargetPriceNotification() throws Exception {
@@ -208,6 +262,17 @@ class StockTargetPriceNotificationRestControllerTest {
 			.email("kim1234@gmail.com")
 			.password("kim1234@")
 			.provider("local")
+			.build();
+	}
+
+	private Stock createStock() {
+		return Stock.builder()
+			.companyName("삼성전자보통주")
+			.tickerSymbol("005930")
+			.companyNameEng("SamsungElectronics")
+			.stockCode("KR7005930003")
+			.sector("전기전자")
+			.market(Market.KOSPI)
 			.build();
 	}
 
