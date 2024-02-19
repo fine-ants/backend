@@ -8,17 +8,14 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.member.MemberRepository;
 import codesquad.fineants.domain.portfolio.Portfolio;
 import codesquad.fineants.domain.portfolio.PortfolioRepository;
+import codesquad.fineants.spring.AbstractContainerBaseTest;
 
-@ActiveProfiles("test")
-@SpringBootTest
-class PortfolioGainHistoryServiceRepositoryTest {
+class PortfolioGainHistoryServiceRepositoryTest extends AbstractContainerBaseTest {
 
 	@Autowired
 	private PortfolioGainHistoryRepository repository;

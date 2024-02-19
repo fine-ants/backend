@@ -11,10 +11,9 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.ActiveProfiles;
 
+import codesquad.fineants.spring.AbstractContainerBaseTest;
 import codesquad.fineants.spring.api.kis.client.KisAccessToken;
 import codesquad.fineants.spring.api.kis.client.KisClient;
 import codesquad.fineants.spring.api.kis.manager.KisAccessTokenManager;
@@ -22,9 +21,7 @@ import codesquad.fineants.spring.api.kis.properties.OauthKisProperties;
 import codesquad.fineants.spring.api.kis.service.KisRedisService;
 import reactor.core.publisher.Mono;
 
-@ActiveProfiles("test")
-@SpringBootTest
-class AccessTokenAspectTest {
+class AccessTokenAspectTest extends AbstractContainerBaseTest {
 
 	@MockBean
 	private KisClient client;

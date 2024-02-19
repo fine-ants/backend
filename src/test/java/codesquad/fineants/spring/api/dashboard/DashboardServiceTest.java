@@ -10,9 +10,7 @@ import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.ActiveProfiles;
 
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.member.MemberRepository;
@@ -28,15 +26,14 @@ import codesquad.fineants.domain.purchase_history.PurchaseHistoryRepository;
 import codesquad.fineants.domain.stock.Market;
 import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.domain.stock.StockRepository;
+import codesquad.fineants.spring.AbstractContainerBaseTest;
 import codesquad.fineants.spring.api.dashboard.response.DashboardLineChartResponse;
 import codesquad.fineants.spring.api.dashboard.response.DashboardPieChartResponse;
 import codesquad.fineants.spring.api.dashboard.response.OverviewResponse;
 import codesquad.fineants.spring.api.dashboard.service.DashboardService;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 
-@ActiveProfiles("test")
-@SpringBootTest
-public class DashboardServiceTest {
+public class DashboardServiceTest extends AbstractContainerBaseTest {
 	@Autowired
 	private MemberRepository memberRepository;
 	@Autowired

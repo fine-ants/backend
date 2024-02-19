@@ -6,9 +6,11 @@ import java.time.LocalDateTime;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.context.ActiveProfiles;
 
 import codesquad.fineants.spring.api.kis.client.KisAccessToken;
 
+@ActiveProfiles("test")
 class KisAccessTokenManagerTest {
 
 	@DisplayName("액세스 토큰이 만료되었다")

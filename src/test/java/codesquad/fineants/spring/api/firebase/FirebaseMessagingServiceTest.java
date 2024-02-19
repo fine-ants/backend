@@ -7,17 +7,15 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.mockito.BDDMockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.ActiveProfiles;
 
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
 
-@ActiveProfiles("test")
-@SpringBootTest
-class FirebaseMessagingServiceTest {
+import codesquad.fineants.spring.AbstractContainerBaseTest;
+
+class FirebaseMessagingServiceTest extends AbstractContainerBaseTest {
 
 	@Autowired
 	private FirebaseMessagingService firebaseMessagingService;

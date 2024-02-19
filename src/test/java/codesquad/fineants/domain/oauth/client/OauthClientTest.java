@@ -10,19 +10,16 @@ import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import codesquad.fineants.domain.oauth.client.kakao.KakaoDecodedIdTokenPayload;
 import codesquad.fineants.domain.oauth.repository.OauthClientRepository;
+import codesquad.fineants.spring.AbstractContainerBaseTest;
 import codesquad.fineants.spring.api.errors.exception.BadRequestException;
 
-@ActiveProfiles("test")
-@SpringBootTest
-class OauthClientTest {
+class OauthClientTest extends AbstractContainerBaseTest {
 
 	@Autowired
 	private OauthClientRepository oauthClientRepository;

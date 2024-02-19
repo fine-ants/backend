@@ -80,6 +80,10 @@ dependencies {
     // final class mocking
     testImplementation 'org.mockito:mockito-inline:2.13.0'
     testAnnotationProcessor 'org.projectlombok:lombok'
+
+    // test container
+    testImplementation "org.testcontainers:junit-jupiter:1.16.3"
+    testImplementation 'org.testcontainers:mysql:1.16.3'
 }
 
 tasks.named('test') {

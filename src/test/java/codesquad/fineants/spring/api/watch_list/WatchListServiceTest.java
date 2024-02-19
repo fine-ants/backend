@@ -15,9 +15,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.ActiveProfiles;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -33,6 +31,7 @@ import codesquad.fineants.domain.watch_list.WatchList;
 import codesquad.fineants.domain.watch_list.WatchListRepository;
 import codesquad.fineants.domain.watch_stock.WatchStock;
 import codesquad.fineants.domain.watch_stock.WatchStockRepository;
+import codesquad.fineants.spring.AbstractContainerBaseTest;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
 import codesquad.fineants.spring.api.watch_list.request.ChangeWatchListNameRequest;
@@ -45,9 +44,7 @@ import codesquad.fineants.spring.api.watch_list.response.ReadWatchListResponse;
 import codesquad.fineants.spring.api.watch_list.response.ReadWatchListsResponse;
 import codesquad.fineants.spring.api.watch_list.response.WatchListHasStockResponse;
 
-@ActiveProfiles("test")
-@SpringBootTest
-class WatchListServiceTest {
+class WatchListServiceTest extends AbstractContainerBaseTest {
 
 	@Autowired
 	private WatchListService watchListService;

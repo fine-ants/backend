@@ -3,10 +3,12 @@ package codesquad.fineants.spring.api.member.service;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.context.ActiveProfiles;
 
 import codesquad.fineants.spring.api.member.manager.AuthorizationRequestManager;
 import codesquad.fineants.spring.api.member.request.AuthorizationRequest;
 
+@ActiveProfiles("test")
 class AuthorizationRequestManagerTest {
 
 	@DisplayName("만료된 인가코드 요청들을 제거한다")

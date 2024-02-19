@@ -12,8 +12,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -33,6 +31,7 @@ import codesquad.fineants.domain.stock.Market;
 import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.domain.stock.StockRepository;
 import codesquad.fineants.domain.stock_dividend.StockDividendRepository;
+import codesquad.fineants.spring.AbstractContainerBaseTest;
 import codesquad.fineants.spring.api.errors.exception.FineAntsException;
 import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
 import codesquad.fineants.spring.api.purchase_history.request.PurchaseHistoryCreateRequest;
@@ -41,9 +40,7 @@ import codesquad.fineants.spring.api.purchase_history.response.PurchaseHistoryCr
 import codesquad.fineants.spring.api.purchase_history.response.PurchaseHistoryDeleteResponse;
 import codesquad.fineants.spring.api.purchase_history.response.PurchaseHistoryModifyResponse;
 
-@ActiveProfiles("test")
-@SpringBootTest
-class PurchaseHistoryServiceTest {
+class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 
 	@Autowired
 	private PortfolioHoldingRepository portFolioHoldingRepository;
