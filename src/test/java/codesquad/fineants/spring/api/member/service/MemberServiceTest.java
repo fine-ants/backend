@@ -24,12 +24,10 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.multipart.MultipartFile;
 
 import codesquad.fineants.domain.member.Member;
@@ -39,6 +37,7 @@ import codesquad.fineants.domain.oauth.client.AuthorizationCodeRandomGenerator;
 import codesquad.fineants.domain.oauth.client.OauthClient;
 import codesquad.fineants.domain.oauth.repository.OauthClientRepository;
 import codesquad.fineants.domain.oauth.support.AuthMember;
+import codesquad.fineants.spring.AbstractContainerBaseTest;
 import codesquad.fineants.spring.api.S3.service.AmazonS3Service;
 import codesquad.fineants.spring.api.errors.errorcode.MemberErrorCode;
 import codesquad.fineants.spring.api.errors.errorcode.OauthErrorCode;
@@ -61,9 +60,7 @@ import codesquad.fineants.spring.api.member.service.response.SignUpServiceRespon
 import codesquad.fineants.spring.api.portfolio_notification.MailService;
 import codesquad.fineants.spring.util.ObjectMapperUtil;
 
-@ActiveProfiles("test")
-@SpringBootTest
-public class MemberServiceTest {
+public class MemberServiceTest extends AbstractContainerBaseTest {
 
 	@Autowired
 	private MemberService memberService;

@@ -14,9 +14,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.ActiveProfiles;
 
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.member.MemberRepository;
@@ -33,6 +31,7 @@ import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.domain.stock.StockRepository;
 import codesquad.fineants.domain.stock_dividend.StockDividend;
 import codesquad.fineants.domain.stock_dividend.StockDividendRepository;
+import codesquad.fineants.spring.AbstractContainerBaseTest;
 import codesquad.fineants.spring.api.errors.exception.FineAntsException;
 import codesquad.fineants.spring.api.errors.exception.ForBiddenException;
 import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
@@ -49,12 +48,8 @@ import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioStockCrea
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioStockDeleteResponse;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioStockDeletesResponse;
 import codesquad.fineants.spring.util.ObjectMapperUtil;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
-@ActiveProfiles("test")
-@SpringBootTest
-class PortfolioStockServiceTest {
+class PortfolioStockServiceTest extends AbstractContainerBaseTest {
 
 	@Autowired
 	private PortfolioStockService service;

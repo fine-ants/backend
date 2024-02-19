@@ -10,8 +10,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.member.MemberRepository;
@@ -22,6 +20,7 @@ import codesquad.fineants.domain.stock_target_price.StockTargetPrice;
 import codesquad.fineants.domain.stock_target_price.StockTargetPriceRepository;
 import codesquad.fineants.domain.target_price_notification.TargetPriceNotification;
 import codesquad.fineants.domain.target_price_notification.TargetPriceNotificationRepository;
+import codesquad.fineants.spring.AbstractContainerBaseTest;
 import codesquad.fineants.spring.api.errors.errorcode.StockErrorCode;
 import codesquad.fineants.spring.api.errors.exception.BadRequestException;
 import codesquad.fineants.spring.api.errors.exception.ForBiddenException;
@@ -30,9 +29,7 @@ import codesquad.fineants.spring.api.stock.request.TargetPriceNotificationCreate
 import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationCreateResponse;
 import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationDeleteResponse;
 
-@ActiveProfiles("test")
-@SpringBootTest
-class StockTargetPriceNotificationServiceTest {
+class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest {
 
 	@Autowired
 	private StockTargetPriceNotificationService service;

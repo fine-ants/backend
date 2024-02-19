@@ -13,8 +13,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.BDDMockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import codesquad.fineants.domain.member.Member;
@@ -31,6 +29,7 @@ import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.domain.stock.StockRepository;
 import codesquad.fineants.domain.stock_dividend.StockDividend;
 import codesquad.fineants.domain.stock_dividend.StockDividendRepository;
+import codesquad.fineants.spring.AbstractContainerBaseTest;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
 import codesquad.fineants.spring.api.kis.response.CurrentPriceResponse;
@@ -40,9 +39,7 @@ import codesquad.fineants.spring.api.portfolio_stock.manager.SseEmitterManager;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioHoldingsRealTimeResponse;
 import codesquad.fineants.spring.api.portfolio_stock.service.PortfolioStockService;
 
-@ActiveProfiles("test")
-@SpringBootTest
-class PortfolioEventListenerTest {
+class PortfolioEventListenerTest extends AbstractContainerBaseTest {
 
 	@Autowired
 	private PortfolioEventListener portfolioEventListener;

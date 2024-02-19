@@ -11,9 +11,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.ActiveProfiles;
 
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
@@ -24,14 +22,13 @@ import codesquad.fineants.domain.fcm_token.FcmToken;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.member.MemberRepository;
 import codesquad.fineants.domain.oauth.support.AuthMember;
+import codesquad.fineants.spring.AbstractContainerBaseTest;
 import codesquad.fineants.spring.api.errors.errorcode.FcmErrorCode;
 import codesquad.fineants.spring.api.errors.exception.BadRequestException;
 import codesquad.fineants.spring.api.fcm.request.FcmRegisterRequest;
 import codesquad.fineants.spring.api.fcm.response.FcmRegisterResponse;
 
-@ActiveProfiles("test")
-@SpringBootTest
-class FcmServiceTest {
+class FcmServiceTest extends AbstractContainerBaseTest {
 
 	@Autowired
 	private FcmService fcmService;

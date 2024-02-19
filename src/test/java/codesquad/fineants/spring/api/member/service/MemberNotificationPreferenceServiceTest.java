@@ -10,8 +10,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 
 import codesquad.fineants.domain.fcm_token.FcmRepository;
 import codesquad.fineants.domain.fcm_token.FcmToken;
@@ -19,12 +17,11 @@ import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.member.MemberRepository;
 import codesquad.fineants.domain.notification_preference.NotificationPreference;
 import codesquad.fineants.domain.notification_preference.NotificationPreferenceRepository;
+import codesquad.fineants.spring.AbstractContainerBaseTest;
 import codesquad.fineants.spring.api.member.request.MemberNotificationPreferenceRequest;
 import codesquad.fineants.spring.api.member.response.MemberNotificationPreferenceResponse;
 
-@ActiveProfiles("test")
-@SpringBootTest
-class MemberNotificationPreferenceServiceTest {
+class MemberNotificationPreferenceServiceTest extends AbstractContainerBaseTest {
 
 	@Autowired
 	private MemberNotificationPreferenceService service;

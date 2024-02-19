@@ -1,23 +1,23 @@
 package codesquad.fineants.domain.portfolio_gain_history;
 
-import java.util.List;
+import static org.assertj.core.api.Assertions.*;
 
-import org.assertj.core.api.Assertions;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.member.MemberRepository;
 import codesquad.fineants.domain.portfolio.Portfolio;
 import codesquad.fineants.domain.portfolio.PortfolioRepository;
+import codesquad.fineants.spring.AbstractContainerBaseTest;
 
-@ActiveProfiles("test")
-@SpringBootTest
-class PortfolioGainHistoryRepositoryTest {
+class PortfolioGainHistoryRepositoryTest extends AbstractContainerBaseTest {
 
 	@Autowired
 	private PortfolioGainHistoryRepository portfolioGainHistoryRepository;
@@ -54,7 +54,38 @@ class PortfolioGainHistoryRepositoryTest {
 			portfolio.getId());
 
 		// then
-		Assertions.assertThat(histories).hasSize(1);
+		assertThat(histories).hasSize(1);
+	}
+
+	@DisplayName("사용자는 제일 최근의 포트폴리오 손익 내역을 조회합니다")
+	@Test
+	void findFirstByPortfolioAndCreateAtIsLessThanEqualOrderByCreateAtDesc() {
+		// given
+		Member member = memberRepository.save(createMember());
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
+		portfolioGainHistoryRepository.save(PortfolioGainHistory.builder()
+			.totalGain(0L)
+			.dailyGain(0L)
+			.currentValuation(0L)
+			.cash(0L)
+			.portfolio(portfolio)
+			.build());
+		PortfolioGainHistory saveHistory = portfolioGainHistoryRepository.save(PortfolioGainHistory.builder()
+			.totalGain(0L)
+			.dailyGain(0L)
+			.currentValuation(0L)
+			.cash(0L)
+			.portfolio(portfolio)
+			.build());
+
+		// when
+		Optional<PortfolioGainHistory> optional = portfolioGainHistoryRepository.findFirstByPortfolioAndCreateAtIsLessThanEqualOrderByCreateAtDesc(
+			portfolio.getId(),
+			LocalDateTime.now());
+		PortfolioGainHistory history = optional.orElseThrow();
+
+		// then
+		assertThat(history.getId()).isEqualTo(saveHistory.getId());
 	}
 
 	private Member createMember() {

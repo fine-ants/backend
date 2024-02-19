@@ -5,18 +5,15 @@ import static org.assertj.core.api.Assertions.*;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.member.MemberRepository;
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.portfolio.Portfolio;
 import codesquad.fineants.domain.portfolio.PortfolioRepository;
+import codesquad.fineants.spring.AbstractContainerBaseTest;
 
-@ActiveProfiles("test")
-@SpringBootTest
-class HasPortfolioAuthorizationAspectTest {
+class HasPortfolioAuthorizationAspectTest extends AbstractContainerBaseTest {
 
 	@Autowired
 	private HasPortfolioAuthorizationAspect hasPortfolioAuthorizationAspect;

@@ -17,9 +17,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.ActiveProfiles;
 
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.member.MemberRepository;
@@ -30,6 +28,7 @@ import codesquad.fineants.domain.portfolio_holding.PortfolioHoldingRepository;
 import codesquad.fineants.domain.stock.Market;
 import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.domain.stock.StockRepository;
+import codesquad.fineants.spring.AbstractContainerBaseTest;
 import codesquad.fineants.spring.api.errors.exception.KisException;
 import codesquad.fineants.spring.api.kis.client.KisClient;
 import codesquad.fineants.spring.api.kis.manager.HolidayManager;
@@ -37,12 +36,8 @@ import codesquad.fineants.spring.api.kis.manager.KisAccessTokenManager;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
 import codesquad.fineants.spring.api.kis.response.CurrentPriceResponse;
 import codesquad.fineants.spring.api.kis.response.LastDayClosingPriceResponse;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
-@ActiveProfiles("test")
-@SpringBootTest
-class KisServiceTest {
+class KisServiceTest extends AbstractContainerBaseTest {
 
 	@Autowired
 	private KisService kisService;

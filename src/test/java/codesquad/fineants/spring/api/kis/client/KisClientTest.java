@@ -12,26 +12,21 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import codesquad.fineants.spring.AbstractContainerBaseTest;
 import codesquad.fineants.spring.api.kis.properties.OauthKisProperties;
 import codesquad.fineants.spring.api.kis.service.KisService;
 import codesquad.fineants.spring.util.ObjectMapperUtil;
-import lombok.extern.slf4j.Slf4j;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-@Slf4j
-@ActiveProfiles("test")
-@SpringBootTest
-class KisClientTest {
+class KisClientTest extends AbstractContainerBaseTest {
 	public static MockWebServer mockWebServer;
 
 	@Autowired
