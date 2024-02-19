@@ -10,7 +10,7 @@ import org.springframework.data.repository.query.Param;
 
 public interface StockTargetPriceRepository extends JpaRepository<StockTargetPrice, Long> {
 
-	@Query("select s from StockTargetPrice s where s.stock.tickerSymbol = :tickerSymbol and s.member.id = :memberId")
+	@Query("select s from StockTargetPrice s join fetch s.stock stock where stock.tickerSymbol = :tickerSymbol and s.member.id = :memberId")
 	Optional<StockTargetPrice> findByTickerSymbolAndMemberId(
 		@Param("tickerSymbol") String tickerSymbol,
 		@Param("memberId") Long memberId);

@@ -21,10 +21,12 @@ import codesquad.fineants.spring.api.errors.exception.ForBiddenException;
 import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
 import codesquad.fineants.spring.api.stock.request.TargetPriceNotificationCreateRequest;
+import codesquad.fineants.spring.api.stock.request.TargetPriceNotificationUpdateRequest;
 import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationCreateResponse;
 import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationDeleteResponse;
 import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationSearchItem;
 import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationSearchResponse;
+import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationUpdateResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -193,5 +195,15 @@ public class StockTargetPriceNotificationService {
 			.map(stockTargetPrice -> TargetPriceNotificationSearchItem.from(stockTargetPrice, manager))
 			.collect(Collectors.toList());
 		return TargetPriceNotificationSearchResponse.from(stocks);
+	}
+
+	@Transactional
+	public TargetPriceNotificationUpdateResponse updateStockTargetPriceNotification(
+		TargetPriceNotificationUpdateRequest request, Long memberId) {
+		StockTargetPrice stockTargetPrice = repository.findByTickerSymbolAndMemberId(request.getTickerSymbol(),
+				memberId)
+			.orElseThrow(() -> new NotFoundResourceException(StockErrorCode.NOT_FOUND_STOCK_TARGET_PRICE));
+		stockTargetPrice.changeIsActive(request.getIsActive());
+		return TargetPriceNotificationUpdateResponse.from(stockTargetPrice);
 	}
 }
