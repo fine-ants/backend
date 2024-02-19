@@ -39,6 +39,7 @@ public class TargetPriceNotificationSearchItem {
 			.lastPrice(manager.getPrice(stockTargetPrice.getStock().getTickerSymbol()))
 			.targetPrices(targetPrices)
 			.isActive(stockTargetPrice.getIsActive())
+			.lastUpdated(stockTargetPrice.getModifiedAt())
 			.build();
 	}
 }
