@@ -2,15 +2,13 @@ version: "3.8"
 services:
   app:
     container_name: fineAnts_app
-    build:
-      context: .
-      dockerfile: Dockerfile
+    build: .
     restart: always
     ports:
-      - 443:443
+      - "443:443"
     environment:
-      - PROFILE=dev
-      - TZ=Asia/Seoul
+      PROFILE: dev
+      TZ: Asia/Seoul
     logging:
       driver: awslogs
       options:
@@ -20,7 +18,7 @@ services:
     depends_on:
       - redis
     networks:
-      - backend_net
+      - spring-net
   redis:
     container_name: fineAnts_redis
     image: redis:latest
@@ -30,6 +28,6 @@ services:
     ports:
       - "6379:6379"
     networks:
-      - backend_net
+      - spring-net
 networks:
-  backend_net:
+  spring-net:
