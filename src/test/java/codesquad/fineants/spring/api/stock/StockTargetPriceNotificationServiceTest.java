@@ -2,14 +2,18 @@ package codesquad.fineants.spring.api.stock;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.BDDMockito.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.member.MemberRepository;
@@ -25,9 +29,11 @@ import codesquad.fineants.spring.api.errors.errorcode.StockErrorCode;
 import codesquad.fineants.spring.api.errors.exception.BadRequestException;
 import codesquad.fineants.spring.api.errors.exception.ForBiddenException;
 import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
+import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
 import codesquad.fineants.spring.api.stock.request.TargetPriceNotificationCreateRequest;
 import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationCreateResponse;
 import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationDeleteResponse;
+import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationSearchResponse;
 
 class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest {
 
@@ -45,6 +51,9 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 
 	@Autowired
 	private TargetPriceNotificationRepository targetPriceNotificationRepository;
+
+	@MockBean
+	private LastDayClosingPriceManager manager;
 
 	@AfterEach
 	void tearDown() {
@@ -126,6 +135,41 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 		assertThat(throwable)
 			.isInstanceOf(BadRequestException.class)
 			.hasMessage(StockErrorCode.BAD_REQUEST_TARGET_PRICE_NOTIFICATION_EXIST.getMessage());
+	}
+
+	@DisplayName("사용자는 종목 지정가 알림 목록을 조회합니다")
+	@Test
+	void searchStockTargetPriceNotification() {
+		// given
+		Member member = memberRepository.save(createMember());
+		Stock stock = stockRepository.save(createStock());
+		StockTargetPrice stockTargetPrice = repository.save(createStockTargetPrice(member, stock));
+		List<TargetPriceNotification> targetPriceNotifications = targetPriceNotificationRepository.saveAll(
+			createTargetPriceNotification(stockTargetPrice, List.of(60000L, 70000L)));
+
+		given(manager.getPrice(anyString()))
+			.willReturn(50000L);
+
+		// when
+		TargetPriceNotificationSearchResponse response = service.searchStockTargetPriceNotification(member.getId());
+
+		// then
+		assertAll(
+			() -> assertThat(response)
+				.extracting("stocks")
+				.asList()
+				.hasSize(1)
+				.extracting("companyName", "tickerSymbol", "lastPrice", "isActive")
+				.containsExactlyInAnyOrder(Tuple.tuple(stock.getCompanyName(), stock.getTickerSymbol(), 50000L, true)),
+			() -> assertThat(response.getStocks().get(0))
+				.extracting("targetPrices")
+				.asList()
+				.hasSize(2)
+				.extracting("notificationId", "targetPrice")
+				.containsExactlyInAnyOrder(
+					Tuple.tuple(targetPriceNotifications.get(0).getId(), 60000L),
+					Tuple.tuple(targetPriceNotifications.get(1).getId(), 70000L))
+		);
 	}
 
 	@DisplayName("사용자는 종목 지정가 알림을 제거합니다")
