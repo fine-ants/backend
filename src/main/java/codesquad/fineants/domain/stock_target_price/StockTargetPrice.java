@@ -60,4 +60,8 @@ public class StockTargetPrice extends BaseEntity {
 		this.stock = stock;
 		this.targetPriceNotifications = targetPriceNotifications;
 	}
+
+	public void changeIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
 }

@@ -14,6 +14,7 @@ public enum StockErrorCode implements ErrorCode {
 	BAD_REQUEST_TARGET_PRICE_NOTIFICATION_LIMIT(HttpStatus.BAD_REQUEST, "지정가 알림은 최대 5개까지 가능합니다"),
 	BAD_REQUEST_TARGET_PRICE_NOTIFICATION_EXIST(HttpStatus.BAD_REQUEST, "해당 지정가는 이미 존재합니다"),
 	BAD_REQUEST_STOCK_TARGET_PRICE_EXIST(HttpStatus.BAD_REQUEST, "해당 종목 지정가는 존재합니다"),
+	NOT_FOUND_STOCK_TARGET_PRICE(HttpStatus.NOT_FOUND, "존재하지 않는 종목 지정가입니다"),
 	NOT_FOUND_TARGET_PRICE(HttpStatus.NOT_FOUND, "존재하지 않은 지정가 알림입니다"),
 	FORBIDDEN_DELETE_TARGET_PRICE_NOTIFICATION(HttpStatus.FORBIDDEN, "지정가 알림을 삭제할 권한이 없습니다");
 

@@ -1,6 +1,5 @@
 .DS_Store
 .obsidian
-.env
 .idea/*
 /logs/
 /build/
