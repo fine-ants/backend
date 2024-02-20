@@ -15,7 +15,8 @@ public enum PortfolioSuccessCode implements SuccessCode {
 	OK_MODIFY_PORTFOLIO_TARGET_GAIN_ACTIVE_NOTIFICATION(HttpStatus.OK, "목표수익금액의 알림이 활성화되었습니다"),
 	OK_MODIFY_PORTFOLIO_TARGET_GAIN_INACTIVE_NOTIFICATION(HttpStatus.OK, "목표수익금액의 알림이 비활성화되었습니다"),
 	OK_MODIFY_PORTFOLIO_MAXIMUM_LOSS_ACTIVE_NOTIFICATION(HttpStatus.OK, "최대손실금액의 알림이 활성화되었습니다"),
-	OK_MODIFY_PORTFOLIO_MAXIMUM_LOSS_INACTIVE_NOTIFICATION(HttpStatus.OK, "최대손실금액의 알림이 비활성화되었습니다");
+	OK_MODIFY_PORTFOLIO_MAXIMUM_LOSS_INACTIVE_NOTIFICATION(HttpStatus.OK, "최대손실금액의 알림이 비활성화되었습니다"),
+	OK_SEARCH_PORTFOLIO_NOTIFICATION_SETTINGS(HttpStatus.OK, "모든 알림 조회를 성공했습니다");
 
 	private final HttpStatus httpStatus;
 	private final String message;
