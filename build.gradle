@@ -10,6 +10,8 @@ plugins {
     id 'io.spring.dependency-management' version '1.0.15.RELEASE'
     // QueryDSL
     id 'com.ewerk.gradle.plugins.querydsl' version '1.0.10'
+    // asciidoctor
+    id 'org.asciidoctor.jvm.convert' version '3.3.2'
 }
 
 group = 'codesquad.fineants'
@@ -23,6 +25,7 @@ configurations {
     compileOnly {
         extendsFrom annotationProcessor
     }
+    asciidoctorExt
 }
 
 repositories {
@@ -84,6 +87,10 @@ dependencies {
     // test container
     testImplementation "org.testcontainers:junit-jupiter:1.16.3"
     testImplementation 'org.testcontainers:mysql:1.16.3'
+
+    // Rest Docs
+    asciidoctorExt 'org.springframework.restdocs:spring-restdocs-asciidoctor'
+    testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
 }
 
 tasks.named('test') {
@@ -124,7 +131,31 @@ task copyPrivate(type: Copy) {
     }
 }
 
+// Rest Docs configuration start
+ext { // 전역변수
+    snippetsDir = file('build/generated-snippets')
+}
+
+test {
+    outputs.dir snippetsDir
+}
+
+asciidoctor {
+    inputs.dir snippetsDir
+    configurations 'asciidoctorExt'
+
+    dependsOn test
+}
+// Rest Docs configuration end
+
 bootJar {
+    // Rest Docs
+    dependsOn asciidoctor
+    from("${asciidoctor.outputDir}") {
+        into 'static/docs'
+    }
+
     archiveFileName = "fineAnts_app.jar"
     copyPrivate
 }
+
