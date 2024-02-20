@@ -233,7 +233,7 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 			.isInstanceOf(NotFoundResourceException.class)
 			.hasMessage(StockErrorCode.NOT_FOUND_STOCK_TARGET_PRICE.getMessage());
 	}
-
+  
 	@DisplayName("사용자는 종목 지정가 알림을 제거합니다")
 	@Test
 	void deleteStockTargetPriceNotification() {

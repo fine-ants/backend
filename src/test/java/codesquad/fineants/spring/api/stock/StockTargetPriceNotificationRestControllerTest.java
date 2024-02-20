@@ -227,7 +227,7 @@ class StockTargetPriceNotificationRestControllerTest {
 			.andExpect(jsonPath("message").value(equalTo("잘못된 입력형식입니다")))
 			.andExpect(jsonPath("data").isArray());
 	}
-
+  
 	@DisplayName("사용자는 종목 지정가 알림들을 삭제합니다")
 	@Test
 	void deleteAllStockTargetPriceNotification() throws Exception {
