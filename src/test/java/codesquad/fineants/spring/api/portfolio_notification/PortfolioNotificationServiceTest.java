@@ -34,6 +34,7 @@ import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.domain.stock.StockRepository;
 import codesquad.fineants.spring.AbstractContainerBaseTest;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
+import codesquad.fineants.spring.api.mail.MailService;
 import codesquad.fineants.spring.api.portfolio_notification.manager.MailRedisManager;
 import codesquad.fineants.spring.api.portfolio_notification.request.PortfolioNotificationModifyRequest;
 import codesquad.fineants.spring.api.portfolio_notification.response.PortfolioNotificationModifyResponse;

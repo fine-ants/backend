@@ -1,4 +1,4 @@
-package codesquad.fineants.spring.api.portfolio_notification;
+package codesquad.fineants.spring.api.mail;
 
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;

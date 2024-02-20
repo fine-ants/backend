@@ -45,6 +45,7 @@ import codesquad.fineants.spring.api.errors.errorcode.OauthErrorCode;
 import codesquad.fineants.spring.api.errors.exception.BadRequestException;
 import codesquad.fineants.spring.api.errors.exception.FineAntsException;
 import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
+import codesquad.fineants.spring.api.mail.MailService;
 import codesquad.fineants.spring.api.member.request.AuthorizationRequest;
 import codesquad.fineants.spring.api.member.request.OauthMemberLoginRequest;
 import codesquad.fineants.spring.api.member.request.ProfileChangeRequest;
@@ -58,7 +59,6 @@ import codesquad.fineants.spring.api.member.response.ProfileResponse;
 import codesquad.fineants.spring.api.member.service.request.ProfileChangeServiceRequest;
 import codesquad.fineants.spring.api.member.service.request.SignUpServiceRequest;
 import codesquad.fineants.spring.api.member.service.response.SignUpServiceResponse;
-import codesquad.fineants.spring.api.portfolio_notification.MailService;
 import codesquad.fineants.spring.util.ObjectMapperUtil;
 
 public class MemberServiceTest extends AbstractContainerBaseTest {
