@@ -1,0 +1,12 @@
+[[stock_target_price-create]]
+=== 종목 지정가 알림
+
+==== HTTP Request
+
+include::{snippets}/stock_target_price-create/http-request.adoc[]
+include::{snippets}/stock_target_price-create/request-fields.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/stock_target_price-create/http-response.adoc[]
+include::{snippets}/stock_target_price-create/response-fields.adoc[]
