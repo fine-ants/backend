@@ -3,6 +3,7 @@ package codesquad.fineants.spring.api.member.response;
 import java.time.LocalDateTime;
 
 import codesquad.fineants.domain.notification.Notification;
+import codesquad.fineants.domain.notification.NotificationBody;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -20,7 +21,7 @@ import lombok.ToString;
 public class MemberNotification {
 	private Long notificationId;
 	private String title;
-	private String body;
+	private NotificationBody body;
 	private LocalDateTime timestamp;
 	private Boolean isRead;
 	private String type;
@@ -30,7 +31,7 @@ public class MemberNotification {
 		return MemberNotification.builder()
 			.notificationId(notification.getId())
 			.title(notification.getTitle())
-			.body(notification.getContent())
+			.body(notification.createNotificationBody())
 			.timestamp(notification.getCreateAt())
 			.isRead(notification.getIsRead())
 			.type(notification.getType())
