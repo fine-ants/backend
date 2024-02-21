@@ -30,6 +30,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import codesquad.fineants.domain.member.Member;
+import codesquad.fineants.domain.notification.NotificationBody;
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.oauth.support.AuthPrincipalArgumentResolver;
 import codesquad.fineants.spring.api.errors.handler.GlobalExceptionHandler;
@@ -190,7 +191,10 @@ class MemberNotificationRestControllerTest {
 		MemberNotification mockNotification = MemberNotification.builder()
 			.notificationId(3L)
 			.title("포트폴리오")
-			.body("포트폴리오2의 최대 손실율을 초과했습니다")
+			.body(NotificationBody.builder()
+				.name("포트폴리오2")
+				.target("최대 손실율")
+				.build())
 			.timestamp(LocalDateTime.of(2024, 1, 24, 10, 10, 10))
 			.isRead(false)
 			.type("portfolio")
@@ -242,7 +246,10 @@ class MemberNotificationRestControllerTest {
 		MemberNotification mockNotification = MemberNotification.builder()
 			.notificationId(3L)
 			.title("포트폴리오")
-			.body("포트폴리오2의 최대 손실율을 초과했습니다")
+			.body(NotificationBody.builder()
+				.name("포트폴리오2")
+				.target("최대 손실율")
+				.build())
 			.timestamp(LocalDateTime.of(2024, 1, 24, 10, 10, 10))
 			.isRead(false)
 			.type("portfolio")
@@ -268,7 +275,8 @@ class MemberNotificationRestControllerTest {
 		Member member = createMember();
 		MemberNotificationSendRequest request = MemberNotificationSendRequest.builder()
 			.title("포트폴리오")
-			.body("포트폴리오1의 최대 손실율을 초과했습니다")
+			.name("포트폴리오1")
+			.target("최대 손실율")
 			.type("portfolio")
 			.referenceId("1")
 			.build();
@@ -310,7 +318,10 @@ class MemberNotificationRestControllerTest {
 		return List.of(MemberNotification.builder()
 				.notificationId(3L)
 				.title("포트폴리오")
-				.body("포트폴리오2의 최대 손실율을 초과했습니다")
+				.body(NotificationBody.builder()
+					.name("포트폴리오2")
+					.target("최대 손실율")
+					.build())
 				.timestamp(LocalDateTime.of(2024, 1, 24, 10, 10, 10))
 				.isRead(false)
 				.type("portfolio")
@@ -319,7 +330,10 @@ class MemberNotificationRestControllerTest {
 			MemberNotification.builder()
 				.notificationId(2L)
 				.title("포트폴리오")
-				.body("포트폴리오1의 목표 수익률을 달성했습니다")
+				.body(NotificationBody.builder()
+					.name("포트폴리오1")
+					.target("목표 수익률")
+					.build())
 				.timestamp(LocalDateTime.of(2024, 1, 23, 10, 10, 10))
 				.isRead(false)
 				.type("portfolio")
@@ -328,7 +342,10 @@ class MemberNotificationRestControllerTest {
 			MemberNotification.builder()
 				.notificationId(1L)
 				.title("지정가")
-				.body("삼성전자가 지정가 KRW60000에 도달했습니다")
+				.body(NotificationBody.builder()
+					.name("삼성전자")
+					.target("65000")
+					.build())
 				.timestamp(LocalDateTime.of(2024, 1, 22, 10, 10, 10))
 				.isRead(true)
 				.type("stock")
