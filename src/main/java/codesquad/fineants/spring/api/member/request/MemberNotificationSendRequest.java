@@ -4,6 +4,9 @@ import javax.validation.constraints.NotBlank;
 
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.notification.Notification;
+import codesquad.fineants.domain.notification.PortfolioNotification;
+import codesquad.fineants.domain.notification.PortfolioNotificationType;
+import codesquad.fineants.domain.notification.StockTargetPriceNotification;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -18,20 +21,35 @@ public class MemberNotificationSendRequest {
 	@NotBlank(message = "필수 정보입니다")
 	private String title;
 	@NotBlank(message = "필수 정보입니다")
-	private String body;
+	private String name;
+	@NotBlank(message = "필수 정보입니다")
+	private String target;
 	@NotBlank(message = "필수 정보입니다")
 	private String type;
 	@NotBlank(message = "필수 정보입니다")
 	private String referenceId;
 
 	public Notification toEntity(Member member) {
-		return Notification.builder()
+		if (type.equals("portfolio")) {
+
+			return PortfolioNotification.builder()
+				.title(title)
+				.isRead(false)
+				.type(type)
+				.referenceId(referenceId)
+				.member(member)
+				.portfolioName(name)
+				.notificationType(PortfolioNotificationType.from(target))
+				.build();
+		}
+		return StockTargetPriceNotification.builder()
 			.title(title)
-			.content(body)
 			.isRead(false)
 			.type(type)
 			.referenceId(referenceId)
 			.member(member)
+			.stockName(name)
+			.targetPrice(Long.valueOf(target))
 			.build();
 	}
 }

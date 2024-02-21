@@ -120,7 +120,7 @@ public class MemberNotificationService {
 				.setNotification(
 					com.google.firebase.messaging.Notification.builder()
 						.setTitle(notification.getTitle())
-						.setBody(notification.getContent())
+						.setBody(notification.createNotificationContent())
 						.build())
 				.build();
 			try {
