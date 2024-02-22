@@ -28,9 +28,12 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.oauth.support.AuthMember;
@@ -70,11 +73,15 @@ class StockTargetPriceNotificationRestControllerTest {
 	@MockBean
 	private StockTargetPriceNotificationService service;
 
+	@Autowired
+	private ObjectMapper objectMapper;
+
 	@BeforeEach
 	void setup() {
 		mockMvc = MockMvcBuilders.standaloneSetup(stockTargetPriceNotificationRestController)
 			.setControllerAdvice(globalExceptionHandler)
 			.setCustomArgumentResolvers(authPrincipalArgumentResolver)
+			.setMessageConverters(new MappingJackson2HttpMessageConverter(objectMapper))
 			.alwaysDo(print())
 			.build();
 
@@ -177,12 +184,12 @@ class StockTargetPriceNotificationRestControllerTest {
 			.andExpect(jsonPath("data.stocks[0].lastPrice").value(equalTo(50000)))
 			.andExpect(jsonPath("data.stocks[0].targetPrices[0].notificationId").value(equalTo(1)))
 			.andExpect(jsonPath("data.stocks[0].targetPrices[0].targetPrice").value(equalTo(60000)))
-			.andExpect(jsonPath("data.stocks[0].targetPrices[0].dateAdded").isNotEmpty())
+			.andExpect(jsonPath("data.stocks[0].targetPrices[0].dateAdded").value(equalTo(now.toString())))
 			.andExpect(jsonPath("data.stocks[0].targetPrices[1].notificationId").value(equalTo(2)))
 			.andExpect(jsonPath("data.stocks[0].targetPrices[1].targetPrice").value(equalTo(70000)))
-			.andExpect(jsonPath("data.stocks[0].targetPrices[1].dateAdded").isNotEmpty())
+			.andExpect(jsonPath("data.stocks[0].targetPrices[1].dateAdded").value(equalTo(now.toString())))
 			.andExpect(jsonPath("data.stocks[0].isActive").value(equalTo(true)))
-			.andExpect(jsonPath("data.stocks[0].lastUpdated").isNotEmpty());
+			.andExpect(jsonPath("data.stocks[0].lastUpdated").value(equalTo(now.toString())));
 	}
 
 	@DisplayName("사용자는 특정 종목의 지정 알림가들을 조회합니다")
@@ -215,10 +222,10 @@ class StockTargetPriceNotificationRestControllerTest {
 			.andExpect(jsonPath("message").value(equalTo("종목 지정가 알림 특정 조회를 성공했습니다")))
 			.andExpect(jsonPath("data.targetPrices[0].notificationId").value(equalTo(1)))
 			.andExpect(jsonPath("data.targetPrices[0].targetPrice").value(equalTo(60000)))
-			.andExpect(jsonPath("data.targetPrices[0].dateAdded").isNotEmpty())
+			.andExpect(jsonPath("data.targetPrices[0].dateAdded").value(equalTo(now.toString())))
 			.andExpect(jsonPath("data.targetPrices[1].notificationId").value(equalTo(2)))
 			.andExpect(jsonPath("data.targetPrices[1].targetPrice").value(equalTo(70000)))
-			.andExpect(jsonPath("data.targetPrices[1].dateAdded").isNotEmpty());
+			.andExpect(jsonPath("data.targetPrices[1].dateAdded").value(equalTo(now.toString())));
 	}
 
 	@DisplayName("사용자는 종목 지정가 알림의 정보를 수정한다")
