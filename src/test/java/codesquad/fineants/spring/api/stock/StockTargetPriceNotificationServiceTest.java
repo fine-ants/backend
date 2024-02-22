@@ -203,6 +203,24 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 				Tuple.tuple(targetPriceNotifications.get(1).getId(), 70000L));
 	}
 
+	@DisplayName("사용자가 없는 종목을 대상으로 지정가 알림 목록 조회시 빈 리스트를 반환받는다")
+	@Test
+	void searchTargetPriceNotifications_whenNotExistStock_thenResponseEmptyList() {
+		// given
+		Member member = memberRepository.save(createMember());
+		Stock stock = stockRepository.save(createStock());
+
+		// when
+		TargetPriceNotificationSpecifiedSearchResponse response = service.searchTargetPriceNotifications(
+			stock.getTickerSymbol(), member.getId());
+
+		// then
+		assertThat(response)
+			.extracting("targetPrices")
+			.asList()
+			.isEmpty();
+	}
+
 	@DisplayName("사용자는 종목 지정가 알림을 수정한다")
 	@Test
 	void updateStockTargetPriceNotification() {
