@@ -146,7 +146,8 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 		Long portfolioHoldingId = portfolioHolding.getId();
 
 		// when
-		PurchaseHistoryCreateResponse response = service.addPurchaseHistory(request, portfolioId, portfolioHoldingId);
+		PurchaseHistoryCreateResponse response = service.addPurchaseHistory(request, portfolioId, portfolioHoldingId,
+			member.getId());
 
 		TypeReference<Map<String, Object>> typeReference = new TypeReference<>() {
 		};
@@ -180,7 +181,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 
 		// when & then
 		assertThrows(FineAntsException.class, () -> {
-			service.addPurchaseHistory(request, portfolioId, portfolioHoldingId);
+			service.addPurchaseHistory(request, portfolioId, portfolioHoldingId, member.getId());
 		});
 	}
 

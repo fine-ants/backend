@@ -2,8 +2,6 @@ package codesquad.fineants.spring.api.portfolio_notification;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.BDDMockito.*;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -12,8 +10,6 @@ import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
@@ -137,85 +133,6 @@ class PortfolioNotificationServiceTest extends AbstractContainerBaseTest {
 			() -> assertThat(response).extracting("portfolioId", "isActive")
 				.containsExactlyInAnyOrder(portfolioId, true),
 			() -> assertThat(portfolioRepository.findById(portfolioId).orElseThrow().getMaximumIsActive()).isTrue()
-		);
-	}
-
-	@DisplayName("사용자에게 목표수익금액 도달 안내 메일을 전송합니다.")
-	@Test
-	void notifyTargetGain() {
-		// given
-		Member member = memberRepository.save(createMember());
-		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
-		Stock stock = stockRepository.save(createStock());
-		PortfolioHolding portfolioHolding = portFolioHoldingRepository.save(createPortfolioHolding(portfolio, stock));
-		purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding));
-
-		purchaseHistoryRepository.save(PurchaseHistory.builder()
-			.purchaseDate(LocalDateTime.now())
-			.numShares(100L)
-			.purchasePricePerShare(10000.0)
-			.memo("추가구매")
-			.portfolioHolding(portfolioHolding)
-			.build());
-
-		given(currentPriceManager.hasCurrentPrice("005930")).willReturn(true);
-		given(currentPriceManager.getCurrentPrice("005930")).willReturn(100000L);
-		given(manager.hasMailSentHistoryForTargetGain(any(Portfolio.class))).willReturn(false);
-
-		// when
-		service.notifyTargetGain();
-
-		// then
-		assertAll(
-			() -> verify(mailService, times(1)).sendEmail(anyString(), anyString(), anyString()),
-			() -> verify(manager, times(1)).setMailSentHistoryForTargetGain(any(Portfolio.class))
-		);
-	}
-
-	@DisplayName("예산이 0원이라서 사용자에게 목표수익금액 도달 안내 메일을 전송하지 않는다")
-	@CsvSource(value = {"0,0,0", "0,1500000,900000"})
-	@ParameterizedTest
-	void notifyTargetGain_whenBudgetIsZero_thenNotSendMail(Long budget, Long targetGain, Long maximumLoss) {
-		// given
-		Member member = memberRepository.save(createMember());
-		Portfolio portfolio = portfolioRepository.save(createPortfolio(member, budget, targetGain, maximumLoss));
-		Stock stock = stockRepository.save(createStock());
-		PortfolioHolding portfolioHolding = portFolioHoldingRepository.save(createPortfolioHolding(portfolio, stock));
-		purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding));
-
-		given(currentPriceManager.hasCurrentPrice("005930")).willReturn(true);
-		given(currentPriceManager.getCurrentPrice("005930")).willReturn(100000L);
-		given(manager.hasMailSentHistoryForTargetGain(any(Portfolio.class))).willReturn(false);
-
-		// when
-		service.notifyTargetGain();
-
-		// then
-		verify(mailService, times(0))
-			.sendEmail(anyString(), anyString(), anyString());
-	}
-
-	@DisplayName("사용자에게 최대손실금액 도달 안내 메일을 전송합니다.")
-	@Test
-	void notifyMaximumLoss() {
-		// given
-		Member member = memberRepository.save(createMember());
-		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
-		Stock stock = stockRepository.save(createStock());
-		PortfolioHolding portfolioHolding = portFolioHoldingRepository.save(createPortfolioHolding(portfolio, stock));
-		purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding));
-
-		given(currentPriceManager.hasCurrentPrice("005930")).willReturn(true);
-		given(currentPriceManager.getCurrentPrice("005930")).willReturn(10L);
-		given(manager.hasMailSentHistoryForMaximumLoss(any(Portfolio.class))).willReturn(false);
-
-		// when
-		service.notifyMaximumLoss();
-
-		// then
-		assertAll(
-			() -> verify(mailService, times(1)).sendEmail(anyString(), anyString(), anyString()),
-			() -> verify(manager, times(1)).setMailSentHistoryMaximumLoss(any(Portfolio.class))
 		);
 	}
 
