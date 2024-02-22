@@ -18,3 +18,5 @@ spring:
 logging:
   level:
     codesquad: debug
+scheduling:
+  enabled: false

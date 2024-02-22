@@ -32,6 +32,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.member.MemberRepository;
+import codesquad.fineants.domain.notification_preference.NotificationPreference;
 import codesquad.fineants.domain.notification_preference.NotificationPreferenceRepository;
 import codesquad.fineants.domain.oauth.client.AuthorizationCodeRandomGenerator;
 import codesquad.fineants.domain.oauth.client.OauthClient;
@@ -503,6 +504,7 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 	void readProfile() {
 		// given
 		Member member = memberRepository.save(createMember());
+		preferenceRepository.save(NotificationPreference.defaultSetting(member));
 
 		// when
 		ProfileResponse response = memberService.readProfile(AuthMember.from(member));
