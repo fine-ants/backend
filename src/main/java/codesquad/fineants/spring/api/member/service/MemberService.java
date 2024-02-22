@@ -22,6 +22,8 @@ import codesquad.fineants.domain.jwt.Jwt;
 import codesquad.fineants.domain.jwt.JwtProvider;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.member.MemberRepository;
+import codesquad.fineants.domain.notification_preference.NotificationPreference;
+import codesquad.fineants.domain.notification_preference.NotificationPreferenceRepository;
 import codesquad.fineants.domain.oauth.client.AuthorizationCodeRandomGenerator;
 import codesquad.fineants.domain.oauth.client.OauthClient;
 import codesquad.fineants.domain.oauth.repository.OauthClientRepository;
@@ -39,9 +41,11 @@ import codesquad.fineants.domain.watch_stock.WatchStock;
 import codesquad.fineants.domain.watch_stock.WatchStockRepository;
 import codesquad.fineants.spring.api.S3.service.AmazonS3Service;
 import codesquad.fineants.spring.api.errors.errorcode.MemberErrorCode;
+import codesquad.fineants.spring.api.errors.errorcode.NotificationPreferenceErrorCode;
 import codesquad.fineants.spring.api.errors.errorcode.OauthErrorCode;
 import codesquad.fineants.spring.api.errors.exception.BadRequestException;
 import codesquad.fineants.spring.api.errors.exception.FineAntsException;
+import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
 import codesquad.fineants.spring.api.member.manager.AuthorizationRequestManager;
 import codesquad.fineants.spring.api.member.request.AuthorizationRequest;
 import codesquad.fineants.spring.api.member.request.LoginRequest;
@@ -93,6 +97,7 @@ public class MemberService {
 	private final PurchaseHistoryRepository purchaseHistoryRepository;
 	private final VerifyCodeGenerator verifyCodeGenerator;
 	private final MemberNotificationPreferenceService preferenceService;
+	private final NotificationPreferenceRepository notificationPreferenceRepository;
 
 	public OauthMemberLoginResponse login(OauthMemberLoginRequest request) {
 		log.info("로그인 서비스 요청 : loginRequest={}", request);
@@ -223,7 +228,7 @@ public class MemberService {
 			)
 		);
 		saveDefaultNotificationPreference(member);
-		
+
 		log.info("일반 회원가입 결과 : {}", member);
 		return SignUpServiceResponse.from(member);
 	}
@@ -392,6 +397,10 @@ public class MemberService {
 
 	@Transactional(readOnly = true)
 	public ProfileResponse readProfile(AuthMember authMember) {
-		return ProfileResponse.from(findMember(authMember.getMemberId()));
+		Member member = findMember(authMember.getMemberId());
+		NotificationPreference preference = notificationPreferenceRepository.findByMemberId(member.getId())
+			.orElseThrow(
+				() -> new NotFoundResourceException(NotificationPreferenceErrorCode.NOT_FOUND_NOTIFICATION_PREFERENCE));
+		return ProfileResponse.from(member, ProfileResponse.NotificationPreference.from(preference));
 	}
 }

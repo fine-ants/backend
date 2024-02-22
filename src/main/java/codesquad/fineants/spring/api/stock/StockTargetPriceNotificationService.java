@@ -215,9 +215,8 @@ public class StockTargetPriceNotificationService {
 	) {
 		List<TargetPriceNotificationSpecificItem> targetPrices = repository.findByTickerSymbolAndMemberIdUsingFetchJoin(
 				tickerSymbol, memberId)
-			.orElseThrow(() -> new NotFoundResourceException(StockErrorCode.NOT_FOUND_STOCK_TARGET_PRICE))
-			.getTargetPriceNotifications()
 			.stream()
+			.flatMap(stockTargetPrice -> stockTargetPrice.getTargetPriceNotifications().stream())
 			.map(TargetPriceNotificationSpecificItem::from)
 			.collect(Collectors.toList());
 		TargetPriceNotificationSpecifiedSearchResponse response = TargetPriceNotificationSpecifiedSearchResponse.from(
