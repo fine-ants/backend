@@ -9,7 +9,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum FcmSuccessCode implements SuccessCode {
 
-	CREATED_FCM(HttpStatus.CREATED, "FCM 토큰을 성공적으로 등록하였습니다");
+	CREATED_FCM(HttpStatus.CREATED, "FCM 토큰을 성공적으로 등록하였습니다"),
+	OK_DELETE_FCM(HttpStatus.OK, "FCM 토큰을 성공적으로 삭제하였습니다");
 
 	private final HttpStatus httpStatus;
 	private final String message;

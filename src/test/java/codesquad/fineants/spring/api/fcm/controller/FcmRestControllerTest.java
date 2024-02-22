@@ -2,6 +2,7 @@ package codesquad.fineants.spring.api.fcm.controller;
 
 import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.anyLong;
 import static org.mockito.BDDMockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
@@ -28,6 +29,7 @@ import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.oauth.support.AuthPrincipalArgumentResolver;
 import codesquad.fineants.spring.api.errors.handler.GlobalExceptionHandler;
 import codesquad.fineants.spring.api.fcm.request.FcmRegisterRequest;
+import codesquad.fineants.spring.api.fcm.response.FcmDeleteResponse;
 import codesquad.fineants.spring.api.fcm.response.FcmRegisterResponse;
 import codesquad.fineants.spring.api.fcm.service.FcmService;
 import codesquad.fineants.spring.config.JpaAuditingConfiguration;
@@ -68,9 +70,9 @@ class FcmRestControllerTest {
 
 	@DisplayName("사용자는 FCM 토큰을 등록한다")
 	@Test
-	void registerToken() throws Exception {
+	void createToken() throws Exception {
 		// given
-		given(fcmService.registerToken(
+		given(fcmService.createToken(
 			any(FcmRegisterRequest.class),
 			any(AuthMember.class)))
 			.willReturn(FcmRegisterResponse.builder()
@@ -105,6 +107,24 @@ class FcmRestControllerTest {
 			.andExpect(jsonPath("code").value(equalTo(400)))
 			.andExpect(jsonPath("status").value(equalTo("Bad Request")))
 			.andExpect(jsonPath("message").value(equalTo("잘못된 입력형식입니다")));
+	}
+
+	@DisplayName("사용자는 FCM 토큰을 삭제한다")
+	@Test
+	void deleteToken() throws Exception {
+		// given
+		Long fcmTokenId = 1L;
+		given(fcmService.deleteToken(anyLong(), anyLong()))
+			.willReturn(FcmDeleteResponse.builder()
+				.fcmTokenId(fcmTokenId)
+				.build());
+
+		// when & then
+		mockMvc.perform(delete("/api/fcm/tokens/{fcmTokenId}", fcmTokenId))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("code").value(equalTo(200)))
+			.andExpect(jsonPath("status").value(equalTo("OK")))
+			.andExpect(jsonPath("message").value(equalTo("FCM 토큰을 성공적으로 삭제하였습니다")));
 	}
 
 	private Member createMember() {

@@ -1,5 +1,5 @@
 [[stock_target_price-create]]
-=== 종목 지정가 알림
+=== 종목 지정가 알림 추가
 
 ==== HTTP Request
 

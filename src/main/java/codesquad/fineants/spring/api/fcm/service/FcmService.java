@@ -34,7 +34,7 @@ public class FcmService {
 	private final FirebaseMessaging firebaseMessaging;
 
 	@Transactional
-	public FcmRegisterResponse registerToken(FcmRegisterRequest request, AuthMember authMember) {
+	public FcmRegisterResponse createToken(FcmRegisterRequest request, AuthMember authMember) {
 		Member member = findMember(authMember);
 		verifyFcmToken(request.getFcmToken());
 
@@ -66,8 +66,8 @@ public class FcmService {
 	}
 
 	@Transactional
-	public FcmDeleteResponse deleteToken(Long fcmTokenId) {
-		int deleteCount = fcmRepository.deleteByFcmTokenId(fcmTokenId);
+	public FcmDeleteResponse deleteToken(Long fcmTokenId, Long memberId) {
+		int deleteCount = fcmRepository.deleteByFcmTokenId(fcmTokenId, memberId);
 		log.info("FCM 토큰 삭제 개수 : deleteCount={}", deleteCount);
 		return FcmDeleteResponse.from(fcmTokenId);
 	}
