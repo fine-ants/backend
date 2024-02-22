@@ -40,7 +40,7 @@ public class PurchaseHistoryRestController {
 		@PathVariable Long portfolioHoldingId,
 		@Valid @RequestBody PurchaseHistoryCreateRequest request) {
 		log.info("매입 내역 추가 요청 : request={}, portfolioHoldingId={}", request, portfolioHoldingId);
-		service.addPurchaseHistory(request, portfolioId, portfolioHoldingId);
+		service.addPurchaseHistory(request, portfolioId, portfolioHoldingId, authMember.getMemberId());
 		return ApiResponse.success(PurchaseHistorySuccessCode.CREATED_ADD_PURCHASE_HISTORY);
 	}
 

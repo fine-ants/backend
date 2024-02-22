@@ -14,6 +14,7 @@ import codesquad.fineants.spring.api.errors.errorcode.PortfolioHoldingErrorCode;
 import codesquad.fineants.spring.api.errors.errorcode.PurchaseHistoryErrorCode;
 import codesquad.fineants.spring.api.errors.exception.FineAntsException;
 import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
+import codesquad.fineants.spring.api.notification.event.publisher.PurchaseHistoryEventPublisher;
 import codesquad.fineants.spring.api.purchase_history.request.PurchaseHistoryCreateRequest;
 import codesquad.fineants.spring.api.purchase_history.request.PurchaseHistoryModifyRequest;
 import codesquad.fineants.spring.api.purchase_history.response.PurchaseHistoryCreateResponse;
@@ -29,10 +30,14 @@ import lombok.extern.slf4j.Slf4j;
 public class PurchaseHistoryService {
 	private final PurchaseHistoryRepository repository;
 	private final PortfolioHoldingRepository portfolioHoldingRepository;
+	private final PurchaseHistoryEventPublisher eventPublisher;
 
 	@Transactional
-	public PurchaseHistoryCreateResponse addPurchaseHistory(PurchaseHistoryCreateRequest request,
-		Long portfolioId, Long portfolioHoldingId) {
+	public PurchaseHistoryCreateResponse addPurchaseHistory(
+		PurchaseHistoryCreateRequest request,
+		Long portfolioId,
+		Long portfolioHoldingId,
+		Long memberId) {
 		log.info("매입이력 추가 서비스 요청 : request={}, portfolioHoldingId={}", request, portfolioHoldingId);
 
 		PortfolioHolding portfolioHolding = findPortfolioHolding(portfolioHoldingId);
@@ -48,6 +53,8 @@ public class PurchaseHistoryService {
 
 		PurchaseHistory newPurchaseHistory = repository.save(request.toEntity(portfolioHolding));
 		log.info("매입이력 저장 결과 : newPurchaseHistory={}", newPurchaseHistory);
+
+		eventPublisher.publishPurchaseHistory(portfolioId, memberId);
 		return PurchaseHistoryCreateResponse.from(newPurchaseHistory);
 	}
 

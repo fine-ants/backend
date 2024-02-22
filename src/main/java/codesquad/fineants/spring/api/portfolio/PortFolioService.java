@@ -162,8 +162,13 @@ public class PortFolioService {
 		}
 	}
 
-	private Portfolio findPortfolio(Long portfolioId) {
+	public Portfolio findPortfolio(Long portfolioId) {
 		return portfolioRepository.findById(portfolioId)
+			.orElseThrow(() -> new NotFoundResourceException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
+	}
+
+	public Portfolio findPortfolioUsingJoin(Long portfolioId) {
+		return portfolioRepository.findByPortfolioId(portfolioId)
 			.orElseThrow(() -> new NotFoundResourceException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
 	}
 
@@ -184,5 +189,17 @@ public class PortFolioService {
 		Portfolio portfolio = portfolioRepository.findByPortfolioId(portfolioId)
 			.orElseThrow(() -> new NotFoundResourceException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
 		return portfolio.hasAuthorization(memberId);
+	}
+
+	public boolean reachedTargetGain(Long portfolioId) {
+		Portfolio portfolio = findPortfolioUsingJoin(portfolioId);
+		portfolio.applyCurrentPriceAllHoldingsBy(currentPriceManager);
+		return portfolio.reachedTargetGain();
+	}
+
+	public boolean reachedMaxLoss(Long portfolioId) {
+		Portfolio portfolio = findPortfolioUsingJoin(portfolioId);
+		portfolio.applyCurrentPriceAllHoldingsBy(currentPriceManager);
+		return portfolio.reachedMaximumLoss();
 	}
 }
