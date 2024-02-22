@@ -20,6 +20,6 @@ public interface FcmRepository extends JpaRepository<FcmToken, Long> {
 	int deleteAllByTokens(@Param("tokens") List<String> tokens);
 
 	@Modifying
-	@Query("delete from FcmToken f where f.id = :fcmTokenId")
-	int deleteByFcmTokenId(@Param("fcmTokenId") Long fcmTokenId);
+	@Query("delete from FcmToken f where f.id = :fcmTokenId and f.member.id = :memberId")
+	int deleteByFcmTokenId(@Param("fcmTokenId") Long fcmTokenId, @Param("memberId") Long memberId);
 }

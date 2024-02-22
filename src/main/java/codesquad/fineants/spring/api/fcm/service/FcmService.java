@@ -66,8 +66,8 @@ public class FcmService {
 	}
 
 	@Transactional
-	public FcmDeleteResponse deleteToken(Long fcmTokenId) {
-		int deleteCount = fcmRepository.deleteByFcmTokenId(fcmTokenId);
+    public FcmDeleteResponse deleteToken(Long fcmTokenId, Long memberId) {
+        int deleteCount = fcmRepository.deleteByFcmTokenId(fcmTokenId, memberId);
 		log.info("FCM 토큰 삭제 개수 : deleteCount={}", deleteCount);
 		return FcmDeleteResponse.from(fcmTokenId);
 	}

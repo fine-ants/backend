@@ -26,6 +26,7 @@ import codesquad.fineants.spring.AbstractContainerBaseTest;
 import codesquad.fineants.spring.api.errors.errorcode.FcmErrorCode;
 import codesquad.fineants.spring.api.errors.exception.BadRequestException;
 import codesquad.fineants.spring.api.fcm.request.FcmRegisterRequest;
+import codesquad.fineants.spring.api.fcm.response.FcmDeleteResponse;
 import codesquad.fineants.spring.api.fcm.response.FcmRegisterResponse;
 
 class FcmServiceTest extends AbstractContainerBaseTest {
@@ -94,11 +95,7 @@ class FcmServiceTest extends AbstractContainerBaseTest {
 	void registerToken_whenAlreadyFcmToken_thenThrow409Error() {
 		// given
 		Member member = memberRepository.save(createMember());
-		FcmToken token = fcmRepository.save(FcmToken.builder()
-			.latestActivationTime(LocalDateTime.now())
-			.token("fcmToken")
-			.member(member)
-			.build());
+		FcmToken token = fcmRepository.save(createFcmToken(member));
 		FcmRegisterRequest request = FcmRegisterRequest.builder()
 			.fcmToken("fcmToken")
 			.build();
@@ -117,12 +114,39 @@ class FcmServiceTest extends AbstractContainerBaseTest {
 		);
 	}
 
+	@DisplayName("사용자는 FCM 토큰을 삭제한다")
+	@Test
+	void deleteToken() {
+		// given
+		Member member = memberRepository.save(createMember());
+		FcmToken fcmToken = fcmRepository.save(createFcmToken(member));
+
+		// when
+		FcmDeleteResponse response = fcmService.deleteToken(fcmToken.getId(), member.getId());
+
+		// then
+		Assertions.assertAll(
+			() -> assertThat(response)
+				.extracting("fcmTokenId")
+				.isEqualTo(fcmToken.getId()),
+			() -> assertThat(fcmRepository.findById(fcmToken.getId()).isEmpty()).isTrue()
+		);
+	}
+
 	private Member createMember() {
 		return Member.builder()
 			.nickname("nemo1234")
 			.email("dragonbead95@naver.com")
 			.password("nemo1234")
 			.provider("local")
+			.build();
+	}
+
+	private FcmToken createFcmToken(Member member) {
+		return FcmToken.builder()
+			.latestActivationTime(LocalDateTime.now())
+			.token("fcmToken")
+			.member(member)
 			.build();
 	}
 }
