@@ -35,6 +35,7 @@ import codesquad.fineants.spring.api.stock.request.TargetPriceNotificationUpdate
 import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationCreateResponse;
 import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationDeleteResponse;
 import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationSearchResponse;
+import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationSpecifiedSearchResponse;
 import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationUpdateResponse;
 
 class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest {
@@ -174,6 +175,34 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 		);
 	}
 
+	@DisplayName("사용자는 특정 종목 지정가 알림들을 조회합니다")
+	@Test
+	void searchTargetPriceNotifications() {
+		// given
+		Member member = memberRepository.save(createMember());
+		Stock stock = stockRepository.save(createStock());
+		StockTargetPrice stockTargetPrice = repository.save(createStockTargetPrice(member, stock));
+		List<TargetPriceNotification> targetPriceNotifications = targetPriceNotificationRepository.saveAll(
+			createTargetPriceNotification(stockTargetPrice, List.of(60000L, 70000L)));
+
+		given(manager.getPrice(anyString()))
+			.willReturn(50000L);
+
+		// when
+		TargetPriceNotificationSpecifiedSearchResponse response = service.searchTargetPriceNotifications(
+			stock.getTickerSymbol(), member.getId());
+
+		// then
+		assertThat(response)
+			.extracting("targetPrices")
+			.asList()
+			.hasSize(2)
+			.extracting("notificationId", "targetPrice")
+			.containsExactlyInAnyOrder(
+				Tuple.tuple(targetPriceNotifications.get(0).getId(), 60000L),
+				Tuple.tuple(targetPriceNotifications.get(1).getId(), 70000L));
+	}
+
 	@DisplayName("사용자는 종목 지정가 알림을 수정한다")
 	@Test
 	void updateStockTargetPriceNotification() {
@@ -233,7 +262,7 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 			.isInstanceOf(NotFoundResourceException.class)
 			.hasMessage(StockErrorCode.NOT_FOUND_STOCK_TARGET_PRICE.getMessage());
 	}
-  
+
 	@DisplayName("사용자는 종목 지정가 알림을 제거합니다")
 	@Test
 	void deleteStockTargetPriceNotification() {

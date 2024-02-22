@@ -3,6 +3,7 @@ package codesquad.fineants.spring.api.stock;
 import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.anyLong;
+import static org.mockito.BDDMockito.anyString;
 import static org.mockito.BDDMockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
@@ -27,9 +28,12 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.oauth.support.AuthMember;
@@ -44,6 +48,8 @@ import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationCreat
 import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationDeleteResponse;
 import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationSearchItem;
 import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationSearchResponse;
+import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationSpecificItem;
+import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationSpecifiedSearchResponse;
 import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationUpdateResponse;
 import codesquad.fineants.spring.config.JpaAuditingConfiguration;
 import codesquad.fineants.spring.util.ObjectMapperUtil;
@@ -67,11 +73,15 @@ class StockTargetPriceNotificationRestControllerTest {
 	@MockBean
 	private StockTargetPriceNotificationService service;
 
+	@Autowired
+	private ObjectMapper objectMapper;
+
 	@BeforeEach
 	void setup() {
 		mockMvc = MockMvcBuilders.standaloneSetup(stockTargetPriceNotificationRestController)
 			.setControllerAdvice(globalExceptionHandler)
 			.setCustomArgumentResolvers(authPrincipalArgumentResolver)
+			.setMessageConverters(new MappingJackson2HttpMessageConverter(objectMapper))
 			.alwaysDo(print())
 			.build();
 
@@ -174,12 +184,48 @@ class StockTargetPriceNotificationRestControllerTest {
 			.andExpect(jsonPath("data.stocks[0].lastPrice").value(equalTo(50000)))
 			.andExpect(jsonPath("data.stocks[0].targetPrices[0].notificationId").value(equalTo(1)))
 			.andExpect(jsonPath("data.stocks[0].targetPrices[0].targetPrice").value(equalTo(60000)))
-			.andExpect(jsonPath("data.stocks[0].targetPrices[0].dateAdded").isNotEmpty())
+			.andExpect(jsonPath("data.stocks[0].targetPrices[0].dateAdded").value(equalTo(now.toString())))
 			.andExpect(jsonPath("data.stocks[0].targetPrices[1].notificationId").value(equalTo(2)))
 			.andExpect(jsonPath("data.stocks[0].targetPrices[1].targetPrice").value(equalTo(70000)))
-			.andExpect(jsonPath("data.stocks[0].targetPrices[1].dateAdded").isNotEmpty())
+			.andExpect(jsonPath("data.stocks[0].targetPrices[1].dateAdded").value(equalTo(now.toString())))
 			.andExpect(jsonPath("data.stocks[0].isActive").value(equalTo(true)))
-			.andExpect(jsonPath("data.stocks[0].lastUpdated").isNotEmpty());
+			.andExpect(jsonPath("data.stocks[0].lastUpdated").value(equalTo(now.toString())));
+	}
+
+	@DisplayName("사용자는 특정 종목의 지정 알림가들을 조회합니다")
+	@Test
+	void searchTargetPriceNotifications() throws Exception {
+		// given
+		Stock stock = createStock();
+		LocalDateTime now = LocalDateTime.now();
+		given(service.searchTargetPriceNotifications(anyString(), anyLong()))
+			.willReturn(TargetPriceNotificationSpecifiedSearchResponse.builder()
+				.targetPrices(List.of(
+					TargetPriceNotificationSpecificItem.builder()
+						.notificationId(1L)
+						.targetPrice(60000L)
+						.dateAdded(now)
+						.build(),
+					TargetPriceNotificationSpecificItem.builder()
+						.notificationId(2L)
+						.targetPrice(70000L)
+						.dateAdded(now)
+						.build()
+				))
+				.build());
+
+		// when & then
+		mockMvc.perform(get("/api/stocks/{tickerSymbol}/target-price/notifications", stock.getTickerSymbol()))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("code").value(equalTo(200)))
+			.andExpect(jsonPath("status").value(equalTo("OK")))
+			.andExpect(jsonPath("message").value(equalTo("종목 지정가 알림 특정 조회를 성공했습니다")))
+			.andExpect(jsonPath("data.targetPrices[0].notificationId").value(equalTo(1)))
+			.andExpect(jsonPath("data.targetPrices[0].targetPrice").value(equalTo(60000)))
+			.andExpect(jsonPath("data.targetPrices[0].dateAdded").value(equalTo(now.toString())))
+			.andExpect(jsonPath("data.targetPrices[1].notificationId").value(equalTo(2)))
+			.andExpect(jsonPath("data.targetPrices[1].targetPrice").value(equalTo(70000)))
+			.andExpect(jsonPath("data.targetPrices[1].dateAdded").value(equalTo(now.toString())));
 	}
 
 	@DisplayName("사용자는 종목 지정가 알림의 정보를 수정한다")
@@ -227,7 +273,7 @@ class StockTargetPriceNotificationRestControllerTest {
 			.andExpect(jsonPath("message").value(equalTo("잘못된 입력형식입니다")))
 			.andExpect(jsonPath("data").isArray());
 	}
-  
+
 	@DisplayName("사용자는 종목 지정가 알림들을 삭제합니다")
 	@Test
 	void deleteAllStockTargetPriceNotification() throws Exception {

@@ -13,6 +13,7 @@ public enum StockSuccessCode implements SuccessCode {
 	OK_CREATE_TARGET_PRICE_NOTIFICATION(HttpStatus.CREATED, "해당 종목 지정가 알림을 추가했습니다"),
 	OK_DELETE_TARGET_PRICE_NOTIFICATIONS(HttpStatus.OK, "해당 종목 지정가 알림을 제거했습니다"),
 	OK_SEARCH_TARGET_PRICE_NOTIFICATIONS(HttpStatus.OK, "모든 알림 조회를 성공했습니다"),
+	OK_SEARCH_SPECIFIC_TARGET_PRICE_NOTIFICATIONS(HttpStatus.OK, "종목 지정가 알림 특정 조회를 성공했습니다"),
 	OK_UPDATE_TARGET_PRICE_NOTIFICATION_ACTIVE(HttpStatus.OK, "종목 지정가 알림을 활성화하였습니다"),
 	OK_UPDATE_TARGET_PRICE_NOTIFICATION_INACTIVE(HttpStatus.OK, "종목 지정가 알림을 비 활성화하였습니다");
 
