@@ -26,6 +26,8 @@ import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationCreat
 import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationDeleteResponse;
 import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationSearchItem;
 import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationSearchResponse;
+import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationSpecificItem;
+import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationSpecifiedSearchResponse;
 import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationUpdateResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -205,5 +207,23 @@ public class StockTargetPriceNotificationService {
 			.orElseThrow(() -> new NotFoundResourceException(StockErrorCode.NOT_FOUND_STOCK_TARGET_PRICE));
 		stockTargetPrice.changeIsActive(request.getIsActive());
 		return TargetPriceNotificationUpdateResponse.from(stockTargetPrice);
+	}
+
+	public TargetPriceNotificationSpecifiedSearchResponse searchTargetPriceNotifications(
+		String tickerSymbol,
+		Long memberId
+	) {
+		List<TargetPriceNotificationSpecificItem> targetPrices = repository.findByTickerSymbolAndMemberIdUsingFetchJoin(
+				tickerSymbol, memberId)
+			.orElseThrow(() -> new NotFoundResourceException(StockErrorCode.NOT_FOUND_STOCK_TARGET_PRICE))
+			.getTargetPriceNotifications()
+			.stream()
+			.map(TargetPriceNotificationSpecificItem::from)
+			.collect(Collectors.toList());
+		TargetPriceNotificationSpecifiedSearchResponse response = TargetPriceNotificationSpecifiedSearchResponse.from(
+			targetPrices
+		);
+		log.info("특정 종목의 지정가 알림들 조회 결과 : response={}", response);
+		return response;
 	}
 }
