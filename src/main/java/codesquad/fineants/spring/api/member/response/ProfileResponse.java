@@ -15,20 +15,13 @@ public class ProfileResponse {
 
 	private MemberProfile user;
 
-	public static ProfileResponse from(Member member) {
+	public static ProfileResponse from(Member member, NotificationPreference preference) {
 		MemberProfile user = MemberProfile.builder()
 			.id(member.getId())
 			.nickname(member.getNickname())
 			.email(member.getEmail())
 			.profileUrl(member.getProfileUrl())
-			.notificationPreferences(
-				NotificationPreference.builder()
-					.browserNotify(false)
-					.targetGainNotify(true)
-					.maxLossNotify(true)
-					.targetPriceNotify(true)
-					.build()
-			)
+			.notificationPreferences(preference)
 			.build();
 		return ProfileResponse.builder()
 			.user(user)
@@ -56,5 +49,15 @@ public class ProfileResponse {
 		private Boolean targetGainNotify;
 		private Boolean maxLossNotify;
 		private Boolean targetPriceNotify;
+
+		public static NotificationPreference from(
+			codesquad.fineants.domain.notification_preference.NotificationPreference preference) {
+			return NotificationPreference.builder()
+				.browserNotify(preference.isBrowserNotify())
+				.targetGainNotify(preference.isTargetGainNotify())
+				.maxLossNotify(preference.isMaxLossNotify())
+				.targetPriceNotify(preference.isTargetPriceNotify())
+				.build();
+		}
 	}
 }
