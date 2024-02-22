@@ -63,7 +63,7 @@ class FcmServiceTest extends AbstractContainerBaseTest {
 			.willReturn(messageId);
 
 		// when
-		FcmRegisterResponse response = fcmService.registerToken(request, AuthMember.from(member));
+		FcmRegisterResponse response = fcmService.createToken(request, AuthMember.from(member));
 
 		// then
 		assertThat(response.getFcmTokenId()).isGreaterThan(0);
@@ -82,7 +82,7 @@ class FcmServiceTest extends AbstractContainerBaseTest {
 			.willThrow(FirebaseMessagingException.class);
 
 		// when
-		Throwable throwable = catchThrowable(() -> fcmService.registerToken(request, AuthMember.from(member)));
+		Throwable throwable = catchThrowable(() -> fcmService.createToken(request, AuthMember.from(member)));
 
 		// then
 		assertThat(throwable)
@@ -100,7 +100,7 @@ class FcmServiceTest extends AbstractContainerBaseTest {
 			.fcmToken("fcmToken")
 			.build();
 		// when
-		FcmRegisterResponse response = fcmService.registerToken(request, AuthMember.from(member));
+		FcmRegisterResponse response = fcmService.createToken(request, AuthMember.from(member));
 
 		// then
 		Assertions.assertAll(

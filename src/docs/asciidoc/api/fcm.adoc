@@ -1,0 +1,24 @@
+[[stock_target_price-create]]
+=== FCM 토큰 등록
+
+==== HTTP Request
+
+include::{snippets}/fcm-delete/http-request.adoc[]
+include::{snippets}/fcm-delete/path-parameters.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/fcm-delete/http-response.adoc[]
+include::{snippets}/fcm-delete/response-fields.adoc[]
+
+=== FCM 토큰 삭제
+
+==== HTTP Request
+
+include::{snippets}/fcm-create/http-request.adoc[]
+include::{snippets}/fcm-create/request-fields.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/fcm-create/http-response.adoc[]
+include::{snippets}/fcm-create/response-fields.adoc[]

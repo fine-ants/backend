@@ -70,9 +70,9 @@ class FcmRestControllerTest {
 
 	@DisplayName("사용자는 FCM 토큰을 등록한다")
 	@Test
-	void registerToken() throws Exception {
+	void createToken() throws Exception {
 		// given
-		given(fcmService.registerToken(
+		given(fcmService.createToken(
 			any(FcmRegisterRequest.class),
 			any(AuthMember.class)))
 			.willReturn(FcmRegisterResponse.builder()

@@ -30,22 +30,22 @@ public class FcmRestController {
 	private final FcmService fcmService;
 
 	@ResponseStatus(HttpStatus.CREATED)
-    @PostMapping
-	public ApiResponse<FcmRegisterResponse> registerToken(
+	@PostMapping
+	public ApiResponse<FcmRegisterResponse> createToken(
 		@Valid @RequestBody FcmRegisterRequest request,
 		@AuthPrincipalMember AuthMember authMember) {
-        FcmRegisterResponse response = fcmService.registerToken(request, authMember);
-        log.info("FCM 토큰 등록 결과 : response={}", response);
-        return ApiResponse.success(FcmSuccessCode.CREATED_FCM, response);
-    }
+		FcmRegisterResponse response = fcmService.createToken(request, authMember);
+		log.info("FCM 토큰 등록 결과 : response={}", response);
+		return ApiResponse.success(FcmSuccessCode.CREATED_FCM, response);
+	}
 
-    @DeleteMapping("/{fcmTokenId}")
-    public ApiResponse<Void> deleteToken(
-        @PathVariable Long fcmTokenId,
-        @AuthPrincipalMember AuthMember authMember
-    ) {
-        FcmDeleteResponse response = fcmService.deleteToken(fcmTokenId, authMember.getMemberId());
-        log.info("FCM 토큰 삭제 결과 : response={}", response);
-        return ApiResponse.success(FcmSuccessCode.OK_DELETE_FCM);
+	@DeleteMapping("/{fcmTokenId}")
+	public ApiResponse<Void> deleteToken(
+		@PathVariable Long fcmTokenId,
+		@AuthPrincipalMember AuthMember authMember
+	) {
+		FcmDeleteResponse response = fcmService.deleteToken(fcmTokenId, authMember.getMemberId());
+		log.info("FCM 토큰 삭제 결과 : response={}", response);
+		return ApiResponse.success(FcmSuccessCode.OK_DELETE_FCM);
 	}
 }
