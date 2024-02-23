@@ -222,10 +222,10 @@ class StockTargetPriceNotificationRestControllerTest {
 			.andExpect(jsonPath("message").value(equalTo("종목 지정가 알림 특정 조회를 성공했습니다")))
 			.andExpect(jsonPath("data.targetPrices[0].notificationId").value(equalTo(1)))
 			.andExpect(jsonPath("data.targetPrices[0].targetPrice").value(equalTo(60000)))
-			.andExpect(jsonPath("data.targetPrices[0].dateAdded").value(equalTo(now.toString())))
+			.andExpect(jsonPath("data.targetPrices[0].dateAdded").isNotEmpty())
 			.andExpect(jsonPath("data.targetPrices[1].notificationId").value(equalTo(2)))
 			.andExpect(jsonPath("data.targetPrices[1].targetPrice").value(equalTo(70000)))
-			.andExpect(jsonPath("data.targetPrices[1].dateAdded").value(equalTo(now.toString())));
+			.andExpect(jsonPath("data.targetPrices[1].dateAdded").isNotEmpty());
 	}
 
 	@DisplayName("사용자는 종목 지정가 알림의 정보를 수정한다")

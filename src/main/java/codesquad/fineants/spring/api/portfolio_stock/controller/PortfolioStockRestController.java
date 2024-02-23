@@ -79,8 +79,10 @@ public class PortfolioStockRestController {
 
 	@HasPortfolioAuthorization
 	@GetMapping(value = "/holdings/realtime", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-	public SseEmitter readMyPortfolioStocksInRealTime(@PathVariable Long portfolioId,
-		@AuthPrincipalMember AuthMember authMember) {
+	public SseEmitter readMyPortfolioStocksInRealTime(
+		@PathVariable Long portfolioId,
+		@AuthPrincipalMember AuthMember authMember
+	) {
 		SseEmitter emitter = new SseEmitter(Duration.ofSeconds(30).toMillis());
 		SseEmitterKey key = SseEmitterKey.create(portfolioId);
 		emitter.onTimeout(() -> {

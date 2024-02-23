@@ -5,8 +5,16 @@ import java.time.LocalDateTime;
 import codesquad.fineants.domain.purchase_history.PurchaseHistory;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
+@Getter
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
+@Builder
+@ToString
 public class PurchaseHistoryModifyResponse {
 
 	private Long id;
@@ -14,10 +22,18 @@ public class PurchaseHistoryModifyResponse {
 	private Double purchasePricePerShare;
 	private Long numShares;
 	private String memo;
+	private Long portfolioId;
+	private Long memberId;
 
-	public static PurchaseHistoryModifyResponse from(PurchaseHistory history) {
-		return new PurchaseHistoryModifyResponse(history.getId(), history.getPurchaseDate(),
-			history.getPurchasePricePerShare(),
-			history.getNumShares(), history.getMemo());
+	public static PurchaseHistoryModifyResponse from(PurchaseHistory history, Long portfolioId, Long memberId) {
+		return PurchaseHistoryModifyResponse.builder()
+			.id(history.getId())
+			.purchaseDate(history.getPurchaseDate())
+			.purchasePricePerShare(history.getPurchasePricePerShare())
+			.numShares(history.getNumShares())
+			.memo(history.getMemo())
+			.portfolioId(portfolioId)
+			.memberId(memberId)
+			.build();
 	}
 }

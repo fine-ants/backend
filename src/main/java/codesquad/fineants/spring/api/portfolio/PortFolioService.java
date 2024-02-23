@@ -186,7 +186,7 @@ public class PortFolioService {
 	}
 
 	public boolean hasAuthorizationBy(Long portfolioId, Long memberId) {
-		Portfolio portfolio = portfolioRepository.findByPortfolioId(portfolioId)
+		Portfolio portfolio = portfolioRepository.findById(portfolioId)
 			.orElseThrow(() -> new NotFoundResourceException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
 		return portfolio.hasAuthorization(memberId);
 	}

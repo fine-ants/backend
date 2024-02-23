@@ -19,7 +19,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.member.MemberRepository;
-import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.portfolio.Portfolio;
 import codesquad.fineants.domain.portfolio.PortfolioRepository;
 import codesquad.fineants.domain.portfolio_gain_history.PortfolioGainHistoryRepository;
@@ -202,7 +201,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 
 		// when
 		PurchaseHistoryModifyResponse response = service.modifyPurchaseHistory(request,
-			portfolioHoldingId, purchaseHistoryId, AuthMember.from(member));
+			portfolioHoldingId, purchaseHistoryId, portfolio.getId(), member.getId());
 
 		// then
 		PurchaseHistory changePurchaseHistory = purchaseHistoryRepository.findById(purchaseHistoryId).orElseThrow();
@@ -221,7 +220,9 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 		Long purchaseHistoryId = purchaseHistory.getId();
 
 		// when
-		PurchaseHistoryDeleteResponse response = service.deletePurchaseHistory(portfolioHoldingId, purchaseHistoryId);
+		PurchaseHistoryDeleteResponse response = service.deletePurchaseHistory(portfolioHoldingId, purchaseHistoryId,
+			portfolio.getId(),
+			member.getId());
 
 		// then
 		assertAll(
@@ -239,7 +240,8 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 
 		// when
 		Throwable throwable = catchThrowable(
-			() -> service.deletePurchaseHistory(portfolioHoldingId, purchaseHistoryId));
+			() -> service.deletePurchaseHistory(portfolioHoldingId, purchaseHistoryId, portfolio.getId(),
+				member.getId()));
 
 		// then
 		assertThat(throwable)
