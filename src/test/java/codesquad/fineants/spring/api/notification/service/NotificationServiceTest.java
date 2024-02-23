@@ -130,7 +130,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		fcmRepository.save(FcmToken.builder()
 			.latestActivationTime(LocalDateTime.now())
 			.token(
-				"fahY76rRwq8HGy0m1lwckx:APA91bEovbLJyqdSRq8MWDbsIN8sbk90JiNHbIBs6rDoiOKeC-aa5P1QydiRa6okGrIZELrxx_cYieWUN44iX-AD6jma-cYRUR7e3bTMXwkqZFLRZh5s7-bcksGniB7Y2DkoONHtSjos")
+				"dcEZXm1dxCV31t-Mt3yikc:APA91bHJv4tQHRaL9P985sCvGOw3b0qr0maz0BXb7_eKOKBZPFM51HytTJMbiUv9L37utFpPNPE5Uxr_VbdUIvmBahOftmVuaNiuOJ35Jk50yKlC-Cj2sQHMwruUZ_O6BjSuGMbrRCi3")
 			.member(member)
 			.build());
 
