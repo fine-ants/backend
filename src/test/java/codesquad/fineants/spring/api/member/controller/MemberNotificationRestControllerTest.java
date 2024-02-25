@@ -31,6 +31,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.notification.NotificationBody;
+import codesquad.fineants.domain.notification.type.NotificationType;
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.oauth.support.AuthPrincipalArgumentResolver;
 import codesquad.fineants.spring.api.errors.handler.GlobalExceptionHandler;
@@ -197,7 +198,7 @@ class MemberNotificationRestControllerTest {
 				.build())
 			.timestamp(LocalDateTime.of(2024, 1, 24, 10, 10, 10))
 			.isRead(false)
-			.type("portfolio")
+			.type(NotificationType.PORTFOLIO_MAX_LOSS.getCategory())
 			.referenceId("2")
 			.build();
 		given(notificationService.readAllNotifications(anyLong(), anyList()))
@@ -252,7 +253,7 @@ class MemberNotificationRestControllerTest {
 				.build())
 			.timestamp(LocalDateTime.of(2024, 1, 24, 10, 10, 10))
 			.isRead(false)
-			.type("portfolio")
+			.type(NotificationType.PORTFOLIO_MAX_LOSS.getCategory())
 			.referenceId("2")
 			.build();
 		given(notificationService.deleteAllNotifications(anyLong(), anyList()))
@@ -286,7 +287,7 @@ class MemberNotificationRestControllerTest {
 			.content("포트폴리오1의 최대 손실율을 초과했습니다")
 			.timestamp(LocalDateTime.now())
 			.isRead(false)
-			.type("portfolio")
+			.type(NotificationType.PORTFOLIO_MAX_LOSS.getCategory())
 			.referenceId("1")
 			.sendMessageIds(List.of("messageId"))
 			.build();
@@ -324,7 +325,7 @@ class MemberNotificationRestControllerTest {
 					.build())
 				.timestamp(LocalDateTime.of(2024, 1, 24, 10, 10, 10))
 				.isRead(false)
-				.type("portfolio")
+				.type(NotificationType.PORTFOLIO_MAX_LOSS.getCategory())
 				.referenceId("2")
 				.build(),
 			MemberNotification.builder()
@@ -336,7 +337,7 @@ class MemberNotificationRestControllerTest {
 					.build())
 				.timestamp(LocalDateTime.of(2024, 1, 23, 10, 10, 10))
 				.isRead(false)
-				.type("portfolio")
+				.type(NotificationType.PORTFOLIO_TARGET_GAIN.getCategory())
 				.referenceId("1")
 				.build(),
 			MemberNotification.builder()
@@ -348,7 +349,7 @@ class MemberNotificationRestControllerTest {
 					.build())
 				.timestamp(LocalDateTime.of(2024, 1, 22, 10, 10, 10))
 				.isRead(true)
-				.type("stock")
+				.type(NotificationType.STOCK_TARGET_PRICE.getCategory())
 				.referenceId("005930")
 				.build());
 	}

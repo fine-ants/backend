@@ -12,6 +12,8 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
@@ -23,6 +25,9 @@ import codesquad.fineants.domain.fcm_token.FcmRepository;
 import codesquad.fineants.domain.fcm_token.FcmToken;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.member.MemberRepository;
+import codesquad.fineants.domain.notification.NotificationRepository;
+import codesquad.fineants.domain.notification_preference.NotificationPreference;
+import codesquad.fineants.domain.notification_preference.NotificationPreferenceRepository;
 import codesquad.fineants.domain.portfolio.Portfolio;
 import codesquad.fineants.domain.portfolio.PortfolioRepository;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
@@ -68,6 +73,12 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 	@Autowired
 	private PurchaseHistoryRepository purchaseHistoryRepository;
 
+	@Autowired
+	private NotificationRepository notificationRepository;
+
+	@Autowired
+	private NotificationPreferenceRepository notificationPreferenceRepository;
+
 	@MockBean
 	private FirebaseMessaging firebaseMessaging;
 
@@ -76,12 +87,14 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 
 	@AfterEach
 	void tearDown() {
+		notificationRepository.deleteAllInBatch();
 		fcmRepository.deleteAllInBatch();
 		targetPriceNotificationRepository.deleteAllInBatch();
 		stockTargetPriceRepository.deleteAllInBatch();
 		purchaseHistoryRepository.deleteAllInBatch();
 		portfolioHoldingRepository.deleteAllInBatch();
 		portfolioRepository.deleteAllInBatch();
+		notificationPreferenceRepository.deleteAllInBatch();
 		memberRepository.deleteAllInBatch();
 		stockRepository.deleteAllInBatch();
 	}
@@ -91,6 +104,13 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 	void notifyPortfolioTargetGainMessages() throws FirebaseMessagingException {
 		// given
 		Member member = memberRepository.save(createMember());
+		notificationPreferenceRepository.save(NotificationPreference.builder()
+			.browserNotify(true)
+			.targetGainNotify(true)
+			.maxLossNotify(true)
+			.targetPriceNotify(true)
+			.member(member)
+			.build());
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Stock stock = stockRepository.save(createStock());
 		PortfolioHolding portfolioHolding = portfolioHoldingRepository.save(createPortfolioHolding(portfolio, stock));
@@ -113,7 +133,42 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 
 		// then
 		assertAll(
-			() -> assertThat(messageIds).hasSize(1)
+			() -> assertThat(messageIds).hasSize(1),
+			() -> assertThat(notificationRepository.findAllByMemberId(member.getId())).hasSize(1)
+		);
+	}
+
+	@DisplayName("브라우저 알림 설정이 비활성화되어 목표 수익률 알림을 보낼수 없다")
+	@CsvSource(value = {"false,true", "true,false", "false, false"})
+	@ParameterizedTest
+	void notifyPortfolioTargetGainMessages_whenBrowserNotifyIsInActive_thenResponseEmptyList(boolean browserNotify,
+		boolean targetGainNotify) {
+		// given
+		Member member = memberRepository.save(createMember());
+		notificationPreferenceRepository.save(NotificationPreference.builder()
+			.browserNotify(browserNotify)
+			.targetGainNotify(targetGainNotify)
+			.maxLossNotify(true)
+			.targetPriceNotify(true)
+			.member(member)
+			.build());
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
+		Stock stock = stockRepository.save(createStock());
+		PortfolioHolding portfolioHolding = portfolioHoldingRepository.save(createPortfolioHolding(portfolio, stock));
+		purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding, 100L, 10000.0));
+
+		fcmRepository.save(FcmToken.builder()
+			.latestActivationTime(LocalDateTime.now())
+			.token(
+				"fahY76rRwq8HGy0m1lwckx:APA91bEovbLJyqdSRq8MWDbsIN8sbk90JiNHbIBs6rDoiOKeC-aa5P1QydiRa6okGrIZELrxx_cYieWUN44iX-AD6jma-cYRUR7e3bTMXwkqZFLRZh5s7-bcksGniB7Y2DkoONHtSjos")
+			.member(member)
+			.build());
+		// when
+		List<String> messageIds = service.notifyPortfolioTargetGainMessages(portfolio.getId(), member.getId());
+
+		// then
+		assertAll(
+			() -> assertThat(messageIds).isEmpty()
 		);
 	}
 
@@ -144,7 +199,8 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 
 		// then
 		assertAll(
-			() -> assertThat(messageIds).hasSize(1)
+			() -> assertThat(messageIds).hasSize(1),
+			() -> assertThat(notificationRepository.findAllByMemberId(member.getId())).hasSize(1)
 		);
 	}
 
