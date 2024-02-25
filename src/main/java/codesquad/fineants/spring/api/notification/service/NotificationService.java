@@ -16,10 +16,21 @@ import com.google.firebase.messaging.Notification;
 import com.google.firebase.messaging.WebpushConfig;
 import com.google.firebase.messaging.WebpushFcmOptions;
 
+import codesquad.fineants.domain.member.Member;
+import codesquad.fineants.domain.member.MemberRepository;
+import codesquad.fineants.domain.notification.NotificationRepository;
+import codesquad.fineants.domain.notification.type.NotificationType;
+import codesquad.fineants.domain.notification_preference.NotificationPreference;
+import codesquad.fineants.domain.notification_preference.NotificationPreferenceRepository;
 import codesquad.fineants.domain.portfolio.Portfolio;
 import codesquad.fineants.domain.target_price_notification.TargetPriceNotification;
+import codesquad.fineants.spring.api.errors.errorcode.MemberErrorCode;
+import codesquad.fineants.spring.api.errors.errorcode.NotificationPreferenceErrorCode;
+import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
 import codesquad.fineants.spring.api.fcm.service.FcmService;
 import codesquad.fineants.spring.api.firebase.FirebaseMessagingService;
+import codesquad.fineants.spring.api.notification.request.NotificationCreateRequest;
+import codesquad.fineants.spring.api.notification.response.NotificationCreateResponse;
 import codesquad.fineants.spring.api.portfolio.PortFolioService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,12 +45,36 @@ public class NotificationService {
 	private final PortFolioService portfolioService;
 	private final FcmService fcmService;
 	private final FirebaseMessagingService firebaseMessagingService;
+	private final NotificationRepository notificationRepository;
+	private final MemberRepository memberRepository;
+	private final NotificationPreferenceRepository notificationPreferenceRepository;
+
+	// 알림 저장
+	@Transactional
+	public NotificationCreateResponse createNotification(NotificationCreateRequest request, Long memberId) {
+		Member member = memberRepository.findById(memberId)
+			.orElseThrow(() -> new NotFoundResourceException(MemberErrorCode.NOT_FOUND_MEMBER));
+		codesquad.fineants.domain.notification.Notification saveNotification = notificationRepository.save(
+			request.toEntity(member));
+		return NotificationCreateResponse.from(saveNotification);
+	}
 
 	// 회원에게 포트폴리오의 목표 수익률 달성 알림 푸시
+	@Transactional
 	public List<String> notifyPortfolioTargetGainMessages(Long portfolioId, Long memberId) {
+		// 알림 조건
+		// 회원의 계정 알림 설정에서 브라우저 알림 설정 및 목표 수익률 도달 알림이 활성화되어야 함
+		NotificationPreference preference = notificationPreferenceRepository.findByMemberId(memberId)
+			.orElseThrow(() -> new NotFoundResourceException(
+				NotificationPreferenceErrorCode.NOT_FOUND_NOTIFICATION_PREFERENCE));
+		if (!preference.isBrowserNotify() || !preference.isTargetGainNotify()) {
+			return Collections.emptyList();
+		}
+
 		if (!portfolioService.reachedTargetGain(portfolioId)) {
 			return Collections.emptyList();
 		}
+
 		List<String> messageIds = new ArrayList<>();
 		Portfolio portfolio = portfolioService.findPortfolio(portfolioId);
 		fcmService.findTokens(memberId)
@@ -48,18 +83,34 @@ public class NotificationService {
 		return messageIds;
 	}
 
-	private Optional<String> notifyPortfolioTargetGainMessage(String token, Portfolio portfolio) {
+	@Transactional
+	public Optional<String> notifyPortfolioTargetGainMessage(String token, Portfolio portfolio) {
+		String title = "포트폴리오";
 		String content = String.format("%s의 목표 수익률을 달성했습니다", portfolio.getName());
+		String referenceId = portfolio.getId().toString();
+		String link = "/portfolio/" + referenceId;
 		Message message = createMessage(
-			"포트폴리오",
+			title,
 			content,
 			token,
-			"/portfolio/" + portfolio.getId()
+			link
 		);
-		return firebaseMessagingService.sendNotification(message);
+		return firebaseMessagingService.sendNotification(message)
+			.map(messageId -> {
+				NotificationCreateResponse response = this.createNotification(NotificationCreateRequest.builder()
+						.portfolioName(portfolio.getName())
+						.title(title)
+						.type(NotificationType.PORTFOLIO_TARGET_GAIN)
+						.referenceId(referenceId)
+						.build(),
+					portfolio.getMember().getId());
+				log.info("알림 저장 결과 : response={}", response);
+				return messageId;
+			});
 	}
 
 	// 포트폴리오 최대 손실율 달성 알림 푸시
+	@Transactional
 	public List<String> notifyPortfolioMaxLossMessages(Long portfolioId, Long memberId) {
 		if (!portfolioService.reachedMaxLoss(portfolioId)) {
 			return Collections.emptyList();
@@ -72,16 +123,31 @@ public class NotificationService {
 		return messageIds;
 	}
 
-	private Optional<String> notifyPortfolioMaxLossMessage(String token, Portfolio portfolio) {
+	@Transactional
+	public Optional<String> notifyPortfolioMaxLossMessage(String token, Portfolio portfolio) {
+		String title = "포트폴리오";
 		String content = String.format("%s이(가) 최대 손실율에 도달했습니다", portfolio.getName());
-		Message message = createMessage("포트폴리오", content, token, "/portfolio/" + portfolio.getId());
-		try {
-			String messageId = firebaseMessaging.send(message);
-			log.info("푸시 알림 전송 결과 : messageId={}", messageId);
-			return Optional.ofNullable(messageId);
-		} catch (FirebaseMessagingException e) {
-			return Optional.empty();
-		}
+		String referenceId = portfolio.getId().toString();
+		String link = "/portfolio/" + referenceId;
+		Message message = createMessage(
+			title,
+			content,
+			token,
+			link
+		);
+		return firebaseMessagingService.sendNotification(message)
+			.map(messageId -> {
+				NotificationCreateResponse response = this.createNotification(
+					NotificationCreateRequest.builder()
+						.portfolioName(portfolio.getName())
+						.title(title)
+						.type(NotificationType.PORTFOLIO_TARGET_GAIN)
+						.referenceId(referenceId)
+						.build(),
+					portfolio.getMember().getId());
+				log.info("알림 저장 결과 : response={}", response);
+				return messageId;
+			});
 	}
 
 	// 종목 지정가 도달 달성 알림 푸시
