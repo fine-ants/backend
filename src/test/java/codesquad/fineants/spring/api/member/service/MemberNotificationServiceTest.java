@@ -229,7 +229,8 @@ class MemberNotificationServiceTest extends AbstractContainerBaseTest {
 		assertAll(
 			() -> assertThat(response)
 				.extracting("title", "content", "isRead", "type", "referenceId")
-				.containsExactly("포트폴리오", "포트폴리오1이(가) 최대 손실율에 도달했습니다", false, NotificationType.PORTFOLIO_MAX_LOSS, "1"),
+				.containsExactly("포트폴리오", "포트폴리오1이(가) 최대 손실율에 도달했습니다", false,
+					NotificationType.PORTFOLIO_MAX_LOSS.getCategory(), "1"),
 			() -> assertThat(response)
 				.extracting("sendMessageIds")
 				.asList()
@@ -262,7 +263,8 @@ class MemberNotificationServiceTest extends AbstractContainerBaseTest {
 		assertAll(
 			() -> assertThat(response)
 				.extracting("title", "content", "isRead", "type", "referenceId")
-				.containsExactly("포트폴리오", "포트폴리오1이(가) 최대 손실율에 도달했습니다", false, NotificationType.PORTFOLIO_MAX_LOSS, "1"),
+				.containsExactly("포트폴리오", "포트폴리오1이(가) 최대 손실율에 도달했습니다", false,
+					NotificationType.PORTFOLIO_MAX_LOSS.getCategory(), "1"),
 			() -> assertThat(response)
 				.extracting("sendMessageIds")
 				.asList()
@@ -291,7 +293,8 @@ class MemberNotificationServiceTest extends AbstractContainerBaseTest {
 		assertAll(
 			() -> assertThat(response)
 				.extracting("title", "content", "isRead", "type", "referenceId")
-				.containsExactly("포트폴리오", "포트폴리오1이(가) 최대 손실율에 도달했습니다", false, NotificationType.PORTFOLIO_MAX_LOSS, "1"),
+				.containsExactly("포트폴리오", "포트폴리오1이(가) 최대 손실율에 도달했습니다", false,
+					NotificationType.PORTFOLIO_MAX_LOSS.getCategory(), "1"),
 			() -> assertThat(response)
 				.extracting("sendMessageIds")
 				.asList()

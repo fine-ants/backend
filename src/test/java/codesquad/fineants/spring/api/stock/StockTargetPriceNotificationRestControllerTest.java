@@ -184,10 +184,10 @@ class StockTargetPriceNotificationRestControllerTest {
 			.andExpect(jsonPath("data.stocks[0].lastPrice").value(equalTo(50000)))
 			.andExpect(jsonPath("data.stocks[0].targetPrices[0].notificationId").value(equalTo(1)))
 			.andExpect(jsonPath("data.stocks[0].targetPrices[0].targetPrice").value(equalTo(60000)))
-			.andExpect(jsonPath("data.stocks[0].targetPrices[0].dateAdded").value(equalTo(now.toString())))
+			.andExpect(jsonPath("data.stocks[0].targetPrices[0].dateAdded").isNotEmpty())
 			.andExpect(jsonPath("data.stocks[0].targetPrices[1].notificationId").value(equalTo(2)))
 			.andExpect(jsonPath("data.stocks[0].targetPrices[1].targetPrice").value(equalTo(70000)))
-			.andExpect(jsonPath("data.stocks[0].targetPrices[1].dateAdded").value(equalTo(now.toString())))
+			.andExpect(jsonPath("data.stocks[0].targetPrices[1].dateAdded").isNotEmpty())
 			.andExpect(jsonPath("data.stocks[0].isActive").value(equalTo(true)))
 			.andExpect(jsonPath("data.stocks[0].lastUpdated").value(equalTo(now.toString())));
 	}

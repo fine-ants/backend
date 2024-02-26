@@ -16,6 +16,8 @@ import com.google.firebase.messaging.Message;
 
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.member.MemberRepository;
+import codesquad.fineants.domain.notification_preference.NotificationPreference;
+import codesquad.fineants.domain.notification_preference.NotificationPreferenceRepository;
 import codesquad.fineants.domain.portfolio.Portfolio;
 import codesquad.fineants.domain.portfolio.PortfolioRepository;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
@@ -53,6 +55,9 @@ class NotificationEventListenerTest extends AbstractContainerBaseTest {
 	@Autowired
 	private PurchaseHistoryRepository purchaseHistoryRepository;
 
+	@Autowired
+	private NotificationPreferenceRepository notificationPreferenceRepository;
+
 	@MockBean
 	private FirebaseMessaging firebaseMessaging;
 
@@ -64,6 +69,7 @@ class NotificationEventListenerTest extends AbstractContainerBaseTest {
 		purchaseHistoryRepository.deleteAllInBatch();
 		portfolioHoldingRepository.deleteAllInBatch();
 		portfolioRepository.deleteAllInBatch();
+		notificationPreferenceRepository.deleteAllInBatch();
 		memberRepository.deleteAllInBatch();
 		stockRepository.deleteAllInBatch();
 	}
@@ -78,6 +84,14 @@ class NotificationEventListenerTest extends AbstractContainerBaseTest {
 			.willReturn(50000L);
 
 		Member member = memberRepository.save(createMember());
+		notificationPreferenceRepository.save(NotificationPreference.builder()
+			.browserNotify(true)
+			.targetGainNotify(true)
+			.maxLossNotify(true)
+			.targetPriceNotify(true)
+			.member(member)
+			.build()
+		);
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Stock stock = stockRepository.save(createStock());
 		PortfolioHolding portfolioHolding = portfolioHoldingRepository.save(createPortfolioHolding(portfolio, stock));

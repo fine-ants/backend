@@ -1,6 +1,6 @@
 ==== Request Fields
 |===
-|Path|Type|Optional|Description
+|Path|Type|Optional|Description|Constraints
 
 {{#fields}}
 
@@ -8,6 +8,7 @@
     |{{#tableCellContent}}`+{{type}}+`{{/tableCellContent}}
     |{{#tableCellContent}}{{#optional}}Y{{/optional}}{{^optional}}N{{/optional}}{{/tableCellContent}}
     |{{#tableCellContent}}{{description}}{{/tableCellContent}}
+    |{{#tableCellContent}}{{#constraints}}{{.}}{{/constraints}}{{/tableCellContent}}
 
 {{/fields}}
 

@@ -43,6 +43,7 @@ import codesquad.fineants.domain.target_price_notification.TargetPriceNotificati
 import codesquad.fineants.domain.target_price_notification.TargetPriceNotificationRepository;
 import codesquad.fineants.spring.AbstractContainerBaseTest;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
+import codesquad.fineants.spring.api.notification.response.NotifyPortfolioMessagesResponse;
 
 class NotificationServiceTest extends AbstractContainerBaseTest {
 
@@ -129,11 +130,12 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 			.willReturn(50000L);
 
 		// when
-		List<String> messageIds = service.notifyPortfolioTargetGainMessages(portfolio.getId(), member.getId());
+		NotifyPortfolioMessagesResponse response = service.notifyPortfolioTargetGainMessages(
+			portfolio.getId(), member.getId());
 
 		// then
 		assertAll(
-			() -> assertThat(messageIds).hasSize(1),
+			() -> assertThat(response.getNotifications()).hasSize(1),
 			() -> assertThat(notificationRepository.findAllByMemberId(member.getId())).hasSize(1)
 		);
 	}
@@ -164,11 +166,12 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 			.member(member)
 			.build());
 		// when
-		List<String> messageIds = service.notifyPortfolioTargetGainMessages(portfolio.getId(), member.getId());
+		NotifyPortfolioMessagesResponse response = service.notifyPortfolioTargetGainMessages(
+			portfolio.getId(), member.getId());
 
 		// then
 		assertAll(
-			() -> assertThat(messageIds).isEmpty()
+			() -> assertThat(response.getNotifications()).isEmpty()
 		);
 	}
 
@@ -195,11 +198,12 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 			.willReturn(100L);
 
 		// when
-		List<String> messageIds = service.notifyPortfolioMaxLossMessages(portfolio.getId(), member.getId());
+		NotifyPortfolioMessagesResponse response = service.notifyPortfolioMaxLossMessages(portfolio.getId(),
+			member.getId());
 
 		// then
 		assertAll(
-			() -> assertThat(messageIds).hasSize(1),
+			() -> assertThat(response.getNotifications()).hasSize(1),
 			() -> assertThat(notificationRepository.findAllByMemberId(member.getId())).hasSize(1)
 		);
 	}

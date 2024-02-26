@@ -1,7 +1,6 @@
 package codesquad.fineants.spring.api.notification.service;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -29,8 +28,11 @@ import codesquad.fineants.spring.api.errors.errorcode.NotificationPreferenceErro
 import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
 import codesquad.fineants.spring.api.fcm.service.FcmService;
 import codesquad.fineants.spring.api.firebase.FirebaseMessagingService;
+import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.notification.request.NotificationCreateRequest;
 import codesquad.fineants.spring.api.notification.response.NotificationCreateResponse;
+import codesquad.fineants.spring.api.notification.response.NotifyPortfolioMessageItem;
+import codesquad.fineants.spring.api.notification.response.NotifyPortfolioMessagesResponse;
 import codesquad.fineants.spring.api.portfolio.PortFolioService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -46,8 +48,9 @@ public class NotificationService {
 	private final FcmService fcmService;
 	private final FirebaseMessagingService firebaseMessagingService;
 	private final NotificationRepository notificationRepository;
-	private final MemberRepository memberRepository;
 	private final NotificationPreferenceRepository notificationPreferenceRepository;
+	private final MemberRepository memberRepository;
+	private final CurrentPriceManager currentPriceManager;
 
 	// 알림 저장
 	@Transactional
@@ -61,30 +64,33 @@ public class NotificationService {
 
 	// 회원에게 포트폴리오의 목표 수익률 달성 알림 푸시
 	@Transactional
-	public List<String> notifyPortfolioTargetGainMessages(Long portfolioId, Long memberId) {
+	public NotifyPortfolioMessagesResponse notifyPortfolioTargetGainMessages(Long portfolioId,
+		Long memberId) {
 		// 알림 조건
 		// 회원의 계정 알림 설정에서 브라우저 알림 설정 및 목표 수익률 도달 알림이 활성화되어야 함
 		NotificationPreference preference = notificationPreferenceRepository.findByMemberId(memberId)
-			.orElseThrow(() -> new NotFoundResourceException(
-				NotificationPreferenceErrorCode.NOT_FOUND_NOTIFICATION_PREFERENCE));
-		if (!preference.isBrowserNotify() || !preference.isTargetGainNotify()) {
-			return Collections.emptyList();
+			.orElseThrow(
+				() -> new NotFoundResourceException(NotificationPreferenceErrorCode.NOT_FOUND_NOTIFICATION_PREFERENCE));
+		if (!preference.isPossibleTargetGainNotification()) {
+			return NotifyPortfolioMessagesResponse.empty();
 		}
 
-		if (!portfolioService.reachedTargetGain(portfolioId)) {
-			return Collections.emptyList();
+		Portfolio portfolio = portfolioService.findPortfolioUsingJoin(portfolioId);
+		portfolio.applyCurrentPriceAllHoldingsBy(currentPriceManager);
+		if (!portfolio.reachedTargetGain()) {
+			return NotifyPortfolioMessagesResponse.empty();
 		}
 
-		List<String> messageIds = new ArrayList<>();
-		Portfolio portfolio = portfolioService.findPortfolio(portfolioId);
+		List<NotifyPortfolioMessageItem> notifications = new ArrayList<>();
 		fcmService.findTokens(memberId)
 			.forEach(token -> notifyPortfolioTargetGainMessage(token, portfolio)
-				.ifPresent(messageIds::add));
-		return messageIds;
+				.ifPresent(notifications::add));
+
+		return NotifyPortfolioMessagesResponse.from(notifications);
 	}
 
-	@Transactional
-	public Optional<String> notifyPortfolioTargetGainMessage(String token, Portfolio portfolio) {
+	private Optional<NotifyPortfolioMessageItem> notifyPortfolioTargetGainMessage(String token,
+		Portfolio portfolio) {
 		String title = "포트폴리오";
 		String content = String.format("%s의 목표 수익률을 달성했습니다", portfolio.getName());
 		String referenceId = portfolio.getId().toString();
@@ -105,26 +111,37 @@ public class NotificationService {
 						.build(),
 					portfolio.getMember().getId());
 				log.info("알림 저장 결과 : response={}", response);
-				return messageId;
+				return createNotifyPortfolioMessageItem(messageId, response);
 			});
+	}
+
+	private NotifyPortfolioMessageItem createNotifyPortfolioMessageItem(String messageId,
+		NotificationCreateResponse response) {
+		return NotifyPortfolioMessageItem.builder()
+			.notificationId(response.getNotificationId())
+			.title(response.getTitle())
+			.isRead(response.getIsRead())
+			.type(response.getType())
+			.referenceId(response.getReferenceId())
+			.messageId(messageId)
+			.build();
 	}
 
 	// 포트폴리오 최대 손실율 달성 알림 푸시
 	@Transactional
-	public List<String> notifyPortfolioMaxLossMessages(Long portfolioId, Long memberId) {
+	public NotifyPortfolioMessagesResponse notifyPortfolioMaxLossMessages(Long portfolioId, Long memberId) {
 		if (!portfolioService.reachedMaxLoss(portfolioId)) {
-			return Collections.emptyList();
+			return NotifyPortfolioMessagesResponse.empty();
 		}
-		List<String> messageIds = new ArrayList<>();
+		List<NotifyPortfolioMessageItem> notifications = new ArrayList<>();
 		Portfolio portfolio = portfolioService.findPortfolio(portfolioId);
 		fcmService.findTokens(memberId)
 			.forEach(token -> notifyPortfolioMaxLossMessage(token, portfolio)
-				.ifPresent(messageIds::add));
-		return messageIds;
+				.ifPresent(notifications::add));
+		return NotifyPortfolioMessagesResponse.from(notifications);
 	}
 
-	@Transactional
-	public Optional<String> notifyPortfolioMaxLossMessage(String token, Portfolio portfolio) {
+	private Optional<NotifyPortfolioMessageItem> notifyPortfolioMaxLossMessage(String token, Portfolio portfolio) {
 		String title = "포트폴리오";
 		String content = String.format("%s이(가) 최대 손실율에 도달했습니다", portfolio.getName());
 		String referenceId = portfolio.getId().toString();
@@ -146,7 +163,7 @@ public class NotificationService {
 						.build(),
 					portfolio.getMember().getId());
 				log.info("알림 저장 결과 : response={}", response);
-				return messageId;
+				return createNotifyPortfolioMessageItem(messageId, response);
 			});
 	}
 

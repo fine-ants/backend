@@ -17,3 +17,7 @@ include::api/fcm.adoc[]
 == 종목 지정가 알림 API
 
 include::api/stock_target_price.adoc[]
+
+== 알림 API
+
+include::api/notification.adoc[]
