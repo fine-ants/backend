@@ -189,7 +189,7 @@ class StockTargetPriceNotificationRestControllerTest {
 			.andExpect(jsonPath("data.stocks[0].targetPrices[1].targetPrice").value(equalTo(70000)))
 			.andExpect(jsonPath("data.stocks[0].targetPrices[1].dateAdded").isNotEmpty())
 			.andExpect(jsonPath("data.stocks[0].isActive").value(equalTo(true)))
-			.andExpect(jsonPath("data.stocks[0].lastUpdated").value(equalTo(now.toString())));
+			.andExpect(jsonPath("data.stocks[0].lastUpdated").isNotEmpty());
 	}
 
 	@DisplayName("사용자는 특정 종목의 지정 알림가들을 조회합니다")

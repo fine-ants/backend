@@ -140,6 +140,46 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		);
 	}
 
+	@DisplayName("토큰이 유효하지 않아서 목표 수익률 알림을 보낼수 없다")
+	@Test
+	void notifyPortfolioTargetGainMessages_whenInvalidFcmToken_thenDeleteFcmToken() throws FirebaseMessagingException {
+		// given
+		Member member = memberRepository.save(createMember());
+		notificationPreferenceRepository.save(NotificationPreference.builder()
+			.browserNotify(true)
+			.targetGainNotify(true)
+			.maxLossNotify(true)
+			.targetPriceNotify(true)
+			.member(member)
+			.build());
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
+		Stock stock = stockRepository.save(createStock());
+		PortfolioHolding portfolioHolding = portfolioHoldingRepository.save(createPortfolioHolding(portfolio, stock));
+		purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding, 100L, 10000.0));
+
+		FcmToken fcmToken = fcmRepository.save(FcmToken.builder()
+			.latestActivationTime(LocalDateTime.now())
+			.token(
+				"fahY76rRwq8HGy0m1lwckx:APA91bEovbLJyqdSRq8MWDbsIN8sbk90JiNHbIBs6rDoiOKeC-aa5P1QydiRa6okGrIZELrxx_cYieWUN44iX-AD6jma-cYRUR7e3bTMXwkqZFLRZh5s7-bcksGniB7Y2DkoONHtSjos")
+			.member(member)
+			.build());
+
+		given(firebaseMessaging.send(any(Message.class)))
+			.willThrow(FirebaseMessagingException.class);
+		given(manager.getCurrentPrice(anyString()))
+			.willReturn(50000L);
+
+		// when
+		NotifyPortfolioMessagesResponse response = service.notifyPortfolioTargetGainMessages(portfolio.getId(),
+			member.getId());
+
+		// then
+		assertAll(
+			() -> assertThat(response.getNotifications()).isEmpty(),
+			() -> assertThat(fcmRepository.findById(fcmToken.getId())).isEmpty()
+		);
+	}
+
 	@DisplayName("브라우저 알림 설정이 비활성화되어 목표 수익률 알림을 보낼수 없다")
 	@CsvSource(value = {"false,true", "true,false", "false, false"})
 	@ParameterizedTest
@@ -180,10 +220,17 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 	void notifyPortfolioMaxLossMessages() throws FirebaseMessagingException {
 		// given
 		Member member = memberRepository.save(createMember());
+		notificationPreferenceRepository.save(NotificationPreference.builder()
+			.browserNotify(true)
+			.targetGainNotify(true)
+			.maxLossNotify(true)
+			.targetPriceNotify(true)
+			.member(member)
+			.build());
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Stock stock = stockRepository.save(createStock());
 		PortfolioHolding portfolioHolding = portfolioHoldingRepository.save(createPortfolioHolding(portfolio, stock));
-		purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding, 100L, 10000.0));
+		purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding, 50L, 60000.0));
 
 		fcmRepository.save(FcmToken.builder()
 			.latestActivationTime(LocalDateTime.now())
@@ -208,11 +255,94 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		);
 	}
 
-	@DisplayName("포트폴리오의 최대 손실율에 도달하여 사용자에게 알림을 푸시합니다")
+	@DisplayName("알림 설정이 비활성화 되어 있어서 포트폴리오의 최대 손실율에 도달하여 사용자에게 알림을 푸시할 수 없습니다")
+	@CsvSource(value = {"false,true", "true,false", "false, false"})
+	@ParameterizedTest
+	void notifyPortfolioMaxLossMessages_whenNotifySettingIsInActive_thenResponseEmptyList(boolean browserNotify,
+		boolean maxLossNotify) throws FirebaseMessagingException {
+		// given
+		Member member = memberRepository.save(createMember());
+		notificationPreferenceRepository.save(NotificationPreference.builder()
+			.browserNotify(browserNotify)
+			.targetGainNotify(true)
+			.maxLossNotify(maxLossNotify)
+			.targetPriceNotify(true)
+			.member(member)
+			.build());
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
+		Stock stock = stockRepository.save(createStock());
+		PortfolioHolding portfolioHolding = portfolioHoldingRepository.save(createPortfolioHolding(portfolio, stock));
+		purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding, 50L, 60000.0));
+
+		fcmRepository.save(FcmToken.builder()
+			.latestActivationTime(LocalDateTime.now())
+			.token(
+				"dcEZXm1dxCV31t-Mt3yikc:APA91bHJv4tQHRaL9P985sCvGOw3b0qr0maz0BXb7_eKOKBZPFM51HytTJMbiUv9L37utFpPNPE5Uxr_VbdUIvmBahOftmVuaNiuOJ35Jk50yKlC-Cj2sQHMwruUZ_O6BjSuGMbrRCi3")
+			.member(member)
+			.build());
+
+		// when
+		NotifyPortfolioMessagesResponse response = service.notifyPortfolioMaxLossMessages(portfolio.getId(),
+			member.getId());
+
+		// then
+		assertAll(
+			() -> assertThat(response.getNotifications()).isEmpty()
+		);
+	}
+
+	@DisplayName("토큰이 유효하지 않아서 최대 손실율 달성 알림을 보낼수 없다")
+	@Test
+	void notifyPortfolioMaxLossMessages_whenInvalidFcmToken_thenDeleteFcmToken() throws FirebaseMessagingException {
+		// given
+		Member member = memberRepository.save(createMember());
+		notificationPreferenceRepository.save(NotificationPreference.builder()
+			.browserNotify(true)
+			.targetGainNotify(true)
+			.maxLossNotify(true)
+			.targetPriceNotify(true)
+			.member(member)
+			.build());
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
+		Stock stock = stockRepository.save(createStock());
+		PortfolioHolding portfolioHolding = portfolioHoldingRepository.save(createPortfolioHolding(portfolio, stock));
+		purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding, 50L, 60000.0));
+
+		FcmToken fcmToken = fcmRepository.save(FcmToken.builder()
+			.latestActivationTime(LocalDateTime.now())
+			.token(
+				"dcEZXm1dxCV31t-Mt3yikc:APA91bHJv4tQHRaL9P985sCvGOw3b0qr0maz0BXb7_eKOKBZPFM51HytTJMbiUv9L37utFpPNPE5Uxr_VbdUIvmBahOftmVuaNiuOJ35Jk50yKlC-Cj2sQHMwruUZ_O6BjSuGMbrRCi3")
+			.member(member)
+			.build());
+
+		given(firebaseMessaging.send(any(Message.class)))
+			.willThrow(FirebaseMessagingException.class);
+		given(manager.getCurrentPrice(anyString()))
+			.willReturn(50000L);
+
+		// when
+		NotifyPortfolioMessagesResponse response = service.notifyPortfolioMaxLossMessages(portfolio.getId(),
+			member.getId());
+
+		// then
+		assertAll(
+			() -> assertThat(response.getNotifications()).isEmpty(),
+			() -> assertThat(fcmRepository.findById(fcmToken.getId())).isEmpty()
+		);
+	}
+
+	@DisplayName("종목 지정가가 도달하여 사용자에게 알림을 푸시합니다")
 	@Test
 	void notifyStockAchievedTargetPrice() throws FirebaseMessagingException {
 		// given
 		Member member = memberRepository.save(createMember());
+		notificationPreferenceRepository.save(NotificationPreference.builder()
+			.browserNotify(true)
+			.targetGainNotify(true)
+			.maxLossNotify(true)
+			.targetPriceNotify(true)
+			.member(member)
+			.build());
 		portfolioRepository.save(createPortfolio(member));
 		FcmToken fcmToken = fcmRepository.save(FcmToken.builder()
 			.latestActivationTime(LocalDateTime.now())
