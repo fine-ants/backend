@@ -139,14 +139,17 @@ public class NotificationService {
 			return NotifyPortfolioMessagesResponse.empty();
 		}
 
-		if (!portfolioService.reachedMaxLoss(portfolioId)) {
+		Portfolio portfolio = portfolioService.findPortfolioUsingJoin(portfolioId);
+		portfolio.applyCurrentPriceAllHoldingsBy(currentPriceManager);
+		if (!portfolio.reachedMaximumLoss()) {
 			return NotifyPortfolioMessagesResponse.empty();
 		}
+
 		List<NotifyPortfolioMessageItem> notifications = new ArrayList<>();
-		Portfolio portfolio = portfolioService.findPortfolio(portfolioId);
 		fcmService.findTokens(memberId)
 			.forEach(token -> notifyPortfolioMaxLossMessage(token, portfolio)
 				.ifPresentOrElse(notifications::add, () -> fcmService.deleteToken(token)));
+
 		return NotifyPortfolioMessagesResponse.from(notifications);
 	}
 

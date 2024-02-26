@@ -190,16 +190,4 @@ public class PortFolioService {
 			.orElseThrow(() -> new NotFoundResourceException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
 		return portfolio.hasAuthorization(memberId);
 	}
-
-	public boolean reachedTargetGain(Long portfolioId) {
-		Portfolio portfolio = findPortfolioUsingJoin(portfolioId);
-		portfolio.applyCurrentPriceAllHoldingsBy(currentPriceManager);
-		return portfolio.reachedTargetGain();
-	}
-
-	public boolean reachedMaxLoss(Long portfolioId) {
-		Portfolio portfolio = findPortfolioUsingJoin(portfolioId);
-		portfolio.applyCurrentPriceAllHoldingsBy(currentPriceManager);
-		return portfolio.reachedMaximumLoss();
-	}
 }
