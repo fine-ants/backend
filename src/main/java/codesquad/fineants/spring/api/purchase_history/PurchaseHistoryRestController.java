@@ -40,7 +40,7 @@ public class PurchaseHistoryRestController {
 		@PathVariable Long portfolioHoldingId,
 		@Valid @RequestBody PurchaseHistoryCreateRequest request) {
 		log.info("매입 내역 추가 요청 : request={}, portfolioHoldingId={}", request, portfolioHoldingId);
-		service.addPurchaseHistory(request, portfolioId, portfolioHoldingId);
+		service.addPurchaseHistory(request, portfolioId, portfolioHoldingId, authMember.getMemberId());
 		return ApiResponse.success(PurchaseHistorySuccessCode.CREATED_ADD_PURCHASE_HISTORY);
 	}
 
@@ -53,7 +53,8 @@ public class PurchaseHistoryRestController {
 		@PathVariable Long purchaseHistoryId,
 		@Valid @RequestBody PurchaseHistoryModifyRequest request) {
 		log.info("매입 내역 수정 요청 : request={}, portfolioHoldingId={}", request, portfolioHoldingId);
-		service.modifyPurchaseHistory(request, portfolioHoldingId, purchaseHistoryId, authMember);
+		service.modifyPurchaseHistory(request, portfolioHoldingId, purchaseHistoryId, portfolioId,
+			authMember.getMemberId());
 		return ApiResponse.success(PurchaseHistorySuccessCode.OK_MODIFY_PURCHASE_HISTORY);
 	}
 
@@ -65,7 +66,8 @@ public class PurchaseHistoryRestController {
 		@PathVariable Long portfolioHoldingId,
 		@PathVariable Long purchaseHistoryId) {
 		log.info("매입 내역 삭제 요청 : portfolioHoldingId={}, purchaseHistoryId={}", portfolioHoldingId, purchaseHistoryId);
-		PurchaseHistoryDeleteResponse response = service.deletePurchaseHistory(portfolioHoldingId, purchaseHistoryId);
+		PurchaseHistoryDeleteResponse response = service.deletePurchaseHistory(portfolioHoldingId, purchaseHistoryId,
+			portfolioId, authMember.getMemberId());
 		log.info("매입 내역 삭제 결과 : response={}", response);
 		return ApiResponse.success(PurchaseHistorySuccessCode.OK_DELETE_PURCHASE_HISTORY);
 	}

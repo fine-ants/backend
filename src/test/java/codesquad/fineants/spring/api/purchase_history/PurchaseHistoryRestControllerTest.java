@@ -138,7 +138,7 @@ class PurchaseHistoryRestControllerTest {
 			.numShares(3L)
 			.memo("첫구매")
 			.build();
-		
+
 		given(portFolioService.hasAuthorizationBy(anyLong(), anyLong())).willReturn(true);
 	}
 
@@ -214,8 +214,11 @@ class PurchaseHistoryRestControllerTest {
 
 		given(portfolioRepository.findById(anyLong())).willReturn(Optional.of(portfolio));
 
-		given(purchaseHistoryService.addPurchaseHistory(any(PurchaseHistoryCreateRequest.class), any(Long.class), any(
-			Long.class))).willThrow(new FineAntsException(PortfolioErrorCode.TOTAL_INVESTMENT_PRICE_EXCEEDS_BUDGET));
+		given(purchaseHistoryService.addPurchaseHistory(
+			any(PurchaseHistoryCreateRequest.class),
+			anyLong(),
+			anyLong(),
+			anyLong())).willThrow(new FineAntsException(PortfolioErrorCode.TOTAL_INVESTMENT_PRICE_EXCEEDS_BUDGET));
 
 		// when & then
 		mockMvc.perform(post(url)

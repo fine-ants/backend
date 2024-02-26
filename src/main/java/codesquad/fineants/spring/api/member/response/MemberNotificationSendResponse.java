@@ -33,7 +33,7 @@ public class MemberNotificationSendResponse {
 			.content(notification.createNotificationContent())
 			.timestamp(notification.getCreateAt())
 			.isRead(notification.getIsRead())
-			.type(notification.getType())
+			.type(notification.getType().getCategory())
 			.referenceId(notification.getReferenceId())
 			.sendMessageIds(sendMessageIds)
 			.build();

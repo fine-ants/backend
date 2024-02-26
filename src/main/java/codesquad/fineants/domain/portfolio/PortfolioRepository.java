@@ -18,8 +18,8 @@ public interface PortfolioRepository extends JpaRepository<Portfolio, Long> {
 
 	@Query("select p from Portfolio p where p.member.id = :memberId")
 	List<Portfolio> findAllByMemberId(@Param("memberId") Long memberId);
-
-	@Query("select p from Portfolio p join fetch p.member where p.id = :id")
+	
+	@Query("select distinct p from Portfolio p join fetch p.member join fetch p.portfolioHoldings holding join fetch holding.stock where p.id = :id")
 	Optional<Portfolio> findByPortfolioId(@Param("id") Long id);
 
 	@Query("select p from Portfolio p where p.id = :id")

@@ -49,4 +49,12 @@ public class TargetPriceNotification extends BaseEntity {
 	public boolean isMatchTickerSymbol(String tickerSymbol) {
 		return stockTargetPrice.getStock().getTickerSymbol().equals(tickerSymbol);
 	}
+
+	public String toMessageBody() {
+		return String.format("%s이(가) %d 금액에 도달했습니다", stockTargetPrice.getStock().getCompanyName(), targetPrice);
+	}
+
+	public String getReferenceId() {
+		return stockTargetPrice.getStock().getTickerSymbol();
+	}
 }

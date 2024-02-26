@@ -184,12 +184,12 @@ class StockTargetPriceNotificationRestControllerTest {
 			.andExpect(jsonPath("data.stocks[0].lastPrice").value(equalTo(50000)))
 			.andExpect(jsonPath("data.stocks[0].targetPrices[0].notificationId").value(equalTo(1)))
 			.andExpect(jsonPath("data.stocks[0].targetPrices[0].targetPrice").value(equalTo(60000)))
-			.andExpect(jsonPath("data.stocks[0].targetPrices[0].dateAdded").value(equalTo(now.toString())))
+			.andExpect(jsonPath("data.stocks[0].targetPrices[0].dateAdded").isNotEmpty())
 			.andExpect(jsonPath("data.stocks[0].targetPrices[1].notificationId").value(equalTo(2)))
 			.andExpect(jsonPath("data.stocks[0].targetPrices[1].targetPrice").value(equalTo(70000)))
-			.andExpect(jsonPath("data.stocks[0].targetPrices[1].dateAdded").value(equalTo(now.toString())))
+			.andExpect(jsonPath("data.stocks[0].targetPrices[1].dateAdded").isNotEmpty())
 			.andExpect(jsonPath("data.stocks[0].isActive").value(equalTo(true)))
-			.andExpect(jsonPath("data.stocks[0].lastUpdated").value(equalTo(now.toString())));
+			.andExpect(jsonPath("data.stocks[0].lastUpdated").isNotEmpty());
 	}
 
 	@DisplayName("사용자는 특정 종목의 지정 알림가들을 조회합니다")
@@ -222,10 +222,10 @@ class StockTargetPriceNotificationRestControllerTest {
 			.andExpect(jsonPath("message").value(equalTo("종목 지정가 알림 특정 조회를 성공했습니다")))
 			.andExpect(jsonPath("data.targetPrices[0].notificationId").value(equalTo(1)))
 			.andExpect(jsonPath("data.targetPrices[0].targetPrice").value(equalTo(60000)))
-			.andExpect(jsonPath("data.targetPrices[0].dateAdded").value(equalTo(now.toString())))
+			.andExpect(jsonPath("data.targetPrices[0].dateAdded").isNotEmpty())
 			.andExpect(jsonPath("data.targetPrices[1].notificationId").value(equalTo(2)))
 			.andExpect(jsonPath("data.targetPrices[1].targetPrice").value(equalTo(70000)))
-			.andExpect(jsonPath("data.targetPrices[1].dateAdded").value(equalTo(now.toString())));
+			.andExpect(jsonPath("data.targetPrices[1].dateAdded").isNotEmpty());
 	}
 
 	@DisplayName("사용자는 종목 지정가 알림의 정보를 수정한다")

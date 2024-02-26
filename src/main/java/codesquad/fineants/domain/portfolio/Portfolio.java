@@ -237,9 +237,7 @@ public class Portfolio extends BaseEntity {
 
 	// 포트폴리오 모든 종목들에 주식 현재가 적용
 	public void applyCurrentPriceAllHoldingsBy(CurrentPriceManager manager) {
-		log.info("start applyCurrentPriceAllHoldingsBy method");
 		for (PortfolioHolding portfolioHolding : portfolioHoldings) {
-			log.info("portfolioHolding : {}", portfolioHolding);
 			portfolioHolding.applyCurrentPrice(manager);
 		}
 	}

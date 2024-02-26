@@ -4,9 +4,7 @@ import javax.validation.constraints.NotBlank;
 
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.notification.Notification;
-import codesquad.fineants.domain.notification.PortfolioNotification;
-import codesquad.fineants.domain.notification.PortfolioNotificationType;
-import codesquad.fineants.domain.notification.StockTargetPriceNotification;
+import codesquad.fineants.domain.notification.type.NotificationType;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -30,26 +28,11 @@ public class MemberNotificationSendRequest {
 	private String referenceId;
 
 	public Notification toEntity(Member member) {
-		if (type.equals("portfolio")) {
+		NotificationType notificationType = NotificationType.from(target);
 
-			return PortfolioNotification.builder()
-				.title(title)
-				.isRead(false)
-				.type(type)
-				.referenceId(referenceId)
-				.member(member)
-				.portfolioName(name)
-				.notificationType(PortfolioNotificationType.from(target))
-				.build();
+		if (type.equals("portfolio")) {
+			return Notification.portfolioNotification(name, title, notificationType, referenceId, member);
 		}
-		return StockTargetPriceNotification.builder()
-			.title(title)
-			.isRead(false)
-			.type(type)
-			.referenceId(referenceId)
-			.member(member)
-			.stockName(name)
-			.targetPrice(Long.valueOf(target))
-			.build();
+		return Notification.stockTargetPriceNotification(name, Long.valueOf(target), title, referenceId, member);
 	}
 }

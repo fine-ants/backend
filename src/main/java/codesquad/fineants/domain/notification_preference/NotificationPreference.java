@@ -24,10 +24,6 @@ public class NotificationPreference extends BaseEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@OneToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "member_id")
-	private Member member;
-
 	private boolean browserNotify;
 
 	private boolean targetGainNotify;
@@ -35,6 +31,10 @@ public class NotificationPreference extends BaseEntity {
 	private boolean maxLossNotify;
 
 	private boolean targetPriceNotify;
+
+	@OneToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "member_id")
+	private Member member;
 
 	@Builder
 	public NotificationPreference(Member member, boolean browserNotify, boolean targetGainNotify, boolean maxLossNotify,
@@ -68,5 +68,13 @@ public class NotificationPreference extends BaseEntity {
 			&& !this.targetGainNotify
 			&& !this.maxLossNotify
 			&& !this.targetPriceNotify;
+	}
+
+	public boolean isPossibleTargetGainNotification() {
+		return this.browserNotify && this.targetGainNotify;
+	}
+
+	public boolean isPossibleMaxLossNotification() {
+		return this.browserNotify && this.maxLossNotify;
 	}
 }

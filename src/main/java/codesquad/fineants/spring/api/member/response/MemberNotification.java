@@ -34,7 +34,7 @@ public class MemberNotification {
 			.body(notification.createNotificationBody())
 			.timestamp(notification.getCreateAt())
 			.isRead(notification.getIsRead())
-			.type(notification.getType())
+			.type(notification.getType().getCategory())
 			.referenceId(notification.getReferenceId())
 			.build();
 	}

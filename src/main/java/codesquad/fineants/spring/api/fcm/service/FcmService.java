@@ -1,5 +1,8 @@
 package codesquad.fineants.spring.api.fcm.service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -70,5 +73,18 @@ public class FcmService {
 		int deleteCount = fcmRepository.deleteByFcmTokenId(fcmTokenId, memberId);
 		log.info("FCM 토큰 삭제 개수 : deleteCount={}", deleteCount);
 		return FcmDeleteResponse.from(fcmTokenId);
+	}
+
+	@Transactional
+	public int deleteToken(String token) {
+		int deleteCount = fcmRepository.deleteAllByToken(token);
+		log.info("FCM 토큰 삭제 개수 : deleteCount={}", deleteCount);
+		return deleteCount;
+	}
+
+	public List<String> findTokens(Long memberId) {
+		return fcmRepository.findAllByMemberId(memberId).stream()
+			.map(FcmToken::getToken)
+			.collect(Collectors.toList());
 	}
 }

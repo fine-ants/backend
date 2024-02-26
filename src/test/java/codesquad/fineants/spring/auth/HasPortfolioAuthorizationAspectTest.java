@@ -2,6 +2,7 @@ package codesquad.fineants.spring.auth;
 
 import static org.assertj.core.api.Assertions.*;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +24,12 @@ class HasPortfolioAuthorizationAspectTest extends AbstractContainerBaseTest {
 
 	@Autowired
 	private PortfolioRepository portfolioRepository;
+
+	@AfterEach
+	void tearDown() {
+		portfolioRepository.deleteAllInBatch();
+		memberRepository.deleteAllInBatch();
+	}
 
 	@DisplayName("사용자는 포트폴리오에 대한 권한을 가지고 있어서 에러를 발생시키지 않고 통과한다")
 	@Test

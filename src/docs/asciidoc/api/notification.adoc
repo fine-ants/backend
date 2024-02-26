@@ -1,0 +1,36 @@
+[[notification-create]]
+=== 알림 추가
+
+==== HTTP Request
+
+include::{snippets}/notification-create/http-request.adoc[]
+include::{snippets}/notification-create/request-fields.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/notification-create/http-response.adoc[]
+include::{snippets}/notification-create/response-fields.adoc[]
+
+=== 포트폴리오 목표 수익률 도달 알림
+
+==== HTTP Request
+
+include::{snippets}/notification_portfolio_target_gain-notify/http-request.adoc[]
+include::{snippets}/notification_portfolio_target_gain-notify/path-parameters.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/notification_portfolio_target_gain-notify/http-response.adoc[]
+include::{snippets}/notification_portfolio_target_gain-notify/response-fields.adoc[]
+
+=== 포트폴리오 최대 손실율 도달 알림
+
+==== HTTP Request
+
+include::{snippets}/notification_portfolio_max_loss-notify/http-request.adoc[]
+include::{snippets}/notification_portfolio_max_loss-notify/path-parameters.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/notification_portfolio_max_loss-notify/http-response.adoc[]
+include::{snippets}/notification_portfolio_max_loss-notify/response-fields.adoc[]

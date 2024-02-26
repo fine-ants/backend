@@ -3,7 +3,6 @@ package codesquad.fineants.spring.api.purchase_history;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.portfolio.Portfolio;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHoldingRepository;
@@ -14,6 +13,8 @@ import codesquad.fineants.spring.api.errors.errorcode.PortfolioHoldingErrorCode;
 import codesquad.fineants.spring.api.errors.errorcode.PurchaseHistoryErrorCode;
 import codesquad.fineants.spring.api.errors.exception.FineAntsException;
 import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
+import codesquad.fineants.spring.api.purchase_history.event.PublishEvent;
+import codesquad.fineants.spring.api.purchase_history.event.PushNotificationEvent;
 import codesquad.fineants.spring.api.purchase_history.request.PurchaseHistoryCreateRequest;
 import codesquad.fineants.spring.api.purchase_history.request.PurchaseHistoryModifyRequest;
 import codesquad.fineants.spring.api.purchase_history.response.PurchaseHistoryCreateResponse;
@@ -31,8 +32,12 @@ public class PurchaseHistoryService {
 	private final PortfolioHoldingRepository portfolioHoldingRepository;
 
 	@Transactional
-	public PurchaseHistoryCreateResponse addPurchaseHistory(PurchaseHistoryCreateRequest request,
-		Long portfolioId, Long portfolioHoldingId) {
+	@PublishEvent(eventType = PushNotificationEvent.class, params = "#{T(codesquad.fineants.spring.api.purchase_history.event.SendableParameter).create(portfolioId, memberId)}")
+	public PurchaseHistoryCreateResponse addPurchaseHistory(
+		PurchaseHistoryCreateRequest request,
+		Long portfolioId,
+		Long portfolioHoldingId,
+		Long memberId) {
 		log.info("매입이력 추가 서비스 요청 : request={}, portfolioHoldingId={}", request, portfolioHoldingId);
 
 		PortfolioHolding portfolioHolding = findPortfolioHolding(portfolioHoldingId);
@@ -48,29 +53,39 @@ public class PurchaseHistoryService {
 
 		PurchaseHistory newPurchaseHistory = repository.save(request.toEntity(portfolioHolding));
 		log.info("매입이력 저장 결과 : newPurchaseHistory={}", newPurchaseHistory);
-		return PurchaseHistoryCreateResponse.from(newPurchaseHistory);
+
+		return PurchaseHistoryCreateResponse.from(newPurchaseHistory, portfolioId, memberId);
 	}
 
 	@Transactional
+	@PublishEvent(eventType = PushNotificationEvent.class, params = "#{T(codesquad.fineants.spring.api.purchase_history.event.SendableParameter).create(portfolioId, memberId)}")
 	public PurchaseHistoryModifyResponse modifyPurchaseHistory(PurchaseHistoryModifyRequest request,
-		Long portfolioHoldingId, Long purchaseHistoryId, AuthMember authMember) {
+		Long portfolioHoldingId, Long purchaseHistoryId, Long portfolioId, Long memberId) {
 		log.info("매입 내역 수정 서비스 요청 : request={}, portfolioHoldingId={}, purchaseHistoryId={}", request,
 			portfolioHoldingId, purchaseHistoryId);
 		PortfolioHolding portfolioHolding = findPortfolioHolding(portfolioHoldingId);
 		PurchaseHistory originalPurchaseHistory = findPurchaseHistory(purchaseHistoryId);
 		PurchaseHistory changePurchaseHistory = request.toEntity(portfolioHolding);
 
-		log.info("매입 내역 수정 결과 : changePurchaseHistory={}", changePurchaseHistory);
-		return PurchaseHistoryModifyResponse.from(originalPurchaseHistory.change(changePurchaseHistory));
+		PurchaseHistory changedPurchaseHistory = originalPurchaseHistory.change(changePurchaseHistory);
+		PurchaseHistoryModifyResponse response = PurchaseHistoryModifyResponse.from(
+			changedPurchaseHistory,
+			portfolioId,
+			memberId
+		);
+		log.info("매입 내역 수정 결과 : response={}", response);
+		return response;
 	}
 
 	@Transactional
-	public PurchaseHistoryDeleteResponse deletePurchaseHistory(Long portfolioHoldingId, Long purchaseHistoryId) {
+	@PublishEvent(eventType = PushNotificationEvent.class, params = "#{T(codesquad.fineants.spring.api.purchase_history.event.SendableParameter).create(portfolioId, memberId)}")
+	public PurchaseHistoryDeleteResponse deletePurchaseHistory(Long portfolioHoldingId, Long purchaseHistoryId,
+		Long portfolioId, Long memberId) {
 		log.info("매입 내역 삭제 서비스 요청 : portfolioHoldingId={}, purchaseHistoryId={}", portfolioHoldingId,
 			purchaseHistoryId);
 		PurchaseHistory deletePurchaseHistory = findPurchaseHistory(purchaseHistoryId);
 		repository.deleteById(purchaseHistoryId);
-		return PurchaseHistoryDeleteResponse.from(deletePurchaseHistory);
+		return PurchaseHistoryDeleteResponse.from(deletePurchaseHistory, portfolioId, memberId);
 	}
 
 	private PortfolioHolding findPortfolioHolding(Long portfolioHoldingId) {
