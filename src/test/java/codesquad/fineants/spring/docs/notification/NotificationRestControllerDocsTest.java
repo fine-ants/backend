@@ -198,6 +198,78 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 					)
 				)
 			);
+	}
 
+	@DisplayName("사용자는 한 포트폴리오의 최대 손실율 도달 알림을 전송받습니다")
+	@Test
+	void notifyPortfolioMaxLossMessages() throws Exception {
+		// given
+		Long notificationId = 1L;
+		String title = "포트폴리오";
+		boolean isRead = false;
+		NotificationType type = NotificationType.PORTFOLIO_MAX_LOSS;
+		String referenceId = "1";
+		String messageId = "projects/fineants-404407/messages/4754d355-5d5d-4f14-a642-75fecdb91fa5";
+		given(service.notifyPortfolioMaxLossMessages(
+			anyLong(),
+			anyLong()))
+			.willReturn(NotifyPortfolioMessagesResponse.builder()
+				.notifications(List.of(
+					NotifyPortfolioMessageItem.builder()
+						.notificationId(notificationId)
+						.title(title)
+						.isRead(isRead)
+						.type(type)
+						.referenceId(referenceId)
+						.messageId(messageId)
+						.build()
+				))
+				.build());
+
+		Long portfolioId = 1L;
+		// when
+		mockMvc.perform(post("/api/notifications/portfolios/{portfolioId}/notify/max-loss", portfolioId))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("code").value(equalTo(200)))
+			.andExpect(jsonPath("status").value(equalTo("OK")))
+			.andExpect(jsonPath("message").value(equalTo("포트폴리오 최대 손실율 알림 메시지가 전송되었습니다")))
+			.andExpect(jsonPath("data.notifications[0].notificationId").value(equalTo(notificationId.intValue())))
+			.andExpect(jsonPath("data.notifications[0].title").value(equalTo(title)))
+			.andExpect(jsonPath("data.notifications[0].isRead").value(equalTo(false)))
+			.andExpect(jsonPath("data.notifications[0].type").value(equalTo(type.name())))
+			.andExpect(jsonPath("data.notifications[0].referenceId").value(equalTo(referenceId)))
+			.andExpect(jsonPath("data.notifications[0].messageId").value(equalTo(messageId)))
+			.andDo(
+				document(
+					"notification_portfolio_max_loss-notify",
+					preprocessRequest(prettyPrint()),
+					preprocessResponse(prettyPrint()),
+					pathParameters(
+						parameterWithName("portfolioId").description("포트폴리오 등록번호")
+					),
+					responseFields(
+						fieldWithPath("code").type(JsonFieldType.NUMBER)
+							.description("코드"),
+						fieldWithPath("status").type(JsonFieldType.STRING)
+							.description("상태"),
+						fieldWithPath("message").type(JsonFieldType.STRING)
+							.description("메시지"),
+						fieldWithPath("data").type(JsonFieldType.OBJECT)
+							.description("응답 데이터"),
+						fieldWithPath("data.notifications[].notificationId").type(JsonFieldType.NUMBER)
+							.description("알림 등록번호"),
+						fieldWithPath("data.notifications[].title").type(JsonFieldType.STRING)
+							.description("알림 제목"),
+						fieldWithPath("data.notifications[].isRead").type(JsonFieldType.BOOLEAN)
+							.description("읽음 여부"),
+						fieldWithPath("data.notifications[].type").type(JsonFieldType.STRING)
+							.description("알림 타입"),
+						fieldWithPath("data.notifications[].referenceId").type(JsonFieldType.STRING)
+							.description("참조 등록번호"),
+						fieldWithPath("data.notifications[].messageId").type(JsonFieldType.STRING)
+							.description("알림 메시지 등록번호")
+					)
+				)
+			);
 	}
 }

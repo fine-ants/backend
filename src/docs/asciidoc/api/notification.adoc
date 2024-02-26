@@ -22,3 +22,15 @@ include::{snippets}/notification_portfolio_target_gain-notify/path-parameters.ad
 
 include::{snippets}/notification_portfolio_target_gain-notify/http-response.adoc[]
 include::{snippets}/notification_portfolio_target_gain-notify/response-fields.adoc[]
+
+=== 포트폴리오 최대 손실율 도달 알림
+
+==== HTTP Request
+
+include::{snippets}/notification_portfolio_max_loss-notify/http-request.adoc[]
+include::{snippets}/notification_portfolio_max_loss-notify/path-parameters.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/notification_portfolio_max_loss-notify/http-response.adoc[]
+include::{snippets}/notification_portfolio_max_loss-notify/response-fields.adoc[]

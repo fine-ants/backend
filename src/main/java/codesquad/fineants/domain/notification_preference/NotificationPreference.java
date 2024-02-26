@@ -73,4 +73,8 @@ public class NotificationPreference extends BaseEntity {
 	public boolean isPossibleTargetGainNotification() {
 		return this.browserNotify && this.targetGainNotify;
 	}
+
+	public boolean isPossibleMaxLossNotification() {
+		return this.browserNotify && this.maxLossNotify;
+	}
 }

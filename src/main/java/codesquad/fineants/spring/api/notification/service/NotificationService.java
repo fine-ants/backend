@@ -130,6 +130,15 @@ public class NotificationService {
 	// 포트폴리오 최대 손실율 달성 알림 푸시
 	@Transactional
 	public NotifyPortfolioMessagesResponse notifyPortfolioMaxLossMessages(Long portfolioId, Long memberId) {
+		// 알림 조건
+		// 회원의 계정 알림 설정에서 브라우저 알림 설정 및 최대 손실율 도달 알림이 활성화되어야 함
+		NotificationPreference preference = notificationPreferenceRepository.findByMemberId(memberId)
+			.orElseThrow(
+				() -> new NotFoundResourceException(NotificationPreferenceErrorCode.NOT_FOUND_NOTIFICATION_PREFERENCE));
+		if (!preference.isPossibleMaxLossNotification()) {
+			return NotifyPortfolioMessagesResponse.empty();
+		}
+
 		if (!portfolioService.reachedMaxLoss(portfolioId)) {
 			return NotifyPortfolioMessagesResponse.empty();
 		}
