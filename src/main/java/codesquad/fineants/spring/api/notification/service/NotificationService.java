@@ -84,7 +84,7 @@ public class NotificationService {
 		List<NotifyPortfolioMessageItem> notifications = new ArrayList<>();
 		fcmService.findTokens(memberId)
 			.forEach(token -> notifyPortfolioTargetGainMessage(token, portfolio)
-				.ifPresent(notifications::add));
+				.ifPresentOrElse(notifications::add, () -> fcmService.deleteToken(token)));
 
 		return NotifyPortfolioMessagesResponse.from(notifications);
 	}
@@ -146,7 +146,7 @@ public class NotificationService {
 		Portfolio portfolio = portfolioService.findPortfolio(portfolioId);
 		fcmService.findTokens(memberId)
 			.forEach(token -> notifyPortfolioMaxLossMessage(token, portfolio)
-				.ifPresent(notifications::add));
+				.ifPresentOrElse(notifications::add, () -> fcmService.deleteToken(token)));
 		return NotifyPortfolioMessagesResponse.from(notifications);
 	}
 

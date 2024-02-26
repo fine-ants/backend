@@ -75,6 +75,13 @@ public class FcmService {
 		return FcmDeleteResponse.from(fcmTokenId);
 	}
 
+	@Transactional
+	public int deleteToken(String token) {
+		int deleteCount = fcmRepository.deleteAllByToken(token);
+		log.info("FCM 토큰 삭제 개수 : deleteCount={}", deleteCount);
+		return deleteCount;
+	}
+
 	public List<String> findTokens(Long memberId) {
 		return fcmRepository.findAllByMemberId(memberId).stream()
 			.map(FcmToken::getToken)
