@@ -43,6 +43,12 @@ public class PortFolioRestController {
 		return ApiResponse.success(PortfolioSuccessCode.CREATED_ADD_PORTFOLIO, response);
 	}
 
+	@GetMapping
+	public ApiResponse<PortfoliosResponse> searchMyAllPortfolios(@AuthPrincipalMember AuthMember authMember) {
+		return ApiResponse.success(PortfolioSuccessCode.OK_SEARCH_PORTFOLIOS,
+			portFolioService.readMyAllPortfolio(authMember));
+	}
+
 	@HasPortfolioAuthorization
 	@PutMapping("/{portfolioId}")
 	public ApiResponse<Void> modifyPortfolio(@PathVariable Long portfolioId,
@@ -60,12 +66,6 @@ public class PortFolioRestController {
 		log.info("포트폴리오 삭제 요청, portfolioId={}", portfolioId);
 		portFolioService.deletePortfolio(portfolioId, authMember);
 		return ApiResponse.success(PortfolioSuccessCode.OK_DELETE_PORTFOLIO);
-	}
-
-	@GetMapping
-	public ApiResponse<PortfoliosResponse> readMyAllPortfolio(@AuthPrincipalMember AuthMember authMember) {
-		return ApiResponse.success(PortfolioSuccessCode.OK_SEARCH_PORTFOLIOS,
-			portFolioService.readMyAllPortfolio(authMember));
 	}
 
 	@DeleteMapping
