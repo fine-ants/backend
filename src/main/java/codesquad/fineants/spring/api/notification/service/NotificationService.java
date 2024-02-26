@@ -72,12 +72,14 @@ public class NotificationService {
 			.orElseThrow(
 				() -> new NotFoundResourceException(NotificationPreferenceErrorCode.NOT_FOUND_NOTIFICATION_PREFERENCE));
 		if (!preference.isPossibleTargetGainNotification()) {
+			log.info("계정 알림 설정 비활성화로 인한 빈 리스트 반환");
 			return NotifyPortfolioMessagesResponse.empty();
 		}
 
 		Portfolio portfolio = portfolioService.findPortfolioUsingJoin(portfolioId);
 		portfolio.applyCurrentPriceAllHoldingsBy(currentPriceManager);
 		if (!portfolio.reachedTargetGain()) {
+			log.info("목표 수익률 미달로 인한 빈 리스트 반환");
 			return NotifyPortfolioMessagesResponse.empty();
 		}
 
@@ -136,12 +138,14 @@ public class NotificationService {
 			.orElseThrow(
 				() -> new NotFoundResourceException(NotificationPreferenceErrorCode.NOT_FOUND_NOTIFICATION_PREFERENCE));
 		if (!preference.isPossibleMaxLossNotification()) {
+			log.info("계정 알림 설정 비활성화로 인한 빈 리스트 반환");
 			return NotifyPortfolioMessagesResponse.empty();
 		}
 
 		Portfolio portfolio = portfolioService.findPortfolioUsingJoin(portfolioId);
 		portfolio.applyCurrentPriceAllHoldingsBy(currentPriceManager);
 		if (!portfolio.reachedMaximumLoss()) {
+			log.info("최대 손실율 미달로 인한 빈 리스트 반환");
 			return NotifyPortfolioMessagesResponse.empty();
 		}
 
