@@ -2,6 +2,8 @@ package codesquad.fineants.spring.api.portfolio;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.BDDMockito.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -21,6 +23,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.member.MemberRepository;
@@ -41,6 +44,7 @@ import codesquad.fineants.spring.AbstractContainerBaseTest;
 import codesquad.fineants.spring.api.errors.exception.BadRequestException;
 import codesquad.fineants.spring.api.errors.exception.ConflictException;
 import codesquad.fineants.spring.api.errors.exception.ForBiddenException;
+import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.portfolio.request.PortfolioCreateRequest;
 import codesquad.fineants.spring.api.portfolio.request.PortfolioModifyRequest;
 import codesquad.fineants.spring.api.portfolio.request.PortfoliosDeleteRequest;
@@ -70,6 +74,9 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 
 	@Autowired
 	private StockRepository stockRepository;
+
+	@MockBean
+	private CurrentPriceManager currentPriceManager;
 
 	@AfterEach
 	void tearDown() {
@@ -394,6 +401,30 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 		);
 	}
 
+	@DisplayName("사용자가 한 포트폴리오의 당일변동 손익이 음수인 경우 당일변 손익률도 음수여야 한다")
+	@Test
+	void readMyAllPortfolio_whenDailyGainIsMinus_thenDailGainRateIsMinus() {
+		// given
+		Member member = memberRepository.save(createMember());
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
+		Stock stock = stockRepository.save(createStock());
+		PortfolioHolding portfolioHolding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
+		PurchaseHistory purchaseHistory = purchaseHistoryRepository.save(
+			createPurchaseHistory(portfolioHolding, 3L, 90000.0));
+
+		given(currentPriceManager.hasCurrentPrice(anyString())).willReturn(true);
+		given(currentPriceManager.getCurrentPrice(anyString())).willReturn(50000L);
+
+		// when
+		PortfoliosResponse response = service.readMyAllPortfolio(AuthMember.from(member));
+
+		// then
+		assertThat(response.getPortfolios().get(0).getDailyGain()).isEqualTo(-120000L);
+		assertThat(response.getPortfolios().get(0).getDailyGainRate()).isEqualTo(-44);
+		assertThat(response.getPortfolios().get(0).getTotalGain()).isEqualTo(-120000L);
+		assertThat(response.getPortfolios().get(0).getTotalGainRate()).isEqualTo(-44);
+	}
+
 	@DisplayName("회원이 포트폴리오들을 삭제한다")
 	@Test
 	void deletePortfolios() {
@@ -510,6 +541,17 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 			.purchaseDate(LocalDateTime.of(2023, 9, 26, 9, 30, 0))
 			.numShares(3L)
 			.purchasePricePerShare(50000.0)
+			.memo("첫구매")
+			.portfolioHolding(portfolioHolding)
+			.build();
+	}
+
+	private PurchaseHistory createPurchaseHistory(PortfolioHolding portfolioHolding, Long numShares,
+		Double purchasePricePerShare) {
+		return PurchaseHistory.builder()
+			.purchaseDate(LocalDateTime.of(2023, 9, 26, 9, 30, 0))
+			.numShares(numShares)
+			.purchasePricePerShare(purchasePricePerShare)
 			.memo("첫구매")
 			.portfolioHolding(portfolioHolding)
 			.build();
