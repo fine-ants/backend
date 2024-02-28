@@ -1,0 +1,12 @@
+[[holding-search]]
+=== 포트폴리오 종목 조회
+
+==== HTTP Request
+
+include::{snippets}/holding-search/http-request.adoc[]
+include::{snippets}/holding-search/path-parameters.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/portfolio-search/http-response.adoc[]
+include::{snippets}/portfolio-search/response-fields.adoc[]
