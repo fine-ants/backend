@@ -206,6 +206,43 @@ class PortfolioStockServiceTest extends AbstractContainerBaseTest {
 		);
 	}
 
+	@DisplayName("사용자는 예산이 0원인 상태의 포트폴리오의 차트를 조회한다")
+	@Test
+	void readMyPortfolioCharts_whenPortfolioBudgetIsZero_thenOK() {
+		// given
+		Member member = memberRepository.save(createMember());
+		Portfolio portfolio = portfolioRepository.save(createPortfolioWithZero(member));
+		Stock stock = stockRepository.save(createStock());
+		List<StockDividend> stockDividends = createStockDividendWith(stock);
+		stockDividends.forEach(stock::addStockDividend);
+		stockDividendRepository.saveAll(stockDividends);
+
+		// when
+		PortfolioChartResponse response = service.readMyPortfolioCharts(portfolio.getId(), LocalDate.of(2023, 12, 15));
+
+		// then
+		assertAll(
+			() -> assertThat(response)
+				.extracting("pieChart")
+				.asList()
+				.hasSize(1)
+				.extracting("name", "valuation", "weight", "totalGain", "totalGainRate")
+				.containsExactlyInAnyOrder(
+					Tuple.tuple("현금", 0L, 0.0, 0L, 0.00)
+				),
+			() -> assertThat(response)
+				.extracting("dividendChart")
+				.asList()
+				.isEmpty(),
+			() -> assertThat(response)
+				.extracting("sectorChart")
+				.asList()
+				.hasSize(1)
+				.extracting("sector", "sectorWeight")
+				.containsExactlyInAnyOrder(Tuple.tuple("현금", 0.0))
+		);
+	}
+
 	@DisplayName("사용자는 포트폴리오에 실시간 상세 데이터를 조회한다")
 	@Test
 	void readMyPortfolioStocksInRealTime() {
@@ -558,6 +595,19 @@ class PortfolioStockServiceTest extends AbstractContainerBaseTest {
 			.budget(1000000L)
 			.targetGain(1500000L)
 			.maximumLoss(900000L)
+			.member(member)
+			.targetGainIsActive(false)
+			.maximumIsActive(false)
+			.build();
+	}
+
+	private Portfolio createPortfolioWithZero(Member member) {
+		return Portfolio.builder()
+			.name("내꿈은 워렌버핏")
+			.securitiesFirm("토스")
+			.budget(0L)
+			.targetGain(0L)
+			.maximumLoss(0L)
 			.member(member)
 			.targetGainIsActive(false)
 			.maximumIsActive(false)

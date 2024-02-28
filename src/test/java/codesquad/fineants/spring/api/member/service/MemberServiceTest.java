@@ -589,7 +589,7 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 		assertThat(response)
 			.extracting("user.notificationPreferences")
 			.extracting("browserNotify", "targetGainNotify", "maxLossNotify", "targetPriceNotify")
-			.containsExactlyInAnyOrder(false, true, true, true);
+			.containsExactlyInAnyOrder(false, false, false, false);
 	}
 
 	@DisplayName("사용자는 계정을 삭제한다")

@@ -49,9 +49,9 @@ public class NotificationPreference extends BaseEntity {
 	public static NotificationPreference defaultSetting(Member member) {
 		return NotificationPreference.builder()
 			.browserNotify(false)
-			.targetGainNotify(true)
-			.maxLossNotify(true)
-			.targetPriceNotify(true)
+			.targetGainNotify(false)
+			.maxLossNotify(false)
+			.targetPriceNotify(false)
 			.member(member)
 			.build();
 	}

@@ -218,7 +218,7 @@ public class PortfolioHolding extends BaseEntity {
 	}
 
 	public Double calculateWeightBy(Double portfolioAsset) {
-		return calculateCurrentValuation().doubleValue() / portfolioAsset * 100;
+		return portfolioAsset != 0.0 ? calculateCurrentValuation().doubleValue() / portfolioAsset * 100 : 0.0;
 	}
 
 	public PortfolioPieChartItem createPieChartItem(Double weight) {

@@ -286,7 +286,9 @@ public class Portfolio extends BaseEntity {
 
 	// 현금 비중 계산, 현금 비중 = 잔고 / 총자산
 	public Double calculateCashWeight() {
-		return calculateBalance().doubleValue() / calculateTotalAsset().doubleValue() * 100;
+		double balance = calculateBalance().doubleValue();
+		double totalAsset = calculateTotalAsset().doubleValue();
+		return totalAsset != 0.0 ? balance / totalAsset * 100 : 0.0;
 	}
 
 	// 포트폴리오 종목 비중 계산, 종목 비중 = 종목 평가 금액 / 총자산
@@ -295,7 +297,8 @@ public class Portfolio extends BaseEntity {
 	}
 
 	private Double calculateWeightBy(Double currentValuation) {
-		return currentValuation / calculateTotalAsset().doubleValue() * 100;
+		double totalAsset = calculateTotalAsset().doubleValue();
+		return totalAsset != 0.0 ? currentValuation / totalAsset * 100 : 0.0;
 	}
 
 	// 배당금 차트 생성
