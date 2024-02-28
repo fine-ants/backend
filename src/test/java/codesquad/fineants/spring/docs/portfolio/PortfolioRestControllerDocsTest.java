@@ -48,6 +48,7 @@ public class PortfolioRestControllerDocsTest extends RestDocsSupport {
 			.dailyGainRate(10)
 			.currentValuation(100000L)
 			.expectedMonthlyDividend(20000L)
+			.numShares(9)
 			.dateCreated(LocalDateTime.now())
 			.build();
 		given(portFolioService.readMyAllPortfolio(any(AuthMember.class)))
@@ -92,16 +93,28 @@ public class PortfolioRestControllerDocsTest extends RestDocsSupport {
 							.description("응답 데이터"),
 						fieldWithPath("data.portfolios[].id").type(JsonFieldType.NUMBER)
 							.description("포트폴리오 등록번호"),
-						fieldWithPath("data.portfolios[].title").type(JsonFieldType.STRING)
-							.description("알림 제목"),
-						fieldWithPath("data.portfolios[].isRead").type(JsonFieldType.BOOLEAN)
-							.description("읽음 여부"),
-						fieldWithPath("data.portfolios[].type").type(JsonFieldType.STRING)
-							.description("알림 타입"),
-						fieldWithPath("data.portfolios[].referenceId").type(JsonFieldType.STRING)
-							.description("참조 등록번호"),
-						fieldWithPath("data.portfolios[].messageId").type(JsonFieldType.STRING)
-							.description("알림 메시지 등록번호")
+						fieldWithPath("data.portfolios[].securitiesFirm").type(JsonFieldType.STRING)
+							.description("증권사"),
+						fieldWithPath("data.portfolios[].name").type(JsonFieldType.STRING)
+							.description("포트폴리오 이름"),
+						fieldWithPath("data.portfolios[].budget").type(JsonFieldType.NUMBER)
+							.description("예산"),
+						fieldWithPath("data.portfolios[].totalGain").type(JsonFieldType.NUMBER)
+							.description("총손익"),
+						fieldWithPath("data.portfolios[].totalGainRate").type(JsonFieldType.NUMBER)
+							.description("총손익율"),
+						fieldWithPath("data.portfolios[].dailyGain").type(JsonFieldType.NUMBER)
+							.description("일일손익"),
+						fieldWithPath("data.portfolios[].dailyGainRate").type(JsonFieldType.NUMBER)
+							.description("일일손익율"),
+						fieldWithPath("data.portfolios[].currentValuation").type(JsonFieldType.NUMBER)
+							.description("현재평가금액"),
+						fieldWithPath("data.portfolios[].expectedMonthlyDividend").type(JsonFieldType.NUMBER)
+							.description("예상월배당금"),
+						fieldWithPath("data.portfolios[].numShares").type(JsonFieldType.NUMBER)
+							.description("주식 총개수"),
+						fieldWithPath("data.portfolios[].dateCreated").type(JsonFieldType.STRING)
+							.description("추가일자")
 					)
 				)
 			);
