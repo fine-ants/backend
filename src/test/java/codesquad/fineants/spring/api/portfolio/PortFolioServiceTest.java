@@ -409,20 +409,26 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Stock stock = stockRepository.save(createStock());
 		PortfolioHolding portfolioHolding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
-		PurchaseHistory purchaseHistory = purchaseHistoryRepository.save(
-			createPurchaseHistory(portfolioHolding, 3L, 90000.0));
+		purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding, 3L, 90000.0));
+		portfolioGainHistoryRepository.save(PortfolioGainHistory.builder()
+			.totalGain(-120000L)
+			.dailyGain(-120000L)
+			.cash(730000L)
+			.currentValuation(150000L)
+			.portfolio(portfolio)
+			.build());
 
 		given(currentPriceManager.hasCurrentPrice(anyString())).willReturn(true);
-		given(currentPriceManager.getCurrentPrice(anyString())).willReturn(50000L);
+		given(currentPriceManager.getCurrentPrice(anyString())).willReturn(40000L);
 
 		// when
 		PortfoliosResponse response = service.readMyAllPortfolio(AuthMember.from(member));
 
 		// then
-		assertThat(response.getPortfolios().get(0).getDailyGain()).isEqualTo(-120000L);
-		assertThat(response.getPortfolios().get(0).getDailyGainRate()).isEqualTo(-44);
-		assertThat(response.getPortfolios().get(0).getTotalGain()).isEqualTo(-120000L);
-		assertThat(response.getPortfolios().get(0).getTotalGainRate()).isEqualTo(-44);
+		assertThat(response.getPortfolios().get(0).getDailyGain()).isEqualTo(-30000);
+		assertThat(response.getPortfolios().get(0).getDailyGainRate()).isEqualTo(-20);
+		assertThat(response.getPortfolios().get(0).getTotalGain()).isEqualTo(-150000);
+		assertThat(response.getPortfolios().get(0).getTotalGainRate()).isEqualTo(-55);
 	}
 
 	@DisplayName("회원이 포트폴리오들을 삭제한다")

@@ -9,6 +9,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
 
 import codesquad.fineants.domain.BaseEntity;
 import codesquad.fineants.domain.member.Member;
@@ -19,6 +21,9 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Table(name = "fcm_token", uniqueConstraints = {
+	@UniqueConstraint(name = "token_member_id_unique", columnNames = {"token", "member_id"})
+})
 @Entity
 public class FcmToken extends BaseEntity {
 

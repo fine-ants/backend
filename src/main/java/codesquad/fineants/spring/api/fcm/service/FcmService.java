@@ -3,6 +3,7 @@ package codesquad.fineants.spring.api.fcm.service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +20,7 @@ import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.spring.api.errors.errorcode.FcmErrorCode;
 import codesquad.fineants.spring.api.errors.errorcode.MemberErrorCode;
 import codesquad.fineants.spring.api.errors.exception.BadRequestException;
+import codesquad.fineants.spring.api.errors.exception.FineAntsException;
 import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
 import codesquad.fineants.spring.api.fcm.request.FcmRegisterRequest;
 import codesquad.fineants.spring.api.fcm.response.FcmDeleteResponse;
@@ -44,8 +46,14 @@ public class FcmService {
 		FcmToken fcmToken = fcmRepository.findByTokenAndMemberId(request.getFcmToken(), authMember.getMemberId())
 			.orElseGet(() -> request.toEntity(member));
 		fcmToken.refreshLatestActivationTime();
-		FcmToken saveFcmToken = fcmRepository.save(fcmToken);
-		return FcmRegisterResponse.from(saveFcmToken);
+		try {
+			FcmToken saveFcmToken = fcmRepository.save(fcmToken);
+			FcmRegisterResponse response = FcmRegisterResponse.from(saveFcmToken);
+			log.info("FCM Token 저장 결과 : {}", response);
+			return response;
+		} catch (DataIntegrityViolationException e) {
+			throw new FineAntsException(FcmErrorCode.CONFLICT_FCM_TOKEN);
+		}
 	}
 
 	private void verifyFcmToken(String token) {
