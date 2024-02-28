@@ -26,4 +26,8 @@ public interface StockTargetPriceRepository extends JpaRepository<StockTargetPri
 	@Modifying
 	@Query("delete from StockTargetPrice s where s.stock.tickerSymbol = :tickerSymbol and s.member.id = :memberId")
 	int deleteByTickerSymbolAndMemberId(@Param("tickerSymbol") String tickerSymbol, @Param("memberId") Long memberId);
+
+	@Modifying
+	@Query("delete from StockTargetPrice s where s.member.id = :memberId")
+	int deleteAllByMemberId(@Param("memberId") Long memberId);
 }

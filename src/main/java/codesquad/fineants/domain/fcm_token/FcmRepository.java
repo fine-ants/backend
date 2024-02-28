@@ -26,4 +26,8 @@ public interface FcmRepository extends JpaRepository<FcmToken, Long> {
 	@Modifying
 	@Query("delete from FcmToken f where f.token = :token")
 	int deleteAllByToken(@Param("token") String token);
+
+	@Modifying
+	@Query("delete from FcmToken f where f.member.id = :memberId")
+	int deleteAllByMemberId(@Param("memberId") Long memberId);
 }

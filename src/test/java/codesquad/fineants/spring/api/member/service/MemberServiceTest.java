@@ -10,7 +10,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -30,14 +32,36 @@ import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
+import codesquad.fineants.domain.fcm_token.FcmRepository;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.member.MemberRepository;
+import codesquad.fineants.domain.notification.NotificationRepository;
 import codesquad.fineants.domain.notification_preference.NotificationPreference;
 import codesquad.fineants.domain.notification_preference.NotificationPreferenceRepository;
 import codesquad.fineants.domain.oauth.client.AuthorizationCodeRandomGenerator;
 import codesquad.fineants.domain.oauth.client.OauthClient;
 import codesquad.fineants.domain.oauth.repository.OauthClientRepository;
 import codesquad.fineants.domain.oauth.support.AuthMember;
+import codesquad.fineants.domain.portfolio.Portfolio;
+import codesquad.fineants.domain.portfolio.PortfolioRepository;
+import codesquad.fineants.domain.portfolio_gain_history.PortfolioGainHistoryRepository;
+import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
+import codesquad.fineants.domain.portfolio_holding.PortfolioHoldingRepository;
+import codesquad.fineants.domain.purchase_history.PurchaseHistory;
+import codesquad.fineants.domain.purchase_history.PurchaseHistoryRepository;
+import codesquad.fineants.domain.stock.Market;
+import codesquad.fineants.domain.stock.Stock;
+import codesquad.fineants.domain.stock.StockRepository;
+import codesquad.fineants.domain.stock_dividend.StockDividend;
+import codesquad.fineants.domain.stock_dividend.StockDividendRepository;
+import codesquad.fineants.domain.stock_target_price.StockTargetPrice;
+import codesquad.fineants.domain.stock_target_price.StockTargetPriceRepository;
+import codesquad.fineants.domain.target_price_notification.TargetPriceNotification;
+import codesquad.fineants.domain.target_price_notification.TargetPriceNotificationRepository;
+import codesquad.fineants.domain.watch_list.WatchList;
+import codesquad.fineants.domain.watch_list.WatchListRepository;
+import codesquad.fineants.domain.watch_stock.WatchStock;
+import codesquad.fineants.domain.watch_stock.WatchStockRepository;
 import codesquad.fineants.spring.AbstractContainerBaseTest;
 import codesquad.fineants.spring.api.S3.service.AmazonS3Service;
 import codesquad.fineants.spring.api.errors.errorcode.MemberErrorCode;
@@ -72,6 +96,42 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 	@Autowired
 	private NotificationPreferenceRepository preferenceRepository;
 
+	@Autowired
+	private PortfolioRepository portfolioRepository;
+
+	@Autowired
+	private PortfolioHoldingRepository portfolioHoldingRepository;
+
+	@Autowired
+	private PurchaseHistoryRepository purchaseHistoryRepository;
+
+	@Autowired
+	private StockTargetPriceRepository stockTargetPriceRepository;
+
+	@Autowired
+	private TargetPriceNotificationRepository targetPriceNotificationRepository;
+
+	@Autowired
+	private StockDividendRepository stockDividendRepository;
+
+	@Autowired
+	private FcmRepository fcmRepository;
+
+	@Autowired
+	private NotificationRepository notificationRepository;
+
+	@Autowired
+	private PortfolioGainHistoryRepository portfolioGainHistoryRepository;
+
+	@Autowired
+	private StockRepository stockRepository;
+
+	@Autowired
+	private WatchListRepository watchListRepository;
+
+	@Autowired
+	private WatchStockRepository watchStockRepository;
+
 	@MockBean
 	private AuthorizationCodeRandomGenerator authorizationCodeRandomGenerator;
 
@@ -95,8 +155,20 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 
 	@AfterEach
 	void tearDown() {
+		fcmRepository.deleteAllInBatch();
+		notificationRepository.deleteAllInBatch();
+		targetPriceNotificationRepository.deleteAllInBatch();
+		stockTargetPriceRepository.deleteAllInBatch();
 		preferenceRepository.deleteAllInBatch();
+		purchaseHistoryRepository.deleteAllInBatch();
+		portfolioHoldingRepository.deleteAllInBatch();
+		portfolioGainHistoryRepository.deleteAllInBatch();
+		portfolioRepository.deleteAllInBatch();
+		watchStockRepository.deleteAllInBatch();
+		watchListRepository.deleteAllInBatch();
 		memberRepository.deleteAllInBatch();
+		stockDividendRepository.deleteAllInBatch();
+		stockRepository.deleteAllInBatch();
 	}
 
 	@DisplayName("존재하지 않은 provider를 제공하여 로그인 시도시 예외가 발생한다")
@@ -520,6 +592,29 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 			.containsExactlyInAnyOrder(false, true, true, true);
 	}
 
+	@DisplayName("사용자는 계정을 삭제한다")
+	@Test
+	void deleteMember() {
+		// given
+		Member member = memberRepository.save(createMember());
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
+		Stock stock = stockRepository.save(createStock());
+		stockDividendRepository.saveAll(createStockDividendWith(stock));
+		PortfolioHolding portfolioHolding = portfolioHoldingRepository.save(createPortfolioHolding(portfolio, stock));
+		purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding));
+		preferenceRepository.save(createNotificationPreference(member));
+		StockTargetPrice stockTargetPrice = stockTargetPriceRepository.save(createStockTargetPrice(member, stock));
+		targetPriceNotificationRepository.save(createTargetPriceNotification(stockTargetPrice));
+		WatchList watchList = watchListRepository.save(createWatchList(member));
+		watchStockRepository.save(createWatchStock(watchList, stock));
+
+		// when
+		memberService.deleteMember(AuthMember.from(member));
+
+		// then
+		assertThat(memberRepository.findById(member.getId())).isEmpty();
+	}
+
 	private AuthorizationRequest createAuthorizationRequest(String state) {
 		String codeVerifier = "1234";
 		String codeChallenge = "1234";
@@ -606,5 +701,148 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 			Arguments.of(request, profileImageFile, "profileUrl"),
 			Arguments.of(request, null, null)
 		);
+	}
+
+	private Portfolio createPortfolio(Member member) {
+		return Portfolio.builder()
+			.name("내꿈은 워렌버핏")
+			.securitiesFirm("토스")
+			.budget(1000000L)
+			.targetGain(1500000L)
+			.maximumLoss(900000L)
+			.member(member)
+			.targetGainIsActive(false)
+			.maximumIsActive(false)
+			.build();
+	}
+
+	private Stock createStock() {
+		return Stock.builder()
+			.companyName("삼성전자보통주")
+			.tickerSymbol("005930")
+			.companyNameEng("SamsungElectronics")
+			.stockCode("KR7005930003")
+			.sector("전기전자")
+			.market(Market.KOSPI)
+			.build();
+	}
+
+	private Stock createStock(String companyName, String tickerSymbol, String companyNameEng, String stockCode,
+		String sector, Market market) {
+		return Stock.builder()
+			.companyName(companyName)
+			.tickerSymbol(tickerSymbol)
+			.companyNameEng(companyNameEng)
+			.stockCode(stockCode)
+			.sector(sector)
+			.market(market)
+			.build();
+	}
+
+	private StockDividend createStockDividend(LocalDate exDividendDate, LocalDate recordDate, LocalDate paymentDate,
+		Stock stock) {
+		return StockDividend.builder()
+			.dividend(361L)
+			.exDividendDate(exDividendDate)
+			.recordDate(recordDate)
+			.paymentDate(paymentDate)
+			.stock(stock)
+			.build();
+	}
+
+	private PortfolioHolding createPortfolioHolding(Portfolio portfolio, Stock stock) {
+		return PortfolioHolding.builder()
+			.portfolio(portfolio)
+			.stock(stock)
+			.build();
+	}
+
+	private PurchaseHistory createPurchaseHistory(PortfolioHolding portfolioHolding) {
+		return PurchaseHistory.builder()
+			.purchaseDate(LocalDateTime.of(2023, 9, 26, 9, 30, 0))
+			.numShares(3L)
+			.purchasePricePerShare(50000.0)
+			.memo("첫구매")
+			.portfolioHolding(portfolioHolding)
+			.build();
+	}
+
+	private List<StockDividend> createStockDividendWith(Stock stock) {
+		return List.of(
+			createStockDividend(
+				LocalDate.of(2022, 12, 30),
+				LocalDate.of(2022, 12, 31),
+				LocalDate.of(2023, 4, 14),
+				stock),
+			createStockDividend(
+				LocalDate.of(2023, 3, 30),
+				LocalDate.of(2023, 3, 31),
+				LocalDate.of(2023, 5, 17),
+				stock),
+			createStockDividend(
+				LocalDate.of(2023, 6, 29),
+				LocalDate.of(2023, 6, 30),
+				LocalDate.of(2023, 8, 16),
+				stock),
+			createStockDividend(
+				LocalDate.of(2023, 9, 27),
+				LocalDate.of(2023, 9, 30),
+				LocalDate.of(2023, 11, 20),
+				stock),
+			createStockDividend(
+				LocalDate.of(2024, 3, 29),
+				LocalDate.of(2024, 3, 31),
+				LocalDate.of(2024, 5, 17),
+				stock),
+			createStockDividend(
+				LocalDate.of(2024, 6, 28),
+				LocalDate.of(2024, 6, 30),
+				LocalDate.of(2024, 8, 16),
+				stock),
+			createStockDividend(
+				LocalDate.of(2024, 9, 27),
+				LocalDate.of(2024, 9, 30),
+				LocalDate.of(2024, 11, 20),
+				stock)
+		);
+	}
+
+	private NotificationPreference createNotificationPreference(Member member) {
+		return NotificationPreference.builder()
+			.browserNotify(true)
+			.targetGainNotify(true)
+			.maxLossNotify(true)
+			.targetPriceNotify(true)
+			.member(member)
+			.build();
+	}
+
+	private StockTargetPrice createStockTargetPrice(Member member, Stock stock) {
+		return StockTargetPrice.builder()
+			.isActive(true)
+			.stock(stock)
+			.member(member)
+			.build();
+	}
+
+	private TargetPriceNotification createTargetPriceNotification(StockTargetPrice stockTargetPrice) {
+		return TargetPriceNotification.builder()
+			.targetPrice(60000L)
+			.stockTargetPrice(stockTargetPrice)
+			.build();
+	}
+
+	private WatchList createWatchList(Member member) {
+		return WatchList.builder()
+			.name("관심 종목1")
+			.member(member)
+			.build();
+	}
+
+	private WatchStock createWatchStock(WatchList watchList, Stock stock) {
+		return WatchStock.builder()
+			.stock(stock)
+			.watchList(watchList)
+			.build();
 	}
 }
