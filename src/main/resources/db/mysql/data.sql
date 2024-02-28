@@ -92,4 +92,4 @@ VALUES (2, '2024-01-23 10:10:10.0', '포트폴리오', false, 'PORTFOLIO_TARGET_
 
 INSERT INTO fineAnts.notification_preference(id, create_at, browser_notify, max_loss_notify, target_gain_notify,
                                              target_price_notify, member_id)
-VALUES (1, now(), false, true, true, true, 1);
+VALUES (1, now(), true, true, true, true, 1);
