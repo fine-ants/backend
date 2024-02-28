@@ -139,12 +139,15 @@ create table if not exists fineAnts.watch_stock
 
 create table if not exists fineAnts.fcm_token
 (
-    id                     bigint auto_increment primary key,
+    id bigint auto_increment
+        primary key,
     create_at              datetime(6)  null,
     modified_at            datetime(6)  null,
     latest_activation_time datetime(6)  null,
     token                  varchar(255) null,
     member_id              bigint       null,
+    constraint token_member_id_unique
+        unique (token, member_id),
     constraint FKf1rbjf8lle4r2in6ovkcgl0w8
         foreign key (member_id) references fineAnts.member (id)
 );
