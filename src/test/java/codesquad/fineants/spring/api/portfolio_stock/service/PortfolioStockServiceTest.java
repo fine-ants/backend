@@ -284,9 +284,9 @@ class PortfolioStockServiceTest extends AbstractContainerBaseTest {
 		Stock stock = stockRepository.save(createStock());
 
 		Map<Object, Object> purchaseHistory = new HashMap<>();
-		purchaseHistory.put("purchasedDate", LocalDateTime.now());
-		purchaseHistory.put("numShares", Long.valueOf(2));
-		purchaseHistory.put("purchasePricePerShare", Double.valueOf(1000));
+		purchaseHistory.put("purchaseDate", LocalDateTime.now());
+		purchaseHistory.put("numShares", 2);
+		purchaseHistory.put("purchasePricePerShare", 1000.0);
 
 		Map<String, Object> requestBodyMap = new HashMap<>();
 		requestBodyMap.put("tickerSymbol", stock.getTickerSymbol());
@@ -306,6 +306,40 @@ class PortfolioStockServiceTest extends AbstractContainerBaseTest {
 		);
 	}
 
+	@DisplayName("사용자는 포트폴리오 종목이 존재하는 상태에서 매입 이력과 같이 종목을 추가할때 매입 이력만 추가된다")
+	@Test
+	void addPortfolioStock_whenExistHolding_thenAddPurchaseHistory() {
+		// given
+		Member member = memberRepository.save(createMember());
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
+		Stock stock = stockRepository.save(createStock());
+		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
+		purchaseHistoryRepository.save(createPurchaseHistory(holding));
+
+		Map<Object, Object> purchaseHistory = new HashMap<>();
+		purchaseHistory.put("purchaseDate", LocalDateTime.now());
+		purchaseHistory.put("numShares", 2);
+		purchaseHistory.put("purchasePricePerShare", 1000.0);
+
+		Map<String, Object> requestBodyMap = new HashMap<>();
+		requestBodyMap.put("tickerSymbol", stock.getTickerSymbol());
+		requestBodyMap.put("purchaseHistory", purchaseHistory);
+		PortfolioStockCreateRequest request = ObjectMapperUtil.deserialize(ObjectMapperUtil.serialize(requestBodyMap),
+			PortfolioStockCreateRequest.class);
+		// when
+		PortfolioStockCreateResponse response = service.addPortfolioStock(portfolio.getId(), request,
+			AuthMember.from(member));
+
+		// then
+		assertAll(
+			() -> assertThat(response)
+				.extracting("portfolioStockId")
+				.isNotNull(),
+			() -> assertThat(portFolioHoldingRepository.findAll()).hasSize(1),
+			() -> assertThat(purchaseHistoryRepository.findAllByPortfolioHoldingId(holding.getId())).hasSize(2)
+		);
+	}
+
 	@DisplayName("사용자는 포트폴리오에 종목과 매입이력 중 일부를 추가할 수 없다")
 	@Test
 	void addPortfolioStockWithInvalidInput() {
@@ -315,7 +349,7 @@ class PortfolioStockServiceTest extends AbstractContainerBaseTest {
 		Stock stock = stockRepository.save(createStock());
 
 		Map<Object, Object> purchaseHistory = new HashMap<>();
-		purchaseHistory.put("purchasedDate", LocalDateTime.now());
+		purchaseHistory.put("purchaseDate", LocalDateTime.now());
 		purchaseHistory.put("purchasePricePerShare", Double.valueOf(1000));
 
 		Map<String, Object> requestBodyMap = new HashMap<>();

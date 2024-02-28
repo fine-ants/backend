@@ -73,18 +73,21 @@ public class PortfolioStockService {
 		Stock stock = stockRepository.findByTickerSymbol(request.getTickerSymbol())
 			.orElseThrow(() -> new NotFoundResourceException(StockErrorCode.NOT_FOUND_STOCK));
 
-		PortfolioHolding portFolioHolding = portfolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
+		PortfolioHolding holding = portfolioHoldingRepository.findByPortfolioIdAndTickerSymbol(portfolioId,
+				request.getTickerSymbol())
+			.orElseGet(() -> PortfolioHolding.empty(portfolio, stock));
+		PortfolioHolding saveHolding = portfolioHoldingRepository.save(holding);
 
 		if (request.isPurchaseHistoryComplete()) {
 			validateInvestAmountNotExceedsBudget(request, portfolio);
-			purchaseHistoryRepository.save(PurchaseHistory.of(portFolioHolding, request.getPurchaseHistory()));
+			purchaseHistoryRepository.save(PurchaseHistory.of(saveHolding, request.getPurchaseHistory()));
 		} else if (!request.isPurchaseHistoryAllNull()) {
 			throw new FineAntsException(PurchaseHistoryErrorCode.BAD_INPUT);
 		}
 
 		publisher.publishPortfolioHolding(stock.getTickerSymbol());
-		log.info("포트폴리오 종목 추가 결과 : {}", portFolioHolding);
-		return PortfolioStockCreateResponse.from(portFolioHolding);
+		log.info("포트폴리오 종목 추가 결과 : {}", saveHolding);
+		return PortfolioStockCreateResponse.from(saveHolding);
 	}
 
 	@Transactional

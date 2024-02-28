@@ -9,10 +9,18 @@ import codesquad.fineants.domain.portfolio_gain_history.PortfolioGainHistory;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
+@Getter
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
+@Builder
+@ToString
 public class PortfoliosResponse {
-	private final List<PortFolioItem> portfolios;
+	private List<PortFolioItem> portfolios;
 
 	public static PortfoliosResponse of(List<Portfolio> portfolios,
 		Map<Portfolio, PortfolioGainHistory> portfolioGainHistoryMap,

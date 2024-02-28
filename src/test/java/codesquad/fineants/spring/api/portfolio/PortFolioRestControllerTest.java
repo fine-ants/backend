@@ -7,7 +7,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -24,9 +26,12 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.oauth.support.AuthMember;
@@ -37,7 +42,9 @@ import codesquad.fineants.spring.api.errors.handler.GlobalExceptionHandler;
 import codesquad.fineants.spring.api.portfolio.request.PortfolioCreateRequest;
 import codesquad.fineants.spring.api.portfolio.request.PortfolioModifyRequest;
 import codesquad.fineants.spring.api.portfolio.response.PortFolioCreateResponse;
+import codesquad.fineants.spring.api.portfolio.response.PortFolioItem;
 import codesquad.fineants.spring.api.portfolio.response.PortfolioModifyResponse;
+import codesquad.fineants.spring.api.portfolio.response.PortfoliosResponse;
 import codesquad.fineants.spring.auth.HasPortfolioAuthorizationAspect;
 import codesquad.fineants.spring.config.JpaAuditingConfiguration;
 import codesquad.fineants.spring.config.SpringConfig;
@@ -57,6 +64,9 @@ class PortFolioRestControllerTest {
 	@Autowired
 	private GlobalExceptionHandler globalExceptionHandler;
 
+	@Autowired
+	private ObjectMapper objectMapper;
+
 	@MockBean
 	private AuthPrincipalArgumentResolver authPrincipalArgumentResolver;
 
@@ -73,6 +83,7 @@ class PortFolioRestControllerTest {
 		mockMvc = MockMvcBuilders.standaloneSetup(portFolioRestController)
 			.setControllerAdvice(globalExceptionHandler)
 			.setCustomArgumentResolvers(authPrincipalArgumentResolver)
+			.setMessageConverters(new MappingJackson2HttpMessageConverter(objectMapper))
 			.alwaysDo(print())
 			.build();
 
@@ -80,7 +91,8 @@ class PortFolioRestControllerTest {
 
 		member = createMember();
 		AuthMember authMember = AuthMember.from(member);
-		given(authPrincipalArgumentResolver.resolveArgument(any(), any(), any(), any())).willReturn(authMember);
+		given(authPrincipalArgumentResolver.resolveArgument(any(), any(), any(), any()))
+			.willReturn(authMember);
 		given(portFolioService.hasAuthorizationBy(anyLong(), anyLong())).willReturn(true);
 	}
 
@@ -89,8 +101,8 @@ class PortFolioRestControllerTest {
 	@ParameterizedTest
 	void addPortfolio(Long budget, Long targetGain, Long maximumLoss) throws Exception {
 		// given
-		PortFolioCreateResponse response = PortFolioCreateResponse.from(createPortfolio(Portfolio.builder()
-			.id(1L), budget, targetGain, maximumLoss));
+		PortFolioCreateResponse response = PortFolioCreateResponse.from(
+			createPortfolio(1L, budget, targetGain, maximumLoss));
 		given(portFolioService.addPortFolio(any(PortfolioCreateRequest.class), any(AuthMember.class)))
 			.willReturn(response);
 
@@ -138,12 +150,57 @@ class PortFolioRestControllerTest {
 			.andExpect(jsonPath("data").isArray());
 	}
 
+	@DisplayName("사용자는 자신의 포트폴리오 목록을 조회한다")
+	@Test
+	void searchMyAllPortfolios() throws Exception {
+		// given
+		PortFolioItem portFolioItem = PortFolioItem.builder()
+			.id(1L)
+			.securitiesFirm("토스증권")
+			.name("내꿈은 워렌버핏")
+			.budget(1000000L)
+			.totalGain(100000L)
+			.totalGainRate(10)
+			.dailyGain(100000L)
+			.dailyGainRate(10)
+			.currentValuation(100000L)
+			.expectedMonthlyDividend(20000L)
+			.dateCreated(LocalDateTime.now())
+			.build();
+		given(portFolioService.readMyAllPortfolio(any(AuthMember.class)))
+			.willReturn(PortfoliosResponse.builder()
+				.portfolios(List.of(portFolioItem))
+				.build());
+
+		// when & then
+		mockMvc.perform(get("/api/portfolios"))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("code").value(equalTo(200)))
+			.andExpect(jsonPath("status").value(equalTo("OK")))
+			.andExpect(jsonPath("message").value(equalTo("포트폴리오 목록 조회가 완료되었습니다")))
+			.andExpect(jsonPath("data.portfolios[0].id").value(equalTo(portFolioItem.getId().intValue())))
+			.andExpect(jsonPath("data.portfolios[0].securitiesFirm").value(equalTo(portFolioItem.getSecuritiesFirm())))
+			.andExpect(jsonPath("data.portfolios[0].name").value(equalTo(portFolioItem.getName())))
+			.andExpect(jsonPath("data.portfolios[0].budget").value(equalTo(portFolioItem.getBudget().intValue())))
+			.andExpect(jsonPath("data.portfolios[0].totalGain").value(equalTo(portFolioItem.getTotalGain().intValue())))
+			.andExpect(jsonPath("data.portfolios[0].totalGainRate").value(equalTo(portFolioItem.getTotalGainRate())))
+			.andExpect(jsonPath("data.portfolios[0].dailyGain").value(equalTo(portFolioItem.getDailyGain().intValue())))
+			.andExpect(jsonPath("data.portfolios[0].dailyGainRate").value(equalTo(portFolioItem.getDailyGainRate())))
+			.andExpect(
+				jsonPath("data.portfolios[0].currentValuation").value(
+					equalTo(portFolioItem.getCurrentValuation().intValue())))
+			.andExpect(jsonPath("data.portfolios[0].expectedMonthlyDividend").value(
+				equalTo(portFolioItem.getExpectedMonthlyDividend().intValue())))
+			.andExpect(jsonPath("data.portfolios[0].numShares").value(equalTo(portFolioItem.getNumShares())))
+			.andExpect(jsonPath("data.portfolios[0].dateCreated").isNotEmpty());
+	}
+
 	@DisplayName("사용자는 포트폴리오 수정을 요청한다")
 	@CsvSource(value = {"1000000,1500000,900000", "0,0,0", "0,1500000,900000"})
 	@ParameterizedTest
 	void modifyPortfolio(Long budget, Long targetGain, Long maximumLoss) throws Exception {
 		// given
-		Portfolio portfolio = createPortfolio(Portfolio.builder(), 1000000L, 1500000L, 900000L);
+		Portfolio portfolio = createPortfolio(1L, 1000000L, 1500000L, 900000L);
 		PortfolioModifyResponse response = PortfolioModifyResponse.from(portfolio);
 
 		given(portFolioService.modifyPortfolio(any(PortfolioModifyRequest.class), anyLong(), any(AuthMember.class)))
@@ -197,7 +254,7 @@ class PortFolioRestControllerTest {
 	@Test
 	void deletePortfolio() throws Exception {
 		// given
-		Portfolio portfolio = createPortfolio(Portfolio.builder(), 1000000L, 1500000L, 900000L);
+		Portfolio portfolio = createPortfolio(1L, 1000000L, 1500000L, 900000L);
 		given(portfolioRepository.findById(anyLong())).willReturn(Optional.of(portfolio));
 
 		// when & then
@@ -226,8 +283,9 @@ class PortFolioRestControllerTest {
 			.build();
 	}
 
-	private Portfolio createPortfolio(Portfolio.PortfolioBuilder id, Long budget, Long targetGain, Long maximumLoss) {
-		return id
+	private Portfolio createPortfolio(Long id, Long budget, Long targetGain, Long maximumLoss) {
+		return Portfolio.builder()
+			.id(id)
 			.name("내꿈은 워렌버핏")
 			.securitiesFirm("토스")
 			.budget(budget)

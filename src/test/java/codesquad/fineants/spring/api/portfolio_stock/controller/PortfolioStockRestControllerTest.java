@@ -247,7 +247,7 @@ class PortfolioStockRestControllerTest {
 			any(AuthMember.class))).willReturn(response);
 
 		Map<String, Object> purchaseHistoryMap = new HashMap<>();
-		purchaseHistoryMap.put("purchasedDate", LocalDateTime.now().toString());
+		purchaseHistoryMap.put("purchaseDate", LocalDateTime.now().toString());
 		purchaseHistoryMap.put("numShares", 10L);
 		purchaseHistoryMap.put("purchasePricePerShare", 100.0);
 		purchaseHistoryMap.put("memo", null);

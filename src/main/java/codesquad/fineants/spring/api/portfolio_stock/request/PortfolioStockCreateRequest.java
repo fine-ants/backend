@@ -18,7 +18,7 @@ public class PortfolioStockCreateRequest {
 	@ToString
 	@Getter
 	public static class PurchaseHistoryCreateRequest {
-		private LocalDateTime purchasedDate;
+		private LocalDateTime purchaseDate;
 		@Positive(message = "주식 개수는 양수여야 합니다")
 		private Long numShares;
 		@Positive(message = "매입가는 양수여야 합니다")
@@ -27,12 +27,14 @@ public class PortfolioStockCreateRequest {
 	}
 
 	public boolean isPurchaseHistoryAllNull() {
-		return purchaseHistory == null || purchaseHistory.getPurchasedDate() == null && purchaseHistory.getNumShares() == null
+		return purchaseHistory == null
+			|| purchaseHistory.getPurchaseDate() == null && purchaseHistory.getNumShares() == null
 			&& purchaseHistory.getPurchasePricePerShare() == null && purchaseHistory.getMemo() == null;
 	}
 
 	public boolean isPurchaseHistoryComplete() {
-		return purchaseHistory!= null && purchaseHistory.getPurchasedDate() != null && purchaseHistory.getNumShares() != null
+		return purchaseHistory != null && purchaseHistory.getPurchaseDate() != null
+			&& purchaseHistory.getNumShares() != null
 			&& purchaseHistory.getPurchasePricePerShare() != null;
 	}
 }
