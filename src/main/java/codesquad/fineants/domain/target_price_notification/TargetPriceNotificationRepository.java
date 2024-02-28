@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import codesquad.fineants.domain.stock_target_price.StockTargetPrice;
+
 public interface TargetPriceNotificationRepository extends JpaRepository<TargetPriceNotification, Long> {
 
 	@Query("select t from TargetPriceNotification t where t.stockTargetPrice.id = :stockTargetPriceId")
@@ -23,4 +25,8 @@ public interface TargetPriceNotificationRepository extends JpaRepository<TargetP
 	@Query("delete from TargetPriceNotification t where t.id in (:targetPriceNotificationIds)")
 	int deleteAllByTargetPriceNotificationIds(
 		@Param("targetPriceNotificationIds") List<Long> targetPriceNotificationIds);
+
+	@Modifying
+	@Query("delete from TargetPriceNotification t where t.stockTargetPrice in(:stockTargetPrices)")
+	int deleteAllByStockTargetPrices(@Param("stockTargetPrices") List<StockTargetPrice> stockTargetPrices);
 }

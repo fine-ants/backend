@@ -3,6 +3,7 @@ package codesquad.fineants.domain.notification_preference;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -10,4 +11,8 @@ public interface NotificationPreferenceRepository extends JpaRepository<Notifica
 
 	@Query("select n from NotificationPreference n where n.member.id = :memberId")
 	Optional<NotificationPreference> findByMemberId(@Param("memberId") Long memberId);
+
+	@Modifying
+	@Query("delete from NotificationPreference n where n.member.id = :memberId")
+	int deleteAllByMemberId(@Param("memberId") Long memberId);
 }

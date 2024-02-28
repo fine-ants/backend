@@ -25,7 +25,7 @@ public class DashboardRestController {
 	private final DashboardService dashboardService;
 
 	@GetMapping("/overview")
-	public ApiResponse<OverviewResponse> readDashboard(@AuthPrincipalMember AuthMember authMember) {
+	public ApiResponse<OverviewResponse> readOverview(@AuthPrincipalMember AuthMember authMember) {
 		return ApiResponse.success(DashboardSuccessCode.OK_OVERVIEW, dashboardService.getOverview(authMember));
 	}
 

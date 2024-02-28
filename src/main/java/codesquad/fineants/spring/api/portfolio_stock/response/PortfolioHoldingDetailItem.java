@@ -2,8 +2,17 @@ package codesquad.fineants.spring.api.portfolio_stock.response;
 
 import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
+@Getter
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@Builder
+@ToString
 public class PortfolioHoldingDetailItem {
 	private Long portfolioHoldingId;
 	private Long currentValuation;
@@ -15,24 +24,7 @@ public class PortfolioHoldingDetailItem {
 	private Long totalGain;
 	private Integer totalReturnRate;
 	private Long annualDividend;
-	private Integer annualDividendYield;
-
-	@Builder(access = AccessLevel.PRIVATE)
-	private PortfolioHoldingDetailItem(Long portfolioHoldingId, Long currentValuation, Long currentPrice,
-		Double averageCostPerShare, Long numShares, Long dailyChange, Integer dailyChangeRate, Long totalGain,
-		Integer totalReturnRate, Long annualDividend, Integer annualDividendYield) {
-		this.portfolioHoldingId = portfolioHoldingId;
-		this.currentValuation = currentValuation;
-		this.currentPrice = currentPrice;
-		this.averageCostPerShare = averageCostPerShare;
-		this.numShares = numShares;
-		this.dailyChange = dailyChange;
-		this.dailyChangeRate = dailyChangeRate;
-		this.totalGain = totalGain;
-		this.totalReturnRate = totalReturnRate;
-		this.annualDividend = annualDividend;
-		this.annualDividendYield = annualDividendYield;
-	}
+	private Double annualDividendYield;
 
 	public static PortfolioHoldingDetailItem from(PortfolioHolding portfolioHolding, long lastDayClosingPrice) {
 		return PortfolioHoldingDetailItem.builder()
@@ -46,7 +38,7 @@ public class PortfolioHoldingDetailItem {
 			.totalGain(portfolioHolding.calculateTotalGain())
 			.totalReturnRate(portfolioHolding.calculateTotalReturnRate())
 			.annualDividend(portfolioHolding.calculateAnnualExpectedDividend())
-			.annualDividendYield(portfolioHolding.calculateAnnualExpectedDividendYield())
+			.annualDividendYield(portfolioHolding.calculateAnnualExpectedDividendYield().doubleValue())
 			.build();
 	}
 }

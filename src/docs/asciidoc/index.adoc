@@ -14,6 +14,10 @@ endif::[]
 
 include::api/portfolio.adoc[]
 
+== 포트폴리오 종목 API
+
+include::api/holding.adoc[]
+
 == FCM 토큰 API
 
 include::api/fcm.adoc[]
@@ -25,3 +29,7 @@ include::api/stock_target_price.adoc[]
 == 알림 API
 
 include::api/notification.adoc[]
+
+== 대시보드 API
+
+include::api/dashboard.adoc[]

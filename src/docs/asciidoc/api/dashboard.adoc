@@ -1,0 +1,11 @@
+[[dashboard_overview-search]]
+=== 오버뷰 조회
+
+==== HTTP Request
+
+include::{snippets}/dashboard_overview-search/http-request.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/dashboard_overview-search/http-response.adoc[]
+include::{snippets}/dashboard_overview-search/response-fields.adoc[]

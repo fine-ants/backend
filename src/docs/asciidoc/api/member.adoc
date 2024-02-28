@@ -1,0 +1,12 @@
+[[member-delete]]
+=== 사용자 계정 삭제
+
+==== HTTP Request
+
+include::{snippets}/member-delete/http-request.adoc[]
+include::{snippets}/member-delete/request-fields.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/member-delete/http-response.adoc[]
+include::{snippets}/member-delete/response-fields.adoc[]

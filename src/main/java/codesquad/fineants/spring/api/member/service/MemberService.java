@@ -18,10 +18,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import codesquad.fineants.domain.fcm_token.FcmRepository;
 import codesquad.fineants.domain.jwt.Jwt;
 import codesquad.fineants.domain.jwt.JwtProvider;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.member.MemberRepository;
+import codesquad.fineants.domain.notification.NotificationRepository;
 import codesquad.fineants.domain.notification_preference.NotificationPreference;
 import codesquad.fineants.domain.notification_preference.NotificationPreferenceRepository;
 import codesquad.fineants.domain.oauth.client.AuthorizationCodeRandomGenerator;
@@ -35,6 +37,9 @@ import codesquad.fineants.domain.portfolio_gain_history.PortfolioGainHistoryRepo
 import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHoldingRepository;
 import codesquad.fineants.domain.purchase_history.PurchaseHistoryRepository;
+import codesquad.fineants.domain.stock_target_price.StockTargetPrice;
+import codesquad.fineants.domain.stock_target_price.StockTargetPriceRepository;
+import codesquad.fineants.domain.target_price_notification.TargetPriceNotificationRepository;
 import codesquad.fineants.domain.watch_list.WatchList;
 import codesquad.fineants.domain.watch_list.WatchListRepository;
 import codesquad.fineants.domain.watch_stock.WatchStock;
@@ -98,6 +103,10 @@ public class MemberService {
 	private final VerifyCodeGenerator verifyCodeGenerator;
 	private final MemberNotificationPreferenceService preferenceService;
 	private final NotificationPreferenceRepository notificationPreferenceRepository;
+	private final NotificationRepository notificationRepository;
+	private final FcmRepository fcmRepository;
+	private final StockTargetPriceRepository stockTargetPriceRepository;
+	private final TargetPriceNotificationRepository targetPriceNotificationRepository;
 
 	public OauthMemberLoginResponse login(OauthMemberLoginRequest request) {
 		log.info("로그인 서비스 요청 : loginRequest={}", request);
@@ -392,6 +401,12 @@ public class MemberService {
 		watchList.forEach(w -> watchStocks.addAll(watchStockRepository.findByWatchList(w)));
 		watchStockRepository.deleteAll(watchStocks);
 		watchListRepository.deleteAll(watchList);
+		fcmRepository.deleteAllByMemberId(member.getId());
+		List<StockTargetPrice> stockTargetPrices = stockTargetPriceRepository.findAllByMemberId(member.getId());
+		targetPriceNotificationRepository.deleteAllByStockTargetPrices(stockTargetPrices);
+		stockTargetPriceRepository.deleteAllByMemberId(member.getId());
+		notificationRepository.deleteAllByMemberId(member.getId());
+		notificationPreferenceRepository.deleteAllByMemberId(member.getId());
 		memberRepository.delete(member);
 	}
 
