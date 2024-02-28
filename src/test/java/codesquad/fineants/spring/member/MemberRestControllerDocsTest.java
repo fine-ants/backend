@@ -31,7 +31,7 @@ public class MemberRestControllerDocsTest extends RestDocsSupport {
 
 	@DisplayName("사용자 계정 삭제 API")
 	@Test
-	void test() throws Exception {
+	void deleteAccount() throws Exception {
 		// given
 		Map<String, Object> body = Map.of(
 			"refreshToken", "refreshToken"
