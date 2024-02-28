@@ -29,3 +29,7 @@ include::api/stock_target_price.adoc[]
 == 알림 API
 
 include::api/notification.adoc[]
+
+== 대시보드 API
+
+include::api/dashboard.adoc[]
