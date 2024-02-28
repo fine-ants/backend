@@ -29,4 +29,8 @@ public interface PortfolioHoldingRepository extends JpaRepository<PortfolioHoldi
 	@Query("select count(p) > 0 from PortfolioHolding p where p.id = :portfolioHoldingId and p.portfolio.member.id = :memberId")
 	boolean existsByIdAndMemberId(@Param("portfolioHoldingId") Long portfolioHoldingId,
 		@Param("memberId") Long memberId);
+
+	@Query("select p from PortfolioHolding p where p.portfolio.id = :portfolioId and p.stock.tickerSymbol = :tickerSymbol")
+	Optional<PortfolioHolding> findByPortfolioIdAndTickerSymbol(@Param("portfolioId") Long portfolioId,
+		@Param("tickerSymbol") String tickerSymbol);
 }

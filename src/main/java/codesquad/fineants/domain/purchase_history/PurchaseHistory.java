@@ -53,7 +53,7 @@ public class PurchaseHistory extends BaseEntity {
 		PortfolioStockCreateRequest.PurchaseHistoryCreateRequest purchaseHistory) {
 		return PurchaseHistory.builder()
 			.portfolioHolding(portFolioHolding)
-			.purchaseDate(purchaseHistory.getPurchasedDate())
+			.purchaseDate(purchaseHistory.getPurchaseDate())
 			.purchasePricePerShare(purchaseHistory.getPurchasePricePerShare())
 			.numShares(purchaseHistory.getNumShares())
 			.memo(purchaseHistory.getMemo())
