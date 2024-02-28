@@ -21,6 +21,7 @@ import codesquad.fineants.spring.api.errors.exception.ForBiddenException;
 import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
+import codesquad.fineants.spring.api.watch_list.event.publisher.WatchStockEventPublisher;
 import codesquad.fineants.spring.api.watch_list.request.ChangeWatchListNameRequest;
 import codesquad.fineants.spring.api.watch_list.request.CreateWatchListRequest;
 import codesquad.fineants.spring.api.watch_list.request.CreateWatchStockRequest;
@@ -42,6 +43,7 @@ public class WatchListService {
 	private final WatchStockRepository watchStockRepository;
 	private final CurrentPriceManager currentPriceManager;
 	private final LastDayClosingPriceManager lastDayClosingPriceManager;
+	private final WatchStockEventPublisher watchStockEventPublisher;
 
 	@Transactional
 	public CreateWatchListResponse createWatchList(AuthMember authMember, CreateWatchListRequest request) {
@@ -106,6 +108,9 @@ public class WatchListService {
 				.stock(stock)
 				.build())
 			.forEach(watchStockRepository::save);
+
+		request.getTickerSymbols()
+			.forEach(watchStockEventPublisher::publishWatchStock);
 	}
 
 	@Transactional
