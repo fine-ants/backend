@@ -7,17 +7,12 @@ import static org.mockito.BDDMockito.*;
 import java.time.LocalDate;
 import java.util.List;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.member.MemberRepository;
@@ -34,6 +29,7 @@ import codesquad.fineants.domain.watch_stock.WatchStockRepository;
 import codesquad.fineants.spring.AbstractContainerBaseTest;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
+import codesquad.fineants.spring.api.kis.service.KisService;
 import codesquad.fineants.spring.api.watch_list.request.ChangeWatchListNameRequest;
 import codesquad.fineants.spring.api.watch_list.request.CreateWatchListRequest;
 import codesquad.fineants.spring.api.watch_list.request.CreateWatchStockRequest;
@@ -50,9 +46,6 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 	private WatchListService watchListService;
 
 	@Autowired
-	private ObjectMapper objectMapper;
-
-	@Autowired
 	private MemberRepository memberRepository;
 
 	@Autowired
@@ -64,15 +57,18 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 	@MockBean
 	private LastDayClosingPriceManager lastDayClosingPriceManager;
 
+	@MockBean
+	private KisService kisService;
+
 	private Member member;
 	@Autowired
 	private WatchStockRepository watchStockRepository;
+
 	@Autowired
 	private StockRepository stockRepository;
+
 	@Autowired
 	private StockDividendRepository stockDividendRepository;
-	@PersistenceContext
-	private EntityManager entityManager;
 
 	@BeforeEach
 	void init() {
@@ -190,7 +186,7 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 	void createWatchStocks() {
 		// given
 		String tickerSymbol = "005930";
-		Stock stock = stockRepository.save(
+		stockRepository.save(
 			Stock.builder()
 				.tickerSymbol(tickerSymbol)
 				.market(Market.KOSPI)
@@ -206,6 +202,8 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 			.build());
 		Long watchListId = watchList.getId();
 
+		willDoNothing().given(kisService).refreshStockCurrentPrice(anyList());
+		willDoNothing().given(kisService).refreshLastDayClosingPrice(anyList());
 		// when
 		watchListService.createWatchStocks(authMember, watchListId, request);
 
