@@ -36,12 +36,12 @@ public class DashboardService {
 	@Transactional(readOnly = true)
 	public OverviewResponse getOverview(AuthMember authMember) {
 		List<Portfolio> portfolios = portfolioRepository.findAllByMemberId(authMember.getMemberId());
-		Member member = memberRepository.findById(authMember.getMemberId()).orElseThrow(() -> new BadRequestException(
-			MemberErrorCode.NOT_FOUND_MEMBER));
+		Member member = memberRepository.findById(authMember.getMemberId())
+			.orElseThrow(() -> new BadRequestException(MemberErrorCode.NOT_FOUND_MEMBER));
 		Long totalValuation = 0L;// 평가 금액 + 현금?
 		Long totalCurrentValuation = 0L; // 평가 금액
 		Long totalInvestment = 0L; //총 주식에 투자된 돈
-		long totalGain = 0L; // 총 수익
+		Long totalGain = 0L; // 총 수익
 		Long totalAnnualDividend = 0L; // 총 연간 배당금
 		if (portfolios.isEmpty()) {
 			return OverviewResponse.empty(member.getNickname());
@@ -54,8 +54,10 @@ public class DashboardService {
 			totalGain += portfolio.calculateTotalGain();
 			totalAnnualDividend += portfolio.calculateAnnualDividend();
 		}
-		Integer totalAnnualDividendYield = (int)((totalAnnualDividend / totalCurrentValuation) * 100);
-		Integer totalGainRate = (int)(((double)totalGain / (double)totalInvestment) * 100);
+		Integer totalAnnualDividendYield = totalCurrentValuation != 0 ?
+			(int)((totalAnnualDividend / totalCurrentValuation) * 100) : 0;
+		Integer totalGainRate = totalInvestment != 0 ?
+			(int)((totalGain.doubleValue() / totalInvestment.doubleValue()) * 100) : 0;
 
 		return OverviewResponse.of(member.getNickname(), totalValuation, totalInvestment,
 			totalGain, totalGainRate, totalAnnualDividend, totalAnnualDividendYield);

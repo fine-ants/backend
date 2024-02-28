@@ -107,7 +107,7 @@ public class Portfolio extends BaseEntity {
 	// 포트폴리오 총 손익 = 모든 종목 총 손익의 합계
 	// 종목 총 손익 = (종목 현재가 - 종목 평균 매입가) * 개수
 	// 종목 평균 매입가 = 종목의 총 투자 금액 / 총 주식 개수
-	public long calculateTotalGain() {
+	public Long calculateTotalGain() {
 		return portfolioHoldings.stream()
 			.mapToLong(PortfolioHolding::calculateTotalGain)
 			.sum();

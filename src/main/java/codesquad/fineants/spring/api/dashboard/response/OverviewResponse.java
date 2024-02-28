@@ -4,10 +4,14 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Getter
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
+@ToString
 public class OverviewResponse {
 	private String username;
 	private Long totalValuation;
@@ -15,7 +19,7 @@ public class OverviewResponse {
 	private Long totalGain;
 	private Integer totalGainRate;
 	private Long totalAnnualDividend;
-	private Integer totalAnnualDividendYield;
+	private Double totalAnnualDividendYield;
 
 	public static OverviewResponse of(String username, Long totalValuation, Long totalInvestment, Long totalGain,
 		Integer totalGainRate, Long totalAnnualDividend, Integer totalAnnualDividendYield) {
@@ -26,7 +30,7 @@ public class OverviewResponse {
 			.totalGain(totalGain)
 			.totalGainRate(totalGainRate)
 			.totalAnnualDividend(totalAnnualDividend)
-			.totalAnnualDividendYield(totalAnnualDividendYield)
+			.totalAnnualDividendYield(totalAnnualDividendYield.doubleValue())
 			.build();
 	}
 
@@ -38,7 +42,7 @@ public class OverviewResponse {
 			.totalGain(0L)
 			.totalGainRate(0)
 			.totalAnnualDividend(0L)
-			.totalAnnualDividendYield(0)
+			.totalAnnualDividendYield(0.00)
 			.build();
 	}
 }

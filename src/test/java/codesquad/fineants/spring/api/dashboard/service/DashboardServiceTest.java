@@ -1,4 +1,4 @@
-package codesquad.fineants.spring.api.dashboard;
+package codesquad.fineants.spring.api.dashboard.service;
 
 import static org.assertj.core.api.AssertionsForClassTypes.*;
 import static org.mockito.BDDMockito.*;
@@ -8,6 +8,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -30,7 +31,6 @@ import codesquad.fineants.spring.AbstractContainerBaseTest;
 import codesquad.fineants.spring.api.dashboard.response.DashboardLineChartResponse;
 import codesquad.fineants.spring.api.dashboard.response.DashboardPieChartResponse;
 import codesquad.fineants.spring.api.dashboard.response.OverviewResponse;
-import codesquad.fineants.spring.api.dashboard.service.DashboardService;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 
 public class DashboardServiceTest extends AbstractContainerBaseTest {
@@ -64,7 +64,8 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 	@Test
 	void getOverviewWhenNoPortfolio() {
 		// given
-		Member member = Member.builder().email("member@member.com").password("password").nickname("nick").build();
+		Member member = Member.builder()
+			.email("member@member.com").password("password").nickname("nick").build();
 		AuthMember authMember = AuthMember.from(memberRepository.save(member));
 
 		// when
@@ -121,6 +122,31 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 		assertThat((double)response.getTotalInvestment()).isEqualTo(
 			purchaseHistory.getNumShares() * purchaseHistory.getPurchasePricePerShare());
 		assertThat(response.getTotalGainRate() > 0).isTrue();
+	}
+
+	@DisplayName("사용자는 포트폴리오의 종목은 있지만 매입 이력이 없어도 오버뷰를 정상 계산해야 한다")
+	@Test
+	void getOverview_whenHoldingNotHavePurchaseHistory_thenOK() {
+		// given
+		Member member = memberRepository.save(createMember());
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
+		Stock stock = stockRepository.save(createStock());
+		portfolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
+
+		given(currentPriceManager.hasCurrentPrice(anyString()))
+			.willReturn(true);
+		given(currentPriceManager.getCurrentPrice(anyString()))
+			.willReturn(50000L);
+
+		// when
+		OverviewResponse response = dashboardService.getOverview(AuthMember.from(member));
+
+		// then
+
+		assertThat(response)
+			.extracting("username", "totalValuation", "totalInvestment", "totalGain", "totalGainRate",
+				"totalAnnualDividend", "totalAnnualDividendYield")
+			.containsExactlyInAnyOrder("일개미1234", 1000000L, 0L, 0L, 0, 0L, 0.00);
 	}
 
 	@Test
@@ -208,4 +234,40 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 		assertThat(responses.get(0).getValue()).isEqualTo(160L);
 	}
 
+	private Member createMember() {
+		return createMember("일개미1234", "kim1234@gmail.com");
+	}
+
+	private Member createMember(String nickname, String email) {
+		return Member.builder()
+			.nickname(nickname)
+			.email(email)
+			.password("kim1234@")
+			.provider("local")
+			.build();
+	}
+
+	private Portfolio createPortfolio(Member member) {
+		return Portfolio.builder()
+			.name("내꿈은 워렌버핏")
+			.securitiesFirm("토스")
+			.budget(1000000L)
+			.targetGain(1500000L)
+			.maximumLoss(900000L)
+			.member(member)
+			.targetGainIsActive(false)
+			.maximumIsActive(false)
+			.build();
+	}
+
+	private Stock createStock() {
+		return Stock.builder()
+			.companyName("삼성전자보통주")
+			.tickerSymbol("005930")
+			.companyNameEng("SamsungElectronics")
+			.stockCode("KR7005930003")
+			.sector("전기전자")
+			.market(Market.KOSPI)
+			.build();
+	}
 }
