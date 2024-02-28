@@ -55,7 +55,7 @@ class MemberNotificationPreferenceServiceTest extends AbstractContainerBaseTest 
 		assertAll(
 			() -> assertThat(response)
 				.extracting("browserNotify", "targetGainNotify", "maxLossNotify", "targetPriceNotify")
-				.containsExactly(false, true, true, true),
+				.containsExactly(false, false, false, false),
 			() -> assertThat(repository.findByMemberId(member.getId()).isPresent())
 				.isTrue()
 		);
@@ -125,10 +125,10 @@ class MemberNotificationPreferenceServiceTest extends AbstractContainerBaseTest 
 		assertAll(
 			() -> assertThat(response)
 				.extracting("browserNotify", "targetGainNotify", "maxLossNotify", "targetPriceNotify")
-				.containsExactly(false, true, true, true),
+				.containsExactly(false, false, false, false),
 			() -> assertThat(preference)
 				.extracting("browserNotify", "targetGainNotify", "maxLossNotify", "targetPriceNotify")
-				.containsExactly(false, true, true, true)
+				.containsExactly(false, false, false, false)
 		);
 	}
 
