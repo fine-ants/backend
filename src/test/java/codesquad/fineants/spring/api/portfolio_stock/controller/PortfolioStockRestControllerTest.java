@@ -34,6 +34,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.oauth.support.AuthPrincipalArgumentResolver;
@@ -84,7 +86,7 @@ class PortfolioStockRestControllerTest {
 	private GlobalExceptionHandler globalExceptionHandler;
 
 	@Autowired
-	private MappingJackson2HttpMessageConverter converter;
+	private ObjectMapper objectMapper;
 
 	@MockBean
 	private AuthPrincipalArgumentResolver authPrincipalArgumentResolver;
@@ -115,7 +117,7 @@ class PortfolioStockRestControllerTest {
 		mockMvc = MockMvcBuilders.standaloneSetup(portfolioStockRestController)
 			.setControllerAdvice(globalExceptionHandler)
 			.setCustomArgumentResolvers(authPrincipalArgumentResolver)
-			.setMessageConverters(converter)
+			.setMessageConverters(new MappingJackson2HttpMessageConverter(objectMapper))
 			.defaultResponseCharacterEncoding(StandardCharsets.UTF_8)
 			.alwaysDo(print())
 			.build();
@@ -174,8 +176,8 @@ class PortfolioStockRestControllerTest {
 			.andExpect(jsonPath("data.portfolioDetails.totalGainRate").value(equalTo(20)))
 			.andExpect(jsonPath("data.portfolioDetails.balance").value(equalTo(850000)))
 			.andExpect(jsonPath("data.portfolioDetails.annualDividend").value(equalTo(4332)))
-			.andExpect(jsonPath("data.portfolioDetails.annualDividendYield").value(equalTo(2)))
-			.andExpect(jsonPath("data.portfolioDetails.annualInvestmentDividendYield").value(equalTo(2)))
+			.andExpect(jsonPath("data.portfolioDetails.annualDividendYield").value(equalTo(2.00)))
+			.andExpect(jsonPath("data.portfolioDetails.annualInvestmentDividendYield").value(equalTo(2.00)))
 			.andExpect(jsonPath("data.portfolioDetails.provisionalLossBalance").value(equalTo(0)))
 			.andExpect(jsonPath("data.portfolioDetails.targetGainNotification").value(equalTo(false)))
 			.andExpect(jsonPath("data.portfolioDetails.maxLossNotification").value(equalTo(false)));
@@ -193,7 +195,7 @@ class PortfolioStockRestControllerTest {
 			.andExpect(jsonPath("data.portfolioHoldings[0].totalGain").value(equalTo(30000)))
 			.andExpect(jsonPath("data.portfolioHoldings[0].totalReturnRate").value(equalTo(20)))
 			.andExpect(jsonPath("data.portfolioHoldings[0].annualDividend").value(equalTo(4332)))
-			.andExpect(jsonPath("data.portfolioHoldings[0].annualDividendYield").value(equalTo(2)));
+			.andExpect(jsonPath("data.portfolioHoldings[0].annualDividendYield").value(equalTo(2.00)));
 
 		resultActions
 			.andExpect(jsonPath("data.portfolioHoldings[0].purchaseHistory[0].purchaseHistoryId").value(equalTo(1)))
