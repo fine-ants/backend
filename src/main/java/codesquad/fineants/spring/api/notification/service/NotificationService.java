@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +23,9 @@ import codesquad.fineants.domain.notification.type.NotificationType;
 import codesquad.fineants.domain.notification_preference.NotificationPreference;
 import codesquad.fineants.domain.notification_preference.NotificationPreferenceRepository;
 import codesquad.fineants.domain.portfolio.Portfolio;
+import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
+import codesquad.fineants.domain.purchase_history.PurchaseHistory;
+import codesquad.fineants.domain.purchase_history.PurchaseHistoryRepository;
 import codesquad.fineants.domain.target_price_notification.TargetPriceNotification;
 import codesquad.fineants.spring.api.errors.errorcode.MemberErrorCode;
 import codesquad.fineants.spring.api.errors.errorcode.NotificationPreferenceErrorCode;
@@ -51,6 +55,7 @@ public class NotificationService {
 	private final NotificationPreferenceRepository notificationPreferenceRepository;
 	private final MemberRepository memberRepository;
 	private final CurrentPriceManager currentPriceManager;
+	private final PurchaseHistoryRepository purchaseHistoryRepository;
 
 	// 알림 저장
 	@Transactional
@@ -78,7 +83,11 @@ public class NotificationService {
 
 		Portfolio portfolio = portfolioService.findPortfolioUsingJoin(portfolioId);
 		portfolio.applyCurrentPriceAllHoldingsBy(currentPriceManager);
-		if (!portfolio.reachedTargetGain()) {
+		List<Long> holdingIds = portfolio.getPortfolioHoldings().stream()
+			.map(PortfolioHolding::getId)
+			.collect(Collectors.toList());
+		List<PurchaseHistory> histories = purchaseHistoryRepository.findAllByHoldingIds(holdingIds);
+		if (!portfolio.reachedTargetGain(histories)) {
 			log.info("목표 수익률 미달로 인한 빈 리스트 반환");
 			return NotifyPortfolioMessagesResponse.empty();
 		}

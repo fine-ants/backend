@@ -168,7 +168,7 @@ public class PortFolioService {
 	}
 
 	public Portfolio findPortfolioUsingJoin(Long portfolioId) {
-		return portfolioRepository.findByPortfolioId(portfolioId)
+		return portfolioRepository.findByPortfolioIdWithAll(portfolioId)
 			.orElseThrow(() -> new NotFoundResourceException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
 	}
 

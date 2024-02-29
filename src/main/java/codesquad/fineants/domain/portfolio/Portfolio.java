@@ -24,6 +24,7 @@ import codesquad.fineants.domain.BaseEntity;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.portfolio_gain_history.PortfolioGainHistory;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
+import codesquad.fineants.domain.purchase_history.PurchaseHistory;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioDividendChartItem;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioPieChartItem;
@@ -265,6 +266,14 @@ public class Portfolio extends BaseEntity {
 	// 포트폴리오가 목표수익금액에 도달했는지 검사
 	public boolean reachedTargetGain() {
 		return budget + calculateTotalGain() >= targetGain;
+	}
+
+	// 포트폴리오가 목표수익금액에 도달했는지 검사
+	public boolean reachedTargetGain(List<PurchaseHistory> histories) {
+		long totalGain = histories.stream()
+			.mapToLong(PurchaseHistory::calculateGain)
+			.sum();
+		return budget + totalGain >= targetGain;
 	}
 
 	// 포트폴리오가 최대손실금액에 도달했는지 검사
