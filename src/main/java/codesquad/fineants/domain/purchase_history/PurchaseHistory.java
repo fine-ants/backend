@@ -67,7 +67,7 @@ public class PurchaseHistory extends BaseEntity {
 
 	// 손익 = (현재가 - 평균 매입가) * 주식개수
 	public long calculateGain() {
-		return portfolioHolding.getCurrentPrice() - purchasePricePerShare.longValue() * numShares;
+		return (portfolioHolding.getCurrentPrice() - purchasePricePerShare.longValue()) * numShares;
 	}
 
 	public PurchaseHistory change(PurchaseHistory history) {

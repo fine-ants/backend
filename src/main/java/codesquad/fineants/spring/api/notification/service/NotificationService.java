@@ -63,7 +63,8 @@ public class NotificationService {
 		Member member = memberRepository.findById(memberId)
 			.orElseThrow(() -> new NotFoundResourceException(MemberErrorCode.NOT_FOUND_MEMBER));
 		codesquad.fineants.domain.notification.Notification saveNotification = notificationRepository.save(
-			request.toEntity(member));
+			request.toEntity(member)
+		);
 		return NotificationCreateResponse.from(saveNotification);
 	}
 
@@ -114,15 +115,15 @@ public class NotificationService {
 		);
 		return firebaseMessagingService.sendNotification(message)
 			.map(messageId -> {
-				NotificationCreateResponse response = this.createNotification(NotificationCreateRequest.builder()
+				NotificationCreateResponse createResponse = this.createNotification(NotificationCreateRequest.builder()
 						.portfolioName(portfolio.getName())
 						.title(title)
 						.type(NotificationType.PORTFOLIO_TARGET_GAIN)
 						.referenceId(referenceId)
 						.build(),
 					portfolio.getMember().getId());
-				log.info("알림 저장 결과 : response={}", response);
-				return createNotifyPortfolioMessageItem(messageId, response);
+				log.info("알리 저장 결과 : response={}", createResponse);
+				return createNotifyPortfolioMessageItem(messageId, createResponse);
 			});
 	}
 
