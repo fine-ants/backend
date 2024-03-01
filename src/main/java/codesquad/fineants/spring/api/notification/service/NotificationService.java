@@ -154,7 +154,11 @@ public class NotificationService {
 
 		Portfolio portfolio = portfolioService.findPortfolioUsingJoin(portfolioId);
 		portfolio.applyCurrentPriceAllHoldingsBy(currentPriceManager);
-		if (!portfolio.reachedMaximumLoss()) {
+		List<Long> holdingIds = portfolio.getPortfolioHoldings().stream()
+			.map(PortfolioHolding::getId)
+			.collect(Collectors.toList());
+		List<PurchaseHistory> histories = purchaseHistoryRepository.findAllByHoldingIds(holdingIds);
+		if (!portfolio.reachedMaximumLoss(histories)) {
 			log.info("최대 손실율 미달로 인한 빈 리스트 반환");
 			return NotifyPortfolioMessagesResponse.empty();
 		}

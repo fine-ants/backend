@@ -264,22 +264,19 @@ public class Portfolio extends BaseEntity {
 	}
 
 	// 포트폴리오가 목표수익금액에 도달했는지 검사
-	public boolean reachedTargetGain() {
-		return budget + calculateTotalGain() >= targetGain;
-	}
-
-	// 포트폴리오가 목표수익금액에 도달했는지 검사
 	public boolean reachedTargetGain(List<PurchaseHistory> histories) {
 		long totalGain = histories.stream()
 			.mapToLong(PurchaseHistory::calculateGain)
 			.sum();
-		log.info("totalGain : {}", totalGain);
 		return budget + totalGain >= targetGain;
 	}
 
 	// 포트폴리오가 최대손실금액에 도달했는지 검사
-	public boolean reachedMaximumLoss() {
-		return budget + calculateTotalGain() <= maximumLoss;
+	public boolean reachedMaximumLoss(List<PurchaseHistory> histories) {
+		long totalGain = histories.stream()
+			.mapToLong(PurchaseHistory::calculateGain)
+			.sum();
+		return budget + totalGain <= maximumLoss;
 	}
 
 	// 파이 차트 생성
