@@ -191,6 +191,48 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 		);
 	}
 
+	@DisplayName("사용자는 매입 이력 추가시 최대 손실율에 달성하여 알림을 받는다")
+	@Test
+	void addPurchaseHistory_whenAchieveMaxLoss_thenSaveNotification() throws FirebaseMessagingException {
+		// given
+		Member member = memberRepository.save(createMember());
+		notificationPreferenceRepository.save(createNotificationPreference(member));
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
+		Stock stock = stockRepository.save(createStock());
+		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
+		fcmRepository.save(FcmToken.builder()
+			.token("token")
+			.latestActivationTime(LocalDateTime.now())
+			.member(member)
+			.build());
+
+		PurchaseHistoryCreateRequest request = PurchaseHistoryCreateRequest.builder()
+			.purchaseDate(LocalDateTime.now())
+			.numShares(10L)
+			.purchasePricePerShare(90000.0)
+			.memo("첫구매")
+			.build();
+
+		given(currentPriceManager.getCurrentPrice(anyString()))
+			.willReturn(50000L);
+		given(firebaseMessaging.send(any(Message.class)))
+			.willReturn("send messageId");
+
+		// when
+		PurchaseHistoryCreateResponse response = service.addPurchaseHistory(
+			request,
+			portfolio.getId(),
+			holding.getId(),
+			member.getId()
+		);
+
+		// then
+		assertAll(
+			() -> assertThat(response.getId()).isNotNull(),
+			() -> assertThat(notificationRepository.findAllByMemberId(member.getId())).hasSize(1)
+		);
+	}
+
 	@DisplayName("사용자가 매입 이력을 추가할 때 예산이 부족해 실패한다.")
 	@Test
 	void addPurchaseHistoryFailsWhenTotalInvestmentExceedsBudget() {
