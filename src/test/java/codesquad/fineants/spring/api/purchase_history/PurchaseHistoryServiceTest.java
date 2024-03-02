@@ -116,6 +116,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 	void addPurchaseHistory() throws JsonProcessingException {
 		// given
 		Member member = memberRepository.save(createMember());
+		notificationPreferenceRepository.save(createNotificationPreference(member));
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Stock stock = stockRepository.save(createStock());
 		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
@@ -153,13 +154,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 	void addPurchaseHistory_whenAchieveTargetGain_thenSaveNotification() throws FirebaseMessagingException {
 		// given
 		Member member = memberRepository.save(createMember());
-		notificationPreferenceRepository.save(NotificationPreference.builder()
-			.browserNotify(true)
-			.targetGainNotify(true)
-			.maxLossNotify(true)
-			.targetPriceNotify(true)
-			.member(member)
-			.build());
+		notificationPreferenceRepository.save(createNotificationPreference(member));
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Stock stock = stockRepository.save(createStock());
 		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
@@ -201,6 +196,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 	void addPurchaseHistoryFailsWhenTotalInvestmentExceedsBudget() {
 		// given
 		Member member = memberRepository.save(createMember());
+		notificationPreferenceRepository.save(createNotificationPreference(member));
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Stock stock = stockRepository.save(createStock());
 		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
@@ -227,6 +223,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 	void modifyPurchaseHistory() {
 		// given
 		Member member = memberRepository.save(createMember());
+		notificationPreferenceRepository.save(createNotificationPreference(member));
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Stock stock = stockRepository.save(createStock());
 		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
@@ -262,6 +259,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 	void deletePurchaseHistory() {
 		// given
 		Member member = memberRepository.save(createMember());
+		notificationPreferenceRepository.save(createNotificationPreference(member));
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Stock stock = stockRepository.save(createStock());
 		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
@@ -287,6 +285,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 	void deletePurchaseHistoryWithNotExistPurchaseHistoryId() {
 		// given
 		Member member = memberRepository.save(createMember());
+		notificationPreferenceRepository.save(createNotificationPreference(member));
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Stock stock = stockRepository.save(createStock());
 		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
@@ -433,5 +432,15 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 				LocalDate.of(2024, 11, 20),
 				stock)
 		);
+	}
+
+	private NotificationPreference createNotificationPreference(Member member) {
+		return NotificationPreference.builder()
+			.browserNotify(true)
+			.targetGainNotify(true)
+			.maxLossNotify(true)
+			.targetPriceNotify(true)
+			.member(member)
+			.build();
 	}
 }

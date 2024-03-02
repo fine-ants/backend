@@ -20,6 +20,8 @@ import javax.persistence.NamedEntityGraphs;
 import javax.persistence.NamedSubgraph;
 import javax.persistence.OneToMany;
 
+import org.hibernate.annotations.BatchSize;
+
 import codesquad.fineants.domain.BaseEntity;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.portfolio_gain_history.PortfolioGainHistory;
@@ -51,8 +53,6 @@ import lombok.extern.slf4j.Slf4j;
 @ToString(exclude = {"member", "portfolioHoldings"})
 @Entity
 public class Portfolio extends BaseEntity {
-	@OneToMany(mappedBy = "portfolio")
-	private final List<PortfolioHolding> portfolioHoldings = new ArrayList<>();
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
@@ -63,11 +63,16 @@ public class Portfolio extends BaseEntity {
 	private Long maximumLoss;
 	private Boolean targetGainIsActive;
 	private Boolean maximumIsActive;
+	private Boolean targetGainNotification;
+	private Boolean maxLossNotification;
+
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "member_id")
 	private Member member;
-	private Boolean targetGainNotification;
-	private Boolean maxLossNotification;
+
+	@BatchSize(size = 1000)
+	@OneToMany(mappedBy = "portfolio")
+	private final List<PortfolioHolding> portfolioHoldings = new ArrayList<>();
 
 	@Builder
 	public Portfolio(Long id, String name, String securitiesFirm, Long budget, Long targetGain, Long maximumLoss,
@@ -261,6 +266,11 @@ public class Portfolio extends BaseEntity {
 	// 최대손실금액의 알림 변경
 	public void changeMaximumLossNotification(Boolean isActive) {
 		this.maximumIsActive = isActive;
+	}
+
+	// 포트폴리오가 목표수익금액에 도달했는지 검사
+	public boolean reachedTargetGain() {
+		return budget + calculateTotalGain() >= targetGain;
 	}
 
 	// 포트폴리오가 목표수익금액에 도달했는지 검사

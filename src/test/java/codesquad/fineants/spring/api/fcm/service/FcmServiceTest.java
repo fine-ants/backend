@@ -29,7 +29,6 @@ import codesquad.fineants.domain.member.MemberRepository;
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.spring.AbstractContainerBaseTest;
 import codesquad.fineants.spring.api.errors.errorcode.FcmErrorCode;
-import codesquad.fineants.spring.api.errors.exception.BadRequestException;
 import codesquad.fineants.spring.api.errors.exception.FineAntsException;
 import codesquad.fineants.spring.api.fcm.request.FcmRegisterRequest;
 import codesquad.fineants.spring.api.fcm.response.FcmDeleteResponse;
@@ -120,7 +119,7 @@ class FcmServiceTest extends AbstractContainerBaseTest {
 
 		// then
 		assertThat(throwable)
-			.isInstanceOf(BadRequestException.class)
+			.isInstanceOf(FineAntsException.class)
 			.hasMessage(FcmErrorCode.BAD_REQUEST_FCM_TOKEN.getMessage());
 	}
 

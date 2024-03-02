@@ -23,12 +23,15 @@ import codesquad.fineants.domain.notification.type.NotificationType;
 import codesquad.fineants.domain.notification_preference.NotificationPreference;
 import codesquad.fineants.domain.notification_preference.NotificationPreferenceRepository;
 import codesquad.fineants.domain.portfolio.Portfolio;
+import codesquad.fineants.domain.portfolio.PortfolioRepository;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
 import codesquad.fineants.domain.purchase_history.PurchaseHistory;
 import codesquad.fineants.domain.purchase_history.PurchaseHistoryRepository;
 import codesquad.fineants.domain.target_price_notification.TargetPriceNotification;
 import codesquad.fineants.spring.api.errors.errorcode.MemberErrorCode;
 import codesquad.fineants.spring.api.errors.errorcode.NotificationPreferenceErrorCode;
+import codesquad.fineants.spring.api.errors.errorcode.PortfolioErrorCode;
+import codesquad.fineants.spring.api.errors.exception.FineAntsException;
 import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
 import codesquad.fineants.spring.api.fcm.service.FcmService;
 import codesquad.fineants.spring.api.firebase.FirebaseMessagingService;
@@ -49,6 +52,7 @@ public class NotificationService {
 
 	private final FirebaseMessaging firebaseMessaging;
 	private final PortFolioService portfolioService;
+	private final PortfolioRepository portfolioRepository;
 	private final FcmService fcmService;
 	private final FirebaseMessagingService firebaseMessagingService;
 	private final NotificationRepository notificationRepository;
@@ -74,20 +78,19 @@ public class NotificationService {
 		Long memberId) {
 		// 알림 조건
 		// 회원의 계정 알림 설정에서 브라우저 알림 설정 및 목표 수익률 도달 알림이 활성화되어야 함
-		NotificationPreference preference = notificationPreferenceRepository.findByMemberId(memberId)
-			.orElseThrow(
-				() -> new NotFoundResourceException(NotificationPreferenceErrorCode.NOT_FOUND_NOTIFICATION_PREFERENCE));
+		NotificationPreference preference = findNotificationPreference(memberId);
 		if (!preference.isPossibleTargetGainNotification()) {
 			log.info("계정 알림 설정 비활성화로 인한 빈 리스트 반환");
 			return NotifyPortfolioMessagesResponse.empty();
 		}
 
-		Portfolio portfolio = portfolioService.findPortfolioUsingJoin(portfolioId);
+		Portfolio portfolio = portfolioRepository.findById(portfolioId)
+			.orElseThrow(() -> new FineAntsException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
 		portfolio.applyCurrentPriceAllHoldingsBy(currentPriceManager);
-		List<Long> holdingIds = portfolio.getPortfolioHoldings().stream()
-			.map(PortfolioHolding::getId)
-			.collect(Collectors.toList());
-		List<PurchaseHistory> histories = purchaseHistoryRepository.findAllByHoldingIds(holdingIds);
+		List<PurchaseHistory> histories = purchaseHistoryRepository.findAllByHoldingIds(
+			portfolio.getPortfolioHoldings().stream()
+				.map(PortfolioHolding::getId)
+				.collect(Collectors.toList()));
 		if (!portfolio.reachedTargetGain(histories)) {
 			log.info("목표 수익률 미달로 인한 빈 리스트 반환");
 			return NotifyPortfolioMessagesResponse.empty();
@@ -99,6 +102,12 @@ public class NotificationService {
 				.ifPresentOrElse(notifications::add, () -> fcmService.deleteToken(token)));
 
 		return NotifyPortfolioMessagesResponse.from(notifications);
+	}
+
+	private NotificationPreference findNotificationPreference(Long memberId) {
+		return notificationPreferenceRepository.findByMemberId(memberId)
+			.orElseThrow(() ->
+				new NotFoundResourceException(NotificationPreferenceErrorCode.NOT_FOUND_NOTIFICATION_PREFERENCE));
 	}
 
 	private Optional<NotifyPortfolioMessageItem> notifyPortfolioTargetGainMessage(String token,
@@ -144,20 +153,18 @@ public class NotificationService {
 	public NotifyPortfolioMessagesResponse notifyPortfolioMaxLossMessages(Long portfolioId, Long memberId) {
 		// 알림 조건
 		// 회원의 계정 알림 설정에서 브라우저 알림 설정 및 최대 손실율 도달 알림이 활성화되어야 함
-		NotificationPreference preference = notificationPreferenceRepository.findByMemberId(memberId)
-			.orElseThrow(
-				() -> new NotFoundResourceException(NotificationPreferenceErrorCode.NOT_FOUND_NOTIFICATION_PREFERENCE));
+		NotificationPreference preference = findNotificationPreference(memberId);
 		if (!preference.isPossibleMaxLossNotification()) {
 			log.info("계정 알림 설정 비활성화로 인한 빈 리스트 반환");
 			return NotifyPortfolioMessagesResponse.empty();
 		}
 
-		Portfolio portfolio = portfolioService.findPortfolioUsingJoin(portfolioId);
+		Portfolio portfolio = portfolioService.findPortfolio(portfolioId);
 		portfolio.applyCurrentPriceAllHoldingsBy(currentPriceManager);
-		List<Long> holdingIds = portfolio.getPortfolioHoldings().stream()
-			.map(PortfolioHolding::getId)
-			.collect(Collectors.toList());
-		List<PurchaseHistory> histories = purchaseHistoryRepository.findAllByHoldingIds(holdingIds);
+		List<PurchaseHistory> histories = purchaseHistoryRepository.findAllByHoldingIds(
+			portfolio.getPortfolioHoldings().stream()
+				.map(PortfolioHolding::getId)
+				.collect(Collectors.toList()));
 		if (!portfolio.reachedMaximumLoss(histories)) {
 			log.info("최대 손실율 미달로 인한 빈 리스트 반환");
 			return NotifyPortfolioMessagesResponse.empty();

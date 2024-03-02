@@ -13,6 +13,8 @@ import codesquad.fineants.spring.api.errors.errorcode.PortfolioHoldingErrorCode;
 import codesquad.fineants.spring.api.errors.errorcode.PurchaseHistoryErrorCode;
 import codesquad.fineants.spring.api.errors.exception.FineAntsException;
 import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
+import codesquad.fineants.spring.api.notification.service.NotificationService;
+import codesquad.fineants.spring.api.purchase_history.event.NotificationEventPublisher;
 import codesquad.fineants.spring.api.purchase_history.event.PublishEvent;
 import codesquad.fineants.spring.api.purchase_history.event.PushNotificationEvent;
 import codesquad.fineants.spring.api.purchase_history.request.PurchaseHistoryCreateRequest;
@@ -30,6 +32,8 @@ import lombok.extern.slf4j.Slf4j;
 public class PurchaseHistoryService {
 	private final PurchaseHistoryRepository repository;
 	private final PortfolioHoldingRepository portfolioHoldingRepository;
+	private final NotificationEventPublisher publisher;
+	private final NotificationService notificationService;
 
 	@Transactional
 	@PublishEvent(eventType = PushNotificationEvent.class, params = "#{T(codesquad.fineants.spring.api.purchase_history.event.SendableParameter).create(portfolioId, memberId)}")
@@ -54,6 +58,10 @@ public class PurchaseHistoryService {
 		PurchaseHistory newPurchaseHistory = repository.save(request.toEntity(portfolioHolding));
 		log.info("매입이력 저장 결과 : newPurchaseHistory={}", newPurchaseHistory);
 
+		// publisher.publishEvent(portfolioId, memberId);
+		// NotifyPortfolioMessagesResponse response = notificationService.notifyPortfolioTargetGainMessages(portfolioId,
+		// 	memberId);
+		// log.info("알림 저장 결과 : {}", response);
 		return PurchaseHistoryCreateResponse.from(newPurchaseHistory, portfolioId, memberId);
 	}
 
