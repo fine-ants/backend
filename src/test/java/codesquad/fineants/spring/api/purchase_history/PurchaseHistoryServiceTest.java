@@ -163,6 +163,11 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 			.latestActivationTime(LocalDateTime.now())
 			.member(member)
 			.build());
+		fcmRepository.save(FcmToken.builder()
+			.token("token2")
+			.latestActivationTime(LocalDateTime.now())
+			.member(member)
+			.build());
 
 		PurchaseHistoryCreateRequest request = PurchaseHistoryCreateRequest.builder()
 			.purchaseDate(LocalDateTime.now())

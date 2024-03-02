@@ -25,7 +25,7 @@ import codesquad.fineants.domain.notification.type.NotificationType;
 import codesquad.fineants.spring.api.notification.controller.NotificationRestController;
 import codesquad.fineants.spring.api.notification.request.NotificationCreateRequest;
 import codesquad.fineants.spring.api.notification.response.NotificationCreateResponse;
-import codesquad.fineants.spring.api.notification.response.NotifyPortfolioMessageItem;
+import codesquad.fineants.spring.api.notification.response.NotifyMessageItem;
 import codesquad.fineants.spring.api.notification.response.NotifyPortfolioMessagesResponse;
 import codesquad.fineants.spring.api.notification.service.NotificationService;
 import codesquad.fineants.spring.docs.RestDocsSupport;
@@ -133,7 +133,6 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 		// given
 		Long notificationId = 1L;
 		String title = "포트폴리오";
-		boolean isRead = false;
 		NotificationType type = NotificationType.PORTFOLIO_TARGET_GAIN;
 		String referenceId = "1";
 		String messageId = "projects/fineants-404407/messages/4754d355-5d5d-4f14-a642-75fecdb91fa5";
@@ -142,10 +141,8 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 			anyLong()))
 			.willReturn(NotifyPortfolioMessagesResponse.builder()
 				.notifications(List.of(
-					NotifyPortfolioMessageItem.builder()
-						.notificationId(notificationId)
+					NotifyMessageItem.builder()
 						.title(title)
-						.isRead(isRead)
 						.type(type)
 						.referenceId(referenceId)
 						.messageId(messageId)
@@ -160,9 +157,7 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
 			.andExpect(jsonPath("message").value(equalTo("포트폴리오 목표 수익률 알림 메시지가 전송되었습니다")))
-			.andExpect(jsonPath("data.notifications[0].notificationId").value(equalTo(notificationId.intValue())))
 			.andExpect(jsonPath("data.notifications[0].title").value(equalTo(title)))
-			.andExpect(jsonPath("data.notifications[0].isRead").value(equalTo(false)))
 			.andExpect(jsonPath("data.notifications[0].type").value(equalTo(type.name())))
 			.andExpect(jsonPath("data.notifications[0].referenceId").value(equalTo(referenceId)))
 			.andExpect(jsonPath("data.notifications[0].messageId").value(equalTo(messageId)))
@@ -183,12 +178,8 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 							.description("메시지"),
 						fieldWithPath("data").type(JsonFieldType.OBJECT)
 							.description("응답 데이터"),
-						fieldWithPath("data.notifications[].notificationId").type(JsonFieldType.NUMBER)
-							.description("알림 등록번호"),
 						fieldWithPath("data.notifications[].title").type(JsonFieldType.STRING)
 							.description("알림 제목"),
-						fieldWithPath("data.notifications[].isRead").type(JsonFieldType.BOOLEAN)
-							.description("읽음 여부"),
 						fieldWithPath("data.notifications[].type").type(JsonFieldType.STRING)
 							.description("알림 타입"),
 						fieldWithPath("data.notifications[].referenceId").type(JsonFieldType.STRING)
@@ -206,7 +197,6 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 		// given
 		Long notificationId = 1L;
 		String title = "포트폴리오";
-		boolean isRead = false;
 		NotificationType type = NotificationType.PORTFOLIO_MAX_LOSS;
 		String referenceId = "1";
 		String messageId = "projects/fineants-404407/messages/4754d355-5d5d-4f14-a642-75fecdb91fa5";
@@ -215,10 +205,8 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 			anyLong()))
 			.willReturn(NotifyPortfolioMessagesResponse.builder()
 				.notifications(List.of(
-					NotifyPortfolioMessageItem.builder()
-						.notificationId(notificationId)
+					NotifyMessageItem.builder()
 						.title(title)
-						.isRead(isRead)
 						.type(type)
 						.referenceId(referenceId)
 						.messageId(messageId)
@@ -233,9 +221,7 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
 			.andExpect(jsonPath("message").value(equalTo("포트폴리오 최대 손실율 알림 메시지가 전송되었습니다")))
-			.andExpect(jsonPath("data.notifications[0].notificationId").value(equalTo(notificationId.intValue())))
 			.andExpect(jsonPath("data.notifications[0].title").value(equalTo(title)))
-			.andExpect(jsonPath("data.notifications[0].isRead").value(equalTo(false)))
 			.andExpect(jsonPath("data.notifications[0].type").value(equalTo(type.name())))
 			.andExpect(jsonPath("data.notifications[0].referenceId").value(equalTo(referenceId)))
 			.andExpect(jsonPath("data.notifications[0].messageId").value(equalTo(messageId)))
@@ -256,12 +242,8 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 							.description("메시지"),
 						fieldWithPath("data").type(JsonFieldType.OBJECT)
 							.description("응답 데이터"),
-						fieldWithPath("data.notifications[].notificationId").type(JsonFieldType.NUMBER)
-							.description("알림 등록번호"),
 						fieldWithPath("data.notifications[].title").type(JsonFieldType.STRING)
 							.description("알림 제목"),
-						fieldWithPath("data.notifications[].isRead").type(JsonFieldType.BOOLEAN)
-							.description("읽음 여부"),
 						fieldWithPath("data.notifications[].type").type(JsonFieldType.STRING)
 							.description("알림 타입"),
 						fieldWithPath("data.notifications[].referenceId").type(JsonFieldType.STRING)

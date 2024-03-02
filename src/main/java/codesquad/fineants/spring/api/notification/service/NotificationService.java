@@ -38,7 +38,7 @@ import codesquad.fineants.spring.api.firebase.FirebaseMessagingService;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.notification.request.NotificationCreateRequest;
 import codesquad.fineants.spring.api.notification.response.NotificationCreateResponse;
-import codesquad.fineants.spring.api.notification.response.NotifyPortfolioMessageItem;
+import codesquad.fineants.spring.api.notification.response.NotifyMessageItem;
 import codesquad.fineants.spring.api.notification.response.NotifyPortfolioMessagesResponse;
 import codesquad.fineants.spring.api.portfolio.PortFolioService;
 import lombok.RequiredArgsConstructor;
@@ -96,11 +96,23 @@ public class NotificationService {
 			return NotifyPortfolioMessagesResponse.empty();
 		}
 
-		List<NotifyPortfolioMessageItem> notifications = new ArrayList<>();
+		List<NotifyMessageItem> notifications = new ArrayList<>();
 		fcmService.findTokens(memberId)
 			.forEach(token -> notifyPortfolioTargetGainMessage(token, portfolio)
 				.ifPresentOrElse(notifications::add, () -> fcmService.deleteToken(token)));
 
+		notifications.stream()
+			.findAny()
+			.ifPresent(item -> {
+				NotificationCreateResponse createResponse = this.createNotification(NotificationCreateRequest.builder()
+						.portfolioName(portfolio.getName())
+						.title(item.getTitle())
+						.type(item.getType())
+						.referenceId(item.getReferenceId())
+						.build(),
+					portfolio.getMember().getId());
+				log.info("알리 저장 결과 : response={}", createResponse);
+			});
 		return NotifyPortfolioMessagesResponse.from(notifications);
 	}
 
@@ -110,7 +122,7 @@ public class NotificationService {
 				new NotFoundResourceException(NotificationPreferenceErrorCode.NOT_FOUND_NOTIFICATION_PREFERENCE));
 	}
 
-	private Optional<NotifyPortfolioMessageItem> notifyPortfolioTargetGainMessage(String token,
+	private Optional<NotifyMessageItem> notifyPortfolioTargetGainMessage(String token,
 		Portfolio portfolio) {
 		String title = "포트폴리오";
 		String content = String.format("%s의 목표 수익률을 달성했습니다", portfolio.getName());
@@ -123,27 +135,24 @@ public class NotificationService {
 			link
 		);
 		return firebaseMessagingService.sendNotification(message)
-			.map(messageId -> {
-				NotificationCreateResponse createResponse = this.createNotification(NotificationCreateRequest.builder()
-						.portfolioName(portfolio.getName())
-						.title(title)
-						.type(NotificationType.PORTFOLIO_TARGET_GAIN)
-						.referenceId(referenceId)
-						.build(),
-					portfolio.getMember().getId());
-				log.info("알리 저장 결과 : response={}", createResponse);
-				return createNotifyPortfolioMessageItem(messageId, createResponse);
-			});
+			.map(messageId -> createNotifyMessageItem(
+					messageId,
+					title,
+					NotificationType.PORTFOLIO_TARGET_GAIN,
+					referenceId
+				)
+			);
 	}
 
-	private NotifyPortfolioMessageItem createNotifyPortfolioMessageItem(String messageId,
-		NotificationCreateResponse response) {
-		return NotifyPortfolioMessageItem.builder()
-			.notificationId(response.getNotificationId())
-			.title(response.getTitle())
-			.isRead(response.getIsRead())
-			.type(response.getType())
-			.referenceId(response.getReferenceId())
+	private NotifyMessageItem createNotifyMessageItem(
+		String messageId,
+		String title,
+		NotificationType type,
+		String referenceId) {
+		return NotifyMessageItem.builder()
+			.title(title)
+			.type(type)
+			.referenceId(referenceId)
 			.messageId(messageId)
 			.build();
 	}
@@ -170,15 +179,28 @@ public class NotificationService {
 			return NotifyPortfolioMessagesResponse.empty();
 		}
 
-		List<NotifyPortfolioMessageItem> notifications = new ArrayList<>();
+		List<NotifyMessageItem> notifications = new ArrayList<>();
 		fcmService.findTokens(memberId)
 			.forEach(token -> notifyPortfolioMaxLossMessage(token, portfolio)
 				.ifPresentOrElse(notifications::add, () -> fcmService.deleteToken(token)));
 
+		notifications.stream()
+			.findAny()
+			.ifPresent(item -> {
+				NotificationCreateResponse response = this.createNotification(
+					NotificationCreateRequest.builder()
+						.portfolioName(portfolio.getName())
+						.title(item.getTitle())
+						.type(item.getType())
+						.referenceId(item.getReferenceId())
+						.build(),
+					portfolio.getMember().getId());
+				log.info("알림 저장 결과 : response={}", response);
+			});
 		return NotifyPortfolioMessagesResponse.from(notifications);
 	}
 
-	private Optional<NotifyPortfolioMessageItem> notifyPortfolioMaxLossMessage(String token, Portfolio portfolio) {
+	private Optional<NotifyMessageItem> notifyPortfolioMaxLossMessage(String token, Portfolio portfolio) {
 		String title = "포트폴리오";
 		String content = String.format("%s이(가) 최대 손실율에 도달했습니다", portfolio.getName());
 		String referenceId = portfolio.getId().toString();
@@ -190,18 +212,13 @@ public class NotificationService {
 			link
 		);
 		return firebaseMessagingService.sendNotification(message)
-			.map(messageId -> {
-				NotificationCreateResponse response = this.createNotification(
-					NotificationCreateRequest.builder()
-						.portfolioName(portfolio.getName())
-						.title(title)
-						.type(NotificationType.PORTFOLIO_TARGET_GAIN)
-						.referenceId(referenceId)
-						.build(),
-					portfolio.getMember().getId());
-				log.info("알림 저장 결과 : response={}", response);
-				return createNotifyPortfolioMessageItem(messageId, response);
-			});
+			.map(messageId -> createNotifyMessageItem(
+					messageId,
+					title,
+					NotificationType.PORTFOLIO_MAX_LOSS,
+					referenceId
+				)
+			);
 	}
 
 	// 종목 지정가 도달 달성 알림 푸시

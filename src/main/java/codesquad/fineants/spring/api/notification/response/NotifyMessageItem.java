@@ -13,10 +13,8 @@ import lombok.ToString;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
 @ToString
-public class NotifyPortfolioMessageItem {
-	private Long notificationId;
+public class NotifyMessageItem {
 	private String title;
-	private Boolean isRead;
 	private NotificationType type;
 	private String referenceId;
 	private String messageId;
