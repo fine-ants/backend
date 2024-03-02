@@ -361,4 +361,9 @@ public class Portfolio extends BaseEntity {
 	public boolean isBudgetEmpty() {
 		return this.budget == 0;
 	}
+
+	// 매입 이력을 포트폴리오에 추가시 현금이 충분한지 판단
+	public boolean isCashSufficientForPurchase(long investmentAmount) {
+		return calculateTotalInvestmentAmount() + investmentAmount > budget;
+	}
 }
