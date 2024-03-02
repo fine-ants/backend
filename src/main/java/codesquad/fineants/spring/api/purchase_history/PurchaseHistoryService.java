@@ -12,7 +12,6 @@ import codesquad.fineants.spring.api.errors.errorcode.PortfolioErrorCode;
 import codesquad.fineants.spring.api.errors.errorcode.PortfolioHoldingErrorCode;
 import codesquad.fineants.spring.api.errors.errorcode.PurchaseHistoryErrorCode;
 import codesquad.fineants.spring.api.errors.exception.FineAntsException;
-import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
 import codesquad.fineants.spring.api.purchase_history.event.PublishEvent;
 import codesquad.fineants.spring.api.purchase_history.event.PushNotificationEvent;
 import codesquad.fineants.spring.api.purchase_history.request.PurchaseHistoryCreateRequest;
@@ -40,21 +39,20 @@ public class PurchaseHistoryService {
 		Long memberId) {
 		log.info("매입이력 추가 서비스 요청 : request={}, portfolioHoldingId={}", request, portfolioHoldingId);
 
-		PortfolioHolding portfolioHolding = findPortfolioHolding(portfolioHoldingId);
+		PortfolioHolding portfolioHolding = findPortfolioHolding(portfolioHoldingId, portfolioId);
+		PurchaseHistory history = request.toEntity(portfolioHolding);
 		Portfolio portfolio = portfolioHolding.getPortfolio();
-		if (!portfolio.getId().equals(portfolioId)) {
-			throw new NotFoundResourceException(PortfolioHoldingErrorCode.NOT_FOUND_PORTFOLIO_HOLDING);
-		}
+		verifyCashSufficientForPurchase(portfolio, history.calculateInvestmentAmount());
 
-		Double purchasedPrice = request.getNumShares() * request.getPurchasePricePerShare();
-		if (portfolio.calculateTotalInvestmentAmount() + purchasedPrice > portfolio.getBudget()) {
+		PurchaseHistory newPurchaseHistory = repository.save(history);
+		log.info("매입이력 저장 결과 : newPurchaseHistory={}", newPurchaseHistory);
+		return PurchaseHistoryCreateResponse.from(newPurchaseHistory, portfolioId, memberId);
+	}
+
+	private void verifyCashSufficientForPurchase(Portfolio portfolio, long investmentAmount) {
+		if (portfolio.isCashSufficientForPurchase(investmentAmount)) {
 			throw new FineAntsException(PortfolioErrorCode.TOTAL_INVESTMENT_PRICE_EXCEEDS_BUDGET);
 		}
-
-		PurchaseHistory newPurchaseHistory = repository.save(request.toEntity(portfolioHolding));
-		log.info("매입이력 저장 결과 : newPurchaseHistory={}", newPurchaseHistory);
-
-		return PurchaseHistoryCreateResponse.from(newPurchaseHistory, portfolioId, memberId);
 	}
 
 	@Transactional
@@ -63,7 +61,7 @@ public class PurchaseHistoryService {
 		Long portfolioHoldingId, Long purchaseHistoryId, Long portfolioId, Long memberId) {
 		log.info("매입 내역 수정 서비스 요청 : request={}, portfolioHoldingId={}, purchaseHistoryId={}", request,
 			portfolioHoldingId, purchaseHistoryId);
-		PortfolioHolding portfolioHolding = findPortfolioHolding(portfolioHoldingId);
+		PortfolioHolding portfolioHolding = findPortfolioHolding(portfolioHoldingId, portfolioId);
 		PurchaseHistory originalPurchaseHistory = findPurchaseHistory(purchaseHistoryId);
 		PurchaseHistory changePurchaseHistory = request.toEntity(portfolioHolding);
 
@@ -88,13 +86,14 @@ public class PurchaseHistoryService {
 		return PurchaseHistoryDeleteResponse.from(deletePurchaseHistory, portfolioId, memberId);
 	}
 
-	private PortfolioHolding findPortfolioHolding(Long portfolioHoldingId) {
-		return portfolioHoldingRepository.findById(portfolioHoldingId)
-			.orElseThrow(() -> new NotFoundResourceException(PortfolioHoldingErrorCode.NOT_FOUND_PORTFOLIO_HOLDING));
+	private PortfolioHolding findPortfolioHolding(Long portfolioHoldingId, Long portfolioId) {
+		return portfolioHoldingRepository.findByPortfolioHoldingIdAndPortfolioIdWithPortfolio(portfolioHoldingId,
+				portfolioId)
+			.orElseThrow(() -> new FineAntsException(PortfolioHoldingErrorCode.NOT_FOUND_PORTFOLIO_HOLDING));
 	}
 
 	private PurchaseHistory findPurchaseHistory(Long purchaseHistoryId) {
 		return repository.findById(purchaseHistoryId)
-			.orElseThrow(() -> new NotFoundResourceException(PurchaseHistoryErrorCode.NOT_FOUND_PURCHASE_HISTORY));
+			.orElseThrow(() -> new FineAntsException(PurchaseHistoryErrorCode.NOT_FOUND_PURCHASE_HISTORY));
 	}
 }

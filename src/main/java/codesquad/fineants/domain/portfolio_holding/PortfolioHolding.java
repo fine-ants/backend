@@ -51,7 +51,7 @@ public class PortfolioHolding extends BaseEntity {
 	@JoinColumn(name = "ticker_symbol")
 	private Stock stock;
 
-	@BatchSize(size = 100)
+	@BatchSize(size = 1000)
 	@OneToMany(mappedBy = "portfolioHolding", fetch = FetchType.LAZY)
 	private final List<PurchaseHistory> purchaseHistory = new ArrayList<>();
 

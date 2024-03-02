@@ -16,10 +16,10 @@ import lombok.ToString;
 @Builder
 @ToString
 public class NotifyPortfolioMessagesResponse {
-	private List<NotifyPortfolioMessageItem> notifications;
+	private List<NotifyMessageItem> notifications;
 
 	public static NotifyPortfolioMessagesResponse from(
-		List<NotifyPortfolioMessageItem> notifications) {
+		List<NotifyMessageItem> notifications) {
 		return NotifyPortfolioMessagesResponse.builder()
 			.notifications(notifications)
 			.build();

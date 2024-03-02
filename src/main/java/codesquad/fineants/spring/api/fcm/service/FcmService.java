@@ -19,7 +19,6 @@ import codesquad.fineants.domain.member.MemberRepository;
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.spring.api.errors.errorcode.FcmErrorCode;
 import codesquad.fineants.spring.api.errors.errorcode.MemberErrorCode;
-import codesquad.fineants.spring.api.errors.exception.BadRequestException;
 import codesquad.fineants.spring.api.errors.exception.FineAntsException;
 import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
 import codesquad.fineants.spring.api.fcm.request.FcmRegisterRequest;
@@ -66,8 +65,7 @@ public class FcmService {
 			firebaseMessaging.send(message, true);
 		} catch (FirebaseMessagingException e) {
 			log.info(e.getMessage(), e);
-
-			throw new BadRequestException(FcmErrorCode.BAD_REQUEST_FCM_TOKEN);
+			throw new FineAntsException(FcmErrorCode.BAD_REQUEST_FCM_TOKEN);
 		}
 	}
 

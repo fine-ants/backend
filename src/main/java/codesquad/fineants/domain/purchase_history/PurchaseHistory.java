@@ -65,6 +65,11 @@ public class PurchaseHistory extends BaseEntity {
 		return purchasePricePerShare.longValue() * numShares;
 	}
 
+	// 손익 = (현재가 - 평균 매입가) * 주식개수
+	public long calculateGain() {
+		return (portfolioHolding.getCurrentPrice() - purchasePricePerShare.longValue()) * numShares;
+	}
+
 	public PurchaseHistory change(PurchaseHistory history) {
 		this.purchaseDate = history.getPurchaseDate();
 		this.purchasePricePerShare = history.getPurchasePricePerShare();
@@ -83,4 +88,5 @@ public class PurchaseHistory extends BaseEntity {
 		return purcahseLocalDate.equals(exDividendDate)
 			|| purcahseLocalDate.isBefore(exDividendDate);
 	}
+
 }

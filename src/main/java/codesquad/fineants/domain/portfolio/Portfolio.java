@@ -20,10 +20,13 @@ import javax.persistence.NamedEntityGraphs;
 import javax.persistence.NamedSubgraph;
 import javax.persistence.OneToMany;
 
+import org.hibernate.annotations.BatchSize;
+
 import codesquad.fineants.domain.BaseEntity;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.portfolio_gain_history.PortfolioGainHistory;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
+import codesquad.fineants.domain.purchase_history.PurchaseHistory;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioDividendChartItem;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioPieChartItem;
@@ -50,8 +53,6 @@ import lombok.extern.slf4j.Slf4j;
 @ToString(exclude = {"member", "portfolioHoldings"})
 @Entity
 public class Portfolio extends BaseEntity {
-	@OneToMany(mappedBy = "portfolio")
-	private final List<PortfolioHolding> portfolioHoldings = new ArrayList<>();
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
@@ -62,11 +63,16 @@ public class Portfolio extends BaseEntity {
 	private Long maximumLoss;
 	private Boolean targetGainIsActive;
 	private Boolean maximumIsActive;
+	private Boolean targetGainNotification;
+	private Boolean maxLossNotification;
+
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "member_id")
 	private Member member;
-	private Boolean targetGainNotification;
-	private Boolean maxLossNotification;
+
+	@BatchSize(size = 1000)
+	@OneToMany(mappedBy = "portfolio")
+	private final List<PortfolioHolding> portfolioHoldings = new ArrayList<>();
 
 	@Builder
 	public Portfolio(Long id, String name, String securitiesFirm, Long budget, Long targetGain, Long maximumLoss,
@@ -267,9 +273,20 @@ public class Portfolio extends BaseEntity {
 		return budget + calculateTotalGain() >= targetGain;
 	}
 
+	// 포트폴리오가 목표수익금액에 도달했는지 검사
+	public boolean reachedTargetGain(List<PurchaseHistory> histories) {
+		long totalGain = histories.stream()
+			.mapToLong(PurchaseHistory::calculateGain)
+			.sum();
+		return budget + totalGain >= targetGain;
+	}
+
 	// 포트폴리오가 최대손실금액에 도달했는지 검사
-	public boolean reachedMaximumLoss() {
-		return budget + calculateTotalGain() <= maximumLoss;
+	public boolean reachedMaximumLoss(List<PurchaseHistory> histories) {
+		long totalGain = histories.stream()
+			.mapToLong(PurchaseHistory::calculateGain)
+			.sum();
+		return budget + totalGain <= maximumLoss;
 	}
 
 	// 파이 차트 생성
@@ -343,5 +360,10 @@ public class Portfolio extends BaseEntity {
 	// 예산이 0원인지 검사합니다.
 	public boolean isBudgetEmpty() {
 		return this.budget == 0;
+	}
+
+	// 매입 이력을 포트폴리오에 추가시 현금이 충분한지 판단
+	public boolean isCashSufficientForPurchase(long investmentAmount) {
+		return calculateTotalInvestmentAmount() + investmentAmount > budget;
 	}
 }
