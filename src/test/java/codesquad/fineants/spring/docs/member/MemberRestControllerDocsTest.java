@@ -3,27 +3,32 @@ package codesquad.fineants.spring.docs.member;
 import static org.hamcrest.Matchers.*;
 import static org.mockito.BDDMockito.*;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.*;
+import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.*;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.restdocs.request.RequestDocumentation.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+import java.util.Map;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
+import org.springframework.http.MediaType;
+import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
 import org.springframework.restdocs.payload.JsonFieldType;
 import org.springframework.restdocs.snippet.Attributes;
 
 import codesquad.fineants.domain.jwt.Jwt;
 import codesquad.fineants.domain.member.Member;
-import codesquad.fineants.domain.notification.type.NotificationType;
 import codesquad.fineants.spring.api.member.controller.MemberRestController;
 import codesquad.fineants.spring.api.member.request.OauthMemberLoginRequest;
 import codesquad.fineants.spring.api.member.response.OauthMemberLoginResponse;
 import codesquad.fineants.spring.api.member.response.OauthMemberResponse;
 import codesquad.fineants.spring.api.member.service.MemberService;
 import codesquad.fineants.spring.docs.RestDocsSupport;
+import codesquad.fineants.spring.util.ObjectMapperUtil;
 
 public class MemberRestControllerDocsTest extends RestDocsSupport {
 
@@ -42,9 +47,8 @@ public class MemberRestControllerDocsTest extends RestDocsSupport {
 		String code = "1234";
 		String redirectUrl = "http://localhost:5173/signin?provider=kakao";
 		String state = "1234";
-		String url = "/api/auth/kakao/login";
+		String url = "/api/auth/{provider}/login";
 
-		// Jwt jwt = jwtProvider.createJwtBasedOnMember(member, LocalDateTime.now());
 		OauthMemberLoginResponse mockResponse = OauthMemberLoginResponse.builder()
 			.jwt(Jwt.builder()
 				.accessToken("accessToken")
@@ -55,7 +59,7 @@ public class MemberRestControllerDocsTest extends RestDocsSupport {
 		given(memberService.login(ArgumentMatchers.any(OauthMemberLoginRequest.class)))
 			.willReturn(mockResponse);
 		// when
-		mockMvc.perform(post(url)
+		mockMvc.perform(RestDocumentationRequestBuilders.post(url, "kakao")
 				.param("code", code)
 				.param("redirectUrl", redirectUrl)
 				.param("state", state))
@@ -71,27 +75,24 @@ public class MemberRestControllerDocsTest extends RestDocsSupport {
 			.andExpect(jsonPath("data.user.profileUrl").value(equalTo(member.getProfileUrl())))
 			.andDo(
 				document(
-					"member-login",
+					"member_oauth-login",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint()),
-					requestFields(
-						fieldWithPath("portfolioName").type(JsonFieldType.STRING)
-							.description("포트폴리오 이름"),
-						fieldWithPath("title").type(JsonFieldType.STRING)
-							.description("알림 제목"),
-						fieldWithPath("type").type(JsonFieldType.STRING)
+					pathParameters(
+						parameterWithName("provider").description("플랫폼 이름")
 							.attributes(
 								Attributes.key("constraints").value(
 									String.join(",",
-										NotificationType.PORTFOLIO_TARGET_GAIN.name(),
-										NotificationType.PORTFOLIO_MAX_LOSS.name(),
-										NotificationType.STOCK_TARGET_PRICE.name()
+										"kakao",
+										"google",
+										"naver"
 									)
-								)
-							)
-							.description("알림 타입"),
-						fieldWithPath("referenceId").type(JsonFieldType.STRING)
-							.description("참조 등록번호")
+								))
+					),
+					requestParameters(
+						parameterWithName("code").description("인가 코드"),
+						parameterWithName("redirectUrl").description("리다이렉트 URL"),
+						parameterWithName("state").description("state")
 					),
 					responseFields(
 						fieldWithPath("code").type(JsonFieldType.NUMBER)
@@ -102,16 +103,61 @@ public class MemberRestControllerDocsTest extends RestDocsSupport {
 							.description("메시지"),
 						fieldWithPath("data").type(JsonFieldType.OBJECT)
 							.description("응답 데이터"),
-						fieldWithPath("data.notificationId").type(JsonFieldType.NUMBER)
-							.description("알림 등록번호"),
-						fieldWithPath("data.title").type(JsonFieldType.STRING)
-							.description("알림 제목"),
-						fieldWithPath("data.isRead").type(JsonFieldType.BOOLEAN)
-							.description("읽음 여부"),
-						fieldWithPath("data.type").type(JsonFieldType.STRING)
-							.description("알림 타입"),
-						fieldWithPath("data.referenceId").type(JsonFieldType.STRING)
-							.description("참조 등록번호")
+						fieldWithPath("data.jwt").type(JsonFieldType.OBJECT)
+							.description("Json Web Token"),
+						fieldWithPath("data.jwt.accessToken").type(JsonFieldType.STRING)
+							.description("액세스 토큰"),
+						fieldWithPath("data.jwt.refreshToken").type(JsonFieldType.STRING)
+							.description("리프레시 토큰"),
+						fieldWithPath("data.user").type(JsonFieldType.OBJECT)
+							.description("회원 정보"),
+						fieldWithPath("data.user.id").type(JsonFieldType.NUMBER)
+							.description("회원 등록번호"),
+						fieldWithPath("data.user.nickname").type(JsonFieldType.STRING)
+							.description("닉네임"),
+						fieldWithPath("data.user.email").type(JsonFieldType.STRING)
+							.description("이메일"),
+						fieldWithPath("data.user.profileUrl").type(JsonFieldType.STRING)
+							.description("프로필 URL")
+					)
+				)
+			);
+	}
+
+	@DisplayName("사용자 계정 삭제 API")
+	@Test
+	void deleteAccount() throws Exception {
+		// given
+		Map<String, Object> body = Map.of(
+			"refreshToken", "refreshToken"
+		);
+
+		// when & then
+		mockMvc.perform(delete("/api/account")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(ObjectMapperUtil.serialize(body)))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("code").value(equalTo(200)))
+			.andExpect(jsonPath("status").value(equalTo("OK")))
+			.andExpect(jsonPath("message").value(equalTo("계정이 삭제되었습니다")))
+			.andDo(
+				document(
+					"member-delete",
+					preprocessRequest(prettyPrint()),
+					preprocessResponse(prettyPrint()),
+					requestFields(
+						fieldWithPath("refreshToken").type(JsonFieldType.STRING)
+							.description("리프레시 토큰")
+					),
+					responseFields(
+						fieldWithPath("code").type(JsonFieldType.NUMBER)
+							.description("코드"),
+						fieldWithPath("status").type(JsonFieldType.STRING)
+							.description("상태"),
+						fieldWithPath("message").type(JsonFieldType.STRING)
+							.description("메시지"),
+						fieldWithPath("data").type(JsonFieldType.NULL)
+							.description("응답 데이터")
 					)
 				)
 			);

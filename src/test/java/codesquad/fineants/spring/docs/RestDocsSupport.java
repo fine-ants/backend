@@ -59,6 +59,7 @@ public abstract class RestDocsSupport {
 			.email("kim1234@gmail.com")
 			.password("kim1234@")
 			.provider("local")
+			.profileUrl("profileUrl")
 			.build();
 	}
 
