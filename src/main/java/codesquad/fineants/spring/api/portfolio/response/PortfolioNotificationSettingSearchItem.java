@@ -27,7 +27,7 @@ public class PortfolioNotificationSettingSearchItem {
 			.portfolioId(portfolio.getId())
 			.name(portfolio.getName())
 			.targetGainNotify(portfolio.getTargetGainIsActive())
-			.maxLossNotify(portfolio.getMaximumIsActive())
+			.maxLossNotify(portfolio.getMaximumLossIsActive())
 			.lastUpdated(portfolio.getModifiedAt())
 			.build();
 	}

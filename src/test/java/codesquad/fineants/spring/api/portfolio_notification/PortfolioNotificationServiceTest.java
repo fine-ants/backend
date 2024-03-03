@@ -132,7 +132,7 @@ class PortfolioNotificationServiceTest extends AbstractContainerBaseTest {
 		assertAll(
 			() -> assertThat(response).extracting("portfolioId", "isActive")
 				.containsExactlyInAnyOrder(portfolioId, true),
-			() -> assertThat(portfolioRepository.findById(portfolioId).orElseThrow().getMaximumIsActive()).isTrue()
+			() -> assertThat(portfolioRepository.findById(portfolioId).orElseThrow().getMaximumLossIsActive()).isTrue()
 		);
 	}
 
@@ -158,7 +158,7 @@ class PortfolioNotificationServiceTest extends AbstractContainerBaseTest {
 			.maximumLoss(maximumLoss)
 			.member(member)
 			.targetGainIsActive(true)
-			.maximumIsActive(true)
+			.maximumLossIsActive(true)
 			.build();
 	}
 

@@ -491,7 +491,7 @@ class PortfolioStockRestControllerTest {
 			.targetGain(1500000L)
 			.maximumLoss(900000L)
 			.targetGainIsActive(false)
-			.maximumIsActive(false)
+			.maximumLossIsActive(false)
 			.member(member)
 			.build();
 	}

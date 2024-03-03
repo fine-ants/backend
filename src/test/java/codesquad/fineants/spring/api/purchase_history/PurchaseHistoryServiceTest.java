@@ -373,7 +373,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 			.maximumLoss(900000L)
 			.member(member)
 			.targetGainIsActive(false)
-			.maximumIsActive(false)
+			.maximumLossIsActive(false)
 			.build();
 	}
 
@@ -386,7 +386,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 			.maximumLoss(0L)
 			.member(member)
 			.targetGainIsActive(false)
-			.maximumIsActive(false)
+			.maximumLossIsActive(false)
 			.build();
 	}
 

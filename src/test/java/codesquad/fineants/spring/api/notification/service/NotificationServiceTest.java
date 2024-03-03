@@ -388,7 +388,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 			.maximumLoss(900000L)
 			.member(member)
 			.targetGainIsActive(false)
-			.maximumIsActive(false)
+			.maximumLossIsActive(false)
 			.build();
 	}
 
