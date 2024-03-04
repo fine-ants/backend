@@ -18,20 +18,18 @@ create table if not exists fineAnts.member
 
 create table if not exists fineAnts.portfolio
 (
-    id                    bigint auto_increment
+    id                     bigint auto_increment
         primary key,
-    create_at             datetime     null,
-    modified_at           datetime     null,
-    budget                bigint       null,
-    maximum_is_active     bit          null,
-    maximum_loss          bigint       null,
-    name                  varchar(255) null,
-    securities_firm       varchar(255) null,
-    target_gain           bigint       null,
-    target_gain_is_active bit          null,
-    target_gain_notification boolean default false,
-    max_loss_notification boolean default false,
-    member_id             bigint       null,
+    create_at              datetime(6)  null,
+    modified_at            datetime(6)  null,
+    budget                 bigint       null,
+    maximum_loss           bigint       null,
+    maximum_loss_is_active bit          null,
+    name                   varchar(255) null,
+    securities_firm        varchar(255) null,
+    target_gain            bigint       null,
+    target_gain_is_active  bit          null,
+    member_id              bigint       null,
     constraint FKhkjiiwx38ctlby4yt4y82tua7
         foreign key (member_id) references fineAnts.member (id)
 );
