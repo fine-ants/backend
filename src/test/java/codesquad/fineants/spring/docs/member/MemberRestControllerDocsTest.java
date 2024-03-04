@@ -206,7 +206,6 @@ public class MemberRestControllerDocsTest extends RestDocsSupport {
 	@Test
 	void logout() throws Exception {
 		// given
-		Member member = createMember();
 		String url = "/api/auth/logout";
 		Map<String, Object> body = Map.of(
 			"refreshToken", "refreshToken"
@@ -258,7 +257,8 @@ public class MemberRestControllerDocsTest extends RestDocsSupport {
 		// when & then
 		mockMvc.perform(delete("/api/account")
 				.contentType(MediaType.APPLICATION_JSON)
-				.content(ObjectMapperUtil.serialize(body)))
+				.content(ObjectMapperUtil.serialize(body))
+				.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
@@ -268,6 +268,9 @@ public class MemberRestControllerDocsTest extends RestDocsSupport {
 					"member-delete",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint()),
+					requestHeaders(
+						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
+					),
 					requestFields(
 						fieldWithPath("refreshToken").type(JsonFieldType.STRING)
 							.description("리프레시 토큰")

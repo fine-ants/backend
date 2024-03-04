@@ -1,6 +1,7 @@
 package codesquad.fineants.spring.docs.dashboard;
 
 import static org.hamcrest.Matchers.*;
+import static org.springframework.restdocs.headers.HeaderDocumentation.*;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.*;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.*;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
@@ -12,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.mockito.BDDMockito;
 import org.mockito.Mockito;
+import org.springframework.http.HttpHeaders;
 import org.springframework.restdocs.payload.JsonFieldType;
 
 import codesquad.fineants.domain.oauth.support.AuthMember;
@@ -46,7 +48,8 @@ public class DashboardRestControllerDocsTest extends RestDocsSupport {
 				.build());
 
 		// when & then
-		mockMvc.perform(get("/api/dashboard/overview"))
+		mockMvc.perform(get("/api/dashboard/overview")
+				.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
@@ -63,6 +66,9 @@ public class DashboardRestControllerDocsTest extends RestDocsSupport {
 					"dashboard_overview-search",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint()),
+					requestHeaders(
+						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
+					),
 					responseFields(
 						fieldWithPath("code").type(JsonFieldType.NUMBER)
 							.description("코드"),

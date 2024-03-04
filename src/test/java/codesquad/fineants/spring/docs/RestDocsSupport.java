@@ -45,7 +45,7 @@ public abstract class RestDocsSupport {
 			.apply(MockMvcRestDocumentation.documentationConfiguration(provider))
 			.setCustomArgumentResolvers(authPrincipalArgumentResolver)
 			.setMessageConverters(new MappingJackson2HttpMessageConverter(new JacksonConfig().objectMapper()))
-			.addInterceptors(new LogoutInterceptor())
+			.addMappedInterceptors(new String[] {"/api/auth/logout"}, new LogoutInterceptor())
 			.build();
 
 		given(authPrincipalArgumentResolver.supportsParameter(ArgumentMatchers.any(MethodParameter.class)))
