@@ -343,7 +343,7 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 		// given
 		Member member = memberRepository.save(createMember());
 		ProfileChangeServiceRequest serviceRequest = new ProfileChangeServiceRequest(
-			createMockMultipartFile(),
+			createDefaultProfileFile(),
 			createProfileChangeRequest(member.getNickname()),
 			AuthMember.from(member));
 
@@ -374,6 +374,41 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 			.containsExactlyInAnyOrder("일개미1234", "dragonbead95@naver.com", expectedProfileUrl, "local");
 	}
 
+	@DisplayName("사용자는 일반 회원가입 할때 프로필 사진을 기본 프로필 사진으로 가입한다")
+	@Test
+	void signup_whenDefaultProfile_thenSaveDefaultProfileUrl() {
+		// given
+		SignUpRequest request = new SignUpRequest(
+			"일개미1234",
+			"dragonbead95@naver.com",
+			"nemo1234@",
+			"nemo1234@"
+		);
+		MultipartFile profileImageFile = createDefaultProfileFile("static/img/default.png");
+		SignUpServiceRequest serviceRequest = SignUpServiceRequest.of(request, profileImageFile);
+
+		// when
+		SignUpServiceResponse response = memberService.signup(serviceRequest);
+
+		// then
+		assertThat(response)
+			.extracting("nickname", "email", "profileUrl", "provider")
+			.containsExactlyInAnyOrder("일개미1234", "dragonbead95@naver.com",
+				"https://fineants.s3.ap-northeast-2.amazonaws.com/profile/default/default.png", "local");
+	}
+
+	private static MultipartFile createDefaultProfileFile(String pathName) {
+		ClassPathResource classPathResource = new ClassPathResource(pathName);
+		try {
+			Path path = Paths.get(classPathResource.getURI());
+			byte[] profile = Files.readAllBytes(path);
+			return new MockMultipartFile("profileImageFile", "default.png", "image/jpeg",
+				profile);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 	@DisplayName("사용자는 닉네임이 중복되어 회원가입 할 수 없다")
 	@Test
 	void signup_whenDuplicatedNickname_thenResponse400Error() {
@@ -386,7 +421,7 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 			"nemo1234@",
 			"nemo1234@"
 		);
-		SignUpServiceRequest serviceRequest = SignUpServiceRequest.of(request, createMockMultipartFile());
+		SignUpServiceRequest serviceRequest = SignUpServiceRequest.of(request, createDefaultProfileFile());
 
 		// when
 		Throwable throwable = catchThrowable(() -> memberService.signup(serviceRequest));
@@ -409,7 +444,7 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 			"nemo1234@",
 			"nemo1234@"
 		);
-		SignUpServiceRequest serviceRequest = SignUpServiceRequest.of(request, createMockMultipartFile());
+		SignUpServiceRequest serviceRequest = SignUpServiceRequest.of(request, createDefaultProfileFile());
 
 		// when
 		Throwable throwable = catchThrowable(() -> memberService.signup(serviceRequest));
@@ -431,7 +466,7 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 			"nemo1234@",
 			"nemo4567@"
 		);
-		SignUpServiceRequest serviceRequest = SignUpServiceRequest.of(request, createMockMultipartFile());
+		SignUpServiceRequest serviceRequest = SignUpServiceRequest.of(request, createDefaultProfileFile());
 
 		// when
 		Throwable throwable = catchThrowable(() -> memberService.signup(serviceRequest));
@@ -455,7 +490,7 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 			"nemo1234@",
 			"nemo1234@"
 		);
-		SignUpServiceRequest serviceRequest = SignUpServiceRequest.of(request, createMockMultipartFile());
+		SignUpServiceRequest serviceRequest = SignUpServiceRequest.of(request, createDefaultProfileFile());
 
 		// when
 		Throwable throwable = catchThrowable(() -> memberService.signup(serviceRequest));
@@ -661,17 +696,17 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 				createProfileChangeRequest(nickname)
 			),
 			Arguments.of(
-				createMockMultipartFile(),
+				createDefaultProfileFile(),
 				null
 			),
 			Arguments.of(
-				createMockMultipartFile(),
+				createDefaultProfileFile(),
 				createProfileChangeRequest(nickname)
 			)
 		);
 	}
 
-	public static MultipartFile createMockMultipartFile() {
+	public static MultipartFile createDefaultProfileFile() {
 		ClassPathResource classPathResource = new ClassPathResource("profile.jpeg");
 		Path path = null;
 		try {
@@ -696,10 +731,9 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 			"nemo1234@",
 			"nemo1234@"
 		);
-		MultipartFile profileImageFile = createMockMultipartFile();
+		MultipartFile profileImageFile = createDefaultProfileFile();
 		return Stream.of(
-			Arguments.of(request, profileImageFile, "profileUrl"),
-			Arguments.of(request, null, null)
+			Arguments.of(request, profileImageFile, "profileUrl")
 		);
 	}
 

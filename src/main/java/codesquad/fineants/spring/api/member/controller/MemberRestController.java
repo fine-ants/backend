@@ -90,7 +90,7 @@ public class MemberRestController {
 		MediaType.MULTIPART_FORM_DATA_VALUE})
 	public ApiResponse<Void> signup(
 		@Valid @RequestPart(value = "signupData") SignUpRequest request,
-		@RequestPart(value = "profileImageFile", required = false) MultipartFile profileImageFile) {
+		@RequestPart(value = "profileImageFile") MultipartFile profileImageFile) {
 		SignUpServiceRequest serviceRequest = SignUpServiceRequest.of(request, profileImageFile);
 		SignUpServiceResponse response = memberService.signup(serviceRequest);
 		log.info("일반 회원 가입 컨트롤러 결과 : {}", response);
