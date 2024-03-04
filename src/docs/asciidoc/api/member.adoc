@@ -1,16 +1,3 @@
-[[member-delete]]
-=== 회원 계정 삭제
-
-==== HTTP Request
-
-include::{snippets}/member-delete/http-request.adoc[]
-include::{snippets}/member-delete/request-fields.adoc[]
-
-==== HTTP Response
-
-include::{snippets}/member-delete/http-response.adoc[]
-include::{snippets}/member-delete/response-fields.adoc[]
-
 [[member_oauth-login]]
 === 회원 소셜 로그인
 
@@ -51,3 +38,16 @@ include::{snippets}/member-logout/request-fields.adoc[]
 
 include::{snippets}/member-logout/http-response.adoc[]
 include::{snippets}/member-logout/response-fields.adoc[]
+
+[[member-delete]]
+=== 회원 계정 삭제
+
+==== HTTP Request
+
+include::{snippets}/member-delete/http-request.adoc[]
+include::{snippets}/member-delete/request-fields.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/member-delete/http-response.adoc[]
+include::{snippets}/member-delete/response-fields.adoc[]

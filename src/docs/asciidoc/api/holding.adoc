@@ -4,6 +4,7 @@
 ==== HTTP Request
 
 include::{snippets}/holding-search/http-request.adoc[]
+include::{snippets}/holding-search/request-headers.adoc[]
 include::{snippets}/holding-search/path-parameters.adoc[]
 
 ==== HTTP Response
