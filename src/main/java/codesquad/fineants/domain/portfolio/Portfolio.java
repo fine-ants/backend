@@ -62,9 +62,7 @@ public class Portfolio extends BaseEntity {
 	private Long targetGain;
 	private Long maximumLoss;
 	private Boolean targetGainIsActive;
-	private Boolean maximumIsActive;
-	private Boolean targetGainNotification;
-	private Boolean maxLossNotification;
+	private Boolean maximumLossIsActive;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "member_id")
@@ -76,8 +74,7 @@ public class Portfolio extends BaseEntity {
 
 	@Builder
 	public Portfolio(Long id, String name, String securitiesFirm, Long budget, Long targetGain, Long maximumLoss,
-		Boolean targetGainIsActive, Boolean maximumIsActive, Member member, Boolean targetGainNotification,
-		Boolean maxLossNotification) {
+		Boolean targetGainIsActive, Boolean maximumLossIsActive, Member member) {
 		this.id = id;
 		this.name = name;
 		this.securitiesFirm = securitiesFirm;
@@ -85,10 +82,8 @@ public class Portfolio extends BaseEntity {
 		this.targetGain = targetGain;
 		this.maximumLoss = maximumLoss;
 		this.targetGainIsActive = targetGainIsActive;
-		this.maximumIsActive = maximumIsActive;
+		this.maximumLossIsActive = maximumLossIsActive;
 		this.member = member;
-		this.targetGainNotification = targetGainNotification;
-		this.maxLossNotification = maxLossNotification;
 	}
 
 	//== 연관관계 메소드 ==//
@@ -265,7 +260,7 @@ public class Portfolio extends BaseEntity {
 
 	// 최대손실금액의 알림 변경
 	public void changeMaximumLossNotification(Boolean isActive) {
-		this.maximumIsActive = isActive;
+		this.maximumLossIsActive = isActive;
 	}
 
 	// 포트폴리오가 목표수익금액에 도달했는지 검사

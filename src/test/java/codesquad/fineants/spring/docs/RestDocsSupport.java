@@ -30,6 +30,7 @@ import codesquad.fineants.domain.stock.Market;
 import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.domain.stock_dividend.StockDividend;
 import codesquad.fineants.spring.config.JacksonConfig;
+import codesquad.fineants.spring.intercetpor.LogoutInterceptor;
 
 @ExtendWith(RestDocumentationExtension.class)
 public abstract class RestDocsSupport {
@@ -44,6 +45,7 @@ public abstract class RestDocsSupport {
 			.apply(MockMvcRestDocumentation.documentationConfiguration(provider))
 			.setCustomArgumentResolvers(authPrincipalArgumentResolver)
 			.setMessageConverters(new MappingJackson2HttpMessageConverter(new JacksonConfig().objectMapper()))
+			.addMappedInterceptors(new String[] {"/api/auth/logout"}, new LogoutInterceptor())
 			.build();
 
 		given(authPrincipalArgumentResolver.supportsParameter(ArgumentMatchers.any(MethodParameter.class)))
@@ -59,6 +61,7 @@ public abstract class RestDocsSupport {
 			.email("kim1234@gmail.com")
 			.password("kim1234@")
 			.provider("local")
+			.profileUrl("profileUrl")
 			.build();
 	}
 
@@ -82,7 +85,7 @@ public abstract class RestDocsSupport {
 			.targetGain(1500000L)
 			.maximumLoss(900000L)
 			.targetGainIsActive(false)
-			.maximumIsActive(false)
+			.maximumLossIsActive(false)
 			.member(member)
 			.build();
 	}

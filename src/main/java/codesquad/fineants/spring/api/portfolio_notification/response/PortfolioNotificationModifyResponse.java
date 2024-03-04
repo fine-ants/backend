@@ -18,6 +18,6 @@ public class PortfolioNotificationModifyResponse {
 	}
 
 	public static PortfolioNotificationModifyResponse maximumLossIsActive(Portfolio portfolio) {
-		return new PortfolioNotificationModifyResponse(portfolio.getId(), portfolio.getMaximumIsActive());
+		return new PortfolioNotificationModifyResponse(portfolio.getId(), portfolio.getMaximumLossIsActive());
 	}
 }

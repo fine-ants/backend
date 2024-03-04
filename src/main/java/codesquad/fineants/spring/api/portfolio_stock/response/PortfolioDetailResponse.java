@@ -59,7 +59,7 @@ public class PortfolioDetailResponse {
 			.annualInvestmentDividendYield(portfolio.calculateAnnualInvestmentDividendYield().doubleValue())
 			.provisionalLossBalance(0L)
 			.targetGainNotification(portfolio.getTargetGainIsActive())
-			.maxLossNotification(portfolio.getMaximumIsActive())
+			.maxLossNotification(portfolio.getMaximumLossIsActive())
 			.build();
 	}
 

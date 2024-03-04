@@ -3,6 +3,7 @@ package codesquad.fineants.spring.docs.holding;
 import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
+import static org.springframework.restdocs.headers.HeaderDocumentation.*;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.*;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.*;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
@@ -17,6 +18,7 @@ import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.springframework.http.HttpHeaders;
 import org.springframework.restdocs.payload.JsonFieldType;
 import org.springframework.test.web.servlet.ResultActions;
 
@@ -64,7 +66,8 @@ public class PortfolioStockRestControllerDocsTest extends RestDocsSupport {
 
 		given(service.readMyPortfolioStocks(anyLong())).willReturn(mockResponse);
 		// when & then
-		ResultActions resultActions = mockMvc.perform(get("/api/portfolio/{portfolioId}/holdings", portfolio.getId()))
+		ResultActions resultActions = mockMvc.perform(get("/api/portfolio/{portfolioId}/holdings", portfolio.getId())
+				.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))
 			.andExpect(status().isOk());
 
 		resultActions
@@ -120,6 +123,9 @@ public class PortfolioStockRestControllerDocsTest extends RestDocsSupport {
 				"holding-search",
 				preprocessRequest(prettyPrint()),
 				preprocessResponse(prettyPrint()),
+				requestHeaders(
+					headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
+				),
 				pathParameters(
 					parameterWithName("portfolioId").description("포트폴리오 등록번호")
 				),

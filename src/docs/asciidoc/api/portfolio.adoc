@@ -4,6 +4,7 @@
 ==== HTTP Request
 
 include::{snippets}/portfolio-search/http-request.adoc[]
+include::{snippets}/portfolio-search/request-headers.adoc[]
 
 ==== HTTP Response
 

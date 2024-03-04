@@ -3,6 +3,7 @@ package codesquad.fineants.spring.docs.notification;
 import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
+import static org.springframework.restdocs.headers.HeaderDocumentation.*;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.*;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.*;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
@@ -17,6 +18,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.payload.JsonFieldType;
 import org.springframework.restdocs.snippet.Attributes;
@@ -69,7 +71,8 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 		// when
 		mockMvc.perform(post("/api/notifications")
 				.contentType(MediaType.APPLICATION_JSON)
-				.content(ObjectMapperUtil.serialize(body)))
+				.content(ObjectMapperUtil.serialize(body))
+				.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))
 			.andExpect(status().isCreated())
 			.andExpect(jsonPath("code").value(equalTo(201)))
 			.andExpect(jsonPath("status").value(equalTo("Created")))
@@ -84,6 +87,9 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 					"notification-create",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint()),
+					requestHeaders(
+						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
+					),
 					requestFields(
 						fieldWithPath("portfolioName").type(JsonFieldType.STRING)
 							.description("포트폴리오 이름"),
@@ -152,7 +158,8 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 
 		Long portfolioId = 1L;
 		// when
-		mockMvc.perform(post("/api/notifications/portfolios/{portfolioId}/notify/target-gain", portfolioId))
+		mockMvc.perform(post("/api/notifications/portfolios/{portfolioId}/notify/target-gain", portfolioId)
+				.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
@@ -166,6 +173,9 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 					"notification_portfolio_target_gain-notify",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint()),
+					requestHeaders(
+						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
+					),
 					pathParameters(
 						parameterWithName("portfolioId").description("포트폴리오 등록번호")
 					),
@@ -195,7 +205,6 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 	@Test
 	void notifyPortfolioMaxLossMessages() throws Exception {
 		// given
-		Long notificationId = 1L;
 		String title = "포트폴리오";
 		NotificationType type = NotificationType.PORTFOLIO_MAX_LOSS;
 		String referenceId = "1";
@@ -216,7 +225,8 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 
 		Long portfolioId = 1L;
 		// when
-		mockMvc.perform(post("/api/notifications/portfolios/{portfolioId}/notify/max-loss", portfolioId))
+		mockMvc.perform(post("/api/notifications/portfolios/{portfolioId}/notify/max-loss", portfolioId)
+				.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
@@ -230,6 +240,9 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 					"notification_portfolio_max_loss-notify",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint()),
+					requestHeaders(
+						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
+					),
 					pathParameters(
 						parameterWithName("portfolioId").description("포트폴리오 등록번호")
 					),

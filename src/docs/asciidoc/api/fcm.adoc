@@ -4,6 +4,7 @@
 ==== HTTP Request
 
 include::{snippets}/fcm-delete/http-request.adoc[]
+include::{snippets}/fcm-delete/request-headers.adoc[]
 include::{snippets}/fcm-delete/path-parameters.adoc[]
 
 ==== HTTP Response
@@ -17,6 +18,7 @@ include::{snippets}/fcm-delete/response-fields.adoc[]
 ==== HTTP Request
 
 include::{snippets}/fcm-create/http-request.adoc[]
+include::{snippets}/fcm-create/request-headers.adoc[]
 include::{snippets}/fcm-create/request-fields.adoc[]
 
 ==== HTTP Response

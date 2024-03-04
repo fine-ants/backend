@@ -4,6 +4,7 @@
 ==== HTTP Request
 
 include::{snippets}/dashboard_overview-search/http-request.adoc[]
+include::{snippets}/dashboard_overview-search/request-headers.adoc[]
 
 ==== HTTP Response
 

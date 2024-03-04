@@ -10,6 +10,10 @@ endif::[]
 :sectlinks:
 
 [[Product-API]]
+== 회원 API
+
+include::api/member.adoc[]
+
 == 포트폴리오 API
 
 include::api/portfolio.adoc[]

@@ -19,7 +19,7 @@ public class LogoutInterceptor implements HandlerInterceptor {
 	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws
 		Exception {
-		log.debug("로그인 인터셉터 접속 : {}", request.getRequestURI());
+		log.debug("로그아웃 인터셉터 접속 : {}", request.getRequestURI());
 		String accessToken = extractJwt(request).orElseThrow(
 			() -> new UnAuthorizationException(JwtErrorCode.EMPTY_TOKEN));
 		request.setAttribute("accessToken", accessToken);

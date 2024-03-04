@@ -3,6 +3,7 @@ package codesquad.fineants.spring.docs.portfolio;
 import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.*;
+import static org.springframework.restdocs.headers.HeaderDocumentation.*;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.*;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
@@ -15,6 +16,7 @@ import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.springframework.http.HttpHeaders;
 import org.springframework.restdocs.payload.JsonFieldType;
 
 import codesquad.fineants.domain.oauth.support.AuthMember;
@@ -57,7 +59,8 @@ public class PortfolioRestControllerDocsTest extends RestDocsSupport {
 				.build());
 
 		// when & then
-		mockMvc.perform(get("/api/portfolios"))
+		mockMvc.perform(get("/api/portfolios")
+				.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
@@ -82,6 +85,9 @@ public class PortfolioRestControllerDocsTest extends RestDocsSupport {
 					"portfolio-search",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint()),
+					requestHeaders(
+						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
+					),
 					responseFields(
 						fieldWithPath("code").type(JsonFieldType.NUMBER)
 							.description("코드"),
