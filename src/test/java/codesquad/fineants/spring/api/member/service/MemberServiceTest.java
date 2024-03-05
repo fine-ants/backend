@@ -300,60 +300,158 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 		);
 	}
 
-	@DisplayName("사용자는 회원의 프로필을 변경한다")
-	@MethodSource(value = "changeProfileMethodSource")
-	@ParameterizedTest
-	void changeProfile(MultipartFile profileImageFile, ProfileChangeRequest request) {
+	@DisplayName("사용자는 회원의 프로필에서 새 프로필 사진과 닉네임을 변경한다")
+	@Test
+	void changeProfile() {
 		// given
 		Member member = memberRepository.save(createMember());
-		ProfileChangeServiceRequest serviceRequest = new ProfileChangeServiceRequest(profileImageFile, request,
-			AuthMember.from(member));
+		ProfileChangeServiceRequest serviceRequest = ProfileChangeServiceRequest.of(
+			createProfileFile(),
+			new ProfileChangeRequest("nemo12345"),
+			member.getId()
+		);
+
+		given(amazonS3Service.upload(any(MultipartFile.class)))
+			.willReturn("profileUrl");
+		// when
+		ProfileChangeResponse response = memberService.changeProfile(serviceRequest);
+
+		// then
+		assertThat(response)
+			.extracting("user")
+			.extracting("id", "nickname", "email", "profileUrl")
+			.containsExactlyInAnyOrder(member.getId(), "nemo12345", "dragonbead95@naver.com", "profileUrl");
+	}
+
+	@DisplayName("사용자는 회원 프로필에서 새 프로필만 변경한다")
+	@Test
+	void changeProfile_whenNewProfile_thenOK() {
+		// given
+		Member member = memberRepository.save(createMember());
+		ProfileChangeServiceRequest serviceRequest = ProfileChangeServiceRequest.of(
+			createProfileFile(),
+			null,
+			member.getId()
+		);
+
+		given(amazonS3Service.upload(any(MultipartFile.class)))
+			.willReturn("profileUrl");
+		// when
+		ProfileChangeResponse response = memberService.changeProfile(serviceRequest);
+
+		// then
+		assertThat(response)
+			.extracting("user")
+			.extracting("id", "nickname", "email", "profileUrl")
+			.containsExactlyInAnyOrder(member.getId(), "nemo1234", "dragonbead95@naver.com", "profileUrl");
+	}
+
+	@DisplayName("사용자는 회원 프로필에서 기본 프로필로만 변경한다")
+	@Test
+	void changeProfile_whenEmptyProfile_thenOK() {
+		// given
+		Member member = memberRepository.save(createMember());
+		ProfileChangeServiceRequest serviceRequest = ProfileChangeServiceRequest.of(
+			createEmptyProfileImageFile(),
+			null,
+			member.getId()
+		);
+
+		given(amazonS3Service.upload(any(MultipartFile.class)))
+			.willReturn("profileUrl");
+		// when
+		ProfileChangeResponse response = memberService.changeProfile(serviceRequest);
+
+		// then
+		assertThat(response)
+			.extracting("user")
+			.extracting("id", "nickname", "email", "profileUrl")
+			.containsExactlyInAnyOrder(member.getId(), "nemo1234", "dragonbead95@naver.com", null);
+	}
+
+	@DisplayName("사용자는 회원 프로필에서 프로필은 유지하고 닉네임만 변경한다")
+	@Test
+	void changeProfile_whenChangeNickname_thenOK() {
+		// given
+		Member member = memberRepository.save(createMember());
+		ProfileChangeServiceRequest serviceRequest = ProfileChangeServiceRequest.of(
+			null,
+			new ProfileChangeRequest("nemo12345"),
+			member.getId()
+		);
 
 		// when
 		ProfileChangeResponse response = memberService.changeProfile(serviceRequest);
 
 		// then
-		Member findMember = memberRepository.findById(member.getId()).orElseThrow();
-		ProfileChangeResponse expected = ProfileChangeResponse.from(findMember);
-		assertThat(response).isEqualTo(expected);
+		assertThat(response)
+			.extracting("user")
+			.extracting("id", "nickname", "email", "profileUrl")
+			.containsExactlyInAnyOrder(member.getId(), "nemo12345", "dragonbead95@naver.com", "profileUrl");
 	}
 
-	@DisplayName("사용자가 변경할 정보 없이 프로필을 변경하는 경우 예외가 발생한다")
+	@DisplayName("사용자는 회원 프로필에서 자기 닉네임을 그대로 수정한다")
 	@Test
-	void changeProfile_whenNoChangeInformation_thenResponse400Error() {
+	void changeProfile_whenNoChangeNickname_thenOK() {
 		// given
 		Member member = memberRepository.save(createMember());
-		MultipartFile profileImageFile = null;
-		ProfileChangeRequest request = null;
-		ProfileChangeServiceRequest serviceRequest = new ProfileChangeServiceRequest(profileImageFile, request,
-			AuthMember.from(member));
+		ProfileChangeServiceRequest serviceRequest = ProfileChangeServiceRequest.of(
+			createProfileFile(),
+			new ProfileChangeRequest("nemo1234"),
+			member.getId()
+		);
+
+		given(amazonS3Service.upload(any(MultipartFile.class)))
+			.willReturn("profileUrl");
+
+		// when
+		ProfileChangeResponse response = memberService.changeProfile(serviceRequest);
+
+		// then
+		assertThat(response)
+			.extracting("user")
+			.extracting("id", "nickname", "email", "profileUrl")
+			.containsExactlyInAnyOrder(member.getId(), "nemo1234", "dragonbead95@naver.com", "profileUrl");
+	}
+
+	@DisplayName("사용자는 회원 프로필에서 닉네임 변경시 중복되어 변경하지 못한다")
+	@Test
+	void changeProfile_whenDuplicateNickname_thenThrowException() {
+		// given
+		Member member = memberRepository.save(createMember());
+		ProfileChangeServiceRequest serviceRequest = ProfileChangeServiceRequest.of(
+			null,
+			new ProfileChangeRequest("nemo1234"),
+			member.getId()
+		);
 
 		// when
 		Throwable throwable = catchThrowable(() -> memberService.changeProfile(serviceRequest));
 
 		// then
 		assertThat(throwable)
-			.isInstanceOf(BadRequestException.class)
-			.hasMessage("변경할 회원 정보가 없습니다");
+			.isInstanceOf(FineAntsException.class)
+			.hasMessage(MemberErrorCode.REDUNDANT_NICKNAME.getMessage());
 	}
 
-	@DisplayName("사용자가 중복된 닉네임으로 프로필을 변경하려고 하면 400 에러를 응답합니다")
+	@DisplayName("사용자는 회원 프로필에서 변경할 정보가 없어서 실패한다")
 	@Test
-	void changeProfile_whenDuplicatedNickname_thenResponse400Error() {
+	void changeProfile_whenNoChangeProfile_thenThrowException() {
 		// given
 		Member member = memberRepository.save(createMember());
-		ProfileChangeServiceRequest serviceRequest = new ProfileChangeServiceRequest(
-			createMockMultipartFile(),
-			createProfileChangeRequest(member.getNickname()),
-			AuthMember.from(member));
+		ProfileChangeServiceRequest serviceRequest = ProfileChangeServiceRequest.of(
+			null,
+			null,
+			member.getId()
+		);
 
 		// when
 		Throwable throwable = catchThrowable(() -> memberService.changeProfile(serviceRequest));
 
 		// then
 		assertThat(throwable)
-			.isInstanceOf(BadRequestException.class)
-			.hasMessage("닉네임이 중복되었습니다");
+			.isInstanceOf(FineAntsException.class)
+			.hasMessage(MemberErrorCode.NO_PROFILE_CHANGES.getMessage());
 	}
 
 	@DisplayName("사용자는 일반 회원가입한다")
@@ -374,6 +472,28 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 			.containsExactlyInAnyOrder("일개미1234", "dragonbead95@naver.com", expectedProfileUrl, "local");
 	}
 
+	@DisplayName("사용자는 일반 회원가입 할때 프로필 사진을 기본 프로필 사진으로 가입한다")
+	@Test
+	void signup_whenDefaultProfile_thenSaveDefaultProfileUrl() {
+		// given
+		SignUpRequest request = new SignUpRequest(
+			"일개미1234",
+			"dragonbead95@naver.com",
+			"nemo1234@",
+			"nemo1234@"
+		);
+		MultipartFile profileImageFile = null;
+		SignUpServiceRequest serviceRequest = SignUpServiceRequest.of(request, profileImageFile);
+
+		// when
+		SignUpServiceResponse response = memberService.signup(serviceRequest);
+
+		// then
+		assertThat(response)
+			.extracting("nickname", "email", "profileUrl", "provider")
+			.containsExactlyInAnyOrder("일개미1234", "dragonbead95@naver.com", null, "local");
+	}
+
 	@DisplayName("사용자는 닉네임이 중복되어 회원가입 할 수 없다")
 	@Test
 	void signup_whenDuplicatedNickname_thenResponse400Error() {
@@ -386,14 +506,14 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 			"nemo1234@",
 			"nemo1234@"
 		);
-		SignUpServiceRequest serviceRequest = SignUpServiceRequest.of(request, createMockMultipartFile());
+		SignUpServiceRequest serviceRequest = SignUpServiceRequest.of(request, createProfileFile());
 
 		// when
 		Throwable throwable = catchThrowable(() -> memberService.signup(serviceRequest));
 
 		// then
 		assertThat(throwable)
-			.isInstanceOf(BadRequestException.class)
+			.isInstanceOf(FineAntsException.class)
 			.hasMessage(MemberErrorCode.REDUNDANT_NICKNAME.getMessage());
 	}
 
@@ -409,7 +529,7 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 			"nemo1234@",
 			"nemo1234@"
 		);
-		SignUpServiceRequest serviceRequest = SignUpServiceRequest.of(request, createMockMultipartFile());
+		SignUpServiceRequest serviceRequest = SignUpServiceRequest.of(request, createProfileFile());
 
 		// when
 		Throwable throwable = catchThrowable(() -> memberService.signup(serviceRequest));
@@ -431,7 +551,7 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 			"nemo1234@",
 			"nemo4567@"
 		);
-		SignUpServiceRequest serviceRequest = SignUpServiceRequest.of(request, createMockMultipartFile());
+		SignUpServiceRequest serviceRequest = SignUpServiceRequest.of(request, createProfileFile());
 
 		// when
 		Throwable throwable = catchThrowable(() -> memberService.signup(serviceRequest));
@@ -455,7 +575,7 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 			"nemo1234@",
 			"nemo1234@"
 		);
-		SignUpServiceRequest serviceRequest = SignUpServiceRequest.of(request, createMockMultipartFile());
+		SignUpServiceRequest serviceRequest = SignUpServiceRequest.of(request, createProfileFile());
 
 		// when
 		Throwable throwable = catchThrowable(() -> memberService.signup(serviceRequest));
@@ -653,25 +773,7 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 			.build();
 	}
 
-	public static Stream<Arguments> changeProfileMethodSource() {
-		String nickname = "nemo12345";
-		return Stream.of(
-			Arguments.of(
-				null,
-				createProfileChangeRequest(nickname)
-			),
-			Arguments.of(
-				createMockMultipartFile(),
-				null
-			),
-			Arguments.of(
-				createMockMultipartFile(),
-				createProfileChangeRequest(nickname)
-			)
-		);
-	}
-
-	public static MultipartFile createMockMultipartFile() {
+	public static MultipartFile createProfileFile() {
 		ClassPathResource classPathResource = new ClassPathResource("profile.jpeg");
 		Path path = null;
 		try {
@@ -682,6 +784,10 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	private static MultipartFile createEmptyProfileImageFile() {
+		return new MockMultipartFile("profileImageFile", new byte[] {});
 	}
 
 	@NotNull
@@ -696,10 +802,9 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 			"nemo1234@",
 			"nemo1234@"
 		);
-		MultipartFile profileImageFile = createMockMultipartFile();
+		MultipartFile profileImageFile = createProfileFile();
 		return Stream.of(
-			Arguments.of(request, profileImageFile, "profileUrl"),
-			Arguments.of(request, null, null)
+			Arguments.of(request, profileImageFile, "profileUrl")
 		);
 	}
 

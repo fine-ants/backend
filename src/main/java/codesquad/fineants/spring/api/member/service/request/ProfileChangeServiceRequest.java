@@ -1,23 +1,27 @@
 package codesquad.fineants.spring.api.member.service.request;
 
-import java.util.Optional;
-
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.web.multipart.MultipartFile;
 
-import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.spring.api.member.request.ProfileChangeRequest;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Getter
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@ToString
 public class ProfileChangeServiceRequest {
-	private final Optional<MultipartFile> profileImageFile;
-	private final Optional<ProfileChangeRequest> request;
-	private final Optional<Long> memberId;
+	private MultipartFile profileImageFile;
+	private String nickname;
+	private Long memberId;
 
-	public ProfileChangeServiceRequest(MultipartFile profileImageFile, ProfileChangeRequest request,
-		AuthMember authMember) {
-		this.profileImageFile = Optional.ofNullable(profileImageFile);
-		this.request = Optional.ofNullable(request);
-		this.memberId = Optional.of(authMember.getMemberId());
+	public static ProfileChangeServiceRequest of(MultipartFile profileImageFile, ProfileChangeRequest request,
+		Long memberId) {
+		String nickname = request != null ? request.getNickname() : Strings.EMPTY;
+		return new ProfileChangeServiceRequest(profileImageFile, nickname, memberId);
 	}
 }

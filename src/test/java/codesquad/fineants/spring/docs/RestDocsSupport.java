@@ -3,6 +3,10 @@ package codesquad.fineants.spring.docs;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -12,12 +16,15 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.springframework.core.MethodParameter;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.restdocs.RestDocumentationContextProvider;
 import org.springframework.restdocs.RestDocumentationExtension;
 import org.springframework.restdocs.mockmvc.MockMvcRestDocumentation;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.multipart.MultipartFile;
 
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.oauth.support.AuthMember;
@@ -171,6 +178,23 @@ public abstract class RestDocsSupport {
 				LocalDate.of(2024, 5, 17),
 				stock)
 		);
+	}
+
+	protected MultipartFile createMockMultipartFile() {
+		ClassPathResource classPathResource = new ClassPathResource("profile.jpeg");
+		Path path = null;
+		try {
+			path = Paths.get(classPathResource.getURI());
+			byte[] profile = Files.readAllBytes(path);
+			return new MockMultipartFile("profileImageFile", "profile.jpeg", "image/jpeg",
+				profile);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected MultipartFile createEmptyMockMultipartFile() {
+		return new MockMultipartFile("profileImageFile", new byte[] {});
 	}
 
 	protected abstract Object initController();

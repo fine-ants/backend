@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.PutObjectRequest;
@@ -57,5 +58,21 @@ public class AmazonS3Service {
 		}
 
 		return Optional.of(convertedFile);
+	}
+
+	public void deleteFile(String url) {
+		try {
+			String fileName = extractFileName(url);
+			amazonS3.deleteObject(bucketName, fileName);
+		} catch (AmazonServiceException e) {
+			log.error(e.getMessage());
+		}
+	}
+
+	// URL에서 파일 이름 추출하는 메소드
+	private String extractFileName(String url) {
+		// 예시: https://fineants.s3.ap-northeast-2.amazonaws.com/9d07ee41-4404-414b-9ee7-12616aa6bedcprofile.jpeg
+		int lastSlashIndex = url.lastIndexOf('/');
+		return url.substring(lastSlashIndex + 1);
 	}
 }

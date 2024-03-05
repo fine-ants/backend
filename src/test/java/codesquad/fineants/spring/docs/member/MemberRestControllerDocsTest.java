@@ -2,14 +2,16 @@ package codesquad.fineants.spring.docs.member;
 
 import static org.hamcrest.Matchers.*;
 import static org.mockito.BDDMockito.*;
+import static org.springframework.http.HttpMethod.*;
 import static org.springframework.restdocs.headers.HeaderDocumentation.*;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.*;
-import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.*;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
 import static org.springframework.restdocs.request.RequestDocumentation.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 import org.junit.jupiter.api.DisplayName;
@@ -18,6 +20,7 @@ import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
 import org.springframework.restdocs.payload.JsonFieldType;
 import org.springframework.restdocs.snippet.Attributes;
@@ -30,7 +33,11 @@ import codesquad.fineants.spring.api.member.request.OauthMemberLoginRequest;
 import codesquad.fineants.spring.api.member.response.LoginResponse;
 import codesquad.fineants.spring.api.member.response.OauthMemberLoginResponse;
 import codesquad.fineants.spring.api.member.response.OauthMemberResponse;
+import codesquad.fineants.spring.api.member.response.ProfileChangeResponse;
 import codesquad.fineants.spring.api.member.service.MemberService;
+import codesquad.fineants.spring.api.member.service.request.ProfileChangeServiceRequest;
+import codesquad.fineants.spring.api.member.service.request.SignUpServiceRequest;
+import codesquad.fineants.spring.api.member.service.response.SignUpServiceResponse;
 import codesquad.fineants.spring.docs.RestDocsSupport;
 import codesquad.fineants.spring.util.ObjectMapperUtil;
 
@@ -289,4 +296,126 @@ public class MemberRestControllerDocsTest extends RestDocsSupport {
 			);
 	}
 
+	@DisplayName("사용자 일반 회원가입 API")
+	@Test
+	void signup() throws Exception {
+		// given
+		given(memberService.signup(ArgumentMatchers.any(SignUpServiceRequest.class)))
+			.willReturn(SignUpServiceResponse.from(createMember()));
+
+		Map<String, Object> profileInformationMap = Map.of(
+			"nickname", "일개미1234",
+			"email", "dragonbead95@naver.com",
+			"password", "nemo1234@",
+			"passwordConfirm", "nemo1234@");
+		String json = ObjectMapperUtil.serialize(profileInformationMap);
+		MockMultipartFile signupData = new MockMultipartFile(
+			"signupData",
+			"signupData",
+			MediaType.APPLICATION_JSON_VALUE,
+			json.getBytes(StandardCharsets.UTF_8));
+
+		// when & then
+		mockMvc.perform(multipart(POST, "/api/auth/signup")
+				.file((MockMultipartFile)createMockMultipartFile())
+				.file(signupData))
+			.andExpect(status().isCreated())
+			.andExpect(jsonPath("code").value(equalTo(201)))
+			.andExpect(jsonPath("status").value(equalTo("Created")))
+			.andExpect(jsonPath("message").value(equalTo("회원가입이 완료되었습니다")))
+			.andDo(
+				document(
+					"member-signup",
+					preprocessRequest(prettyPrint()),
+					preprocessResponse(prettyPrint()),
+					requestParts(
+						partWithName("profileImageFile")
+							.optional()
+							.description("프로필 파일"),
+						partWithName("signupData")
+							.description("회원가입 정보")
+					),
+					responseFields(
+						fieldWithPath("code").type(JsonFieldType.NUMBER)
+							.description("코드"),
+						fieldWithPath("status").type(JsonFieldType.STRING)
+							.description("상태"),
+						fieldWithPath("message").type(JsonFieldType.STRING)
+							.description("메시지"),
+						fieldWithPath("data").type(JsonFieldType.NULL)
+							.description("응답 데이터")
+					)
+				)
+			);
+	}
+
+	@DisplayName("회원 프로필 수정 API")
+	@Test
+	void changeProfile() throws Exception {
+		// given
+		Member member = createMember();
+
+		Map<String, Object> profileInformationMap = Map.of("nickname", "일개미12345");
+		MockMultipartFile profileInformation = new MockMultipartFile(
+			"profileInformation",
+			"profileInformation",
+			MediaType.APPLICATION_JSON_VALUE,
+			ObjectMapperUtil.serialize(profileInformationMap)
+				.getBytes(StandardCharsets.UTF_8));
+
+		member.updateNickname("일개미12345");
+		given(memberService.changeProfile(ArgumentMatchers.any(ProfileChangeServiceRequest.class)))
+			.willReturn(ProfileChangeResponse.from(member));
+		// when & then
+		mockMvc.perform(multipart(POST, "/api/profile")
+				.file((MockMultipartFile)createMockMultipartFile())
+				.file(profileInformation)
+				.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("code").value(equalTo(200)))
+			.andExpect(jsonPath("status").value(equalTo("OK")))
+			.andExpect(jsonPath("message").value(equalTo("프로필이 수정되었습니다")))
+			.andExpect(jsonPath("data.user.id").value(equalTo(1)))
+			.andExpect(jsonPath("data.user.nickname").value(equalTo("일개미12345")))
+			.andExpect(jsonPath("data.user.email").value(equalTo("kim1234@gmail.com")))
+			.andExpect(jsonPath("data.user.profileUrl").value(equalTo("profileUrl")))
+			.andDo(
+				document(
+					"member-update",
+					preprocessRequest(prettyPrint()),
+					preprocessResponse(prettyPrint()),
+					requestHeaders(
+						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
+					),
+					requestParts(
+						partWithName("profileImageFile")
+							.optional()
+							.description("프로필 파일"),
+						partWithName("profileInformation")
+							.optional()
+							.description("회원 수정 정보")
+					),
+					responseFields(
+						fieldWithPath("code").type(JsonFieldType.NUMBER)
+							.description("코드"),
+						fieldWithPath("status").type(JsonFieldType.STRING)
+							.description("상태"),
+						fieldWithPath("message").type(JsonFieldType.STRING)
+							.description("메시지"),
+						fieldWithPath("data").type(JsonFieldType.OBJECT)
+							.description("응답 데이터"),
+						fieldWithPath("data.user").type(JsonFieldType.OBJECT)
+							.description("회원 정보"),
+						fieldWithPath("data.user.id").type(JsonFieldType.NUMBER)
+							.description("회원 등록번호"),
+						fieldWithPath("data.user.nickname").type(JsonFieldType.STRING)
+							.description("회원 닉네임"),
+						fieldWithPath("data.user.email").type(JsonFieldType.STRING)
+							.description("회원 이메일"),
+						fieldWithPath("data.user.profileUrl").type(JsonFieldType.STRING)
+							.description("회원 프로필 URL")
+					)
+				)
+			);
+	}
 }
