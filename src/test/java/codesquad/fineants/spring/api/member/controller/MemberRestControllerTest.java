@@ -330,7 +330,7 @@ class MemberRestControllerTest {
 			.andExpect(jsonPath("message").value(equalTo("회원가입이 완료되었습니다")));
 	}
 
-	@DisplayName("사용자는 프로필을 건너뛰고 회원가입 할 수 있다")
+	@DisplayName("사용자는 기본 프로필 사진으로 회원가입 할 수 있다")
 	@Test
 	void signup_whenSkipProfileImageFile_then200OK() throws Exception {
 		// given
@@ -348,12 +348,7 @@ class MemberRestControllerTest {
 			"signupData",
 			MediaType.APPLICATION_JSON_VALUE,
 			json.getBytes(StandardCharsets.UTF_8));
-		MockMultipartFile profileImageFile = new MockMultipartFile(
-			"profileImageFile",
-			"static/img/default.png",
-			MediaType.MULTIPART_FORM_DATA_VALUE,
-			new ClassPathResource("static/img/default.png").getInputStream()
-		);
+		MockMultipartFile profileImageFile = (MockMultipartFile)createEmptyMockMultipartFile();
 		// when & then
 		mockMvc.perform(multipart(POST, "/api/auth/signup")
 				.file(signupData)

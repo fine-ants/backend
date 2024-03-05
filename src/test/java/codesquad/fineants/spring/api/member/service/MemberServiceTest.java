@@ -458,7 +458,7 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 			"nemo1234@",
 			"nemo1234@"
 		);
-		MultipartFile profileImageFile = createProfileFile();
+		MultipartFile profileImageFile = createEmptyProfileImageFile();
 		SignUpServiceRequest serviceRequest = SignUpServiceRequest.of(request, profileImageFile);
 
 		// when
@@ -467,8 +467,7 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 		// then
 		assertThat(response)
 			.extracting("nickname", "email", "profileUrl", "provider")
-			.containsExactlyInAnyOrder("일개미1234", "dragonbead95@naver.com",
-				"https://fineants.s3.ap-northeast-2.amazonaws.com/profile/default/default.png", "local");
+			.containsExactlyInAnyOrder("일개미1234", "dragonbead95@naver.com", null, "local");
 	}
 
 	@DisplayName("사용자는 닉네임이 중복되어 회원가입 할 수 없다")
@@ -490,7 +489,7 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 
 		// then
 		assertThat(throwable)
-			.isInstanceOf(BadRequestException.class)
+			.isInstanceOf(FineAntsException.class)
 			.hasMessage(MemberErrorCode.REDUNDANT_NICKNAME.getMessage());
 	}
 

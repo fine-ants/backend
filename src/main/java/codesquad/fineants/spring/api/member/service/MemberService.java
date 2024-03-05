@@ -3,7 +3,6 @@ package codesquad.fineants.spring.api.member.service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
@@ -84,8 +83,6 @@ import lombok.extern.slf4j.Slf4j;
 public class MemberService {
 
 	private static final String LOCAL_PROVIDER = "local";
-	private static final String DEFAULT_PROFILE_NAME = "default.png";
-	private static final String DEFAULT_PROFILE_URL = "https://fineants.s3.ap-northeast-2.amazonaws.com/profile/default/default.png";
 	private final AuthorizationRequestManager authorizationRequestManager;
 	private final OauthClientRepository oauthClientRepository;
 	private final MemberRepository memberRepository;
@@ -228,8 +225,8 @@ public class MemberService {
 		verifyPassword(request.getPassword(), request.getPasswordConfirm());
 
 		// 프로필 이미지 파일 S3에 업로드
-		String profileUrl = DEFAULT_PROFILE_URL;
-		if (!Objects.equals(request.getProfileImageFile().getOriginalFilename(), DEFAULT_PROFILE_NAME)) {
+		String profileUrl = null;
+		if (!request.getProfileImageFile().isEmpty()) {
 			profileUrl = uploadProfileImageFile(request.getProfileImageFile());
 		}
 
