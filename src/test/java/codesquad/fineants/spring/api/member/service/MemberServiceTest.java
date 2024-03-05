@@ -418,10 +418,11 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 	@Test
 	void changeProfile_whenDuplicateNickname_thenThrowException() {
 		// given
+		memberRepository.save(createMember("nemo12345"));
 		Member member = memberRepository.save(createMember());
 		ProfileChangeServiceRequest serviceRequest = ProfileChangeServiceRequest.of(
 			null,
-			new ProfileChangeRequest("nemo1234"),
+			new ProfileChangeRequest("nemo12345"),
 			member.getId()
 		);
 
