@@ -51,3 +51,30 @@ include::{snippets}/member-delete/request-fields.adoc[]
 
 include::{snippets}/member-delete/http-response.adoc[]
 include::{snippets}/member-delete/response-fields.adoc[]
+
+[[member-signup]]
+=== 일반 회원가입
+
+==== HTTP Request
+
+include::{snippets}/member-signup/http-request.adoc[]
+include::{snippets}/member-signup/request-parts.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/member-signup/http-response.adoc[]
+include::{snippets}/member-signup/response-fields.adoc[]
+
+[[member-update]]
+=== 회원 프로필 수정
+
+==== HTTP Request
+
+include::{snippets}/member-update/http-request.adoc[]
+include::{snippets}/member-update/request-headers.adoc[]
+include::{snippets}/member-update/request-parts.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/member-update/http-response.adoc[]
+include::{snippets}/member-update/response-fields.adoc[]
