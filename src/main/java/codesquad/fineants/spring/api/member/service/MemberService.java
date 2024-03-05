@@ -60,7 +60,6 @@ import codesquad.fineants.spring.api.member.request.ModifyPasswordRequest;
 import codesquad.fineants.spring.api.member.request.OauthMemberLoginRequest;
 import codesquad.fineants.spring.api.member.request.OauthMemberLogoutRequest;
 import codesquad.fineants.spring.api.member.request.OauthMemberRefreshRequest;
-import codesquad.fineants.spring.api.member.request.ProfileChangeRequest;
 import codesquad.fineants.spring.api.member.request.VerifyCodeRequest;
 import codesquad.fineants.spring.api.member.request.VerifyEmailRequest;
 import codesquad.fineants.spring.api.member.response.LoginResponse;
@@ -267,7 +266,7 @@ public class MemberService {
 
 	private void verifyNickname(String nickname) {
 		if (memberRepository.existsByNickname(nickname)) {
-			throw new BadRequestException(MemberErrorCode.REDUNDANT_NICKNAME);
+			throw new FineAntsException(MemberErrorCode.REDUNDANT_NICKNAME);
 		}
 	}
 
@@ -322,40 +321,45 @@ public class MemberService {
 	}
 
 	@Transactional
-	public ProfileChangeResponse changeProfile(ProfileChangeServiceRequest serviceRequest) {
-		verifyNoProfileChanges(serviceRequest);
-		Member member = findMemberById(serviceRequest.getMemberId());
-		extractMemberProfileImage(serviceRequest)
-			.map(amazonS3Service::upload)
-			.ifPresent(member::updateProfileUrl);
-		extractNickname(serviceRequest)
-			.ifPresent(member::updateNickname);
+	public ProfileChangeResponse changeProfile(ProfileChangeServiceRequest request) {
+		Member member = findMemberById(request.getMemberId());
+		MultipartFile profileImageFile = request.getProfileImageFile();
+		String profileUrl = null;
+
+		// 변경할 정보가 없는 경우
+		if (profileImageFile == null && request.getNickname().isBlank()) {
+			throw new FineAntsException(MemberErrorCode.NO_PROFILE_CHANGES);
+		}
+
+		// 기존 프로필 파일 유지
+		if (profileImageFile == null) {
+			profileUrl = member.getProfileUrl();
+		}
+		// 기본 프로필 파일로 변경인 경우
+		else if (profileImageFile.isEmpty()) {
+			// 회원의 기존 프로필 사진 제거
+			amazonS3Service.deleteFile(member.getProfileUrl());
+		}
+		// 새로운 프로필 파일로 변경인 경우
+		else if (!profileImageFile.isEmpty()) {
+			// 기존 프로필 파일 삭제
+			amazonS3Service.deleteFile(member.getProfileUrl());
+			// 새로운 프로필 파일 저장
+			profileUrl = amazonS3Service.upload(profileImageFile);
+		}
+		member.updateProfileUrl(profileUrl);
+
+		if (!request.getNickname().isBlank()) {
+			String nickname = request.getNickname();
+			verifyNickname(nickname);
+			member.updateNickname(nickname);
+		}
 		return ProfileChangeResponse.from(member);
 	}
 
-	private void verifyNoProfileChanges(ProfileChangeServiceRequest serviceRequest) {
-		if (serviceRequest.getProfileImageFile().isEmpty() && serviceRequest.getRequest().isEmpty()) {
-			throw new BadRequestException(MemberErrorCode.NO_PROFILE_CHANGES);
-		}
-	}
-
-	private Member findMemberById(Optional<Long> optionalMemberId) {
-		return optionalMemberId
-			.flatMap(memberRepository::findById)
-			.orElseThrow(() -> new BadRequestException(MemberErrorCode.NOT_FOUND_MEMBER));
-	}
-
-	private Optional<MultipartFile> extractMemberProfileImage(ProfileChangeServiceRequest serviceRequest) {
-		return serviceRequest.getProfileImageFile();
-	}
-
-	private Optional<String> extractNickname(ProfileChangeServiceRequest serviceRequest) {
-		return serviceRequest.getRequest()
-			.map(ProfileChangeRequest::getNickname)
-			.map(nickname -> {
-				verifyNickname(nickname);
-				return nickname;
-			});
+	private Member findMemberById(Long memberId) {
+		return memberRepository.findById(memberId)
+			.orElseThrow(() -> new FineAntsException(MemberErrorCode.NOT_FOUND_MEMBER));
 	}
 
 	@Transactional

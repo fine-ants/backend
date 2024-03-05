@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.PutObjectRequest;
@@ -57,5 +58,13 @@ public class AmazonS3Service {
 		}
 
 		return Optional.of(convertedFile);
+	}
+
+	public void deleteFile(String url) {
+		try {
+			amazonS3.deleteObject(bucketName, url);
+		} catch (AmazonServiceException e) {
+			log.error(e.getMessage());
+		}
 	}
 }

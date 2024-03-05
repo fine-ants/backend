@@ -174,24 +174,24 @@ class MemberRestControllerTest {
 			.andExpect(jsonPath("data.user.profileUrl").value(equalTo(member.getProfileUrl())));
 	}
 
-	@DisplayName("사용자는 회원의 프로필 및 닉네임을 변경한다")
+	@DisplayName("사용자는 회원의 프로필에서 새 프로필 및 닉네임을 수정한다")
 	@Test
 	void changeProfile() throws Exception {
 		// given
-		Member member = createMember("일개미12345", "changeProfileUrl");
+		Member member = createMember("일개미12345", "profileUrl");
 		given(memberService.changeProfile(ArgumentMatchers.any(ProfileChangeServiceRequest.class)))
 			.willReturn(ProfileChangeResponse.from(member));
 
 		Map<String, Object> profileInformationMap = Map.of("nickname", "일개미12345");
-		String json = ObjectMapperUtil.serialize(profileInformationMap);
 		MockMultipartFile profileInformation = new MockMultipartFile(
 			"profileInformation",
 			"profileInformation",
 			MediaType.APPLICATION_JSON_VALUE,
-			json.getBytes(StandardCharsets.UTF_8));
+			ObjectMapperUtil.serialize(profileInformationMap)
+				.getBytes(StandardCharsets.UTF_8));
 
 		// when & then
-		mockMvc.perform(multipart(PUT, "/api/profile")
+		mockMvc.perform(multipart(POST, "/api/profile")
 				.file((MockMultipartFile)createMockMultipartFile())
 				.file(profileInformation))
 			.andExpect(status().isOk())
@@ -201,22 +201,104 @@ class MemberRestControllerTest {
 			.andExpect(jsonPath("data.user.id").value(equalTo(1)))
 			.andExpect(jsonPath("data.user.nickname").value(equalTo("일개미12345")))
 			.andExpect(jsonPath("data.user.email").value(equalTo("dragonbead95@naver.com")))
-			.andExpect(jsonPath("data.user.profileUrl").value(equalTo("changeProfileUrl")));
+			.andExpect(jsonPath("data.user.profileUrl").value(equalTo("profileUrl")));
 	}
 
-	@DisplayName("사용자는 아무 정보도 전달하지 않고 회원 프로필 변경 요청시 에러를 응답한다")
+	@DisplayName("사용자는 회원의 프로필에서 새 프로필만 수정한다")
 	@Test
-	void changeProfile_whenNotExistInput_thenResponse400Error() throws Exception {
+	void changeProfile_whenNewProfile_thenOK() throws Exception {
 		// given
+		Member member = createMember("일개미12345", "profileUrl");
 		given(memberService.changeProfile(ArgumentMatchers.any(ProfileChangeServiceRequest.class)))
-			.willThrow(new BadRequestException(MemberErrorCode.NO_PROFILE_CHANGES));
+			.willReturn(ProfileChangeResponse.from(member));
 
 		// when & then
-		mockMvc.perform(multipart(PUT, "/api/profile"))
+		mockMvc.perform(multipart(POST, "/api/profile")
+				.file((MockMultipartFile)createMockMultipartFile()))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("code").value(equalTo(200)))
+			.andExpect(jsonPath("status").value(equalTo("OK")))
+			.andExpect(jsonPath("message").value(equalTo("프로필이 수정되었습니다")))
+			.andExpect(jsonPath("data.user.id").value(equalTo(1)))
+			.andExpect(jsonPath("data.user.nickname").value(equalTo("일개미12345")))
+			.andExpect(jsonPath("data.user.email").value(equalTo("dragonbead95@naver.com")))
+			.andExpect(jsonPath("data.user.profileUrl").value(equalTo("profileUrl")));
+	}
+
+	@DisplayName("사용자는 회원의 프로필에서 기본 프로필로 수정한다")
+	@Test
+	void changeProfile_whenEmptyProfile_thenOK() throws Exception {
+		// given
+		Member member = createMember("일개미12345", null);
+		given(memberService.changeProfile(ArgumentMatchers.any(ProfileChangeServiceRequest.class)))
+			.willReturn(ProfileChangeResponse.from(member));
+
+		// when & then
+		mockMvc.perform(multipart(POST, "/api/profile")
+				.file((MockMultipartFile)createEmptyMockMultipartFile()))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("code").value(equalTo(200)))
+			.andExpect(jsonPath("status").value(equalTo("OK")))
+			.andExpect(jsonPath("message").value(equalTo("프로필이 수정되었습니다")))
+			.andExpect(jsonPath("data.user.id").value(equalTo(1)))
+			.andExpect(jsonPath("data.user.nickname").value(equalTo("일개미12345")))
+			.andExpect(jsonPath("data.user.email").value(equalTo("dragonbead95@naver.com")))
+			.andExpect(jsonPath("data.user.profileUrl").value(equalTo(null)));
+	}
+
+	@DisplayName("사용자는 회원의 프로필에서 프로필을 유지하고 닉네임만 변경한다")
+	@Test
+	void changeProfile_whenOnlyChangeNickname_thenOK() throws Exception {
+		// given
+		Member member = createMember("일개미1234", "profileUrl");
+		given(memberService.changeProfile(ArgumentMatchers.any(ProfileChangeServiceRequest.class)))
+			.willReturn(ProfileChangeResponse.from(member));
+
+		Map<String, Object> profileInformationMap = Map.of("nickname", "일개미1234");
+		MockMultipartFile profileInformation = new MockMultipartFile(
+			"profileInformation",
+			"profileInformation",
+			MediaType.APPLICATION_JSON_VALUE,
+			ObjectMapperUtil.serialize(profileInformationMap)
+				.getBytes(StandardCharsets.UTF_8));
+		// when & then
+		mockMvc.perform(multipart(POST, "/api/profile")
+				.file(profileInformation))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("code").value(equalTo(200)))
+			.andExpect(jsonPath("status").value(equalTo("OK")))
+			.andExpect(jsonPath("message").value(equalTo("프로필이 수정되었습니다")))
+			.andExpect(jsonPath("data.user.id").value(equalTo(1)))
+			.andExpect(jsonPath("data.user.nickname").value(equalTo("일개미1234")))
+			.andExpect(jsonPath("data.user.email").value(equalTo("dragonbead95@naver.com")))
+			.andExpect(jsonPath("data.user.profileUrl").value(equalTo("profileUrl")));
+	}
+
+	@DisplayName("사용자는 회원의 프로필에서 닉네임 입력 형식이 유효하지 않아 실패한다")
+	@Test
+	void changeProfile_whenInvalidNickname_thenResponse400() throws Exception {
+		// given
+		Member member = createMember("일개미1234", "profileUrl");
+		given(memberService.changeProfile(ArgumentMatchers.any(ProfileChangeServiceRequest.class)))
+			.willReturn(ProfileChangeResponse.from(member));
+
+		Map<String, Object> profileInformationMap = Map.of("nickname", "");
+		MockMultipartFile profileInformation = new MockMultipartFile(
+			"profileInformation",
+			"profileInformation",
+			MediaType.APPLICATION_JSON_VALUE,
+			ObjectMapperUtil.serialize(profileInformationMap)
+				.getBytes(StandardCharsets.UTF_8));
+		// when & then
+		mockMvc.perform(multipart(POST, "/api/profile")
+				.file((MockMultipartFile)createMockMultipartFile())
+				.file(profileInformation))
 			.andExpect(status().isBadRequest())
 			.andExpect(jsonPath("code").value(equalTo(400)))
 			.andExpect(jsonPath("status").value(equalTo("Bad Request")))
-			.andExpect(jsonPath("message").value(equalTo("변경할 회원 정보가 없습니다")));
+			.andExpect(jsonPath("message").value(equalTo("잘못된 입력형식입니다")))
+			.andExpect(jsonPath("data[0].field").value(equalTo("nickname")))
+			.andExpect(jsonPath("data[0].defaultMessage").value(equalTo("잘못된 입력형식입니다.")));
 	}
 
 	@DisplayName("사용자는 일반 회원가입을 한다")
@@ -606,6 +688,10 @@ class MemberRestControllerTest {
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	public MultipartFile createEmptyMockMultipartFile() {
+		return new MockMultipartFile("profileImageFile", new byte[] {});
 	}
 
 	public static Stream<Arguments> invalidSignupData() {

@@ -126,13 +126,16 @@ public class MemberRestController {
 		return ApiResponse.success(MemberSuccessCode.OK_LOGIN, memberService.login(request));
 	}
 
-	@PutMapping(value = "/profile", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE, MediaType.APPLICATION_JSON_VALUE})
+	@PostMapping(value = "/profile", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE, MediaType.APPLICATION_JSON_VALUE})
 	public ApiResponse<ProfileChangeResponse> changeProfile(
 		@RequestPart(value = "profileImageFile", required = false) MultipartFile profileImageFile,
 		@Valid @RequestPart(value = "profileInformation", required = false) ProfileChangeRequest request,
 		@AuthPrincipalMember AuthMember authMember) {
-		ProfileChangeServiceRequest serviceRequest = new ProfileChangeServiceRequest(profileImageFile,
-			request, authMember);
+		ProfileChangeServiceRequest serviceRequest = ProfileChangeServiceRequest.of(
+			profileImageFile,
+			request,
+			authMember.getMemberId()
+		);
 		return ApiResponse.success(MemberSuccessCode.OK_MODIFIED_PROFILE,
 			memberService.changeProfile(serviceRequest));
 	}
