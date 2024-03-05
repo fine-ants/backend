@@ -226,7 +226,7 @@ public class MemberService {
 
 		// 프로필 이미지 파일 S3에 업로드
 		String profileUrl = null;
-		if (!request.getProfileImageFile().isEmpty()) {
+		if (request.getProfileImageFile() != null && !request.getProfileImageFile().isEmpty()) {
 			profileUrl = uploadProfileImageFile(request.getProfileImageFile());
 		}
 
@@ -263,6 +263,13 @@ public class MemberService {
 
 	private void verifyNickname(String nickname) {
 		if (memberRepository.existsByNickname(nickname)) {
+			throw new FineAntsException(MemberErrorCode.REDUNDANT_NICKNAME);
+		}
+	}
+
+	// memberId을 제외한 다른 nickname이 존재하는지 검증
+	private void verifyNickname(String nickname, Long memberId) {
+		if (memberRepository.findMemberByNicknameAndNotMemberId(nickname, memberId).isPresent()) {
 			throw new FineAntsException(MemberErrorCode.REDUNDANT_NICKNAME);
 		}
 	}
@@ -335,12 +342,18 @@ public class MemberService {
 		// 기본 프로필 파일로 변경인 경우
 		else if (profileImageFile.isEmpty()) {
 			// 회원의 기존 프로필 사진 제거
-			amazonS3Service.deleteFile(member.getProfileUrl());
+			// 기존 프로필 파일 삭제
+			if (member.getProfileUrl() != null) {
+				amazonS3Service.deleteFile(member.getProfileUrl());
+			}
 		}
 		// 새로운 프로필 파일로 변경인 경우
 		else if (!profileImageFile.isEmpty()) {
 			// 기존 프로필 파일 삭제
-			amazonS3Service.deleteFile(member.getProfileUrl());
+			if (member.getProfileUrl() != null) {
+				amazonS3Service.deleteFile(member.getProfileUrl());
+			}
+
 			// 새로운 프로필 파일 저장
 			profileUrl = amazonS3Service.upload(profileImageFile);
 		}
@@ -348,7 +361,7 @@ public class MemberService {
 
 		if (!request.getNickname().isBlank()) {
 			String nickname = request.getNickname();
-			verifyNickname(nickname);
+			verifyNickname(nickname, member.getId());
 			member.updateNickname(nickname);
 		}
 		return ProfileChangeResponse.from(member);

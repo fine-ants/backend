@@ -10,6 +10,10 @@ import org.springframework.data.repository.query.Param;
 public interface MemberRepository extends JpaRepository<Member, Long> {
 	Optional<Member> findMemberByEmailAndProvider(String email, String provider);
 
+	@Query("select m from Member m where m.nickname = :nickname and m.id != :memberId")
+	Optional<Member> findMemberByNicknameAndNotMemberId(@Param("nickname") String nickname,
+		@Param("memberId") Long memberId);
+
 	boolean existsMemberByEmailAndProvider(String email, String provider);
 
 	boolean existsByNickname(String nickname);

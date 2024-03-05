@@ -348,11 +348,9 @@ class MemberRestControllerTest {
 			"signupData",
 			MediaType.APPLICATION_JSON_VALUE,
 			json.getBytes(StandardCharsets.UTF_8));
-		MockMultipartFile profileImageFile = (MockMultipartFile)createEmptyMockMultipartFile();
 		// when & then
 		mockMvc.perform(multipart(POST, "/api/auth/signup")
-				.file(signupData)
-				.file(profileImageFile))
+				.file(signupData))
 			.andExpect(status().isCreated())
 			.andExpect(jsonPath("code").value(equalTo(201)))
 			.andExpect(jsonPath("status").value(equalTo("Created")))

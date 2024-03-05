@@ -390,6 +390,30 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 			.containsExactlyInAnyOrder(member.getId(), "nemo12345", "dragonbead95@naver.com", "profileUrl");
 	}
 
+	@DisplayName("사용자는 회원 프로필에서 자기 닉네임을 그대로 수정한다")
+	@Test
+	void changeProfile_whenNoChangeNickname_thenOK() {
+		// given
+		Member member = memberRepository.save(createMember());
+		ProfileChangeServiceRequest serviceRequest = ProfileChangeServiceRequest.of(
+			createProfileFile(),
+			new ProfileChangeRequest("nemo1234"),
+			member.getId()
+		);
+
+		given(amazonS3Service.upload(any(MultipartFile.class)))
+			.willReturn("profileUrl");
+
+		// when
+		ProfileChangeResponse response = memberService.changeProfile(serviceRequest);
+
+		// then
+		assertThat(response)
+			.extracting("user")
+			.extracting("id", "nickname", "email", "profileUrl")
+			.containsExactlyInAnyOrder(member.getId(), "nemo1234", "dragonbead95@naver.com", "profileUrl");
+	}
+
 	@DisplayName("사용자는 회원 프로필에서 닉네임 변경시 중복되어 변경하지 못한다")
 	@Test
 	void changeProfile_whenDuplicateNickname_thenThrowException() {
@@ -458,7 +482,7 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 			"nemo1234@",
 			"nemo1234@"
 		);
-		MultipartFile profileImageFile = createEmptyProfileImageFile();
+		MultipartFile profileImageFile = null;
 		SignUpServiceRequest serviceRequest = SignUpServiceRequest.of(request, profileImageFile);
 
 		// when
