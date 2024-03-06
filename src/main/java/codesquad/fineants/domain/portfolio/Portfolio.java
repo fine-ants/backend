@@ -154,6 +154,9 @@ public class Portfolio extends BaseEntity {
 		if (prevCurrentValuation == 0) {
 			double currentValuation = calculateTotalCurrentValuation().doubleValue();
 			double totalInvestmentAmount = calculateTotalInvestmentAmount().doubleValue();
+			if (totalInvestmentAmount == 0) {
+				return 0.0;
+			}
 			return ((currentValuation - totalInvestmentAmount) / totalInvestmentAmount) * 100;
 		}
 		double currentValuation = calculateTotalCurrentValuation();
