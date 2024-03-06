@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
 import org.springframework.restdocs.payload.JsonFieldType;
 import org.springframework.restdocs.request.RequestDocumentation;
 
@@ -222,8 +223,8 @@ public class StockTargetPriceNotificationRestControllerDocsTest extends RestDocs
 				.build());
 
 		// when & then
-		mockMvc.perform(get("/api/stocks/{tickerSymbol}/target-price/notifications",
-				stock.getTickerSymbol())
+		mockMvc.perform(RestDocumentationRequestBuilders.get("/api/stocks/{tickerSymbol}/target-price/notifications",
+					stock.getTickerSymbol())
 				.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("code").value(equalTo(200)))
