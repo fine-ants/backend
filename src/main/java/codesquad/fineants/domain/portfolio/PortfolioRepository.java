@@ -16,9 +16,9 @@ public interface PortfolioRepository extends JpaRepository<Portfolio, Long> {
 
 	List<Portfolio> findAllByMemberIdOrderByIdDesc(@Param("memberId") Long memberId);
 
-	@Query("select p from Portfolio p where p.member.id = :memberId")
+	@Query("select p from Portfolio p where p.member.id = :memberId order by p.createAt asc")
 	List<Portfolio> findAllByMemberId(@Param("memberId") Long memberId);
-	
+
 	@Query("select p from Portfolio p where p.id = :id")
 	@EntityGraph(value = "Portfolio.withAll", type = EntityGraph.EntityGraphType.LOAD)
 	Optional<Portfolio> findByPortfolioIdWithAll(@Param("id") Long id);
