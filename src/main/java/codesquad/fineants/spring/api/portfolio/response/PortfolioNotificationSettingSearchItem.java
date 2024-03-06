@@ -17,6 +17,7 @@ import lombok.ToString;
 @ToString
 public class PortfolioNotificationSettingSearchItem {
 	private Long portfolioId;
+	private String securitiesFirm;
 	private String name;
 	private Boolean targetGainNotify;
 	private Boolean maxLossNotify;
@@ -25,6 +26,7 @@ public class PortfolioNotificationSettingSearchItem {
 	public static PortfolioNotificationSettingSearchItem from(Portfolio portfolio) {
 		return PortfolioNotificationSettingSearchItem.builder()
 			.portfolioId(portfolio.getId())
+			.securitiesFirm(portfolio.getSecuritiesFirm())
 			.name(portfolio.getName())
 			.targetGainNotify(portfolio.getTargetGainIsActive())
 			.maxLossNotify(portfolio.getMaximumLossIsActive())
