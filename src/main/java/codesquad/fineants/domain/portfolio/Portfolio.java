@@ -161,7 +161,7 @@ public class Portfolio extends BaseEntity {
 	}
 
 	// 포트폴리오 당월 예상 배당금 = 각 종목들에 해당월의 배당금 합계
-	public long calculateCurrentMonthDividend() {
+	public Long calculateCurrentMonthDividend() {
 		return portfolioHoldings.stream()
 			.mapToLong(PortfolioHolding::calculateCurrentMonthDividend)
 			.sum();
@@ -186,13 +186,13 @@ public class Portfolio extends BaseEntity {
 	}
 
 	// 총 연간배당율 = 모든 종목들의 연 배당금 합계 / 모든 종목들의 총 가치의 합계) * 100
-	public Integer calculateAnnualDividendYield() {
-		double currentValuation = calculateTotalCurrentValuation();
+	public Double calculateAnnualDividendYield() {
+		double currentValuation = calculateTotalCurrentValuation().doubleValue();
 		if (currentValuation == 0) {
-			return 0;
+			return 0.0;
 		}
-		double totalAnnualDividend = calculateAnnualDividend();
-		return (int)((totalAnnualDividend / currentValuation) * 100);
+		double totalAnnualDividend = calculateAnnualDividend().doubleValue();
+		return (totalAnnualDividend / currentValuation) * 100;
 	}
 
 	// 최대손실율 = ((예산 - 최대손실금액) / 예산) * 100
@@ -201,13 +201,13 @@ public class Portfolio extends BaseEntity {
 	}
 
 	// 투자대비 연간 배당율 = 포트폴리오 총 연배당금 / 포트폴리오 투자금액 * 100
-	public Integer calculateAnnualInvestmentDividendYield() {
+	public Double calculateAnnualInvestmentDividendYield() {
 		double totalInvestmentAmount = calculateTotalInvestmentAmount();
 		if (totalInvestmentAmount == 0) {
-			return 0;
+			return 0.0;
 		}
 		double totalAnnualDividend = calculateAnnualDividend();
-		return (int)((totalAnnualDividend / totalInvestmentAmount) * 100);
+		return (totalAnnualDividend / totalInvestmentAmount) * 100;
 	}
 
 	public PortfolioGainHistory createPortfolioGainHistory(PortfolioGainHistory history) {
@@ -261,11 +261,6 @@ public class Portfolio extends BaseEntity {
 	// 최대손실금액의 알림 변경
 	public void changeMaximumLossNotification(Boolean isActive) {
 		this.maximumLossIsActive = isActive;
-	}
-
-	// 포트폴리오가 목표수익금액에 도달했는지 검사
-	public boolean reachedTargetGain() {
-		return budget + calculateTotalGain() >= targetGain;
 	}
 
 	// 포트폴리오가 목표수익금액에 도달했는지 검사
@@ -350,11 +345,6 @@ public class Portfolio extends BaseEntity {
 
 	public boolean isSameName(Portfolio changePortfolio) {
 		return this.name.equals(changePortfolio.name);
-	}
-
-	// 예산이 0원인지 검사합니다.
-	public boolean isBudgetEmpty() {
-		return this.budget == 0;
 	}
 
 	// 매입 이력을 포트폴리오에 추가시 현금이 충분한지 판단

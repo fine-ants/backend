@@ -35,7 +35,7 @@ public class StockResponse {
 			.market(stock.getMarket())
 			.currentPrice(stock.getCurrentPrice(currentPriceManager))
 			.dailyChange(stock.getDailyChange(currentPriceManager, lastDayClosingPriceManager))
-			.dailyChangeRate(stock.getDailyChangeRate(currentPriceManager, lastDayClosingPriceManager).doubleValue())
+			.dailyChangeRate(stock.getDailyChangeRate(currentPriceManager, lastDayClosingPriceManager))
 			.sector(stock.getSector())
 			.annualDividend(stock.getAnnualDividend())
 			.annualDividendYield(stock.getAnnualDividendYield(currentPriceManager))

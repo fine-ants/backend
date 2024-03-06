@@ -38,7 +38,7 @@ public class PortfolioHoldingDetailItem {
 			.totalGain(portfolioHolding.calculateTotalGain())
 			.totalReturnRate(portfolioHolding.calculateTotalReturnRate())
 			.annualDividend(portfolioHolding.calculateAnnualExpectedDividend())
-			.annualDividendYield(portfolioHolding.calculateAnnualExpectedDividendYield().doubleValue())
+			.annualDividendYield(portfolioHolding.calculateAnnualExpectedDividendYield())
 			.build();
 	}
 }

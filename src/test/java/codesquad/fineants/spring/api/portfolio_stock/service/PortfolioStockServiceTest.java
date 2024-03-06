@@ -120,7 +120,7 @@ class PortfolioStockServiceTest extends AbstractContainerBaseTest {
 					"provisionalLossBalance",
 					"targetGainNotification", "maxLossNotification")
 				.containsExactlyInAnyOrder("토스", "내꿈은 워렌버핏", 1000000L, 1500000L, 50.0, 900000L, 10.0, 150000L, 30000L,
-					20.0, 30000L, 20.0, 850000L, 4332L, 2.00, 0L, false, false),
+					20.0, 30000L, 20.0, 850000L, 4332L, 2.4066666666666667, 0L, false, false),
 			() -> assertThat(response).extracting("portfolioHoldings")
 				.asList()
 				.hasSize(1)
