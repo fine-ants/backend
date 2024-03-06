@@ -114,13 +114,13 @@ public class PortfolioHolding extends BaseEntity {
 	}
 
 	// 종목 총 손익율 = 총 손익 / 총 투자 금액
-	public Integer calculateTotalReturnRate() {
-		double totalInvestmentAmount = (double)calculateTotalInvestmentAmount();
+	public Double calculateTotalReturnRate() {
+		double totalInvestmentAmount = calculateTotalInvestmentAmount();
 		if (totalInvestmentAmount == 0) {
-			return 0;
+			return 0.0;
 		}
-		double totalGain = (double)calculateTotalGain();
-		return (int)((totalGain / totalInvestmentAmount) * 100);
+		double totalGain = calculateTotalGain();
+		return (totalGain / totalInvestmentAmount) * 100;
 	}
 
 	// 평가 금액(현재 가치) = 현재가 * 개수
@@ -134,12 +134,12 @@ public class PortfolioHolding extends BaseEntity {
 	}
 
 	// 당일 변동율 = ((종목 현재가 - 직전 거래일 종가) / 직전 거래일 종가) * 100%
-	public Integer calculateDailyChangeRate(long lastDayClosingPrice) {
+	public Double calculateDailyChangeRate(Long lastDayClosingPrice) {
 		if (lastDayClosingPrice == 0) {
-			return 0;
+			return 0.0;
 		}
-		double dailyChange = currentPrice - lastDayClosingPrice;
-		return (int)((dailyChange / (double)lastDayClosingPrice) * 100);
+		double dailyChange = currentPrice.doubleValue() - lastDayClosingPrice.doubleValue();
+		return (dailyChange / lastDayClosingPrice.doubleValue()) * 100;
 	}
 
 	// 연간배당율 = (연간배당금 / 현재 가치) * 100

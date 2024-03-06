@@ -13,7 +13,7 @@ public class DashboardPieChartResponse {
 	private Long valuation;
 	private Double weight;
 	private Long totalGain;
-	private Integer totalGainRate;
+	private Double totalGainRate;
 
 	public static DashboardPieChartResponse of(Portfolio portfolio, Long totalValuation) {
 		return new DashboardPieChartResponse(portfolio.getId(), portfolio.getName(), portfolio.calculateTotalAsset()

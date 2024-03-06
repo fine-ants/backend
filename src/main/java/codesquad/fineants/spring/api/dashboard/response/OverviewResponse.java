@@ -17,12 +17,12 @@ public class OverviewResponse {
 	private Long totalValuation;
 	private Long totalInvestment;
 	private Long totalGain;
-	private Integer totalGainRate;
+	private Double totalGainRate;
 	private Long totalAnnualDividend;
 	private Double totalAnnualDividendYield;
 
 	public static OverviewResponse of(String username, Long totalValuation, Long totalInvestment, Long totalGain,
-		Integer totalGainRate, Long totalAnnualDividend, Integer totalAnnualDividendYield) {
+		Double totalGainRate, Long totalAnnualDividend, Integer totalAnnualDividendYield) {
 		return OverviewResponse.builder()
 			.username(username)
 			.totalValuation(totalValuation)
@@ -40,7 +40,7 @@ public class OverviewResponse {
 			.totalValuation(0L)
 			.totalInvestment(0L)
 			.totalGain(0L)
-			.totalGainRate(0)
+			.totalGainRate(0.0)
 			.totalAnnualDividend(0L)
 			.totalAnnualDividendYield(0.00)
 			.build();

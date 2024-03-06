@@ -11,9 +11,9 @@ public class PortfolioHoldingRealTimeItem {
 	private Long currentValuation;
 	private Long currentPrice;
 	private Long dailyChange;
-	private Integer dailyChangeRate;
+	private Double dailyChangeRate;
 	private Long totalGain;
-	private Integer totalReturnRate;
+	private Double totalReturnRate;
 
 	public static PortfolioHoldingRealTimeItem of(PortfolioHolding portfolioHolding, Long lastDayClosingPrice) {
 		return new PortfolioHoldingRealTimeItem(

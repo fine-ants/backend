@@ -94,9 +94,9 @@ class PortfolioTest {
 		portfolio.addPortfolioStock(portFolioHolding);
 
 		// when
-		Integer result = portfolio.calculateTotalGainRate();
+		Double result = portfolio.calculateTotalGainRate();
 
 		// then
-		assertThat(result).isEqualTo(100);
+		assertThat(result).isEqualTo(100.00);
 	}
 }

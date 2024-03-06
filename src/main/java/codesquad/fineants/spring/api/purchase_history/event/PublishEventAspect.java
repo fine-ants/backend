@@ -55,7 +55,7 @@ public class PublishEventAspect implements ApplicationEventPublisherAware {
 				.getDeclaredConstructor()
 				.newInstance();
 
-		} else if (StringUtils.isEmpty(publishEvent.params())) {
+		} else if (StringUtils.hasText(publishEvent.params())) {
 			// params가 비어 있는 경우 new eventType(retVal);
 			event = publishEvent.eventType()
 				.getConstructor(retVal.getClass())

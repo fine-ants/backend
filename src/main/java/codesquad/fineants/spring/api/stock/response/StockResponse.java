@@ -19,10 +19,10 @@ public class StockResponse {
 	private Market market;
 	private Long currentPrice;
 	private Long dailyChange;
-	private Float dailyChangeRate;
+	private Double dailyChangeRate;
 	private String sector;
 	private Long annualDividend;
-	private Float annualDividendYield;
+	private Double annualDividendYield;
 	private List<Integer> dividendMonths;
 
 	public static StockResponse of(Stock stock, CurrentPriceManager currentPriceManager,
@@ -35,7 +35,7 @@ public class StockResponse {
 			.market(stock.getMarket())
 			.currentPrice(stock.getCurrentPrice(currentPriceManager))
 			.dailyChange(stock.getDailyChange(currentPriceManager, lastDayClosingPriceManager))
-			.dailyChangeRate(stock.getDailyChangeRate(currentPriceManager, lastDayClosingPriceManager))
+			.dailyChangeRate(stock.getDailyChangeRate(currentPriceManager, lastDayClosingPriceManager).doubleValue())
 			.sector(stock.getSector())
 			.annualDividend(stock.getAnnualDividend())
 			.annualDividendYield(stock.getAnnualDividendYield(currentPriceManager))

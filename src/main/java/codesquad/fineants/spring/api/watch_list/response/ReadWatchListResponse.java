@@ -19,7 +19,6 @@ public class ReadWatchListResponse {
 	private String name;
 	private List<WatchStockResponse> watchStocks;
 
-
 	@Builder
 	@Getter
 	public static class WatchStockResponse {
@@ -28,15 +27,15 @@ public class ReadWatchListResponse {
 		private String tickerSymbol;
 		private long currentPrice;
 		private long dailyChange;
-		private float dailyChangeRate;
-		private float annualDividendYield;
+		private Double dailyChangeRate;
+		private Double annualDividendYield;
 		private String sector;
 		@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
 		private LocalDateTime dateAdded;
 	}
 
-
-	public static ReadWatchListResponse.WatchStockResponse from(WatchStock watchStock, CurrentPriceManager currentPriceManager,
+	public static ReadWatchListResponse.WatchStockResponse from(WatchStock watchStock,
+		CurrentPriceManager currentPriceManager,
 		LastDayClosingPriceManager lastDayClosingPriceManager) {
 		return ReadWatchListResponse.WatchStockResponse.builder()
 			.id(watchStock.getId())

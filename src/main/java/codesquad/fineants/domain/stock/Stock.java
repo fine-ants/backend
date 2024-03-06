@@ -136,15 +136,15 @@ public class Stock extends BaseEntity {
 			.sum();
 	}
 
-	public float getAnnualDividendYield(CurrentPriceManager manager) {
+	public Double getAnnualDividendYield(CurrentPriceManager manager) {
 		long dividends = stockDividends.stream()
 			.filter(dividend -> dividend.getPaymentDate().getYear() == LocalDate.now().getYear())
 			.mapToLong(StockDividend::getDividend)
 			.sum();
 		Long currentPrice = getCurrentPrice(manager);
 		if (currentPrice == null || currentPrice == 0)
-			return 0;
-		return ((float)dividends / currentPrice) * 100;
+			return 0.0;
+		return ((double)dividends / currentPrice) * 100;
 	}
 
 	public Long getDailyChange(CurrentPriceManager currentPriceManager,

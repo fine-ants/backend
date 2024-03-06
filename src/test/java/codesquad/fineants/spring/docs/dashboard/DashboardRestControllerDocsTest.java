@@ -42,7 +42,7 @@ public class DashboardRestControllerDocsTest extends RestDocsSupport {
 				.totalValuation(1000000L)
 				.totalInvestment(0L)
 				.totalGain(0L)
-				.totalGainRate(0)
+				.totalGainRate(0.0)
 				.totalAnnualDividend(0L)
 				.totalAnnualDividendYield(0.0)
 				.build());
