@@ -24,7 +24,9 @@ import codesquad.fineants.spring.api.errors.errorcode.MemberErrorCode;
 import codesquad.fineants.spring.api.errors.exception.BadRequestException;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class DashboardService {
@@ -54,8 +56,8 @@ public class DashboardService {
 			totalGain += portfolio.calculateTotalGain();
 			totalAnnualDividend += portfolio.calculateAnnualDividend();
 		}
-		Integer totalAnnualDividendYield = totalCurrentValuation != 0 ?
-			(int)((totalAnnualDividend / totalCurrentValuation) * 100) : 0;
+		Double totalAnnualDividendYield = totalCurrentValuation != 0 ?
+			(totalAnnualDividend.doubleValue() / totalCurrentValuation.doubleValue()) * 100 : 0.0;
 		Double totalGainRate = totalInvestment != 0 ?
 			(totalGain.doubleValue() / totalInvestment.doubleValue()) * 100 : 0.0;
 

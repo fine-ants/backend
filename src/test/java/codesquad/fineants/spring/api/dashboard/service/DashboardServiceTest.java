@@ -3,11 +3,14 @@ package codesquad.fineants.spring.api.dashboard.service;
 import static org.assertj.core.api.AssertionsForClassTypes.*;
 import static org.mockito.BDDMockito.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+import org.assertj.core.data.Offset;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +30,8 @@ import codesquad.fineants.domain.purchase_history.PurchaseHistoryRepository;
 import codesquad.fineants.domain.stock.Market;
 import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.domain.stock.StockRepository;
+import codesquad.fineants.domain.stock_dividend.StockDividend;
+import codesquad.fineants.domain.stock_dividend.StockDividendRepository;
 import codesquad.fineants.spring.AbstractContainerBaseTest;
 import codesquad.fineants.spring.api.dashboard.response.DashboardLineChartResponse;
 import codesquad.fineants.spring.api.dashboard.response.DashboardPieChartResponse;
@@ -48,6 +53,8 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 	private PortfolioHoldingRepository portfolioHoldingRepository;
 	@Autowired
 	private StockRepository stockRepository;
+	@Autowired
+	private StockDividendRepository stockDividendRepository;
 	@MockBean
 	private CurrentPriceManager currentPriceManager;
 
@@ -58,6 +65,7 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 		portfolioGainHistoryRepository.deleteAllInBatch();
 		portfolioRepository.deleteAllInBatch();
 		memberRepository.deleteAllInBatch();
+		stockDividendRepository.deleteAllInBatch();
 		stockRepository.deleteAllInBatch();
 	}
 
@@ -97,31 +105,37 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 			.stockCode("KR7005930003")
 			.market(Market.KOSPI)
 			.build());
+		stockDividendRepository.saveAll(createStockDividendWith(stock));
 
 		PortfolioHolding portfolioHolding = portfolioHoldingRepository.save(
-			PortfolioHolding.of(portfolio, stock, 100L));
+			PortfolioHolding.of(portfolio, stock, 72900L));
 
 		PurchaseHistory purchaseHistory = purchaseHistoryRepository.save(
 			PurchaseHistory.builder()
 				.portfolioHolding(portfolioHolding)
 				.purchaseDate(LocalDateTime.now())
-				.purchasePricePerShare(100.0)
-				.numShares(10L)
+				.purchasePricePerShare(50000.0)
+				.numShares(3L)
 				.build()
 		);
 
 		given(currentPriceManager.hasCurrentPrice(anyString()))
 			.willReturn(true);
 		given(currentPriceManager.getCurrentPrice(anyString()))
-			.willReturn(60000L);
+			.willReturn(72900L);
 		// when
 		OverviewResponse response = dashboardService.getOverview(authMember);
 
 		// then
-		assertThat(response.getUsername()).isEqualTo(member.getNickname());
-		assertThat((double)response.getTotalInvestment()).isEqualTo(
-			purchaseHistory.getNumShares() * purchaseHistory.getPurchasePricePerShare());
-		assertThat(response.getTotalGainRate() > 0).isTrue();
+		Assertions.assertAll(
+			() -> assertThat(response.getUsername()).isEqualTo(member.getNickname()),
+			() -> assertThat(response.getTotalValuation()).isEqualTo(1068700L),
+			() -> assertThat(response.getTotalInvestment()).isEqualTo(150000L),
+			() -> assertThat(response.getTotalGain()).isEqualTo(68700L),
+			() -> assertThat(response.getTotalGainRate()).isCloseTo(45.8, Offset.offset(0.1)),
+			() -> assertThat(response.getTotalAnnualDividend()).isEqualTo(4332L),
+			() -> assertThat(response.getTotalAnnualDividendYield()).isCloseTo(1.9, Offset.offset(0.1))
+		);
 	}
 
 	@DisplayName("사용자는 포트폴리오의 종목은 있지만 매입 이력이 없어도 오버뷰를 정상 계산해야 한다")
@@ -269,5 +283,56 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 			.sector("전기전자")
 			.market(Market.KOSPI)
 			.build();
+	}
+
+	private StockDividend createStockDividend(LocalDate exDividendDate, LocalDate recordDate, LocalDate paymentDate,
+		Stock stock) {
+		return StockDividend.builder()
+			.dividend(361L)
+			.exDividendDate(exDividendDate)
+			.recordDate(recordDate)
+			.paymentDate(paymentDate)
+			.stock(stock)
+			.build();
+	}
+
+	private List<StockDividend> createStockDividendWith(Stock stock) {
+		return List.of(
+			createStockDividend(
+				LocalDate.of(2022, 12, 30),
+				LocalDate.of(2022, 12, 31),
+				LocalDate.of(2023, 4, 14),
+				stock),
+			createStockDividend(
+				LocalDate.of(2023, 3, 30),
+				LocalDate.of(2023, 3, 31),
+				LocalDate.of(2023, 5, 17),
+				stock),
+			createStockDividend(
+				LocalDate.of(2023, 6, 29),
+				LocalDate.of(2023, 6, 30),
+				LocalDate.of(2023, 8, 16),
+				stock),
+			createStockDividend(
+				LocalDate.of(2023, 9, 27),
+				LocalDate.of(2023, 9, 30),
+				LocalDate.of(2023, 11, 20),
+				stock),
+			createStockDividend(
+				LocalDate.of(2024, 3, 29),
+				LocalDate.of(2024, 3, 31),
+				LocalDate.of(2024, 5, 17),
+				stock),
+			createStockDividend(
+				LocalDate.of(2024, 6, 28),
+				LocalDate.of(2024, 6, 30),
+				LocalDate.of(2024, 8, 16),
+				stock),
+			createStockDividend(
+				LocalDate.of(2024, 9, 27),
+				LocalDate.of(2024, 9, 30),
+				LocalDate.of(2024, 11, 20),
+				stock)
+		);
 	}
 }
