@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -146,9 +147,15 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 		// given
 		Member member = memberRepository.save(createMember());
 		Stock stock = stockRepository.save(createStock());
+		Stock stock2 = stockRepository.save(createStock2());
+
 		StockTargetPrice stockTargetPrice = repository.save(createStockTargetPrice(member, stock));
 		List<TargetPriceNotification> targetPriceNotifications = targetPriceNotificationRepository.saveAll(
 			createTargetPriceNotification(stockTargetPrice, List.of(60000L, 70000L)));
+
+		StockTargetPrice stockTargetPrice2 = repository.save(createStockTargetPrice(member, stock2));
+		List<TargetPriceNotification> targetPriceNotifications2 = targetPriceNotificationRepository.saveAll(
+			createTargetPriceNotification(stockTargetPrice2, List.of(60000L, 70000L)));
 
 		given(manager.getPrice(anyString()))
 			.willReturn(50000L);
@@ -161,17 +168,28 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 			() -> assertThat(response)
 				.extracting("stocks")
 				.asList()
-				.hasSize(1)
+				.hasSize(2)
 				.extracting("companyName", "tickerSymbol", "lastPrice", "isActive")
-				.containsExactlyInAnyOrder(Tuple.tuple(stock.getCompanyName(), stock.getTickerSymbol(), 50000L, true)),
+				.containsExactly(
+					Tuple.tuple(stock.getCompanyName(), stock.getTickerSymbol(), 50000L, true),
+					Tuple.tuple(stock2.getCompanyName(), stock2.getTickerSymbol(), 50000L, true)
+				),
 			() -> assertThat(response.getStocks().get(0))
 				.extracting("targetPrices")
 				.asList()
 				.hasSize(2)
 				.extracting("notificationId", "targetPrice")
-				.containsExactlyInAnyOrder(
+				.containsExactly(
 					Tuple.tuple(targetPriceNotifications.get(0).getId(), 60000L),
-					Tuple.tuple(targetPriceNotifications.get(1).getId(), 70000L))
+					Tuple.tuple(targetPriceNotifications.get(1).getId(), 70000L)),
+			() -> assertThat(response.getStocks().get(1))
+				.extracting("targetPrices")
+				.asList()
+				.hasSize(2)
+				.extracting("notificationId", "targetPrice")
+				.containsExactly(
+					Tuple.tuple(targetPriceNotifications2.get(0).getId(), 60000L),
+					Tuple.tuple(targetPriceNotifications2.get(1).getId(), 70000L))
 		);
 	}
 
@@ -478,6 +496,15 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 			.build();
 	}
 
+	private StockTargetPrice createStockTargetPrice(Member member, Stock stock, LocalDateTime createAt) {
+		return StockTargetPrice.builder()
+			.member(member)
+			.stock(stock)
+			.isActive(true)
+			.createAt(createAt)
+			.build();
+	}
+
 	private TargetPriceNotification createTargetPriceNotification(StockTargetPrice stockTargetPrice, Long targetPrice) {
 		return TargetPriceNotification.builder()
 			.targetPrice(targetPrice)
@@ -515,6 +542,17 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 			.companyNameEng("SamsungElectronics")
 			.stockCode("KR7005930003")
 			.sector("전기전자")
+			.market(Market.KOSPI)
+			.build();
+	}
+
+	private Stock createStock2() {
+		return Stock.builder()
+			.companyName("동화약품보통주")
+			.tickerSymbol("000020")
+			.companyNameEng("DongwhaPharm")
+			.stockCode("KR7000020008")
+			.sector("의약품")
 			.market(Market.KOSPI)
 			.build();
 	}
