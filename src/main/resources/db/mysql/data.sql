@@ -51,8 +51,8 @@ DROP TEMPORARY TABLE temp_update_table;
 
 
 INSERT INTO member(create_at, email, nickname, profile_url, provider)
-VALUES (now(), 'dragonbead95@naver.com', '일개미2aa1c3d',
-        'http://k.kakaocdn.net/dn/dpk9l1/btqmGhA2lKL/Oz0wDuJn1YV2DIn92f6DVK/img_640x640.jpg', 'naver');
+VALUES (now(), 'dragonbead95@naver.com', '네모네모',
+        'http://k.kakaocdn.net/dn/dpk9l1/btqmGhA2lKL/Oz0wDuJn1YV2DIn92f6DVK/img_640x640.jpg', 'local');
 
 INSERT INTO fineAnts.portfolio (id, budget, maximum_loss, name, securities_firm, target_gain, target_gain_is_active,
                                 maximum_loss_is_active, member_id, create_at)
