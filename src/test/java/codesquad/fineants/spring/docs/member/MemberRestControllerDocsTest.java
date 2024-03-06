@@ -22,6 +22,7 @@ import org.mockito.Mockito;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
 import org.springframework.restdocs.payload.JsonFieldType;
 import org.springframework.restdocs.snippet.Attributes;
 
@@ -35,6 +36,7 @@ import codesquad.fineants.spring.api.member.response.LoginResponse;
 import codesquad.fineants.spring.api.member.response.OauthMemberLoginResponse;
 import codesquad.fineants.spring.api.member.response.OauthMemberRefreshResponse;
 import codesquad.fineants.spring.api.member.response.OauthMemberResponse;
+import codesquad.fineants.spring.api.member.response.OauthSaveUrlResponse;
 import codesquad.fineants.spring.api.member.response.ProfileChangeResponse;
 import codesquad.fineants.spring.api.member.service.MemberService;
 import codesquad.fineants.spring.api.member.service.request.ProfileChangeServiceRequest;
@@ -463,6 +465,53 @@ public class MemberRestControllerDocsTest extends RestDocsSupport {
 							.description("응답 데이터"),
 						fieldWithPath("data.accessToken").type(JsonFieldType.STRING)
 							.description("액세스 토큰")
+					)
+				)
+			);
+	}
+
+	@DisplayName("인가코드 요청 URL")
+	@Test
+	void saveAuthorizationCodeURL() throws Exception {
+		// give
+		given(memberService.saveAuthorizationCodeURL(anyString()))
+			.willReturn(OauthSaveUrlResponse.builder()
+				.authURL("authURL")
+				.build());
+		// when & then
+		mockMvc.perform(RestDocumentationRequestBuilders.post("/api/auth/{provider}/authUrl", "kakao"))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("code").value(equalTo(200)))
+			.andExpect(jsonPath("status").value(equalTo("OK")))
+			.andExpect(jsonPath("message").value(equalTo("인가 코드 URL 요청에 성공하였습니다")))
+			.andExpect(jsonPath("data.authURL").value(equalTo("authURL")))
+			.andDo(
+				document(
+					"member_authorization_code-create",
+					preprocessRequest(prettyPrint()),
+					preprocessResponse(prettyPrint()),
+					pathParameters(
+						parameterWithName("provider").description("플랫폼 이름")
+							.attributes(
+								Attributes.key("constraints").value(
+									String.join(",",
+										"kakao",
+										"google",
+										"naver"
+									)
+								))
+					),
+					responseFields(
+						fieldWithPath("code").type(JsonFieldType.NUMBER)
+							.description("코드"),
+						fieldWithPath("status").type(JsonFieldType.STRING)
+							.description("상태"),
+						fieldWithPath("message").type(JsonFieldType.STRING)
+							.description("메시지"),
+						fieldWithPath("data").type(JsonFieldType.OBJECT)
+							.description("응답 데이터"),
+						fieldWithPath("data.authURL").type(JsonFieldType.STRING)
+							.description("인가 코드 요청 URL")
 					)
 				)
 			);
