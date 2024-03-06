@@ -22,9 +22,9 @@ public class PortFolioItem {
 	private String name;
 	private Long budget;
 	private Long totalGain;
-	private Integer totalGainRate;
+	private Double totalGainRate;
 	private Long dailyGain;
-	private Integer dailyGainRate;
+	private Double dailyGainRate;
 	private Long currentValuation;
 	private Long expectedMonthlyDividend;
 	private Integer numShares;

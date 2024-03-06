@@ -75,10 +75,10 @@ public class StockRestControllerTest {
 			.market(Market.KOSPI)
 			.currentPrice(68000L)
 			.dailyChange(12000L)
-			.dailyChangeRate(20.45f)
+			.dailyChangeRate(20.45)
 			.sector("전기전자")
 			.annualDividend(6000L)
-			.annualDividendYield(10f)
+			.annualDividendYield(10.00)
 			.dividendMonths(List.of(1, 4))
 			.build();
 		given(stockService.getStock(any(String.class))).willReturn(response);

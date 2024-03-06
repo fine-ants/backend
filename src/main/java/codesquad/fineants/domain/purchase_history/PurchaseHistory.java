@@ -61,12 +61,12 @@ public class PurchaseHistory extends BaseEntity {
 	}
 
 	// 투자 금액 = 주당 매입가 * 개수
-	public long calculateInvestmentAmount() {
+	public Long calculateInvestmentAmount() {
 		return purchasePricePerShare.longValue() * numShares;
 	}
 
 	// 손익 = (현재가 - 평균 매입가) * 주식개수
-	public long calculateGain() {
+	public Long calculateGain() {
 		return (portfolioHolding.getCurrentPrice() - purchasePricePerShare.longValue()) * numShares;
 	}
 

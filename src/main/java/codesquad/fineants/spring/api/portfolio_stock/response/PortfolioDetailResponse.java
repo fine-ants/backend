@@ -20,15 +20,15 @@ public class PortfolioDetailResponse {
 	private String name;
 	private Long budget;
 	private Long targetGain;
-	private Integer targetReturnRate;
+	private Double targetReturnRate;
 	private Long maximumLoss;
-	private Integer maximumLossRate;
+	private Double maximumLossRate;
 	private Long currentValuation;
 	private Long investedAmount;
 	private Long totalGain;
-	private Integer totalGainRate;
+	private Double totalGainRate;
 	private Long dailyGain;
-	private Integer dailyGainRate;
+	private Double dailyGainRate;
 	private Long balance;
 	private Long annualDividend;
 	private Double annualDividendYield;
@@ -55,7 +55,7 @@ public class PortfolioDetailResponse {
 			.dailyGainRate(portfolio.calculateDailyGainRate(history))
 			.balance(portfolio.calculateBalance())
 			.annualDividend(portfolio.calculateAnnualDividend())
-			.annualDividendYield(portfolio.calculateAnnualDividendYield().doubleValue())
+			.annualDividendYield(portfolio.calculateAnnualDividendYield())
 			.annualInvestmentDividendYield(portfolio.calculateAnnualInvestmentDividendYield().doubleValue())
 			.provisionalLossBalance(0L)
 			.targetGainNotification(portfolio.getTargetGainIsActive())

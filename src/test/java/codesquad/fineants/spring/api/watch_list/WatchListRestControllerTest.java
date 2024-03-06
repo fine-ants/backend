@@ -169,8 +169,8 @@ class WatchListRestControllerTest {
 			.tickerSymbol("005930")
 			.currentPrice(68000)
 			.dailyChange(1200)
-			.dailyChangeRate(1.85f)
-			.annualDividendYield(2.12f)
+			.dailyChangeRate(1.85)
+			.annualDividendYield(2.12)
 			.sector("제조업")
 			.dateAdded(LocalDateTime.of(2023, 12, 2, 15, 0, 0))
 			.build();
@@ -283,7 +283,6 @@ class WatchListRestControllerTest {
 		requestBodyMap.put("tickerSymbols", List.of("005930"));
 		String body = objectMapper.writeValueAsString(requestBodyMap);
 
-
 		given(authPrincipalArgumentResolver.supportsParameter(any())).willReturn(true);
 		given(authPrincipalArgumentResolver.resolveArgument(any(), any(), any(), any())).willReturn(authMember);
 		doNothing().when(watchListService)
@@ -313,7 +312,6 @@ class WatchListRestControllerTest {
 			.profileUrl("profileValue")
 			.build();
 		AuthMember authMember = AuthMember.from(member);
-
 
 		given(authPrincipalArgumentResolver.supportsParameter(any())).willReturn(true);
 		given(authPrincipalArgumentResolver.resolveArgument(any(), any(), any(), any())).willReturn(authMember);

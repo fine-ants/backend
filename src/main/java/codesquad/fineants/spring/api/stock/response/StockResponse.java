@@ -19,10 +19,10 @@ public class StockResponse {
 	private Market market;
 	private Long currentPrice;
 	private Long dailyChange;
-	private Float dailyChangeRate;
+	private Double dailyChangeRate;
 	private String sector;
 	private Long annualDividend;
-	private Float annualDividendYield;
+	private Double annualDividendYield;
 	private List<Integer> dividendMonths;
 
 	public static StockResponse of(Stock stock, CurrentPriceManager currentPriceManager,

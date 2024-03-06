@@ -115,12 +115,12 @@ public class Portfolio extends BaseEntity {
 	}
 
 	// 포트폴리오 총 손익율 = (포트폴리오 총 손익 / 포트폴리오 총 투자 금액) * 100%
-	public Integer calculateTotalGainRate() {
-		long totalInvestmentAmount = calculateTotalInvestmentAmount();
+	public Double calculateTotalGainRate() {
+		Long totalInvestmentAmount = calculateTotalInvestmentAmount();
 		if (totalInvestmentAmount == 0) {
-			return 0;
+			return 0.0;
 		}
-		return (int)(((double)calculateTotalGain() / (double)totalInvestmentAmount) * 100);
+		return (calculateTotalGain().doubleValue() / totalInvestmentAmount.doubleValue()) * 100;
 	}
 
 	// 포트폴리오 총 투자 금액 = 각 종목들의 구입가들의 합계
@@ -149,19 +149,19 @@ public class Portfolio extends BaseEntity {
 
 	// 포트폴리오 당일 손익율 = (당일 포트폴리오 가치 총합 - 이전 포트폴리오 가치 총합) / 이전 포트폴리오 가치 총합
 	// 단, 이전 포트폴리오가 없는 경우 ((당일 포트폴리오 가치 총합 - 당일 포트폴리오 총 투자 금액) / 당일 포트폴리오 총 투자 금액) * 100%
-	public Integer calculateDailyGainRate(PortfolioGainHistory prevHistory) {
+	public Double calculateDailyGainRate(PortfolioGainHistory prevHistory) {
 		double prevCurrentValuation = prevHistory.getCurrentValuation();
 		if (prevCurrentValuation == 0) {
-			double currentValuation = calculateTotalCurrentValuation();
-			double totalInvestmentAmount = calculateTotalInvestmentAmount();
-			return (int)(((currentValuation - totalInvestmentAmount) / totalInvestmentAmount) * 100);
+			double currentValuation = calculateTotalCurrentValuation().doubleValue();
+			double totalInvestmentAmount = calculateTotalInvestmentAmount().doubleValue();
+			return ((currentValuation - totalInvestmentAmount) / totalInvestmentAmount) * 100;
 		}
 		double currentValuation = calculateTotalCurrentValuation();
-		return (int)(((currentValuation - prevCurrentValuation) / prevCurrentValuation) * 100);
+		return ((currentValuation - prevCurrentValuation) / prevCurrentValuation) * 100;
 	}
 
 	// 포트폴리오 당월 예상 배당금 = 각 종목들에 해당월의 배당금 합계
-	public long calculateCurrentMonthDividend() {
+	public Long calculateCurrentMonthDividend() {
 		return portfolioHoldings.stream()
 			.mapToLong(PortfolioHolding::calculateCurrentMonthDividend)
 			.sum();
@@ -186,28 +186,28 @@ public class Portfolio extends BaseEntity {
 	}
 
 	// 총 연간배당율 = 모든 종목들의 연 배당금 합계 / 모든 종목들의 총 가치의 합계) * 100
-	public Integer calculateAnnualDividendYield() {
-		double currentValuation = calculateTotalCurrentValuation();
+	public Double calculateAnnualDividendYield() {
+		double currentValuation = calculateTotalCurrentValuation().doubleValue();
 		if (currentValuation == 0) {
-			return 0;
+			return 0.0;
 		}
-		double totalAnnualDividend = calculateAnnualDividend();
-		return (int)((totalAnnualDividend / currentValuation) * 100);
+		double totalAnnualDividend = calculateAnnualDividend().doubleValue();
+		return (totalAnnualDividend / currentValuation) * 100;
 	}
 
 	// 최대손실율 = ((예산 - 최대손실금액) / 예산) * 100
-	public Integer calculateMaximumLossRate() {
-		return (int)(((double)(budget - maximumLoss) / (double)budget) * 100);
+	public Double calculateMaximumLossRate() {
+		return ((budget.doubleValue() - maximumLoss.doubleValue()) / budget.doubleValue()) * 100;
 	}
 
 	// 투자대비 연간 배당율 = 포트폴리오 총 연배당금 / 포트폴리오 투자금액 * 100
-	public Integer calculateAnnualInvestmentDividendYield() {
+	public Double calculateAnnualInvestmentDividendYield() {
 		double totalInvestmentAmount = calculateTotalInvestmentAmount();
 		if (totalInvestmentAmount == 0) {
-			return 0;
+			return 0.0;
 		}
 		double totalAnnualDividend = calculateAnnualDividend();
-		return (int)((totalAnnualDividend / totalInvestmentAmount) * 100);
+		return (totalAnnualDividend / totalInvestmentAmount) * 100;
 	}
 
 	public PortfolioGainHistory createPortfolioGainHistory(PortfolioGainHistory history) {
@@ -244,8 +244,8 @@ public class Portfolio extends BaseEntity {
 	}
 
 	// 목표 수익률 = ((목표 수익 금액 - 예산) / 예산) * 100
-	public Integer calculateTargetReturnRate() {
-		return (int)(((targetGain.doubleValue() - budget.doubleValue()) / budget.doubleValue()) * 100);
+	public Double calculateTargetReturnRate() {
+		return ((targetGain.doubleValue() - budget.doubleValue()) / budget.doubleValue()) * 100;
 	}
 
 	// 총 자산 = 잔고 + 평가금액 합계
@@ -261,11 +261,6 @@ public class Portfolio extends BaseEntity {
 	// 최대손실금액의 알림 변경
 	public void changeMaximumLossNotification(Boolean isActive) {
 		this.maximumLossIsActive = isActive;
-	}
-
-	// 포트폴리오가 목표수익금액에 도달했는지 검사
-	public boolean reachedTargetGain() {
-		return budget + calculateTotalGain() >= targetGain;
 	}
 
 	// 포트폴리오가 목표수익금액에 도달했는지 검사
@@ -350,11 +345,6 @@ public class Portfolio extends BaseEntity {
 
 	public boolean isSameName(Portfolio changePortfolio) {
 		return this.name.equals(changePortfolio.name);
-	}
-
-	// 예산이 0원인지 검사합니다.
-	public boolean isBudgetEmpty() {
-		return this.budget == 0;
 	}
 
 	// 매입 이력을 포트폴리오에 추가시 현금이 충분한지 판단

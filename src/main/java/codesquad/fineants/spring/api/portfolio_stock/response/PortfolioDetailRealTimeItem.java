@@ -11,9 +11,9 @@ import lombok.Getter;
 public class PortfolioDetailRealTimeItem {
 	private Long currentValuation;
 	private Long totalGain;
-	private Integer totalGainRate;
+	private Double totalGainRate;
 	private Long dailyGain;
-	private Integer dailyGainRate;
+	private Double dailyGainRate;
 	private Long provisionalLossBalance;
 
 	public static PortfolioDetailRealTimeItem of(Portfolio portfolio, PortfolioGainHistory history) {

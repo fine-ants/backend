@@ -20,9 +20,9 @@ public class PortfolioHoldingDetailItem {
 	private Double averageCostPerShare;
 	private Long numShares;
 	private Long dailyChange;
-	private Integer dailyChangeRate;
+	private Double dailyChangeRate;
 	private Long totalGain;
-	private Integer totalReturnRate;
+	private Double totalReturnRate;
 	private Long annualDividend;
 	private Double annualDividendYield;
 
@@ -38,7 +38,7 @@ public class PortfolioHoldingDetailItem {
 			.totalGain(portfolioHolding.calculateTotalGain())
 			.totalReturnRate(portfolioHolding.calculateTotalReturnRate())
 			.annualDividend(portfolioHolding.calculateAnnualExpectedDividend())
-			.annualDividendYield(portfolioHolding.calculateAnnualExpectedDividendYield().doubleValue())
+			.annualDividendYield(portfolioHolding.calculateAnnualExpectedDividendYield())
 			.build();
 	}
 }

@@ -146,7 +146,7 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 		assertThat(response)
 			.extracting("username", "totalValuation", "totalInvestment", "totalGain", "totalGainRate",
 				"totalAnnualDividend", "totalAnnualDividendYield")
-			.containsExactlyInAnyOrder("일개미1234", 1000000L, 0L, 0L, 0, 0L, 0.00);
+			.containsExactlyInAnyOrder("일개미1234", 1000000L, 0L, 0L, 0.00, 0L, 0.00);
 	}
 
 	@Test

@@ -56,8 +56,8 @@ public class DashboardService {
 		}
 		Integer totalAnnualDividendYield = totalCurrentValuation != 0 ?
 			(int)((totalAnnualDividend / totalCurrentValuation) * 100) : 0;
-		Integer totalGainRate = totalInvestment != 0 ?
-			(int)((totalGain.doubleValue() / totalInvestment.doubleValue()) * 100) : 0;
+		Double totalGainRate = totalInvestment != 0 ?
+			(totalGain.doubleValue() / totalInvestment.doubleValue()) * 100 : 0.0;
 
 		return OverviewResponse.of(member.getNickname(), totalValuation, totalInvestment,
 			totalGain, totalGainRate, totalAnnualDividend, totalAnnualDividendYield);

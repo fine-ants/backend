@@ -129,22 +129,22 @@ public class Stock extends BaseEntity {
 		return result;
 	}
 
-	public long getAnnualDividend() {
+	public Long getAnnualDividend() {
 		return stockDividends.stream()
 			.filter(dividend -> dividend.isCurrentYearPaymentDate(LocalDate.now()))
 			.mapToLong(StockDividend::getDividend)
 			.sum();
 	}
 
-	public float getAnnualDividendYield(CurrentPriceManager manager) {
+	public Double getAnnualDividendYield(CurrentPriceManager manager) {
 		long dividends = stockDividends.stream()
 			.filter(dividend -> dividend.getPaymentDate().getYear() == LocalDate.now().getYear())
 			.mapToLong(StockDividend::getDividend)
 			.sum();
 		Long currentPrice = getCurrentPrice(manager);
 		if (currentPrice == null || currentPrice == 0)
-			return 0;
-		return ((float)dividends / currentPrice) * 100;
+			return 0.0;
+		return ((double)dividends / currentPrice.doubleValue()) * 100;
 	}
 
 	public Long getDailyChange(CurrentPriceManager currentPriceManager,
@@ -157,14 +157,15 @@ public class Stock extends BaseEntity {
 		return currentPrice - lastDayClosingPrice;
 	}
 
-	public Float getDailyChangeRate(CurrentPriceManager currentPriceManager,
+	public Double getDailyChangeRate(CurrentPriceManager currentPriceManager,
 		LastDayClosingPriceManager lastDayClosingPriceManager) {
 		Long currentPrice = currentPriceManager.getCurrentPrice(tickerSymbol);
 		Long lastDayClosingPrice = lastDayClosingPriceManager.getPrice(tickerSymbol);
 		if (currentPrice == null || lastDayClosingPrice == null || lastDayClosingPrice == 0L) {
 			return null;
 		}
-		return ((currentPrice - lastDayClosingPrice) / (float)lastDayClosingPrice) * 100;
+		return ((currentPrice.doubleValue() - lastDayClosingPrice.doubleValue()) / lastDayClosingPrice.doubleValue())
+			* 100;
 	}
 
 	public Long getCurrentPrice(CurrentPriceManager manager) {

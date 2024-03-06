@@ -100,27 +100,27 @@ public class PortfolioHolding extends BaseEntity {
 	}
 
 	// 총 매입 개수 = 매입 내역들의 매입개수의 합계
-	public long calculateNumShares() {
+	public Long calculateNumShares() {
 		return purchaseHistory.stream()
 			.mapToLong(PurchaseHistory::getNumShares)
 			.sum();
 	}
 
 	// 총 투자 금액 = 투자 금액들의 합계
-	public long calculateTotalInvestmentAmount() {
+	public Long calculateTotalInvestmentAmount() {
 		return purchaseHistory.stream()
 			.mapToLong(PurchaseHistory::calculateInvestmentAmount)
 			.sum();
 	}
 
 	// 종목 총 손익율 = 총 손익 / 총 투자 금액
-	public Integer calculateTotalReturnRate() {
-		double totalInvestmentAmount = (double)calculateTotalInvestmentAmount();
+	public Double calculateTotalReturnRate() {
+		double totalInvestmentAmount = calculateTotalInvestmentAmount();
 		if (totalInvestmentAmount == 0) {
-			return 0;
+			return 0.0;
 		}
-		double totalGain = (double)calculateTotalGain();
-		return (int)((totalGain / totalInvestmentAmount) * 100);
+		double totalGain = calculateTotalGain();
+		return (totalGain / totalInvestmentAmount) * 100;
 	}
 
 	// 평가 금액(현재 가치) = 현재가 * 개수
@@ -134,39 +134,29 @@ public class PortfolioHolding extends BaseEntity {
 	}
 
 	// 당일 변동율 = ((종목 현재가 - 직전 거래일 종가) / 직전 거래일 종가) * 100%
-	public Integer calculateDailyChangeRate(long lastDayClosingPrice) {
+	public Double calculateDailyChangeRate(Long lastDayClosingPrice) {
 		if (lastDayClosingPrice == 0) {
-			return 0;
+			return 0.0;
 		}
-		double dailyChange = currentPrice - lastDayClosingPrice;
-		return (int)((dailyChange / (double)lastDayClosingPrice) * 100);
-	}
-
-	// 연간배당율 = (연간배당금 / 현재 가치) * 100
-	public Integer calculateAnnualDividendYield() {
-		double currentValuation = calculateCurrentValuation();
-		if (currentValuation == 0) {
-			return 0;
-		}
-		double annualDividend = calculateAnnualDividend();
-		return (int)((annualDividend / currentValuation) * 100);
+		double dailyChange = currentPrice.doubleValue() - lastDayClosingPrice.doubleValue();
+		return (dailyChange / lastDayClosingPrice.doubleValue()) * 100;
 	}
 
 	// 예상 연간 배당율 = (예상 연간 배당금 / 현재 가치) * 100
-	public Integer calculateAnnualExpectedDividendYield() {
+	public Double calculateAnnualExpectedDividendYield() {
 		double currentValuation = calculateCurrentValuation();
 		if (currentValuation == 0) {
-			return 0;
+			return 0.0;
 		}
 		double annualDividend = calculateAnnualExpectedDividend();
-		return (int)((annualDividend / currentValuation) * 100);
+		return (annualDividend / currentValuation) * 100;
 	}
 
 	// 연간 배당금 = 종목의 배당금 합계
-	public long calculateAnnualDividend() {
+	public Long calculateAnnualDividend() {
 		List<StockDividend> stockDividends = stock.getCurrentYearDividends();
 
-		long totalDividend = 0;
+		long totalDividend = 0L;
 		for (PurchaseHistory history : purchaseHistory) {
 			for (StockDividend stockDividend : stockDividends) {
 				if (history.isSatisfiedDividend(stockDividend.getExDividendDate())) {
@@ -178,7 +168,7 @@ public class PortfolioHolding extends BaseEntity {
 	}
 
 	// 예상 연간 배당금 계산
-	public long calculateAnnualExpectedDividend() {
+	public Long calculateAnnualExpectedDividend() {
 		long annualDividend = calculateAnnualDividend();
 		long annualExpectedDividend = stock.createMonthlyExpectedDividends(purchaseHistory, LocalDate.now())
 			.values()
@@ -192,7 +182,7 @@ public class PortfolioHolding extends BaseEntity {
 		this.currentPrice = currentPrice;
 	}
 
-	public long calculateCurrentMonthDividend() {
+	public Long calculateCurrentMonthDividend() {
 		List<StockDividend> stockDividends = stock.getCurrentMonthDividends();
 		return stockDividends.stream()
 			.flatMapToLong(stockDividend ->
@@ -225,7 +215,7 @@ public class PortfolioHolding extends BaseEntity {
 		String name = stock.getCompanyName();
 		Long currentValuation = calculateCurrentValuation();
 		Long totalGain = calculateTotalGain();
-		Double totalReturnRate = calculateTotalReturnRate().doubleValue();
+		Double totalReturnRate = calculateTotalReturnRate();
 		return new PortfolioPieChartItem(name, currentValuation, weight, totalGain, totalReturnRate);
 	}
 

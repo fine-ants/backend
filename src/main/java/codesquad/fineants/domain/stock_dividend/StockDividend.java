@@ -59,7 +59,7 @@ public class StockDividend extends BaseEntity {
 
 	// 주식 개수에 따른 배당금 합계 계산
 	// 배당금 합계 = 주당 배당금 * 주식 개수
-	public long calculateDividendSum(Long numShares) {
+	public Long calculateDividendSum(Long numShares) {
 		return dividend * numShares;
 	}
 
@@ -69,7 +69,7 @@ public class StockDividend extends BaseEntity {
 	}
 
 	// 현금 배당 지급일의 월을 반환
-	public int getMonthValueByPaymentDate() {
+	public Integer getMonthValueByPaymentDate() {
 		return paymentDate.getMonthValue();
 	}
 
@@ -86,10 +86,10 @@ public class StockDividend extends BaseEntity {
 	// 입력으로 받은 배당금 데이터들중 배정기준일이 같은 분기에 해당하는 데이터가 존재하는지 검사
 	public boolean isDuplicatedRecordDate(List<StockDividend> currentYearStockDividends) {
 		return currentYearStockDividends.stream()
-			.anyMatch(stockDividend -> stockDividend.getQuarter() == getQuarter());
+			.anyMatch(stockDividend -> stockDividend.getQuarter().equals(getQuarter()));
 	}
 
-	private int getQuarter() {
+	private Integer getQuarter() {
 		return recordDate.getMonthValue() / 4 + 1;
 	}
 
