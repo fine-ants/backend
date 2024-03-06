@@ -12,6 +12,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.util.Map;
 
 import org.junit.jupiter.api.DisplayName;
@@ -21,7 +22,6 @@ import org.mockito.Mockito;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
 import org.springframework.restdocs.payload.JsonFieldType;
 import org.springframework.restdocs.snippet.Attributes;
 
@@ -30,8 +30,10 @@ import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.spring.api.member.controller.MemberRestController;
 import codesquad.fineants.spring.api.member.request.LoginRequest;
 import codesquad.fineants.spring.api.member.request.OauthMemberLoginRequest;
+import codesquad.fineants.spring.api.member.request.OauthMemberRefreshRequest;
 import codesquad.fineants.spring.api.member.response.LoginResponse;
 import codesquad.fineants.spring.api.member.response.OauthMemberLoginResponse;
+import codesquad.fineants.spring.api.member.response.OauthMemberRefreshResponse;
 import codesquad.fineants.spring.api.member.response.OauthMemberResponse;
 import codesquad.fineants.spring.api.member.response.ProfileChangeResponse;
 import codesquad.fineants.spring.api.member.service.MemberService;
@@ -70,7 +72,7 @@ public class MemberRestControllerDocsTest extends RestDocsSupport {
 		given(memberService.login(ArgumentMatchers.any(OauthMemberLoginRequest.class)))
 			.willReturn(mockResponse);
 		// when
-		mockMvc.perform(RestDocumentationRequestBuilders.post(url, "kakao")
+		mockMvc.perform(post(url, "kakao")
 				.param("code", code)
 				.param("redirectUrl", redirectUrl)
 				.param("state", state))
@@ -157,7 +159,7 @@ public class MemberRestControllerDocsTest extends RestDocsSupport {
 			.willReturn(mockResponse);
 
 		// when & then
-		mockMvc.perform(RestDocumentationRequestBuilders.post(url)
+		mockMvc.perform(post(url)
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(ObjectMapperUtil.serialize(body)))
 			.andExpect(status().isOk())
@@ -219,7 +221,7 @@ public class MemberRestControllerDocsTest extends RestDocsSupport {
 		);
 
 		// when & then
-		mockMvc.perform(RestDocumentationRequestBuilders.post(url)
+		mockMvc.perform(post(url)
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(ObjectMapperUtil.serialize(body))
 				.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))
@@ -414,6 +416,53 @@ public class MemberRestControllerDocsTest extends RestDocsSupport {
 							.description("회원 이메일"),
 						fieldWithPath("data.user.profileUrl").type(JsonFieldType.STRING)
 							.description("회원 프로필 URL")
+					)
+				)
+			);
+	}
+
+	@DisplayName("액세스 토큰 갱신 API")
+	@Test
+	void refreshAccessToken() throws Exception {
+		// give
+		Map<String, Object> body = Map.of(
+			"refreshToken", "refreshToken"
+		);
+
+		given(memberService.refreshAccessToken(
+			ArgumentMatchers.any(OauthMemberRefreshRequest.class),
+			ArgumentMatchers.any(LocalDateTime.class)))
+			.willReturn(OauthMemberRefreshResponse.builder()
+				.accessToken("accessToken")
+				.build());
+		// when & then
+		mockMvc.perform(post("/api/auth/refresh/token")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(ObjectMapperUtil.serialize(body)))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("code").value(equalTo(200)))
+			.andExpect(jsonPath("status").value(equalTo("OK")))
+			.andExpect(jsonPath("message").value(equalTo("액세스 토큰 갱신에 성공하였습니다")))
+			.andExpect(jsonPath("data.accessToken").value(equalTo("accessToken")))
+			.andDo(
+				document(
+					"member_access_token-refresh",
+					preprocessRequest(prettyPrint()),
+					preprocessResponse(prettyPrint()),
+					requestFields(
+						fieldWithPath("refreshToken").type(JsonFieldType.STRING).description("리프레시 토큰")
+					),
+					responseFields(
+						fieldWithPath("code").type(JsonFieldType.NUMBER)
+							.description("코드"),
+						fieldWithPath("status").type(JsonFieldType.STRING)
+							.description("상태"),
+						fieldWithPath("message").type(JsonFieldType.STRING)
+							.description("메시지"),
+						fieldWithPath("data").type(JsonFieldType.OBJECT)
+							.description("응답 데이터"),
+						fieldWithPath("data.accessToken").type(JsonFieldType.STRING)
+							.description("액세스 토큰")
 					)
 				)
 			);
