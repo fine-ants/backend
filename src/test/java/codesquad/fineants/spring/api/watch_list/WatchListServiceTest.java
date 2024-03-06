@@ -7,6 +7,7 @@ import static org.mockito.BDDMockito.*;
 import java.time.LocalDate;
 import java.util.List;
 
+import org.assertj.core.data.Offset;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -177,7 +178,7 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 		assertThat(response.getWatchStocks().get(0).getTickerSymbol()).isEqualTo(stock.getTickerSymbol());
 		assertThat(response.getWatchStocks().get(0).getCurrentPrice()).isEqualTo(77000L);
 		assertThat(response.getWatchStocks().get(0).getDailyChange()).isEqualTo(0);
-		assertThat(response.getWatchStocks().get(0).getAnnualDividendYield()).isEqualTo((362f / 77000) * 100);
+		assertThat(response.getWatchStocks().get(0).getAnnualDividendYield()).isCloseTo(0.47, Offset.offset(0.1));
 		assertThat(response.getWatchStocks().get(0).getSector()).isEqualTo("전기전자");
 	}
 

@@ -167,13 +167,13 @@ class PortfolioStockRestControllerTest {
 			.andExpect(jsonPath("data.portfolioDetails.name").value(equalTo("내꿈은 워렌버핏")))
 			.andExpect(jsonPath("data.portfolioDetails.budget").value(equalTo(1000000)))
 			.andExpect(jsonPath("data.portfolioDetails.targetGain").value(equalTo(1500000)))
-			.andExpect(jsonPath("data.portfolioDetails.targetReturnRate").value(equalTo(50)))
+			.andExpect(jsonPath("data.portfolioDetails.targetReturnRate").value(closeTo(50.0, 0.1)))
 			.andExpect(jsonPath("data.portfolioDetails.maximumLoss").value(equalTo(900000)))
-			.andExpect(jsonPath("data.portfolioDetails.maximumLossRate").value(equalTo(10)))
+			.andExpect(jsonPath("data.portfolioDetails.maximumLossRate").value(closeTo(10.00, 0.1)))
 			.andExpect(jsonPath("data.portfolioDetails.currentValuation").value(equalTo(180000)))
 			.andExpect(jsonPath("data.portfolioDetails.investedAmount").value(equalTo(150000)))
 			.andExpect(jsonPath("data.portfolioDetails.totalGain").value(equalTo(30000)))
-			.andExpect(jsonPath("data.portfolioDetails.totalGainRate").value(equalTo(20)))
+			.andExpect(jsonPath("data.portfolioDetails.totalGainRate").value(closeTo(20.0, 0.1)))
 			.andExpect(jsonPath("data.portfolioDetails.balance").value(equalTo(850000)))
 			.andExpect(jsonPath("data.portfolioDetails.annualDividend").value(equalTo(4332)))
 			.andExpect(jsonPath("data.portfolioDetails.annualDividendYield").value(equalTo(2.00)))
@@ -191,11 +191,11 @@ class PortfolioStockRestControllerTest {
 			.andExpect(jsonPath("data.portfolioHoldings[0].averageCostPerShare").value(equalTo(50000.00)))
 			.andExpect(jsonPath("data.portfolioHoldings[0].numShares").value(equalTo(3)))
 			.andExpect(jsonPath("data.portfolioHoldings[0].dailyChange").value(equalTo(10000)))
-			.andExpect(jsonPath("data.portfolioHoldings[0].dailyChangeRate").value(equalTo(20)))
+			.andExpect(jsonPath("data.portfolioHoldings[0].dailyChangeRate").value(closeTo(20.0, 0.1)))
 			.andExpect(jsonPath("data.portfolioHoldings[0].totalGain").value(equalTo(30000)))
-			.andExpect(jsonPath("data.portfolioHoldings[0].totalReturnRate").value(equalTo(20)))
+			.andExpect(jsonPath("data.portfolioHoldings[0].totalReturnRate").value(closeTo(20.0, 0.1)))
 			.andExpect(jsonPath("data.portfolioHoldings[0].annualDividend").value(equalTo(4332)))
-			.andExpect(jsonPath("data.portfolioHoldings[0].annualDividendYield").value(equalTo(2.00)));
+			.andExpect(jsonPath("data.portfolioHoldings[0].annualDividendYield").value(closeTo(2.00, 0.1)));
 
 		resultActions
 			.andExpect(jsonPath("data.portfolioHoldings[0].purchaseHistory[0].purchaseHistoryId").value(equalTo(1)))

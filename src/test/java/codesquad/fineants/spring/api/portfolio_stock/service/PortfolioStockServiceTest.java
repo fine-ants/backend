@@ -119,8 +119,8 @@ class PortfolioStockServiceTest extends AbstractContainerBaseTest {
 					"dailyGainRate", "balance", "annualDividend", "annualDividendYield",
 					"provisionalLossBalance",
 					"targetGainNotification", "maxLossNotification")
-				.containsExactlyInAnyOrder("토스", "내꿈은 워렌버핏", 1000000L, 1500000L, 50, 900000L, 10, 150000L, 30000L,
-					20, 30000L, 20, 850000L, 4332L, 2.00, 0L, false, false),
+				.containsExactlyInAnyOrder("토스", "내꿈은 워렌버핏", 1000000L, 1500000L, 50.0, 900000L, 10.0, 150000L, 30000L,
+					20.0, 30000L, 20.0, 850000L, 4332L, 2.00, 0L, false, false),
 			() -> assertThat(response).extracting("portfolioHoldings")
 				.asList()
 				.hasSize(1)
@@ -135,7 +135,7 @@ class PortfolioStockServiceTest extends AbstractContainerBaseTest {
 				.extracting("portfolioHoldingId", "currentValuation", "currentPrice", "averageCostPerShare",
 					"numShares", "dailyChange", "dailyChangeRate", "totalGain", "totalReturnRate", "annualDividend")
 				.containsExactlyInAnyOrder(Tuple.tuple(
-					portfolioHolding.getId(), 180000L, 60000L, 50000.0, 3L, 10000L, 20, 30000L, 20, 4332L)),
+					portfolioHolding.getId(), 180000L, 60000L, 50000.0, 3L, 10000L, 20.00, 30000L, 20.00, 4332L)),
 			() -> assertThat(response).extracting("portfolioHoldings")
 				.asList()
 				.hasSize(1)
@@ -273,7 +273,7 @@ class PortfolioStockServiceTest extends AbstractContainerBaseTest {
 			() -> assertThat(response).extracting("portfolioDetails")
 				.extracting("currentValuation", "totalGain", "totalGainRate", "dailyGain", "dailyGainRate",
 					"provisionalLossBalance")
-				.containsExactlyInAnyOrder(720000L, 120000L, 20, 120000L, 20, 0L),
+				.containsExactlyInAnyOrder(720000L, 120000L, 20.0, 120000L, 20.0, 0L),
 
 			() -> assertThat(response).extracting("portfolioHoldings")
 				.asList()
@@ -281,8 +281,8 @@ class PortfolioStockServiceTest extends AbstractContainerBaseTest {
 				.extracting("currentValuation", "currentPrice", "dailyChange", "dailyChangeRate", "totalGain",
 					"totalReturnRate")
 				.containsExactlyInAnyOrder(
-					Tuple.tuple(360000L, 60000L, 10000L, 20, 60000L, 20),
-					Tuple.tuple(360000L, 60000L, 10000L, 20, 60000L, 20))
+					Tuple.tuple(360000L, 60000L, 10000L, 20.0, 60000L, 20.0),
+					Tuple.tuple(360000L, 60000L, 10000L, 20.0, 60000L, 20.0))
 		);
 	}
 

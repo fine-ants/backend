@@ -58,9 +58,9 @@ public class DashboardRestControllerDocsTest extends RestDocsSupport {
 			.andExpect(jsonPath("data.totalValuation").value(equalTo(1000000)))
 			.andExpect(jsonPath("data.totalInvestment").value(equalTo(0)))
 			.andExpect(jsonPath("data.totalGain").value(equalTo(0)))
-			.andExpect(jsonPath("data.totalGainRate").value(equalTo(0)))
+			.andExpect(jsonPath("data.totalGainRate").value(closeTo(0.0, 0.1)))
 			.andExpect(jsonPath("data.totalAnnualDividend").value(equalTo(0)))
-			.andExpect(jsonPath("data.totalAnnualDividendYield").value(equalTo(0.0)))
+			.andExpect(jsonPath("data.totalAnnualDividendYield").value(closeTo(0.0, 0.1)))
 			.andDo(
 				document(
 					"dashboard_overview-search",

@@ -15,6 +15,7 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Stream;
 
+import org.assertj.core.data.Offset;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -428,7 +429,8 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 		assertThat(response.getPortfolios().get(0).getDailyGain()).isEqualTo(-30000);
 		assertThat(response.getPortfolios().get(0).getDailyGainRate()).isEqualTo(-20);
 		assertThat(response.getPortfolios().get(0).getTotalGain()).isEqualTo(-150000);
-		assertThat(response.getPortfolios().get(0).getTotalGainRate()).isEqualTo(-55);
+		assertThat(response.getPortfolios().get(0).getTotalGainRate()).isCloseTo(-55.55,
+			Offset.offset(0.1));
 	}
 
 	@DisplayName("회원이 포트폴리오들을 삭제한다")
