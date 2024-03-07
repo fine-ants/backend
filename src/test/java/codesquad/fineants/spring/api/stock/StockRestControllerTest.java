@@ -1,7 +1,6 @@
 package codesquad.fineants.spring.api.stock;
 
 import static org.hamcrest.Matchers.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
@@ -81,7 +80,7 @@ public class StockRestControllerTest {
 			.annualDividendYield(10.00)
 			.dividendMonths(List.of(1, 4))
 			.build();
-		given(stockService.getStock(any(String.class))).willReturn(response);
+		given(stockService.getStock(anyString())).willReturn(response);
 
 		// when & then
 		mockMvc.perform(get("/api/stocks/{tickerSymbol}", tickerSymbol)

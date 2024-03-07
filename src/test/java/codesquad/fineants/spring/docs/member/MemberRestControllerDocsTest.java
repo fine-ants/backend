@@ -77,7 +77,7 @@ public class MemberRestControllerDocsTest extends RestDocsSupport {
 		given(memberService.login(ArgumentMatchers.any(OauthMemberLoginRequest.class)))
 			.willReturn(mockResponse);
 		// when
-		mockMvc.perform(post(url, "kakao")
+		mockMvc.perform(RestDocumentationRequestBuilders.post(url, "kakao")
 				.param("code", code)
 				.param("redirectUrl", redirectUrl)
 				.param("state", state))
@@ -499,7 +499,7 @@ public class MemberRestControllerDocsTest extends RestDocsSupport {
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
 			.andExpect(jsonPath("message").value(equalTo("닉네임이 사용가능합니다")))
-			.andExpect(jsonPath("data").value(equalTo(isNull())))
+			.andExpect(jsonPath("data").value(equalTo(null)))
 			.andDo(
 				document(
 					"member_check_nickname-search",
@@ -534,7 +534,7 @@ public class MemberRestControllerDocsTest extends RestDocsSupport {
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
 			.andExpect(jsonPath("message").value(equalTo("이메일이 사용가능합니다")))
-			.andExpect(jsonPath("data").value(equalTo(isNull())))
+			.andExpect(jsonPath("data").value(equalTo(null)))
 			.andDo(
 				document(
 					"member_check_email-search",
@@ -574,7 +574,7 @@ public class MemberRestControllerDocsTest extends RestDocsSupport {
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
 			.andExpect(jsonPath("message").value(equalTo("이메일로 검증 코드를 전송하였습니다")))
-			.andExpect(jsonPath("data").value(equalTo(isNull())))
+			.andExpect(jsonPath("data").value(equalTo(null)))
 			.andDo(
 				document(
 					"member_email_validation_code-create",
@@ -615,7 +615,7 @@ public class MemberRestControllerDocsTest extends RestDocsSupport {
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
 			.andExpect(jsonPath("message").value(equalTo("일치하는 인증번호 입니다")))
-			.andExpect(jsonPath("data").value(equalTo(isNull())))
+			.andExpect(jsonPath("data").value(equalTo(null)))
 			.andDo(
 				document(
 					"member_email_validation_code-verify",
@@ -728,7 +728,7 @@ public class MemberRestControllerDocsTest extends RestDocsSupport {
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
 			.andExpect(jsonPath("message").value(equalTo("비밀번호를 성공적으로 변경했습니다")))
-			.andExpect(jsonPath("data").value(equalTo(isNull())))
+			.andExpect(jsonPath("data").value(equalTo(null)))
 			.andDo(
 				document(
 					"member_password-update",

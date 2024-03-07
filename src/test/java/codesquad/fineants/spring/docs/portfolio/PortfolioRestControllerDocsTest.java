@@ -3,7 +3,6 @@ package codesquad.fineants.spring.docs.portfolio;
 import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.anyLong;
-import static org.mockito.BDDMockito.isNull;
 import static org.mockito.BDDMockito.*;
 import static org.springframework.restdocs.headers.HeaderDocumentation.*;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.*;
@@ -226,7 +225,7 @@ public class PortfolioRestControllerDocsTest extends RestDocsSupport {
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
 			.andExpect(jsonPath("message").value(equalTo("포트폴리오가 수정되었습니다")))
-			.andExpect(jsonPath("data").value(equalTo(isNull())))
+			.andExpect(jsonPath("data").value(equalTo(null)))
 			.andDo(
 				document(
 					"portfolio-update",
@@ -273,7 +272,7 @@ public class PortfolioRestControllerDocsTest extends RestDocsSupport {
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
 			.andExpect(jsonPath("message").value(equalTo("포트폴리오 삭제가 완료되었습니다")))
-			.andExpect(jsonPath("data").value(equalTo(isNull())))
+			.andExpect(jsonPath("data").value(equalTo(null)))
 			.andDo(
 				document(
 					"portfolio-one-delete",
@@ -318,7 +317,7 @@ public class PortfolioRestControllerDocsTest extends RestDocsSupport {
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
 			.andExpect(jsonPath("message").value(equalTo("포트폴리오 삭제가 완료되었습니다")))
-			.andExpect(jsonPath("data").value(equalTo(isNull())))
+			.andExpect(jsonPath("data").value(equalTo(null)))
 			.andDo(
 				document(
 					"portfolio-multiple-delete",
