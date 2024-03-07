@@ -43,6 +43,7 @@ import codesquad.fineants.domain.target_price_notification.TargetPriceNotificati
 import codesquad.fineants.domain.target_price_notification.TargetPriceNotificationRepository;
 import codesquad.fineants.spring.AbstractContainerBaseTest;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
+import codesquad.fineants.spring.api.notification.response.NotifyMessageItem;
 import codesquad.fineants.spring.api.notification.response.NotifyPortfolioMessagesResponse;
 
 class NotificationServiceTest extends AbstractContainerBaseTest {
@@ -359,12 +360,13 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 			.willReturn("projects/fineants-404407/messages/4754d355-5d5d-4f14-a642-75fecdb91fa5");
 
 		// when
-		Optional<String> optionalMessageId = service.notifyStockAchievedTargetPrice(fcmToken.getToken(),
+		Optional<NotifyMessageItem> optionalNotifyMessageItem = service.notifyStockAchievedTargetPrice(
+			fcmToken.getToken(),
 			targetPriceNotification);
 
 		// then
 		assertAll(
-			() -> assertThat(optionalMessageId.isPresent()).isTrue(),
+			() -> assertThat(optionalNotifyMessageItem.isPresent()).isTrue(),
 			() -> assertThat(fcmRepository.findByTokenAndMemberId(fcmToken.getToken(), member.getId()).isPresent())
 				.isTrue()
 		);

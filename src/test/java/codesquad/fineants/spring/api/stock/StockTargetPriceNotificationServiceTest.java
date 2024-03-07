@@ -7,6 +7,7 @@ import static org.mockito.BDDMockito.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.assertj.core.groups.Tuple;
@@ -16,8 +17,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
+import com.google.firebase.messaging.Message;
+
+import codesquad.fineants.domain.fcm_token.FcmRepository;
+import codesquad.fineants.domain.fcm_token.FcmToken;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.member.MemberRepository;
+import codesquad.fineants.domain.notification.NotificationRepository;
+import codesquad.fineants.domain.notification.type.NotificationType;
 import codesquad.fineants.domain.stock.Market;
 import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.domain.stock.StockRepository;
@@ -30,12 +37,17 @@ import codesquad.fineants.spring.api.errors.errorcode.StockErrorCode;
 import codesquad.fineants.spring.api.errors.exception.BadRequestException;
 import codesquad.fineants.spring.api.errors.exception.ForBiddenException;
 import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
+import codesquad.fineants.spring.api.firebase.FirebaseMessagingService;
+import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
+import codesquad.fineants.spring.api.kis.response.CurrentPriceResponse;
+import codesquad.fineants.spring.api.kis.service.KisService;
 import codesquad.fineants.spring.api.stock.request.TargetPriceNotificationCreateRequest;
 import codesquad.fineants.spring.api.stock.request.TargetPriceNotificationUpdateRequest;
 import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationCreateResponse;
 import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationDeleteResponse;
 import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationSearchResponse;
+import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationSendResponse;
 import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationSpecifiedSearchResponse;
 import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationUpdateResponse;
 
@@ -56,11 +68,28 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 	@Autowired
 	private TargetPriceNotificationRepository targetPriceNotificationRepository;
 
+	@Autowired
+	private NotificationRepository notificationRepository;
+
+	@Autowired
+	private FcmRepository fcmRepository;
+
 	@MockBean
 	private LastDayClosingPriceManager manager;
 
+	@MockBean
+	private CurrentPriceManager currentPriceManager;
+
+	@MockBean
+	private KisService kisService;
+
+	@MockBean
+	private FirebaseMessagingService firebaseMessagingService;
+
 	@AfterEach
 	void tearDown() {
+		fcmRepository.deleteAllInBatch();
+		notificationRepository.deleteAllInBatch();
 		targetPriceNotificationRepository.deleteAllInBatch();
 		repository.deleteAllInBatch();
 		stockRepository.deleteAllInBatch();
@@ -139,6 +168,48 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 		assertThat(throwable)
 			.isInstanceOf(BadRequestException.class)
 			.hasMessage(StockErrorCode.BAD_REQUEST_TARGET_PRICE_NOTIFICATION_EXIST.getMessage());
+	}
+
+	@DisplayName("사용자는 사용자가 지정한 종목 지정가에 대한 푸시 알림을 받는다")
+	@Test
+	void sendStockTargetPriceNotification() {
+		// given
+		Member member = memberRepository.save(createMember());
+		fcmRepository.save(createFcmToken(member));
+		Stock stock = stockRepository.save(createStock());
+		Stock stock2 = stockRepository.save(createStock2());
+		StockTargetPrice stockTargetPrice = repository.save(createStockTargetPrice(member, stock));
+		StockTargetPrice stockTargetPrice2 = repository.save(createStockTargetPrice(member, stock2));
+		targetPriceNotificationRepository.saveAll(
+			createTargetPriceNotification(stockTargetPrice, List.of(60000L, 70000L)));
+		targetPriceNotificationRepository.saveAll(
+			createTargetPriceNotification(stockTargetPrice2, List.of(10000L, 20000L)));
+
+		given(currentPriceManager.getCurrentPrice(stock.getTickerSymbol()))
+			.willReturn(60000L);
+		given(currentPriceManager.getCurrentPrice(stock2.getTickerSymbol()))
+			.willReturn(null);
+		given(kisService.readRealTimeCurrentPrice(stock2.getTickerSymbol()))
+			.willReturn(new CurrentPriceResponse(stock2.getTickerSymbol(), 10000L));
+		given(firebaseMessagingService.sendNotification(any(Message.class)))
+			.willReturn(Optional.of("messageId1"))
+			.willReturn(Optional.of("messageId2"));
+		// when
+		TargetPriceNotificationSendResponse response = service.sendStockTargetPriceNotification(
+			member.getId());
+
+		// then
+		NotificationType type = NotificationType.STOCK_TARGET_PRICE;
+		assertThat(response.getNotifications())
+			.asList()
+			.hasSize(2)
+			.extracting("title", "type", "referenceId", "messageId")
+			.containsExactlyInAnyOrder(
+				Tuple.tuple(type.getName(), type, "005930", "messageId1"),
+				Tuple.tuple(type.getName(), type, "000020", "messageId2"));
+		assertThat(notificationRepository.findAllByMemberId(member.getId()))
+			.asList()
+			.hasSize(2);
 	}
 
 	@DisplayName("사용자는 종목 지정가 알림 목록을 조회합니다")
@@ -554,6 +625,14 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 			.stockCode("KR7000020008")
 			.sector("의약품")
 			.market(Market.KOSPI)
+			.build();
+	}
+
+	private FcmToken createFcmToken(Member member) {
+		return FcmToken.builder()
+			.token("token")
+			.latestActivationTime(LocalDateTime.now())
+			.member(member)
 			.build();
 	}
 }
