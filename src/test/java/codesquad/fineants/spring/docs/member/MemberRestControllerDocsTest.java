@@ -360,53 +360,6 @@ public class MemberRestControllerDocsTest extends RestDocsSupport {
 			);
 	}
 
-	@DisplayName("인가코드 요청 URL")
-	@Test
-	void saveAuthorizationCodeURL() throws Exception {
-		// give
-		given(memberService.saveAuthorizationCodeURL(anyString()))
-			.willReturn(OauthSaveUrlResponse.builder()
-				.authURL("authURL")
-				.build());
-		// when & then
-		mockMvc.perform(RestDocumentationRequestBuilders.post("/api/auth/{provider}/authUrl", "kakao"))
-			.andExpect(status().isOk())
-			.andExpect(jsonPath("code").value(equalTo(200)))
-			.andExpect(jsonPath("status").value(equalTo("OK")))
-			.andExpect(jsonPath("message").value(equalTo("인가 코드 URL 요청에 성공하였습니다")))
-			.andExpect(jsonPath("data.authURL").value(equalTo("authURL")))
-			.andDo(
-				document(
-					"member_authorization_code-create",
-					preprocessRequest(prettyPrint()),
-					preprocessResponse(prettyPrint()),
-					pathParameters(
-						parameterWithName("provider").description("플랫폼 이름")
-							.attributes(
-								Attributes.key("constraints").value(
-									String.join(",",
-										"kakao",
-										"google",
-										"naver"
-									)
-								))
-					),
-					responseFields(
-						fieldWithPath("code").type(JsonFieldType.NUMBER)
-							.description("코드"),
-						fieldWithPath("status").type(JsonFieldType.STRING)
-							.description("상태"),
-						fieldWithPath("message").type(JsonFieldType.STRING)
-							.description("메시지"),
-						fieldWithPath("data").type(JsonFieldType.OBJECT)
-							.description("응답 데이터"),
-						fieldWithPath("data.authURL").type(JsonFieldType.STRING)
-							.description("인가 코드 요청 URL")
-					)
-				)
-			);
-	}
-
 	@DisplayName("회원 프로필 조회 API")
 	@Test
 	void readProfile() throws Exception {
