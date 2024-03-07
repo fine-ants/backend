@@ -1,13 +1,22 @@
 package codesquad.fineants.spring.api.stock;
 
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import codesquad.fineants.domain.fcm_token.FcmRepository;
+import codesquad.fineants.domain.fcm_token.FcmToken;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.member.MemberRepository;
+import codesquad.fineants.domain.notification_preference.NotificationPreference;
+import codesquad.fineants.domain.notification_preference.NotificationPreferenceRepository;
 import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.domain.stock.StockRepository;
 import codesquad.fineants.domain.stock_target_price.StockTargetPrice;
@@ -15,17 +24,28 @@ import codesquad.fineants.domain.stock_target_price.StockTargetPriceRepository;
 import codesquad.fineants.domain.target_price_notification.TargetPriceNotification;
 import codesquad.fineants.domain.target_price_notification.TargetPriceNotificationRepository;
 import codesquad.fineants.spring.api.errors.errorcode.MemberErrorCode;
+import codesquad.fineants.spring.api.errors.errorcode.NotificationPreferenceErrorCode;
 import codesquad.fineants.spring.api.errors.errorcode.StockErrorCode;
 import codesquad.fineants.spring.api.errors.exception.BadRequestException;
+import codesquad.fineants.spring.api.errors.exception.FineAntsException;
 import codesquad.fineants.spring.api.errors.exception.ForBiddenException;
 import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
+import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
+import codesquad.fineants.spring.api.kis.response.CurrentPriceResponse;
+import codesquad.fineants.spring.api.kis.service.KisService;
+import codesquad.fineants.spring.api.notification.response.NotificationCreateResponse;
+import codesquad.fineants.spring.api.notification.response.NotifyMessageItem;
+import codesquad.fineants.spring.api.notification.service.NotificationService;
+import codesquad.fineants.spring.api.stock.request.StockTargetPriceNotificationCreateRequest;
 import codesquad.fineants.spring.api.stock.request.TargetPriceNotificationCreateRequest;
 import codesquad.fineants.spring.api.stock.request.TargetPriceNotificationUpdateRequest;
 import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationCreateResponse;
 import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationDeleteResponse;
 import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationSearchItem;
 import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationSearchResponse;
+import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationSendItem;
+import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationSendResponse;
 import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationSpecificItem;
 import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationSpecifiedSearchResponse;
 import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationUpdateResponse;
@@ -45,6 +65,11 @@ public class StockTargetPriceNotificationService {
 	private final MemberRepository memberRepository;
 	private final StockRepository stockRepository;
 	private final LastDayClosingPriceManager manager;
+	private final CurrentPriceManager currentPriceManager;
+	private final KisService kisService;
+	private final NotificationService notificationService;
+	private final FcmRepository fcmRepository;
+	private final NotificationPreferenceRepository notificationPreferenceRepository;
 
 	@Transactional
 	public TargetPriceNotificationCreateResponse createStockTargetPriceNotification(
@@ -109,6 +134,77 @@ public class StockTargetPriceNotificationService {
 	private Stock findStock(String tickerSymbol) {
 		return stockRepository.findByTickerSymbol(tickerSymbol)
 			.orElseThrow(() -> new NotFoundResourceException(StockErrorCode.NOT_FOUND_STOCK));
+	}
+
+	@Transactional
+	public TargetPriceNotificationSendResponse sendStockTargetPriceNotification(Long memberId) {
+		// 계정 알림 설정을 만족하는지 검사
+		NotificationPreference preference = notificationPreferenceRepository.findByMemberId(memberId)
+			.orElseThrow(
+				() -> new FineAntsException(NotificationPreferenceErrorCode.NOT_FOUND_NOTIFICATION_PREFERENCE));
+		if (preference.isPossibleStockTargetPriceNotification()) {
+			return TargetPriceNotificationSendResponse.empty();
+		}
+		
+		// 회원이 가지고 있는 종목 지정가들을 조회
+		List<StockTargetPrice> stocks = repository.findAllByMemberId(memberId);
+		// 종목 지정가에 대한 현재가들 조회
+		Map<StockTargetPrice, Long> currentPriceMap = new HashMap<>();
+		for (StockTargetPrice stock : stocks) {
+			String tickerSymbol = stock.getStock().getTickerSymbol();
+			Long currentPrice = currentPriceManager.getCurrentPrice(tickerSymbol);
+			// currentPrice가 없다면 kis 서버에 현재가 fetch
+			if (currentPrice == null) {
+				CurrentPriceResponse response = kisService.readRealTimeCurrentPrice(tickerSymbol);
+				currentPrice = response.getCurrentPrice();
+				currentPriceManager.addCurrentPrice(response);
+			}
+			currentPriceMap.put(stock, currentPrice);
+		}
+
+		// 종목의 현재가가 지정가에 맞는 것들을 조회
+		List<TargetPriceNotification> targetPrices = stocks.stream()
+			.map(StockTargetPrice::getTargetPriceNotifications)
+			.flatMap(Collection::stream)
+			.filter(TargetPriceNotification::isActive)
+			.filter(targetPrice -> currentPriceMap.get(targetPrice.getStockTargetPrice())
+				.equals(targetPrice.getTargetPrice()))
+			.collect(Collectors.toList());
+
+		// 푸시 알림을 하기 위한 회원의 토큰들 조회
+		List<String> tokens = fcmRepository.findAllByMemberId(memberId).stream()
+			.map(FcmToken::getToken)
+			.collect(Collectors.toList());
+
+		// 조건에 맞는 지정가에 대해서 푸시 알림 전송 (알림 설정 조건이 만족해야됨)
+		Set<NotifyMessageItem> notifyMessageItems = new HashSet<>();
+		for (TargetPriceNotification targetPrice : targetPrices) {
+			for (String token : tokens) {
+				// 푸시 알림 전송
+				notificationService.notifyStockAchievedTargetPrice(token, targetPrice)
+					.ifPresent(item -> {
+						// 푸시 알림 데이터를 저장
+						NotificationCreateResponse response = notificationService.createStockTargetPriceNotification(
+							StockTargetPriceNotificationCreateRequest.builder()
+								.tickerSymbol(targetPrice.getStockTargetPrice().getStock().getTickerSymbol())
+								.title(item.getTitle())
+								.type(item.getType())
+								.referenceId(item.getReferenceId())
+								.targetPrice(targetPrice.getTargetPrice())
+								.build(),
+							memberId
+						);
+						log.info("종목 지정가 알림 저장 결과 : {}", response);
+						notifyMessageItems.add(item);
+					});
+			}
+		}
+
+		// response 생성
+		List<TargetPriceNotificationSendItem> notifications = notifyMessageItems.stream()
+			.map(TargetPriceNotificationSendItem::from)
+			.collect(Collectors.toList());
+		return TargetPriceNotificationSendResponse.from(notifications);
 	}
 
 	// 종목 지정가 알림 단일 제거

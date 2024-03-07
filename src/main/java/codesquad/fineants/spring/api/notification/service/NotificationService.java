@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.firebase.messaging.FirebaseMessaging;
-import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
 import com.google.firebase.messaging.Notification;
 import com.google.firebase.messaging.WebpushConfig;
@@ -36,11 +35,12 @@ import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
 import codesquad.fineants.spring.api.fcm.service.FcmService;
 import codesquad.fineants.spring.api.firebase.FirebaseMessagingService;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
-import codesquad.fineants.spring.api.notification.request.NotificationCreateRequest;
+import codesquad.fineants.spring.api.notification.request.PortfolioNotificationCreateRequest;
 import codesquad.fineants.spring.api.notification.response.NotificationCreateResponse;
 import codesquad.fineants.spring.api.notification.response.NotifyMessageItem;
 import codesquad.fineants.spring.api.notification.response.NotifyPortfolioMessagesResponse;
 import codesquad.fineants.spring.api.portfolio.PortFolioService;
+import codesquad.fineants.spring.api.stock.request.StockTargetPriceNotificationCreateRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -63,7 +63,20 @@ public class NotificationService {
 
 	// 알림 저장
 	@Transactional
-	public NotificationCreateResponse createNotification(NotificationCreateRequest request, Long memberId) {
+	public NotificationCreateResponse createPortfolioNotification(PortfolioNotificationCreateRequest request,
+		Long memberId) {
+		Member member = memberRepository.findById(memberId)
+			.orElseThrow(() -> new NotFoundResourceException(MemberErrorCode.NOT_FOUND_MEMBER));
+		codesquad.fineants.domain.notification.Notification saveNotification = notificationRepository.save(
+			request.toEntity(member)
+		);
+		return NotificationCreateResponse.from(saveNotification);
+	}
+
+	// 알림 저장
+	@Transactional
+	public NotificationCreateResponse createStockTargetPriceNotification(
+		StockTargetPriceNotificationCreateRequest request, Long memberId) {
 		Member member = memberRepository.findById(memberId)
 			.orElseThrow(() -> new NotFoundResourceException(MemberErrorCode.NOT_FOUND_MEMBER));
 		codesquad.fineants.domain.notification.Notification saveNotification = notificationRepository.save(
@@ -104,7 +117,8 @@ public class NotificationService {
 		notifications.stream()
 			.findAny()
 			.ifPresent(item -> {
-				NotificationCreateResponse createResponse = this.createNotification(NotificationCreateRequest.builder()
+				NotificationCreateResponse createResponse = this.createPortfolioNotification(
+					PortfolioNotificationCreateRequest.builder()
 						.portfolioName(portfolio.getName())
 						.title(item.getTitle())
 						.type(item.getType())
@@ -187,8 +201,8 @@ public class NotificationService {
 		notifications.stream()
 			.findAny()
 			.ifPresent(item -> {
-				NotificationCreateResponse response = this.createNotification(
-					NotificationCreateRequest.builder()
+				NotificationCreateResponse response = this.createPortfolioNotification(
+					PortfolioNotificationCreateRequest.builder()
 						.portfolioName(portfolio.getName())
 						.title(item.getTitle())
 						.type(item.getType())
@@ -222,17 +236,26 @@ public class NotificationService {
 	}
 
 	// 종목 지정가 도달 달성 알림 푸시
-	public Optional<String> notifyStockAchievedTargetPrice(String token,
+	public Optional<NotifyMessageItem> notifyStockAchievedTargetPrice(String token,
 		TargetPriceNotification targetPriceNotification) {
-		Message message = createMessage("종목 지정가", targetPriceNotification.toMessageBody(), token,
-			"/stock/" + targetPriceNotification.getReferenceId());
-		try {
-			String messageId = firebaseMessaging.send(message);
-			log.info("푸시 알림 전송 결과 : messageId={}", messageId);
-			return Optional.ofNullable(messageId);
-		} catch (FirebaseMessagingException e) {
-			return Optional.empty();
-		}
+		String title = NotificationType.STOCK_TARGET_PRICE.getName();
+		String content = targetPriceNotification.toMessageBody();
+		String referenceId = targetPriceNotification.getReferenceId();
+		String link = "/stock/" + referenceId;
+		Message message = createMessage(
+			title,
+			content,
+			token,
+			link
+		);
+		return firebaseMessagingService.sendNotification(message)
+			.map(messageId -> createNotifyMessageItem(
+					messageId,
+					title,
+					NotificationType.STOCK_TARGET_PRICE,
+					referenceId
+				)
+			);
 	}
 
 	private Message createMessage(String title, String content, String token,

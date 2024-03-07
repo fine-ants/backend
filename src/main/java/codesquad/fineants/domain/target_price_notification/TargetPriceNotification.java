@@ -17,7 +17,9 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
+@ToString
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
@@ -56,5 +58,9 @@ public class TargetPriceNotification extends BaseEntity {
 
 	public String getReferenceId() {
 		return stockTargetPrice.getStock().getTickerSymbol();
+	}
+
+	public boolean isActive() {
+		return stockTargetPrice.getIsActive();
 	}
 }

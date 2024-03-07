@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.oauth.support.AuthPrincipalMember;
-import codesquad.fineants.spring.api.notification.request.NotificationCreateRequest;
+import codesquad.fineants.spring.api.notification.request.PortfolioNotificationCreateRequest;
 import codesquad.fineants.spring.api.notification.response.NotificationCreateResponse;
 import codesquad.fineants.spring.api.notification.response.NotifyPortfolioMessagesResponse;
 import codesquad.fineants.spring.api.notification.service.NotificationService;
@@ -33,10 +33,10 @@ public class NotificationRestController {
 	@ResponseStatus(HttpStatus.CREATED)
 	@PostMapping
 	public ApiResponse<NotificationCreateResponse> createNotification(
-		@Valid @RequestBody NotificationCreateRequest request,
+		@Valid @RequestBody PortfolioNotificationCreateRequest request,
 		@AuthPrincipalMember AuthMember authMember
 	) {
-		NotificationCreateResponse response = service.createNotification(request, authMember.getMemberId());
+		NotificationCreateResponse response = service.createPortfolioNotification(request, authMember.getMemberId());
 		log.info("알림 저장 결과 : response={}", response);
 		return ApiResponse.success(NotificationSuccessCode.CREATED_NOTIFICATION, response);
 	}

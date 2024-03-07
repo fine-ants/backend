@@ -21,6 +21,7 @@ import codesquad.fineants.spring.api.stock.request.TargetPriceNotificationUpdate
 import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationCreateResponse;
 import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationDeleteResponse;
 import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationSearchResponse;
+import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationSendResponse;
 import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationSpecifiedSearchResponse;
 import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationUpdateResponse;
 import codesquad.fineants.spring.api.success.code.StockSuccessCode;
@@ -45,6 +46,16 @@ public class StockTargetPriceNotificationRestController {
 		);
 		log.info("종목 지정가 알림 추가 결과 : {}", response);
 		return ApiResponse.success(StockSuccessCode.OK_CREATE_TARGET_PRICE_NOTIFICATION, response);
+	}
+
+	@ResponseStatus(HttpStatus.CREATED)
+	@PostMapping("/api/stocks/target-price/notifications/send")
+	public ApiResponse<TargetPriceNotificationSendResponse> sendStockTargetPriceNotification(
+		@AuthPrincipalMember AuthMember authMember) {
+		TargetPriceNotificationSendResponse response = service.sendStockTargetPriceNotification(
+			authMember.getMemberId());
+		log.info("종목 지정가 알림 전송 결과 : {}", response);
+		return ApiResponse.success(StockSuccessCode.OK_CREATE_TARGET_PRICE_SEND_NOTIFICATION, response);
 	}
 
 	@GetMapping("/api/stocks/target-price/notifications")

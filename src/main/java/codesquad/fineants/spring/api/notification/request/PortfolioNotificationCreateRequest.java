@@ -18,7 +18,7 @@ import lombok.ToString;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
 @ToString
-public class NotificationCreateRequest {
+public class PortfolioNotificationCreateRequest {
 	@NotBlank(message = "필수 정보입니다")
 	private String portfolioName;
 	@NotBlank(message = "필수 정보입니다")
