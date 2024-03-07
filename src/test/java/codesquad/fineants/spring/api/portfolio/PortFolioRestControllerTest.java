@@ -99,11 +99,11 @@ class PortFolioRestControllerTest {
 	@DisplayName("사용자는 포트폴리오 추가를 요청한다")
 	@CsvSource(value = {"1000000,1500000,900000", "0,0,0", "0,1500000,900000"})
 	@ParameterizedTest
-	void addPortfolio(Long budget, Long targetGain, Long maximumLoss) throws Exception {
+	void createPortfolio(Long budget, Long targetGain, Long maximumLoss) throws Exception {
 		// given
 		PortFolioCreateResponse response = PortFolioCreateResponse.from(
 			createPortfolio(1L, budget, targetGain, maximumLoss));
-		given(portFolioService.addPortFolio(any(PortfolioCreateRequest.class), any(AuthMember.class)))
+		given(portFolioService.createPortfolio(any(PortfolioCreateRequest.class), any(AuthMember.class)))
 			.willReturn(response);
 
 		Map<String, Object> requestBodyMap = new HashMap<>();
@@ -198,12 +198,12 @@ class PortFolioRestControllerTest {
 	@DisplayName("사용자는 포트폴리오 수정을 요청한다")
 	@CsvSource(value = {"1000000,1500000,900000", "0,0,0", "0,1500000,900000"})
 	@ParameterizedTest
-	void modifyPortfolio(Long budget, Long targetGain, Long maximumLoss) throws Exception {
+	void updatePortfolio(Long budget, Long targetGain, Long maximumLoss) throws Exception {
 		// given
 		Portfolio portfolio = createPortfolio(1L, 1000000L, 1500000L, 900000L);
 		PortfolioModifyResponse response = PortfolioModifyResponse.from(portfolio);
 
-		given(portFolioService.modifyPortfolio(any(PortfolioModifyRequest.class), anyLong(), any(AuthMember.class)))
+		given(portFolioService.updatePortfolio(any(PortfolioModifyRequest.class), anyLong(), any(AuthMember.class)))
 			.willReturn(response);
 		given(portfolioRepository.findById(anyLong())).willReturn(Optional.of(portfolio));
 
@@ -229,7 +229,7 @@ class PortFolioRestControllerTest {
 	@DisplayName("사용자는 포트폴리오 수정시 유효하지 않은 입력 정보로 추가할 수 없다")
 	@MethodSource("invalidPortfolioInput")
 	@ParameterizedTest
-	void modifyPortfolioWithInvalidInput() throws Exception {
+	void updatePortfolioWithInvalidInput() throws Exception {
 		// given
 		Map<String, Object> requestBodyMap = new HashMap<>();
 		requestBodyMap.put("name", "");
