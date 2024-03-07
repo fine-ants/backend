@@ -101,7 +101,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 			PortfolioCreateRequest.class);
 
 		// when
-		PortFolioCreateResponse response = service.addPortFolio(request, AuthMember.from(member));
+		PortFolioCreateResponse response = service.createPortfolio(request, AuthMember.from(member));
 
 		// then
 		assertAll(
@@ -127,7 +127,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 			PortfolioCreateRequest.class);
 
 		// when
-		Throwable throwable = catchThrowable(() -> service.addPortFolio(request, AuthMember.from(member)));
+		Throwable throwable = catchThrowable(() -> service.createPortfolio(request, AuthMember.from(member)));
 
 		// then
 		assertThat(throwable)
@@ -153,7 +153,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 			PortfolioCreateRequest.class);
 
 		// when
-		Throwable throwable = catchThrowable(() -> service.addPortFolio(request, AuthMember.from(member)));
+		Throwable throwable = catchThrowable(() -> service.createPortfolio(request, AuthMember.from(member)));
 
 		// then
 		assertThat(throwable)
@@ -175,7 +175,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 			PortfolioCreateRequest.class);
 
 		// when
-		Throwable throwable = catchThrowable(() -> service.addPortFolio(request, AuthMember.from(member)));
+		Throwable throwable = catchThrowable(() -> service.createPortfolio(request, AuthMember.from(member)));
 
 		// then
 		assertThat(throwable)
@@ -194,7 +194,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 			PortfolioCreateRequest.class);
 
 		// when
-		Throwable throwable = catchThrowable(() -> service.addPortFolio(request, AuthMember.from(member)));
+		Throwable throwable = catchThrowable(() -> service.createPortfolio(request, AuthMember.from(member)));
 
 		// then
 		assertThat(throwable)
@@ -206,7 +206,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 	@CsvSource(value = {"내꿈은 워렌버핏2,미래에셋증권,1000000,1500000,900000", "내꿈은 워렌버핏2,미래에셋증권,0,0,0",
 		"내꿈은 워렌버핏2,미래에셋증권,0,1500000,900000"})
 	@ParameterizedTest
-	void modifyPortfolio(String name, String securitiesFirm, Long budget, Long targetGain, Long maximumLoss) {
+	void updatePortfolio(String name, String securitiesFirm, Long budget, Long targetGain, Long maximumLoss) {
 		// given
 		Member member = memberRepository.save(createMember());
 		Portfolio originPortfolio = portfolioRepository.save(createPortfolio(member));
@@ -219,7 +219,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 		Long portfolioId = originPortfolio.getId();
 
 		// when
-		service.modifyPortfolio(request, portfolioId, AuthMember.from(member));
+		service.updatePortfolio(request, portfolioId, AuthMember.from(member));
 
 		// then
 		Portfolio changePortfolio = portfolioRepository.findById(portfolioId).orElseThrow();
@@ -230,7 +230,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 
 	@DisplayName("회원은 포트폴리오의 정보를 수정시 이름이 그대로인 경우 그대로 수정합니다.")
 	@Test
-	void modifyPortfolio_whenNameUnchanged_thenNoDuplicateCheckAndApplyChanges() {
+	void updatePortfolio_whenNameUnchanged_thenNoDuplicateCheckAndApplyChanges() {
 		// given
 		Member member = memberRepository.save(createMember());
 		Portfolio originPortfolio = portfolioRepository.save(createPortfolio(member));
@@ -242,7 +242,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 		Long portfolioId = originPortfolio.getId();
 
 		// when
-		service.modifyPortfolio(request, portfolioId, AuthMember.from(member));
+		service.updatePortfolio(request, portfolioId, AuthMember.from(member));
 
 		// then
 		Portfolio changePortfolio = portfolioRepository.findById(portfolioId).orElseThrow();
@@ -253,7 +253,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 
 	@DisplayName("회원이 포트폴리오의 이름을 수정할때 본인이 가지고 있는 다른 포트폴리오의 이름과 중복될 수 없다")
 	@Test
-	void modifyPortfolio_whenMemberChangeName_thenNoDuplicateWithNameInOtherMyPortfolios() {
+	void updatePortfolio_whenMemberChangeName_thenNoDuplicateWithNameInOtherMyPortfolios() {
 		// given
 		Member member = memberRepository.save(createMember());
 		String duplicatedName = "내꿈은 찰리몽거";
@@ -268,7 +268,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 
 		// when
 		Throwable throwable = catchThrowable(
-			() -> service.modifyPortfolio(request, portfolioId, AuthMember.from(member)));
+			() -> service.updatePortfolio(request, portfolioId, AuthMember.from(member)));
 
 		// then
 		assertThat(throwable)
@@ -278,7 +278,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 
 	@DisplayName("회원은 다른사람의 포트폴리오 정보를 수정할 수 없다")
 	@Test
-	void modifyPortfolio_whenMemberTriesToUpdateOtherPersonPortfolio_thenModificationNotAllowed() {
+	void updatePortfolio_whenMemberTriesToUpdateOtherPersonPortfolio_thenModificationNotAllowed() {
 		// given
 		Member member = memberRepository.save(createMember());
 		Portfolio originPortfolio = portfolioRepository.save(createPortfolio(member));
@@ -292,7 +292,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 		Member hacker = memberRepository.save(createMember("hack1234@naver.com"));
 		// when
 		Throwable throwable = catchThrowable(
-			() -> service.modifyPortfolio(request, portfolioId, AuthMember.from(hacker)));
+			() -> service.updatePortfolio(request, portfolioId, AuthMember.from(hacker)));
 
 		// then
 		assertThat(throwable)
@@ -303,7 +303,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 	@DisplayName("회원이 포트폴리오 정보 수정시 예산이 목표수익금액보다 같거나 작게 수정할 수 없다")
 	@CsvSource(value = {"900000", "1000000"})
 	@ParameterizedTest
-	void modifyPortfolio_whenMemberAttemptsToUpdateWithBudgetLessThanTargetGain_thenModificationNotAllowed(
+	void updatePortfolio_whenMemberAttemptsToUpdateWithBudgetLessThanTargetGain_thenModificationNotAllowed(
 		long targetGain) {
 		// given
 		Member member = memberRepository.save(createMember());
@@ -320,7 +320,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 
 		// when
 		Throwable throwable = catchThrowable(
-			() -> service.modifyPortfolio(request, portfolioId, AuthMember.from(member)));
+			() -> service.updatePortfolio(request, portfolioId, AuthMember.from(member)));
 
 		// then
 		assertThat(throwable)
@@ -331,7 +331,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 	@DisplayName("회원이 포트폴리오 정보 수정시 예산이 최대손실금액보다 같거나 작게 수정할 수 없다")
 	@CsvSource(value = {"1500000", "1000000"})
 	@ParameterizedTest
-	void modifyPortfolio_whenMemberAttemptsToUpdateWithBudgetLessThanMaximumLoss_thenModificationNotAllowed(
+	void updatePortfolio_whenMemberAttemptsToUpdateWithBudgetLessThanMaximumLoss_thenModificationNotAllowed(
 		long maximumLoss) {
 		// given
 		Member member = memberRepository.save(createMember());
@@ -348,7 +348,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 
 		// when
 		Throwable throwable = catchThrowable(
-			() -> service.modifyPortfolio(request, portfolioId, AuthMember.from(member)));
+			() -> service.updatePortfolio(request, portfolioId, AuthMember.from(member)));
 
 		// then
 		assertThat(throwable)

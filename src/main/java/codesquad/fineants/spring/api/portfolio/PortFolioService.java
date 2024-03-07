@@ -50,7 +50,7 @@ public class PortFolioService {
 	private final PortfolioPropertiesManager portfolioPropertiesManager;
 
 	@Transactional
-	public PortFolioCreateResponse addPortFolio(PortfolioCreateRequest request, AuthMember authMember) {
+	public PortFolioCreateResponse createPortfolio(PortfolioCreateRequest request, AuthMember authMember) {
 		validateTargetGainIsEqualLessThanBudget(request.getTargetGain(), request.getBudget());
 		validateMaximumLossIsEqualGraterThanBudget(request.getMaximumLoss(), request.getBudget());
 		validateSecuritiesFirm(request.getSecuritiesFirm());
@@ -92,7 +92,7 @@ public class PortFolioService {
 	}
 
 	@Transactional
-	public PortfolioModifyResponse modifyPortfolio(PortfolioModifyRequest request, Long portfolioId,
+	public PortfolioModifyResponse updatePortfolio(PortfolioModifyRequest request, Long portfolioId,
 		AuthMember authMember) {
 		log.info("포트폴리오 수정 서비스 요청 : request={}, portfolioId={}, authMember={}", request, portfolioId, authMember);
 

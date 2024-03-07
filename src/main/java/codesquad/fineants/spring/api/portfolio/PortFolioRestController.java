@@ -36,10 +36,10 @@ public class PortFolioRestController {
 
 	@ResponseStatus(HttpStatus.CREATED)
 	@PostMapping
-	public ApiResponse<PortFolioCreateResponse> addPortfolio(@Valid @RequestBody PortfolioCreateRequest request,
+	public ApiResponse<PortFolioCreateResponse> createPortfolio(@Valid @RequestBody PortfolioCreateRequest request,
 		@AuthPrincipalMember AuthMember authMember) {
 		log.info("포트폴리오 추가 요청, request={}", request);
-		PortFolioCreateResponse response = portFolioService.addPortFolio(request, authMember);
+		PortFolioCreateResponse response = portFolioService.createPortfolio(request, authMember);
 		return ApiResponse.success(PortfolioSuccessCode.CREATED_ADD_PORTFOLIO, response);
 	}
 
@@ -51,11 +51,11 @@ public class PortFolioRestController {
 
 	@HasPortfolioAuthorization
 	@PutMapping("/{portfolioId}")
-	public ApiResponse<Void> modifyPortfolio(@PathVariable Long portfolioId,
+	public ApiResponse<Void> updatePortfolio(@PathVariable Long portfolioId,
 		@AuthPrincipalMember AuthMember authMember,
 		@Valid @RequestBody PortfolioModifyRequest request) {
 		log.info("포트폴리오 수정 요청, request={}", request);
-		portFolioService.modifyPortfolio(request, portfolioId, authMember);
+		portFolioService.updatePortfolio(request, portfolioId, authMember);
 		return ApiResponse.success(PortfolioSuccessCode.OK_MODIFY_PORTFOLIO);
 	}
 

@@ -39,19 +39,6 @@ include::{snippets}/member-logout/request-fields.adoc[]
 include::{snippets}/member-logout/http-response.adoc[]
 include::{snippets}/member-logout/response-fields.adoc[]
 
-[[member-delete]]
-=== 회원 계정 삭제
-
-==== HTTP Request
-
-include::{snippets}/member-delete/http-request.adoc[]
-include::{snippets}/member-delete/request-fields.adoc[]
-
-==== HTTP Response
-
-include::{snippets}/member-delete/http-response.adoc[]
-include::{snippets}/member-delete/response-fields.adoc[]
-
 [[member-signup]]
 === 일반 회원가입
 
@@ -64,6 +51,71 @@ include::{snippets}/member-signup/request-parts.adoc[]
 
 include::{snippets}/member-signup/http-response.adoc[]
 include::{snippets}/member-signup/response-fields.adoc[]
+
+[[member-search]]
+=== 회원 프로필 조회
+
+==== HTTP Request
+
+include::{snippets}/member-search/http-request.adoc[]
+include::{snippets}/member-search/request-headers.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/member-search/http-response.adoc[]
+include::{snippets}/member-search/response-fields.adoc[]
+
+[[member_check_nickname-search]]
+=== 회원 닉네임 중복검사
+
+==== HTTP Request
+
+include::{snippets}/member_check_nickname-search/http-request.adoc[]
+include::{snippets}/member_check_nickname-search/path-parameters.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/member_check_nickname-search/http-response.adoc[]
+include::{snippets}/member_check_nickname-search/response-fields.adoc[]
+
+[[member_check_email-search]]
+=== 회원 이메일 중복검사
+
+==== HTTP Request
+
+include::{snippets}/member_check_email-search/http-request.adoc[]
+include::{snippets}/member_check_email-search/path-parameters.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/member_check_email-search/http-response.adoc[]
+include::{snippets}/member_check_email-search/response-fields.adoc[]
+
+[[member_email_validation_code-create]]
+=== 회원 이메일 검증 코드 생성
+
+==== HTTP Request
+
+include::{snippets}/member_email_validation_code-create/http-request.adoc[]
+include::{snippets}/member_email_validation_code-create/request-fields.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/member_email_validation_code-create/http-response.adoc[]
+include::{snippets}/member_email_validation_code-create/response-fields.adoc[]
+
+[[member_email_validation_code-verify]]
+=== 회원 인증 코드 검사
+
+==== HTTP Request
+
+include::{snippets}/member_email_validation_code-verify/http-request.adoc[]
+include::{snippets}/member_email_validation_code-verify/request-fields.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/member_email_validation_code-verify/http-response.adoc[]
+include::{snippets}/member_email_validation_code-verify/response-fields.adoc[]
 
 [[member-update]]
 === 회원 프로필 수정
@@ -78,3 +130,55 @@ include::{snippets}/member-update/request-parts.adoc[]
 
 include::{snippets}/member-update/http-response.adoc[]
 include::{snippets}/member-update/response-fields.adoc[]
+
+[[member_password-update]]
+=== 회원 비밀번호 변경
+
+==== HTTP Request
+
+include::{snippets}/member_password-update/http-request.adoc[]
+include::{snippets}/member_password-update/request-headers.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/member_password-update/http-response.adoc[]
+include::{snippets}/member_password-update/response-fields.adoc[]
+
+[[member_access_token-refresh]]
+=== 회원 액세스 토큰 갱신
+
+==== HTTP Request
+
+include::{snippets}/member_access_token-refresh/http-request.adoc[]
+include::{snippets}/member_access_token-refresh/request-fields.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/member_access_token-refresh/http-response.adoc[]
+include::{snippets}/member_access_token-refresh/response-fields.adoc[]
+
+[[member_authorization_code-create]]
+=== 인가코드 요청 URL
+
+==== HTTP Request
+
+include::{snippets}/member_authorization_code-create/http-request.adoc[]
+include::{snippets}/member_authorization_code-create/path-parameters.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/member_authorization_code-create/http-response.adoc[]
+include::{snippets}/member_authorization_code-create/response-fields.adoc[]
+
+[[member-delete]]
+=== 회원 계정 삭제
+
+==== HTTP Request
+
+include::{snippets}/member-delete/http-request.adoc[]
+include::{snippets}/member-delete/request-fields.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/member-delete/http-response.adoc[]
+include::{snippets}/member-delete/response-fields.adoc[]
