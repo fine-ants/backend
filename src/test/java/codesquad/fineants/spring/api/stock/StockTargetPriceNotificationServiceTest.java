@@ -25,6 +25,8 @@ import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.member.MemberRepository;
 import codesquad.fineants.domain.notification.NotificationRepository;
 import codesquad.fineants.domain.notification.type.NotificationType;
+import codesquad.fineants.domain.notification_preference.NotificationPreference;
+import codesquad.fineants.domain.notification_preference.NotificationPreferenceRepository;
 import codesquad.fineants.domain.stock.Market;
 import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.domain.stock.StockRepository;
@@ -74,6 +76,9 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 	@Autowired
 	private FcmRepository fcmRepository;
 
+	@Autowired
+	private NotificationPreferenceRepository notificationPreferenceRepository;
+
 	@MockBean
 	private LastDayClosingPriceManager manager;
 
@@ -88,6 +93,7 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 
 	@AfterEach
 	void tearDown() {
+		notificationPreferenceRepository.deleteAllInBatch();
 		fcmRepository.deleteAllInBatch();
 		notificationRepository.deleteAllInBatch();
 		targetPriceNotificationRepository.deleteAllInBatch();
@@ -175,6 +181,7 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 	void sendStockTargetPriceNotification() {
 		// given
 		Member member = memberRepository.save(createMember());
+		notificationPreferenceRepository.save(NotificationPreference.defaultSetting(member));
 		fcmRepository.save(createFcmToken(member));
 		Stock stock = stockRepository.save(createStock());
 		Stock stock2 = stockRepository.save(createStock2());
