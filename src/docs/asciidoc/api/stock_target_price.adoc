@@ -12,6 +12,19 @@ include::{snippets}/stock_target_price-create/request-fields.adoc[]
 include::{snippets}/stock_target_price-create/http-response.adoc[]
 include::{snippets}/stock_target_price-create/response-fields.adoc[]
 
+[[stock_target_price-notification-notify]]
+=== 종목 지정가 알림 발송
+
+==== HTTP Request
+
+include::{snippets}/stock_target_price-notification-notify/http-request.adoc[]
+include::{snippets}/stock_target_price-notification-notify/request-headers.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/stock_target_price-one-search/http-response.adoc[]
+include::{snippets}/stock_target_price-one-search/response-fields.adoc[]
+
 [[stock_target_price-list-search]]
 === 종목 지정가 알림 목록 조회
 
