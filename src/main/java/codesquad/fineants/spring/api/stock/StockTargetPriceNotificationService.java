@@ -136,16 +136,18 @@ public class StockTargetPriceNotificationService {
 			.orElseThrow(() -> new NotFoundResourceException(StockErrorCode.NOT_FOUND_STOCK));
 	}
 
+	// 회원에 대한 종목 지정가 알림 발송
 	@Transactional
 	public TargetPriceNotificationSendResponse sendStockTargetPriceNotification(Long memberId) {
+		log.info("종목 지정가 알림 발송 서비스 시작 : memberId={}", memberId);
 		// 계정 알림 설정을 만족하는지 검사
 		NotificationPreference preference = notificationPreferenceRepository.findByMemberId(memberId)
 			.orElseThrow(
 				() -> new FineAntsException(NotificationPreferenceErrorCode.NOT_FOUND_NOTIFICATION_PREFERENCE));
-		if (preference.isPossibleStockTargetPriceNotification()) {
+		if (!preference.isPossibleStockTargetPriceNotification()) {
 			return TargetPriceNotificationSendResponse.empty();
 		}
-		
+
 		// 회원이 가지고 있는 종목 지정가들을 조회
 		List<StockTargetPrice> stocks = repository.findAllByMemberId(memberId);
 		// 종목 지정가에 대한 현재가들 조회
@@ -161,6 +163,7 @@ public class StockTargetPriceNotificationService {
 			}
 			currentPriceMap.put(stock, currentPrice);
 		}
+		log.info("currentPriceMap : {}", currentPriceMap);
 
 		// 종목의 현재가가 지정가에 맞는 것들을 조회
 		List<TargetPriceNotification> targetPrices = stocks.stream()
@@ -170,6 +173,7 @@ public class StockTargetPriceNotificationService {
 			.filter(targetPrice -> currentPriceMap.get(targetPrice.getStockTargetPrice())
 				.equals(targetPrice.getTargetPrice()))
 			.collect(Collectors.toList());
+		log.info("targetPrices : {}", targetPrices);
 
 		// 푸시 알림을 하기 위한 회원의 토큰들 조회
 		List<String> tokens = fcmRepository.findAllByMemberId(memberId).stream()
@@ -204,6 +208,8 @@ public class StockTargetPriceNotificationService {
 		List<TargetPriceNotificationSendItem> notifications = notifyMessageItems.stream()
 			.map(TargetPriceNotificationSendItem::from)
 			.collect(Collectors.toList());
+		TargetPriceNotificationSendResponse response = TargetPriceNotificationSendResponse.from(notifications);
+		log.info("종목 지정가 알림 발송 서비스 결과 : response={}", response);
 		return TargetPriceNotificationSendResponse.from(notifications);
 	}
 
