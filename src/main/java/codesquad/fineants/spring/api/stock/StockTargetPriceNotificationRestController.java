@@ -35,6 +35,7 @@ public class StockTargetPriceNotificationRestController {
 
 	private final StockTargetPriceNotificationService service;
 
+	// 종목 지정가 알림 데이터 생성
 	@ResponseStatus(HttpStatus.CREATED)
 	@PostMapping("/api/stocks/target-price/notifications")
 	public ApiResponse<TargetPriceNotificationCreateResponse> createStockTargetPriceNotification(
@@ -48,6 +49,7 @@ public class StockTargetPriceNotificationRestController {
 		return ApiResponse.success(StockSuccessCode.OK_CREATE_TARGET_PRICE_NOTIFICATION, response);
 	}
 
+	// 종목 지정가 알림 발송
 	@ResponseStatus(HttpStatus.CREATED)
 	@PostMapping("/api/stocks/target-price/notifications/send")
 	public ApiResponse<TargetPriceNotificationSendResponse> sendStockTargetPriceNotification(
@@ -58,6 +60,7 @@ public class StockTargetPriceNotificationRestController {
 		return ApiResponse.success(StockSuccessCode.OK_CREATE_TARGET_PRICE_SEND_NOTIFICATION, response);
 	}
 
+	// 종목 지정가 알림 조회
 	@GetMapping("/api/stocks/target-price/notifications")
 	public ApiResponse<TargetPriceNotificationSearchResponse> searchStockTargetPriceNotification(
 		@AuthPrincipalMember AuthMember authMember
@@ -68,6 +71,7 @@ public class StockTargetPriceNotificationRestController {
 		return ApiResponse.success(StockSuccessCode.OK_SEARCH_TARGET_PRICE_NOTIFICATIONS, response);
 	}
 
+	// 특정 종목 지정가 알림 목록 조회
 	@GetMapping("/api/stocks/{tickerSymbol}/target-price/notifications")
 	public ApiResponse<TargetPriceNotificationSpecifiedSearchResponse> searchTargetPriceNotifications(
 		@PathVariable String tickerSymbol,
@@ -75,10 +79,11 @@ public class StockTargetPriceNotificationRestController {
 	) {
 		TargetPriceNotificationSpecifiedSearchResponse response = service.searchTargetPriceNotifications(tickerSymbol,
 			authMember.getMemberId());
-		log.info("특정 종목 지정가 알림 리스트 검색 결과 : {}", response);
+		log.info("특정 종목 지정가 알림 리스트 조회 결과 : {}", response);
 		return ApiResponse.success(StockSuccessCode.OK_SEARCH_SPECIFIC_TARGET_PRICE_NOTIFICATIONS, response);
 	}
 
+	// 종목 지정가 알림 수정
 	@PutMapping("/api/stocks/target-price/notifications")
 	public ApiResponse<Void> updateStockTargetPriceNotification(
 		@Valid @RequestBody TargetPriceNotificationUpdateRequest request,
@@ -93,6 +98,7 @@ public class StockTargetPriceNotificationRestController {
 		return ApiResponse.success(successCode);
 	}
 
+	// 종목 지정가 알림 전체 삭제
 	@DeleteMapping("/api/stocks/target-price/notifications")
 	public ApiResponse<Void> deleteAllStockTargetPriceNotification(
 		@Valid @RequestBody TargetPriceNotificationDeleteRequest request,
@@ -105,6 +111,7 @@ public class StockTargetPriceNotificationRestController {
 		return ApiResponse.success(StockSuccessCode.OK_DELETE_TARGET_PRICE_NOTIFICATIONS);
 	}
 
+	// 종목 지정가 알림 특정 삭제
 	@DeleteMapping("/api/stocks/target-price/notifications/{targetPriceNotificationId}")
 	public ApiResponse<Void> deleteStockTargetPriceNotification(
 		@PathVariable Long targetPriceNotificationId,

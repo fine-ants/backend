@@ -15,7 +15,6 @@ import codesquad.fineants.domain.fcm_token.FcmRepository;
 import codesquad.fineants.domain.fcm_token.FcmToken;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.member.MemberRepository;
-import codesquad.fineants.domain.notification_preference.NotificationPreference;
 import codesquad.fineants.domain.notification_preference.NotificationPreferenceRepository;
 import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.domain.stock.StockRepository;
@@ -24,10 +23,8 @@ import codesquad.fineants.domain.stock_target_price.StockTargetPriceRepository;
 import codesquad.fineants.domain.target_price_notification.TargetPriceNotification;
 import codesquad.fineants.domain.target_price_notification.TargetPriceNotificationRepository;
 import codesquad.fineants.spring.api.errors.errorcode.MemberErrorCode;
-import codesquad.fineants.spring.api.errors.errorcode.NotificationPreferenceErrorCode;
 import codesquad.fineants.spring.api.errors.errorcode.StockErrorCode;
 import codesquad.fineants.spring.api.errors.exception.BadRequestException;
-import codesquad.fineants.spring.api.errors.exception.FineAntsException;
 import codesquad.fineants.spring.api.errors.exception.ForBiddenException;
 import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
@@ -141,47 +138,28 @@ public class StockTargetPriceNotificationService {
 	// 모든 회원을 대상으로 특정 티커 심보들에 대한 종목 지정가 알림 발송
 	@Transactional
 	public TargetPriceNotificationSendResponse sendAllStockTargetPriceNotification(List<String> tickerSymbols) {
-		List<StockTargetPrice> stocks = repository.findAllByTickerSymbols(tickerSymbols);
-		return sendStockTargetPriceNotification(stocks);
+		return sendStockTargetPriceNotification(
+			repository.findAllByTickerSymbols(tickerSymbols)
+		);
 	}
 
 	// 회원에 대한 종목 지정가 알림 발송
 	@Transactional
 	public TargetPriceNotificationSendResponse sendStockTargetPriceNotification(Long memberId) {
-		// TODO: 이중 쿼리 문제
-		List<String> tickerSymbols = repository.findAllByMemberId(memberId)
-			.stream()
-			.map(StockTargetPrice::getStock)
-			.map(Stock::getTickerSymbol)
-			.collect(Collectors.toList());
-		return sendStockTargetPriceNotification(memberId, tickerSymbols);
-	}
-
-	// 회원이 가지고 있는 티커 심볼에 대한 종목 지정가 알림 발송
-	@Transactional
-	public TargetPriceNotificationSendResponse sendStockTargetPriceNotification(Long memberId,
-		List<String> tickerSymbols) {
-		log.info("종목 지정가 알림 발송 서비스 시작 : memberId={}", memberId);
-		// 계정 알림 설정을 만족하는지 검사
-		NotificationPreference preference = notificationPreferenceRepository.findByMemberId(memberId)
-			.orElseThrow(
-				() -> new FineAntsException(NotificationPreferenceErrorCode.NOT_FOUND_NOTIFICATION_PREFERENCE));
-		if (!preference.isPossibleStockTargetPriceNotification()) {
-			return TargetPriceNotificationSendResponse.empty();
-		}
-
-		// 회원이 가지고 있는 종목 지정가들을 조회
-		List<StockTargetPrice> stocks = repository.findAllByMemberIdAndTickerSymbols(memberId, tickerSymbols);
-		return sendStockTargetPriceNotification(stocks);
+		return sendStockTargetPriceNotification(
+			repository.findAllByMemberId(memberId)
+		);
 	}
 
 	private TargetPriceNotificationSendResponse sendStockTargetPriceNotification(List<StockTargetPrice> stocks) {
 		// 회원 id 추출
 		List<Long> memberIds = stocks.stream()
 			.map(StockTargetPrice::getMember)
+			.filter(member -> member.getNotificationPreference().isPossibleStockTargetPriceNotification())
 			.map(Member::getId)
 			.distinct()
 			.collect(Collectors.toList());
+
 		// 종목 지정가에 대한 현재가들 조회
 		Map<StockTargetPrice, Long> currentPriceMap = new HashMap<>();
 		for (StockTargetPrice stock : stocks) {
@@ -248,7 +226,7 @@ public class StockTargetPriceNotificationService {
 			.collect(Collectors.toList());
 		TargetPriceNotificationSendResponse response = TargetPriceNotificationSendResponse.from(notifications);
 		log.info("종목 지정가 알림 발송 서비스 결과 : response={}", response);
-		return TargetPriceNotificationSendResponse.from(notifications);
+		return response;
 	}
 
 	// 종목 지정가 알림 단일 제거
