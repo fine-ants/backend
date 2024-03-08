@@ -26,15 +26,15 @@ public class AccessTokenAspect {
 	private final KisRedisService redisService;
 	private final OauthKisProperties oauthKisProperties;
 
-	@Pointcut("execution(* codesquad.fineants.spring.api.kis.service.KisService.refreshStockCurrentPrice())")
-	public void refreshStockPrice() {
+	@Pointcut("execution(* codesquad.fineants.spring.api.kis.service.KisService.refreshAllStockCurrentPrice())")
+	public void refreshAllStockCurrentPrice() {
 	}
 
-	@Pointcut("execution(* codesquad.fineants.spring.api.kis.service.KisService.refreshLastDayClosingPrice())")
-	public void refreshLastDayClosingPrice() {
+	@Pointcut("execution(* codesquad.fineants.spring.api.kis.service.KisService.refreshAllLastDayClosingPrice())")
+	public void refreshAllLastDayClosingPrice() {
 	}
 
-	@Before(value = "refreshStockPrice() || refreshLastDayClosingPrice()")
+	@Before(value = "refreshAllStockCurrentPrice() || refreshAllLastDayClosingPrice()")
 	public void checkAccessTokenExpiration() {
 		LocalDateTime now = LocalDateTime.now();
 		if (manager.isAccessTokenExpired(now)) {

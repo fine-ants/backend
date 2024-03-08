@@ -187,7 +187,7 @@ public class StockTargetPriceNotificationService {
 			Long currentPrice = currentPriceManager.getCurrentPrice(tickerSymbol);
 			// currentPrice가 없다면 kis 서버에 현재가 fetch
 			if (currentPrice == null) {
-				CurrentPriceResponse response = kisService.readRealTimeCurrentPrice(tickerSymbol);
+				CurrentPriceResponse response = kisService.fetchCurrentPrice(tickerSymbol);
 				currentPrice = response.getCurrentPrice();
 				currentPriceManager.addCurrentPrice(response);
 			}

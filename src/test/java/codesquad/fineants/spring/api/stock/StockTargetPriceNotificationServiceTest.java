@@ -211,7 +211,7 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 			.willReturn(60000L);
 		given(currentPriceManager.getCurrentPrice(stock2.getTickerSymbol()))
 			.willReturn(null);
-		given(kisService.readRealTimeCurrentPrice(stock2.getTickerSymbol()))
+		given(kisService.fetchCurrentPrice(stock2.getTickerSymbol()))
 			.willReturn(new CurrentPriceResponse(stock2.getTickerSymbol(), 10000L));
 		given(firebaseMessagingService.sendNotification(any(Message.class)))
 			.willReturn(Optional.of("messageId1"))
@@ -263,7 +263,7 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 			.willReturn(60000L);
 		given(currentPriceManager.getCurrentPrice(stock2.getTickerSymbol()))
 			.willReturn(null);
-		given(kisService.readRealTimeCurrentPrice(stock2.getTickerSymbol()))
+		given(kisService.fetchCurrentPrice(stock2.getTickerSymbol()))
 			.willReturn(new CurrentPriceResponse(stock2.getTickerSymbol(), 10000L));
 		given(firebaseMessagingService.sendNotification(any(Message.class)))
 			.willReturn(Optional.of("messageId1"))

@@ -43,7 +43,7 @@ public class KisService {
 
 	// 평일 9am ~ 15:59pm 5초마다 현재가 갱신 수행
 	@Scheduled(cron = "0/5 * 9-15 ? * MON,TUE,WED,THU,FRI")
-	public void refreshStockCurrentPrice() {
+	public void refreshAllStockCurrentPrice() {
 		// 휴장일인 경우 실행하지 않음
 		if (holidayManager.isHoliday(LocalDate.now())) {
 			return;
@@ -76,7 +76,7 @@ public class KisService {
 		});
 		executorService.schedule(() -> {
 			try {
-				future.complete(readRealTimeCurrentPrice(tickerSymbol));
+				future.complete(fetchCurrentPrice(tickerSymbol));
 			} catch (KisException e) {
 				log.error(e.getMessage());
 				future.completeExceptionally(e);
@@ -85,7 +85,7 @@ public class KisService {
 		return future;
 	}
 
-	public CurrentPriceResponse readRealTimeCurrentPrice(String tickerSymbol) {
+	public CurrentPriceResponse fetchCurrentPrice(String tickerSymbol) {
 		long currentPrice = kisClient.fetchCurrentPrice(tickerSymbol, manager.createAuthorization());
 		return new CurrentPriceResponse(tickerSymbol, currentPrice);
 	}
@@ -110,7 +110,7 @@ public class KisService {
 
 	// 15시 30분에 종가 갱신 수행
 	@Scheduled(cron = "* 30 15 * * *")
-	public void refreshLastDayClosingPrice() {
+	public void refreshAllLastDayClosingPrice() {
 		// 휴장일인 경우 실행하지 않음
 		if (holidayManager.isHoliday(LocalDate.now())) {
 			return;

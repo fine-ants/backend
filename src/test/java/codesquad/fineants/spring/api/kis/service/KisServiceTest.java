@@ -83,7 +83,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		given(kisAccessTokenManager.createAuthorization()).willReturn(createAuthorization());
 		given(client.fetchCurrentPrice(anyString(), anyString())).willReturn(60000L);
 		// when
-		CurrentPriceResponse response = kisService.readRealTimeCurrentPrice(tickerSymbol);
+		CurrentPriceResponse response = kisService.fetchCurrentPrice(tickerSymbol);
 		// then
 		assertThat(response)
 			.extracting("tickerSymbol", "currentPrice")
@@ -147,7 +147,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		// given
 		given(holidayManager.isHoliday(any(LocalDate.class))).willReturn(true);
 		// when
-		kisService.refreshStockCurrentPrice();
+		kisService.refreshAllStockCurrentPrice();
 		// then
 		verify(holidayManager, times(1)).isHoliday(any(LocalDate.class));
 	}
