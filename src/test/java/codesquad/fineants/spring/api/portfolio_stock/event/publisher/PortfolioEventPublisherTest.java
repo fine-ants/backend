@@ -98,7 +98,7 @@ class PortfolioEventPublisherTest extends AbstractContainerBaseTest {
 		stockDividendRepository.saveAll(createStockDividendWith(stock));
 		PortfolioHolding portfolioHolding = portfolioHoldingRepository.save(createPortfolioHolding(portfolio, stock));
 		purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding));
-		currentPriceManager.addCurrentPrice(new CurrentPriceResponse("005930", 60000L));
+		currentPriceManager.addCurrentPrice(CurrentPriceResponse.create("005930", 60000L));
 		lastDayClosingPriceManager.addPrice("005930", 50000);
 
 		SseEmitter emitter = mock(SseEmitter.class);
@@ -123,7 +123,7 @@ class PortfolioEventPublisherTest extends AbstractContainerBaseTest {
 		stockDividendRepository.saveAll(createStockDividendWith(stock));
 		PortfolioHolding portfolioHolding = portfolioHoldingRepository.save(createPortfolioHolding(portfolio, stock));
 		purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding));
-		currentPriceManager.addCurrentPrice(new CurrentPriceResponse("005930", 60000L));
+		currentPriceManager.addCurrentPrice(CurrentPriceResponse.create("005930", 60000L));
 		lastDayClosingPriceManager.addPrice("005930", 50000);
 
 		given(portfolioStockService.readMyPortfolioStocksInRealTime(anyLong()))

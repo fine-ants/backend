@@ -147,7 +147,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		// given
 		given(holidayManager.isHoliday(any(LocalDate.class))).willReturn(true);
 		// when
-		kisService.refreshAllStockCurrentPrice();
+		kisService.scheduleRefreshingAllStockCurrentPrice();
 		// then
 		verify(holidayManager, times(1)).isHoliday(any(LocalDate.class));
 	}

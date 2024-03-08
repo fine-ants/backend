@@ -43,18 +43,24 @@ public class KisService {
 
 	// 평일 9am ~ 15:59pm 5초마다 현재가 갱신 수행
 	@Scheduled(cron = "0/5 * 9-15 ? * MON,TUE,WED,THU,FRI")
-	public void refreshAllStockCurrentPrice() {
+	public void scheduleRefreshingAllStockCurrentPrice() {
 		// 휴장일인 경우 실행하지 않음
 		if (holidayManager.isHoliday(LocalDate.now())) {
 			return;
 		}
+		refreshAllStockCurrentPrice();
+	}
+
+	// 회원이 가지고 있는 모든 종목에 대하여 현재가 갱신
+	public List<CurrentPriceResponse> refreshAllStockCurrentPrice() {
 		List<String> tickerSymbols = portFolioHoldingRepository.findAllTickerSymbol();
-		refreshStockCurrentPrice(tickerSymbols);
+		List<CurrentPriceResponse> responses = refreshStockCurrentPrice(tickerSymbols);
 		stockTargetPricePublisher.publishEvent(tickerSymbols);
+		return responses;
 	}
 
 	// 주식 현재가 갱신
-	public void refreshStockCurrentPrice(List<String> tickerSymbols) {
+	public List<CurrentPriceResponse> refreshStockCurrentPrice(List<String> tickerSymbols) {
 		List<CompletableFuture<CurrentPriceResponse>> futures = tickerSymbols.parallelStream()
 			.map(this::createCompletableFuture)
 			.collect(Collectors.toList());
@@ -65,6 +71,7 @@ public class KisService {
 			.collect(Collectors.toList());
 		currentPrices.forEach(currentPriceManager::addCurrentPrice);
 		log.info("종목 현재가 {}개중 {}개 갱신", tickerSymbols.size(), currentPrices.size());
+		return currentPrices;
 	}
 
 	private CompletableFuture<CurrentPriceResponse> createCompletableFuture(String tickerSymbol) {
@@ -87,7 +94,7 @@ public class KisService {
 
 	public CurrentPriceResponse fetchCurrentPrice(String tickerSymbol) {
 		long currentPrice = kisClient.fetchCurrentPrice(tickerSymbol, manager.createAuthorization());
-		return new CurrentPriceResponse(tickerSymbol, currentPrice);
+		return CurrentPriceResponse.create(tickerSymbol, currentPrice);
 	}
 
 	private CurrentPriceResponse getCurrentPriceResponseWithTimeout(CompletableFuture<CurrentPriceResponse> future) {
@@ -110,33 +117,25 @@ public class KisService {
 
 	// 15시 30분에 종가 갱신 수행
 	@Scheduled(cron = "* 30 15 * * *")
-	public void refreshAllLastDayClosingPrice() {
+	public void scheduleRefreshingAllLastDayClosingPrice() {
 		// 휴장일인 경우 실행하지 않음
 		if (holidayManager.isHoliday(LocalDate.now())) {
 			return;
 		}
-		List<String> tickerSymbols = portFolioHoldingRepository.findAllTickerSymbol();
-		refreshLastDayClosingPrice(tickerSymbols);
+		refreshAllLastDayClosingPrice();
 	}
 
-	public void refreshLastDayClosingPrice(List<String> tickerSymbols) {
+	public List<LastDayClosingPriceResponse> refreshAllLastDayClosingPrice() {
+		List<String> tickerSymbols = portFolioHoldingRepository.findAllTickerSymbol();
+		return refreshLastDayClosingPrice(tickerSymbols);
+	}
+
+	public List<LastDayClosingPriceResponse> refreshLastDayClosingPrice(List<String> tickerSymbols) {
 		List<LastDayClosingPriceResponse> lastDayClosingPrices = readLastDayClosingPriceResponses(tickerSymbols);
 		lastDayClosingPrices.forEach(
 			response -> lastDayClosingPriceManager.addPrice(response.getTickerSymbol(), response.getPrice()));
-
-		// 종가 갱신 실패하 종목들을 성공할때가지 계속 시도합니다.
-		int count = lastDayClosingPrices.size();
-		if (count != tickerSymbols.size()) {
-			List<String> refreshedTickerSymbols = lastDayClosingPrices.stream()
-				.map(LastDayClosingPriceResponse::getTickerSymbol)
-				.collect(Collectors.toList());
-			List<String> failTickerSymbols = tickerSymbols.stream()
-				.filter(tickerSymbol -> !refreshedTickerSymbols.contains(tickerSymbol))
-				.collect(Collectors.toList());
-			refreshLastDayClosingPriceForFailedStock(failTickerSymbols);
-		}
-
-		log.info("종목 종가 {}개중 {}개 갱신", tickerSymbols.size(), count);
+		log.info("종목 종가 {}개중 {}개 갱신", tickerSymbols.size(), lastDayClosingPrices.size());
+		return lastDayClosingPrices;
 	}
 
 	private void refreshLastDayClosingPriceForFailedStock(List<String> tickerSymbols) {
