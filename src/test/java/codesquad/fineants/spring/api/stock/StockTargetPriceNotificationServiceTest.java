@@ -45,6 +45,7 @@ import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
 import codesquad.fineants.spring.api.kis.response.CurrentPriceResponse;
 import codesquad.fineants.spring.api.kis.service.KisService;
+import codesquad.fineants.spring.api.stock.manager.TargetPriceNotificationSentManager;
 import codesquad.fineants.spring.api.stock.request.TargetPriceNotificationCreateRequest;
 import codesquad.fineants.spring.api.stock.request.TargetPriceNotificationUpdateRequest;
 import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationCreateResponse;
@@ -91,6 +92,9 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 
 	@MockBean
 	private FirebaseMessagingService firebaseMessagingService;
+
+	@MockBean
+	private TargetPriceNotificationSentManager targetPriceNotificationSentManager;
 
 	@AfterEach
 	void tearDown() {
@@ -211,6 +215,8 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 			.willReturn(60000L);
 		given(currentPriceManager.getCurrentPrice(stock2.getTickerSymbol()))
 			.willReturn(null);
+		given(targetPriceNotificationSentManager.hasTargetPriceNotificationSent(anyLong()))
+			.willReturn(false);
 		given(kisService.fetchCurrentPrice(stock2.getTickerSymbol()))
 			.willReturn(CurrentPriceResponse.create(stock2.getTickerSymbol(), 10000L));
 		given(firebaseMessagingService.sendNotification(any(Message.class)))
@@ -263,6 +269,8 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 			.willReturn(60000L);
 		given(currentPriceManager.getCurrentPrice(stock2.getTickerSymbol()))
 			.willReturn(null);
+		given(targetPriceNotificationSentManager.hasTargetPriceNotificationSent(anyLong()))
+			.willReturn(false);
 		given(kisService.fetchCurrentPrice(stock2.getTickerSymbol()))
 			.willReturn(CurrentPriceResponse.create(stock2.getTickerSymbol(), 10000L));
 		given(firebaseMessagingService.sendNotification(any(Message.class)))

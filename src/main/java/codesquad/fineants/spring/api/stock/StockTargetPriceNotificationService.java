@@ -37,6 +37,7 @@ import codesquad.fineants.spring.api.kis.service.KisService;
 import codesquad.fineants.spring.api.notification.response.NotificationCreateResponse;
 import codesquad.fineants.spring.api.notification.response.NotifyMessageItem;
 import codesquad.fineants.spring.api.notification.service.NotificationService;
+import codesquad.fineants.spring.api.stock.manager.TargetPriceNotificationSentManager;
 import codesquad.fineants.spring.api.stock.request.StockTargetPriceNotificationCreateRequest;
 import codesquad.fineants.spring.api.stock.request.TargetPriceNotificationCreateRequest;
 import codesquad.fineants.spring.api.stock.request.TargetPriceNotificationUpdateRequest;
@@ -66,6 +67,7 @@ public class StockTargetPriceNotificationService {
 	private final StockRepository stockRepository;
 	private final LastDayClosingPriceManager manager;
 	private final CurrentPriceManager currentPriceManager;
+	private final TargetPriceNotificationSentManager targetPriceNotificationSentManager;
 	private final KisService kisService;
 	private final NotificationService notificationService;
 	private final FcmRepository fcmRepository;
@@ -200,6 +202,8 @@ public class StockTargetPriceNotificationService {
 			.map(StockTargetPrice::getTargetPriceNotifications)
 			.flatMap(Collection::stream)
 			.filter(TargetPriceNotification::isActive)
+			.filter(targetPriceNotification ->
+				!targetPriceNotificationSentManager.hasTargetPriceNotificationSent(targetPriceNotification.getId()))
 			.filter(targetPrice -> currentPriceMap.get(targetPrice.getStockTargetPrice())
 				.equals(targetPrice.getTargetPrice()))
 			.collect(Collectors.toList());
@@ -230,6 +234,8 @@ public class StockTargetPriceNotificationService {
 								.build(),
 							memberId
 						);
+						// 알림 전송 기록 저장
+						targetPriceNotificationSentManager.addTargetPriceNotification(response.getNotificationId());
 						log.info("종목 지정가 알림 저장 결과 : {}", response);
 						notifyMessageItems.add(item);
 					});
