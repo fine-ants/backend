@@ -6,11 +6,11 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class PushNotificationEvent implements EventHoldingValue<SendableParameter> {
+public class PushNotificationEvent implements EventHoldingValue<PurchaseHistoryEventSendableParameter> {
 
-	private SendableParameter value;
+	private PurchaseHistoryEventSendableParameter value;
 
-	public PushNotificationEvent(SendableParameter value) {
+	public PushNotificationEvent(PurchaseHistoryEventSendableParameter value) {
 		this.value = value;
 	}
 }

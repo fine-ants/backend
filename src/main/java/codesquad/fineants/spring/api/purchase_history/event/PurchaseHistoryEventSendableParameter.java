@@ -12,12 +12,12 @@ import lombok.ToString;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
 @ToString
-public class SendableParameter {
+public class PurchaseHistoryEventSendableParameter {
 	private Long portfolioId;
 	private Long memberId;
 
-	public static SendableParameter create(Long portfolioId, Long memberId) {
-		return SendableParameter.builder()
+	public static PurchaseHistoryEventSendableParameter create(Long portfolioId, Long memberId) {
+		return PurchaseHistoryEventSendableParameter.builder()
 			.portfolioId(portfolioId)
 			.memberId(memberId)
 			.build();

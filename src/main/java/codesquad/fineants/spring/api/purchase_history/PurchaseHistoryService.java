@@ -31,7 +31,7 @@ public class PurchaseHistoryService {
 	private final PortfolioHoldingRepository portfolioHoldingRepository;
 
 	@Transactional
-	@PublishEvent(eventType = PushNotificationEvent.class, params = "#{T(codesquad.fineants.spring.api.purchase_history.event.SendableParameter).create(portfolioId, memberId)}")
+	@PublishEvent(eventType = PushNotificationEvent.class, params = "#{T(codesquad.fineants.spring.api.purchase_history.event.PurchaseHistoryEventSendableParameter).create(portfolioId, memberId)}")
 	public PurchaseHistoryCreateResponse addPurchaseHistory(
 		PurchaseHistoryCreateRequest request,
 		Long portfolioId,
@@ -56,7 +56,7 @@ public class PurchaseHistoryService {
 	}
 
 	@Transactional
-	@PublishEvent(eventType = PushNotificationEvent.class, params = "#{T(codesquad.fineants.spring.api.purchase_history.event.SendableParameter).create(portfolioId, memberId)}")
+	@PublishEvent(eventType = PushNotificationEvent.class, params = "#{T(codesquad.fineants.spring.api.purchase_history.event.PurchaseHistoryEventSendableParameter).create(portfolioId, memberId)}")
 	public PurchaseHistoryModifyResponse modifyPurchaseHistory(PurchaseHistoryModifyRequest request,
 		Long portfolioHoldingId, Long purchaseHistoryId, Long portfolioId, Long memberId) {
 		log.info("매입 내역 수정 서비스 요청 : request={}, portfolioHoldingId={}, purchaseHistoryId={}", request,
@@ -76,7 +76,7 @@ public class PurchaseHistoryService {
 	}
 
 	@Transactional
-	@PublishEvent(eventType = PushNotificationEvent.class, params = "#{T(codesquad.fineants.spring.api.purchase_history.event.SendableParameter).create(portfolioId, memberId)}")
+	@PublishEvent(eventType = PushNotificationEvent.class, params = "#{T(codesquad.fineants.spring.api.purchase_history.event.PurchaseHistoryEventSendableParameter).create(portfolioId, memberId)}")
 	public PurchaseHistoryDeleteResponse deletePurchaseHistory(Long portfolioHoldingId, Long purchaseHistoryId,
 		Long portfolioId, Long memberId) {
 		log.info("매입 내역 삭제 서비스 요청 : portfolioHoldingId={}, purchaseHistoryId={}", portfolioHoldingId,
