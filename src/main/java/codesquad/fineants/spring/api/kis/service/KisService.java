@@ -61,45 +61,29 @@ public class KisService {
 			.filter(Objects::nonNull)
 			.collect(Collectors.toList());
 		currentPrices.forEach(currentPriceManager::addCurrentPrice);
-
-		// 갱신 실패한 종목에 대해서 성공할때까지 갱신을 시도
-		int refreshedCount = currentPrices.size();
-		if (refreshedCount != tickerSymbols.size()) {
-			List<String> refreshedTickerSymbols = currentPrices.stream()
-				.map(CurrentPriceResponse::getTickerSymbol)
-				.collect(Collectors.toList());
-			List<String> failTickerSymbols = tickerSymbols.stream()
-				.filter(tickerSymbol -> !refreshedTickerSymbols.contains(tickerSymbol))
-				.collect(Collectors.toList());
-			refreshStockCurrentPrice(failTickerSymbols);
-		}
-		log.info("종목 현재가 {}개중 {}개 갱신", tickerSymbols.size(), refreshedCount);
+		log.info("종목 현재가 {}개중 {}개 갱신", tickerSymbols.size(), currentPrices.size());
 	}
 
 	private CompletableFuture<CurrentPriceResponse> createCompletableFuture(String tickerSymbol) {
 		CompletableFuture<CurrentPriceResponse> future = new CompletableFuture<>();
 		future.completeOnTimeout(null, 10, TimeUnit.SECONDS);
 		future.exceptionally(e -> {
-			log.error(e.getMessage(), e);
+			log.error(e.getMessage());
 			return null;
 		});
-		executorService.schedule(createCurrentPriceRequest(tickerSymbol, future), 1L, TimeUnit.SECONDS);
-		return future;
-	}
-
-	private Runnable createCurrentPriceRequest(final String tickerSymbol,
-		CompletableFuture<CurrentPriceResponse> future) {
-		return () -> {
+		executorService.schedule(() -> {
 			try {
 				future.complete(readRealTimeCurrentPrice(tickerSymbol));
 			} catch (KisException e) {
+				log.error(e.getMessage());
 				future.completeExceptionally(e);
 			}
-		};
+		}, 1L, TimeUnit.SECONDS);
+		return future;
 	}
 
 	public CurrentPriceResponse readRealTimeCurrentPrice(String tickerSymbol) {
-		long currentPrice = kisClient.readRealTimeCurrentPrice(tickerSymbol, manager.createAuthorization());
+		long currentPrice = kisClient.fetchCurrentPrice(tickerSymbol, manager.createAuthorization());
 		return new CurrentPriceResponse(tickerSymbol, currentPrice);
 	}
 

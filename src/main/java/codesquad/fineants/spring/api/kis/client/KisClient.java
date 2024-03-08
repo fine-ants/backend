@@ -34,6 +34,7 @@ public class KisClient {
 		this.oauthKisProperties = properties;
 	}
 
+	// 액세스 토큰 발급
 	public Mono<KisAccessToken> accessToken(String uri) {
 		Map<String, String> requestBodyMap = new HashMap<>();
 		requestBodyMap.put("grant_type", "client_credentials");
@@ -51,7 +52,8 @@ public class KisClient {
 			.log();
 	}
 
-	public long readRealTimeCurrentPrice(String tickerSymbol, String authorization) {
+	// 현재가 조회
+	public long fetchCurrentPrice(String tickerSymbol, String authorization) {
 		MultiValueMap<String, String> headerMap = new LinkedMultiValueMap<>();
 		headerMap.add("authorization", authorization);
 		headerMap.add("appkey", oauthKisProperties.getAppkey());
@@ -108,7 +110,9 @@ public class KisClient {
 			.onStatus(HttpStatus::is4xxClientError, this::handleError)
 			.onStatus(HttpStatus::is5xxServerError, this::handleError)
 			.bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {
-			}).block();
+			})
+			.retryWhen(Retry.fixedDelay(Long.MAX_VALUE, Duration.ofSeconds(5)))
+			.block();
 	}
 
 	private Mono<? extends Throwable> handleError(ClientResponse clientResponse) {

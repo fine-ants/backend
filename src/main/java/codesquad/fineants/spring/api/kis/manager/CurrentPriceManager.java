@@ -12,13 +12,10 @@ public class CurrentPriceManager {
 	private static final String format = "cp:%s";
 	private final RedisTemplate<String, String> redisTemplate;
 
-	public void addKey(String tickerSymbol) {
-		redisTemplate.opsForValue().set(String.format(format, tickerSymbol), "0");
-	}
-
 	public void addCurrentPrice(CurrentPriceResponse response) {
 		redisTemplate.opsForValue()
-			.set(String.format(format, response.getTickerSymbol()), String.valueOf(response.getCurrentPrice()));
+			.set(String.format(format, response.getTickerSymbol()),
+				String.valueOf(response.getCurrentPrice()));
 	}
 
 	public Long getCurrentPrice(String tickerSymbol) {
@@ -28,10 +25,6 @@ public class CurrentPriceManager {
 
 	public boolean hasCurrentPrice(String tickerSymbol) {
 		String currentPrice = redisTemplate.opsForValue().get(String.format(format, tickerSymbol));
-		return currentPrice != null && !currentPrice.equals("0");
-	}
-
-	public boolean hasKey(String tickerSymbol) {
-		return Boolean.TRUE.equals(redisTemplate.hasKey(String.format(format, tickerSymbol)));
+		return currentPrice != null;
 	}
 }
