@@ -1,5 +1,5 @@
 [[notification-create]]
-=== 알림 추가
+=== 포트폴리오 알림 추가
 
 해당 API는 내부 API입니다.
 

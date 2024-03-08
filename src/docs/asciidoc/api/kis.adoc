@@ -1,6 +1,8 @@
 [[kis_current_price-all-refresh]]
 === 종목 현재가 전체 갱신
 
+해당 API는 내부 API입니다.
+
 ==== HTTP Request
 
 include::{snippets}/kis_current_price-all-refresh/http-request.adoc[]
@@ -13,6 +15,8 @@ include::{snippets}/kis_current_price-all-refresh/response-fields.adoc[]
 
 [[kis_current_price-refresh]]
 === 종목 현재가 일부 갱신
+
+해당 API는 내부 API입니다.
 
 ==== HTTP Request
 
@@ -28,6 +32,8 @@ include::{snippets}/kis_current_price-refresh/response-fields.adoc[]
 [[kis_closing_price-all-refresh]]
 === 종목 종가 전체 갱신
 
+해당 API는 내부 API입니다.
+
 ==== HTTP Request
 
 include::{snippets}/kis_closing_price-all-refresh/http-request.adoc[]
@@ -40,6 +46,8 @@ include::{snippets}/kis_closing_price-all-refresh/response-fields.adoc[]
 
 [[kis_closing_price-refresh]]
 === 종목 종가 일부 갱신
+
+해당 API는 내부 API입니다.
 
 ==== HTTP Request
 
