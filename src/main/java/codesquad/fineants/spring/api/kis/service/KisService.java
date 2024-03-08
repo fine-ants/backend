@@ -23,6 +23,7 @@ import codesquad.fineants.spring.api.kis.manager.KisAccessTokenManager;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
 import codesquad.fineants.spring.api.kis.response.CurrentPriceResponse;
 import codesquad.fineants.spring.api.kis.response.LastDayClosingPriceResponse;
+import codesquad.fineants.spring.api.stock.event.StockTargetPricePublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -38,6 +39,7 @@ public class KisService {
 	private final CurrentPriceManager currentPriceManager;
 	private final LastDayClosingPriceManager lastDayClosingPriceManager;
 	private final HolidayManager holidayManager;
+	private final StockTargetPricePublisher stockTargetPricePublisher;
 
 	// 평일 9am ~ 15:59pm 5초마다 현재가 갱신 수행
 	@Scheduled(cron = "0/5 * 9-15 ? * MON,TUE,WED,THU,FRI")
@@ -48,6 +50,7 @@ public class KisService {
 		}
 		List<String> tickerSymbols = portFolioHoldingRepository.findAllTickerSymbol();
 		refreshStockCurrentPrice(tickerSymbols);
+		stockTargetPricePublisher.publishEvent(tickerSymbols);
 	}
 
 	// 주식 현재가 갱신

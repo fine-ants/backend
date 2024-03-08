@@ -1,5 +1,7 @@
 package codesquad.fineants.spring.api.stock.event;
 
+import java.util.List;
+
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,13 +15,11 @@ import lombok.ToString;
 @Builder
 @ToString
 public class StockTargetPriceEventSendableParameter {
-	private String tickerSymbol;
-	private Long currentPrice;
+	private List<String> tickerSymbols;
 
-	public static StockTargetPriceEventSendableParameter create(String tickerSymbol, Long currentPrice) {
+	public static StockTargetPriceEventSendableParameter create(List<String> tickerSymbols) {
 		return StockTargetPriceEventSendableParameter.builder()
-			.tickerSymbol(tickerSymbol)
-			.currentPrice(currentPrice)
+			.tickerSymbols(tickerSymbols)
 			.build();
 	}
 }

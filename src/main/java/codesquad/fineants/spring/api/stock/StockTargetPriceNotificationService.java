@@ -136,9 +136,29 @@ public class StockTargetPriceNotificationService {
 			.orElseThrow(() -> new NotFoundResourceException(StockErrorCode.NOT_FOUND_STOCK));
 	}
 
+	// 모든 회원을 대상으로 특정 티커 심보들에 대한 종목 지정가 알림 발송
+	@Transactional
+	public TargetPriceNotificationSendResponse sendAllStockTargetPriceNotification(List<String> tickerSymbols) {
+		List<StockTargetPrice> stocks = repository.findAllByTickerSymbols(tickerSymbols);
+		return sendStockTargetPriceNotification(stocks);
+	}
+
 	// 회원에 대한 종목 지정가 알림 발송
 	@Transactional
 	public TargetPriceNotificationSendResponse sendStockTargetPriceNotification(Long memberId) {
+		// TODO: 이중 쿼리 문제
+		List<String> tickerSymbols = repository.findAllByMemberId(memberId)
+			.stream()
+			.map(StockTargetPrice::getStock)
+			.map(Stock::getTickerSymbol)
+			.collect(Collectors.toList());
+		return sendStockTargetPriceNotification(memberId, tickerSymbols);
+	}
+
+	// 회원이 가지고 있는 티커 심볼에 대한 종목 지정가 알림 발송
+	@Transactional
+	public TargetPriceNotificationSendResponse sendStockTargetPriceNotification(Long memberId,
+		List<String> tickerSymbols) {
 		log.info("종목 지정가 알림 발송 서비스 시작 : memberId={}", memberId);
 		// 계정 알림 설정을 만족하는지 검사
 		NotificationPreference preference = notificationPreferenceRepository.findByMemberId(memberId)
@@ -149,7 +169,17 @@ public class StockTargetPriceNotificationService {
 		}
 
 		// 회원이 가지고 있는 종목 지정가들을 조회
-		List<StockTargetPrice> stocks = repository.findAllByMemberId(memberId);
+		List<StockTargetPrice> stocks = repository.findAllByMemberIdAndTickerSymbols(memberId, tickerSymbols);
+		return sendStockTargetPriceNotification(stocks);
+	}
+
+	private TargetPriceNotificationSendResponse sendStockTargetPriceNotification(List<StockTargetPrice> stocks) {
+		// 회원 id 추출
+		List<Long> memberIds = stocks.stream()
+			.map(StockTargetPrice::getMember)
+			.map(Member::getId)
+			.distinct()
+			.collect(Collectors.toList());
 		// 종목 지정가에 대한 현재가들 조회
 		Map<StockTargetPrice, Long> currentPriceMap = new HashMap<>();
 		for (StockTargetPrice stock : stocks) {
@@ -176,16 +206,18 @@ public class StockTargetPriceNotificationService {
 		log.info("targetPrices : {}", targetPrices);
 
 		// 푸시 알림을 하기 위한 회원의 토큰들 조회
-		List<String> tokens = fcmRepository.findAllByMemberId(memberId).stream()
-			.map(FcmToken::getToken)
-			.collect(Collectors.toList());
+		List<FcmToken> findFcmTokens = fcmRepository.findAllByMemberIds(memberIds);
 
 		// 조건에 맞는 지정가에 대해서 푸시 알림 전송 (알림 설정 조건이 만족해야됨)
 		Set<NotifyMessageItem> notifyMessageItems = new HashSet<>();
 		for (TargetPriceNotification targetPrice : targetPrices) {
-			for (String token : tokens) {
+			Long memberId = targetPrice.getStockTargetPrice().getMember().getId();
+			List<FcmToken> fcmTokens = findFcmTokens.stream()
+				.filter(fcmToken -> fcmToken.getMember().getId().equals(memberId))
+				.collect(Collectors.toList());
+			for (FcmToken fcmToken : fcmTokens) {
 				// 푸시 알림 전송
-				notificationService.notifyStockAchievedTargetPrice(token, targetPrice)
+				notificationService.notifyStockAchievedTargetPrice(fcmToken.getToken(), targetPrice)
 					.ifPresent(item -> {
 						// 푸시 알림 데이터를 저장
 						NotificationCreateResponse response = notificationService.createStockTargetPriceNotification(

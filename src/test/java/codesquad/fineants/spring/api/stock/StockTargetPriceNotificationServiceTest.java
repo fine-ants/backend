@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.AfterEach;
@@ -176,6 +177,66 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 			.hasMessage(StockErrorCode.BAD_REQUEST_TARGET_PRICE_NOTIFICATION_EXIST.getMessage());
 	}
 
+	@DisplayName("모든 회원들을 대상으로 특정 티커 심볼에 대한 종목 지정가 알림을 발송한다")
+	@Test
+	void sendAllStockTargetPriceNotification() {
+		// given
+		Member member = memberRepository.save(createMember("일개미1234", "kim1234@naver.com"));
+		Member member2 = memberRepository.save(createMember("네모네모", "dragonbead95@naver.com"));
+
+		notificationPreferenceRepository.save(createNotificationPreference(member));
+		notificationPreferenceRepository.save(createNotificationPreference(member2));
+
+		fcmRepository.save(createFcmToken(member, "token1"));
+		fcmRepository.save(createFcmToken(member2, "token2"));
+
+		Stock stock = stockRepository.save(createStock());
+		Stock stock2 = stockRepository.save(createStock2());
+
+		StockTargetPrice stockTargetPrice1 = repository.save(createStockTargetPrice(member, stock));
+		StockTargetPrice stockTargetPrice2 = repository.save(createStockTargetPrice(member, stock2));
+		targetPriceNotificationRepository.saveAll(
+			createTargetPriceNotification(stockTargetPrice1, List.of(60000L, 70000L)));
+		targetPriceNotificationRepository.saveAll(
+			createTargetPriceNotification(stockTargetPrice2, List.of(10000L, 20000L)));
+
+		StockTargetPrice stockTargetPrice3 = repository.save(createStockTargetPrice(member2, stock));
+		StockTargetPrice stockTargetPrice4 = repository.save(createStockTargetPrice(member2, stock2));
+		targetPriceNotificationRepository.saveAll(
+			createTargetPriceNotification(stockTargetPrice3, List.of(60000L, 70000L)));
+		targetPriceNotificationRepository.saveAll(
+			createTargetPriceNotification(stockTargetPrice4, List.of(10000L, 20000L)));
+
+		given(currentPriceManager.getCurrentPrice(stock.getTickerSymbol()))
+			.willReturn(60000L);
+		given(currentPriceManager.getCurrentPrice(stock2.getTickerSymbol()))
+			.willReturn(null);
+		given(kisService.readRealTimeCurrentPrice(stock2.getTickerSymbol()))
+			.willReturn(new CurrentPriceResponse(stock2.getTickerSymbol(), 10000L));
+		given(firebaseMessagingService.sendNotification(any(Message.class)))
+			.willReturn(Optional.of("messageId1"))
+			.willReturn(Optional.of("messageId2"))
+			.willReturn(Optional.of("messageId3"))
+			.willReturn(Optional.of("messageId4"));
+
+		List<String> tickerSymbols = Stream.of(stock, stock2)
+			.map(Stock::getTickerSymbol)
+			.collect(Collectors.toList());
+
+		// when
+		TargetPriceNotificationSendResponse response = service.sendAllStockTargetPriceNotification(tickerSymbols);
+
+		// then
+		assertAll(
+			() -> assertThat(response.getNotifications())
+				.asList()
+				.hasSize(4),
+			() -> assertThat(notificationRepository.findAllByMemberIds(List.of(member.getId(), member2.getId())))
+				.asList()
+				.hasSize(4)
+		);
+	}
+
 	@DisplayName("사용자는 사용자가 지정한 종목 지정가에 대한 푸시 알림을 받는다")
 	@Test
 	void sendStockTargetPriceNotification() {
@@ -188,7 +249,7 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 			.targetPriceNotify(true)
 			.member(member)
 			.build());
-		fcmRepository.save(createFcmToken(member));
+		fcmRepository.save(createFcmToken(member, "token"));
 		Stock stock = stockRepository.save(createStock());
 		Stock stock2 = stockRepository.save(createStock2());
 		StockTargetPrice stockTargetPrice = repository.save(createStockTargetPrice(member, stock));
@@ -641,10 +702,20 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 			.build();
 	}
 
-	private FcmToken createFcmToken(Member member) {
+	private FcmToken createFcmToken(Member member, String token) {
 		return FcmToken.builder()
-			.token("token")
+			.token(token)
 			.latestActivationTime(LocalDateTime.now())
+			.member(member)
+			.build();
+	}
+
+	private NotificationPreference createNotificationPreference(Member member) {
+		return NotificationPreference.builder()
+			.browserNotify(true)
+			.targetGainNotify(true)
+			.maxLossNotify(true)
+			.targetPriceNotify(true)
 			.member(member)
 			.build();
 	}
