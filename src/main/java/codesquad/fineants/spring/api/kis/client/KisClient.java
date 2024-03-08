@@ -94,7 +94,7 @@ public class KisClient {
 			throw new KisException((String)responseMap.get("msg1"));
 		}
 		Map<String, String> output = (Map<String, String>)responseMap.get("output1");
-		return LastDayClosingPriceResponse.of(tickerSymbol, Long.parseLong(output.get("stck_prdy_clpr")));
+		return LastDayClosingPriceResponse.create(tickerSymbol, Long.parseLong(output.get("stck_prdy_clpr")));
 	}
 
 	private Map<String, Object> getPerform(String uri, MultiValueMap<String, String> headerMap,

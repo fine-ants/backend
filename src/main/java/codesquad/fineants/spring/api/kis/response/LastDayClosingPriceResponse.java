@@ -2,17 +2,21 @@ package codesquad.fineants.spring.api.kis.response;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 @Getter
-@ToString
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
+@Builder
+@ToString
 public class LastDayClosingPriceResponse {
 	private String tickerSymbol;
-	private long price;
+	private Long closingPrice;
 
-	public static LastDayClosingPriceResponse of(String tickerSymbol, long price) {
-		return new LastDayClosingPriceResponse(tickerSymbol, price);
+	public static LastDayClosingPriceResponse create(String tickerSymbol, Long closingPrice) {
+		return new LastDayClosingPriceResponse(tickerSymbol, closingPrice);
 	}
 }

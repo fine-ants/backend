@@ -202,9 +202,7 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 			.member(member)
 			.build());
 		Long watchListId = watchList.getId();
-
-		willDoNothing().given(kisService).refreshStockCurrentPrice(anyList());
-		willDoNothing().given(kisService).refreshLastDayClosingPrice(anyList());
+		
 		// when
 		watchListService.createWatchStocks(authMember, watchListId, request);
 

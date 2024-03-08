@@ -133,33 +133,9 @@ public class KisService {
 	public List<LastDayClosingPriceResponse> refreshLastDayClosingPrice(List<String> tickerSymbols) {
 		List<LastDayClosingPriceResponse> lastDayClosingPrices = readLastDayClosingPriceResponses(tickerSymbols);
 		lastDayClosingPrices.forEach(
-			response -> lastDayClosingPriceManager.addPrice(response.getTickerSymbol(), response.getPrice()));
+			response -> lastDayClosingPriceManager.addPrice(response.getTickerSymbol(), response.getClosingPrice()));
 		log.info("종목 종가 {}개중 {}개 갱신", tickerSymbols.size(), lastDayClosingPrices.size());
 		return lastDayClosingPrices;
-	}
-
-	private void refreshLastDayClosingPriceForFailedStock(List<String> tickerSymbols) {
-		List<String> unknownTickerSymbols = tickerSymbols.stream()
-			.filter(tickerSymbol -> !lastDayClosingPriceManager.hasPrice(tickerSymbol))
-			.collect(Collectors.toList());
-
-		List<LastDayClosingPriceResponse> lastDayClosingPrices = readLastDayClosingPriceResponses(unknownTickerSymbols);
-		lastDayClosingPrices.forEach(
-			response -> lastDayClosingPriceManager.addPrice(response.getTickerSymbol(), response.getPrice()));
-
-		// 종가 갱신 실패하 종목들을 성공할때가지 계속 시도합니다.
-		int count = lastDayClosingPrices.size();
-		if (count != unknownTickerSymbols.size()) {
-			List<String> refreshedTickerSymbols = lastDayClosingPrices.stream()
-				.map(LastDayClosingPriceResponse::getTickerSymbol)
-				.collect(Collectors.toList());
-			List<String> failTickerSymbols = unknownTickerSymbols.stream()
-				.filter(tickerSymbol -> !refreshedTickerSymbols.contains(tickerSymbol))
-				.collect(Collectors.toList());
-			refreshLastDayClosingPriceForFailedStock(failTickerSymbols);
-		}
-
-		log.info("종목 종가 {}개중 {}개 갱신", tickerSymbols.size(), count);
 	}
 
 	private LastDayClosingPriceResponse getLastDayClosingPriceResponseWithTimeout(
