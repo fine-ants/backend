@@ -181,7 +181,13 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 	void sendStockTargetPriceNotification() {
 		// given
 		Member member = memberRepository.save(createMember());
-		notificationPreferenceRepository.save(NotificationPreference.defaultSetting(member));
+		notificationPreferenceRepository.save(NotificationPreference.builder()
+			.browserNotify(true)
+			.targetGainNotify(true)
+			.maxLossNotify(true)
+			.targetPriceNotify(true)
+			.member(member)
+			.build());
 		fcmRepository.save(createFcmToken(member));
 		Stock stock = stockRepository.save(createStock());
 		Stock stock2 = stockRepository.save(createStock2());

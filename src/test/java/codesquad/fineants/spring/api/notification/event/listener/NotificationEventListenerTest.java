@@ -32,8 +32,8 @@ import codesquad.fineants.domain.target_price_notification.TargetPriceNotificati
 import codesquad.fineants.spring.AbstractContainerBaseTest;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.purchase_history.event.NotificationEventListener;
+import codesquad.fineants.spring.api.purchase_history.event.PurchaseHistoryEventSendableParameter;
 import codesquad.fineants.spring.api.purchase_history.event.PushNotificationEvent;
-import codesquad.fineants.spring.api.purchase_history.event.SendableParameter;
 
 class NotificationEventListenerTest extends AbstractContainerBaseTest {
 
@@ -98,7 +98,7 @@ class NotificationEventListenerTest extends AbstractContainerBaseTest {
 		purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding, 100L, 10000.0));
 
 		PushNotificationEvent event = new PushNotificationEvent(
-			SendableParameter.create(portfolio.getId(), member.getId()));
+			PurchaseHistoryEventSendableParameter.create(portfolio.getId(), member.getId()));
 		// when
 		notificationEventListener.notifyPortfolioTargetGainMessages(event);
 

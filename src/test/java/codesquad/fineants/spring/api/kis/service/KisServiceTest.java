@@ -81,7 +81,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		// given
 		String tickerSymbol = "005930";
 		given(kisAccessTokenManager.createAuthorization()).willReturn(createAuthorization());
-		given(client.readRealTimeCurrentPrice(anyString(), anyString())).willReturn(60000L);
+		given(client.fetchCurrentPrice(anyString(), anyString())).willReturn(60000L);
 		// when
 		CurrentPriceResponse response = kisService.readRealTimeCurrentPrice(tickerSymbol);
 		// then
@@ -104,7 +104,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 
 		given(holidayManager.isHoliday(any(LocalDate.class))).willReturn(true);
 		given(kisAccessTokenManager.createAuthorization()).willReturn(createAuthorization());
-		given(client.readRealTimeCurrentPrice(anyString(), anyString()))
+		given(client.fetchCurrentPrice(anyString(), anyString()))
 			.willThrow(new KisException("요청건수가 초과되었습니다"))
 			.willReturn(10000L);
 
@@ -112,7 +112,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		kisService.refreshStockCurrentPrice(tickerSymbols);
 
 		// then
-		verify(client, times(2)).readRealTimeCurrentPrice(anyString(), anyString());
+		verify(client, times(1)).fetchCurrentPrice(anyString(), anyString());
 	}
 
 	@DisplayName("종가 갱신시 요청건수 초과로 실패하였다가 다시 시도하여 성공한다")
