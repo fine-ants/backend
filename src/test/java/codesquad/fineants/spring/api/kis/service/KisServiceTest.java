@@ -35,7 +35,7 @@ import codesquad.fineants.spring.api.kis.client.KisCurrentPrice;
 import codesquad.fineants.spring.api.kis.manager.HolidayManager;
 import codesquad.fineants.spring.api.kis.manager.KisAccessTokenManager;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
-import codesquad.fineants.spring.api.kis.response.LastDayClosingPriceResponse;
+import codesquad.fineants.spring.api.kis.response.KisClosingPrice;
 import reactor.core.publisher.Mono;
 
 class KisServiceTest extends AbstractContainerBaseTest {
@@ -134,7 +134,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		given(client.readLastDayClosingPrice(anyString(), anyString()))
 			.willThrow(new KisException("요청건수가 초과되었습니다"))
 			.willThrow(new KisException("요청건수가 초과되었습니다"))
-			.willReturn(LastDayClosingPriceResponse.create("000270", 10000L));
+			.willReturn(KisClosingPrice.create("000270", 10000L));
 
 		// when
 		kisService.refreshLastDayClosingPrice(tickerSymbols);

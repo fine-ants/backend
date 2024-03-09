@@ -23,7 +23,7 @@ import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.kis.manager.HolidayManager;
 import codesquad.fineants.spring.api.kis.manager.KisAccessTokenManager;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
-import codesquad.fineants.spring.api.kis.response.LastDayClosingPriceResponse;
+import codesquad.fineants.spring.api.kis.response.KisClosingPrice;
 import codesquad.fineants.spring.api.stock_target_price.event.StockTargetPricePublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -109,8 +109,8 @@ public class KisService {
 		}
 	}
 
-	private List<LastDayClosingPriceResponse> readLastDayClosingPriceResponses(List<String> unknownTickerSymbols) {
-		List<CompletableFuture<LastDayClosingPriceResponse>> futures = unknownTickerSymbols.parallelStream()
+	private List<KisClosingPrice> readLastDayClosingPriceResponses(List<String> unknownTickerSymbols) {
+		List<CompletableFuture<KisClosingPrice>> futures = unknownTickerSymbols.parallelStream()
 			.map(this::createLastDayClosingPriceResponseCompletableFuture)
 			.collect(Collectors.toList());
 		return futures.parallelStream()
@@ -130,22 +130,22 @@ public class KisService {
 	}
 
 	// 종목 종가 모두 갱신
-	public List<LastDayClosingPriceResponse> refreshAllLastDayClosingPrice() {
+	public List<KisClosingPrice> refreshAllLastDayClosingPrice() {
 		List<String> tickerSymbols = portFolioHoldingRepository.findAllTickerSymbol();
 		return refreshLastDayClosingPrice(tickerSymbols);
 	}
 
 	// 종목 종가 일부 갱신
-	public List<LastDayClosingPriceResponse> refreshLastDayClosingPrice(List<String> tickerSymbols) {
-		List<LastDayClosingPriceResponse> lastDayClosingPrices = readLastDayClosingPriceResponses(tickerSymbols);
+	public List<KisClosingPrice> refreshLastDayClosingPrice(List<String> tickerSymbols) {
+		List<KisClosingPrice> lastDayClosingPrices = readLastDayClosingPriceResponses(tickerSymbols);
 		lastDayClosingPrices.forEach(
-			response -> lastDayClosingPriceManager.addPrice(response.getTickerSymbol(), response.getClosingPrice()));
+			response -> lastDayClosingPriceManager.addPrice(response.getTickerSymbol(), response.getPrice()));
 		log.info("종목 종가 {}개중 {}개 갱신", tickerSymbols.size(), lastDayClosingPrices.size());
 		return lastDayClosingPrices;
 	}
 
-	private LastDayClosingPriceResponse getLastDayClosingPriceResponseWithTimeout(
-		CompletableFuture<LastDayClosingPriceResponse> future) {
+	private KisClosingPrice getLastDayClosingPriceResponseWithTimeout(
+		CompletableFuture<KisClosingPrice> future) {
 		try {
 			return future.get(10L, TimeUnit.SECONDS);
 		} catch (InterruptedException | ExecutionException | TimeoutException e) {
@@ -153,9 +153,9 @@ public class KisService {
 		}
 	}
 
-	private CompletableFuture<LastDayClosingPriceResponse> createLastDayClosingPriceResponseCompletableFuture(
+	private CompletableFuture<KisClosingPrice> createLastDayClosingPriceResponseCompletableFuture(
 		String tickerSymbol) {
-		CompletableFuture<LastDayClosingPriceResponse> future = new CompletableFuture<>();
+		CompletableFuture<KisClosingPrice> future = new CompletableFuture<>();
 		future.completeOnTimeout(null, 10L, TimeUnit.SECONDS);
 		future.exceptionally(e -> {
 			log.error(e.getMessage(), e);
@@ -166,7 +166,7 @@ public class KisService {
 	}
 
 	private Runnable createLastDayClosingPriceRequest(final String tickerSymbol,
-		CompletableFuture<LastDayClosingPriceResponse> future) {
+		CompletableFuture<KisClosingPrice> future) {
 		return () -> {
 			try {
 				future.complete(kisClient.readLastDayClosingPrice(tickerSymbol, manager.createAuthorization()));

@@ -6,6 +6,7 @@ import static org.springframework.restdocs.headers.HeaderDocumentation.*;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.*;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
+import static org.springframework.restdocs.request.RequestDocumentation.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.util.List;
@@ -18,13 +19,16 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
 import org.springframework.restdocs.payload.JsonFieldType;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import codesquad.fineants.spring.api.kis.client.KisCurrentPrice;
 import codesquad.fineants.spring.api.kis.controller.KisRestController;
-import codesquad.fineants.spring.api.kis.response.LastDayClosingPriceResponse;
+import codesquad.fineants.spring.api.kis.response.KisClosingPrice;
 import codesquad.fineants.spring.api.kis.service.KisService;
 import codesquad.fineants.spring.docs.RestDocsSupport;
 import codesquad.fineants.spring.util.ObjectMapperUtil;
+import reactor.core.publisher.Mono;
 
 public class KisRestControllerDocsTest extends RestDocsSupport {
 
@@ -135,13 +139,64 @@ public class KisRestControllerDocsTest extends RestDocsSupport {
 			);
 	}
 
+	@DisplayName("특정 종목 현재가 조회 API")
+	@Test
+	void fetchCurrentPrice() throws Exception {
+		// given
+		String tickerSymbol = "005930";
+		given(service.fetchCurrentPrice(tickerSymbol))
+			.willReturn(Mono.just(KisCurrentPrice.create("005930", 60000L)));
+
+		// when
+		MvcResult mvcResult = mockMvc.perform(
+				RestDocumentationRequestBuilders.get("/api/kis/current-price/{tickerSymbol}", tickerSymbol)
+					.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))
+			.andExpect(request().asyncStarted())
+			.andReturn();
+
+		mockMvc.perform(MockMvcRequestBuilders.asyncDispatch(mvcResult))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("code").value(equalTo(200)))
+			.andExpect(jsonPath("status").value(equalTo("OK")))
+			.andExpect(jsonPath("message").value(equalTo("종목 현재가가 조회되었습니다")))
+			.andExpect(jsonPath("data.tickerSymbol").value(equalTo("005930")))
+			.andExpect(jsonPath("data.price").value(equalTo(60000)))
+			.andDo(
+				document(
+					"kis_current_price-search",
+					preprocessRequest(prettyPrint()),
+					preprocessResponse(prettyPrint()),
+					requestHeaders(
+						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
+					),
+					pathParameters(
+						parameterWithName("tickerSymbol").description("티커 심볼")
+					),
+					responseFields(
+						fieldWithPath("code").type(JsonFieldType.NUMBER)
+							.description("코드"),
+						fieldWithPath("status").type(JsonFieldType.STRING)
+							.description("상태"),
+						fieldWithPath("message").type(JsonFieldType.STRING)
+							.description("메시지"),
+						fieldWithPath("data").type(JsonFieldType.OBJECT)
+							.description("응답 데이터"),
+						fieldWithPath("data.tickerSymbol").type(JsonFieldType.STRING)
+							.description("티커 심볼"),
+						fieldWithPath("data.price").type(JsonFieldType.NUMBER)
+							.description("종목 현재가")
+					)
+				)
+			);
+	}
+
 	@DisplayName("모든 종목 종가 갱신 API")
 	@Test
 	void refreshAllLastDayClosingPrice() throws Exception {
 		// given
 		given(service.refreshAllLastDayClosingPrice())
 			.willReturn(List.of(
-				LastDayClosingPriceResponse.create("005930", 60000L)
+				KisClosingPrice.create("005930", 60000L)
 			));
 
 		// when
@@ -153,7 +208,7 @@ public class KisRestControllerDocsTest extends RestDocsSupport {
 			.andExpect(jsonPath("message").value(equalTo("종목 종가가 갱신되었습니다")))
 			.andExpect(jsonPath("data").isArray())
 			.andExpect(jsonPath("data[0].tickerSymbol").value(equalTo("005930")))
-			.andExpect(jsonPath("data[0].closingPrice").value(equalTo(60000)))
+			.andExpect(jsonPath("data[0].price").value(equalTo(60000)))
 			.andDo(
 				document(
 					"kis_closing_price-all-refresh",
@@ -173,7 +228,7 @@ public class KisRestControllerDocsTest extends RestDocsSupport {
 							.description("종목 종가 배열"),
 						fieldWithPath("data[].tickerSymbol").type(JsonFieldType.STRING)
 							.description("티커 심볼"),
-						fieldWithPath("data[].closingPrice").type(JsonFieldType.NUMBER)
+						fieldWithPath("data[].price").type(JsonFieldType.NUMBER)
 							.description("종목 종가")
 					)
 				)
@@ -188,7 +243,7 @@ public class KisRestControllerDocsTest extends RestDocsSupport {
 
 		given(service.refreshLastDayClosingPrice(tickerSymbols))
 			.willReturn(List.of(
-				LastDayClosingPriceResponse.create("005930", 60000L)
+				KisClosingPrice.create("005930", 60000L)
 			));
 
 		Map<String, Object> body = Map.of(
@@ -205,7 +260,7 @@ public class KisRestControllerDocsTest extends RestDocsSupport {
 			.andExpect(jsonPath("message").value(equalTo("종목 종가가 갱신되었습니다")))
 			.andExpect(jsonPath("data").isArray())
 			.andExpect(jsonPath("data[0].tickerSymbol").value(equalTo("005930")))
-			.andExpect(jsonPath("data[0].closingPrice").value(equalTo(60000)))
+			.andExpect(jsonPath("data[0].price").value(equalTo(60000)))
 			.andDo(
 				document(
 					"kis_closing_price-refresh",
@@ -228,7 +283,7 @@ public class KisRestControllerDocsTest extends RestDocsSupport {
 							.description("종목 종가 배열"),
 						fieldWithPath("data[].tickerSymbol").type(JsonFieldType.STRING)
 							.description("티커 심볼"),
-						fieldWithPath("data[].closingPrice").type(JsonFieldType.NUMBER)
+						fieldWithPath("data[].price").type(JsonFieldType.NUMBER)
 							.description("종목 종가")
 					)
 				)

@@ -22,41 +22,41 @@ import lombok.ToString;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
 @ToString
-@JsonDeserialize(using = LastDayClosingPriceResponse.LastDayClosingPriceDeserializer.class)
-public class LastDayClosingPriceResponse {
+@JsonDeserialize(using = KisClosingPrice.KisClosingPriceDeserializer.class)
+public class KisClosingPrice {
 	private String tickerSymbol;
-	private Long closingPrice;
+	private Long price;
 
-	public static LastDayClosingPriceResponse create(String tickerSymbol, Long closingPrice) {
-		return new LastDayClosingPriceResponse(tickerSymbol, closingPrice);
+	public static KisClosingPrice create(String tickerSymbol, Long closingPrice) {
+		return new KisClosingPrice(tickerSymbol, closingPrice);
 	}
 
-	public static LastDayClosingPriceResponse empty(String tickerSymbol) {
-		return LastDayClosingPriceResponse.builder()
+	public static KisClosingPrice empty(String tickerSymbol) {
+		return KisClosingPrice.builder()
 			.tickerSymbol(tickerSymbol)
-			.closingPrice(0L)
+			.price(0L)
 			.build();
 	}
 
-	static class LastDayClosingPriceDeserializer extends JsonDeserializer<LastDayClosingPriceResponse> {
+	static class KisClosingPriceDeserializer extends JsonDeserializer<KisClosingPrice> {
 		@Override
-		public LastDayClosingPriceResponse deserialize(JsonParser p, DeserializationContext ctxt) throws
+		public KisClosingPrice deserialize(JsonParser p, DeserializationContext ctxt) throws
 			IOException,
 			JacksonException {
 			TreeNode rootNode = p.readValueAsTree();
-			LastDayClosingPriceResponse lastDayClosingPriceResponse = new LastDayClosingPriceResponse();
+			KisClosingPrice kisClosingPrice = new KisClosingPrice();
 
 			JsonNode outputNode = (JsonNode)rootNode.get("output1");
 			JsonNode stckPrdyClpr = outputNode.get("stck_prdy_clpr"); // 종목 종가
 			if (stckPrdyClpr != null) {
-				lastDayClosingPriceResponse.closingPrice = stckPrdyClpr.asLong();
+				kisClosingPrice.price = stckPrdyClpr.asLong();
 			}
 
 			JsonNode stckShrnIscd = outputNode.get("stck_shrn_iscd");// 종목 코드
 			if (stckShrnIscd != null) {
-				lastDayClosingPriceResponse.tickerSymbol = stckShrnIscd.asText();
+				kisClosingPrice.tickerSymbol = stckShrnIscd.asText();
 			}
-			return lastDayClosingPriceResponse;
+			return kisClosingPrice;
 		}
 	}
 }

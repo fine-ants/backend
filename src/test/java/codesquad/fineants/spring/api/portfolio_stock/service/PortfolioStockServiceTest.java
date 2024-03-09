@@ -35,9 +35,9 @@ import codesquad.fineants.spring.AbstractContainerBaseTest;
 import codesquad.fineants.spring.api.common.errors.exception.FineAntsException;
 import codesquad.fineants.spring.api.common.errors.exception.ForBiddenException;
 import codesquad.fineants.spring.api.common.errors.exception.NotFoundResourceException;
+import codesquad.fineants.spring.api.kis.client.KisCurrentPrice;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
-import codesquad.fineants.spring.api.kis.response.CurrentPriceResponse;
 import codesquad.fineants.spring.api.portfolio_stock.event.publisher.PortfolioHoldingEventPublisher;
 import codesquad.fineants.spring.api.portfolio_stock.request.PortfolioStockCreateRequest;
 import codesquad.fineants.spring.api.portfolio_stock.request.PortfolioStocksDeleteRequest;
@@ -106,7 +106,7 @@ class PortfolioStockServiceTest extends AbstractContainerBaseTest {
 		PortfolioHolding portfolioHolding = portFolioHoldingRepository.save(createPortfolioHolding(portfolio, stock));
 		purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding));
 
-		currentPriceManager.addCurrentPrice(CurrentPriceResponse.create("005930", 60000L));
+		currentPriceManager.addCurrentPrice(KisCurrentPrice.create("005930", 60000L));
 		lastDayClosingPriceManager.addPrice("005930", 50000);
 		// when
 		PortfolioHoldingsResponse response = service.readMyPortfolioStocks(portfolio.getId());
@@ -158,7 +158,7 @@ class PortfolioStockServiceTest extends AbstractContainerBaseTest {
 		PortfolioHolding portfolioHolding = portFolioHoldingRepository.save(createPortfolioHolding(portfolio, stock));
 		purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding));
 
-		currentPriceManager.addCurrentPrice(CurrentPriceResponse.create("005930", 60000L));
+		currentPriceManager.addCurrentPrice(KisCurrentPrice.create("005930", 60000L));
 		lastDayClosingPriceManager.addPrice("005930", 50000);
 
 		// when
@@ -260,8 +260,8 @@ class PortfolioStockServiceTest extends AbstractContainerBaseTest {
 		purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding2));
 		purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding2));
 
-		currentPriceManager.addCurrentPrice(CurrentPriceResponse.create("005930", 60000L));
-		currentPriceManager.addCurrentPrice(CurrentPriceResponse.create("035720", 60000L));
+		currentPriceManager.addCurrentPrice(KisCurrentPrice.create("005930", 60000L));
+		currentPriceManager.addCurrentPrice(KisCurrentPrice.create("035720", 60000L));
 		lastDayClosingPriceManager.addPrice("005930", 50000);
 		lastDayClosingPriceManager.addPrice("035720", 50000);
 

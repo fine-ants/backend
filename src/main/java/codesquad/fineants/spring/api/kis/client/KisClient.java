@@ -15,7 +15,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import codesquad.fineants.spring.api.common.errors.exception.KisException;
 import codesquad.fineants.spring.api.kis.properties.OauthKisProperties;
-import codesquad.fineants.spring.api.kis.response.LastDayClosingPriceResponse;
+import codesquad.fineants.spring.api.kis.response.KisClosingPrice;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
@@ -73,7 +73,7 @@ public class KisClient {
 	}
 
 	// 직전 거래일의 종가 조회
-	public LastDayClosingPriceResponse readLastDayClosingPrice(String tickerSymbol, String authorization) {
+	public KisClosingPrice readLastDayClosingPrice(String tickerSymbol, String authorization) {
 		MultiValueMap<String, String> headerMap = new LinkedMultiValueMap<>();
 		headerMap.add("authorization", authorization);
 		headerMap.add("appkey", oauthKisProperties.getAppkey());
@@ -88,16 +88,16 @@ public class KisClient {
 		queryParamMap.add("FID_PERIOD_DIV_CODE", "D");
 		queryParamMap.add("FID_ORG_ADJ_PRC", "0");
 
-		LastDayClosingPriceResponse lastDayClosingPriceResponse = performGet(
+		KisClosingPrice kisClosingPrice = performGet(
 			oauthKisProperties.getLastDayClosingPriceURI(),
 			headerMap,
 			queryParamMap,
-			LastDayClosingPriceResponse.class
+			KisClosingPrice.class
 		)
 			.blockOptional(TIMEOUT)
-			.orElseGet(() -> LastDayClosingPriceResponse.empty(tickerSymbol));
-		log.info("lastDayClosingPriceResponse : {}", lastDayClosingPriceResponse);
-		return lastDayClosingPriceResponse;
+			.orElseGet(() -> KisClosingPrice.empty(tickerSymbol));
+		log.debug("lastDayClosingPriceResponse : {}", kisClosingPrice);
+		return kisClosingPrice;
 	}
 
 	private <T> Mono<T> performGet(String uri, MultiValueMap<String, String> headerMap,
