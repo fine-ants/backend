@@ -6,6 +6,7 @@ import static org.mockito.BDDMockito.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 import org.assertj.core.data.Offset;
 import org.junit.jupiter.api.AfterEach;
@@ -167,7 +168,7 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 				.build()
 		);
 
-		given(currentPriceManager.getCurrentPrice(any(String.class))).willReturn(77000L);
+		given(currentPriceManager.getCurrentPrice(any(String.class))).willReturn(Optional.of(77000L));
 		given(lastDayClosingPriceManager.getPrice(any(String.class))).willReturn(77000L);
 
 		// when

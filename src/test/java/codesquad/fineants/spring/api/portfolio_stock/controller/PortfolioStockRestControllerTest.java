@@ -15,6 +15,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -408,8 +409,8 @@ class PortfolioStockRestControllerTest {
 		portfolioHolding.addPurchaseHistory(
 			createPurchaseHistory(portfolioHolding, LocalDateTime.of(2024, 1, 16, 9, 30, 0)));
 
-		given(currentPriceManager.getCurrentPrice(stock.getTickerSymbol())).willReturn(
-			portfolioHolding.getCurrentPrice());
+		given(currentPriceManager.getCurrentPrice(stock.getTickerSymbol()))
+			.willReturn(Optional.of(portfolioHolding.getCurrentPrice()));
 
 		List<PortfolioPieChartItem> pieChartItems = this.pieChart.createBy(portfolio);
 		List<PortfolioDividendChartItem> dividendChartItems = this.dividendChart.createBy(portfolio,

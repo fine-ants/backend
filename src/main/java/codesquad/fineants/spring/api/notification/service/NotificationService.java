@@ -9,7 +9,6 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.Message;
 import com.google.firebase.messaging.Notification;
 import com.google.firebase.messaging.WebpushConfig;
@@ -50,7 +49,6 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 public class NotificationService {
 
-	private final FirebaseMessaging firebaseMessaging;
 	private final PortFolioService portfolioService;
 	private final PortfolioRepository portfolioRepository;
 	private final FcmService fcmService;

@@ -128,7 +128,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		given(firebaseMessaging.send(any(Message.class)))
 			.willReturn("projects/fineants-404407/messages/4754d355-5d5d-4f14-a642-75fecdb91fa5");
 		given(manager.getCurrentPrice(anyString()))
-			.willReturn(50000L);
+			.willReturn(Optional.of(50000L));
 
 		// when
 		NotifyPortfolioMessagesResponse response = service.notifyPortfolioTargetGainMessages(
@@ -168,7 +168,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		given(firebaseMessaging.send(any(Message.class)))
 			.willThrow(FirebaseMessagingException.class);
 		given(manager.getCurrentPrice(anyString()))
-			.willReturn(50000L);
+			.willReturn(Optional.of(50000L));
 
 		// when
 		NotifyPortfolioMessagesResponse response = service.notifyPortfolioTargetGainMessages(portfolio.getId(),
@@ -243,7 +243,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		given(firebaseMessaging.send(any(Message.class)))
 			.willReturn("projects/fineants-404407/messages/4754d355-5d5d-4f14-a642-75fecdb91fa5");
 		given(manager.getCurrentPrice(anyString()))
-			.willReturn(100L);
+			.willReturn(Optional.of(100L));
 
 		// when
 		NotifyPortfolioMessagesResponse response = service.notifyPortfolioMaxLossMessages(portfolio.getId(),
@@ -319,7 +319,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		given(firebaseMessaging.send(any(Message.class)))
 			.willThrow(FirebaseMessagingException.class);
 		given(manager.getCurrentPrice(anyString()))
-			.willReturn(50000L);
+			.willReturn(Optional.of(50000L));
 
 		// when
 		NotifyPortfolioMessagesResponse response = service.notifyPortfolioMaxLossMessages(portfolio.getId(),

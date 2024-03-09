@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -421,7 +422,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 			.build());
 
 		given(currentPriceManager.hasCurrentPrice(anyString())).willReturn(true);
-		given(currentPriceManager.getCurrentPrice(anyString())).willReturn(40000L);
+		given(currentPriceManager.getCurrentPrice(anyString())).willReturn(Optional.of(40000L));
 
 		// when
 		PortfoliosResponse response = service.readMyAllPortfolio(AuthMember.from(member));

@@ -9,6 +9,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -129,6 +130,8 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 			.memo("첫구매")
 			.build();
 
+		given(currentPriceManager.getCurrentPrice(anyString()))
+			.willReturn(Optional.of(50000L));
 		// when
 		PurchaseHistoryCreateResponse response = service.addPurchaseHistory(
 			request,
@@ -178,7 +181,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 			.build();
 
 		given(currentPriceManager.getCurrentPrice(anyString()))
-			.willReturn(50000L);
+			.willReturn(Optional.of(50000L));
 		given(firebaseMessaging.send(any(Message.class)))
 			.willReturn("send messageId");
 
@@ -220,7 +223,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 			.build();
 
 		given(currentPriceManager.getCurrentPrice(anyString()))
-			.willReturn(50000L);
+			.willReturn(Optional.of(50000L));
 		given(firebaseMessaging.send(any(Message.class)))
 			.willReturn("send messageId");
 
@@ -284,6 +287,8 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 			.memo("첫구매")
 			.build();
 
+		given(currentPriceManager.getCurrentPrice(anyString()))
+			.willReturn(Optional.of(50000L));
 		// when
 		PurchaseHistoryModifyResponse response = service.modifyPurchaseHistory(
 			request,

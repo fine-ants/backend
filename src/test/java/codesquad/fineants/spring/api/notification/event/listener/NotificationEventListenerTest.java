@@ -3,6 +3,7 @@ package codesquad.fineants.spring.api.notification.event.listener;
 import static org.mockito.BDDMockito.*;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -81,7 +82,7 @@ class NotificationEventListenerTest extends AbstractContainerBaseTest {
 		given(firebaseMessaging.send(any(Message.class)))
 			.willReturn("projects/fineants-404407/messages/4754d355-5d5d-4f14-a642-75fecdb91fa5");
 		given(currentPriceManager.getCurrentPrice(anyString()))
-			.willReturn(50000L);
+			.willReturn(Optional.of(50000L));
 
 		Member member = memberRepository.save(createMember());
 		notificationPreferenceRepository.save(NotificationPreference.builder()

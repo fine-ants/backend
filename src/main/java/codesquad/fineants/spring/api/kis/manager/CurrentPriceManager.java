@@ -1,5 +1,7 @@
 package codesquad.fineants.spring.api.kis.manager;
 
+import java.util.Optional;
+
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
@@ -18,9 +20,12 @@ public class CurrentPriceManager {
 				String.valueOf(response.getCurrentPrice()));
 	}
 
-	public Long getCurrentPrice(String tickerSymbol) {
+	public Optional<Long> getCurrentPrice(String tickerSymbol) {
 		String currentPrice = redisTemplate.opsForValue().get(String.format(format, tickerSymbol));
-		return currentPrice != null ? Long.valueOf(currentPrice) : null;
+		if (currentPrice == null) {
+			return Optional.empty();
+		}
+		return Optional.of(Long.valueOf(currentPrice));
 	}
 
 	public boolean hasCurrentPrice(String tickerSymbol) {

@@ -149,7 +149,7 @@ public class Stock extends BaseEntity {
 
 	public Long getDailyChange(CurrentPriceManager currentPriceManager,
 		LastDayClosingPriceManager lastDayClosingPriceManager) {
-		Long currentPrice = currentPriceManager.getCurrentPrice(tickerSymbol);
+		Long currentPrice = currentPriceManager.getCurrentPrice(tickerSymbol).orElse(null);
 		Long lastDayClosingPrice = lastDayClosingPriceManager.getPrice(tickerSymbol);
 		if (currentPrice == null || lastDayClosingPrice == null) {
 			return null;
@@ -159,7 +159,7 @@ public class Stock extends BaseEntity {
 
 	public Double getDailyChangeRate(CurrentPriceManager currentPriceManager,
 		LastDayClosingPriceManager lastDayClosingPriceManager) {
-		Long currentPrice = currentPriceManager.getCurrentPrice(tickerSymbol);
+		Long currentPrice = currentPriceManager.getCurrentPrice(tickerSymbol).orElse(null);
 		Long lastDayClosingPrice = lastDayClosingPriceManager.getPrice(tickerSymbol);
 		if (currentPrice == null || lastDayClosingPrice == null || lastDayClosingPrice == 0L) {
 			return null;
@@ -169,7 +169,7 @@ public class Stock extends BaseEntity {
 	}
 
 	public Long getCurrentPrice(CurrentPriceManager manager) {
-		return manager.getCurrentPrice(tickerSymbol);
+		return manager.getCurrentPrice(tickerSymbol).orElse(null);
 	}
 
 	public Long getLastDayClosingPrice(LastDayClosingPriceManager manager) {

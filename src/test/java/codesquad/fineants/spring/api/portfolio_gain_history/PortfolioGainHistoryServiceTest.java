@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.BDDMockito.*;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.AfterEach;
@@ -126,7 +127,7 @@ class PortfolioGainHistoryServiceTest extends AbstractContainerBaseTest {
 		purchaseHistoryRepository.save(purchaseHistory);
 
 		given(currentPriceManager.hasCurrentPrice("005930")).willReturn(true);
-		given(currentPriceManager.getCurrentPrice("005930")).willReturn(60000L);
+		given(currentPriceManager.getCurrentPrice("005930")).willReturn(Optional.of(60000L));
 
 		// when
 		PortfolioGainHistoryCreateResponse response = service.addPortfolioGainHistory();

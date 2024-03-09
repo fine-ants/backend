@@ -232,7 +232,7 @@ public class Portfolio extends BaseEntity {
 		for (PortfolioHolding portfolioHolding : portfolioHoldings) {
 			String tickerSymbol = portfolioHolding.getStock().getTickerSymbol();
 			if (manager.hasCurrentPrice(tickerSymbol)) {
-				portfolioHolding.changeCurrentPrice(manager.getCurrentPrice(tickerSymbol));
+				portfolioHolding.changeCurrentPrice(manager.getCurrentPrice(tickerSymbol).orElse(0L));
 				result.add(portfolioHolding);
 			}
 		}

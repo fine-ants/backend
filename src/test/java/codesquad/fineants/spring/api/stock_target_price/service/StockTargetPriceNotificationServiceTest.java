@@ -212,9 +212,9 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 			createTargetPriceNotification(stockTargetPrice4, List.of(10000L, 20000L)));
 
 		given(currentPriceManager.getCurrentPrice(stock.getTickerSymbol()))
-			.willReturn(60000L);
+			.willReturn(Optional.of(60000L));
 		given(currentPriceManager.getCurrentPrice(stock2.getTickerSymbol()))
-			.willReturn(null);
+			.willReturn(Optional.empty());
 		given(targetPriceNotificationSentManager.hasTargetPriceNotificationSent(anyLong()))
 			.willReturn(false);
 		given(kisService.fetchCurrentPrice(stock2.getTickerSymbol()))
@@ -266,9 +266,9 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 			createTargetPriceNotification(stockTargetPrice2, List.of(10000L, 20000L)));
 
 		given(currentPriceManager.getCurrentPrice(stock.getTickerSymbol()))
-			.willReturn(60000L);
+			.willReturn(Optional.of(60000L));
 		given(currentPriceManager.getCurrentPrice(stock2.getTickerSymbol()))
-			.willReturn(null);
+			.willReturn(Optional.empty());
 		given(targetPriceNotificationSentManager.hasTargetPriceNotificationSent(anyLong()))
 			.willReturn(false);
 		given(kisService.fetchCurrentPrice(stock2.getTickerSymbol()))

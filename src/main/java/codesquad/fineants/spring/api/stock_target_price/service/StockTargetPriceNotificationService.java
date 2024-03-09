@@ -1,7 +1,6 @@
 package codesquad.fineants.spring.api.stock_target_price.service;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -15,7 +14,6 @@ import codesquad.fineants.domain.fcm_token.FcmRepository;
 import codesquad.fineants.domain.fcm_token.FcmToken;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.member.MemberRepository;
-import codesquad.fineants.domain.notification_preference.NotificationPreferenceRepository;
 import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.domain.stock.StockRepository;
 import codesquad.fineants.domain.stock_target_price.StockTargetPrice;
@@ -68,7 +66,6 @@ public class StockTargetPriceNotificationService {
 	private final KisService kisService;
 	private final NotificationService notificationService;
 	private final FcmRepository fcmRepository;
-	private final NotificationPreferenceRepository notificationPreferenceRepository;
 
 	@Transactional
 	public TargetPriceNotificationCreateResponse createStockTargetPriceNotification(
@@ -135,7 +132,7 @@ public class StockTargetPriceNotificationService {
 			.orElseThrow(() -> new NotFoundResourceException(StockErrorCode.NOT_FOUND_STOCK));
 	}
 
-	// 모든 회원을 대상으로 특정 티커 심보들에 대한 종목 지정가 알림 발송
+	// 모든 회원을 대상으로 특정 티커 심볼들에 대한 종목 지정가 알림 발송
 	@Transactional
 	public TargetPriceNotificationSendResponse sendAllStockTargetPriceNotification(List<String> tickerSymbols) {
 		return sendStockTargetPriceNotification(
@@ -161,18 +158,11 @@ public class StockTargetPriceNotificationService {
 			.collect(Collectors.toList());
 
 		// 종목 지정가에 대한 현재가들 조회
-		Map<StockTargetPrice, Long> currentPriceMap = new HashMap<>();
-		for (StockTargetPrice stock : stocks) {
-			String tickerSymbol = stock.getStock().getTickerSymbol();
-			Long currentPrice = currentPriceManager.getCurrentPrice(tickerSymbol);
-			// currentPrice가 없다면 kis 서버에 현재가 fetch
-			if (currentPrice == null) {
-				CurrentPriceResponse response = kisService.fetchCurrentPrice(tickerSymbol);
-				currentPrice = response.getCurrentPrice();
-				currentPriceManager.addCurrentPrice(response);
-			}
-			currentPriceMap.put(stock, currentPrice);
-		}
+		Map<StockTargetPrice, Long> currentPriceMap = stocks.stream()
+			.collect(Collectors.toMap(
+				stock -> stock,
+				this::fetchCurrentPrice
+			));
 		log.info("currentPriceMap : {}", currentPriceMap);
 
 		// 종목의 현재가가 지정가에 맞는 것들을 조회
@@ -227,6 +217,15 @@ public class StockTargetPriceNotificationService {
 		TargetPriceNotificationSendResponse response = TargetPriceNotificationSendResponse.from(notifications);
 		log.info("종목 지정가 알림 발송 서비스 결과 : response={}", response);
 		return response;
+	}
+
+	private Long fetchCurrentPrice(StockTargetPrice stock) {
+		String tickerSymbol = stock.getStock().getTickerSymbol();
+		// currentPrice가 없다면 kis 서버에 현재가 가져오기
+		Long currentPrice = currentPriceManager.getCurrentPrice(tickerSymbol)
+			.orElseGet(() -> kisService.fetchCurrentPrice(tickerSymbol).getCurrentPrice());
+		currentPriceManager.addCurrentPrice(CurrentPriceResponse.create(tickerSymbol, currentPrice));
+		return currentPrice;
 	}
 
 	// 종목 지정가 알림 단일 제거
