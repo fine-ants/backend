@@ -26,9 +26,4 @@ public class LastDayClosingPriceManager {
 		}
 		return Optional.of(Long.valueOf(closingPrice));
 	}
-
-	public boolean hasPrice(String tickerSymbol) {
-		String currentPrice = redisTemplate.opsForValue().get(String.format(format, tickerSymbol));
-		return currentPrice != null;
-	}
 }

@@ -127,7 +127,6 @@ class KisServiceTest extends AbstractContainerBaseTest {
 			.collect(Collectors.toList()));
 		stocks.forEach(stock -> portfolioHoldingRepository.save(createPortfolioHolding(portfolio, stock)));
 
-		given(lastDayClosingPriceManager.hasPrice(anyString())).willReturn(false);
 		given(kisAccessTokenManager.createAuthorization()).willReturn(createAuthorization());
 		given(client.readLastDayClosingPrice(anyString(), anyString()))
 			.willThrow(new KisException("요청건수가 초과되었습니다"))

@@ -13,10 +13,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import codesquad.fineants.spring.AbstractContainerBaseTest;
 import codesquad.fineants.spring.api.kis.client.KisAccessToken;
 
-class KisRedisServiceTest extends AbstractContainerBaseTest {
+class KisAccessTokenRedisServiceTest extends AbstractContainerBaseTest {
 
 	@Autowired
-	private KisRedisService service;
+	private KisAccessTokenRedisService service;
 
 	@AfterEach
 	void tearDown() {
