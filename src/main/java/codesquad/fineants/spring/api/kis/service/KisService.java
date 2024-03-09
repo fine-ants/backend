@@ -93,7 +93,7 @@ public class KisService {
 	}
 
 	public CurrentPriceResponse fetchCurrentPrice(String tickerSymbol) {
-		long currentPrice = kisClient.fetchCurrentPrice(tickerSymbol, manager.createAuthorization());
+		Long currentPrice = kisClient.fetchCurrentPrice(tickerSymbol, manager.createAuthorization());
 		return CurrentPriceResponse.create(tickerSymbol, currentPrice);
 	}
 

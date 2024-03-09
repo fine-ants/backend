@@ -53,7 +53,7 @@ public class KisClient {
 	}
 
 	// 현재가 조회
-	public long fetchCurrentPrice(String tickerSymbol, String authorization) {
+	public Long fetchCurrentPrice(String tickerSymbol, String authorization) {
 		MultiValueMap<String, String> headerMap = new LinkedMultiValueMap<>();
 		headerMap.add("authorization", authorization);
 		headerMap.add("appkey", oauthKisProperties.getAppkey());
@@ -69,7 +69,7 @@ public class KisClient {
 			throw new KisException((String)responseMap.get("msg1"));
 		}
 		Map<String, String> output = (Map<String, String>)responseMap.get("output");
-		return Long.parseLong(output.get("stck_prpr"));
+		return Long.valueOf(output.get("stck_prpr"));
 	}
 
 	// 직전 거래일의 종가 조회
