@@ -163,7 +163,7 @@ public class StockTargetPriceNotificationService {
 				stock -> stock,
 				this::fetchCurrentPrice
 			));
-		log.info("currentPriceMap : {}", currentPriceMap);
+		log.debug("currentPriceMap : {}", currentPriceMap);
 
 		// 종목의 현재가가 지정가에 맞는 것들을 조회
 		List<TargetPriceNotification> targetPrices = stocks.stream()
@@ -175,10 +175,11 @@ public class StockTargetPriceNotificationService {
 			.filter(targetPrice -> currentPriceMap.get(targetPrice.getStockTargetPrice())
 				.equals(targetPrice.getTargetPrice()))
 			.collect(Collectors.toList());
-		log.info("targetPrices : {}", targetPrices);
+		log.debug("targetPrices : {}", targetPrices);
 
 		// 푸시 알림을 하기 위한 회원의 토큰들 조회
 		List<FcmToken> findFcmTokens = fcmRepository.findAllByMemberIds(memberIds);
+		log.debug("findFcmTokens : {}", findFcmTokens);
 
 		// 조건에 맞는 지정가에 대해서 푸시 알림 전송 (알림 설정 조건이 만족해야됨)
 		Set<NotifyMessageItem> notifyMessageItems = new HashSet<>();
