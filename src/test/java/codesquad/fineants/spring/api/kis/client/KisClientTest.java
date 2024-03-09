@@ -11,15 +11,12 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import codesquad.fineants.spring.AbstractContainerBaseTest;
 import codesquad.fineants.spring.api.kis.properties.OauthKisProperties;
-import codesquad.fineants.spring.api.kis.service.KisService;
 import codesquad.fineants.spring.util.ObjectMapperUtil;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
@@ -29,13 +26,7 @@ import reactor.test.StepVerifier;
 class KisClientTest extends AbstractContainerBaseTest {
 	public static MockWebServer mockWebServer;
 
-	@Autowired
-	private OauthKisProperties oauthKisProperties;
-
 	private KisClient kisClient;
-
-	@MockBean
-	private KisService kisService; // 스케줄링 메소드 비활성화
 
 	@BeforeAll
 	static void setUp() throws IOException {
@@ -50,6 +41,13 @@ class KisClientTest extends AbstractContainerBaseTest {
 
 	@BeforeEach
 	void initialize() {
+		OauthKisProperties oauthKisProperties = new OauthKisProperties(
+			"appkey",
+			"secertkey",
+			"otkenURI",
+			"currentPriceURI",
+			"lastDayClosingPriceURI"
+		);
 		String baseUrl = String.format("http://localhost:%s", mockWebServer.getPort());
 		this.kisClient = new KisClient(
 			oauthKisProperties,
@@ -69,7 +67,7 @@ class KisClientTest extends AbstractContainerBaseTest {
 			.addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON));
 
 		// when
-		Mono<KisAccessToken> responseMono = this.kisClient.accessToken("/oauth2/tokenP");
+		Mono<KisAccessToken> responseMono = this.kisClient.fetchAccessToken();
 
 		// then
 		StepVerifier

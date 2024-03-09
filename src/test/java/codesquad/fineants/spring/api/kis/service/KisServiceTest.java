@@ -31,11 +31,12 @@ import codesquad.fineants.domain.stock.StockRepository;
 import codesquad.fineants.spring.AbstractContainerBaseTest;
 import codesquad.fineants.spring.api.common.errors.exception.KisException;
 import codesquad.fineants.spring.api.kis.client.KisClient;
+import codesquad.fineants.spring.api.kis.client.KisCurrentPrice;
 import codesquad.fineants.spring.api.kis.manager.HolidayManager;
 import codesquad.fineants.spring.api.kis.manager.KisAccessTokenManager;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
-import codesquad.fineants.spring.api.kis.response.CurrentPriceResponse;
 import codesquad.fineants.spring.api.kis.response.LastDayClosingPriceResponse;
+import reactor.core.publisher.Mono;
 
 class KisServiceTest extends AbstractContainerBaseTest {
 
@@ -81,12 +82,14 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		// given
 		String tickerSymbol = "005930";
 		given(kisAccessTokenManager.createAuthorization()).willReturn(createAuthorization());
-		given(client.fetchCurrentPrice(anyString(), anyString())).willReturn(60000L);
+		given(client.fetchCurrentPrice(anyString(), anyString()))
+			.willReturn(Mono.just(KisCurrentPrice.create(tickerSymbol, 60000L)));
 		// when
-		CurrentPriceResponse response = kisService.fetchCurrentPrice(tickerSymbol);
+		KisCurrentPrice kisCurrentPrice = kisService.fetchCurrentPrice(tickerSymbol)
+			.block();
 		// then
-		assertThat(response)
-			.extracting("tickerSymbol", "currentPrice")
+		assertThat(kisCurrentPrice)
+			.extracting("tickerSymbol", "price")
 			.containsExactlyInAnyOrder("005930", 60000L);
 	}
 
@@ -106,7 +109,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		given(kisAccessTokenManager.createAuthorization()).willReturn(createAuthorization());
 		given(client.fetchCurrentPrice(anyString(), anyString()))
 			.willThrow(new KisException("요청건수가 초과되었습니다"))
-			.willReturn(10000L);
+			.willReturn(Mono.just(KisCurrentPrice.create("000270", 10000L)));
 
 		// when
 		kisService.refreshStockCurrentPrice(tickerSymbols);

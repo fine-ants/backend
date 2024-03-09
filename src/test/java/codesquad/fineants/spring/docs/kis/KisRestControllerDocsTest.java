@@ -19,8 +19,8 @@ import org.springframework.http.MediaType;
 import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
 import org.springframework.restdocs.payload.JsonFieldType;
 
+import codesquad.fineants.spring.api.kis.client.KisCurrentPrice;
 import codesquad.fineants.spring.api.kis.controller.KisRestController;
-import codesquad.fineants.spring.api.kis.response.CurrentPriceResponse;
 import codesquad.fineants.spring.api.kis.response.LastDayClosingPriceResponse;
 import codesquad.fineants.spring.api.kis.service.KisService;
 import codesquad.fineants.spring.docs.RestDocsSupport;
@@ -41,7 +41,7 @@ public class KisRestControllerDocsTest extends RestDocsSupport {
 		// given
 		given(service.refreshAllStockCurrentPrice())
 			.willReturn(List.of(
-				CurrentPriceResponse.create("005930", 60000L)
+				KisCurrentPrice.create("005930", 60000L)
 			));
 
 		// when
@@ -53,7 +53,7 @@ public class KisRestControllerDocsTest extends RestDocsSupport {
 			.andExpect(jsonPath("message").value(equalTo("종목 현재가가 갱신되었습니다")))
 			.andExpect(jsonPath("data").isArray())
 			.andExpect(jsonPath("data[0].tickerSymbol").value(equalTo("005930")))
-			.andExpect(jsonPath("data[0].currentPrice").value(equalTo(60000)))
+			.andExpect(jsonPath("data[0].price").value(equalTo(60000)))
 			.andDo(
 				document(
 					"kis_current_price-all-refresh",
@@ -73,7 +73,7 @@ public class KisRestControllerDocsTest extends RestDocsSupport {
 							.description("종목 현재가 배열"),
 						fieldWithPath("data[].tickerSymbol").type(JsonFieldType.STRING)
 							.description("티커 심볼"),
-						fieldWithPath("data[].currentPrice").type(JsonFieldType.NUMBER)
+						fieldWithPath("data[].price").type(JsonFieldType.NUMBER)
 							.description("종목 현재가")
 					)
 				)
@@ -87,7 +87,7 @@ public class KisRestControllerDocsTest extends RestDocsSupport {
 		List<String> tickerSymbols = List.of("005930");
 		given(service.refreshStockCurrentPrice(tickerSymbols))
 			.willReturn(List.of(
-				CurrentPriceResponse.create("005930", 60000L)
+				KisCurrentPrice.create("005930", 60000L)
 			));
 
 		Map<String, Object> body = Map.of(
@@ -105,7 +105,7 @@ public class KisRestControllerDocsTest extends RestDocsSupport {
 			.andExpect(jsonPath("message").value(equalTo("종목 현재가가 갱신되었습니다")))
 			.andExpect(jsonPath("data").isArray())
 			.andExpect(jsonPath("data[0].tickerSymbol").value(equalTo("005930")))
-			.andExpect(jsonPath("data[0].currentPrice").value(equalTo(60000)))
+			.andExpect(jsonPath("data[0].price").value(equalTo(60000)))
 			.andDo(
 				document(
 					"kis_current_price-refresh",
@@ -128,7 +128,7 @@ public class KisRestControllerDocsTest extends RestDocsSupport {
 							.description("종목 현재가 배열"),
 						fieldWithPath("data[].tickerSymbol").type(JsonFieldType.STRING)
 							.description("티커 심볼"),
-						fieldWithPath("data[].currentPrice").type(JsonFieldType.NUMBER)
+						fieldWithPath("data[].price").type(JsonFieldType.NUMBER)
 							.description("종목 현재가")
 					)
 				)

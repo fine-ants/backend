@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import codesquad.fineants.spring.api.common.response.ApiResponse;
 import codesquad.fineants.spring.api.common.success.KisSuccessCode;
+import codesquad.fineants.spring.api.kis.client.KisCurrentPrice;
 import codesquad.fineants.spring.api.kis.request.StockPriceRefreshRequest;
-import codesquad.fineants.spring.api.kis.response.CurrentPriceResponse;
 import codesquad.fineants.spring.api.kis.response.LastDayClosingPriceResponse;
 import codesquad.fineants.spring.api.kis.service.KisService;
 import lombok.RequiredArgsConstructor;
@@ -24,17 +24,17 @@ public class KisRestController {
 
 	// 종목 현재가 갱신
 	@PostMapping("/current-price/all/refresh")
-	public ApiResponse<List<CurrentPriceResponse>> refreshAllStockCurrentPrice() {
-		List<CurrentPriceResponse> responses = service.refreshAllStockCurrentPrice();
+	public ApiResponse<List<KisCurrentPrice>> refreshAllStockCurrentPrice() {
+		List<KisCurrentPrice> responses = service.refreshAllStockCurrentPrice();
 		return ApiResponse.success(KisSuccessCode.OK_REFRESH_CURRENT_PRICE_STOCKS, responses);
 	}
 
 	// 특정 종목 현재가 갱신
 	@PostMapping("/current-price/refresh")
-	public ApiResponse<List<CurrentPriceResponse>> refreshStockCurrentPrice(
+	public ApiResponse<List<KisCurrentPrice>> refreshStockCurrentPrice(
 		@RequestBody StockPriceRefreshRequest request
 	) {
-		List<CurrentPriceResponse> response = service.refreshStockCurrentPrice(request.getTickerSymbols());
+		List<KisCurrentPrice> response = service.refreshStockCurrentPrice(request.getTickerSymbols());
 		return ApiResponse.success(KisSuccessCode.OK_REFRESH_CURRENT_PRICE_STOCKS, response);
 	}
 

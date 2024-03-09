@@ -1,5 +1,6 @@
 package codesquad.fineants.spring.api.stock_target_price.service;
 
+import java.time.Duration;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -25,9 +26,9 @@ import codesquad.fineants.spring.api.common.errors.errorcode.StockErrorCode;
 import codesquad.fineants.spring.api.common.errors.exception.BadRequestException;
 import codesquad.fineants.spring.api.common.errors.exception.ForBiddenException;
 import codesquad.fineants.spring.api.common.errors.exception.NotFoundResourceException;
+import codesquad.fineants.spring.api.kis.client.KisCurrentPrice;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
-import codesquad.fineants.spring.api.kis.response.CurrentPriceResponse;
 import codesquad.fineants.spring.api.kis.service.KisService;
 import codesquad.fineants.spring.api.notification.response.NotificationCreateResponse;
 import codesquad.fineants.spring.api.notification.response.NotifyMessageItem;
@@ -223,10 +224,14 @@ public class StockTargetPriceNotificationService {
 	private Long fetchCurrentPrice(StockTargetPrice stock) {
 		String tickerSymbol = stock.getStock().getTickerSymbol();
 		// currentPrice가 없다면 kis 서버에 현재가 가져오기
-		Long currentPrice = currentPriceManager.getCurrentPrice(tickerSymbol)
-			.orElseGet(() -> kisService.fetchCurrentPrice(tickerSymbol).getCurrentPrice());
-		currentPriceManager.addCurrentPrice(CurrentPriceResponse.create(tickerSymbol, currentPrice));
-		return currentPrice;
+		return currentPriceManager.getCurrentPrice(tickerSymbol)
+			.orElseGet(() -> {
+				KisCurrentPrice kisCurrentPrice = kisService.fetchCurrentPrice(tickerSymbol)
+					.blockOptional(Duration.ofMinutes(1L))
+					.orElseGet(() -> KisCurrentPrice.empty(tickerSymbol));
+				currentPriceManager.addCurrentPrice(kisCurrentPrice);
+				return kisCurrentPrice.getPrice();
+			});
 	}
 
 	// 종목 지정가 알림 단일 제거

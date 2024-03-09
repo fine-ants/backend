@@ -5,6 +5,7 @@ import java.util.Optional;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
+import codesquad.fineants.spring.api.kis.client.KisCurrentPrice;
 import codesquad.fineants.spring.api.kis.response.CurrentPriceResponse;
 import lombok.RequiredArgsConstructor;
 
@@ -18,6 +19,12 @@ public class CurrentPriceManager {
 		redisTemplate.opsForValue()
 			.set(String.format(format, response.getTickerSymbol()),
 				String.valueOf(response.getCurrentPrice()));
+	}
+
+	public void addCurrentPrice(KisCurrentPrice currentPrice) {
+		redisTemplate.opsForValue()
+			.set(String.format(format, currentPrice.getTickerSymbol()),
+				String.valueOf(currentPrice.getPrice()));
 	}
 
 	public Optional<Long> getCurrentPrice(String tickerSymbol) {

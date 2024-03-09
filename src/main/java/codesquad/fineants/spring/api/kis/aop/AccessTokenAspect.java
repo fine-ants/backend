@@ -45,7 +45,7 @@ public class AccessTokenAspect {
 
 	private void handleNewAccessToken(LocalDateTime now) {
 		CountDownLatch latch = new CountDownLatch(1);
-		client.accessToken(oauthKisProperties.getTokenURI())
+		client.fetchAccessToken()
 			.subscribe(accessToken -> {
 					redisService.setAccessTokenMap(accessToken, now);
 					manager.refreshAccessToken(accessToken);

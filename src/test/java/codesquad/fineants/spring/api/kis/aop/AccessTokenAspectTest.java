@@ -1,6 +1,5 @@
 package codesquad.fineants.spring.api.kis.aop;
 
-import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
 
 import java.time.Duration;
@@ -45,7 +44,7 @@ class AccessTokenAspectTest extends AbstractContainerBaseTest {
 			kisAccessTokenRedisService, oauthKisProperties);
 		kisAccessTokenRedisService.deleteAccessTokenMap();
 
-		given(client.accessToken(anyString()))
+		given(client.fetchAccessToken())
 			.willReturn(
 				Mono.just(createKisAccessToken())
 					.delayElement(Duration.ofMillis(500L))

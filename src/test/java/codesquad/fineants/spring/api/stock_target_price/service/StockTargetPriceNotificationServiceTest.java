@@ -41,9 +41,9 @@ import codesquad.fineants.spring.api.common.errors.exception.BadRequestException
 import codesquad.fineants.spring.api.common.errors.exception.ForBiddenException;
 import codesquad.fineants.spring.api.common.errors.exception.NotFoundResourceException;
 import codesquad.fineants.spring.api.firebase.service.FirebaseMessagingService;
+import codesquad.fineants.spring.api.kis.client.KisCurrentPrice;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
-import codesquad.fineants.spring.api.kis.response.CurrentPriceResponse;
 import codesquad.fineants.spring.api.kis.service.KisService;
 import codesquad.fineants.spring.api.stock_target_price.manager.TargetPriceNotificationSentManager;
 import codesquad.fineants.spring.api.stock_target_price.request.TargetPriceNotificationCreateRequest;
@@ -54,6 +54,7 @@ import codesquad.fineants.spring.api.stock_target_price.response.TargetPriceNoti
 import codesquad.fineants.spring.api.stock_target_price.response.TargetPriceNotificationSendResponse;
 import codesquad.fineants.spring.api.stock_target_price.response.TargetPriceNotificationSpecifiedSearchResponse;
 import codesquad.fineants.spring.api.stock_target_price.response.TargetPriceNotificationUpdateResponse;
+import reactor.core.publisher.Mono;
 
 class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest {
 
@@ -218,7 +219,7 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 		given(targetPriceNotificationSentManager.hasTargetPriceNotificationSent(anyLong()))
 			.willReturn(false);
 		given(kisService.fetchCurrentPrice(stock2.getTickerSymbol()))
-			.willReturn(CurrentPriceResponse.create(stock2.getTickerSymbol(), 10000L));
+			.willReturn(Mono.just(KisCurrentPrice.create(stock2.getTickerSymbol(), 10000L)));
 		given(firebaseMessagingService.sendNotification(any(Message.class)))
 			.willReturn(Optional.of("messageId1"))
 			.willReturn(Optional.of("messageId2"))
@@ -272,7 +273,7 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 		given(targetPriceNotificationSentManager.hasTargetPriceNotificationSent(anyLong()))
 			.willReturn(false);
 		given(kisService.fetchCurrentPrice(stock2.getTickerSymbol()))
-			.willReturn(CurrentPriceResponse.create(stock2.getTickerSymbol(), 10000L));
+			.willReturn(Mono.just(KisCurrentPrice.create(stock2.getTickerSymbol(), 10000L)));
 		given(firebaseMessagingService.sendNotification(any(Message.class)))
 			.willReturn(Optional.of("messageId1"))
 			.willReturn(Optional.of("messageId2"));

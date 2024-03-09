@@ -1,5 +1,6 @@
 package codesquad.fineants.spring.api.kis.service;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
@@ -17,15 +18,16 @@ import org.springframework.stereotype.Service;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHoldingRepository;
 import codesquad.fineants.spring.api.common.errors.exception.KisException;
 import codesquad.fineants.spring.api.kis.client.KisClient;
+import codesquad.fineants.spring.api.kis.client.KisCurrentPrice;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.kis.manager.HolidayManager;
 import codesquad.fineants.spring.api.kis.manager.KisAccessTokenManager;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
-import codesquad.fineants.spring.api.kis.response.CurrentPriceResponse;
 import codesquad.fineants.spring.api.kis.response.LastDayClosingPriceResponse;
 import codesquad.fineants.spring.api.stock_target_price.event.StockTargetPricePublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Mono;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -52,20 +54,20 @@ public class KisService {
 	}
 
 	// 회원이 가지고 있는 모든 종목에 대하여 현재가 갱신
-	public List<CurrentPriceResponse> refreshAllStockCurrentPrice() {
+	public List<KisCurrentPrice> refreshAllStockCurrentPrice() {
 		List<String> tickerSymbols = portFolioHoldingRepository.findAllTickerSymbol();
-		List<CurrentPriceResponse> responses = refreshStockCurrentPrice(tickerSymbols);
+		List<KisCurrentPrice> responses = refreshStockCurrentPrice(tickerSymbols);
 		stockTargetPricePublisher.publishEvent(tickerSymbols);
 		return responses;
 	}
 
 	// 주식 현재가 갱신
-	public List<CurrentPriceResponse> refreshStockCurrentPrice(List<String> tickerSymbols) {
-		List<CompletableFuture<CurrentPriceResponse>> futures = tickerSymbols.parallelStream()
+	public List<KisCurrentPrice> refreshStockCurrentPrice(List<String> tickerSymbols) {
+		List<CompletableFuture<KisCurrentPrice>> futures = tickerSymbols.parallelStream()
 			.map(this::createCompletableFuture)
 			.collect(Collectors.toList());
 
-		List<CurrentPriceResponse> currentPrices = futures.parallelStream()
+		List<KisCurrentPrice> currentPrices = futures.parallelStream()
 			.map(this::getCurrentPriceResponseWithTimeout)
 			.filter(Objects::nonNull)
 			.collect(Collectors.toList());
@@ -74,8 +76,8 @@ public class KisService {
 		return currentPrices;
 	}
 
-	private CompletableFuture<CurrentPriceResponse> createCompletableFuture(String tickerSymbol) {
-		CompletableFuture<CurrentPriceResponse> future = new CompletableFuture<>();
+	private CompletableFuture<KisCurrentPrice> createCompletableFuture(String tickerSymbol) {
+		CompletableFuture<KisCurrentPrice> future = new CompletableFuture<>();
 		future.completeOnTimeout(null, 10, TimeUnit.SECONDS);
 		future.exceptionally(e -> {
 			log.error(e.getMessage());
@@ -83,7 +85,10 @@ public class KisService {
 		});
 		executorService.schedule(() -> {
 			try {
-				future.complete(fetchCurrentPrice(tickerSymbol));
+				future.complete(fetchCurrentPrice(tickerSymbol)
+					.blockOptional(Duration.ofMinutes(1L))
+					.orElseGet(() -> KisCurrentPrice.empty(tickerSymbol))
+				);
 			} catch (KisException e) {
 				log.error(e.getMessage());
 				future.completeExceptionally(e);
@@ -92,12 +97,11 @@ public class KisService {
 		return future;
 	}
 
-	public CurrentPriceResponse fetchCurrentPrice(String tickerSymbol) {
-		Long currentPrice = kisClient.fetchCurrentPrice(tickerSymbol, manager.createAuthorization());
-		return CurrentPriceResponse.create(tickerSymbol, currentPrice);
+	public Mono<KisCurrentPrice> fetchCurrentPrice(String tickerSymbol) {
+		return kisClient.fetchCurrentPrice(tickerSymbol, manager.createAuthorization());
 	}
 
-	private CurrentPriceResponse getCurrentPriceResponseWithTimeout(CompletableFuture<CurrentPriceResponse> future) {
+	private KisCurrentPrice getCurrentPriceResponseWithTimeout(CompletableFuture<KisCurrentPrice> future) {
 		try {
 			return future.get(10L, TimeUnit.SECONDS);
 		} catch (InterruptedException | ExecutionException | TimeoutException e) {
