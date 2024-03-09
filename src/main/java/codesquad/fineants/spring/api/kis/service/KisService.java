@@ -129,11 +129,13 @@ public class KisService {
 		refreshAllLastDayClosingPrice();
 	}
 
+	// 종목 종가 모두 갱신
 	public List<LastDayClosingPriceResponse> refreshAllLastDayClosingPrice() {
 		List<String> tickerSymbols = portFolioHoldingRepository.findAllTickerSymbol();
 		return refreshLastDayClosingPrice(tickerSymbols);
 	}
 
+	// 종목 종가 일부 갱신
 	public List<LastDayClosingPriceResponse> refreshLastDayClosingPrice(List<String> tickerSymbols) {
 		List<LastDayClosingPriceResponse> lastDayClosingPrices = readLastDayClosingPriceResponses(tickerSymbols);
 		lastDayClosingPrices.forEach(

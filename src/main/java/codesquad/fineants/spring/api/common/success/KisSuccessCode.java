@@ -9,7 +9,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum KisSuccessCode implements SuccessCode {
 	OK_REFRESH_CURRENT_PRICE_STOCKS(HttpStatus.OK, "종목 현재가가 갱신되었습니다"),
-	OK_REFRESH_LAST_DAY_CLOSING_PRICE(HttpStatus.OK, "종목 종가가 갱신되었습니다");
+	OK_REFRESH_LAST_DAY_CLOSING_PRICE(HttpStatus.OK, "종목 종가가 갱신되었습니다"),
+	OK_FETCH_CURRENT_PRICE(HttpStatus.OK, "종목 현재가가 조회되었습니다");
 
 	private final HttpStatus httpStatus;
 	private final String message;
