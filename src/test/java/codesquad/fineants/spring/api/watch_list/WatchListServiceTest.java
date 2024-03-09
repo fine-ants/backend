@@ -169,7 +169,7 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 		);
 
 		given(currentPriceManager.getCurrentPrice(any(String.class))).willReturn(Optional.of(77000L));
-		given(lastDayClosingPriceManager.getPrice(any(String.class))).willReturn(77000L);
+		given(lastDayClosingPriceManager.getPrice(any(String.class))).willReturn(Optional.of(77000L));
 
 		// when
 		ReadWatchListResponse response = watchListService.readWatchList(authMember, watchList.getId());

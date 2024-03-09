@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.persistence.Convert;
@@ -149,18 +150,20 @@ public class Stock extends BaseEntity {
 
 	public Long getDailyChange(CurrentPriceManager currentPriceManager,
 		LastDayClosingPriceManager lastDayClosingPriceManager) {
-		Long currentPrice = currentPriceManager.getCurrentPrice(tickerSymbol).orElse(null);
-		Long lastDayClosingPrice = lastDayClosingPriceManager.getPrice(tickerSymbol);
-		if (currentPrice == null || lastDayClosingPrice == null) {
+		Optional<Long> currentPrice = currentPriceManager.getCurrentPrice(tickerSymbol);
+		Optional<Long> closingPrice = lastDayClosingPriceManager.getPrice(tickerSymbol);
+
+		if (currentPrice.isEmpty() || closingPrice.isEmpty()) {
 			return null;
 		}
-		return currentPrice - lastDayClosingPrice;
+
+		return currentPrice.get() - closingPrice.get();
 	}
 
 	public Double getDailyChangeRate(CurrentPriceManager currentPriceManager,
 		LastDayClosingPriceManager lastDayClosingPriceManager) {
 		Long currentPrice = currentPriceManager.getCurrentPrice(tickerSymbol).orElse(null);
-		Long lastDayClosingPrice = lastDayClosingPriceManager.getPrice(tickerSymbol);
+		Long lastDayClosingPrice = lastDayClosingPriceManager.getPrice(tickerSymbol).orElse(null);
 		if (currentPrice == null || lastDayClosingPrice == null || lastDayClosingPrice == 0L) {
 			return null;
 		}
@@ -173,7 +176,7 @@ public class Stock extends BaseEntity {
 	}
 
 	public Long getLastDayClosingPrice(LastDayClosingPriceManager manager) {
-		return manager.getPrice(tickerSymbol);
+		return manager.getPrice(tickerSymbol).orElse(null);
 	}
 
 	public List<Integer> getDividendMonths() {

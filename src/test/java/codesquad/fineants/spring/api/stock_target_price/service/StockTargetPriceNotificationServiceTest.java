@@ -311,7 +311,7 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 			createTargetPriceNotification(stockTargetPrice2, List.of(60000L, 70000L)));
 
 		given(manager.getPrice(anyString()))
-			.willReturn(50000L);
+			.willReturn(Optional.of(50000L));
 
 		// when
 		TargetPriceNotificationSearchResponse response = service.searchStockTargetPriceNotification(member.getId());
@@ -357,7 +357,7 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 			createTargetPriceNotification(stockTargetPrice, List.of(60000L, 70000L)));
 
 		given(manager.getPrice(anyString()))
-			.willReturn(50000L);
+			.willReturn(Optional.of(50000L));
 
 		// when
 		TargetPriceNotificationSpecifiedSearchResponse response = service.searchTargetPriceNotifications(

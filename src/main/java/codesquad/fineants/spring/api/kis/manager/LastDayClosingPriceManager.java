@@ -1,6 +1,7 @@
 package codesquad.fineants.spring.api.kis.manager;
 
 import java.time.Duration;
+import java.util.Optional;
 
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
@@ -18,9 +19,12 @@ public class LastDayClosingPriceManager {
 		redisTemplate.opsForValue().set(String.format(format, tickerSymbol), String.valueOf(price), Duration.ofDays(2));
 	}
 
-	public Long getPrice(String tickerSymbol) {
-		String price = redisTemplate.opsForValue().get(String.format(format, tickerSymbol));
-		return price != null ? Long.valueOf(price) : null;
+	public Optional<Long> getPrice(String tickerSymbol) {
+		String closingPrice = redisTemplate.opsForValue().get(String.format(format, tickerSymbol));
+		if (closingPrice == null) {
+			return Optional.empty();
+		}
+		return Optional.of(Long.valueOf(closingPrice));
 	}
 
 	public boolean hasPrice(String tickerSymbol) {
