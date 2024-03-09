@@ -40,7 +40,7 @@ import codesquad.fineants.spring.api.notification.response.NotificationCreateRes
 import codesquad.fineants.spring.api.notification.response.NotifyMessageItem;
 import codesquad.fineants.spring.api.notification.response.NotifyPortfolioMessagesResponse;
 import codesquad.fineants.spring.api.portfolio.PortFolioService;
-import codesquad.fineants.spring.api.stock.request.StockTargetPriceNotificationCreateRequest;
+import codesquad.fineants.spring.api.stock_target_price.request.StockTargetPriceNotificationCreateRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 

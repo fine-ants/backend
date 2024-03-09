@@ -1,4 +1,4 @@
-package codesquad.fineants.spring.api.stock;
+package codesquad.fineants.spring.api.stock_target_price.service;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -45,15 +45,15 @@ import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
 import codesquad.fineants.spring.api.kis.response.CurrentPriceResponse;
 import codesquad.fineants.spring.api.kis.service.KisService;
-import codesquad.fineants.spring.api.stock.manager.TargetPriceNotificationSentManager;
-import codesquad.fineants.spring.api.stock.request.TargetPriceNotificationCreateRequest;
-import codesquad.fineants.spring.api.stock.request.TargetPriceNotificationUpdateRequest;
-import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationCreateResponse;
-import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationDeleteResponse;
-import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationSearchResponse;
-import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationSendResponse;
-import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationSpecifiedSearchResponse;
-import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationUpdateResponse;
+import codesquad.fineants.spring.api.stock_target_price.manager.TargetPriceNotificationSentManager;
+import codesquad.fineants.spring.api.stock_target_price.request.TargetPriceNotificationCreateRequest;
+import codesquad.fineants.spring.api.stock_target_price.request.TargetPriceNotificationUpdateRequest;
+import codesquad.fineants.spring.api.stock_target_price.response.TargetPriceNotificationCreateResponse;
+import codesquad.fineants.spring.api.stock_target_price.response.TargetPriceNotificationDeleteResponse;
+import codesquad.fineants.spring.api.stock_target_price.response.TargetPriceNotificationSearchResponse;
+import codesquad.fineants.spring.api.stock_target_price.response.TargetPriceNotificationSendResponse;
+import codesquad.fineants.spring.api.stock_target_price.response.TargetPriceNotificationSpecifiedSearchResponse;
+import codesquad.fineants.spring.api.stock_target_price.response.TargetPriceNotificationUpdateResponse;
 
 class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest {
 

@@ -1,4 +1,4 @@
-package codesquad.fineants.spring.api.stock.response;
+package codesquad.fineants.spring.api.stock_target_price.response;
 
 import java.util.List;
 

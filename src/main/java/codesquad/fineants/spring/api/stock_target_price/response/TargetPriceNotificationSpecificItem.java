@@ -1,4 +1,4 @@
-package codesquad.fineants.spring.api.stock.response;
+package codesquad.fineants.spring.api.stock_target_price.response;
 
 import java.time.LocalDateTime;
 
@@ -15,13 +15,13 @@ import lombok.ToString;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
 @ToString
-public class TargetPriceItem {
+public class TargetPriceNotificationSpecificItem {
 	private Long notificationId;
 	private Long targetPrice;
 	private LocalDateTime dateAdded;
 
-	public static TargetPriceItem from(TargetPriceNotification targetPriceNotification) {
-		return TargetPriceItem.builder()
+	public static TargetPriceNotificationSpecificItem from(TargetPriceNotification targetPriceNotification) {
+		return TargetPriceNotificationSpecificItem.builder()
 			.notificationId(targetPriceNotification.getId())
 			.targetPrice(targetPriceNotification.getTargetPrice())
 			.dateAdded(targetPriceNotification.getCreateAt())

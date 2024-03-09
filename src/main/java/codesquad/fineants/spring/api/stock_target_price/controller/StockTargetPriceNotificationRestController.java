@@ -1,4 +1,4 @@
-package codesquad.fineants.spring.api.stock;
+package codesquad.fineants.spring.api.stock_target_price.controller;
 
 import javax.validation.Valid;
 
@@ -15,15 +15,16 @@ import org.springframework.web.bind.annotation.RestController;
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.oauth.support.AuthPrincipalMember;
 import codesquad.fineants.spring.api.response.ApiResponse;
-import codesquad.fineants.spring.api.stock.request.TargetPriceNotificationCreateRequest;
-import codesquad.fineants.spring.api.stock.request.TargetPriceNotificationDeleteRequest;
-import codesquad.fineants.spring.api.stock.request.TargetPriceNotificationUpdateRequest;
-import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationCreateResponse;
-import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationDeleteResponse;
-import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationSearchResponse;
-import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationSendResponse;
-import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationSpecifiedSearchResponse;
-import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationUpdateResponse;
+import codesquad.fineants.spring.api.stock_target_price.request.TargetPriceNotificationCreateRequest;
+import codesquad.fineants.spring.api.stock_target_price.request.TargetPriceNotificationDeleteRequest;
+import codesquad.fineants.spring.api.stock_target_price.request.TargetPriceNotificationUpdateRequest;
+import codesquad.fineants.spring.api.stock_target_price.response.TargetPriceNotificationCreateResponse;
+import codesquad.fineants.spring.api.stock_target_price.response.TargetPriceNotificationDeleteResponse;
+import codesquad.fineants.spring.api.stock_target_price.response.TargetPriceNotificationSearchResponse;
+import codesquad.fineants.spring.api.stock_target_price.response.TargetPriceNotificationSendResponse;
+import codesquad.fineants.spring.api.stock_target_price.response.TargetPriceNotificationSpecifiedSearchResponse;
+import codesquad.fineants.spring.api.stock_target_price.response.TargetPriceNotificationUpdateResponse;
+import codesquad.fineants.spring.api.stock_target_price.service.StockTargetPriceNotificationService;
 import codesquad.fineants.spring.api.success.code.StockSuccessCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

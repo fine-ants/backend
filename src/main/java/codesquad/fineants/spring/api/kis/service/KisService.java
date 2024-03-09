@@ -23,7 +23,7 @@ import codesquad.fineants.spring.api.kis.manager.KisAccessTokenManager;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
 import codesquad.fineants.spring.api.kis.response.CurrentPriceResponse;
 import codesquad.fineants.spring.api.kis.response.LastDayClosingPriceResponse;
-import codesquad.fineants.spring.api.stock.event.StockTargetPricePublisher;
+import codesquad.fineants.spring.api.stock_target_price.event.StockTargetPricePublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 

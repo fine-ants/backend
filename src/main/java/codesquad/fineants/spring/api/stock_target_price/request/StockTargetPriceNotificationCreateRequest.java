@@ -1,4 +1,4 @@
-package codesquad.fineants.spring.api.stock.request;
+package codesquad.fineants.spring.api.stock_target_price.request;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;

@@ -1,11 +1,11 @@
-package codesquad.fineants.spring.api.stock.event;
+package codesquad.fineants.spring.api.stock_target_price.event;
 
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
-import codesquad.fineants.spring.api.stock.StockTargetPriceNotificationService;
-import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationSendResponse;
+import codesquad.fineants.spring.api.stock_target_price.response.TargetPriceNotificationSendResponse;
+import codesquad.fineants.spring.api.stock_target_price.service.StockTargetPriceNotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 

@@ -1,4 +1,4 @@
-package codesquad.fineants.spring.api.stock.event;
+package codesquad.fineants.spring.api.stock_target_price.event;
 
 import java.util.List;
 

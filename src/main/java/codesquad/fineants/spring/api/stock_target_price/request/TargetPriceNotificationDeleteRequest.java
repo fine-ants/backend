@@ -1,4 +1,4 @@
-package codesquad.fineants.spring.api.stock.request;
+package codesquad.fineants.spring.api.stock_target_price.request;
 
 import java.util.List;
 
@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 public class TargetPriceNotificationDeleteRequest {
 	@NotNull(message = "필수 정보입니다")
 	private String tickerSymbol;
-	
+
 	@NotNull(message = "필수 정보입니다")
 	@Size(min = 1, message = "등록번호가 최소 1개 이상이어야 합니다")
 	private List<Long> targetPriceNotificationIds;

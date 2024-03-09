@@ -1,4 +1,4 @@
-package codesquad.fineants.spring.api.stock.manager;
+package codesquad.fineants.spring.api.stock_target_price.manager;
 
 import java.time.Duration;
 

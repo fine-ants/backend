@@ -1,4 +1,4 @@
-package codesquad.fineants.spring.api.stock.event;
+package codesquad.fineants.spring.api.stock_target_price.event;
 
 import codesquad.fineants.spring.api.purchase_history.event.EventHoldingValue;
 import lombok.AccessLevel;

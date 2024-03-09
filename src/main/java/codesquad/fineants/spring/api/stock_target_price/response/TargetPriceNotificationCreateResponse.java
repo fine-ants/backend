@@ -1,4 +1,4 @@
-package codesquad.fineants.spring.api.stock.response;
+package codesquad.fineants.spring.api.stock_target_price.response;
 
 import codesquad.fineants.domain.stock_target_price.StockTargetPrice;
 import codesquad.fineants.domain.target_price_notification.TargetPriceNotification;

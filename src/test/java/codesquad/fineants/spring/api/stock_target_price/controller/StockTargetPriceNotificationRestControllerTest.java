@@ -1,4 +1,4 @@
-package codesquad.fineants.spring.api.stock;
+package codesquad.fineants.spring.api.stock_target_price.controller;
 
 import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -41,16 +41,17 @@ import codesquad.fineants.domain.oauth.support.AuthPrincipalArgumentResolver;
 import codesquad.fineants.domain.stock.Market;
 import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.spring.api.errors.handler.GlobalExceptionHandler;
-import codesquad.fineants.spring.api.stock.request.TargetPriceNotificationCreateRequest;
-import codesquad.fineants.spring.api.stock.request.TargetPriceNotificationUpdateRequest;
-import codesquad.fineants.spring.api.stock.response.TargetPriceItem;
-import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationCreateResponse;
-import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationDeleteResponse;
-import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationSearchItem;
-import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationSearchResponse;
-import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationSpecificItem;
-import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationSpecifiedSearchResponse;
-import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationUpdateResponse;
+import codesquad.fineants.spring.api.stock_target_price.request.TargetPriceNotificationCreateRequest;
+import codesquad.fineants.spring.api.stock_target_price.request.TargetPriceNotificationUpdateRequest;
+import codesquad.fineants.spring.api.stock_target_price.response.TargetPriceItem;
+import codesquad.fineants.spring.api.stock_target_price.response.TargetPriceNotificationCreateResponse;
+import codesquad.fineants.spring.api.stock_target_price.response.TargetPriceNotificationDeleteResponse;
+import codesquad.fineants.spring.api.stock_target_price.response.TargetPriceNotificationSearchItem;
+import codesquad.fineants.spring.api.stock_target_price.response.TargetPriceNotificationSearchResponse;
+import codesquad.fineants.spring.api.stock_target_price.response.TargetPriceNotificationSpecificItem;
+import codesquad.fineants.spring.api.stock_target_price.response.TargetPriceNotificationSpecifiedSearchResponse;
+import codesquad.fineants.spring.api.stock_target_price.response.TargetPriceNotificationUpdateResponse;
+import codesquad.fineants.spring.api.stock_target_price.service.StockTargetPriceNotificationService;
 import codesquad.fineants.spring.config.JpaAuditingConfiguration;
 import codesquad.fineants.spring.util.ObjectMapperUtil;
 
