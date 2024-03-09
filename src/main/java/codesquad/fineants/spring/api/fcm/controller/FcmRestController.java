@@ -13,12 +13,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.oauth.support.AuthPrincipalMember;
+import codesquad.fineants.spring.api.common.response.ApiResponse;
+import codesquad.fineants.spring.api.common.success.FcmSuccessCode;
 import codesquad.fineants.spring.api.fcm.request.FcmRegisterRequest;
 import codesquad.fineants.spring.api.fcm.response.FcmDeleteResponse;
 import codesquad.fineants.spring.api.fcm.response.FcmRegisterResponse;
 import codesquad.fineants.spring.api.fcm.service.FcmService;
-import codesquad.fineants.spring.api.response.ApiResponse;
-import codesquad.fineants.spring.api.success.code.FcmSuccessCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 

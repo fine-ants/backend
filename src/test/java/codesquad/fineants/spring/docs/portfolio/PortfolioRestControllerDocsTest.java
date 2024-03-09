@@ -28,14 +28,14 @@ import org.springframework.restdocs.payload.JsonFieldType;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.portfolio.Portfolio;
-import codesquad.fineants.spring.api.portfolio.PortFolioRestController;
-import codesquad.fineants.spring.api.portfolio.PortFolioService;
+import codesquad.fineants.spring.api.portfolio.controller.PortFolioRestController;
 import codesquad.fineants.spring.api.portfolio.request.PortfolioCreateRequest;
 import codesquad.fineants.spring.api.portfolio.request.PortfolioModifyRequest;
 import codesquad.fineants.spring.api.portfolio.response.PortFolioCreateResponse;
 import codesquad.fineants.spring.api.portfolio.response.PortFolioItem;
 import codesquad.fineants.spring.api.portfolio.response.PortfolioModifyResponse;
 import codesquad.fineants.spring.api.portfolio.response.PortfoliosResponse;
+import codesquad.fineants.spring.api.portfolio.service.PortFolioService;
 import codesquad.fineants.spring.docs.RestDocsSupport;
 import codesquad.fineants.spring.util.ObjectMapperUtil;
 

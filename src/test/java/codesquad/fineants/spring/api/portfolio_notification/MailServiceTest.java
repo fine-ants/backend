@@ -10,7 +10,7 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 
 import codesquad.fineants.spring.AbstractContainerBaseTest;
-import codesquad.fineants.spring.api.mail.MailService;
+import codesquad.fineants.spring.api.mail.service.MailService;
 
 class MailServiceTest extends AbstractContainerBaseTest {
 

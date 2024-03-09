@@ -24,8 +24,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import codesquad.fineants.domain.oauth.support.AuthPrincipalArgumentResolver;
 import codesquad.fineants.domain.stock.Market;
-import codesquad.fineants.spring.api.errors.handler.GlobalExceptionHandler;
+import codesquad.fineants.spring.api.common.errors.handler.GlobalExceptionHandler;
+import codesquad.fineants.spring.api.stock.controller.StockRestController;
 import codesquad.fineants.spring.api.stock.response.StockResponse;
+import codesquad.fineants.spring.api.stock.service.StockService;
 import codesquad.fineants.spring.config.JpaAuditingConfiguration;
 import codesquad.fineants.spring.config.SpringConfig;
 

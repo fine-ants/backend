@@ -42,15 +42,16 @@ import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.domain.stock.StockRepository;
 import codesquad.fineants.domain.stock_dividend.StockDividend;
 import codesquad.fineants.spring.AbstractContainerBaseTest;
-import codesquad.fineants.spring.api.errors.exception.BadRequestException;
-import codesquad.fineants.spring.api.errors.exception.ConflictException;
-import codesquad.fineants.spring.api.errors.exception.ForBiddenException;
+import codesquad.fineants.spring.api.common.errors.exception.BadRequestException;
+import codesquad.fineants.spring.api.common.errors.exception.ConflictException;
+import codesquad.fineants.spring.api.common.errors.exception.ForBiddenException;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.portfolio.request.PortfolioCreateRequest;
 import codesquad.fineants.spring.api.portfolio.request.PortfolioModifyRequest;
 import codesquad.fineants.spring.api.portfolio.request.PortfoliosDeleteRequest;
 import codesquad.fineants.spring.api.portfolio.response.PortFolioCreateResponse;
 import codesquad.fineants.spring.api.portfolio.response.PortfoliosResponse;
+import codesquad.fineants.spring.api.portfolio.service.PortFolioService;
 import codesquad.fineants.spring.util.ObjectMapperUtil;
 
 class PortFolioServiceTest extends AbstractContainerBaseTest {

@@ -40,6 +40,7 @@ import codesquad.fineants.spring.api.watch_list.response.CreateWatchListResponse
 import codesquad.fineants.spring.api.watch_list.response.ReadWatchListResponse;
 import codesquad.fineants.spring.api.watch_list.response.ReadWatchListsResponse;
 import codesquad.fineants.spring.api.watch_list.response.WatchListHasStockResponse;
+import codesquad.fineants.spring.api.watch_list.service.WatchListService;
 
 class WatchListServiceTest extends AbstractContainerBaseTest {
 
@@ -202,7 +203,7 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 			.member(member)
 			.build());
 		Long watchListId = watchList.getId();
-		
+
 		// when
 		watchListService.createWatchStocks(authMember, watchListId, request);
 

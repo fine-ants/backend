@@ -16,8 +16,8 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 
-import codesquad.fineants.spring.api.errors.errorcode.MemberErrorCode;
-import codesquad.fineants.spring.api.errors.exception.BadRequestException;
+import codesquad.fineants.spring.api.common.errors.errorcode.MemberErrorCode;
+import codesquad.fineants.spring.api.common.errors.exception.BadRequestException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 

@@ -8,8 +8,8 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import codesquad.fineants.spring.api.errors.errorcode.OauthErrorCode;
-import codesquad.fineants.spring.api.errors.exception.BadRequestException;
+import codesquad.fineants.spring.api.common.errors.errorcode.OauthErrorCode;
+import codesquad.fineants.spring.api.common.errors.exception.BadRequestException;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 

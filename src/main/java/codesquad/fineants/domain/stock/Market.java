@@ -2,8 +2,8 @@ package codesquad.fineants.domain.stock;
 
 import java.util.Arrays;
 
-import codesquad.fineants.spring.api.errors.errorcode.StockErrorCode;
-import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
+import codesquad.fineants.spring.api.common.errors.errorcode.StockErrorCode;
+import codesquad.fineants.spring.api.common.errors.exception.NotFoundResourceException;
 
 public enum Market {
 	KOSPI, KOSDAQ, KONEX, KOSDAQ_GLOBAL;

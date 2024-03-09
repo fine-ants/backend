@@ -30,6 +30,7 @@ import codesquad.fineants.domain.stock_dividend.StockDividendRepository;
 import codesquad.fineants.spring.AbstractContainerBaseTest;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.portfolio_gain_history.response.PortfolioGainHistoryCreateResponse;
+import codesquad.fineants.spring.api.portfolio_gain_history.service.PortfolioGainHistoryService;
 
 class PortfolioGainHistoryServiceTest extends AbstractContainerBaseTest {
 

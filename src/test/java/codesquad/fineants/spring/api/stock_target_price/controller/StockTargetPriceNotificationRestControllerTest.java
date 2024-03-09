@@ -40,7 +40,7 @@ import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.oauth.support.AuthPrincipalArgumentResolver;
 import codesquad.fineants.domain.stock.Market;
 import codesquad.fineants.domain.stock.Stock;
-import codesquad.fineants.spring.api.errors.handler.GlobalExceptionHandler;
+import codesquad.fineants.spring.api.common.errors.handler.GlobalExceptionHandler;
 import codesquad.fineants.spring.api.stock_target_price.request.TargetPriceNotificationCreateRequest;
 import codesquad.fineants.spring.api.stock_target_price.request.TargetPriceNotificationUpdateRequest;
 import codesquad.fineants.spring.api.stock_target_price.response.TargetPriceItem;

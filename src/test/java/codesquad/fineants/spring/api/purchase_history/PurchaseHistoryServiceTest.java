@@ -43,15 +43,16 @@ import codesquad.fineants.domain.stock.StockRepository;
 import codesquad.fineants.domain.stock_dividend.StockDividend;
 import codesquad.fineants.domain.stock_dividend.StockDividendRepository;
 import codesquad.fineants.spring.AbstractContainerBaseTest;
-import codesquad.fineants.spring.api.errors.errorcode.PortfolioErrorCode;
-import codesquad.fineants.spring.api.errors.errorcode.PurchaseHistoryErrorCode;
-import codesquad.fineants.spring.api.errors.exception.FineAntsException;
+import codesquad.fineants.spring.api.common.errors.errorcode.PortfolioErrorCode;
+import codesquad.fineants.spring.api.common.errors.errorcode.PurchaseHistoryErrorCode;
+import codesquad.fineants.spring.api.common.errors.exception.FineAntsException;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.purchase_history.request.PurchaseHistoryCreateRequest;
 import codesquad.fineants.spring.api.purchase_history.request.PurchaseHistoryModifyRequest;
 import codesquad.fineants.spring.api.purchase_history.response.PurchaseHistoryCreateResponse;
 import codesquad.fineants.spring.api.purchase_history.response.PurchaseHistoryDeleteResponse;
 import codesquad.fineants.spring.api.purchase_history.response.PurchaseHistoryModifyResponse;
+import codesquad.fineants.spring.api.purchase_history.service.PurchaseHistoryService;
 
 class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 

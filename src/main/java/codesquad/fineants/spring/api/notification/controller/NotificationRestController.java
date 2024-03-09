@@ -12,12 +12,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.oauth.support.AuthPrincipalMember;
+import codesquad.fineants.spring.api.common.response.ApiResponse;
+import codesquad.fineants.spring.api.common.success.NotificationSuccessCode;
 import codesquad.fineants.spring.api.notification.request.PortfolioNotificationCreateRequest;
 import codesquad.fineants.spring.api.notification.response.NotificationCreateResponse;
 import codesquad.fineants.spring.api.notification.response.NotifyPortfolioMessagesResponse;
 import codesquad.fineants.spring.api.notification.service.NotificationService;
-import codesquad.fineants.spring.api.response.ApiResponse;
-import codesquad.fineants.spring.api.success.code.NotificationSuccessCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 

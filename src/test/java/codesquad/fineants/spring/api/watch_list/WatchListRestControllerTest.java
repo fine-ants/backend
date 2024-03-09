@@ -31,7 +31,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.oauth.support.AuthPrincipalArgumentResolver;
-import codesquad.fineants.spring.api.errors.handler.GlobalExceptionHandler;
+import codesquad.fineants.spring.api.common.errors.handler.GlobalExceptionHandler;
+import codesquad.fineants.spring.api.watch_list.controller.WatchListRestController;
 import codesquad.fineants.spring.api.watch_list.request.ChangeWatchListNameRequest;
 import codesquad.fineants.spring.api.watch_list.request.CreateWatchListRequest;
 import codesquad.fineants.spring.api.watch_list.request.CreateWatchStockRequest;
@@ -41,6 +42,7 @@ import codesquad.fineants.spring.api.watch_list.response.CreateWatchListResponse
 import codesquad.fineants.spring.api.watch_list.response.ReadWatchListResponse;
 import codesquad.fineants.spring.api.watch_list.response.ReadWatchListsResponse;
 import codesquad.fineants.spring.api.watch_list.response.WatchListHasStockResponse;
+import codesquad.fineants.spring.api.watch_list.service.WatchListService;
 import codesquad.fineants.spring.config.JpaAuditingConfiguration;
 import codesquad.fineants.spring.config.SpringConfig;
 

@@ -7,8 +7,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.oauth.support.AuthenticationContext;
-import codesquad.fineants.spring.api.errors.errorcode.MemberErrorCode;
-import codesquad.fineants.spring.api.errors.exception.ForBiddenException;
+import codesquad.fineants.spring.api.common.errors.errorcode.MemberErrorCode;
+import codesquad.fineants.spring.api.common.errors.exception.ForBiddenException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
