@@ -25,16 +25,19 @@ import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
 import org.springframework.restdocs.payload.JsonFieldType;
 import org.springframework.restdocs.request.RequestDocumentation;
 
+import codesquad.fineants.domain.notification.type.NotificationType;
 import codesquad.fineants.domain.stock.Stock;
-import codesquad.fineants.spring.api.stock.StockTargetPriceNotificationRestController;
-import codesquad.fineants.spring.api.stock.StockTargetPriceNotificationService;
-import codesquad.fineants.spring.api.stock.request.TargetPriceNotificationCreateRequest;
-import codesquad.fineants.spring.api.stock.response.TargetPriceItem;
-import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationCreateResponse;
-import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationSearchItem;
-import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationSearchResponse;
-import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationSpecificItem;
-import codesquad.fineants.spring.api.stock.response.TargetPriceNotificationSpecifiedSearchResponse;
+import codesquad.fineants.spring.api.stock_target_price.controller.StockTargetPriceNotificationRestController;
+import codesquad.fineants.spring.api.stock_target_price.request.TargetPriceNotificationCreateRequest;
+import codesquad.fineants.spring.api.stock_target_price.response.TargetPriceItem;
+import codesquad.fineants.spring.api.stock_target_price.response.TargetPriceNotificationCreateResponse;
+import codesquad.fineants.spring.api.stock_target_price.response.TargetPriceNotificationSearchItem;
+import codesquad.fineants.spring.api.stock_target_price.response.TargetPriceNotificationSearchResponse;
+import codesquad.fineants.spring.api.stock_target_price.response.TargetPriceNotificationSendItem;
+import codesquad.fineants.spring.api.stock_target_price.response.TargetPriceNotificationSendResponse;
+import codesquad.fineants.spring.api.stock_target_price.response.TargetPriceNotificationSpecificItem;
+import codesquad.fineants.spring.api.stock_target_price.response.TargetPriceNotificationSpecifiedSearchResponse;
+import codesquad.fineants.spring.api.stock_target_price.service.StockTargetPriceNotificationService;
 import codesquad.fineants.spring.docs.RestDocsSupport;
 import codesquad.fineants.spring.util.ObjectMapperUtil;
 
@@ -109,6 +112,68 @@ public class StockTargetPriceNotificationRestControllerDocsTest extends RestDocs
 					)
 				)
 			);
+	}
+
+	@DisplayName("종목 지정가 알림 발송 API")
+	@Test
+	void sendStockTargetPriceNotification() throws Exception {
+		// given
+		given(service.sendStockTargetPriceNotification(anyLong()))
+			.willReturn(TargetPriceNotificationSendResponse.from(
+				List.of(
+					TargetPriceNotificationSendItem.builder()
+						.title("종목 지정가")
+						.type(NotificationType.STOCK_TARGET_PRICE)
+						.referenceId("005930")
+						.messageId("messageId")
+						.build()
+				)
+			));
+
+		// when
+		mockMvc.perform(RestDocumentationRequestBuilders.post("/api/stocks/target-price/notifications/send")
+				.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))
+			.andExpect(status().isCreated())
+			.andExpect(jsonPath("code").value(equalTo(201)))
+			.andExpect(jsonPath("status").value(equalTo("Created")))
+			.andExpect(jsonPath("message").value(equalTo("종목 지정가 알림을 발송하였습니다")))
+			.andExpect(jsonPath("data.notifications").isArray())
+			.andExpect(jsonPath("data.notifications[0].title").value(equalTo("종목 지정가")))
+			.andExpect(jsonPath("data.notifications[0].type").value(equalTo("STOCK_TARGET_PRICE")))
+			.andExpect(jsonPath("data.notifications[0].referenceId").value(equalTo("005930")))
+			.andExpect(jsonPath("data.notifications[0].messageId").value(equalTo("messageId")))
+			.andDo(
+				document(
+					"stock_target_price-notification-notify",
+					preprocessRequest(prettyPrint()),
+					preprocessResponse(prettyPrint()),
+					requestHeaders(
+						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
+					),
+					responseFields(
+						fieldWithPath("code").type(JsonFieldType.NUMBER)
+							.description("코드"),
+						fieldWithPath("status").type(JsonFieldType.STRING)
+							.description("상태"),
+						fieldWithPath("message").type(JsonFieldType.STRING)
+							.description("메시지"),
+						fieldWithPath("data").type(JsonFieldType.OBJECT)
+							.description("응답 데이터"),
+						fieldWithPath("data.notifications").type(JsonFieldType.ARRAY)
+							.description("종목 지정가 알림 리스트"),
+						fieldWithPath("data.notifications[].title").type(JsonFieldType.STRING)
+							.description("알림 제목"),
+						fieldWithPath("data.notifications[].type").type(JsonFieldType.STRING)
+							.description("알림 타입"),
+						fieldWithPath("data.notifications[].referenceId").type(JsonFieldType.STRING)
+							.description("참조 등록번호"),
+						fieldWithPath("data.notifications[].messageId").type(JsonFieldType.STRING)
+							.description("알림 메시지 등록번호")
+					)
+				)
+			);
+		// then
+
 	}
 
 	@DisplayName("종목 지정가 알림 목록 조회 API")

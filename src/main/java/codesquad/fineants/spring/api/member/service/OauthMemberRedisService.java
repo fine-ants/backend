@@ -6,8 +6,8 @@ import java.util.concurrent.TimeUnit;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import codesquad.fineants.spring.api.errors.errorcode.OauthErrorCode;
-import codesquad.fineants.spring.api.errors.exception.UnAuthorizationException;
+import codesquad.fineants.spring.api.common.errors.errorcode.OauthErrorCode;
+import codesquad.fineants.spring.api.common.errors.exception.UnAuthorizationException;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor

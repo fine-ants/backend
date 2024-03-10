@@ -4,8 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
-import codesquad.fineants.spring.api.errors.errorcode.ObjectMapperErrorCode;
-import codesquad.fineants.spring.api.errors.exception.ServerInternalException;
+import codesquad.fineants.spring.api.common.errors.errorcode.ObjectMapperErrorCode;
+import codesquad.fineants.spring.api.common.errors.exception.ServerInternalException;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

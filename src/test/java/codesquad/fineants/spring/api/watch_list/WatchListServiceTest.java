@@ -6,6 +6,7 @@ import static org.mockito.BDDMockito.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 import org.assertj.core.data.Offset;
 import org.junit.jupiter.api.AfterEach;
@@ -40,6 +41,7 @@ import codesquad.fineants.spring.api.watch_list.response.CreateWatchListResponse
 import codesquad.fineants.spring.api.watch_list.response.ReadWatchListResponse;
 import codesquad.fineants.spring.api.watch_list.response.ReadWatchListsResponse;
 import codesquad.fineants.spring.api.watch_list.response.WatchListHasStockResponse;
+import codesquad.fineants.spring.api.watch_list.service.WatchListService;
 
 class WatchListServiceTest extends AbstractContainerBaseTest {
 
@@ -166,8 +168,8 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 				.build()
 		);
 
-		given(currentPriceManager.getCurrentPrice(any(String.class))).willReturn(77000L);
-		given(lastDayClosingPriceManager.getPrice(any(String.class))).willReturn(77000L);
+		given(currentPriceManager.getCurrentPrice(any(String.class))).willReturn(Optional.of(77000L));
+		given(lastDayClosingPriceManager.getPrice(any(String.class))).willReturn(Optional.of(77000L));
 
 		// when
 		ReadWatchListResponse response = watchListService.readWatchList(authMember, watchList.getId());
@@ -203,8 +205,6 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 			.build());
 		Long watchListId = watchList.getId();
 
-		willDoNothing().given(kisService).refreshStockCurrentPrice(anyList());
-		willDoNothing().given(kisService).refreshLastDayClosingPrice(anyList());
 		// when
 		watchListService.createWatchStocks(authMember, watchListId, request);
 

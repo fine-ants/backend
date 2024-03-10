@@ -19,10 +19,10 @@ import org.mockito.Mockito;
 import org.springframework.http.HttpHeaders;
 import org.springframework.restdocs.payload.JsonFieldType;
 
-import codesquad.fineants.spring.api.portfolio.PortfolioNotificationSettingRestController;
-import codesquad.fineants.spring.api.portfolio.PortfolioNotificationSettingService;
-import codesquad.fineants.spring.api.portfolio.response.PortfolioNotificationSettingSearchItem;
-import codesquad.fineants.spring.api.portfolio.response.PortfolioNotificationSettingSearchResponse;
+import codesquad.fineants.spring.api.portfolio_notification_setting.controller.PortfolioNotificationSettingRestController;
+import codesquad.fineants.spring.api.portfolio_notification_setting.response.PortfolioNotificationSettingSearchItem;
+import codesquad.fineants.spring.api.portfolio_notification_setting.response.PortfolioNotificationSettingSearchResponse;
+import codesquad.fineants.spring.api.portfolio_notification_setting.service.PortfolioNotificationSettingService;
 import codesquad.fineants.spring.docs.RestDocsSupport;
 
 public class PortfolioNotificationSettingRestControllerDocsTest extends RestDocsSupport {

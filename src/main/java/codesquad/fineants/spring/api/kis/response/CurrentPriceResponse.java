@@ -1,16 +1,20 @@
 package codesquad.fineants.spring.api.kis.response;
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 @Getter
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @ToString
 public class CurrentPriceResponse {
-	private final String tickerSymbol;
-	private final long currentPrice;
+	private String tickerSymbol;
+	private Long currentPrice;
 
-	public CurrentPriceResponse(String tickerSymbol, long currentPrice) {
-		this.tickerSymbol = tickerSymbol;
-		this.currentPrice = currentPrice;
+	public static CurrentPriceResponse create(String tickerSymbol, Long currentPrice) {
+		return new CurrentPriceResponse(tickerSymbol, currentPrice);
 	}
 }

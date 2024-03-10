@@ -18,12 +18,12 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import codesquad.fineants.spring.api.errors.errorcode.ErrorCode;
-import codesquad.fineants.spring.api.errors.errorcode.JwtErrorCode;
-import codesquad.fineants.spring.api.errors.exception.FineAntsException;
-import codesquad.fineants.spring.api.errors.exception.UnAuthorizationException;
+import codesquad.fineants.spring.api.common.errors.errorcode.ErrorCode;
+import codesquad.fineants.spring.api.common.errors.errorcode.JwtErrorCode;
+import codesquad.fineants.spring.api.common.errors.exception.FineAntsException;
+import codesquad.fineants.spring.api.common.errors.exception.UnAuthorizationException;
+import codesquad.fineants.spring.api.common.response.ApiResponse;
 import codesquad.fineants.spring.api.member.service.OauthMemberRedisService;
-import codesquad.fineants.spring.api.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 

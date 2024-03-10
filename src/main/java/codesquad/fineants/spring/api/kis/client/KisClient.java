@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
@@ -14,9 +13,9 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import codesquad.fineants.spring.api.errors.exception.KisException;
+import codesquad.fineants.spring.api.common.errors.exception.KisException;
 import codesquad.fineants.spring.api.kis.properties.OauthKisProperties;
-import codesquad.fineants.spring.api.kis.response.LastDayClosingPriceResponse;
+import codesquad.fineants.spring.api.kis.response.KisClosingPrice;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
@@ -24,6 +23,8 @@ import reactor.util.retry.Retry;
 @Slf4j
 @Component
 public class KisClient {
+
+	private static final Duration TIMEOUT = Duration.ofMinutes(1L);
 
 	private final WebClient webClient;
 	private final OauthKisProperties oauthKisProperties;
@@ -34,15 +35,15 @@ public class KisClient {
 		this.oauthKisProperties = properties;
 	}
 
-	public Mono<KisAccessToken> accessToken(String uri) {
+	// 액세스 토큰 발급
+	public Mono<KisAccessToken> fetchAccessToken() {
 		Map<String, String> requestBodyMap = new HashMap<>();
 		requestBodyMap.put("grant_type", "client_credentials");
 		requestBodyMap.put("appkey", oauthKisProperties.getAppkey());
 		requestBodyMap.put("appsecret", oauthKisProperties.getSecretkey());
-
 		return webClient
 			.post()
-			.uri(uri)
+			.uri(oauthKisProperties.getTokenURI())
 			.bodyValue(requestBodyMap)
 			.retrieve()
 			.onStatus(HttpStatus::isError, this::handleError)
@@ -51,7 +52,8 @@ public class KisClient {
 			.log();
 	}
 
-	public long readRealTimeCurrentPrice(String tickerSymbol, String authorization) {
+	// 현재가 조회
+	public Mono<KisCurrentPrice> fetchCurrentPrice(String tickerSymbol, String authorization) {
 		MultiValueMap<String, String> headerMap = new LinkedMultiValueMap<>();
 		headerMap.add("authorization", authorization);
 		headerMap.add("appkey", oauthKisProperties.getAppkey());
@@ -62,16 +64,16 @@ public class KisClient {
 		queryParamMap.add("fid_cond_mrkt_div_code", "J");
 		queryParamMap.add("fid_input_iscd", tickerSymbol);
 
-		Map<String, Object> responseMap = getPerform(oauthKisProperties.getCurrentPriceURI(), headerMap, queryParamMap);
-		if (!responseMap.containsKey("output")) {
-			throw new KisException((String)responseMap.get("msg1"));
-		}
-		Map<String, String> output = (Map<String, String>)responseMap.get("output");
-		return Long.parseLong(output.get("stck_prpr"));
+		return performGet(
+			oauthKisProperties.getCurrentPriceURI(),
+			headerMap,
+			queryParamMap,
+			KisCurrentPrice.class
+		);
 	}
 
 	// 직전 거래일의 종가 조회
-	public LastDayClosingPriceResponse readLastDayClosingPrice(String tickerSymbol, String authorization) {
+	public KisClosingPrice readLastDayClosingPrice(String tickerSymbol, String authorization) {
 		MultiValueMap<String, String> headerMap = new LinkedMultiValueMap<>();
 		headerMap.add("authorization", authorization);
 		headerMap.add("appkey", oauthKisProperties.getAppkey());
@@ -86,17 +88,20 @@ public class KisClient {
 		queryParamMap.add("FID_PERIOD_DIV_CODE", "D");
 		queryParamMap.add("FID_ORG_ADJ_PRC", "0");
 
-		Map<String, Object> responseMap = getPerform(oauthKisProperties.getLastDayClosingPriceURI(), headerMap,
-			queryParamMap);
-		if (!responseMap.containsKey("output1")) {
-			throw new KisException((String)responseMap.get("msg1"));
-		}
-		Map<String, String> output = (Map<String, String>)responseMap.get("output1");
-		return LastDayClosingPriceResponse.of(tickerSymbol, Long.parseLong(output.get("stck_prdy_clpr")));
+		KisClosingPrice kisClosingPrice = performGet(
+			oauthKisProperties.getLastDayClosingPriceURI(),
+			headerMap,
+			queryParamMap,
+			KisClosingPrice.class
+		)
+			.blockOptional(TIMEOUT)
+			.orElseGet(() -> KisClosingPrice.empty(tickerSymbol));
+		log.debug("lastDayClosingPriceResponse : {}", kisClosingPrice);
+		return kisClosingPrice;
 	}
 
-	private Map<String, Object> getPerform(String uri, MultiValueMap<String, String> headerMap,
-		MultiValueMap<String, String> queryParamMap) {
+	private <T> Mono<T> performGet(String uri, MultiValueMap<String, String> headerMap,
+		MultiValueMap<String, String> queryParamMap, Class<T> responseType) {
 		return webClient
 			.get()
 			.uri(uriBuilder -> uriBuilder
@@ -105,10 +110,9 @@ public class KisClient {
 				.build())
 			.headers(httpHeaders -> httpHeaders.addAll(headerMap))
 			.retrieve()
-			.onStatus(HttpStatus::is4xxClientError, this::handleError)
-			.onStatus(HttpStatus::is5xxServerError, this::handleError)
-			.bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {
-			}).block();
+			.onStatus(HttpStatus::isError, this::handleError)
+			.bodyToMono(responseType)
+			.retryWhen(Retry.fixedDelay(Long.MAX_VALUE, Duration.ofSeconds(5)));
 	}
 
 	private Mono<? extends Throwable> handleError(ClientResponse clientResponse) {

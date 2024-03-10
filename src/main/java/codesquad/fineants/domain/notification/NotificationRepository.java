@@ -18,6 +18,11 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
 		@Param("notificationIds") List<Long> notificationIds
 	);
 
+	@Query("select n from Notification n where n.member.id in (:memberIds)")
+	List<Notification> findAllByMemberIds(
+		@Param("memberIds") List<Long> memberIds
+	);
+
 	@Modifying
 	@Query("delete from Notification n where n.member.id = :memberId")
 	int deleteAllByMemberId(@Param("memberId") Long memberId);

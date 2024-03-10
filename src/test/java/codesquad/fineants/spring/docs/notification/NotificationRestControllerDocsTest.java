@@ -25,7 +25,7 @@ import org.springframework.restdocs.snippet.Attributes;
 
 import codesquad.fineants.domain.notification.type.NotificationType;
 import codesquad.fineants.spring.api.notification.controller.NotificationRestController;
-import codesquad.fineants.spring.api.notification.request.NotificationCreateRequest;
+import codesquad.fineants.spring.api.notification.request.PortfolioNotificationCreateRequest;
 import codesquad.fineants.spring.api.notification.response.NotificationCreateResponse;
 import codesquad.fineants.spring.api.notification.response.NotifyMessageItem;
 import codesquad.fineants.spring.api.notification.response.NotifyPortfolioMessagesResponse;
@@ -58,8 +58,8 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 		boolean isRead = false;
 		NotificationType type = NotificationType.PORTFOLIO_TARGET_GAIN;
 		String referenceId = "1";
-		given(service.createNotification(
-			ArgumentMatchers.any(NotificationCreateRequest.class),
+		given(service.createPortfolioNotification(
+			ArgumentMatchers.any(PortfolioNotificationCreateRequest.class),
 			anyLong()))
 			.willReturn(NotificationCreateResponse.builder()
 				.notificationId(notificationId)

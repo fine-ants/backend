@@ -29,13 +29,14 @@ import codesquad.fineants.domain.stock.Market;
 import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.domain.stock.StockRepository;
 import codesquad.fineants.spring.AbstractContainerBaseTest;
-import codesquad.fineants.spring.api.errors.exception.KisException;
+import codesquad.fineants.spring.api.common.errors.exception.KisException;
 import codesquad.fineants.spring.api.kis.client.KisClient;
+import codesquad.fineants.spring.api.kis.client.KisCurrentPrice;
 import codesquad.fineants.spring.api.kis.manager.HolidayManager;
 import codesquad.fineants.spring.api.kis.manager.KisAccessTokenManager;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
-import codesquad.fineants.spring.api.kis.response.CurrentPriceResponse;
-import codesquad.fineants.spring.api.kis.response.LastDayClosingPriceResponse;
+import codesquad.fineants.spring.api.kis.response.KisClosingPrice;
+import reactor.core.publisher.Mono;
 
 class KisServiceTest extends AbstractContainerBaseTest {
 
@@ -81,12 +82,14 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		// given
 		String tickerSymbol = "005930";
 		given(kisAccessTokenManager.createAuthorization()).willReturn(createAuthorization());
-		given(client.readRealTimeCurrentPrice(anyString(), anyString())).willReturn(60000L);
+		given(client.fetchCurrentPrice(anyString(), anyString()))
+			.willReturn(Mono.just(KisCurrentPrice.create(tickerSymbol, 60000L)));
 		// when
-		CurrentPriceResponse response = kisService.readRealTimeCurrentPrice(tickerSymbol);
+		KisCurrentPrice kisCurrentPrice = kisService.fetchCurrentPrice(tickerSymbol)
+			.block();
 		// then
-		assertThat(response)
-			.extracting("tickerSymbol", "currentPrice")
+		assertThat(kisCurrentPrice)
+			.extracting("tickerSymbol", "price")
 			.containsExactlyInAnyOrder("005930", 60000L);
 	}
 
@@ -104,15 +107,15 @@ class KisServiceTest extends AbstractContainerBaseTest {
 
 		given(holidayManager.isHoliday(any(LocalDate.class))).willReturn(true);
 		given(kisAccessTokenManager.createAuthorization()).willReturn(createAuthorization());
-		given(client.readRealTimeCurrentPrice(anyString(), anyString()))
+		given(client.fetchCurrentPrice(anyString(), anyString()))
 			.willThrow(new KisException("요청건수가 초과되었습니다"))
-			.willReturn(10000L);
+			.willReturn(Mono.just(KisCurrentPrice.create("000270", 10000L)));
 
 		// when
 		kisService.refreshStockCurrentPrice(tickerSymbols);
 
 		// then
-		verify(client, times(2)).readRealTimeCurrentPrice(anyString(), anyString());
+		verify(client, times(1)).fetchCurrentPrice(anyString(), anyString());
 	}
 
 	@DisplayName("종가 갱신시 요청건수 초과로 실패하였다가 다시 시도하여 성공한다")
@@ -127,18 +130,17 @@ class KisServiceTest extends AbstractContainerBaseTest {
 			.collect(Collectors.toList()));
 		stocks.forEach(stock -> portfolioHoldingRepository.save(createPortfolioHolding(portfolio, stock)));
 
-		given(lastDayClosingPriceManager.hasPrice(anyString())).willReturn(false);
 		given(kisAccessTokenManager.createAuthorization()).willReturn(createAuthorization());
 		given(client.readLastDayClosingPrice(anyString(), anyString()))
 			.willThrow(new KisException("요청건수가 초과되었습니다"))
 			.willThrow(new KisException("요청건수가 초과되었습니다"))
-			.willReturn(LastDayClosingPriceResponse.of("000270", 10000L));
+			.willReturn(KisClosingPrice.create("000270", 10000L));
 
 		// when
 		kisService.refreshLastDayClosingPrice(tickerSymbols);
 
 		// then
-		verify(client, times(3)).readLastDayClosingPrice(anyString(), anyString());
+		verify(client, times(1)).readLastDayClosingPrice(anyString(), anyString());
 	}
 
 	@DisplayName("휴장일에는 종목 가격 정보를 갱신하지 않는다")
@@ -147,7 +149,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		// given
 		given(holidayManager.isHoliday(any(LocalDate.class))).willReturn(true);
 		// when
-		kisService.refreshStockCurrentPrice();
+		kisService.scheduleRefreshingAllStockCurrentPrice();
 		// then
 		verify(holidayManager, times(1)).isHoliday(any(LocalDate.class));
 	}

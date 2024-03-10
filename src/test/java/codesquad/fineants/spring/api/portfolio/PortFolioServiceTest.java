@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -42,15 +43,16 @@ import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.domain.stock.StockRepository;
 import codesquad.fineants.domain.stock_dividend.StockDividend;
 import codesquad.fineants.spring.AbstractContainerBaseTest;
-import codesquad.fineants.spring.api.errors.exception.BadRequestException;
-import codesquad.fineants.spring.api.errors.exception.ConflictException;
-import codesquad.fineants.spring.api.errors.exception.ForBiddenException;
+import codesquad.fineants.spring.api.common.errors.exception.BadRequestException;
+import codesquad.fineants.spring.api.common.errors.exception.ConflictException;
+import codesquad.fineants.spring.api.common.errors.exception.ForBiddenException;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.portfolio.request.PortfolioCreateRequest;
 import codesquad.fineants.spring.api.portfolio.request.PortfolioModifyRequest;
 import codesquad.fineants.spring.api.portfolio.request.PortfoliosDeleteRequest;
 import codesquad.fineants.spring.api.portfolio.response.PortFolioCreateResponse;
 import codesquad.fineants.spring.api.portfolio.response.PortfoliosResponse;
+import codesquad.fineants.spring.api.portfolio.service.PortFolioService;
 import codesquad.fineants.spring.util.ObjectMapperUtil;
 
 class PortFolioServiceTest extends AbstractContainerBaseTest {
@@ -420,7 +422,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 			.build());
 
 		given(currentPriceManager.hasCurrentPrice(anyString())).willReturn(true);
-		given(currentPriceManager.getCurrentPrice(anyString())).willReturn(40000L);
+		given(currentPriceManager.getCurrentPrice(anyString())).willReturn(Optional.of(40000L));
 
 		// when
 		PortfoliosResponse response = service.readMyAllPortfolio(AuthMember.from(member));

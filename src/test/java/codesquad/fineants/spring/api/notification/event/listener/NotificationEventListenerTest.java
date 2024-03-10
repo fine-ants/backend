@@ -3,6 +3,7 @@ package codesquad.fineants.spring.api.notification.event.listener;
 import static org.mockito.BDDMockito.*;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -32,8 +33,8 @@ import codesquad.fineants.domain.target_price_notification.TargetPriceNotificati
 import codesquad.fineants.spring.AbstractContainerBaseTest;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.purchase_history.event.NotificationEventListener;
+import codesquad.fineants.spring.api.purchase_history.event.PurchaseHistoryEventSendableParameter;
 import codesquad.fineants.spring.api.purchase_history.event.PushNotificationEvent;
-import codesquad.fineants.spring.api.purchase_history.event.SendableParameter;
 
 class NotificationEventListenerTest extends AbstractContainerBaseTest {
 
@@ -81,7 +82,7 @@ class NotificationEventListenerTest extends AbstractContainerBaseTest {
 		given(firebaseMessaging.send(any(Message.class)))
 			.willReturn("projects/fineants-404407/messages/4754d355-5d5d-4f14-a642-75fecdb91fa5");
 		given(currentPriceManager.getCurrentPrice(anyString()))
-			.willReturn(50000L);
+			.willReturn(Optional.of(50000L));
 
 		Member member = memberRepository.save(createMember());
 		notificationPreferenceRepository.save(NotificationPreference.builder()
@@ -98,7 +99,7 @@ class NotificationEventListenerTest extends AbstractContainerBaseTest {
 		purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding, 100L, 10000.0));
 
 		PushNotificationEvent event = new PushNotificationEvent(
-			SendableParameter.create(portfolio.getId(), member.getId()));
+			PurchaseHistoryEventSendableParameter.create(portfolio.getId(), member.getId()));
 		// when
 		notificationEventListener.notifyPortfolioTargetGainMessages(event);
 

@@ -23,6 +23,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.oauth.support.AuthPrincipalMember;
+import codesquad.fineants.spring.api.common.response.ApiResponse;
+import codesquad.fineants.spring.api.common.success.MemberSuccessCode;
+import codesquad.fineants.spring.api.common.success.OauthSuccessCode;
 import codesquad.fineants.spring.api.member.request.LoginRequest;
 import codesquad.fineants.spring.api.member.request.ModifyPasswordRequest;
 import codesquad.fineants.spring.api.member.request.OauthMemberLoginRequest;
@@ -42,9 +45,6 @@ import codesquad.fineants.spring.api.member.service.MemberService;
 import codesquad.fineants.spring.api.member.service.request.ProfileChangeServiceRequest;
 import codesquad.fineants.spring.api.member.service.request.SignUpServiceRequest;
 import codesquad.fineants.spring.api.member.service.response.SignUpServiceResponse;
-import codesquad.fineants.spring.api.response.ApiResponse;
-import codesquad.fineants.spring.api.success.code.MemberSuccessCode;
-import codesquad.fineants.spring.api.success.code.OauthSuccessCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 

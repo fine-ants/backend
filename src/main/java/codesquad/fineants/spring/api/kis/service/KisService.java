@@ -1,5 +1,6 @@
 package codesquad.fineants.spring.api.kis.service;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
@@ -15,16 +16,18 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import codesquad.fineants.domain.portfolio_holding.PortfolioHoldingRepository;
-import codesquad.fineants.spring.api.errors.exception.KisException;
+import codesquad.fineants.spring.api.common.errors.exception.KisException;
 import codesquad.fineants.spring.api.kis.client.KisClient;
+import codesquad.fineants.spring.api.kis.client.KisCurrentPrice;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.kis.manager.HolidayManager;
 import codesquad.fineants.spring.api.kis.manager.KisAccessTokenManager;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
-import codesquad.fineants.spring.api.kis.response.CurrentPriceResponse;
-import codesquad.fineants.spring.api.kis.response.LastDayClosingPriceResponse;
+import codesquad.fineants.spring.api.kis.response.KisClosingPrice;
+import codesquad.fineants.spring.api.stock_target_price.event.StockTargetPricePublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Mono;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -38,72 +41,67 @@ public class KisService {
 	private final CurrentPriceManager currentPriceManager;
 	private final LastDayClosingPriceManager lastDayClosingPriceManager;
 	private final HolidayManager holidayManager;
+	private final StockTargetPricePublisher stockTargetPricePublisher;
 
 	// 평일 9am ~ 15:59pm 5초마다 현재가 갱신 수행
 	@Scheduled(cron = "0/5 * 9-15 ? * MON,TUE,WED,THU,FRI")
-	public void refreshStockCurrentPrice() {
+	public void scheduleRefreshingAllStockCurrentPrice() {
 		// 휴장일인 경우 실행하지 않음
 		if (holidayManager.isHoliday(LocalDate.now())) {
 			return;
 		}
+		refreshAllStockCurrentPrice();
+	}
+
+	// 회원이 가지고 있는 모든 종목에 대하여 현재가 갱신
+	public List<KisCurrentPrice> refreshAllStockCurrentPrice() {
 		List<String> tickerSymbols = portFolioHoldingRepository.findAllTickerSymbol();
-		refreshStockCurrentPrice(tickerSymbols);
+		List<KisCurrentPrice> responses = refreshStockCurrentPrice(tickerSymbols);
+		stockTargetPricePublisher.publishEvent(tickerSymbols);
+		return responses;
 	}
 
 	// 주식 현재가 갱신
-	public void refreshStockCurrentPrice(List<String> tickerSymbols) {
-		List<CompletableFuture<CurrentPriceResponse>> futures = tickerSymbols.parallelStream()
+	public List<KisCurrentPrice> refreshStockCurrentPrice(List<String> tickerSymbols) {
+		List<CompletableFuture<KisCurrentPrice>> futures = tickerSymbols.parallelStream()
 			.map(this::createCompletableFuture)
 			.collect(Collectors.toList());
 
-		List<CurrentPriceResponse> currentPrices = futures.parallelStream()
+		List<KisCurrentPrice> currentPrices = futures.parallelStream()
 			.map(this::getCurrentPriceResponseWithTimeout)
 			.filter(Objects::nonNull)
 			.collect(Collectors.toList());
 		currentPrices.forEach(currentPriceManager::addCurrentPrice);
-
-		// 갱신 실패한 종목에 대해서 성공할때까지 갱신을 시도
-		int refreshedCount = currentPrices.size();
-		if (refreshedCount != tickerSymbols.size()) {
-			List<String> refreshedTickerSymbols = currentPrices.stream()
-				.map(CurrentPriceResponse::getTickerSymbol)
-				.collect(Collectors.toList());
-			List<String> failTickerSymbols = tickerSymbols.stream()
-				.filter(tickerSymbol -> !refreshedTickerSymbols.contains(tickerSymbol))
-				.collect(Collectors.toList());
-			refreshStockCurrentPrice(failTickerSymbols);
-		}
-		log.info("종목 현재가 {}개중 {}개 갱신", tickerSymbols.size(), refreshedCount);
+		log.info("종목 현재가 {}개중 {}개 갱신", tickerSymbols.size(), currentPrices.size());
+		return currentPrices;
 	}
 
-	private CompletableFuture<CurrentPriceResponse> createCompletableFuture(String tickerSymbol) {
-		CompletableFuture<CurrentPriceResponse> future = new CompletableFuture<>();
+	private CompletableFuture<KisCurrentPrice> createCompletableFuture(String tickerSymbol) {
+		CompletableFuture<KisCurrentPrice> future = new CompletableFuture<>();
 		future.completeOnTimeout(null, 10, TimeUnit.SECONDS);
 		future.exceptionally(e -> {
-			log.error(e.getMessage(), e);
+			log.error(e.getMessage());
 			return null;
 		});
-		executorService.schedule(createCurrentPriceRequest(tickerSymbol, future), 1L, TimeUnit.SECONDS);
+		executorService.schedule(() -> {
+			try {
+				future.complete(fetchCurrentPrice(tickerSymbol)
+					.blockOptional(Duration.ofMinutes(1L))
+					.orElseGet(() -> KisCurrentPrice.empty(tickerSymbol))
+				);
+			} catch (KisException e) {
+				log.error(e.getMessage());
+				future.completeExceptionally(e);
+			}
+		}, 1L, TimeUnit.SECONDS);
 		return future;
 	}
 
-	private Runnable createCurrentPriceRequest(final String tickerSymbol,
-		CompletableFuture<CurrentPriceResponse> future) {
-		return () -> {
-			try {
-				future.complete(readRealTimeCurrentPrice(tickerSymbol));
-			} catch (KisException e) {
-				future.completeExceptionally(e);
-			}
-		};
+	public Mono<KisCurrentPrice> fetchCurrentPrice(String tickerSymbol) {
+		return kisClient.fetchCurrentPrice(tickerSymbol, manager.createAuthorization());
 	}
 
-	public CurrentPriceResponse readRealTimeCurrentPrice(String tickerSymbol) {
-		long currentPrice = kisClient.readRealTimeCurrentPrice(tickerSymbol, manager.createAuthorization());
-		return new CurrentPriceResponse(tickerSymbol, currentPrice);
-	}
-
-	private CurrentPriceResponse getCurrentPriceResponseWithTimeout(CompletableFuture<CurrentPriceResponse> future) {
+	private KisCurrentPrice getCurrentPriceResponseWithTimeout(CompletableFuture<KisCurrentPrice> future) {
 		try {
 			return future.get(10L, TimeUnit.SECONDS);
 		} catch (InterruptedException | ExecutionException | TimeoutException e) {
@@ -111,8 +109,8 @@ public class KisService {
 		}
 	}
 
-	private List<LastDayClosingPriceResponse> readLastDayClosingPriceResponses(List<String> unknownTickerSymbols) {
-		List<CompletableFuture<LastDayClosingPriceResponse>> futures = unknownTickerSymbols.parallelStream()
+	private List<KisClosingPrice> readLastDayClosingPriceResponses(List<String> unknownTickerSymbols) {
+		List<CompletableFuture<KisClosingPrice>> futures = unknownTickerSymbols.parallelStream()
 			.map(this::createLastDayClosingPriceResponseCompletableFuture)
 			.collect(Collectors.toList());
 		return futures.parallelStream()
@@ -123,61 +121,31 @@ public class KisService {
 
 	// 15시 30분에 종가 갱신 수행
 	@Scheduled(cron = "* 30 15 * * *")
-	public void refreshLastDayClosingPrice() {
+	public void scheduleRefreshingAllLastDayClosingPrice() {
 		// 휴장일인 경우 실행하지 않음
 		if (holidayManager.isHoliday(LocalDate.now())) {
 			return;
 		}
+		refreshAllLastDayClosingPrice();
+	}
+
+	// 종목 종가 모두 갱신
+	public List<KisClosingPrice> refreshAllLastDayClosingPrice() {
 		List<String> tickerSymbols = portFolioHoldingRepository.findAllTickerSymbol();
-		refreshLastDayClosingPrice(tickerSymbols);
+		return refreshLastDayClosingPrice(tickerSymbols);
 	}
 
-	public void refreshLastDayClosingPrice(List<String> tickerSymbols) {
-		List<LastDayClosingPriceResponse> lastDayClosingPrices = readLastDayClosingPriceResponses(tickerSymbols);
+	// 종목 종가 일부 갱신
+	public List<KisClosingPrice> refreshLastDayClosingPrice(List<String> tickerSymbols) {
+		List<KisClosingPrice> lastDayClosingPrices = readLastDayClosingPriceResponses(tickerSymbols);
 		lastDayClosingPrices.forEach(
 			response -> lastDayClosingPriceManager.addPrice(response.getTickerSymbol(), response.getPrice()));
-
-		// 종가 갱신 실패하 종목들을 성공할때가지 계속 시도합니다.
-		int count = lastDayClosingPrices.size();
-		if (count != tickerSymbols.size()) {
-			List<String> refreshedTickerSymbols = lastDayClosingPrices.stream()
-				.map(LastDayClosingPriceResponse::getTickerSymbol)
-				.collect(Collectors.toList());
-			List<String> failTickerSymbols = tickerSymbols.stream()
-				.filter(tickerSymbol -> !refreshedTickerSymbols.contains(tickerSymbol))
-				.collect(Collectors.toList());
-			refreshLastDayClosingPriceForFailedStock(failTickerSymbols);
-		}
-
-		log.info("종목 종가 {}개중 {}개 갱신", tickerSymbols.size(), count);
+		log.info("종목 종가 {}개중 {}개 갱신", tickerSymbols.size(), lastDayClosingPrices.size());
+		return lastDayClosingPrices;
 	}
 
-	private void refreshLastDayClosingPriceForFailedStock(List<String> tickerSymbols) {
-		List<String> unknownTickerSymbols = tickerSymbols.stream()
-			.filter(tickerSymbol -> !lastDayClosingPriceManager.hasPrice(tickerSymbol))
-			.collect(Collectors.toList());
-
-		List<LastDayClosingPriceResponse> lastDayClosingPrices = readLastDayClosingPriceResponses(unknownTickerSymbols);
-		lastDayClosingPrices.forEach(
-			response -> lastDayClosingPriceManager.addPrice(response.getTickerSymbol(), response.getPrice()));
-
-		// 종가 갱신 실패하 종목들을 성공할때가지 계속 시도합니다.
-		int count = lastDayClosingPrices.size();
-		if (count != unknownTickerSymbols.size()) {
-			List<String> refreshedTickerSymbols = lastDayClosingPrices.stream()
-				.map(LastDayClosingPriceResponse::getTickerSymbol)
-				.collect(Collectors.toList());
-			List<String> failTickerSymbols = unknownTickerSymbols.stream()
-				.filter(tickerSymbol -> !refreshedTickerSymbols.contains(tickerSymbol))
-				.collect(Collectors.toList());
-			refreshLastDayClosingPriceForFailedStock(failTickerSymbols);
-		}
-
-		log.info("종목 종가 {}개중 {}개 갱신", tickerSymbols.size(), count);
-	}
-
-	private LastDayClosingPriceResponse getLastDayClosingPriceResponseWithTimeout(
-		CompletableFuture<LastDayClosingPriceResponse> future) {
+	private KisClosingPrice getLastDayClosingPriceResponseWithTimeout(
+		CompletableFuture<KisClosingPrice> future) {
 		try {
 			return future.get(10L, TimeUnit.SECONDS);
 		} catch (InterruptedException | ExecutionException | TimeoutException e) {
@@ -185,9 +153,9 @@ public class KisService {
 		}
 	}
 
-	private CompletableFuture<LastDayClosingPriceResponse> createLastDayClosingPriceResponseCompletableFuture(
+	private CompletableFuture<KisClosingPrice> createLastDayClosingPriceResponseCompletableFuture(
 		String tickerSymbol) {
-		CompletableFuture<LastDayClosingPriceResponse> future = new CompletableFuture<>();
+		CompletableFuture<KisClosingPrice> future = new CompletableFuture<>();
 		future.completeOnTimeout(null, 10L, TimeUnit.SECONDS);
 		future.exceptionally(e -> {
 			log.error(e.getMessage(), e);
@@ -198,7 +166,7 @@ public class KisService {
 	}
 
 	private Runnable createLastDayClosingPriceRequest(final String tickerSymbol,
-		CompletableFuture<LastDayClosingPriceResponse> future) {
+		CompletableFuture<KisClosingPrice> future) {
 		return () -> {
 			try {
 				future.complete(kisClient.readLastDayClosingPrice(tickerSymbol, manager.createAuthorization()));

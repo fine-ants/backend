@@ -15,6 +15,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -46,11 +47,11 @@ import codesquad.fineants.domain.purchase_history.PurchaseHistory;
 import codesquad.fineants.domain.stock.Market;
 import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.domain.stock_dividend.StockDividend;
-import codesquad.fineants.spring.api.errors.errorcode.PortfolioErrorCode;
-import codesquad.fineants.spring.api.errors.exception.NotFoundResourceException;
-import codesquad.fineants.spring.api.errors.handler.GlobalExceptionHandler;
+import codesquad.fineants.spring.api.common.errors.errorcode.PortfolioErrorCode;
+import codesquad.fineants.spring.api.common.errors.exception.NotFoundResourceException;
+import codesquad.fineants.spring.api.common.errors.handler.GlobalExceptionHandler;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
-import codesquad.fineants.spring.api.portfolio.PortFolioService;
+import codesquad.fineants.spring.api.portfolio.service.PortFolioService;
 import codesquad.fineants.spring.api.portfolio_stock.chart.DividendChart;
 import codesquad.fineants.spring.api.portfolio_stock.chart.PieChart;
 import codesquad.fineants.spring.api.portfolio_stock.chart.SectorChart;
@@ -408,8 +409,8 @@ class PortfolioStockRestControllerTest {
 		portfolioHolding.addPurchaseHistory(
 			createPurchaseHistory(portfolioHolding, LocalDateTime.of(2024, 1, 16, 9, 30, 0)));
 
-		given(currentPriceManager.getCurrentPrice(stock.getTickerSymbol())).willReturn(
-			portfolioHolding.getCurrentPrice());
+		given(currentPriceManager.getCurrentPrice(stock.getTickerSymbol()))
+			.willReturn(Optional.of(portfolioHolding.getCurrentPrice()));
 
 		List<PortfolioPieChartItem> pieChartItems = this.pieChart.createBy(portfolio);
 		List<PortfolioDividendChartItem> dividendChartItems = this.dividendChart.createBy(portfolio,

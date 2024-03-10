@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 import codesquad.fineants.spring.api.kis.client.KisClient;
 import codesquad.fineants.spring.api.kis.manager.KisAccessTokenManager;
 import codesquad.fineants.spring.api.kis.properties.OauthKisProperties;
-import codesquad.fineants.spring.api.kis.service.KisRedisService;
+import codesquad.fineants.spring.api.kis.service.KisAccessTokenRedisService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -23,18 +23,18 @@ public class AccessTokenAspect {
 
 	private final KisAccessTokenManager manager;
 	private final KisClient client;
-	private final KisRedisService redisService;
+	private final KisAccessTokenRedisService redisService;
 	private final OauthKisProperties oauthKisProperties;
 
-	@Pointcut("execution(* codesquad.fineants.spring.api.kis.service.KisService.refreshStockCurrentPrice())")
-	public void refreshStockPrice() {
+	@Pointcut("execution(* codesquad.fineants.spring.api.kis.service.KisService.scheduleRefreshingAllStockCurrentPrice())")
+	public void scheduleRefreshingAllStockCurrentPrice() {
 	}
 
-	@Pointcut("execution(* codesquad.fineants.spring.api.kis.service.KisService.refreshLastDayClosingPrice())")
-	public void refreshLastDayClosingPrice() {
+	@Pointcut("execution(* codesquad.fineants.spring.api.kis.service.KisService.scheduleRefreshingAllLastDayClosingPrice())")
+	public void scheduleRefreshingAllLastDayClosingPrice() {
 	}
 
-	@Before(value = "refreshStockPrice() || refreshLastDayClosingPrice()")
+	@Before(value = "scheduleRefreshingAllStockCurrentPrice() || scheduleRefreshingAllLastDayClosingPrice()")
 	public void checkAccessTokenExpiration() {
 		LocalDateTime now = LocalDateTime.now();
 		if (manager.isAccessTokenExpired(now)) {
@@ -45,7 +45,7 @@ public class AccessTokenAspect {
 
 	private void handleNewAccessToken(LocalDateTime now) {
 		CountDownLatch latch = new CountDownLatch(1);
-		client.accessToken(oauthKisProperties.getTokenURI())
+		client.fetchAccessToken()
 			.subscribe(accessToken -> {
 					redisService.setAccessTokenMap(accessToken, now);
 					manager.refreshAccessToken(accessToken);

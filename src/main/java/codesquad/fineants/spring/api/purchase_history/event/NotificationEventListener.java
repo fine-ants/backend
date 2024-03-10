@@ -20,7 +20,8 @@ public class NotificationEventListener {
 	@Async
 	@EventListener
 	public void notifyPortfolioTargetGainMessages(PushNotificationEvent event) {
-		SendableParameter parameter = event.getValue();
+		PurchaseHistoryEventSendableParameter parameter = event.getValue();
+
 		NotifyPortfolioMessagesResponse response = notificationService.notifyPortfolioTargetGainMessages(
 			parameter.getPortfolioId(), parameter.getMemberId());
 		log.info("매입 이력 이벤트로 인한 목표 수익률 달성 알림 결과 : {}", response);
@@ -30,7 +31,7 @@ public class NotificationEventListener {
 	@Async
 	@EventListener
 	public void notifyPortfolioMaxLossMessages(PushNotificationEvent event) {
-		SendableParameter parameter = event.getValue();
+		PurchaseHistoryEventSendableParameter parameter = event.getValue();
 		NotifyPortfolioMessagesResponse response = notificationService.notifyPortfolioMaxLossMessages(
 			parameter.getPortfolioId(),
 			parameter.getMemberId());

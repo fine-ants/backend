@@ -23,6 +23,13 @@ public interface StockTargetPriceRepository extends JpaRepository<StockTargetPri
 	@Query("select distinct s from StockTargetPrice s join fetch s.targetPriceNotifications t join fetch s.stock where s.member.id = :memberId order by s.createAt asc, t.targetPrice asc")
 	List<StockTargetPrice> findAllByMemberId(@Param("memberId") Long memberId);
 
+	@Query("select distinct s from StockTargetPrice s join fetch s.targetPriceNotifications t join fetch s.stock stock where stock.tickerSymbol in (:tickerSymbols) order by s.createAt asc, t.targetPrice asc")
+	List<StockTargetPrice> findAllByTickerSymbols(@Param("tickerSymbols") List<String> tickerSymbols);
+
+	@Query("select distinct s from StockTargetPrice s join fetch s.targetPriceNotifications t join fetch s.stock stock where s.member.id = :memberId and stock.tickerSymbol in (:tickerSymbols) order by s.createAt asc, t.targetPrice asc")
+	List<StockTargetPrice> findAllByMemberIdAndTickerSymbols(@Param("memberId") Long memberId,
+		@Param("tickerSymbols") List<String> tickerSymbols);
+
 	@Modifying
 	@Query("delete from StockTargetPrice s where s.stock.tickerSymbol = :tickerSymbol and s.member.id = :memberId")
 	int deleteByTickerSymbolAndMemberId(@Param("tickerSymbol") String tickerSymbol, @Param("memberId") Long memberId);

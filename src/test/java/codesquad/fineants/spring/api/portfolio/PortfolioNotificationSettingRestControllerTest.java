@@ -26,9 +26,11 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.oauth.support.AuthPrincipalArgumentResolver;
-import codesquad.fineants.spring.api.errors.handler.GlobalExceptionHandler;
-import codesquad.fineants.spring.api.portfolio.response.PortfolioNotificationSettingSearchItem;
-import codesquad.fineants.spring.api.portfolio.response.PortfolioNotificationSettingSearchResponse;
+import codesquad.fineants.spring.api.common.errors.handler.GlobalExceptionHandler;
+import codesquad.fineants.spring.api.portfolio_notification_setting.controller.PortfolioNotificationSettingRestController;
+import codesquad.fineants.spring.api.portfolio_notification_setting.response.PortfolioNotificationSettingSearchItem;
+import codesquad.fineants.spring.api.portfolio_notification_setting.response.PortfolioNotificationSettingSearchResponse;
+import codesquad.fineants.spring.api.portfolio_notification_setting.service.PortfolioNotificationSettingService;
 import codesquad.fineants.spring.config.JpaAuditingConfiguration;
 
 @ActiveProfiles("test")

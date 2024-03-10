@@ -9,8 +9,8 @@ import java.util.concurrent.TimeUnit;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import codesquad.fineants.spring.api.errors.errorcode.OauthErrorCode;
-import codesquad.fineants.spring.api.errors.exception.BadRequestException;
+import codesquad.fineants.spring.api.common.errors.errorcode.OauthErrorCode;
+import codesquad.fineants.spring.api.common.errors.exception.BadRequestException;
 import codesquad.fineants.spring.api.member.request.AuthorizationRequest;
 
 @Component

@@ -8,12 +8,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.oauth.support.AuthPrincipalMember;
+import codesquad.fineants.spring.api.common.response.ApiResponse;
+import codesquad.fineants.spring.api.common.success.DashboardSuccessCode;
 import codesquad.fineants.spring.api.dashboard.response.DashboardLineChartResponse;
 import codesquad.fineants.spring.api.dashboard.response.DashboardPieChartResponse;
 import codesquad.fineants.spring.api.dashboard.response.OverviewResponse;
 import codesquad.fineants.spring.api.dashboard.service.DashboardService;
-import codesquad.fineants.spring.api.response.ApiResponse;
-import codesquad.fineants.spring.api.success.code.DashboardSuccessCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 

@@ -30,9 +30,9 @@ import codesquad.fineants.domain.stock.StockRepository;
 import codesquad.fineants.domain.stock_dividend.StockDividend;
 import codesquad.fineants.domain.stock_dividend.StockDividendRepository;
 import codesquad.fineants.spring.AbstractContainerBaseTest;
+import codesquad.fineants.spring.api.kis.client.KisCurrentPrice;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
-import codesquad.fineants.spring.api.kis.response.CurrentPriceResponse;
 import codesquad.fineants.spring.api.portfolio_stock.event.PortfolioEvent;
 import codesquad.fineants.spring.api.portfolio_stock.manager.SseEmitterKey;
 import codesquad.fineants.spring.api.portfolio_stock.manager.SseEmitterManager;
@@ -99,7 +99,7 @@ class PortfolioEventListenerTest extends AbstractContainerBaseTest {
 		stockDividendRepository.saveAll(createStockDividendWith(stock));
 		PortfolioHolding portfolioHolding = portfolioHoldingRepository.save(createPortfolioHolding(portfolio, stock));
 		purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding));
-		currentPriceManager.addCurrentPrice(new CurrentPriceResponse("005930", 60000L));
+		currentPriceManager.addCurrentPrice(KisCurrentPrice.create("005930", 60000L));
 		lastDayClosingPriceManager.addPrice("005930", 50000);
 
 		SseEmitter emitter = mock(SseEmitter.class);
@@ -131,7 +131,7 @@ class PortfolioEventListenerTest extends AbstractContainerBaseTest {
 		stockDividendRepository.saveAll(createStockDividendWith(stock));
 		PortfolioHolding portfolioHolding = portfolioHoldingRepository.save(createPortfolioHolding(portfolio, stock));
 		purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding));
-		currentPriceManager.addCurrentPrice(new CurrentPriceResponse("005930", 60000L));
+		currentPriceManager.addCurrentPrice(KisCurrentPrice.create("005930", 60000L));
 		lastDayClosingPriceManager.addPrice("005930", 50000);
 
 		SseEmitter emitter = mock(SseEmitter.class);

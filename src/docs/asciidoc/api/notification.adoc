@@ -1,5 +1,7 @@
 [[notification-create]]
-=== 알림 추가
+=== 포트폴리오 알림 추가
+
+해당 API는 내부 API입니다.
 
 ==== HTTP Request
 
@@ -12,9 +14,10 @@ include::{snippets}/notification-create/request-fields.adoc[]
 include::{snippets}/notification-create/http-response.adoc[]
 include::{snippets}/notification-create/response-fields.adoc[]
 
+[[notification_portfolio_target_gain-notify]]
 === 포트폴리오 목표 수익률 도달 알림
 
-해당 API는 개발용 API입니다.
+해당 API는 내부 API입니다.
 
 ==== HTTP Request
 
@@ -27,9 +30,10 @@ include::{snippets}/notification_portfolio_target_gain-notify/path-parameters.ad
 include::{snippets}/notification_portfolio_target_gain-notify/http-response.adoc[]
 include::{snippets}/notification_portfolio_target_gain-notify/response-fields.adoc[]
 
+[[notification_portfolio_max_loss-notify]]
 === 포트폴리오 최대 손실율 도달 알림
 
-해당 API는 개발용 API입니다.
+해당 API는 내부 API입니다.
 
 ==== HTTP Request
 

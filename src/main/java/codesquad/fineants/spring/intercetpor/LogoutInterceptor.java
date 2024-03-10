@@ -10,8 +10,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.HandlerInterceptor;
 
-import codesquad.fineants.spring.api.errors.errorcode.JwtErrorCode;
-import codesquad.fineants.spring.api.errors.exception.UnAuthorizationException;
+import codesquad.fineants.spring.api.common.errors.errorcode.JwtErrorCode;
+import codesquad.fineants.spring.api.common.errors.exception.UnAuthorizationException;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

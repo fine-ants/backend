@@ -19,6 +19,8 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.oauth.support.AuthPrincipalMember;
+import codesquad.fineants.spring.api.common.response.ApiResponse;
+import codesquad.fineants.spring.api.common.success.PortfolioStockSuccessCode;
 import codesquad.fineants.spring.api.portfolio_stock.manager.SseEmitterKey;
 import codesquad.fineants.spring.api.portfolio_stock.manager.SseEmitterManager;
 import codesquad.fineants.spring.api.portfolio_stock.request.PortfolioStockCreateRequest;
@@ -26,8 +28,6 @@ import codesquad.fineants.spring.api.portfolio_stock.request.PortfolioStocksDele
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioChartResponse;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioHoldingsResponse;
 import codesquad.fineants.spring.api.portfolio_stock.service.PortfolioStockService;
-import codesquad.fineants.spring.api.response.ApiResponse;
-import codesquad.fineants.spring.api.success.code.PortfolioStockSuccessCode;
 import codesquad.fineants.spring.auth.HasPortfolioAuthorization;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

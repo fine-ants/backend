@@ -12,8 +12,8 @@ import java.util.stream.Collectors;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
-import codesquad.fineants.spring.api.errors.errorcode.FileErrorCode;
-import codesquad.fineants.spring.api.errors.exception.ServerInternalException;
+import codesquad.fineants.spring.api.common.errors.errorcode.FileErrorCode;
+import codesquad.fineants.spring.api.common.errors.exception.ServerInternalException;
 import codesquad.fineants.spring.api.stock.response.StockDataResponse;
 
 public class StockFileUtil {

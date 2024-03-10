@@ -1,6 +1,5 @@
 package codesquad.fineants.spring.api.kis.aop;
 
-import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
 
 import java.time.Duration;
@@ -18,7 +17,7 @@ import codesquad.fineants.spring.api.kis.client.KisAccessToken;
 import codesquad.fineants.spring.api.kis.client.KisClient;
 import codesquad.fineants.spring.api.kis.manager.KisAccessTokenManager;
 import codesquad.fineants.spring.api.kis.properties.OauthKisProperties;
-import codesquad.fineants.spring.api.kis.service.KisRedisService;
+import codesquad.fineants.spring.api.kis.service.KisAccessTokenRedisService;
 import reactor.core.publisher.Mono;
 
 class AccessTokenAspectTest extends AbstractContainerBaseTest {
@@ -27,14 +26,14 @@ class AccessTokenAspectTest extends AbstractContainerBaseTest {
 	private KisClient client;
 
 	@Autowired
-	private KisRedisService kisRedisService;
+	private KisAccessTokenRedisService kisAccessTokenRedisService;
 
 	@Autowired
 	private OauthKisProperties oauthKisProperties;
 
 	@AfterEach
 	void tearDown() {
-		kisRedisService.deleteAccessTokenMap();
+		kisAccessTokenRedisService.deleteAccessTokenMap();
 	}
 
 	@DisplayName("액세스 토큰을 새로 발급하여 redis에 저장한다")
@@ -42,10 +41,10 @@ class AccessTokenAspectTest extends AbstractContainerBaseTest {
 	void checkAccessTokenExpiration() {
 		// given
 		AccessTokenAspect accessTokenAspect = new AccessTokenAspect(new KisAccessTokenManager(null), client,
-			kisRedisService, oauthKisProperties);
-		kisRedisService.deleteAccessTokenMap();
+			kisAccessTokenRedisService, oauthKisProperties);
+		kisAccessTokenRedisService.deleteAccessTokenMap();
 
-		given(client.accessToken(anyString()))
+		given(client.fetchAccessToken())
 			.willReturn(
 				Mono.just(createKisAccessToken())
 					.delayElement(Duration.ofMillis(500L))
@@ -53,7 +52,7 @@ class AccessTokenAspectTest extends AbstractContainerBaseTest {
 		// when
 		accessTokenAspect.checkAccessTokenExpiration();
 		// then
-		Assertions.assertThat(kisRedisService.getAccessTokenMap().isPresent()).isTrue();
+		Assertions.assertThat(kisAccessTokenRedisService.getAccessTokenMap().isPresent()).isTrue();
 	}
 
 	private KisAccessToken createKisAccessToken() {

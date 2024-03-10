@@ -20,8 +20,8 @@ public class StartupApplicationListener implements ApplicationListener<ContextRe
 	@Override
 	public void onApplicationEvent(ContextRefreshedEvent event) {
 		log.info("애플리케이션 시작시 종목 현재가 및 종가 초기화 시작");
-		kisService.refreshStockCurrentPrice();
-		kisService.refreshLastDayClosingPrice();
+		kisService.scheduleRefreshingAllStockCurrentPrice();
+		kisService.scheduleRefreshingAllLastDayClosingPrice();
 		log.info("애플리케이션 시작시 종목 현재가 및 종가 초기화 종료");
 	}
 }

@@ -7,6 +7,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Optional;
 
 import org.assertj.core.data.Offset;
 import org.junit.jupiter.api.AfterEach;
@@ -122,7 +123,7 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 		given(currentPriceManager.hasCurrentPrice(anyString()))
 			.willReturn(true);
 		given(currentPriceManager.getCurrentPrice(anyString()))
-			.willReturn(72900L);
+			.willReturn(Optional.of(72900L));
 		// when
 		OverviewResponse response = dashboardService.getOverview(authMember);
 
@@ -150,7 +151,7 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 		given(currentPriceManager.hasCurrentPrice(anyString()))
 			.willReturn(true);
 		given(currentPriceManager.getCurrentPrice(anyString()))
-			.willReturn(50000L);
+			.willReturn(Optional.of(50000L));
 
 		// when
 		OverviewResponse response = dashboardService.getOverview(AuthMember.from(member));
@@ -199,7 +200,7 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 		given(currentPriceManager.hasCurrentPrice(anyString()))
 			.willReturn(true);
 		given(currentPriceManager.getCurrentPrice(anyString()))
-			.willReturn(60000L);
+			.willReturn(Optional.of(60000L));
 		// when
 		List<DashboardPieChartResponse> responses = dashboardService.getPieChart(authMember);
 

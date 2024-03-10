@@ -14,7 +14,8 @@ import codesquad.fineants.domain.member.MemberRepository;
 import codesquad.fineants.domain.portfolio.Portfolio;
 import codesquad.fineants.domain.portfolio.PortfolioRepository;
 import codesquad.fineants.spring.AbstractContainerBaseTest;
-import codesquad.fineants.spring.api.portfolio.response.PortfolioNotificationSettingSearchResponse;
+import codesquad.fineants.spring.api.portfolio_notification_setting.response.PortfolioNotificationSettingSearchResponse;
+import codesquad.fineants.spring.api.portfolio_notification_setting.service.PortfolioNotificationSettingService;
 
 class PortfolioNotificationSettingServiceTest extends AbstractContainerBaseTest {
 	@Autowired
