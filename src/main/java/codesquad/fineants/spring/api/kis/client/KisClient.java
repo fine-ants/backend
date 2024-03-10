@@ -24,8 +24,6 @@ import reactor.util.retry.Retry;
 @Component
 public class KisClient {
 
-	private static final Duration TIMEOUT = Duration.ofMinutes(1L);
-
 	private final WebClient webClient;
 	private final OauthKisProperties oauthKisProperties;
 
@@ -73,7 +71,7 @@ public class KisClient {
 	}
 
 	// 직전 거래일의 종가 조회
-	public KisClosingPrice readLastDayClosingPrice(String tickerSymbol, String authorization) {
+	public Mono<KisClosingPrice> readLastDayClosingPrice(String tickerSymbol, String authorization) {
 		MultiValueMap<String, String> headerMap = new LinkedMultiValueMap<>();
 		headerMap.add("authorization", authorization);
 		headerMap.add("appkey", oauthKisProperties.getAppkey());
@@ -88,16 +86,12 @@ public class KisClient {
 		queryParamMap.add("FID_PERIOD_DIV_CODE", "D");
 		queryParamMap.add("FID_ORG_ADJ_PRC", "0");
 
-		KisClosingPrice kisClosingPrice = performGet(
+		return performGet(
 			oauthKisProperties.getLastDayClosingPriceURI(),
 			headerMap,
 			queryParamMap,
 			KisClosingPrice.class
-		)
-			.blockOptional(TIMEOUT)
-			.orElseGet(() -> KisClosingPrice.empty(tickerSymbol));
-		log.debug("lastDayClosingPriceResponse : {}", kisClosingPrice);
-		return kisClosingPrice;
+		);
 	}
 
 	private <T> Mono<T> performGet(String uri, MultiValueMap<String, String> headerMap,

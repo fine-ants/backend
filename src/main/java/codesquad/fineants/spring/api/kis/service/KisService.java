@@ -34,6 +34,7 @@ import reactor.core.publisher.Mono;
 @Service
 public class KisService {
 	private static final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
+	private static final Duration TIMEOUT = Duration.ofMinutes(1L);
 
 	private final KisClient kisClient;
 	private final PortfolioHoldingRepository portFolioHoldingRepository;
@@ -63,58 +64,71 @@ public class KisService {
 
 	// 주식 현재가 갱신
 	public List<KisCurrentPrice> refreshStockCurrentPrice(List<String> tickerSymbols) {
-		List<CompletableFuture<KisCurrentPrice>> futures = tickerSymbols.parallelStream()
-			.map(this::createCompletableFuture)
+		List<CompletableFuture<KisCurrentPrice>> futures = tickerSymbols.stream()
+			.map(this::submitCurrentPriceFuture)
 			.collect(Collectors.toList());
 
-		List<KisCurrentPrice> currentPrices = futures.parallelStream()
-			.map(this::getCurrentPriceResponseWithTimeout)
+		List<KisCurrentPrice> prices = futures.stream()
+			.map(future -> {
+				try {
+					return future.get(1L, TimeUnit.MINUTES);
+				} catch (InterruptedException | ExecutionException | TimeoutException e) {
+					return null;
+				}
+			})
 			.filter(Objects::nonNull)
 			.collect(Collectors.toList());
-		currentPrices.forEach(currentPriceManager::addCurrentPrice);
-		log.info("종목 현재가 {}개중 {}개 갱신", tickerSymbols.size(), currentPrices.size());
-		return currentPrices;
+		prices.forEach(currentPriceManager::addCurrentPrice);
+		log.info("종목 현재가 {}개중 {}개 갱신", tickerSymbols.size(), prices.size());
+		return prices;
 	}
 
-	private CompletableFuture<KisCurrentPrice> createCompletableFuture(String tickerSymbol) {
-		CompletableFuture<KisCurrentPrice> future = new CompletableFuture<>();
-		future.completeOnTimeout(null, 10, TimeUnit.SECONDS);
+	private CompletableFuture<KisCurrentPrice> submitCurrentPriceFuture(String tickerSymbol) {
+		CompletableFuture<KisCurrentPrice> future = createCompletableFuture();
+		executorService.schedule(createCurrentPriceRunnable(tickerSymbol, future), 1L, TimeUnit.SECONDS);
+		return future;
+	}
+
+	private <T> CompletableFuture<T> createCompletableFuture() {
+		CompletableFuture<T> future = new CompletableFuture<>();
+		future.orTimeout(TIMEOUT.toMillis(), TimeUnit.MILLISECONDS);
 		future.exceptionally(e -> {
 			log.error(e.getMessage());
 			return null;
 		});
-		executorService.schedule(() -> {
+		return future;
+	}
+
+	private Runnable createCurrentPriceRunnable(String tickerSymbol, CompletableFuture<KisCurrentPrice> future) {
+		return () -> {
 			try {
 				future.complete(fetchCurrentPrice(tickerSymbol)
 					.blockOptional(Duration.ofMinutes(1L))
 					.orElseGet(() -> KisCurrentPrice.empty(tickerSymbol))
 				);
 			} catch (KisException e) {
-				log.error(e.getMessage());
 				future.completeExceptionally(e);
 			}
-		}, 1L, TimeUnit.SECONDS);
-		return future;
+		};
 	}
 
 	public Mono<KisCurrentPrice> fetchCurrentPrice(String tickerSymbol) {
 		return kisClient.fetchCurrentPrice(tickerSymbol, manager.createAuthorization());
 	}
 
-	private KisCurrentPrice getCurrentPriceResponseWithTimeout(CompletableFuture<KisCurrentPrice> future) {
-		try {
-			return future.get(10L, TimeUnit.SECONDS);
-		} catch (InterruptedException | ExecutionException | TimeoutException e) {
-			return null;
-		}
-	}
-
 	private List<KisClosingPrice> readLastDayClosingPriceResponses(List<String> unknownTickerSymbols) {
-		List<CompletableFuture<KisClosingPrice>> futures = unknownTickerSymbols.parallelStream()
-			.map(this::createLastDayClosingPriceResponseCompletableFuture)
+		List<CompletableFuture<KisClosingPrice>> futures = unknownTickerSymbols.stream()
+			.map(this::createClosingPriceFuture)
 			.collect(Collectors.toList());
-		return futures.parallelStream()
-			.map(this::getLastDayClosingPriceResponseWithTimeout)
+
+		return futures.stream()
+			.map(future -> {
+				try {
+					return future.get(1L, TimeUnit.MINUTES);
+				} catch (InterruptedException | ExecutionException | TimeoutException e) {
+					return null;
+				}
+			})
 			.filter(Objects::nonNull)
 			.collect(Collectors.toList());
 	}
@@ -138,41 +152,28 @@ public class KisService {
 	// 종목 종가 일부 갱신
 	public List<KisClosingPrice> refreshLastDayClosingPrice(List<String> tickerSymbols) {
 		List<KisClosingPrice> lastDayClosingPrices = readLastDayClosingPriceResponses(tickerSymbols);
-		lastDayClosingPrices.forEach(
-			response -> lastDayClosingPriceManager.addPrice(response.getTickerSymbol(), response.getPrice()));
+		lastDayClosingPrices.forEach(lastDayClosingPriceManager::addPrice);
 		log.info("종목 종가 {}개중 {}개 갱신", tickerSymbols.size(), lastDayClosingPrices.size());
 		return lastDayClosingPrices;
 	}
 
-	private KisClosingPrice getLastDayClosingPriceResponseWithTimeout(
-		CompletableFuture<KisClosingPrice> future) {
-		try {
-			return future.get(10L, TimeUnit.SECONDS);
-		} catch (InterruptedException | ExecutionException | TimeoutException e) {
-			return null;
-		}
-	}
-
-	private CompletableFuture<KisClosingPrice> createLastDayClosingPriceResponseCompletableFuture(
+	private CompletableFuture<KisClosingPrice> createClosingPriceFuture(
 		String tickerSymbol) {
 		CompletableFuture<KisClosingPrice> future = new CompletableFuture<>();
-		future.completeOnTimeout(null, 10L, TimeUnit.SECONDS);
+		future.completeOnTimeout(null, 1L, TimeUnit.MINUTES);
 		future.exceptionally(e -> {
 			log.error(e.getMessage(), e);
 			return null;
 		});
-		executorService.schedule(createLastDayClosingPriceRequest(tickerSymbol, future), 1L, TimeUnit.SECONDS);
-		return future;
-	}
-
-	private Runnable createLastDayClosingPriceRequest(final String tickerSymbol,
-		CompletableFuture<KisClosingPrice> future) {
-		return () -> {
+		executorService.schedule(() -> {
 			try {
-				future.complete(kisClient.readLastDayClosingPrice(tickerSymbol, manager.createAuthorization()));
+				future.complete(kisClient.readLastDayClosingPrice(tickerSymbol, manager.createAuthorization())
+					.blockOptional(TIMEOUT)
+					.orElseGet(() -> KisClosingPrice.empty(tickerSymbol)));
 			} catch (KisException e) {
 				future.completeExceptionally(e);
 			}
-		};
+		}, 1L, TimeUnit.SECONDS);
+		return future;
 	}
 }
