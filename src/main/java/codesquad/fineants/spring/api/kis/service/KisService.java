@@ -57,9 +57,9 @@ public class KisService {
 	// 회원이 가지고 있는 모든 종목에 대하여 현재가 갱신
 	public List<KisCurrentPrice> refreshAllStockCurrentPrice() {
 		List<String> tickerSymbols = portFolioHoldingRepository.findAllTickerSymbol();
-		List<KisCurrentPrice> responses = refreshStockCurrentPrice(tickerSymbols);
+		List<KisCurrentPrice> prices = refreshStockCurrentPrice(tickerSymbols);
 		stockTargetPricePublisher.publishEvent(tickerSymbols);
-		return responses;
+		return prices;
 	}
 
 	// 주식 현재가 갱신
@@ -78,7 +78,9 @@ public class KisService {
 			})
 			.filter(Objects::nonNull)
 			.collect(Collectors.toList());
+
 		prices.forEach(currentPriceManager::addCurrentPrice);
+
 		log.info("종목 현재가 {}개중 {}개 갱신", tickerSymbols.size(), prices.size());
 		return prices;
 	}
@@ -116,23 +118,6 @@ public class KisService {
 		return kisClient.fetchCurrentPrice(tickerSymbol, manager.createAuthorization());
 	}
 
-	private List<KisClosingPrice> readLastDayClosingPriceResponses(List<String> unknownTickerSymbols) {
-		List<CompletableFuture<KisClosingPrice>> futures = unknownTickerSymbols.stream()
-			.map(this::createClosingPriceFuture)
-			.collect(Collectors.toList());
-
-		return futures.stream()
-			.map(future -> {
-				try {
-					return future.get(1L, TimeUnit.MINUTES);
-				} catch (InterruptedException | ExecutionException | TimeoutException e) {
-					return null;
-				}
-			})
-			.filter(Objects::nonNull)
-			.collect(Collectors.toList());
-	}
-
 	// 15시 30분에 종가 갱신 수행
 	@Scheduled(cron = "* 30 15 * * *")
 	public void scheduleRefreshingAllLastDayClosingPrice() {
@@ -157,14 +142,26 @@ public class KisService {
 		return lastDayClosingPrices;
 	}
 
+	private List<KisClosingPrice> readLastDayClosingPriceResponses(List<String> unknownTickerSymbols) {
+		List<CompletableFuture<KisClosingPrice>> futures = unknownTickerSymbols.stream()
+			.map(this::createClosingPriceFuture)
+			.collect(Collectors.toList());
+
+		return futures.stream()
+			.map(future -> {
+				try {
+					return future.get(1L, TimeUnit.MINUTES);
+				} catch (InterruptedException | ExecutionException | TimeoutException e) {
+					return null;
+				}
+			})
+			.filter(Objects::nonNull)
+			.collect(Collectors.toList());
+	}
+
 	private CompletableFuture<KisClosingPrice> createClosingPriceFuture(
 		String tickerSymbol) {
-		CompletableFuture<KisClosingPrice> future = new CompletableFuture<>();
-		future.completeOnTimeout(null, 1L, TimeUnit.MINUTES);
-		future.exceptionally(e -> {
-			log.error(e.getMessage(), e);
-			return null;
-		});
+		CompletableFuture<KisClosingPrice> future = createCompletableFuture();
 		executorService.schedule(() -> {
 			try {
 				future.complete(kisClient.readLastDayClosingPrice(tickerSymbol, manager.createAuthorization())

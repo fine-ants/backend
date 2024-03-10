@@ -150,14 +150,6 @@ public class StockTargetPriceNotificationService {
 	}
 
 	private TargetPriceNotificationSendResponse sendStockTargetPriceNotification(List<StockTargetPrice> stocks) {
-		// 회원 id 추출
-		List<Long> memberIds = stocks.stream()
-			.map(StockTargetPrice::getMember)
-			.filter(member -> member.getNotificationPreference().isPossibleStockTargetPriceNotification())
-			.map(Member::getId)
-			.distinct()
-			.collect(Collectors.toList());
-
 		// 종목 지정가에 대한 현재가들 조회
 		Map<StockTargetPrice, Long> currentPriceMap = stocks.stream()
 			.collect(Collectors.toMap(
@@ -177,6 +169,14 @@ public class StockTargetPriceNotificationService {
 				.equals(targetPrice.getTargetPrice()))
 			.collect(Collectors.toList());
 		log.debug("targetPrices : {}", targetPrices);
+
+		// 회원 id 추출
+		List<Long> memberIds = stocks.stream()
+			.map(StockTargetPrice::getMember)
+			.filter(member -> member.getNotificationPreference().isPossibleStockTargetPriceNotification())
+			.map(Member::getId)
+			.distinct()
+			.collect(Collectors.toList());
 
 		// 푸시 알림을 하기 위한 회원의 토큰들 조회
 		List<FcmToken> findFcmTokens = fcmRepository.findAllByMemberIds(memberIds);
