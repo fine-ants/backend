@@ -275,8 +275,8 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 		given(kisService.fetchCurrentPrice(stock2.getTickerSymbol()))
 			.willReturn(Mono.just(KisCurrentPrice.create(stock2.getTickerSymbol(), 10000L)));
 		given(firebaseMessagingService.sendNotification(any(Message.class)))
-			.willReturn(Optional.of("messageId1"))
-			.willReturn(Optional.of("messageId2"));
+			.willReturn(Optional.of("messageId"))
+			.willReturn(Optional.of("messageId"));
 		// when
 		TargetPriceNotificationSendResponse response = service.sendStockTargetPriceNotification(
 			member.getId());
@@ -288,8 +288,8 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 			.hasSize(2)
 			.extracting("title", "type", "referenceId", "messageId")
 			.containsExactlyInAnyOrder(
-				Tuple.tuple(type.getName(), type, "005930", "messageId1"),
-				Tuple.tuple(type.getName(), type, "000020", "messageId2"));
+				Tuple.tuple(type.getName(), type, "005930", "messageId"),
+				Tuple.tuple(type.getName(), type, "000020", "messageId"));
 		assertThat(notificationRepository.findAllByMemberId(member.getId()))
 			.asList()
 			.hasSize(2);
@@ -359,6 +359,7 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 	void searchStockTargetPriceNotification() {
 		// given
 		Member member = memberRepository.save(createMember());
+		notificationPreferenceRepository.save(createNotificationPreference(member));
 		Stock stock = stockRepository.save(createStock());
 		Stock stock2 = stockRepository.save(createStock2());
 

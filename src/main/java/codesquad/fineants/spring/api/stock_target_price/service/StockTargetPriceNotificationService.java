@@ -217,35 +217,38 @@ public class StockTargetPriceNotificationService {
 		targetPrices.forEach(targetPrice -> {
 			Member member = targetPrice.getStockTargetPrice().getMember();
 			List<FcmToken> fcmTokens = fcmTokenMap.getOrDefault(member, Collections.emptyList());
-			futures.addAll(
-				fcmTokens.stream()
-					.map(fcmToken -> CompletableFuture.supplyAsync(() ->
-						notificationService.notifyStockAchievedTargetPrice(fcmToken.getToken(), targetPrice), executor))
-					.map(future -> future.thenCompose(optionalItem -> {
-						NotifyMessageItem item = optionalItem.orElse(null);
-						if (item == null) {
-							return CompletableFuture.completedFuture(null);
-						}
-						return CompletableFuture.supplyAsync(() -> item);
-					}))
-					.filter(Objects::nonNull)
-					.map(future -> future.thenCompose(item -> {
-						NotificationCreateResponse response = notificationService.saveStockTargetPriceNotification(
-							StockTargetPriceNotificationCreateRequest.of(item, targetPrice),
-							item.getMemberId()
-						);
-						TargetPriceNotificationSendItem sendItem = TargetPriceNotificationSendItem.from(response,
-							item.getMessageId());
-						return CompletableFuture.supplyAsync(() -> sendItem);
-					}))
-					.map(future -> future.thenCompose(item -> {
-						sentManager.addTargetPriceNotification(item.getNotificationId());
-						return CompletableFuture.supplyAsync(() -> item);
-					}))
-					.collect(Collectors.toList())
-			);
+			List<CompletableFuture<TargetPriceNotificationSendItem>> sendFutures = fcmTokens.stream()
+				// 알림 발송
+				.map(fcmToken -> CompletableFuture.supplyAsync(() ->
+					notificationService.notifyStockAchievedTargetPrice(fcmToken.getToken(), targetPrice), executor))
+				.map(future -> future.thenCompose(optionalItem -> {
+					NotifyMessageItem item = optionalItem.orElse(null);
+					if (item == null) {
+						return CompletableFuture.completedFuture(null);
+					}
+					return CompletableFuture.supplyAsync(() -> item);
+				}))
+				.filter(Objects::nonNull)
+				// 알림 저장
+				.map(future -> future.thenCompose(item -> {
+					NotificationCreateResponse response = notificationService.saveStockTargetPriceNotification(
+						StockTargetPriceNotificationCreateRequest.of(item, targetPrice),
+						item.getMemberId()
+					);
+					TargetPriceNotificationSendItem sendItem = TargetPriceNotificationSendItem.from(response,
+						item.getMessageId());
+					return CompletableFuture.supplyAsync(() -> sendItem);
+				}))
+				// 발송 이력 저장
+				.map(future -> future.thenCompose(item -> {
+					sentManager.addTargetPriceNotification(item.getNotificationId());
+					return CompletableFuture.supplyAsync(() -> item);
+				}))
+				.collect(Collectors.toList());
+			futures.addAll(sendFutures);
 		});
 
+		// 전부 완료할때까지 대기
 		List<TargetPriceNotificationSendItem> items = futures.stream()
 			.map(CompletableFuture::join)
 			.collect(Collectors.toList());

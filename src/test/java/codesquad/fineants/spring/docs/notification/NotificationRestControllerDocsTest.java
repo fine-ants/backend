@@ -152,6 +152,7 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 						.type(type)
 						.referenceId(referenceId)
 						.messageId(messageId)
+						.memberId(1L)
 						.build()
 				))
 				.build());
@@ -168,6 +169,7 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 			.andExpect(jsonPath("data.notifications[0].type").value(equalTo(type.name())))
 			.andExpect(jsonPath("data.notifications[0].referenceId").value(equalTo(referenceId)))
 			.andExpect(jsonPath("data.notifications[0].messageId").value(equalTo(messageId)))
+			.andExpect(jsonPath("data.notifications[0].memberId").value(equalTo(1)))
 			.andDo(
 				document(
 					"notification_portfolio_target_gain-notify",
@@ -195,7 +197,9 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 						fieldWithPath("data.notifications[].referenceId").type(JsonFieldType.STRING)
 							.description("참조 등록번호"),
 						fieldWithPath("data.notifications[].messageId").type(JsonFieldType.STRING)
-							.description("알림 메시지 등록번호")
+							.description("알림 메시지 등록번호"),
+						fieldWithPath("data.notifications[].memberId").type(JsonFieldType.NUMBER)
+							.description("회원 등록 번호")
 					)
 				)
 			);
@@ -219,6 +223,7 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 						.type(type)
 						.referenceId(referenceId)
 						.messageId(messageId)
+						.memberId(1L)
 						.build()
 				))
 				.build());
@@ -235,6 +240,7 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 			.andExpect(jsonPath("data.notifications[0].type").value(equalTo(type.name())))
 			.andExpect(jsonPath("data.notifications[0].referenceId").value(equalTo(referenceId)))
 			.andExpect(jsonPath("data.notifications[0].messageId").value(equalTo(messageId)))
+			.andExpect(jsonPath("data.notifications[0].memberId").value(equalTo(1)))
 			.andDo(
 				document(
 					"notification_portfolio_max_loss-notify",
@@ -262,7 +268,9 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 						fieldWithPath("data.notifications[].referenceId").type(JsonFieldType.STRING)
 							.description("참조 등록번호"),
 						fieldWithPath("data.notifications[].messageId").type(JsonFieldType.STRING)
-							.description("알림 메시지 등록번호")
+							.description("알림 메시지 등록번호"),
+						fieldWithPath("data.notifications[].memberId").type(JsonFieldType.NUMBER)
+							.description("회원 등록 번호")
 					)
 				)
 			);
