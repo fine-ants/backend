@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -58,6 +60,11 @@ import lombok.extern.slf4j.Slf4j;
 @Transactional(readOnly = true)
 public class StockTargetPriceNotificationService {
 
+	private static final Executor executor = Executors.newFixedThreadPool(100, r -> {
+		Thread thread = new Thread(r);
+		thread.setDaemon(true);
+		return thread;
+	});
 	private static final int TARGET_PRICE_NOTIFICATION_LIMIT = 5;
 	private final Predicate<TargetPriceNotification> isActivePredicate = TargetPriceNotification::isActive;
 	private final Predicate<TargetPriceNotification> hasNotificationSentPredicate = new Predicate<>() {
@@ -168,7 +175,7 @@ public class StockTargetPriceNotificationService {
 		Map<StockTargetPrice, CompletableFuture<Long>> futureMap = stocks.stream()
 			.collect(Collectors.toMap(
 				stock -> stock,
-				stock -> CompletableFuture.supplyAsync(() -> this.fetchCurrentPrice(stock))
+				stock -> CompletableFuture.supplyAsync(() -> this.fetchCurrentPrice(stock), executor)
 			));
 		Map<StockTargetPrice, Long> currentPriceMap = futureMap.entrySet().stream()
 			.collect(Collectors.toMap(
@@ -184,7 +191,7 @@ public class StockTargetPriceNotificationService {
 		}
 
 		// 종목의 현재가가 지정가에 맞는 것들을 조회
-		List<TargetPriceNotification> targetPrices = stocks.stream()
+		List<TargetPriceNotification> targetPrices = stocks.parallelStream()
 			.map(StockTargetPrice::getTargetPriceNotifications)
 			.flatMap(Collection::stream)
 			.filter(combinedPredicate)
@@ -192,7 +199,7 @@ public class StockTargetPriceNotificationService {
 		log.debug("targetPrices : {}", targetPrices);
 
 		// 회원 id 추출
-		List<Long> memberIds = stocks.stream()
+		List<Long> memberIds = stocks.parallelStream()
 			.map(StockTargetPrice::getMember)
 			.filter(member -> member.getNotificationPreference().isPossibleStockTargetPriceNotification())
 			.map(Member::getId)
@@ -201,7 +208,7 @@ public class StockTargetPriceNotificationService {
 		log.debug("memberIds : {}", memberIds);
 
 		// 푸시 알림을 하기 위한 회원의 토큰들 조회
-		Map<Member, List<FcmToken>> fcmTokenMap = fcmRepository.findAllByMemberIds(memberIds).stream()
+		Map<Member, List<FcmToken>> fcmTokenMap = fcmRepository.findAllByMemberIds(memberIds).parallelStream()
 			.collect(Collectors.groupingBy(FcmToken::getMember));
 		log.debug("fcmTokenMap : {}", fcmTokenMap);
 
@@ -213,7 +220,7 @@ public class StockTargetPriceNotificationService {
 			futures.addAll(
 				fcmTokens.stream()
 					.map(fcmToken -> CompletableFuture.supplyAsync(() ->
-						notificationService.notifyStockAchievedTargetPrice(fcmToken.getToken(), targetPrice)))
+						notificationService.notifyStockAchievedTargetPrice(fcmToken.getToken(), targetPrice), executor))
 					.map(future -> future.thenCompose(optionalItem -> {
 						NotifyMessageItem item = optionalItem.orElse(null);
 						if (item == null) {
