@@ -18,4 +18,5 @@ public class NotifyMessageItem {
 	private NotificationType type;
 	private String referenceId;
 	private String messageId;
+	private Long memberId;
 }

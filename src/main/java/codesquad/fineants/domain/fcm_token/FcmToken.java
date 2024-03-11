@@ -18,9 +18,11 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@ToString
 @Table(name = "fcm_token", uniqueConstraints = {
 	@UniqueConstraint(name = "token_member_id_unique", columnNames = {"token", "member_id"})
 })

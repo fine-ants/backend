@@ -73,7 +73,7 @@ public class NotificationService {
 
 	// 알림 저장
 	@Transactional
-	public NotificationCreateResponse createStockTargetPriceNotification(
+	public NotificationCreateResponse saveStockTargetPriceNotification(
 		StockTargetPriceNotificationCreateRequest request, Long memberId) {
 		Member member = memberRepository.findById(memberId)
 			.orElseThrow(() -> new NotFoundResourceException(MemberErrorCode.NOT_FOUND_MEMBER));
@@ -151,7 +151,8 @@ public class NotificationService {
 					messageId,
 					title,
 					NotificationType.PORTFOLIO_TARGET_GAIN,
-					referenceId
+				referenceId,
+				portfolio.getMember().getId()
 				)
 			);
 	}
@@ -160,12 +161,14 @@ public class NotificationService {
 		String messageId,
 		String title,
 		NotificationType type,
-		String referenceId) {
+		String referenceId,
+		Long memberId) {
 		return NotifyMessageItem.builder()
 			.title(title)
 			.type(type)
 			.referenceId(referenceId)
 			.messageId(messageId)
+			.memberId(memberId)
 			.build();
 	}
 
@@ -228,7 +231,8 @@ public class NotificationService {
 					messageId,
 					title,
 					NotificationType.PORTFOLIO_MAX_LOSS,
-					referenceId
+				referenceId,
+				portfolio.getMember().getId()
 				)
 			);
 	}
@@ -251,7 +255,8 @@ public class NotificationService {
 					messageId,
 					title,
 					NotificationType.STOCK_TARGET_PRICE,
-					referenceId
+				referenceId,
+				targetPriceNotification.getStockTargetPrice().getMember().getId()
 				)
 			);
 	}

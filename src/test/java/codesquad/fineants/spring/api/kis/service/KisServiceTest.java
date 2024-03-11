@@ -105,7 +105,6 @@ class KisServiceTest extends AbstractContainerBaseTest {
 			.collect(Collectors.toList()));
 		stocks.forEach(stock -> portfolioHoldingRepository.save(createPortfolioHolding(portfolio, stock)));
 
-		given(holidayManager.isHoliday(any(LocalDate.class))).willReturn(true);
 		given(kisAccessTokenManager.createAuthorization()).willReturn(createAuthorization());
 		given(client.fetchCurrentPrice(anyString(), anyString()))
 			.willThrow(new KisException("요청건수가 초과되었습니다"))
@@ -116,6 +115,29 @@ class KisServiceTest extends AbstractContainerBaseTest {
 
 		// then
 		verify(client, times(1)).fetchCurrentPrice(anyString(), anyString());
+	}
+
+	@DisplayName("종목 현재가 갱신시 예외가 발생하면 null을 반환한다")
+	@Test
+	void refreshStockCurrentPrice_whenException_thenReturnNull() {
+		// given
+		Member member = memberRepository.save(createMember());
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
+		List<String> tickerSymbols = List.of("000270");
+		List<Stock> stocks = stockRepository.saveAll(tickerSymbols.stream()
+			.map(this::createStock)
+			.collect(Collectors.toList()));
+		stocks.forEach(stock -> portfolioHoldingRepository.save(createPortfolioHolding(portfolio, stock)));
+
+		given(kisAccessTokenManager.createAuthorization()).willReturn(createAuthorization());
+		given(client.fetchCurrentPrice(anyString(), anyString()))
+			.willThrow(new KisException("요청건수가 초과되었습니다"));
+
+		// when
+		List<KisCurrentPrice> prices = kisService.refreshStockCurrentPrice(tickerSymbols);
+
+		// then
+		assertThat(prices).isEmpty();
 	}
 
 	@DisplayName("종가 갱신시 요청건수 초과로 실패하였다가 다시 시도하여 성공한다")
@@ -134,7 +156,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		given(client.readLastDayClosingPrice(anyString(), anyString()))
 			.willThrow(new KisException("요청건수가 초과되었습니다"))
 			.willThrow(new KisException("요청건수가 초과되었습니다"))
-			.willReturn(KisClosingPrice.create("000270", 10000L));
+			.willReturn(Mono.just(KisClosingPrice.create("000270", 10000L)));
 
 		// when
 		kisService.refreshLastDayClosingPrice(tickerSymbols);

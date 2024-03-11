@@ -216,7 +216,7 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 			.willReturn(Optional.of(60000L));
 		given(currentPriceManager.getCurrentPrice(stock2.getTickerSymbol()))
 			.willReturn(Optional.empty());
-		given(targetPriceNotificationSentManager.hasTargetPriceNotificationSent(anyLong()))
+		given(targetPriceNotificationSentManager.hasNotificationSent(anyLong()))
 			.willReturn(false);
 		given(kisService.fetchCurrentPrice(stock2.getTickerSymbol()))
 			.willReturn(Mono.just(KisCurrentPrice.create(stock2.getTickerSymbol(), 10000L)));
@@ -270,13 +270,13 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 			.willReturn(Optional.of(60000L));
 		given(currentPriceManager.getCurrentPrice(stock2.getTickerSymbol()))
 			.willReturn(Optional.empty());
-		given(targetPriceNotificationSentManager.hasTargetPriceNotificationSent(anyLong()))
+		given(targetPriceNotificationSentManager.hasNotificationSent(anyLong()))
 			.willReturn(false);
 		given(kisService.fetchCurrentPrice(stock2.getTickerSymbol()))
 			.willReturn(Mono.just(KisCurrentPrice.create(stock2.getTickerSymbol(), 10000L)));
 		given(firebaseMessagingService.sendNotification(any(Message.class)))
-			.willReturn(Optional.of("messageId1"))
-			.willReturn(Optional.of("messageId2"));
+			.willReturn(Optional.of("messageId"))
+			.willReturn(Optional.of("messageId"));
 		// when
 		TargetPriceNotificationSendResponse response = service.sendStockTargetPriceNotification(
 			member.getId());
@@ -288,8 +288,67 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 			.hasSize(2)
 			.extracting("title", "type", "referenceId", "messageId")
 			.containsExactlyInAnyOrder(
-				Tuple.tuple(type.getName(), type, "005930", "messageId1"),
-				Tuple.tuple(type.getName(), type, "000020", "messageId2"));
+				Tuple.tuple(type.getName(), type, "005930", "messageId"),
+				Tuple.tuple(type.getName(), type, "000020", "messageId"));
+		assertThat(notificationRepository.findAllByMemberId(member.getId()))
+			.asList()
+			.hasSize(2);
+	}
+
+	@DisplayName("티커 심볼을 기준으로 종목 지정가 알림을 발송한다")
+	@Test
+	void sendAllStockTargetPriceNotification_whenMultipleMember_thenSendNotification() {
+		// given
+		Member member = memberRepository.save(createMember());
+		notificationPreferenceRepository.save(NotificationPreference.builder()
+			.browserNotify(true)
+			.targetGainNotify(true)
+			.maxLossNotify(true)
+			.targetPriceNotify(true)
+			.member(member)
+			.build());
+		fcmRepository.save(createFcmToken(member, "token"));
+		Stock stock = stockRepository.save(createStock());
+		Stock stock2 = stockRepository.save(createStock2());
+		StockTargetPrice stockTargetPrice = repository.save(createStockTargetPrice(member, stock));
+		StockTargetPrice stockTargetPrice2 = repository.save(createStockTargetPrice(member, stock2));
+		targetPriceNotificationRepository.saveAll(
+			createTargetPriceNotification(stockTargetPrice, List.of(60000L, 70000L)));
+		targetPriceNotificationRepository.saveAll(
+			createTargetPriceNotification(stockTargetPrice2, List.of(10000L, 20000L)));
+
+		given(currentPriceManager.getCurrentPrice(stock.getTickerSymbol()))
+			.willReturn(Optional.empty());
+		given(currentPriceManager.getCurrentPrice(stock2.getTickerSymbol()))
+			.willReturn(Optional.empty());
+		given(targetPriceNotificationSentManager.hasNotificationSent(anyLong()))
+			.willReturn(false);
+		given(kisService.fetchCurrentPrice(stock.getTickerSymbol()))
+			.willAnswer(invocation -> {
+				Thread.sleep(1000L);
+				return Mono.just(KisCurrentPrice.create(stock.getTickerSymbol(), 60000L));
+			});
+		given(kisService.fetchCurrentPrice(stock2.getTickerSymbol()))
+			.willAnswer(invocation -> {
+				Thread.sleep(1000L);
+				return Mono.just(KisCurrentPrice.create(stock2.getTickerSymbol(), 10000L));
+			});
+		given(firebaseMessagingService.sendNotification(any(Message.class)))
+			.willReturn(Optional.of("messageId"))
+			.willReturn(Optional.of("messageId"));
+		// when
+		TargetPriceNotificationSendResponse response = service.sendAllStockTargetPriceNotification(
+			List.of(stock.getTickerSymbol(), stock2.getTickerSymbol()));
+
+		// then
+		NotificationType type = NotificationType.STOCK_TARGET_PRICE;
+		assertThat(response.getNotifications())
+			.asList()
+			.hasSize(2)
+			.extracting("title", "type", "referenceId", "messageId")
+			.containsExactlyInAnyOrder(
+				Tuple.tuple(type.getName(), type, "005930", "messageId"),
+				Tuple.tuple(type.getName(), type, "000020", "messageId"));
 		assertThat(notificationRepository.findAllByMemberId(member.getId()))
 			.asList()
 			.hasSize(2);
@@ -300,6 +359,7 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 	void searchStockTargetPriceNotification() {
 		// given
 		Member member = memberRepository.save(createMember());
+		notificationPreferenceRepository.save(createNotificationPreference(member));
 		Stock stock = stockRepository.save(createStock());
 		Stock stock2 = stockRepository.save(createStock2());
 

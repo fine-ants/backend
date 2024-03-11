@@ -1,11 +1,16 @@
 package codesquad.fineants.spring.api.stock_target_price.service;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -55,7 +60,19 @@ import lombok.extern.slf4j.Slf4j;
 @Transactional(readOnly = true)
 public class StockTargetPriceNotificationService {
 
+	private static final Executor executor = Executors.newFixedThreadPool(100, r -> {
+		Thread thread = new Thread(r);
+		thread.setDaemon(true);
+		return thread;
+	});
 	private static final int TARGET_PRICE_NOTIFICATION_LIMIT = 5;
+	private final Predicate<TargetPriceNotification> isActivePredicate = TargetPriceNotification::isActive;
+	private final Predicate<TargetPriceNotification> hasNotificationSentPredicate = new Predicate<>() {
+		@Override
+		public boolean test(TargetPriceNotification targetPriceNotification) {
+			return !sentManager.hasNotificationSent(targetPriceNotification.getId());
+		}
+	};
 
 	private final StockTargetPriceRepository repository;
 	private final TargetPriceNotificationRepository targetPriceNotificationRepository;
@@ -63,7 +80,7 @@ public class StockTargetPriceNotificationService {
 	private final StockRepository stockRepository;
 	private final LastDayClosingPriceManager manager;
 	private final CurrentPriceManager currentPriceManager;
-	private final TargetPriceNotificationSentManager targetPriceNotificationSentManager;
+	private final TargetPriceNotificationSentManager sentManager;
 	private final KisService kisService;
 	private final NotificationService notificationService;
 	private final FcmRepository fcmRepository;
@@ -137,7 +154,8 @@ public class StockTargetPriceNotificationService {
 	@Transactional
 	public TargetPriceNotificationSendResponse sendAllStockTargetPriceNotification(List<String> tickerSymbols) {
 		return sendStockTargetPriceNotification(
-			repository.findAllByTickerSymbols(tickerSymbols)
+			repository.findAllByTickerSymbols(tickerSymbols),
+			List.of(isActivePredicate, hasNotificationSentPredicate)
 		);
 	}
 
@@ -145,78 +163,99 @@ public class StockTargetPriceNotificationService {
 	@Transactional
 	public TargetPriceNotificationSendResponse sendStockTargetPriceNotification(Long memberId) {
 		return sendStockTargetPriceNotification(
-			repository.findAllByMemberId(memberId)
+			repository.findAllByMemberId(memberId),
+			List.of(isActivePredicate, hasNotificationSentPredicate)
 		);
 	}
 
-	private TargetPriceNotificationSendResponse sendStockTargetPriceNotification(List<StockTargetPrice> stocks) {
+	private TargetPriceNotificationSendResponse sendStockTargetPriceNotification(List<StockTargetPrice> stocks,
+		List<Predicate<TargetPriceNotification>> predicates) {
+		log.debug("종목 지정가 알림 발송 서비스 시작, stocks={}", stocks);
+		// 종목 지정가에 대한 현재가들 조회
+		Map<StockTargetPrice, CompletableFuture<Long>> futureMap = stocks.stream()
+			.collect(Collectors.toMap(
+				stock -> stock,
+				stock -> CompletableFuture.supplyAsync(() -> this.fetchCurrentPrice(stock), executor)
+			));
+		Map<StockTargetPrice, Long> currentPriceMap = futureMap.entrySet().stream()
+			.collect(Collectors.toMap(
+				Map.Entry::getKey,
+				entry -> entry.getValue().join()
+			));
+		log.debug("currentPriceMap : {}", currentPriceMap);
+
+		Predicate<TargetPriceNotification> combinedPredicate = t -> currentPriceMap.get(t.getStockTargetPrice())
+			.equals(t.getTargetPrice());
+		for (Predicate<TargetPriceNotification> p : predicates) {
+			combinedPredicate = combinedPredicate.and(p);
+		}
+
+		// 종목의 현재가가 지정가에 맞는 것들을 조회
+		List<TargetPriceNotification> targetPrices = stocks.parallelStream()
+			.map(StockTargetPrice::getTargetPriceNotifications)
+			.flatMap(Collection::stream)
+			.filter(combinedPredicate)
+			.collect(Collectors.toList());
+		log.debug("targetPrices : {}", targetPrices);
+
 		// 회원 id 추출
-		List<Long> memberIds = stocks.stream()
+		List<Long> memberIds = stocks.parallelStream()
 			.map(StockTargetPrice::getMember)
 			.filter(member -> member.getNotificationPreference().isPossibleStockTargetPriceNotification())
 			.map(Member::getId)
 			.distinct()
 			.collect(Collectors.toList());
-
-		// 종목 지정가에 대한 현재가들 조회
-		Map<StockTargetPrice, Long> currentPriceMap = stocks.stream()
-			.collect(Collectors.toMap(
-				stock -> stock,
-				this::fetchCurrentPrice
-			));
-		log.debug("currentPriceMap : {}", currentPriceMap);
-
-		// 종목의 현재가가 지정가에 맞는 것들을 조회
-		List<TargetPriceNotification> targetPrices = stocks.stream()
-			.map(StockTargetPrice::getTargetPriceNotifications)
-			.flatMap(Collection::stream)
-			.filter(TargetPriceNotification::isActive)
-			.filter(targetPriceNotification ->
-				!targetPriceNotificationSentManager.hasTargetPriceNotificationSent(targetPriceNotification.getId()))
-			.filter(targetPrice -> currentPriceMap.get(targetPrice.getStockTargetPrice())
-				.equals(targetPrice.getTargetPrice()))
-			.collect(Collectors.toList());
-		log.debug("targetPrices : {}", targetPrices);
+		log.debug("memberIds : {}", memberIds);
 
 		// 푸시 알림을 하기 위한 회원의 토큰들 조회
-		List<FcmToken> findFcmTokens = fcmRepository.findAllByMemberIds(memberIds);
-		log.debug("findFcmTokens : {}", findFcmTokens);
+		Map<Member, List<FcmToken>> fcmTokenMap = fcmRepository.findAllByMemberIds(memberIds).parallelStream()
+			.collect(Collectors.groupingBy(FcmToken::getMember));
+		log.debug("fcmTokenMap : {}", fcmTokenMap);
 
-		// 조건에 맞는 지정가에 대해서 푸시 알림 전송 (알림 설정 조건이 만족해야됨)
-		Set<NotifyMessageItem> notifyMessageItems = new HashSet<>();
-		for (TargetPriceNotification targetPrice : targetPrices) {
-			Long memberId = targetPrice.getStockTargetPrice().getMember().getId();
-			List<FcmToken> fcmTokens = findFcmTokens.stream()
-				.filter(fcmToken -> fcmToken.getMember().getId().equals(memberId))
+		// 종목 지정가 알림 전송 및 저장
+		List<CompletableFuture<TargetPriceNotificationSendItem>> futures = new ArrayList<>();
+		targetPrices.forEach(targetPrice -> {
+			Member member = targetPrice.getStockTargetPrice().getMember();
+			List<FcmToken> fcmTokens = fcmTokenMap.getOrDefault(member, Collections.emptyList());
+			List<CompletableFuture<TargetPriceNotificationSendItem>> sendFutures = fcmTokens.stream()
+				// 알림 발송
+				.map(fcmToken -> CompletableFuture.supplyAsync(() ->
+					notificationService.notifyStockAchievedTargetPrice(fcmToken.getToken(), targetPrice), executor))
+				.map(future -> future.thenCompose(optionalItem -> {
+					NotifyMessageItem item = optionalItem.orElse(null);
+					if (item == null) {
+						return CompletableFuture.completedFuture(null);
+					}
+					return CompletableFuture.supplyAsync(() -> item);
+				}))
+				.filter(Objects::nonNull)
+				// 알림 저장
+				.map(future -> future.thenCompose(item -> {
+					NotificationCreateResponse response = notificationService.saveStockTargetPriceNotification(
+						StockTargetPriceNotificationCreateRequest.of(item, targetPrice),
+						item.getMemberId()
+					);
+					TargetPriceNotificationSendItem sendItem = TargetPriceNotificationSendItem.from(response,
+						item.getMessageId());
+					return CompletableFuture.supplyAsync(() -> sendItem);
+				}))
+				// 발송 이력 저장
+				.map(future -> future.thenCompose(item -> {
+					sentManager.addTargetPriceNotification(item.getNotificationId());
+					return CompletableFuture.supplyAsync(() -> item);
+				}))
 				.collect(Collectors.toList());
-			for (FcmToken fcmToken : fcmTokens) {
-				// 푸시 알림 전송
-				notificationService.notifyStockAchievedTargetPrice(fcmToken.getToken(), targetPrice)
-					.ifPresent(item -> {
-						// 푸시 알림 데이터를 저장
-						NotificationCreateResponse response = notificationService.createStockTargetPriceNotification(
-							StockTargetPriceNotificationCreateRequest.builder()
-								.tickerSymbol(targetPrice.getStockTargetPrice().getStock().getTickerSymbol())
-								.title(item.getTitle())
-								.type(item.getType())
-								.referenceId(item.getReferenceId())
-								.targetPrice(targetPrice.getTargetPrice())
-								.build(),
-							memberId
-						);
-						// 알림 전송 기록 저장
-						targetPriceNotificationSentManager.addTargetPriceNotification(response.getNotificationId());
-						log.info("종목 지정가 알림 저장 결과 : {}", response);
-						notifyMessageItems.add(item);
-					});
-			}
-		}
+			futures.addAll(sendFutures);
+		});
+
+		// 전부 완료할때까지 대기
+		List<TargetPriceNotificationSendItem> items = futures.stream()
+			.map(CompletableFuture::join)
+			.collect(Collectors.toList());
+		log.debug("TargetPriceNotificationSendItem 리스트 결과 : {}", items);
 
 		// response 생성
-		List<TargetPriceNotificationSendItem> notifications = notifyMessageItems.stream()
-			.map(TargetPriceNotificationSendItem::from)
-			.collect(Collectors.toList());
-		TargetPriceNotificationSendResponse response = TargetPriceNotificationSendResponse.from(notifications);
+		TargetPriceNotificationSendResponse response = TargetPriceNotificationSendResponse.from(items);
 		log.info("종목 지정가 알림 발송 서비스 결과 : response={}", response);
 		return response;
 	}
