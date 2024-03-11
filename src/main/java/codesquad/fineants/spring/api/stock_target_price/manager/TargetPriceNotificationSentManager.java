@@ -19,7 +19,7 @@ public class TargetPriceNotificationSentManager {
 			.set(String.format(format, targetPriceNotificationId), "true", TIMEOUT);
 	}
 
-	public boolean hasTargetPriceNotificationSent(Long targetPriceNotificationId) {
+	public boolean hasNotificationSent(Long targetPriceNotificationId) {
 		String result = redisTemplate.opsForValue().get(String.format(format, targetPriceNotificationId));
 		return result != null;
 	}

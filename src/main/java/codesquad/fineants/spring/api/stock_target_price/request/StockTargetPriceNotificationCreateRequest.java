@@ -7,6 +7,8 @@ import javax.validation.constraints.PositiveOrZero;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.notification.Notification;
 import codesquad.fineants.domain.notification.type.NotificationType;
+import codesquad.fineants.domain.target_price_notification.TargetPriceNotification;
+import codesquad.fineants.spring.api.notification.response.NotifyMessageItem;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -31,6 +33,17 @@ public class StockTargetPriceNotificationCreateRequest {
 	private NotificationType type;
 	@NotBlank(message = "필수 정보입니다")
 	private String referenceId;
+
+	public static StockTargetPriceNotificationCreateRequest of(NotifyMessageItem item,
+		TargetPriceNotification targetPrice) {
+		return new StockTargetPriceNotificationCreateRequest(
+			targetPrice.getStockTargetPrice().getStock().getTickerSymbol(),
+			targetPrice.getTargetPrice(),
+			item.getTitle(),
+			item.getType(),
+			item.getReferenceId()
+		);
+	}
 
 	public Notification toEntity(Member member) {
 		return Notification.stockTargetPriceNotification(tickerSymbol, targetPrice, title, referenceId, member);

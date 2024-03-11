@@ -1,7 +1,7 @@
 package codesquad.fineants.spring.api.stock_target_price.response;
 
 import codesquad.fineants.domain.notification.type.NotificationType;
-import codesquad.fineants.spring.api.notification.response.NotifyMessageItem;
+import codesquad.fineants.spring.api.notification.response.NotificationCreateResponse;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -15,17 +15,19 @@ import lombok.ToString;
 @Builder
 @ToString
 public class TargetPriceNotificationSendItem {
+	private Long notificationId;
 	private String title;
 	private NotificationType type;
 	private String referenceId;
 	private String messageId;
 
-	public static TargetPriceNotificationSendItem from(NotifyMessageItem item) {
+	public static TargetPriceNotificationSendItem from(NotificationCreateResponse response, String messageId) {
 		return TargetPriceNotificationSendItem.builder()
-			.title(item.getTitle())
-			.type(item.getType())
-			.referenceId(item.getReferenceId())
-			.messageId(item.getMessageId())
+			.notificationId(response.getNotificationId())
+			.title(response.getTitle())
+			.type(response.getType())
+			.referenceId(response.getReferenceId())
+			.messageId(messageId)
 			.build();
 	}
 }
