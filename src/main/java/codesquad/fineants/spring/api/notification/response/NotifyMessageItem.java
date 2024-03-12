@@ -19,4 +19,8 @@ public class NotifyMessageItem {
 	private String referenceId;
 	private String messageId;
 	private Long memberId;
+
+	public static NotifyMessageItem empty() {
+		return new NotifyMessageItem();
+	}
 }

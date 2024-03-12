@@ -1,0 +1,13 @@
+[[member_notification-notify]]
+=== 회원 알림 메시지 발송
+
+==== HTTP Request
+
+include::{snippets}/member_notification-notify/http-request.adoc[]
+include::{snippets}/member_notification-notify/path-parameters.adoc[]
+include::{snippets}/member_notification-notify/response-fields.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/member_notification-notify/http-response.adoc[]
+include::{snippets}/member_notification-notify/response-fields.adoc[]

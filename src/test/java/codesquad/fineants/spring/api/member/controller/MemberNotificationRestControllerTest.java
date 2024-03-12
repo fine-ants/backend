@@ -291,7 +291,7 @@ class MemberNotificationRestControllerTest {
 			.referenceId("1")
 			.sendMessageIds(List.of("messageId"))
 			.build();
-		given(notificationService.sendNotificationToUsers(anyLong(), any(MemberNotificationSendRequest.class)))
+		given(notificationService.sendNotification(anyLong(), any(MemberNotificationSendRequest.class)))
 			.willReturn(response);
 
 		// when & then
@@ -301,7 +301,7 @@ class MemberNotificationRestControllerTest {
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
-			.andExpect(jsonPath("message").value(equalTo("알림 메시지가 발송하였습니다")));
+			.andExpect(jsonPath("message").value(equalTo("알림 메시지 생성 및 전송이 완료되었습니다")));
 	}
 
 	private Member createMember() {

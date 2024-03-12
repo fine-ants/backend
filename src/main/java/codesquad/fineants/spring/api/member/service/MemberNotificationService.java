@@ -88,7 +88,7 @@ public class MemberNotificationService {
 	}
 
 	@Transactional
-	public MemberNotificationSendResponse sendNotificationToUsers(Long memberId,
+	public MemberNotificationSendResponse sendNotification(Long memberId,
 		MemberNotificationSendRequest request) {
 		// 알림 데이터 등록
 		Member member = findMember(memberId);
@@ -98,7 +98,7 @@ public class MemberNotificationService {
 		List<String> tokens = fcmRepository.findAllByMemberId(memberId).stream()
 			.map(FcmToken::getToken)
 			.collect(Collectors.toList());
-		List<String> sendMessageIds = sendNotificationToUsers(tokens, notification);
+		List<String> sendMessageIds = sendNotification(tokens, notification);
 		if (sendMessageIds.isEmpty()) {
 			notificationRepository.deleteById(notification.getId());
 			log.info("알림 메시지 전송 실패로 인한 알림 메시지 삭제, id={}", notification.getId());
@@ -111,7 +111,7 @@ public class MemberNotificationService {
 			.orElseThrow(() -> new NotFoundResourceException(MemberErrorCode.NOT_FOUND_MEMBER));
 	}
 
-	private List<String> sendNotificationToUsers(List<String> tokens, Notification notification) {
+	private List<String> sendNotification(List<String> tokens, Notification notification) {
 		List<String> messageIds = new ArrayList<>();
 		List<String> deadTokens = new ArrayList<>();
 		for (String token : tokens) {

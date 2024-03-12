@@ -26,9 +26,9 @@ import org.springframework.restdocs.snippet.Attributes;
 import codesquad.fineants.domain.notification.type.NotificationType;
 import codesquad.fineants.spring.api.notification.controller.NotificationRestController;
 import codesquad.fineants.spring.api.notification.request.PortfolioNotificationCreateRequest;
-import codesquad.fineants.spring.api.notification.response.NotificationCreateResponse;
 import codesquad.fineants.spring.api.notification.response.NotifyMessageItem;
 import codesquad.fineants.spring.api.notification.response.NotifyPortfolioMessagesResponse;
+import codesquad.fineants.spring.api.notification.response.PortfolioNotificationCreateResponse;
 import codesquad.fineants.spring.api.notification.service.NotificationService;
 import codesquad.fineants.spring.docs.RestDocsSupport;
 import codesquad.fineants.spring.util.ObjectMapperUtil;
@@ -58,15 +58,17 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 		boolean isRead = false;
 		NotificationType type = NotificationType.PORTFOLIO_TARGET_GAIN;
 		String referenceId = "1";
+		String messageId = "messageId";
 		given(service.createPortfolioNotification(
 			ArgumentMatchers.any(PortfolioNotificationCreateRequest.class),
 			anyLong()))
-			.willReturn(NotificationCreateResponse.builder()
+			.willReturn(PortfolioNotificationCreateResponse.builder()
 				.notificationId(notificationId)
 				.title(title)
 				.isRead(isRead)
 				.type(type)
 				.referenceId(referenceId)
+				.messageId(messageId)
 				.build());
 		// when
 		mockMvc.perform(post("/api/notifications")
@@ -82,6 +84,7 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 			.andExpect(jsonPath("data.isRead").value(equalTo(false)))
 			.andExpect(jsonPath("data.type").value(equalTo(type.name())))
 			.andExpect(jsonPath("data.referenceId").value(equalTo(referenceId)))
+			.andExpect(jsonPath("data.messageId").value(equalTo(messageId)))
 			.andDo(
 				document(
 					"notification-create",
@@ -127,7 +130,9 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 						fieldWithPath("data.type").type(JsonFieldType.STRING)
 							.description("알림 타입"),
 						fieldWithPath("data.referenceId").type(JsonFieldType.STRING)
-							.description("참조 등록번호")
+							.description("참조 등록번호"),
+						fieldWithPath("data.messageId").type(JsonFieldType.STRING)
+							.description("메시지 아이디")
 					)
 				)
 			);

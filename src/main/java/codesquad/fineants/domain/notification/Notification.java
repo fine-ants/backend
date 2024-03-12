@@ -43,6 +43,8 @@ public abstract class Notification extends BaseEntity {
 
 	private String referenceId;
 
+	private String messageId;
+
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "member_id")
 	private Member member;
@@ -64,7 +66,7 @@ public abstract class Notification extends BaseEntity {
 	}
 
 	public static Notification stockTargetPriceNotification(String stockName, Long targetPrice, String title,
-		String referenceId, Member member) {
+		String referenceId, String messageId, Member member) {
 		return StockTargetPriceNotification.builder()
 			.stockName(stockName)
 			.targetPrice(targetPrice)
@@ -72,6 +74,7 @@ public abstract class Notification extends BaseEntity {
 			.isRead(false)
 			.type(NotificationType.STOCK_TARGET_PRICE)
 			.referenceId(referenceId)
+			.messageId(messageId)
 			.member(member)
 			.build();
 	}

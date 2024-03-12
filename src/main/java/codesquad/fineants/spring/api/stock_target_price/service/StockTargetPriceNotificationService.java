@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -35,7 +36,6 @@ import codesquad.fineants.spring.api.kis.client.KisCurrentPrice;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
 import codesquad.fineants.spring.api.kis.service.KisService;
-import codesquad.fineants.spring.api.notification.response.NotificationCreateResponse;
 import codesquad.fineants.spring.api.notification.response.NotifyMessageItem;
 import codesquad.fineants.spring.api.notification.service.NotificationService;
 import codesquad.fineants.spring.api.stock_target_price.manager.TargetPriceNotificationSentManager;
@@ -217,42 +217,40 @@ public class StockTargetPriceNotificationService {
 		targetPrices.forEach(targetPrice -> {
 			Member member = targetPrice.getStockTargetPrice().getMember();
 			List<FcmToken> fcmTokens = fcmTokenMap.getOrDefault(member, Collections.emptyList());
-			List<CompletableFuture<TargetPriceNotificationSendItem>> sendFutures = fcmTokens.stream()
-				// 알림 발송
-				.map(fcmToken -> CompletableFuture.supplyAsync(() ->
-					notificationService.notifyStockAchievedTargetPrice(fcmToken.getToken(), targetPrice), executor))
-				.map(future -> future.thenCompose(optionalItem -> {
-					NotifyMessageItem item = optionalItem.orElse(null);
-					if (item == null) {
-						return CompletableFuture.completedFuture(null);
-					}
-					return CompletableFuture.supplyAsync(() -> item);
-				}))
+			List<CompletableFuture<NotifyMessageItem>> notifyMessageItemFutures = fcmTokens.stream()
+				.map(FcmToken::getToken)
+				.map(token -> CompletableFuture.supplyAsync(
+					() -> notificationService.notifyStockAchievedTargetPrice(token, targetPrice), executor))
+				.map(future -> future.thenApply(Optional::orElseThrow)
+					.exceptionally(throwable -> null))
+				.collect(Collectors.toList());
+
+			List<NotifyMessageItem> items = notifyMessageItemFutures.stream()
+				.map(CompletableFuture::join)
 				.filter(Objects::nonNull)
+				.collect(Collectors.toList());
+
+			List<CompletableFuture<TargetPriceNotificationSendItem>> sendItemFutures = items.stream()
 				// 알림 저장
-				.map(future -> future.thenCompose(item -> {
-					NotificationCreateResponse response = notificationService.saveStockTargetPriceNotification(
+				.map(item -> CompletableFuture.supplyAsync(() ->
+					notificationService.saveStockTargetPriceNotification(
 						StockTargetPriceNotificationCreateRequest.of(item, targetPrice),
-						item.getMemberId()
-					);
-					TargetPriceNotificationSendItem sendItem = TargetPriceNotificationSendItem.from(
-						response,
-						targetPrice.getId(),
-						item.getMessageId());
-					return CompletableFuture.supplyAsync(() -> sendItem);
-				}))
+						item.getMemberId()), executor)
+				)
+				.map(future -> future.thenApply(TargetPriceNotificationSendItem::from))
 				// 발송 이력 저장
 				.map(future -> future.thenCompose(item -> {
 					sentManager.addTargetPriceNotification(item.getTargetPriceNotificationId());
-					return CompletableFuture.supplyAsync(() -> item);
+					return CompletableFuture.supplyAsync(() -> item, executor);
 				}))
 				.collect(Collectors.toList());
-			futures.addAll(sendFutures);
+			futures.addAll(sendItemFutures);
 		});
 
 		// 전부 완료할때까지 대기
 		List<TargetPriceNotificationSendItem> items = futures.stream()
 			.map(CompletableFuture::join)
+			.filter(Objects::nonNull)
 			.collect(Collectors.toList());
 		log.debug("TargetPriceNotificationSendItem 리스트 결과 : {}", items);
 

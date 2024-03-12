@@ -17,6 +17,7 @@ import com.google.firebase.messaging.WebpushFcmOptions;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.member.MemberRepository;
 import codesquad.fineants.domain.notification.NotificationRepository;
+import codesquad.fineants.domain.notification.StockTargetPriceNotification;
 import codesquad.fineants.domain.notification.type.NotificationType;
 import codesquad.fineants.domain.notification_preference.NotificationPreference;
 import codesquad.fineants.domain.notification_preference.NotificationPreferenceRepository;
@@ -35,9 +36,10 @@ import codesquad.fineants.spring.api.fcm.service.FcmService;
 import codesquad.fineants.spring.api.firebase.service.FirebaseMessagingService;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.notification.request.PortfolioNotificationCreateRequest;
-import codesquad.fineants.spring.api.notification.response.NotificationCreateResponse;
 import codesquad.fineants.spring.api.notification.response.NotifyMessageItem;
 import codesquad.fineants.spring.api.notification.response.NotifyPortfolioMessagesResponse;
+import codesquad.fineants.spring.api.notification.response.PortfolioNotificationCreateResponse;
+import codesquad.fineants.spring.api.notification.response.TargetPriceNotificationCreateResponse;
 import codesquad.fineants.spring.api.portfolio.service.PortFolioService;
 import codesquad.fineants.spring.api.stock_target_price.request.StockTargetPriceNotificationCreateRequest;
 import lombok.RequiredArgsConstructor;
@@ -61,26 +63,26 @@ public class NotificationService {
 
 	// 알림 저장
 	@Transactional
-	public NotificationCreateResponse createPortfolioNotification(PortfolioNotificationCreateRequest request,
+	public PortfolioNotificationCreateResponse createPortfolioNotification(PortfolioNotificationCreateRequest request,
 		Long memberId) {
 		Member member = memberRepository.findById(memberId)
 			.orElseThrow(() -> new NotFoundResourceException(MemberErrorCode.NOT_FOUND_MEMBER));
 		codesquad.fineants.domain.notification.Notification saveNotification = notificationRepository.save(
 			request.toEntity(member)
 		);
-		return NotificationCreateResponse.from(saveNotification);
+		return PortfolioNotificationCreateResponse.from(saveNotification);
 	}
 
 	// 알림 저장
 	@Transactional
-	public NotificationCreateResponse saveStockTargetPriceNotification(
+	public TargetPriceNotificationCreateResponse saveStockTargetPriceNotification(
 		StockTargetPriceNotificationCreateRequest request, Long memberId) {
 		Member member = memberRepository.findById(memberId)
 			.orElseThrow(() -> new NotFoundResourceException(MemberErrorCode.NOT_FOUND_MEMBER));
 		codesquad.fineants.domain.notification.Notification saveNotification = notificationRepository.save(
 			request.toEntity(member)
 		);
-		return NotificationCreateResponse.from(saveNotification);
+		return TargetPriceNotificationCreateResponse.from((StockTargetPriceNotification)saveNotification);
 	}
 
 	// 회원에게 포트폴리오의 목표 수익률 달성 알림 푸시
@@ -115,7 +117,7 @@ public class NotificationService {
 		notifications.stream()
 			.findAny()
 			.ifPresent(item -> {
-				NotificationCreateResponse createResponse = this.createPortfolioNotification(
+				PortfolioNotificationCreateResponse createResponse = this.createPortfolioNotification(
 					PortfolioNotificationCreateRequest.builder()
 						.portfolioName(portfolio.getName())
 						.title(item.getTitle())
@@ -202,7 +204,7 @@ public class NotificationService {
 		notifications.stream()
 			.findAny()
 			.ifPresent(item -> {
-				NotificationCreateResponse response = this.createPortfolioNotification(
+				PortfolioNotificationCreateResponse response = this.createPortfolioNotification(
 					PortfolioNotificationCreateRequest.builder()
 						.portfolioName(portfolio.getName())
 						.title(item.getTitle())

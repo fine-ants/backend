@@ -15,8 +15,8 @@ import codesquad.fineants.domain.oauth.support.AuthPrincipalMember;
 import codesquad.fineants.spring.api.common.response.ApiResponse;
 import codesquad.fineants.spring.api.common.success.NotificationSuccessCode;
 import codesquad.fineants.spring.api.notification.request.PortfolioNotificationCreateRequest;
-import codesquad.fineants.spring.api.notification.response.NotificationCreateResponse;
 import codesquad.fineants.spring.api.notification.response.NotifyPortfolioMessagesResponse;
+import codesquad.fineants.spring.api.notification.response.PortfolioNotificationCreateResponse;
 import codesquad.fineants.spring.api.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,11 +32,12 @@ public class NotificationRestController {
 	// 알림 저장
 	@ResponseStatus(HttpStatus.CREATED)
 	@PostMapping
-	public ApiResponse<NotificationCreateResponse> createNotification(
+	public ApiResponse<PortfolioNotificationCreateResponse> createNotification(
 		@Valid @RequestBody PortfolioNotificationCreateRequest request,
 		@AuthPrincipalMember AuthMember authMember
 	) {
-		NotificationCreateResponse response = service.createPortfolioNotification(request, authMember.getMemberId());
+		PortfolioNotificationCreateResponse response = service.createPortfolioNotification(request,
+			authMember.getMemberId());
 		log.info("알림 저장 결과 : response={}", response);
 		return ApiResponse.success(NotificationSuccessCode.CREATED_NOTIFICATION, response);
 	}

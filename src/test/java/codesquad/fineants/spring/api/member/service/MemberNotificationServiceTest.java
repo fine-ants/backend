@@ -223,7 +223,7 @@ class MemberNotificationServiceTest extends AbstractContainerBaseTest {
 			.willReturn("messageId");
 
 		// when
-		MemberNotificationSendResponse response = notificationService.sendNotificationToUsers(member.getId(), request);
+		MemberNotificationSendResponse response = notificationService.sendNotification(member.getId(), request);
 
 		// then
 		assertAll(
@@ -257,7 +257,7 @@ class MemberNotificationServiceTest extends AbstractContainerBaseTest {
 			.willThrow(FirebaseMessagingException.class);
 
 		// when
-		MemberNotificationSendResponse response = notificationService.sendNotificationToUsers(member.getId(), request);
+		MemberNotificationSendResponse response = notificationService.sendNotification(member.getId(), request);
 
 		// then
 		assertAll(
@@ -287,7 +287,7 @@ class MemberNotificationServiceTest extends AbstractContainerBaseTest {
 			.build();
 
 		// when
-		MemberNotificationSendResponse response = notificationService.sendNotificationToUsers(member.getId(), request);
+		MemberNotificationSendResponse response = notificationService.sendNotification(member.getId(), request);
 
 		// then
 		assertAll(
