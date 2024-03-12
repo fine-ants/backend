@@ -16,14 +16,17 @@ import lombok.ToString;
 @ToString
 public class TargetPriceNotificationSendItem {
 	private Long notificationId;
+	private Long targetPriceNotificationId;
 	private String title;
 	private NotificationType type;
 	private String referenceId;
 	private String messageId;
 
-	public static TargetPriceNotificationSendItem from(NotificationCreateResponse response, String messageId) {
+	public static TargetPriceNotificationSendItem from(NotificationCreateResponse response,
+		Long targetPriceNotificationId, String messageId) {
 		return TargetPriceNotificationSendItem.builder()
 			.notificationId(response.getNotificationId())
+			.targetPriceNotificationId(targetPriceNotificationId)
 			.title(response.getTitle())
 			.type(response.getType())
 			.referenceId(response.getReferenceId())

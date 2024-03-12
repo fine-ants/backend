@@ -24,6 +24,7 @@ import codesquad.fineants.domain.fcm_token.FcmRepository;
 import codesquad.fineants.domain.fcm_token.FcmToken;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.member.MemberRepository;
+import codesquad.fineants.domain.notification.Notification;
 import codesquad.fineants.domain.notification.NotificationRepository;
 import codesquad.fineants.domain.notification.type.NotificationType;
 import codesquad.fineants.domain.notification_preference.NotificationPreference;
@@ -289,6 +290,70 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 			.extracting("title", "type", "referenceId", "messageId")
 			.containsExactlyInAnyOrder(
 				Tuple.tuple(type.getName(), type, "005930", "messageId"),
+				Tuple.tuple(type.getName(), type, "000020", "messageId"));
+		assertThat(notificationRepository.findAllByMemberId(member.getId()))
+			.asList()
+			.hasSize(2);
+	}
+
+	@DisplayName("사용자는 종목 지정가 도달 알림을 받은 상태에서 추가적인 종목 지정가 도달을 하면 알림을 보내지 않는다")
+	@Test
+	void sendAllStockTargetPriceNotification_whenExistNotification_thenNotSentNotification() {
+		// given
+		Member member = memberRepository.save(createMember());
+		notificationPreferenceRepository.save(NotificationPreference.builder()
+			.browserNotify(true)
+			.targetGainNotify(true)
+			.maxLossNotify(true)
+			.targetPriceNotify(true)
+			.member(member)
+			.build());
+		fcmRepository.save(createFcmToken(member, "token"));
+		Stock stock = stockRepository.save(createStock());
+		Stock stock2 = stockRepository.save(createStock2());
+		StockTargetPrice stockTargetPrice = repository.save(createStockTargetPrice(member, stock));
+		StockTargetPrice stockTargetPrice2 = repository.save(createStockTargetPrice(member, stock2));
+		List<TargetPriceNotification> targetPriceNotifications = createTargetPriceNotification(stockTargetPrice,
+			List.of(60000L, 70000L));
+		List<TargetPriceNotification> targetPriceNotifications2 = createTargetPriceNotification(stockTargetPrice2,
+			List.of(10000L, 20000L));
+		targetPriceNotificationRepository.saveAll(targetPriceNotifications);
+		targetPriceNotificationRepository.saveAll(targetPriceNotifications2);
+
+		TargetPriceNotification sendTargetPriceNotification = targetPriceNotifications.get(0);
+		notificationRepository.save(Notification.stockTargetPriceNotification(
+			sendTargetPriceNotification.getStockTargetPrice().getStock().getTickerSymbol(),
+			sendTargetPriceNotification.getTargetPrice(),
+			"종목 지정가",
+			sendTargetPriceNotification.getStockTargetPrice().getStock().getTickerSymbol(),
+			member
+		));
+
+		given(currentPriceManager.getCurrentPrice(stock.getTickerSymbol()))
+			.willReturn(Optional.of(60000L));
+		given(currentPriceManager.getCurrentPrice(stock2.getTickerSymbol()))
+			.willReturn(Optional.of(10000L));
+		given(targetPriceNotificationSentManager.hasNotificationSent(targetPriceNotifications.get(0).getId()))
+			.willReturn(true);
+		given(targetPriceNotificationSentManager.hasNotificationSent(targetPriceNotifications.get(1).getId()))
+			.willReturn(false);
+		given(targetPriceNotificationSentManager.hasNotificationSent(targetPriceNotifications2.get(0).getId()))
+			.willReturn(false);
+		given(targetPriceNotificationSentManager.hasNotificationSent(targetPriceNotifications2.get(1).getId()))
+			.willReturn(false);
+		given(firebaseMessagingService.sendNotification(any(Message.class)))
+			.willReturn(Optional.of("messageId"));
+		// when
+		TargetPriceNotificationSendResponse response = service.sendAllStockTargetPriceNotification(
+			List.of(stock.getTickerSymbol(), stock2.getTickerSymbol()));
+
+		// then
+		NotificationType type = NotificationType.STOCK_TARGET_PRICE;
+		assertThat(response.getNotifications())
+			.asList()
+			.hasSize(1)
+			.extracting("title", "type", "referenceId", "messageId")
+			.containsExactlyInAnyOrder(
 				Tuple.tuple(type.getName(), type, "000020", "messageId"));
 		assertThat(notificationRepository.findAllByMemberId(member.getId()))
 			.asList()
