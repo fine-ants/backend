@@ -33,6 +33,7 @@ public class StockTargetPriceNotificationCreateRequest {
 	private NotificationType type;
 	@NotBlank(message = "필수 정보입니다")
 	private String referenceId;
+	private String messageId;
 
 	public static StockTargetPriceNotificationCreateRequest of(NotifyMessageItem item,
 		TargetPriceNotification targetPrice) {
@@ -41,11 +42,13 @@ public class StockTargetPriceNotificationCreateRequest {
 			targetPrice.getTargetPrice(),
 			item.getTitle(),
 			item.getType(),
-			item.getReferenceId()
+			item.getReferenceId(),
+			item.getMessageId()
 		);
 	}
 
 	public Notification toEntity(Member member) {
-		return Notification.stockTargetPriceNotification(tickerSymbol, targetPrice, title, referenceId, member);
+		return Notification.stockTargetPriceNotification(tickerSymbol, targetPrice, title, referenceId, messageId,
+			member);
 	}
 }

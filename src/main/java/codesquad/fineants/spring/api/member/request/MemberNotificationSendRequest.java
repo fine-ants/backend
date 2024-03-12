@@ -26,6 +26,7 @@ public class MemberNotificationSendRequest {
 	private String type;
 	@NotBlank(message = "필수 정보입니다")
 	private String referenceId;
+	private String messageId;
 
 	public Notification toEntity(Member member) {
 		NotificationType notificationType = NotificationType.from(target);
@@ -33,6 +34,7 @@ public class MemberNotificationSendRequest {
 		if (type.equals("portfolio")) {
 			return Notification.portfolioNotification(name, title, notificationType, referenceId, member);
 		}
-		return Notification.stockTargetPriceNotification(name, Long.valueOf(target), title, referenceId, member);
+		return Notification.stockTargetPriceNotification(name, Long.valueOf(target), title, referenceId, messageId,
+			member);
 	}
 }

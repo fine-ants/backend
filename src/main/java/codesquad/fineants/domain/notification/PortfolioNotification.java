@@ -17,8 +17,8 @@ public class PortfolioNotification extends Notification {
 
 	@Builder
 	public PortfolioNotification(Long id, String title, Boolean isRead, NotificationType type, String referenceId,
-		Member member, String portfolioName) {
-		super(id, title, isRead, type, referenceId, member);
+		String messageId, Member member, String portfolioName) {
+		super(id, title, isRead, type, referenceId, messageId, member);
 		this.portfolioName = portfolioName;
 	}
 

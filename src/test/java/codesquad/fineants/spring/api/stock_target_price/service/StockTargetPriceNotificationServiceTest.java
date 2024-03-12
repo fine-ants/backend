@@ -276,7 +276,6 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 		given(kisService.fetchCurrentPrice(stock2.getTickerSymbol()))
 			.willReturn(Mono.just(KisCurrentPrice.create(stock2.getTickerSymbol(), 10000L)));
 		given(firebaseMessagingService.sendNotification(any(Message.class)))
-			.willReturn(Optional.of("messageId"))
 			.willReturn(Optional.of("messageId"));
 		// when
 		TargetPriceNotificationSendResponse response = service.sendStockTargetPriceNotification(
@@ -326,6 +325,7 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 			sendTargetPriceNotification.getTargetPrice(),
 			"종목 지정가",
 			sendTargetPriceNotification.getStockTargetPrice().getStock().getTickerSymbol(),
+			"messageId",
 			member
 		));
 

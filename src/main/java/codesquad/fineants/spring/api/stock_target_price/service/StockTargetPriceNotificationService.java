@@ -35,8 +35,6 @@ import codesquad.fineants.spring.api.kis.client.KisCurrentPrice;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
 import codesquad.fineants.spring.api.kis.service.KisService;
-import codesquad.fineants.spring.api.notification.response.NotificationCreateResponse;
-import codesquad.fineants.spring.api.notification.response.NotifyMessageItem;
 import codesquad.fineants.spring.api.notification.service.NotificationService;
 import codesquad.fineants.spring.api.stock_target_price.manager.TargetPriceNotificationSentManager;
 import codesquad.fineants.spring.api.stock_target_price.request.StockTargetPriceNotificationCreateRequest;
@@ -221,30 +219,20 @@ public class StockTargetPriceNotificationService {
 				// 알림 발송
 				.map(fcmToken -> CompletableFuture.supplyAsync(() ->
 					notificationService.notifyStockAchievedTargetPrice(fcmToken.getToken(), targetPrice), executor))
-				.map(future -> future.thenCompose(optionalItem -> {
-					NotifyMessageItem item = optionalItem.orElse(null);
-					if (item == null) {
-						return CompletableFuture.completedFuture(null);
-					}
-					return CompletableFuture.supplyAsync(() -> item);
-				}))
+				.map(future -> future.thenApply(optionalItem -> optionalItem.orElse(null)))
 				.filter(Objects::nonNull)
 				// 알림 저장
-				.map(future -> future.thenCompose(item -> {
-					NotificationCreateResponse response = notificationService.saveStockTargetPriceNotification(
-						StockTargetPriceNotificationCreateRequest.of(item, targetPrice),
-						item.getMemberId()
-					);
-					TargetPriceNotificationSendItem sendItem = TargetPriceNotificationSendItem.from(
-						response,
-						targetPrice.getId(),
-						item.getMessageId());
-					return CompletableFuture.supplyAsync(() -> sendItem);
-				}))
+				.map(future -> future.thenCompose(item ->
+					CompletableFuture.supplyAsync(() ->
+						notificationService.saveStockTargetPriceNotification(
+							StockTargetPriceNotificationCreateRequest.of(item, targetPrice),
+							item.getMemberId()), executor)
+				))
+				.map(future -> future.thenApply(TargetPriceNotificationSendItem::from))
 				// 발송 이력 저장
 				.map(future -> future.thenCompose(item -> {
 					sentManager.addTargetPriceNotification(item.getTargetPriceNotificationId());
-					return CompletableFuture.supplyAsync(() -> item);
+					return CompletableFuture.supplyAsync(() -> item, executor);
 				}))
 				.collect(Collectors.toList());
 			futures.addAll(sendFutures);
