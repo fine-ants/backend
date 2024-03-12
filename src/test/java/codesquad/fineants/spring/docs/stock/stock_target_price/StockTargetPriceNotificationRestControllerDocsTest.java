@@ -123,6 +123,7 @@ public class StockTargetPriceNotificationRestControllerDocsTest extends RestDocs
 				List.of(
 					TargetPriceNotificationSendItem.builder()
 						.notificationId(1L)
+						.targetPriceNotificationId(1L)
 						.title("종목 지정가")
 						.type(NotificationType.STOCK_TARGET_PRICE)
 						.referenceId("005930")
@@ -140,6 +141,7 @@ public class StockTargetPriceNotificationRestControllerDocsTest extends RestDocs
 			.andExpect(jsonPath("message").value(equalTo("종목 지정가 알림을 발송하였습니다")))
 			.andExpect(jsonPath("data.notifications").isArray())
 			.andExpect(jsonPath("data.notifications[0].notificationId").value(equalTo(1)))
+			.andExpect(jsonPath("data.notifications[0].targetPriceNotificationId").value(equalTo(1)))
 			.andExpect(jsonPath("data.notifications[0].title").value(equalTo("종목 지정가")))
 			.andExpect(jsonPath("data.notifications[0].type").value(equalTo("STOCK_TARGET_PRICE")))
 			.andExpect(jsonPath("data.notifications[0].referenceId").value(equalTo("005930")))
@@ -165,6 +167,8 @@ public class StockTargetPriceNotificationRestControllerDocsTest extends RestDocs
 							.description("종목 지정가 알림 리스트"),
 						fieldWithPath("data.notifications[].notificationId").type(JsonFieldType.NUMBER)
 							.description("알림 등록 번호"),
+						fieldWithPath("data.notifications[].targetPriceNotificationId").type(JsonFieldType.NUMBER)
+							.description("지정가 알림 등록 번호"),
 						fieldWithPath("data.notifications[].title").type(JsonFieldType.STRING)
 							.description("알림 제목"),
 						fieldWithPath("data.notifications[].type").type(JsonFieldType.STRING)

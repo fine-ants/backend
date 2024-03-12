@@ -235,13 +235,15 @@ public class StockTargetPriceNotificationService {
 						StockTargetPriceNotificationCreateRequest.of(item, targetPrice),
 						item.getMemberId()
 					);
-					TargetPriceNotificationSendItem sendItem = TargetPriceNotificationSendItem.from(response,
+					TargetPriceNotificationSendItem sendItem = TargetPriceNotificationSendItem.from(
+						response,
+						targetPrice.getId(),
 						item.getMessageId());
 					return CompletableFuture.supplyAsync(() -> sendItem);
 				}))
 				// 발송 이력 저장
 				.map(future -> future.thenCompose(item -> {
-					sentManager.addTargetPriceNotification(item.getNotificationId());
+					sentManager.addTargetPriceNotification(item.getTargetPriceNotificationId());
 					return CompletableFuture.supplyAsync(() -> item);
 				}))
 				.collect(Collectors.toList());
