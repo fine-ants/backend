@@ -360,6 +360,47 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 			.hasSize(2);
 	}
 
+	@DisplayName("종목 지정가 도달 알림을 보내는데 실패하면 알림을 저장하지 않아야 한다")
+	@Test
+	void sendAllStockTargetPriceNotification_whenFailSendingNotification_thenNotSaveNotification() {
+		// given
+		Member member = memberRepository.save(createMember());
+		notificationPreferenceRepository.save(NotificationPreference.builder()
+			.browserNotify(true)
+			.targetGainNotify(true)
+			.maxLossNotify(true)
+			.targetPriceNotify(true)
+			.member(member)
+			.build());
+		fcmRepository.save(createFcmToken(member, "token"));
+		Stock stock = stockRepository.save(createStock());
+		StockTargetPrice stockTargetPrice = repository.save(createStockTargetPrice(member, stock));
+		List<TargetPriceNotification> targetPriceNotifications = createTargetPriceNotification(stockTargetPrice,
+			List.of(60000L, 70000L));
+		targetPriceNotificationRepository.saveAll(targetPriceNotifications);
+
+		given(currentPriceManager.getCurrentPrice(stock.getTickerSymbol()))
+			.willReturn(Optional.of(60000L));
+		given(targetPriceNotificationSentManager.hasNotificationSent(targetPriceNotifications.get(0).getId()))
+			.willReturn(false);
+		given(targetPriceNotificationSentManager.hasNotificationSent(targetPriceNotifications.get(1).getId()))
+			.willReturn(false);
+		given(firebaseMessagingService.sendNotification(any(Message.class)))
+			.willReturn(Optional.empty());
+		// when
+		TargetPriceNotificationSendResponse response = service.sendAllStockTargetPriceNotification(
+			List.of(stock.getTickerSymbol()));
+
+		// then
+		NotificationType type = NotificationType.STOCK_TARGET_PRICE;
+		assertThat(response.getNotifications())
+			.asList()
+			.isEmpty();
+		assertThat(notificationRepository.findAllByMemberId(member.getId()))
+			.asList()
+			.hasSize(0);
+	}
+
 	@DisplayName("티커 심볼을 기준으로 종목 지정가 알림을 발송한다")
 	@Test
 	void sendAllStockTargetPriceNotification_whenMultipleMember_thenSendNotification() {
