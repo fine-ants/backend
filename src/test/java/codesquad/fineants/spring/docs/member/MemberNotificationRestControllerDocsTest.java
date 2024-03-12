@@ -94,6 +94,15 @@ public class MemberNotificationRestControllerDocsTest extends RestDocsSupport {
 					pathParameters(
 						parameterWithName("memberId").description("회원 등록번호")
 					),
+					requestFields(
+						fieldWithPath("title").type(JsonFieldType.STRING).description("알림 제목"),
+						fieldWithPath("name").type(JsonFieldType.STRING).description("알림 이름"),
+						fieldWithPath("target").type(JsonFieldType.STRING).description("알림 타겟"),
+						fieldWithPath("type").type(JsonFieldType.STRING).description("알림 타입"),
+						fieldWithPath("referenceId").type(JsonFieldType.STRING).description("알림 참조 아이디"),
+						fieldWithPath("messageId").type(JsonFieldType.STRING).description("메시지 아이디")
+							.optional()
+					),
 					responseFields(
 						fieldWithPath("code").type(JsonFieldType.NUMBER)
 							.description("코드"),
