@@ -67,7 +67,7 @@ public abstract class Notification extends BaseEntity {
 	}
 
 	public static Notification stockTargetPriceNotification(String stockName, Long targetPrice, String title,
-		String referenceId, String messageId, Member member) {
+		String referenceId, String messageId, Long targetPriceNotificationId, Member member) {
 		return StockTargetPriceNotification.builder()
 			.stockName(stockName)
 			.targetPrice(targetPrice)
@@ -77,6 +77,7 @@ public abstract class Notification extends BaseEntity {
 			.referenceId(referenceId)
 			.messageId(messageId)
 			.member(member)
+			.targetPriceNotificationId(targetPriceNotificationId)
 			.build();
 	}
 

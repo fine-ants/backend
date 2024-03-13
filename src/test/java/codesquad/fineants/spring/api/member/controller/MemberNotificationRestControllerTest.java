@@ -270,9 +270,9 @@ class MemberNotificationRestControllerTest {
 			.andExpect(jsonPath("message").value(equalTo("알림 삭제를 성공하였습니다")));
 	}
 
-	@DisplayName("사용자는 알림 메시지를 발송한다")
+	@DisplayName("사용자는 포트폴리오 알림 메시지를 발송한다")
 	@Test
-	void sendNotification() throws Exception {
+	void sendPortfolioNotification() throws Exception {
 		// given
 		Member member = createMember();
 		MemberPortfolioNotificationSendRequest request = MemberPortfolioNotificationSendRequest.builder()
@@ -297,7 +297,7 @@ class MemberNotificationRestControllerTest {
 			.willReturn(response);
 
 		// when & then
-		mockMvc.perform(post("/api/members/{memberId}/notifications", member.getId())
+		mockMvc.perform(post("/api/members/{memberId}/portfolio/notifications", member.getId())
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(ObjectMapperUtil.serialize(request)))
 			.andExpect(status().isOk())

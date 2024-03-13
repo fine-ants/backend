@@ -1,6 +1,7 @@
 package codesquad.fineants.spring.api.member.request;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 
 import codesquad.fineants.domain.member.Member;
@@ -25,9 +26,11 @@ public class MemberTargetPriceNotificationSendRequest {
 	@NotBlank(message = "필수 정보입니다")
 	private String referenceId;
 	private String messageId;
+	@Positive(message = "지정가 알림 등록번호는 양수여야 합니다")
+	private Long targetPriceNotificationId;
 
 	public Notification toEntity(Member member) {
 		return Notification.stockTargetPriceNotification(name, target, title, referenceId, messageId,
-			member);
+			targetPriceNotificationId, member);
 	}
 }

@@ -326,6 +326,7 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 			"종목 지정가",
 			sendTargetPriceNotification.getStockTargetPrice().getStock().getTickerSymbol(),
 			"messageId",
+			sendTargetPriceNotification.getId(),
 			member
 		));
 

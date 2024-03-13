@@ -149,7 +149,8 @@ public class MemberNotificationRestControllerDocsTest extends RestDocsSupport {
 			"name", "삼성전자일반주",
 			"target", 60000,
 			"referenceId", "005930",
-			"messageId", messageId
+			"messageId", messageId,
+			"targetPriceNotificationId", 1
 		);
 		// when
 		mockMvc.perform(post("/api/members/{memberId}/target-price/notifications", 1L)
@@ -179,7 +180,8 @@ public class MemberNotificationRestControllerDocsTest extends RestDocsSupport {
 						fieldWithPath("target").type(JsonFieldType.NUMBER).description("지정가"),
 						fieldWithPath("referenceId").type(JsonFieldType.STRING).description("알림 참조 아이디"),
 						fieldWithPath("messageId").type(JsonFieldType.STRING).description("메시지 아이디")
-							.optional()
+							.optional(),
+						fieldWithPath("targetPriceNotificationId").type(JsonFieldType.NUMBER).description("지정가 알림 등록번호")
 					),
 					responseFields(
 						fieldWithPath("code").type(JsonFieldType.NUMBER)
