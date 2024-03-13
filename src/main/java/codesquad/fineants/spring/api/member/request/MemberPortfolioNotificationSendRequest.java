@@ -1,4 +1,4 @@
-package codesquad.fineants.spring.api.notification.request;
+package codesquad.fineants.spring.api.member.request;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -11,24 +11,24 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
-@ToString
-public class PortfolioNotificationCreateRequest {
-	@NotBlank(message = "필수 정보입니다")
-	private String portfolioName;
+public class MemberPortfolioNotificationSendRequest {
 	@NotBlank(message = "필수 정보입니다")
 	private String title;
+	@NotBlank(message = "필수 정보입니다")
+	private String name;
 	@NotNull(message = "필수 정보입니다")
 	private NotificationType type;
 	@NotBlank(message = "필수 정보입니다")
 	private String referenceId;
+	private String messageId;
 
 	public Notification toEntity(Member member) {
-		return Notification.portfolioNotification(portfolioName, title, type, referenceId, null, member);
+		return Notification.portfolioNotification(name, title, type, referenceId, messageId,
+			member);
 	}
 }

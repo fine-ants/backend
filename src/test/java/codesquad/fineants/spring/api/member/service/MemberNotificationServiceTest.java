@@ -33,7 +33,7 @@ import codesquad.fineants.domain.notification.type.NotificationType;
 import codesquad.fineants.spring.AbstractContainerBaseTest;
 import codesquad.fineants.spring.api.common.errors.errorcode.NotificationErrorCode;
 import codesquad.fineants.spring.api.common.errors.exception.NotFoundResourceException;
-import codesquad.fineants.spring.api.member.request.MemberNotificationSendRequest;
+import codesquad.fineants.spring.api.member.request.MemberPortfolioNotificationSendRequest;
 import codesquad.fineants.spring.api.member.response.MemberNotification;
 import codesquad.fineants.spring.api.member.response.MemberNotificationResponse;
 import codesquad.fineants.spring.api.member.response.MemberNotificationSendResponse;
@@ -211,11 +211,10 @@ class MemberNotificationServiceTest extends AbstractContainerBaseTest {
 		// given
 		Member member = memberRepository.save(createMember());
 		fcmRepository.save(createFcmToken(member));
-		MemberNotificationSendRequest request = MemberNotificationSendRequest.builder()
+		MemberPortfolioNotificationSendRequest request = MemberPortfolioNotificationSendRequest.builder()
 			.title("포트폴리오")
 			.name("포트폴리오1")
-			.target("최대 손실율")
-			.type("portfolio")
+			.type(NotificationType.PORTFOLIO_MAX_LOSS)
 			.referenceId("1")
 			.build();
 
@@ -223,7 +222,8 @@ class MemberNotificationServiceTest extends AbstractContainerBaseTest {
 			.willReturn("messageId");
 
 		// when
-		MemberNotificationSendResponse response = notificationService.sendNotification(member.getId(), request);
+		MemberNotificationSendResponse response = notificationService.sendPortfolioNotification(member.getId(),
+			request);
 
 		// then
 		assertAll(
@@ -245,11 +245,10 @@ class MemberNotificationServiceTest extends AbstractContainerBaseTest {
 		Member member = memberRepository.save(createMember());
 		fcmRepository.save(createFcmToken(member));
 		FcmToken saveFcmToken = fcmRepository.save(createFcmToken(member, "fcmToken"));
-		MemberNotificationSendRequest request = MemberNotificationSendRequest.builder()
+		MemberPortfolioNotificationSendRequest request = MemberPortfolioNotificationSendRequest.builder()
 			.title("포트폴리오")
 			.name("포트폴리오1")
-			.target("최대 손실율")
-			.type("portfolio")
+			.type(NotificationType.PORTFOLIO_MAX_LOSS)
 			.referenceId("1")
 			.build();
 
@@ -257,7 +256,8 @@ class MemberNotificationServiceTest extends AbstractContainerBaseTest {
 			.willThrow(FirebaseMessagingException.class);
 
 		// when
-		MemberNotificationSendResponse response = notificationService.sendNotification(member.getId(), request);
+		MemberNotificationSendResponse response = notificationService.sendPortfolioNotification(member.getId(),
+			request);
 
 		// then
 		assertAll(
@@ -278,16 +278,16 @@ class MemberNotificationServiceTest extends AbstractContainerBaseTest {
 	void sendNotification_whenEmptyToken_thenDoNotSendNotification() {
 		// given
 		Member member = memberRepository.save(createMember());
-		MemberNotificationSendRequest request = MemberNotificationSendRequest.builder()
+		MemberPortfolioNotificationSendRequest request = MemberPortfolioNotificationSendRequest.builder()
 			.title("포트폴리오")
 			.name("포트폴리오1")
-			.target("최대 손실율")
-			.type("portfolio")
+			.type(NotificationType.PORTFOLIO_MAX_LOSS)
 			.referenceId("1")
 			.build();
 
 		// when
-		MemberNotificationSendResponse response = notificationService.sendNotification(member.getId(), request);
+		MemberNotificationSendResponse response = notificationService.sendPortfolioNotification(member.getId(),
+			request);
 
 		// then
 		assertAll(

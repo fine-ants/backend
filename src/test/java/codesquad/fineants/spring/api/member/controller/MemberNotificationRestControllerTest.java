@@ -35,7 +35,8 @@ import codesquad.fineants.domain.notification.type.NotificationType;
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.oauth.support.AuthPrincipalArgumentResolver;
 import codesquad.fineants.spring.api.common.errors.handler.GlobalExceptionHandler;
-import codesquad.fineants.spring.api.member.request.MemberNotificationSendRequest;
+import codesquad.fineants.spring.api.member.request.MemberPortfolioNotificationSendRequest;
+import codesquad.fineants.spring.api.member.request.MemberTargetPriceNotificationSendRequest;
 import codesquad.fineants.spring.api.member.response.MemberNotification;
 import codesquad.fineants.spring.api.member.response.MemberNotificationResponse;
 import codesquad.fineants.spring.api.member.response.MemberNotificationSendResponse;
@@ -274,12 +275,12 @@ class MemberNotificationRestControllerTest {
 	void sendNotification() throws Exception {
 		// given
 		Member member = createMember();
-		MemberNotificationSendRequest request = MemberNotificationSendRequest.builder()
+		MemberPortfolioNotificationSendRequest request = MemberPortfolioNotificationSendRequest.builder()
 			.title("포트폴리오")
 			.name("포트폴리오1")
-			.target("최대 손실율")
-			.type("portfolio")
+			.type(NotificationType.PORTFOLIO_TARGET_GAIN)
 			.referenceId("1")
+			.messageId("messageId")
 			.build();
 		MemberNotificationSendResponse response = MemberNotificationSendResponse.builder()
 			.notificationId(1L)
@@ -291,7 +292,8 @@ class MemberNotificationRestControllerTest {
 			.referenceId("1")
 			.sendMessageIds(List.of("messageId"))
 			.build();
-		given(notificationService.sendNotification(anyLong(), any(MemberNotificationSendRequest.class)))
+		given(notificationService.sendTargetPriceNotification(anyLong(),
+			any(MemberTargetPriceNotificationSendRequest.class)))
 			.willReturn(response);
 
 		// when & then

@@ -1,5 +1,7 @@
 package codesquad.fineants.domain.notification.type;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+
 import lombok.Getter;
 
 @Getter
@@ -16,12 +18,8 @@ public enum NotificationType {
 		this.category = category;
 	}
 
-	public static NotificationType from(String target) {
-		for (NotificationType type : values()) {
-			if (type.name.equals(target)) {
-				return type;
-			}
-		}
-		throw new IllegalArgumentException("잘못된 매개변수입니다. target=" + target);
+	@JsonCreator
+	public static NotificationType from(String type) {
+		return NotificationType.valueOf(type);
 	}
 }

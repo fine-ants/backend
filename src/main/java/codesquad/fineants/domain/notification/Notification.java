@@ -50,7 +50,7 @@ public abstract class Notification extends BaseEntity {
 	private Member member;
 
 	public static Notification portfolioNotification(String portfolioName, String title, NotificationType type,
-		String referenceId, Member member) {
+		String referenceId, String messageId, Member member) {
 		if (type == NotificationType.PORTFOLIO_TARGET_GAIN
 			|| type == NotificationType.PORTFOLIO_MAX_LOSS) {
 			return PortfolioNotification.builder()
@@ -59,6 +59,7 @@ public abstract class Notification extends BaseEntity {
 				.isRead(false)
 				.type(type)
 				.referenceId(referenceId)
+				.messageId(messageId)
 				.member(member)
 				.build();
 		}

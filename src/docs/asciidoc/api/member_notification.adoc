@@ -1,13 +1,27 @@
-[[member_notification-notify]]
-=== 회원 알림 메시지 발송
+[[member_portfolio_notification-notify]]
+=== 회원 포트폴리오 알림 메시지 발송
 
 ==== HTTP Request
 
-include::{snippets}/member_notification-notify/http-request.adoc[]
-include::{snippets}/member_notification-notify/path-parameters.adoc[]
-include::{snippets}/member_notification-notify/response-fields.adoc[]
+include::{snippets}/member_portfolio_notification-notify/http-request.adoc[]
+include::{snippets}/member_portfolio_notification-notify/path-parameters.adoc[]
+include::{snippets}/member_portfolio_notification-notify/response-fields.adoc[]
 
 ==== HTTP Response
 
-include::{snippets}/member_notification-notify/http-response.adoc[]
-include::{snippets}/member_notification-notify/response-fields.adoc[]
+include::{snippets}/member_portfolio_notification-notify/http-response.adoc[]
+include::{snippets}/member_portfolio_notification-notify/response-fields.adoc[]
+
+[[member_target_price_notification-notify]]
+=== 회원 종목 지정가 알림 메시지 발송
+
+==== HTTP Request
+
+include::{snippets}/member_target_price_notification-notify/http-request.adoc[]
+include::{snippets}/member_target_price_notification-notify/path-parameters.adoc[]
+include::{snippets}/member_target_price_notification-notify/response-fields.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/member_target_price_notification-notify/http-response.adoc[]
+include::{snippets}/member_target_price_notification-notify/response-fields.adoc[]

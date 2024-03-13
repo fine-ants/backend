@@ -20,7 +20,8 @@ import codesquad.fineants.domain.notification.NotificationRepository;
 import codesquad.fineants.spring.api.common.errors.errorcode.MemberErrorCode;
 import codesquad.fineants.spring.api.common.errors.errorcode.NotificationErrorCode;
 import codesquad.fineants.spring.api.common.errors.exception.NotFoundResourceException;
-import codesquad.fineants.spring.api.member.request.MemberNotificationSendRequest;
+import codesquad.fineants.spring.api.member.request.MemberPortfolioNotificationSendRequest;
+import codesquad.fineants.spring.api.member.request.MemberTargetPriceNotificationSendRequest;
 import codesquad.fineants.spring.api.member.response.MemberNotification;
 import codesquad.fineants.spring.api.member.response.MemberNotificationResponse;
 import codesquad.fineants.spring.api.member.response.MemberNotificationSendResponse;
@@ -88,8 +89,27 @@ public class MemberNotificationService {
 	}
 
 	@Transactional
-	public MemberNotificationSendResponse sendNotification(Long memberId,
-		MemberNotificationSendRequest request) {
+	public MemberNotificationSendResponse sendPortfolioNotification(Long memberId,
+		MemberPortfolioNotificationSendRequest request) {
+		// 알림 데이터 등록
+		Member member = findMember(memberId);
+		Notification notification = notificationRepository.save(request.toEntity(member));
+
+		// 알림 데이터 전송
+		List<String> tokens = fcmRepository.findAllByMemberId(memberId).stream()
+			.map(FcmToken::getToken)
+			.collect(Collectors.toList());
+		List<String> sendMessageIds = sendNotification(tokens, notification);
+		if (sendMessageIds.isEmpty()) {
+			notificationRepository.deleteById(notification.getId());
+			log.info("알림 메시지 전송 실패로 인한 알림 메시지 삭제, id={}", notification.getId());
+		}
+		return MemberNotificationSendResponse.from(notification, sendMessageIds);
+	}
+
+	@Transactional
+	public MemberNotificationSendResponse sendTargetPriceNotification(Long memberId,
+		MemberTargetPriceNotificationSendRequest request) {
 		// 알림 데이터 등록
 		Member member = findMember(memberId);
 		Notification notification = notificationRepository.save(request.toEntity(member));

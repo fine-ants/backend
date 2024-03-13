@@ -19,7 +19,8 @@ import codesquad.fineants.spring.api.common.success.MemberSuccessCode;
 import codesquad.fineants.spring.api.member.request.MemberNotificationAllDeleteRequest;
 import codesquad.fineants.spring.api.member.request.MemberNotificationAllReadRequest;
 import codesquad.fineants.spring.api.member.request.MemberNotificationPreferenceRequest;
-import codesquad.fineants.spring.api.member.request.MemberNotificationSendRequest;
+import codesquad.fineants.spring.api.member.request.MemberPortfolioNotificationSendRequest;
+import codesquad.fineants.spring.api.member.request.MemberTargetPriceNotificationSendRequest;
 import codesquad.fineants.spring.api.member.response.MemberNotificationPreferenceResponse;
 import codesquad.fineants.spring.api.member.response.MemberNotificationResponse;
 import codesquad.fineants.spring.api.member.response.MemberNotificationSendResponse;
@@ -38,12 +39,22 @@ public class MemberNotificationRestController {
 	private final MemberNotificationService notificationService;
 	private final MemberNotificationPreferenceService preferenceService;
 
-	// 회원의 알림 메시지 생성
-	@PostMapping("/notifications")
-	public ApiResponse<Void> sendNotification(
+	// 회원의 종목 지정가 알림 메시지 생성
+	@PostMapping("/target-price/notifications")
+	public ApiResponse<Void> sendTargetPriceNotification(
 		@PathVariable Long memberId,
-		@Valid @RequestBody MemberNotificationSendRequest request) {
-		MemberNotificationSendResponse response = notificationService.sendNotification(memberId, request);
+		@Valid @RequestBody MemberTargetPriceNotificationSendRequest request) {
+		MemberNotificationSendResponse response = notificationService.sendTargetPriceNotification(memberId, request);
+		log.info("알림 메시지 발송 컨트롤러 처리 결과 : {}", response);
+		return ApiResponse.success(MemberSuccessCode.OK_SEND_NOTIFICATION);
+	}
+
+	// 회원의 종목 지정가 알림 메시지 생성
+	@PostMapping("/portfolio/notifications")
+	public ApiResponse<Void> sendPortfolioNotification(
+		@PathVariable Long memberId,
+		@Valid @RequestBody MemberPortfolioNotificationSendRequest request) {
+		MemberNotificationSendResponse response = notificationService.sendPortfolioNotification(memberId, request);
 		log.info("알림 메시지 발송 컨트롤러 처리 결과 : {}", response);
 		return ApiResponse.success(MemberSuccessCode.OK_SEND_NOTIFICATION);
 	}
