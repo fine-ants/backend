@@ -258,6 +258,7 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 			.member(member)
 			.build());
 		fcmRepository.save(createFcmToken(member, "token"));
+		fcmRepository.save(createFcmToken(member, "token2"));
 		Stock stock = stockRepository.save(createStock());
 		Stock stock2 = stockRepository.save(createStock2());
 		StockTargetPrice stockTargetPrice = repository.save(createStockTargetPrice(member, stock));
