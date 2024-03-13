@@ -4,6 +4,7 @@ import codesquad.fineants.domain.notification.type.NotificationType;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
@@ -13,6 +14,7 @@ import lombok.ToString;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
 @ToString
+@EqualsAndHashCode(of = "messageId")
 public class NotifyMessageItem {
 	private String title;
 	private NotificationType type;

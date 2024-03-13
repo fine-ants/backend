@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -225,10 +226,10 @@ public class StockTargetPriceNotificationService {
 					.exceptionally(throwable -> null))
 				.collect(Collectors.toList());
 
-			List<NotifyMessageItem> items = notifyMessageItemFutures.stream()
+			Set<NotifyMessageItem> items = notifyMessageItemFutures.stream()
 				.map(CompletableFuture::join)
 				.filter(Objects::nonNull)
-				.collect(Collectors.toList());
+				.collect(Collectors.toSet());
 
 			List<CompletableFuture<TargetPriceNotificationSendItem>> sendItemFutures = items.stream()
 				// 알림 저장
