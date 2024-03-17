@@ -18,6 +18,7 @@ import codesquad.fineants.domain.BaseEntity;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.domain.target_price_notification.TargetPriceNotification;
+import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -63,5 +64,9 @@ public class StockTargetPrice extends BaseEntity {
 
 	public void changeIsActive(Boolean isActive) {
 		this.isActive = isActive;
+	}
+
+	public Long getCurrentPrice(CurrentPriceManager manager) {
+		return stock.getCurrentPrice(manager);
 	}
 }

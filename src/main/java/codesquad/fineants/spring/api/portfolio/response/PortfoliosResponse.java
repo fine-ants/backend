@@ -32,7 +32,7 @@ public class PortfoliosResponse {
 		Map<Portfolio, PortfolioGainHistory> portfolioGainHistoryMap, CurrentPriceManager manager) {
 		return portfolios.stream()
 			.map(portfolio -> {
-				portfolio.changeCurrentPriceFromHoldings(manager);
+				portfolio.applyCurrentPriceAllHoldingsBy(manager);
 				return PortFolioItem.of(portfolio, portfolioGainHistoryMap.get(portfolio));
 			})
 			.collect(Collectors.toList());

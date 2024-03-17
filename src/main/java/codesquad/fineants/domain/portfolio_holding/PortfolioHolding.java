@@ -53,7 +53,7 @@ public class PortfolioHolding extends BaseEntity {
 
 	@BatchSize(size = 1000)
 	@OneToMany(mappedBy = "portfolioHolding", fetch = FetchType.LAZY)
-	private final List<PurchaseHistory> purchaseHistory = new ArrayList<>();
+	private List<PurchaseHistory> purchaseHistory = new ArrayList<>();
 
 	@Transient
 	private Long currentPrice;    // 현재가
@@ -221,5 +221,9 @@ public class PortfolioHolding extends BaseEntity {
 
 	public Long getLastDayClosingPrice(LastDayClosingPriceManager manager) {
 		return stock.getLastDayClosingPrice(manager);
+	}
+
+	public void setPurchaseHistories(List<PurchaseHistory> histories) {
+		this.purchaseHistory = histories;
 	}
 }

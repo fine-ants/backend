@@ -25,12 +25,12 @@ public class MemberTargetPriceNotificationSendRequest {
 	private Long target;
 	@NotBlank(message = "필수 정보입니다")
 	private String referenceId;
-	private String messageId;
+	@NotBlank(message = "필수 정보입니다")
+	private String link;
 	@Positive(message = "지정가 알림 등록번호는 양수여야 합니다")
 	private Long targetPriceNotificationId;
 
 	public Notification toEntity(Member member) {
-		return Notification.stockTargetPriceNotification(name, target, title, referenceId, messageId,
-			targetPriceNotificationId, member);
+		return Notification.stock(name, target, title, referenceId, link, targetPriceNotificationId, member);
 	}
 }

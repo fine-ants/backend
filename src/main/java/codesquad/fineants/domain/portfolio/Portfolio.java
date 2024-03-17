@@ -2,6 +2,7 @@ package codesquad.fineants.domain.portfolio;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -24,10 +25,13 @@ import org.hibernate.annotations.BatchSize;
 
 import codesquad.fineants.domain.BaseEntity;
 import codesquad.fineants.domain.member.Member;
+import codesquad.fineants.domain.notification.type.NotificationType;
 import codesquad.fineants.domain.portfolio_gain_history.PortfolioGainHistory;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
 import codesquad.fineants.domain.purchase_history.PurchaseHistory;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
+import codesquad.fineants.spring.api.notification.manager.NotificationSentManager;
+import codesquad.fineants.spring.api.notification.response.NotifyMessage;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioDividendChartItem;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioPieChartItem;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioSectorChartItem;
@@ -227,18 +231,6 @@ public class Portfolio extends BaseEntity {
 			.build();
 	}
 
-	public List<PortfolioHolding> changeCurrentPriceFromHoldings(CurrentPriceManager manager) {
-		List<PortfolioHolding> result = new ArrayList<>();
-		for (PortfolioHolding portfolioHolding : portfolioHoldings) {
-			String tickerSymbol = portfolioHolding.getStock().getTickerSymbol();
-			if (manager.hasCurrentPrice(tickerSymbol)) {
-				portfolioHolding.changeCurrentPrice(manager.getCurrentPrice(tickerSymbol).orElse(0L));
-				result.add(portfolioHolding);
-			}
-		}
-		return result;
-	}
-
 	// 포트폴리오 모든 종목들에 주식 현재가 적용
 	public void applyCurrentPriceAllHoldingsBy(CurrentPriceManager manager) {
 		for (PortfolioHolding portfolioHolding : portfolioHoldings) {
@@ -266,12 +258,28 @@ public class Portfolio extends BaseEntity {
 		this.maximumLossIsActive = isActive;
 	}
 
+	public boolean reachedTargetGain() {
+		List<PurchaseHistory> histories = portfolioHoldings.stream()
+			.map(PortfolioHolding::getPurchaseHistory)
+			.flatMap(Collection::stream)
+			.collect(Collectors.toList());
+		return reachedTargetGain(histories);
+	}
+
 	// 포트폴리오가 목표수익금액에 도달했는지 검사
 	public boolean reachedTargetGain(List<PurchaseHistory> histories) {
 		long totalGain = histories.stream()
 			.mapToLong(PurchaseHistory::calculateGain)
 			.sum();
 		return budget + totalGain >= targetGain;
+	}
+
+	// 포트폴리오가 최대손실금액에 도달했는지 검사
+	public boolean reachedMaximumLoss() {
+		return reachedMaximumLoss(portfolioHoldings.stream()
+			.map(PortfolioHolding::getPurchaseHistory)
+			.flatMap(Collection::stream)
+			.collect(Collectors.toList()));
 	}
 
 	// 포트폴리오가 최대손실금액에 도달했는지 검사
@@ -353,5 +361,59 @@ public class Portfolio extends BaseEntity {
 	// 매입 이력을 포트폴리오에 추가시 현금이 충분한지 판단
 	public boolean isCashSufficientForPurchase(long investmentAmount) {
 		return calculateTotalInvestmentAmount() + investmentAmount > budget;
+	}
+
+	public boolean isSameTargetGainActive(boolean active) {
+		return this.targetGainIsActive == active;
+	}
+
+	public boolean isSameMaxLossActive(boolean active) {
+		return this.maximumLossIsActive == active;
+	}
+
+	public boolean hasTargetGainSentHistory(NotificationSentManager manager) {
+		return manager.hasTargetGainSendHistory(id);
+	}
+
+	public boolean hasMaxLossSentHistory(NotificationSentManager manager) {
+		return manager.hasMaxLossSendHistory(id);
+	}
+
+	public NotifyMessage getTargetGainMessage(String token) {
+		String title = "포트폴리오";
+		String content = String.format("%s의 목표 수익률을 달성했습니다", name);
+		NotificationType type = NotificationType.PORTFOLIO_TARGET_GAIN;
+		String referenceId = id.toString();
+		Long memberId = member.getId();
+		String link = "/portfolio/" + referenceId;
+		return NotifyMessage.portfolio(
+			title,
+			content,
+			type,
+			referenceId,
+			memberId,
+			token,
+			link,
+			name
+		);
+	}
+
+	public NotifyMessage getMaxLossMessage(String token) {
+		String title = "포트폴리오";
+		String content = String.format("%s이(가) 최대 손실율에 도달했습니다", name);
+		NotificationType type = NotificationType.PORTFOLIO_MAX_LOSS;
+		String referenceId = id.toString();
+		Long memberId = member.getId();
+		String link = "/portfolio/" + referenceId;
+		return NotifyMessage.portfolio(
+			title,
+			content,
+			type,
+			referenceId,
+			memberId,
+			token,
+			link,
+			name
+		);
 	}
 }

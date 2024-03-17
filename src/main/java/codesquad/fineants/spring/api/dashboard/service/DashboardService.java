@@ -49,7 +49,7 @@ public class DashboardService {
 			return OverviewResponse.empty(member.getNickname());
 		}
 		for (Portfolio portfolio : portfolios) {
-			portfolio.changeCurrentPriceFromHoldings(currentPriceManager);
+			portfolio.applyCurrentPriceAllHoldingsBy(currentPriceManager);
 			totalValuation += portfolio.calculateTotalAsset();
 			totalCurrentValuation += portfolio.calculateTotalCurrentValuation();
 			totalInvestment += portfolio.calculateTotalInvestmentAmount();
@@ -73,7 +73,7 @@ public class DashboardService {
 		}
 		Long totalValuation = 0L;// 평가 금액 + 현금?
 		for (Portfolio portfolio : portfolios) {
-			portfolio.changeCurrentPriceFromHoldings(currentPriceManager);
+			portfolio.applyCurrentPriceAllHoldingsBy(currentPriceManager);
 			totalValuation += portfolio.calculateTotalAsset();
 		}
 		List<DashboardPieChartResponse> pieChartResponses = new ArrayList<>();

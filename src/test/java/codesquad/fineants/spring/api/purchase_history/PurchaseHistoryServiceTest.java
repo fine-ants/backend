@@ -48,6 +48,7 @@ import codesquad.fineants.spring.api.common.errors.errorcode.PortfolioErrorCode;
 import codesquad.fineants.spring.api.common.errors.errorcode.PurchaseHistoryErrorCode;
 import codesquad.fineants.spring.api.common.errors.exception.FineAntsException;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
+import codesquad.fineants.spring.api.notification.manager.NotificationSentManager;
 import codesquad.fineants.spring.api.purchase_history.request.PurchaseHistoryCreateRequest;
 import codesquad.fineants.spring.api.purchase_history.request.PurchaseHistoryModifyRequest;
 import codesquad.fineants.spring.api.purchase_history.response.PurchaseHistoryCreateResponse;
@@ -98,6 +99,9 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 
 	@MockBean
 	private FirebaseMessaging firebaseMessaging;
+
+	@MockBean
+	private NotificationSentManager sentManager;
 
 	@AfterEach
 	void tearDown() {
@@ -162,16 +166,8 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Stock stock = stockRepository.save(createStock());
 		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
-		fcmRepository.save(FcmToken.builder()
-			.token("token")
-			.latestActivationTime(LocalDateTime.now())
-			.member(member)
-			.build());
-		fcmRepository.save(FcmToken.builder()
-			.token("token2")
-			.latestActivationTime(LocalDateTime.now())
-			.member(member)
-			.build());
+		fcmRepository.save(createFcmToken("token", member));
+		fcmRepository.save(createFcmToken("token2", member));
 
 		PurchaseHistoryCreateRequest request = PurchaseHistoryCreateRequest.builder()
 			.purchaseDate(LocalDateTime.now())
@@ -182,8 +178,10 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 
 		given(currentPriceManager.getCurrentPrice(anyString()))
 			.willReturn(Optional.of(50000L));
+		given(sentManager.hasTargetGainSendHistory(anyLong()))
+			.willReturn(false);
 		given(firebaseMessaging.send(any(Message.class)))
-			.willReturn("send messageId");
+			.willReturn("messageId");
 
 		// when
 		PurchaseHistoryCreateResponse response = service.addPurchaseHistory(
@@ -198,6 +196,14 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 			() -> assertThat(response.getId()).isNotNull(),
 			() -> assertThat(notificationRepository.findAllByMemberId(member.getId())).hasSize(1)
 		);
+	}
+
+	private static FcmToken createFcmToken(String token, Member member) {
+		return FcmToken.builder()
+			.token(token)
+			.latestActivationTime(LocalDateTime.now())
+			.member(member)
+			.build();
 	}
 
 	@DisplayName("사용자는 매입 이력 추가시 최대 손실율에 달성하여 알림을 받는다")
@@ -224,6 +230,8 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 
 		given(currentPriceManager.getCurrentPrice(anyString()))
 			.willReturn(Optional.of(50000L));
+		given(sentManager.hasTargetGainSendHistory(anyLong()))
+			.willReturn(false);
 		given(firebaseMessaging.send(any(Message.class)))
 			.willReturn("send messageId");
 
@@ -378,8 +386,8 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 			.targetGain(1500000L)
 			.maximumLoss(900000L)
 			.member(member)
-			.targetGainIsActive(false)
-			.maximumLossIsActive(false)
+			.targetGainIsActive(true)
+			.maximumLossIsActive(true)
 			.build();
 	}
 

@@ -27,6 +27,9 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.multipart.MultipartFile;
 
 import codesquad.fineants.domain.member.Member;
+import codesquad.fineants.domain.notification.Notification;
+import codesquad.fineants.domain.notification.PortfolioNotification;
+import codesquad.fineants.domain.notification.StockTargetPriceNotification;
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.oauth.support.AuthPrincipalArgumentResolver;
 import codesquad.fineants.domain.portfolio.Portfolio;
@@ -36,6 +39,10 @@ import codesquad.fineants.domain.purchase_history.PurchaseHistory;
 import codesquad.fineants.domain.stock.Market;
 import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.domain.stock_dividend.StockDividend;
+import codesquad.fineants.domain.stock_target_price.StockTargetPrice;
+import codesquad.fineants.domain.target_price_notification.TargetPriceNotification;
+import codesquad.fineants.spring.api.notification.response.PortfolioNotifyMessage;
+import codesquad.fineants.spring.api.notification.response.StockNotifyMessage;
 import codesquad.fineants.spring.config.JacksonConfig;
 import codesquad.fineants.spring.intercetpor.LogoutInterceptor;
 
@@ -178,6 +185,51 @@ public abstract class RestDocsSupport {
 				LocalDate.of(2024, 5, 17),
 				stock)
 		);
+	}
+
+	protected Notification createPortfolioNotification(PortfolioNotifyMessage message, Member member) {
+		return PortfolioNotification.builder()
+			.id(1L)
+			.isRead(false)
+			.type(message.getType())
+			.title(message.getTitle())
+			.referenceId(message.getReferenceId())
+			.link(message.getLink())
+			.name(message.getName())
+			.member(member)
+			.build();
+	}
+
+	protected Notification createStockNotification(StockNotifyMessage message, Member member) {
+		return StockTargetPriceNotification.builder()
+			.id(1L)
+			.isRead(false)
+			.type(message.getType())
+			.title(message.getTitle())
+			.referenceId(message.getReferenceId())
+			.link(message.getLink())
+			.stockName(message.getStockName())
+			.targetPrice(message.getTargetPrice())
+			.targetPriceNotificationId(message.getTargetPriceNotificationId())
+			.member(member)
+			.build();
+	}
+
+	protected StockTargetPrice createStockTargetPrice(Member member, Stock stock) {
+		return StockTargetPrice.builder()
+			.id(1L)
+			.isActive(true)
+			.member(member)
+			.stock(stock)
+			.build();
+	}
+
+	protected TargetPriceNotification createTargetPriceNotification(StockTargetPrice stockTargetPrice) {
+		return TargetPriceNotification.builder()
+			.id(1L)
+			.targetPrice(60000L)
+			.stockTargetPrice(stockTargetPrice)
+			.build();
 	}
 
 	protected MultipartFile createMockMultipartFile() {
