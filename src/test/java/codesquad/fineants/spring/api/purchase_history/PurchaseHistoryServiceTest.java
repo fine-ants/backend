@@ -20,7 +20,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
 
@@ -47,6 +46,7 @@ import codesquad.fineants.spring.AbstractContainerBaseTest;
 import codesquad.fineants.spring.api.common.errors.errorcode.PortfolioErrorCode;
 import codesquad.fineants.spring.api.common.errors.errorcode.PurchaseHistoryErrorCode;
 import codesquad.fineants.spring.api.common.errors.exception.FineAntsException;
+import codesquad.fineants.spring.api.firebase.service.FirebaseMessagingService;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.notification.manager.NotificationSentManager;
 import codesquad.fineants.spring.api.purchase_history.request.PurchaseHistoryCreateRequest;
@@ -98,7 +98,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 	private CurrentPriceManager currentPriceManager;
 
 	@MockBean
-	private FirebaseMessaging firebaseMessaging;
+	private FirebaseMessagingService firebaseMessagingService;
 
 	@MockBean
 	private NotificationSentManager sentManager;
@@ -180,8 +180,8 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 			.willReturn(Optional.of(50000L));
 		given(sentManager.hasTargetGainSendHistory(anyLong()))
 			.willReturn(false);
-		given(firebaseMessaging.send(any(Message.class)))
-			.willReturn("messageId");
+		given(firebaseMessagingService.send(any(Message.class)))
+			.willReturn(Optional.of("messageId"));
 
 		// when
 		PurchaseHistoryCreateResponse response = service.addPurchaseHistory(
@@ -208,18 +208,14 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 
 	@DisplayName("사용자는 매입 이력 추가시 최대 손실율에 달성하여 알림을 받는다")
 	@Test
-	void addPurchaseHistory_whenAchieveMaxLoss_thenSaveNotification() throws FirebaseMessagingException {
+	void addPurchaseHistory_whenAchieveMaxLoss_thenSaveNotification() {
 		// given
 		Member member = memberRepository.save(createMember());
 		notificationPreferenceRepository.save(createNotificationPreference(member));
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Stock stock = stockRepository.save(createStock());
 		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
-		fcmRepository.save(FcmToken.builder()
-			.token("token")
-			.latestActivationTime(LocalDateTime.now())
-			.member(member)
-			.build());
+		fcmRepository.save(createFcmToken("token", member));
 
 		PurchaseHistoryCreateRequest request = PurchaseHistoryCreateRequest.builder()
 			.purchaseDate(LocalDateTime.now())
@@ -232,8 +228,8 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 			.willReturn(Optional.of(50000L));
 		given(sentManager.hasTargetGainSendHistory(anyLong()))
 			.willReturn(false);
-		given(firebaseMessaging.send(any(Message.class)))
-			.willReturn("send messageId");
+		given(firebaseMessagingService.send(any(Message.class)))
+			.willReturn(Optional.of("messageId"));
 
 		// when
 		PurchaseHistoryCreateResponse response = service.addPurchaseHistory(

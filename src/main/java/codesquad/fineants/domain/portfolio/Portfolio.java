@@ -287,6 +287,7 @@ public class Portfolio extends BaseEntity {
 		long totalGain = histories.stream()
 			.mapToLong(PurchaseHistory::calculateGain)
 			.sum();
+		log.debug("totalGain : {}", totalGain);
 		return budget + totalGain <= maximumLoss;
 	}
 
