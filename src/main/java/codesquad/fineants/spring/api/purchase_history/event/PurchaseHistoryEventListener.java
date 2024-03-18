@@ -19,7 +19,7 @@ public class PurchaseHistoryEventListener {
 	// 매입 이력 이벤트가 발생하면 포트폴리오 목표수익률에 달성하면 푸시 알림
 	@Async
 	@EventListener
-	public void notifyPortfolioTargetGainMessages(PushNotificationEvent event) {
+	public void notifyTargetGainBy(PushNotificationEvent event) {
 		PurchaseHistoryEventSendableParameter parameter = event.getValue();
 		PortfolioNotifyMessagesResponse response = notificationService.notifyTargetGainBy(
 			parameter.getPortfolioId());
@@ -29,7 +29,7 @@ public class PurchaseHistoryEventListener {
 	// 매입 이력 이벤트가 발생하면 포트폴리오 최대손실율에 도달하면 푸시 알림
 	@Async
 	@EventListener
-	public void notifyPortfolioMaxLossMessages(PushNotificationEvent event) {
+	public void notifyMaxLoss(PushNotificationEvent event) {
 		PurchaseHistoryEventSendableParameter parameter = event.getValue();
 		PortfolioNotifyMessagesResponse response = notificationService.notifyMaxLoss(
 			parameter.getPortfolioId());

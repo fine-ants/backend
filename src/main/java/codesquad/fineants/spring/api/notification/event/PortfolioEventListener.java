@@ -18,7 +18,7 @@ public class PortfolioEventListener {
 	// 현재가 변경 이벤트가 발생하면 포트폴리오 목표수익률에 달성하면 푸시 알림
 	@Async
 	@EventListener
-	public void notifyPortfolioTargetGainMessages(CurrentPriceEvent event) {
+	public void notifyTargetGain(CurrentPriceEvent event) {
 		notificationService.notifyTargetGain();
 	}
 
@@ -26,6 +26,6 @@ public class PortfolioEventListener {
 	@Async
 	@EventListener
 	public void notifyPortfolioMaxLossMessages(CurrentPriceEvent event) {
-
+		notificationService.notifyMaxLoss();
 	}
 }

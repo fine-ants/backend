@@ -101,7 +101,7 @@ class PurchaseHistoryEventListenerTest extends AbstractContainerBaseTest {
 		PushNotificationEvent event = new PushNotificationEvent(
 			PurchaseHistoryEventSendableParameter.create(portfolio.getId(), member.getId()));
 		// when
-		purchaseHistoryEventListener.notifyPortfolioTargetGainMessages(event);
+		purchaseHistoryEventListener.notifyTargetGainBy(event);
 
 		// then
 

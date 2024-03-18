@@ -24,7 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class PortfolioEventPublisher {
+public class PortfolioHoldingSseEventPublisher {
 
 	private final ApplicationEventPublisher eventPublisher;
 	private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();

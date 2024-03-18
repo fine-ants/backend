@@ -108,7 +108,7 @@ public class NotificationService {
 		List<Portfolio> portfolios = portfolioRepository.findAllWithAll().stream()
 			.peek(portfolio -> portfolio.applyCurrentPriceAllHoldingsBy(currentPriceManager))
 			.collect(Collectors.toList());
-		// setPurchaseHistoriesForPortfolioHoldings(portfolios);
+		setPurchaseHistoriesForPortfolioHoldings(portfolios);
 
 		Function<PortfolioNotifyMessageItem, CompletionStage<PortfolioNotifyMessageItem>> sentFunction = item -> CompletableFuture.supplyAsync(
 			() -> {
@@ -153,6 +153,21 @@ public class NotificationService {
 			.flatMap(Collection::stream)
 			.forEach(holding -> holding.setPurchaseHistories(historyMap.getOrDefault(holding.getId(),
 				Collections.emptyList())));
+	}
+
+	// 모든 트폴리오의 최대 손실율 달성 알림 푸시
+	@Transactional
+	public PortfolioNotifyMessagesResponse notifyMaxLoss() {
+		List<Portfolio> portfolios = portfolioRepository.findAllWithAll().stream()
+			.peek(portfolio -> portfolio.applyCurrentPriceAllHoldingsBy(currentPriceManager))
+			.collect(Collectors.toList());
+		setPurchaseHistoriesForPortfolioHoldings(portfolios);
+		Function<PortfolioNotifyMessageItem, CompletionStage<PortfolioNotifyMessageItem>> sentFunction = item -> CompletableFuture.supplyAsync(
+			() -> {
+				sentManager.addMaxLossSendHistory(Long.valueOf(item.getReferenceId()));
+				return item;
+			}, executor);
+		return notifyMessage(portfolios, maximumLossNotificationPolicy, sentFunction);
 	}
 
 	// 특정 포트폴리오의 최대 손실율 달성 알림 푸시
@@ -311,4 +326,5 @@ public class NotificationService {
 		log.debug("종목 지정가 알림 발송 서비스 결과, items={}", items);
 		return TargetPriceNotifyMessageResponse.from(items);
 	}
+
 }
