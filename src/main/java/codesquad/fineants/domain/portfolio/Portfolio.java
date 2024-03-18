@@ -236,6 +236,8 @@ public class Portfolio extends BaseEntity {
 	public void applyCurrentPriceAllHoldingsBy(CurrentPriceManager manager) {
 		for (PortfolioHolding portfolioHolding : portfolioHoldings) {
 			portfolioHolding.applyCurrentPrice(manager);
+			log.debug("portfolioHolding : {}, purchaseHistory : {}", portfolioHolding,
+				portfolioHolding.getPurchaseHistory());
 		}
 	}
 

@@ -313,6 +313,50 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 		);
 	}
 
+	@DisplayName("사용자는 매입 이력을 수정시 목표 수익율을 달성하여 알림을 받는다")
+	@Test
+	void modifyPurchaseHistory_whenTargetGain_thenSaveNotification() {
+		// given
+		Member member = memberRepository.save(createMember());
+		notificationPreferenceRepository.save(createNotificationPreference(member));
+		fcmRepository.save(createFcmToken("token", member));
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
+		Stock stock = stockRepository.save(createStock());
+		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
+		PurchaseHistory history = purchaseHistoryRepository.save(createPurchaseHistory(holding));
+
+		PurchaseHistoryModifyRequest request = PurchaseHistoryModifyRequest.builder()
+			.purchaseDate(LocalDateTime.now())
+			.numShares(100L)
+			.purchasePricePerShare(100.0)
+			.memo("첫구매")
+			.build();
+
+		given(currentPriceManager.getCurrentPrice(anyString()))
+			.willReturn(Optional.of(50000L));
+		given(sentManager.hasTargetGainSendHistory(anyLong()))
+			.willReturn(false);
+		given(firebaseMessagingService.send(any(Message.class)))
+			.willReturn(Optional.of("messageId"));
+		// when
+		PurchaseHistoryModifyResponse response = service.modifyPurchaseHistory(
+			request,
+			holding.getId(),
+			history.getId(),
+			portfolio.getId(),
+			member.getId()
+		);
+
+		// then
+		PurchaseHistory changePurchaseHistory = purchaseHistoryRepository.findById(history.getId()).orElseThrow();
+		assertAll(
+			() -> assertThat(response).extracting("id").isNotNull(),
+			() -> assertThat(response).extracting("numShares").isEqualTo(100L),
+			() -> assertThat(changePurchaseHistory.getNumShares()).isEqualTo(100L),
+			() -> assertThat(notificationRepository.findAllByMemberId(member.getId())).hasSize(1)
+		);
+	}
+
 	@DisplayName("사용자는 매입 이력을 삭제한다")
 	@Test
 	void deletePurchaseHistory() {
@@ -336,6 +380,42 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 		assertAll(
 			() -> assertThat(response).extracting("id").isNotNull(),
 			() -> assertThat(purchaseHistoryRepository.findById(history.getId())).isEmpty()
+		);
+	}
+
+	@DisplayName("사용자는 매입 이력 삭제시 목표 수익율을 달성하여 알림을 받는다")
+	@Test
+	void deletePurchaseHistory_whenTargetGain_thenSaveNotification() {
+		// given
+		Member member = memberRepository.save(createMember());
+		notificationPreferenceRepository.save(createNotificationPreference(member));
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
+		Stock stock = stockRepository.save(createStock());
+		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
+		PurchaseHistory history = purchaseHistoryRepository.save(createPurchaseHistory(holding));
+		purchaseHistoryRepository.save(createPurchaseHistory(holding, 100L, 100.0));
+		fcmRepository.save(createFcmToken("token", member));
+
+		given(currentPriceManager.getCurrentPrice(anyString()))
+			.willReturn(Optional.of(50000L));
+		given(sentManager.hasTargetGainSendHistory(anyLong()))
+			.willReturn(false);
+		given(firebaseMessagingService.send(any(Message.class)))
+			.willReturn(Optional.of("messageId"));
+
+		// when
+		PurchaseHistoryDeleteResponse response = service.deletePurchaseHistory(
+			holding.getId(),
+			history.getId(),
+			portfolio.getId(),
+			member.getId()
+		);
+
+		// then
+		assertAll(
+			() -> assertThat(response).extracting("id").isNotNull(),
+			() -> assertThat(purchaseHistoryRepository.findById(history.getId())).isEmpty(),
+			() -> assertThat(notificationRepository.findAllByMemberId(member.getId())).hasSize(1)
 		);
 	}
 
@@ -459,6 +539,17 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 			.purchaseDate(LocalDateTime.of(2023, 9, 26, 9, 30, 0))
 			.numShares(3L)
 			.purchasePricePerShare(50000.0)
+			.memo("첫구매")
+			.portfolioHolding(portfolioHolding)
+			.build();
+	}
+
+	private PurchaseHistory createPurchaseHistory(PortfolioHolding portfolioHolding, Long numShares,
+		Double purchasePricePerShare) {
+		return PurchaseHistory.builder()
+			.purchaseDate(LocalDateTime.of(2023, 9, 26, 9, 30, 0))
+			.numShares(numShares)
+			.purchasePricePerShare(purchasePricePerShare)
 			.memo("첫구매")
 			.portfolioHolding(portfolioHolding)
 			.build();
