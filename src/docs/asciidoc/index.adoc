@@ -14,10 +14,6 @@ endif::[]
 
 include::api/member.adoc[]
 
-== 회원 알림
-
-include::api/member_notification.adoc[]
-
 == 포트폴리오
 
 include::api/portfolio.adoc[]

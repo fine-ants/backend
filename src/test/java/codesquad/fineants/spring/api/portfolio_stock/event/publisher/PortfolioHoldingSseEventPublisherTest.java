@@ -39,10 +39,10 @@ import codesquad.fineants.spring.api.portfolio_stock.manager.SseEmitterKey;
 import codesquad.fineants.spring.api.portfolio_stock.manager.SseEmitterManager;
 import codesquad.fineants.spring.api.portfolio_stock.service.PortfolioStockService;
 
-class PortfolioEventPublisherTest extends AbstractContainerBaseTest {
+class PortfolioHoldingSseEventPublisherTest extends AbstractContainerBaseTest {
 
 	@Autowired
-	private PortfolioEventPublisher publisher;
+	private PortfolioHoldingSseEventPublisher publisher;
 
 	@Autowired
 	private SseEmitterManager manager;

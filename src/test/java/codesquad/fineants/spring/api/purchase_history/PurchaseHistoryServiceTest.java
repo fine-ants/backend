@@ -20,8 +20,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.firebase.messaging.FirebaseMessaging;
-import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
 
 import codesquad.fineants.domain.fcm_token.FcmRepository;
@@ -47,7 +45,9 @@ import codesquad.fineants.spring.AbstractContainerBaseTest;
 import codesquad.fineants.spring.api.common.errors.errorcode.PortfolioErrorCode;
 import codesquad.fineants.spring.api.common.errors.errorcode.PurchaseHistoryErrorCode;
 import codesquad.fineants.spring.api.common.errors.exception.FineAntsException;
+import codesquad.fineants.spring.api.firebase.service.FirebaseMessagingService;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
+import codesquad.fineants.spring.api.notification.manager.NotificationSentManager;
 import codesquad.fineants.spring.api.purchase_history.request.PurchaseHistoryCreateRequest;
 import codesquad.fineants.spring.api.purchase_history.request.PurchaseHistoryModifyRequest;
 import codesquad.fineants.spring.api.purchase_history.response.PurchaseHistoryCreateResponse;
@@ -97,7 +97,10 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 	private CurrentPriceManager currentPriceManager;
 
 	@MockBean
-	private FirebaseMessaging firebaseMessaging;
+	private FirebaseMessagingService firebaseMessagingService;
+
+	@MockBean
+	private NotificationSentManager sentManager;
 
 	@AfterEach
 	void tearDown() {
@@ -155,23 +158,18 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 
 	@DisplayName("사용자는 매입 이력 추가시 목표 수익률을 달성하여 알림을 받는다")
 	@Test
-	void addPurchaseHistory_whenAchieveTargetGain_thenSaveNotification() throws FirebaseMessagingException {
+	void addPurchaseHistory_whenAchieveTargetGain_thenSaveNotification() {
 		// given
 		Member member = memberRepository.save(createMember());
 		notificationPreferenceRepository.save(createNotificationPreference(member));
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Stock stock = stockRepository.save(createStock());
+		Stock stock2 = stockRepository.save(createStock2());
 		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
-		fcmRepository.save(FcmToken.builder()
-			.token("token")
-			.latestActivationTime(LocalDateTime.now())
-			.member(member)
-			.build());
-		fcmRepository.save(FcmToken.builder()
-			.token("token2")
-			.latestActivationTime(LocalDateTime.now())
-			.member(member)
-			.build());
+		portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock2));
+		purchaseHistoryRepository.save(createPurchaseHistory(holding));
+		fcmRepository.save(createFcmToken("token", member));
+		fcmRepository.save(createFcmToken("token2", member));
 
 		PurchaseHistoryCreateRequest request = PurchaseHistoryCreateRequest.builder()
 			.purchaseDate(LocalDateTime.now())
@@ -182,8 +180,10 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 
 		given(currentPriceManager.getCurrentPrice(anyString()))
 			.willReturn(Optional.of(50000L));
-		given(firebaseMessaging.send(any(Message.class)))
-			.willReturn("send messageId");
+		given(sentManager.hasTargetGainSendHistory(anyLong()))
+			.willReturn(false);
+		given(firebaseMessagingService.send(any(Message.class)))
+			.willReturn(Optional.of("messageId"));
 
 		// when
 		PurchaseHistoryCreateResponse response = service.addPurchaseHistory(
@@ -200,20 +200,24 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 		);
 	}
 
+	private static FcmToken createFcmToken(String token, Member member) {
+		return FcmToken.builder()
+			.token(token)
+			.latestActivationTime(LocalDateTime.now())
+			.member(member)
+			.build();
+	}
+
 	@DisplayName("사용자는 매입 이력 추가시 최대 손실율에 달성하여 알림을 받는다")
 	@Test
-	void addPurchaseHistory_whenAchieveMaxLoss_thenSaveNotification() throws FirebaseMessagingException {
+	void addPurchaseHistory_whenAchieveMaxLoss_thenSaveNotification() {
 		// given
 		Member member = memberRepository.save(createMember());
 		notificationPreferenceRepository.save(createNotificationPreference(member));
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Stock stock = stockRepository.save(createStock());
 		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
-		fcmRepository.save(FcmToken.builder()
-			.token("token")
-			.latestActivationTime(LocalDateTime.now())
-			.member(member)
-			.build());
+		fcmRepository.save(createFcmToken("token", member));
 
 		PurchaseHistoryCreateRequest request = PurchaseHistoryCreateRequest.builder()
 			.purchaseDate(LocalDateTime.now())
@@ -224,8 +228,10 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 
 		given(currentPriceManager.getCurrentPrice(anyString()))
 			.willReturn(Optional.of(50000L));
-		given(firebaseMessaging.send(any(Message.class)))
-			.willReturn("send messageId");
+		given(sentManager.hasTargetGainSendHistory(anyLong()))
+			.willReturn(false);
+		given(firebaseMessagingService.send(any(Message.class)))
+			.willReturn(Optional.of("messageId"));
 
 		// when
 		PurchaseHistoryCreateResponse response = service.addPurchaseHistory(
@@ -307,6 +313,50 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 		);
 	}
 
+	@DisplayName("사용자는 매입 이력을 수정시 목표 수익율을 달성하여 알림을 받는다")
+	@Test
+	void modifyPurchaseHistory_whenTargetGain_thenSaveNotification() {
+		// given
+		Member member = memberRepository.save(createMember());
+		notificationPreferenceRepository.save(createNotificationPreference(member));
+		fcmRepository.save(createFcmToken("token", member));
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
+		Stock stock = stockRepository.save(createStock());
+		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
+		PurchaseHistory history = purchaseHistoryRepository.save(createPurchaseHistory(holding));
+
+		PurchaseHistoryModifyRequest request = PurchaseHistoryModifyRequest.builder()
+			.purchaseDate(LocalDateTime.now())
+			.numShares(100L)
+			.purchasePricePerShare(100.0)
+			.memo("첫구매")
+			.build();
+
+		given(currentPriceManager.getCurrentPrice(anyString()))
+			.willReturn(Optional.of(50000L));
+		given(sentManager.hasTargetGainSendHistory(anyLong()))
+			.willReturn(false);
+		given(firebaseMessagingService.send(any(Message.class)))
+			.willReturn(Optional.of("messageId"));
+		// when
+		PurchaseHistoryModifyResponse response = service.modifyPurchaseHistory(
+			request,
+			holding.getId(),
+			history.getId(),
+			portfolio.getId(),
+			member.getId()
+		);
+
+		// then
+		PurchaseHistory changePurchaseHistory = purchaseHistoryRepository.findById(history.getId()).orElseThrow();
+		assertAll(
+			() -> assertThat(response).extracting("id").isNotNull(),
+			() -> assertThat(response).extracting("numShares").isEqualTo(100L),
+			() -> assertThat(changePurchaseHistory.getNumShares()).isEqualTo(100L),
+			() -> assertThat(notificationRepository.findAllByMemberId(member.getId())).hasSize(1)
+		);
+	}
+
 	@DisplayName("사용자는 매입 이력을 삭제한다")
 	@Test
 	void deletePurchaseHistory() {
@@ -330,6 +380,42 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 		assertAll(
 			() -> assertThat(response).extracting("id").isNotNull(),
 			() -> assertThat(purchaseHistoryRepository.findById(history.getId())).isEmpty()
+		);
+	}
+
+	@DisplayName("사용자는 매입 이력 삭제시 목표 수익율을 달성하여 알림을 받는다")
+	@Test
+	void deletePurchaseHistory_whenTargetGain_thenSaveNotification() {
+		// given
+		Member member = memberRepository.save(createMember());
+		notificationPreferenceRepository.save(createNotificationPreference(member));
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
+		Stock stock = stockRepository.save(createStock());
+		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
+		PurchaseHistory history = purchaseHistoryRepository.save(createPurchaseHistory(holding));
+		purchaseHistoryRepository.save(createPurchaseHistory(holding, 100L, 100.0));
+		fcmRepository.save(createFcmToken("token", member));
+
+		given(currentPriceManager.getCurrentPrice(anyString()))
+			.willReturn(Optional.of(50000L));
+		given(sentManager.hasTargetGainSendHistory(anyLong()))
+			.willReturn(false);
+		given(firebaseMessagingService.send(any(Message.class)))
+			.willReturn(Optional.of("messageId"));
+
+		// when
+		PurchaseHistoryDeleteResponse response = service.deletePurchaseHistory(
+			holding.getId(),
+			history.getId(),
+			portfolio.getId(),
+			member.getId()
+		);
+
+		// then
+		assertAll(
+			() -> assertThat(response).extracting("id").isNotNull(),
+			() -> assertThat(purchaseHistoryRepository.findById(history.getId())).isEmpty(),
+			() -> assertThat(notificationRepository.findAllByMemberId(member.getId())).hasSize(1)
 		);
 	}
 
@@ -378,8 +464,8 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 			.targetGain(1500000L)
 			.maximumLoss(900000L)
 			.member(member)
-			.targetGainIsActive(false)
-			.maximumLossIsActive(false)
+			.targetGainIsActive(true)
+			.maximumLossIsActive(true)
 			.build();
 	}
 
@@ -403,6 +489,17 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 			.companyNameEng("SamsungElectronics")
 			.stockCode("KR7005930003")
 			.sector("전기전자")
+			.market(Market.KOSPI)
+			.build();
+	}
+
+	private Stock createStock2() {
+		return Stock.builder()
+			.companyName("동화약품보통주")
+			.tickerSymbol("000020")
+			.companyNameEng("DongwhaPharm")
+			.stockCode("KR7000020008")
+			.sector("의약품")
 			.market(Market.KOSPI)
 			.build();
 	}
@@ -442,6 +539,17 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 			.purchaseDate(LocalDateTime.of(2023, 9, 26, 9, 30, 0))
 			.numShares(3L)
 			.purchasePricePerShare(50000.0)
+			.memo("첫구매")
+			.portfolioHolding(portfolioHolding)
+			.build();
+	}
+
+	private PurchaseHistory createPurchaseHistory(PortfolioHolding portfolioHolding, Long numShares,
+		Double purchasePricePerShare) {
+		return PurchaseHistory.builder()
+			.purchaseDate(LocalDateTime.of(2023, 9, 26, 9, 30, 0))
+			.numShares(numShares)
+			.purchasePricePerShare(purchasePricePerShare)
 			.memo("첫구매")
 			.portfolioHolding(portfolioHolding)
 			.build();

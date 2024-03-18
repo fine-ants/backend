@@ -17,31 +17,46 @@ import lombok.NoArgsConstructor;
 public class StockTargetPriceNotification extends Notification {
 	private String stockName;
 	private Long targetPrice;
-
 	private Long targetPriceNotificationId;
 
 	@Builder
 	public StockTargetPriceNotification(Long id, String title, Boolean isRead,
-		NotificationType type, String referenceId, String messageId,
+		NotificationType type, String referenceId, String link,
 		Member member, String stockName, Long targetPrice,
 		Long targetPriceNotificationId) {
-		super(id, title, isRead, type, referenceId, messageId, member);
+		super(id, title, isRead, type, referenceId, link, member);
 		this.stockName = stockName;
 		this.targetPrice = targetPrice;
 		this.targetPriceNotificationId = targetPriceNotificationId;
 	}
 
-	@Override
-	public NotificationBody createNotificationBody() {
-		return NotificationBody.builder()
-			.name(stockName)
-			.target(targetPrice.toString())
+	public static StockTargetPriceNotification create(String stockName, Long targetPrice, String title,
+		String referenceId, String link, Long targetPriceNotificationId, Member member) {
+		return StockTargetPriceNotification.builder()
+			.stockName(stockName)
+			.targetPrice(targetPrice)
+			.title(title)
+			.isRead(false)
+			.type(NotificationType.STOCK_TARGET_PRICE)
+			.referenceId(referenceId)
+			.link(link)
+			.member(member)
+			.targetPriceNotificationId(targetPriceNotificationId)
 			.build();
 	}
 
 	@Override
-	public String createNotificationContent() {
+	public NotificationBody getBody() {
+		return NotificationBody.stock(stockName, targetPrice);
+	}
+
+	@Override
+	public String getContent() {
 		return String.format("%s(이)가 지정가 KRW%s에 도달했습니다", stockName, targetPrice);
 	}
 
+	@Override
+	public String getName() {
+		return stockName;
+	}
 }

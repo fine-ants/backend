@@ -9,7 +9,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.AfterEach;
@@ -18,15 +17,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
-import com.google.firebase.messaging.Message;
-
 import codesquad.fineants.domain.fcm_token.FcmRepository;
 import codesquad.fineants.domain.fcm_token.FcmToken;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.member.MemberRepository;
-import codesquad.fineants.domain.notification.Notification;
 import codesquad.fineants.domain.notification.NotificationRepository;
-import codesquad.fineants.domain.notification.type.NotificationType;
 import codesquad.fineants.domain.notification_preference.NotificationPreference;
 import codesquad.fineants.domain.notification_preference.NotificationPreferenceRepository;
 import codesquad.fineants.domain.stock.Market;
@@ -41,21 +36,14 @@ import codesquad.fineants.spring.api.common.errors.errorcode.StockErrorCode;
 import codesquad.fineants.spring.api.common.errors.exception.BadRequestException;
 import codesquad.fineants.spring.api.common.errors.exception.ForBiddenException;
 import codesquad.fineants.spring.api.common.errors.exception.NotFoundResourceException;
-import codesquad.fineants.spring.api.firebase.service.FirebaseMessagingService;
-import codesquad.fineants.spring.api.kis.client.KisCurrentPrice;
-import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
-import codesquad.fineants.spring.api.kis.service.KisService;
-import codesquad.fineants.spring.api.stock_target_price.manager.TargetPriceNotificationSentManager;
 import codesquad.fineants.spring.api.stock_target_price.request.TargetPriceNotificationCreateRequest;
 import codesquad.fineants.spring.api.stock_target_price.request.TargetPriceNotificationUpdateRequest;
 import codesquad.fineants.spring.api.stock_target_price.response.TargetPriceNotificationCreateResponse;
 import codesquad.fineants.spring.api.stock_target_price.response.TargetPriceNotificationDeleteResponse;
 import codesquad.fineants.spring.api.stock_target_price.response.TargetPriceNotificationSearchResponse;
-import codesquad.fineants.spring.api.stock_target_price.response.TargetPriceNotificationSendResponse;
 import codesquad.fineants.spring.api.stock_target_price.response.TargetPriceNotificationSpecifiedSearchResponse;
 import codesquad.fineants.spring.api.stock_target_price.response.TargetPriceNotificationUpdateResponse;
-import reactor.core.publisher.Mono;
 
 class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest {
 
@@ -85,18 +73,6 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 
 	@MockBean
 	private LastDayClosingPriceManager manager;
-
-	@MockBean
-	private CurrentPriceManager currentPriceManager;
-
-	@MockBean
-	private KisService kisService;
-
-	@MockBean
-	private FirebaseMessagingService firebaseMessagingService;
-
-	@MockBean
-	private TargetPriceNotificationSentManager targetPriceNotificationSentManager;
 
 	@AfterEach
 	void tearDown() {
@@ -181,285 +157,6 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 		assertThat(throwable)
 			.isInstanceOf(BadRequestException.class)
 			.hasMessage(StockErrorCode.BAD_REQUEST_TARGET_PRICE_NOTIFICATION_EXIST.getMessage());
-	}
-
-	@DisplayName("모든 회원들을 대상으로 특정 티커 심볼에 대한 종목 지정가 알림을 발송한다")
-	@Test
-	void sendAllStockTargetPriceNotification() {
-		// given
-		Member member = memberRepository.save(createMember("일개미1234", "kim1234@naver.com"));
-		Member member2 = memberRepository.save(createMember("네모네모", "dragonbead95@naver.com"));
-
-		notificationPreferenceRepository.save(createNotificationPreference(member));
-		notificationPreferenceRepository.save(createNotificationPreference(member2));
-
-		fcmRepository.save(createFcmToken(member, "token1"));
-		fcmRepository.save(createFcmToken(member2, "token2"));
-
-		Stock stock = stockRepository.save(createStock());
-		Stock stock2 = stockRepository.save(createStock2());
-
-		StockTargetPrice stockTargetPrice1 = repository.save(createStockTargetPrice(member, stock));
-		StockTargetPrice stockTargetPrice2 = repository.save(createStockTargetPrice(member, stock2));
-		targetPriceNotificationRepository.saveAll(
-			createTargetPriceNotification(stockTargetPrice1, List.of(60000L, 70000L)));
-		targetPriceNotificationRepository.saveAll(
-			createTargetPriceNotification(stockTargetPrice2, List.of(10000L, 20000L)));
-
-		StockTargetPrice stockTargetPrice3 = repository.save(createStockTargetPrice(member2, stock));
-		StockTargetPrice stockTargetPrice4 = repository.save(createStockTargetPrice(member2, stock2));
-		targetPriceNotificationRepository.saveAll(
-			createTargetPriceNotification(stockTargetPrice3, List.of(60000L, 70000L)));
-		targetPriceNotificationRepository.saveAll(
-			createTargetPriceNotification(stockTargetPrice4, List.of(10000L, 20000L)));
-
-		given(currentPriceManager.getCurrentPrice(stock.getTickerSymbol()))
-			.willReturn(Optional.of(60000L));
-		given(currentPriceManager.getCurrentPrice(stock2.getTickerSymbol()))
-			.willReturn(Optional.empty());
-		given(targetPriceNotificationSentManager.hasNotificationSent(anyLong()))
-			.willReturn(false);
-		given(kisService.fetchCurrentPrice(stock2.getTickerSymbol()))
-			.willReturn(Mono.just(KisCurrentPrice.create(stock2.getTickerSymbol(), 10000L)));
-		given(firebaseMessagingService.sendNotification(any(Message.class)))
-			.willReturn(Optional.of("messageId1"))
-			.willReturn(Optional.of("messageId2"))
-			.willReturn(Optional.of("messageId3"))
-			.willReturn(Optional.of("messageId4"));
-
-		List<String> tickerSymbols = Stream.of(stock, stock2)
-			.map(Stock::getTickerSymbol)
-			.collect(Collectors.toList());
-
-		// when
-		TargetPriceNotificationSendResponse response = service.sendAllStockTargetPriceNotification(tickerSymbols);
-
-		// then
-		assertAll(
-			() -> assertThat(response.getNotifications())
-				.asList()
-				.hasSize(4),
-			() -> assertThat(notificationRepository.findAllByMemberIds(List.of(member.getId(), member2.getId())))
-				.asList()
-				.hasSize(4)
-		);
-	}
-
-	@DisplayName("사용자는 사용자가 지정한 종목 지정가에 대한 푸시 알림을 받는다")
-	@Test
-	void sendStockTargetPriceNotification() {
-		// given
-		Member member = memberRepository.save(createMember());
-		notificationPreferenceRepository.save(NotificationPreference.builder()
-			.browserNotify(true)
-			.targetGainNotify(true)
-			.maxLossNotify(true)
-			.targetPriceNotify(true)
-			.member(member)
-			.build());
-		fcmRepository.save(createFcmToken(member, "token"));
-		fcmRepository.save(createFcmToken(member, "token2"));
-		Stock stock = stockRepository.save(createStock());
-		Stock stock2 = stockRepository.save(createStock2());
-		StockTargetPrice stockTargetPrice = repository.save(createStockTargetPrice(member, stock));
-		StockTargetPrice stockTargetPrice2 = repository.save(createStockTargetPrice(member, stock2));
-		targetPriceNotificationRepository.saveAll(
-			createTargetPriceNotification(stockTargetPrice, List.of(60000L, 70000L)));
-		targetPriceNotificationRepository.saveAll(
-			createTargetPriceNotification(stockTargetPrice2, List.of(10000L, 20000L)));
-
-		given(currentPriceManager.getCurrentPrice(stock.getTickerSymbol()))
-			.willReturn(Optional.of(60000L));
-		given(currentPriceManager.getCurrentPrice(stock2.getTickerSymbol()))
-			.willReturn(Optional.empty());
-		given(targetPriceNotificationSentManager.hasNotificationSent(anyLong()))
-			.willReturn(false);
-		given(kisService.fetchCurrentPrice(stock2.getTickerSymbol()))
-			.willReturn(Mono.just(KisCurrentPrice.create(stock2.getTickerSymbol(), 10000L)));
-		given(firebaseMessagingService.sendNotification(any(Message.class)))
-			.willReturn(Optional.of("messageId"));
-		// when
-		TargetPriceNotificationSendResponse response = service.sendStockTargetPriceNotification(
-			member.getId());
-
-		// then
-		NotificationType type = NotificationType.STOCK_TARGET_PRICE;
-		assertThat(response.getNotifications())
-			.asList()
-			.hasSize(2)
-			.extracting("title", "type", "referenceId", "messageId")
-			.containsExactlyInAnyOrder(
-				Tuple.tuple(type.getName(), type, "005930", "messageId"),
-				Tuple.tuple(type.getName(), type, "000020", "messageId"));
-		assertThat(notificationRepository.findAllByMemberId(member.getId()))
-			.asList()
-			.hasSize(2);
-	}
-
-	@DisplayName("사용자는 종목 지정가 도달 알림을 받은 상태에서 추가적인 종목 지정가 도달을 하면 알림을 보내지 않는다")
-	@Test
-	void sendAllStockTargetPriceNotification_whenExistNotification_thenNotSentNotification() {
-		// given
-		Member member = memberRepository.save(createMember());
-		notificationPreferenceRepository.save(NotificationPreference.builder()
-			.browserNotify(true)
-			.targetGainNotify(true)
-			.maxLossNotify(true)
-			.targetPriceNotify(true)
-			.member(member)
-			.build());
-		fcmRepository.save(createFcmToken(member, "token"));
-		Stock stock = stockRepository.save(createStock());
-		Stock stock2 = stockRepository.save(createStock2());
-		StockTargetPrice stockTargetPrice = repository.save(createStockTargetPrice(member, stock));
-		StockTargetPrice stockTargetPrice2 = repository.save(createStockTargetPrice(member, stock2));
-		List<TargetPriceNotification> targetPriceNotifications = createTargetPriceNotification(stockTargetPrice,
-			List.of(60000L, 70000L));
-		List<TargetPriceNotification> targetPriceNotifications2 = createTargetPriceNotification(stockTargetPrice2,
-			List.of(10000L, 20000L));
-		targetPriceNotificationRepository.saveAll(targetPriceNotifications);
-		targetPriceNotificationRepository.saveAll(targetPriceNotifications2);
-
-		TargetPriceNotification sendTargetPriceNotification = targetPriceNotifications.get(0);
-		notificationRepository.save(Notification.stockTargetPriceNotification(
-			sendTargetPriceNotification.getStockTargetPrice().getStock().getTickerSymbol(),
-			sendTargetPriceNotification.getTargetPrice(),
-			"종목 지정가",
-			sendTargetPriceNotification.getStockTargetPrice().getStock().getTickerSymbol(),
-			"messageId",
-			sendTargetPriceNotification.getId(),
-			member
-		));
-
-		given(currentPriceManager.getCurrentPrice(stock.getTickerSymbol()))
-			.willReturn(Optional.of(60000L));
-		given(currentPriceManager.getCurrentPrice(stock2.getTickerSymbol()))
-			.willReturn(Optional.of(10000L));
-		given(targetPriceNotificationSentManager.hasNotificationSent(targetPriceNotifications.get(0).getId()))
-			.willReturn(true);
-		given(targetPriceNotificationSentManager.hasNotificationSent(targetPriceNotifications.get(1).getId()))
-			.willReturn(false);
-		given(targetPriceNotificationSentManager.hasNotificationSent(targetPriceNotifications2.get(0).getId()))
-			.willReturn(false);
-		given(targetPriceNotificationSentManager.hasNotificationSent(targetPriceNotifications2.get(1).getId()))
-			.willReturn(false);
-		given(firebaseMessagingService.sendNotification(any(Message.class)))
-			.willReturn(Optional.of("messageId"));
-		// when
-		TargetPriceNotificationSendResponse response = service.sendAllStockTargetPriceNotification(
-			List.of(stock.getTickerSymbol(), stock2.getTickerSymbol()));
-
-		// then
-		NotificationType type = NotificationType.STOCK_TARGET_PRICE;
-		assertThat(response.getNotifications())
-			.asList()
-			.hasSize(1)
-			.extracting("title", "type", "referenceId", "messageId")
-			.containsExactlyInAnyOrder(
-				Tuple.tuple(type.getName(), type, "000020", "messageId"));
-		assertThat(notificationRepository.findAllByMemberId(member.getId()))
-			.asList()
-			.hasSize(2);
-	}
-
-	@DisplayName("종목 지정가 도달 알림을 보내는데 실패하면 알림을 저장하지 않아야 한다")
-	@Test
-	void sendAllStockTargetPriceNotification_whenFailSendingNotification_thenNotSaveNotification() {
-		// given
-		Member member = memberRepository.save(createMember());
-		notificationPreferenceRepository.save(NotificationPreference.builder()
-			.browserNotify(true)
-			.targetGainNotify(true)
-			.maxLossNotify(true)
-			.targetPriceNotify(true)
-			.member(member)
-			.build());
-		fcmRepository.save(createFcmToken(member, "token"));
-		Stock stock = stockRepository.save(createStock());
-		StockTargetPrice stockTargetPrice = repository.save(createStockTargetPrice(member, stock));
-		List<TargetPriceNotification> targetPriceNotifications = createTargetPriceNotification(stockTargetPrice,
-			List.of(60000L, 70000L));
-		targetPriceNotificationRepository.saveAll(targetPriceNotifications);
-
-		given(currentPriceManager.getCurrentPrice(stock.getTickerSymbol()))
-			.willReturn(Optional.of(60000L));
-		given(targetPriceNotificationSentManager.hasNotificationSent(targetPriceNotifications.get(0).getId()))
-			.willReturn(false);
-		given(targetPriceNotificationSentManager.hasNotificationSent(targetPriceNotifications.get(1).getId()))
-			.willReturn(false);
-		given(firebaseMessagingService.sendNotification(any(Message.class)))
-			.willReturn(Optional.empty());
-		// when
-		TargetPriceNotificationSendResponse response = service.sendAllStockTargetPriceNotification(
-			List.of(stock.getTickerSymbol()));
-
-		// then
-		NotificationType type = NotificationType.STOCK_TARGET_PRICE;
-		assertThat(response.getNotifications())
-			.asList()
-			.isEmpty();
-		assertThat(notificationRepository.findAllByMemberId(member.getId()))
-			.asList()
-			.hasSize(0);
-	}
-
-	@DisplayName("티커 심볼을 기준으로 종목 지정가 알림을 발송한다")
-	@Test
-	void sendAllStockTargetPriceNotification_whenMultipleMember_thenSendNotification() {
-		// given
-		Member member = memberRepository.save(createMember());
-		notificationPreferenceRepository.save(NotificationPreference.builder()
-			.browserNotify(true)
-			.targetGainNotify(true)
-			.maxLossNotify(true)
-			.targetPriceNotify(true)
-			.member(member)
-			.build());
-		fcmRepository.save(createFcmToken(member, "token"));
-		Stock stock = stockRepository.save(createStock());
-		Stock stock2 = stockRepository.save(createStock2());
-		StockTargetPrice stockTargetPrice = repository.save(createStockTargetPrice(member, stock));
-		StockTargetPrice stockTargetPrice2 = repository.save(createStockTargetPrice(member, stock2));
-		targetPriceNotificationRepository.saveAll(
-			createTargetPriceNotification(stockTargetPrice, List.of(60000L, 70000L)));
-		targetPriceNotificationRepository.saveAll(
-			createTargetPriceNotification(stockTargetPrice2, List.of(10000L, 20000L)));
-
-		given(currentPriceManager.getCurrentPrice(stock.getTickerSymbol()))
-			.willReturn(Optional.empty());
-		given(currentPriceManager.getCurrentPrice(stock2.getTickerSymbol()))
-			.willReturn(Optional.empty());
-		given(targetPriceNotificationSentManager.hasNotificationSent(anyLong()))
-			.willReturn(false);
-		given(kisService.fetchCurrentPrice(stock.getTickerSymbol()))
-			.willAnswer(invocation -> {
-				Thread.sleep(1000L);
-				return Mono.just(KisCurrentPrice.create(stock.getTickerSymbol(), 60000L));
-			});
-		given(kisService.fetchCurrentPrice(stock2.getTickerSymbol()))
-			.willAnswer(invocation -> {
-				Thread.sleep(1000L);
-				return Mono.just(KisCurrentPrice.create(stock2.getTickerSymbol(), 10000L));
-			});
-		given(firebaseMessagingService.sendNotification(any(Message.class)))
-			.willReturn(Optional.of("messageId"))
-			.willReturn(Optional.of("messageId"));
-		// when
-		TargetPriceNotificationSendResponse response = service.sendAllStockTargetPriceNotification(
-			List.of(stock.getTickerSymbol(), stock2.getTickerSymbol()));
-
-		// then
-		NotificationType type = NotificationType.STOCK_TARGET_PRICE;
-		assertThat(response.getNotifications())
-			.asList()
-			.hasSize(2)
-			.extracting("title", "type", "referenceId", "messageId")
-			.containsExactlyInAnyOrder(
-				Tuple.tuple(type.getName(), type, "005930", "messageId"),
-				Tuple.tuple(type.getName(), type, "000020", "messageId"));
-		assertThat(notificationRepository.findAllByMemberId(member.getId()))
-			.asList()
-			.hasSize(2);
 	}
 
 	@DisplayName("사용자는 종목 지정가 알림 목록을 조회합니다")

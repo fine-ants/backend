@@ -39,10 +39,10 @@ import codesquad.fineants.spring.api.portfolio_stock.manager.SseEmitterManager;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioHoldingsRealTimeResponse;
 import codesquad.fineants.spring.api.portfolio_stock.service.PortfolioStockService;
 
-class PortfolioEventListenerTest extends AbstractContainerBaseTest {
+class HoldingSseEventListenerTest extends AbstractContainerBaseTest {
 
 	@Autowired
-	private PortfolioEventListener portfolioEventListener;
+	private HoldingSseEventListener holdingSseEventListener;
 
 	@Autowired
 	private MemberRepository memberRepository;
@@ -115,7 +115,7 @@ class PortfolioEventListenerTest extends AbstractContainerBaseTest {
 		PortfolioEvent event = new PortfolioEvent(key, response, eventDateTime);
 
 		// when
-		portfolioEventListener.handleMessage(event);
+		holdingSseEventListener.handleMessage(event);
 
 		// then
 		BDDMockito.verify(emitter, times(1)).send(any(SseEmitter.SseEventBuilder.class));
@@ -150,7 +150,7 @@ class PortfolioEventListenerTest extends AbstractContainerBaseTest {
 		PortfolioEvent event = new PortfolioEvent(key, response, eventDateTime);
 
 		// when
-		portfolioEventListener.handleMessage(event);
+		holdingSseEventListener.handleMessage(event);
 
 		// then
 		assertThat(manager.size()).isZero();

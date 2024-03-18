@@ -39,7 +39,7 @@ public class PortfolioGainHistoryService {
 		List<PortfolioGainHistory> portfolioGainHistories = new ArrayList<>();
 
 		for (Portfolio portfolio : portfolios) {
-			portfolio.changeCurrentPriceFromHoldings(currentPriceManager);
+			portfolio.applyCurrentPriceAllHoldingsBy(currentPriceManager);
 			PortfolioGainHistory latestHistory = repository.findFirstByPortfolioAndCreateAtIsLessThanEqualOrderByCreateAtDesc(
 				portfolio.getId(), LocalDateTime.now()).orElseGet(PortfolioGainHistory::empty);
 			PortfolioGainHistory history = portfolio.createPortfolioGainHistory(latestHistory);

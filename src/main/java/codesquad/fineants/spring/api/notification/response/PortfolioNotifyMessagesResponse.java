@@ -13,20 +13,20 @@ import lombok.ToString;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-@Builder
+@Builder(access = AccessLevel.PRIVATE)
 @ToString
-public class NotifyPortfolioMessagesResponse {
-	private List<NotifyMessageItem> notifications;
+public class PortfolioNotifyMessagesResponse {
+	private List<PortfolioNotifyMessageItem> notifications;
 
-	public static NotifyPortfolioMessagesResponse from(
-		List<NotifyMessageItem> notifications) {
-		return NotifyPortfolioMessagesResponse.builder()
-			.notifications(notifications)
+	public static PortfolioNotifyMessagesResponse create(
+		List<PortfolioNotifyMessageItem> items) {
+		return PortfolioNotifyMessagesResponse.builder()
+			.notifications(items)
 			.build();
 	}
 
-	public static NotifyPortfolioMessagesResponse empty() {
-		return NotifyPortfolioMessagesResponse.builder()
+	public static PortfolioNotifyMessagesResponse empty() {
+		return PortfolioNotifyMessagesResponse.builder()
 			.notifications(Collections.emptyList())
 			.build();
 	}

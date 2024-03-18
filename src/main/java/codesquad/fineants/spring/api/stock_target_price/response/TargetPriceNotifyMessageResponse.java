@@ -15,17 +15,17 @@ import lombok.ToString;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
 @ToString
-public class TargetPriceNotificationSendResponse {
-	private List<TargetPriceNotificationSendItem> notifications;
+public class TargetPriceNotifyMessageResponse {
+	private List<TargetPriceNotifyMessageItem> notifications;
 
-	public static TargetPriceNotificationSendResponse from(List<TargetPriceNotificationSendItem> notifications) {
-		return TargetPriceNotificationSendResponse.builder()
+	public static TargetPriceNotifyMessageResponse from(List<TargetPriceNotifyMessageItem> notifications) {
+		return TargetPriceNotifyMessageResponse.builder()
 			.notifications(notifications)
 			.build();
 	}
 
-	public static TargetPriceNotificationSendResponse empty() {
-		return TargetPriceNotificationSendResponse.builder()
+	public static TargetPriceNotifyMessageResponse empty() {
+		return TargetPriceNotifyMessageResponse.builder()
 			.notifications(Collections.emptyList())
 			.build();
 	}

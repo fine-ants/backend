@@ -12,7 +12,10 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 import codesquad.fineants.domain.BaseEntity;
+import codesquad.fineants.domain.notification.type.NotificationType;
 import codesquad.fineants.domain.stock_target_price.StockTargetPrice;
+import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
+import codesquad.fineants.spring.api.notification.response.NotifyMessage;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -48,19 +51,39 @@ public class TargetPriceNotification extends BaseEntity {
 		return stockTargetPrice.getMember().hasAuthorization(memberId);
 	}
 
-	public boolean isMatchTickerSymbol(String tickerSymbol) {
-		return stockTargetPrice.getStock().getTickerSymbol().equals(tickerSymbol);
-	}
-
-	public String toMessageBody() {
-		return String.format("%s이(가) %d 금액에 도달했습니다", stockTargetPrice.getStock().getCompanyName(), targetPrice);
-	}
-
 	public String getReferenceId() {
 		return stockTargetPrice.getStock().getTickerSymbol();
 	}
 
 	public boolean isActive() {
 		return stockTargetPrice.getIsActive();
+	}
+
+	public NotifyMessage getTargetPriceMessage(String token) {
+		NotificationType type = NotificationType.STOCK_TARGET_PRICE;
+		String title = type.getName();
+		String content = String.format("%s이(가) %d 금액에 도달했습니다", stockTargetPrice.getStock().getCompanyName(),
+			targetPrice);
+		String referenceId = stockTargetPrice.getStock().getTickerSymbol();
+		Long memberId = stockTargetPrice.getMember().getId();
+		String link = "/stock/" + referenceId;
+		String stockName = stockTargetPrice.getStock().getCompanyName();
+		return NotifyMessage.stock(
+			title,
+			content,
+			type,
+			referenceId,
+			memberId,
+			token,
+			link,
+			stockName,
+			targetPrice,
+			id
+		);
+	}
+
+	public boolean isSameTargetPrice(CurrentPriceManager manager) {
+		Long currentPrice = stockTargetPrice.getCurrentPrice(manager);
+		return targetPrice.equals(currentPrice);
 	}
 }

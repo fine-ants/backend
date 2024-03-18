@@ -13,7 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class PortfolioEventListener {
+public class HoldingSseEventListener {
 
 	private static final String EVENT_NAME = "portfolioDetails";
 	private static final String COMPLETE_NAME = "complete";

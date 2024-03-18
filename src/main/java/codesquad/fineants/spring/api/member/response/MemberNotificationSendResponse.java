@@ -30,7 +30,7 @@ public class MemberNotificationSendResponse {
 		return MemberNotificationSendResponse.builder()
 			.notificationId(notification.getId())
 			.title(notification.getTitle())
-			.content(notification.createNotificationContent())
+			.content(notification.getContent())
 			.timestamp(notification.getCreateAt())
 			.isRead(notification.getIsRead())
 			.type(notification.getType().getCategory())

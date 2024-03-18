@@ -194,22 +194,23 @@ create table if not exists fineAnts.target_price_notification
         foreign key (stock_target_price_id) references fineAnts.stock_target_price (id)
 );
 
-create table if not exists fineAnts.notification
+create table fineAnts.notification
 (
-    dtype                       varchar(31)  not null,
-    id                          bigint auto_increment
+    dtype                        varchar(31)  not null,
+    id                           bigint auto_increment
         primary key,
-    create_at                   datetime(6)  null,
-    modified_at                 datetime(6)  null,
-    is_read                     bit          null,
-    reference_id                varchar(255) null,
-    title                       varchar(255) null,
-    type                        varchar(255) null,
-    portfolio_notification_type varchar(255) null,
-    portfolio_name              varchar(255) null,
-    stock_name                  varchar(255) null,
-    target_price                bigint       null,
-    member_id                   bigint       null,
+    create_at                    datetime(6)  null,
+    modified_at                  datetime(6)  null,
+    is_read                      bit          null,
+    link                         varchar(255) null,
+    reference_id                 varchar(255) null,
+    title                        varchar(255) null,
+    type                         varchar(255) null,
+    name                         varchar(255) null,
+    stock_name                   varchar(255) null,
+    target_price                 bigint       null,
+    target_price_notification_id bigint       null,
+    member_id                    bigint       null,
     constraint FK1xep8o2ge7if6diclyyx53v4q
         foreign key (member_id) references fineAnts.member (id)
 );

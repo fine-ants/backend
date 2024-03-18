@@ -26,7 +26,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name = "DTYPE")
+@DiscriminatorColumn
 @Entity
 public abstract class Notification extends BaseEntity {
 	@Id
@@ -43,50 +43,35 @@ public abstract class Notification extends BaseEntity {
 
 	private String referenceId;
 
-	private String messageId;
+	private String link;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "member_id")
 	private Member member;
 
-	public static Notification portfolioNotification(String portfolioName, String title, NotificationType type,
-		String referenceId, String messageId, Member member) {
+	public static Notification portfolio(String portfolioName, String title, NotificationType type,
+		String referenceId, String link, Member member) {
 		if (type == NotificationType.PORTFOLIO_TARGET_GAIN
 			|| type == NotificationType.PORTFOLIO_MAX_LOSS) {
-			return PortfolioNotification.builder()
-				.portfolioName(portfolioName)
-				.title(title)
-				.isRead(false)
-				.type(type)
-				.referenceId(referenceId)
-				.messageId(messageId)
-				.member(member)
-				.build();
+			return PortfolioNotification.create(portfolioName, title, type, referenceId, link, member);
 		}
-		throw new IllegalStateException("잘못된 타입입니다. type=" + type);
+		throw new IllegalArgumentException("잘못된 타입입니다. type=" + type);
 	}
 
-	public static Notification stockTargetPriceNotification(String stockName, Long targetPrice, String title,
-		String referenceId, String messageId, Long targetPriceNotificationId, Member member) {
-		return StockTargetPriceNotification.builder()
-			.stockName(stockName)
-			.targetPrice(targetPrice)
-			.title(title)
-			.isRead(false)
-			.type(NotificationType.STOCK_TARGET_PRICE)
-			.referenceId(referenceId)
-			.messageId(messageId)
-			.member(member)
-			.targetPriceNotificationId(targetPriceNotificationId)
-			.build();
+	public static Notification stock(String stockName, Long targetPrice, String title,
+		String referenceId, String link, Long targetPriceNotificationId, Member member) {
+		return StockTargetPriceNotification.create(stockName, targetPrice, title, referenceId,
+			link, targetPriceNotificationId, member);
 	}
 
 	// 알림을 읽음 처리
-	public void readNotification() {
+	public void read() {
 		this.isRead = true;
 	}
 
-	public abstract NotificationBody createNotificationBody();
+	public abstract NotificationBody getBody();
 
-	public abstract String createNotificationContent();
+	public abstract String getContent();
+
+	public abstract String getName();
 }

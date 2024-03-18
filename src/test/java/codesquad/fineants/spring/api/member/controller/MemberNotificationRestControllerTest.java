@@ -1,5 +1,6 @@
 package codesquad.fineants.spring.api.member.controller;
 
+import static codesquad.fineants.domain.notification.type.NotificationType.*;
 import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.anyList;
@@ -31,15 +32,11 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.notification.NotificationBody;
-import codesquad.fineants.domain.notification.type.NotificationType;
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.oauth.support.AuthPrincipalArgumentResolver;
 import codesquad.fineants.spring.api.common.errors.handler.GlobalExceptionHandler;
-import codesquad.fineants.spring.api.member.request.MemberPortfolioNotificationSendRequest;
-import codesquad.fineants.spring.api.member.request.MemberTargetPriceNotificationSendRequest;
 import codesquad.fineants.spring.api.member.response.MemberNotification;
 import codesquad.fineants.spring.api.member.response.MemberNotificationResponse;
-import codesquad.fineants.spring.api.member.response.MemberNotificationSendResponse;
 import codesquad.fineants.spring.api.member.service.MemberNotificationPreferenceService;
 import codesquad.fineants.spring.api.member.service.MemberNotificationService;
 import codesquad.fineants.spring.config.JpaAuditingConfiguration;
@@ -193,13 +190,10 @@ class MemberNotificationRestControllerTest {
 		MemberNotification mockNotification = MemberNotification.builder()
 			.notificationId(3L)
 			.title("포트폴리오")
-			.body(NotificationBody.builder()
-				.name("포트폴리오2")
-				.target("최대 손실율")
-				.build())
+			.body(NotificationBody.portfolio("포트폴리오2", PORTFOLIO_MAX_LOSS))
 			.timestamp(LocalDateTime.of(2024, 1, 24, 10, 10, 10))
 			.isRead(false)
-			.type(NotificationType.PORTFOLIO_MAX_LOSS.getCategory())
+			.type(PORTFOLIO_MAX_LOSS.getCategory())
 			.referenceId("2")
 			.build();
 		given(notificationService.readAllNotifications(anyLong(), anyList()))
@@ -248,13 +242,10 @@ class MemberNotificationRestControllerTest {
 		MemberNotification mockNotification = MemberNotification.builder()
 			.notificationId(3L)
 			.title("포트폴리오")
-			.body(NotificationBody.builder()
-				.name("포트폴리오2")
-				.target("최대 손실율")
-				.build())
+			.body(NotificationBody.portfolio("포트폴리오2", PORTFOLIO_MAX_LOSS))
 			.timestamp(LocalDateTime.of(2024, 1, 24, 10, 10, 10))
 			.isRead(false)
-			.type(NotificationType.PORTFOLIO_MAX_LOSS.getCategory())
+			.type(PORTFOLIO_MAX_LOSS.getCategory())
 			.referenceId("2")
 			.build();
 		given(notificationService.deleteAllNotifications(anyLong(), anyList()))
@@ -268,42 +259,6 @@ class MemberNotificationRestControllerTest {
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
 			.andExpect(jsonPath("message").value(equalTo("알림 삭제를 성공하였습니다")));
-	}
-
-	@DisplayName("사용자는 포트폴리오 알림 메시지를 발송한다")
-	@Test
-	void sendPortfolioNotification() throws Exception {
-		// given
-		Member member = createMember();
-		MemberPortfolioNotificationSendRequest request = MemberPortfolioNotificationSendRequest.builder()
-			.title("포트폴리오")
-			.name("포트폴리오1")
-			.type(NotificationType.PORTFOLIO_TARGET_GAIN)
-			.referenceId("1")
-			.messageId("messageId")
-			.build();
-		MemberNotificationSendResponse response = MemberNotificationSendResponse.builder()
-			.notificationId(1L)
-			.title("포트폴리오")
-			.content("포트폴리오1의 최대 손실율을 초과했습니다")
-			.timestamp(LocalDateTime.now())
-			.isRead(false)
-			.type(NotificationType.PORTFOLIO_MAX_LOSS.getCategory())
-			.referenceId("1")
-			.sendMessageIds(List.of("messageId"))
-			.build();
-		given(notificationService.sendTargetPriceNotification(anyLong(),
-			any(MemberTargetPriceNotificationSendRequest.class)))
-			.willReturn(response);
-
-		// when & then
-		mockMvc.perform(post("/api/members/{memberId}/portfolio/notifications", member.getId())
-				.contentType(MediaType.APPLICATION_JSON)
-				.content(ObjectMapperUtil.serialize(request)))
-			.andExpect(status().isOk())
-			.andExpect(jsonPath("code").value(equalTo(200)))
-			.andExpect(jsonPath("status").value(equalTo("OK")))
-			.andExpect(jsonPath("message").value(equalTo("알림 메시지 생성 및 전송이 완료되었습니다")));
 	}
 
 	private Member createMember() {
@@ -321,37 +276,28 @@ class MemberNotificationRestControllerTest {
 		return List.of(MemberNotification.builder()
 				.notificationId(3L)
 				.title("포트폴리오")
-				.body(NotificationBody.builder()
-					.name("포트폴리오2")
-					.target("최대 손실율")
-					.build())
+				.body(NotificationBody.portfolio("포트폴리오2", PORTFOLIO_MAX_LOSS))
 				.timestamp(LocalDateTime.of(2024, 1, 24, 10, 10, 10))
 				.isRead(false)
-				.type(NotificationType.PORTFOLIO_MAX_LOSS.getCategory())
+				.type(PORTFOLIO_MAX_LOSS.getCategory())
 				.referenceId("2")
 				.build(),
 			MemberNotification.builder()
 				.notificationId(2L)
 				.title("포트폴리오")
-				.body(NotificationBody.builder()
-					.name("포트폴리오1")
-					.target("목표 수익률")
-					.build())
+				.body(NotificationBody.portfolio("포트폴리오1", PORTFOLIO_TARGET_GAIN))
 				.timestamp(LocalDateTime.of(2024, 1, 23, 10, 10, 10))
 				.isRead(false)
-				.type(NotificationType.PORTFOLIO_TARGET_GAIN.getCategory())
+				.type(PORTFOLIO_TARGET_GAIN.getCategory())
 				.referenceId("1")
 				.build(),
 			MemberNotification.builder()
 				.notificationId(1L)
 				.title("지정가")
-				.body(NotificationBody.builder()
-					.name("삼성전자")
-					.target("65000")
-					.build())
+				.body(NotificationBody.stock("삼성전자", 60000L))
 				.timestamp(LocalDateTime.of(2024, 1, 22, 10, 10, 10))
 				.isRead(true)
-				.type(NotificationType.STOCK_TARGET_PRICE.getCategory())
+				.type(STOCK_TARGET_PRICE.getCategory())
 				.referenceId("005930")
 				.build());
 	}

@@ -7,12 +7,11 @@ import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
-public class NotificationEventPublisher {
+public class PurchaseHistoryEventPublisher {
 	private final ApplicationEventPublisher publisher;
 
-	public void publishEvent(Long portfolioId, Long memberId) {
-		PurchaseHistoryEventSendableParameter value = PurchaseHistoryEventSendableParameter.create(portfolioId,
-			memberId);
-		publisher.publishEvent(new PushNotificationEvent(value));
+	public void publishPushNotificationEvent(Long portfolioId, Long memberId) {
+		publisher.publishEvent(new PushNotificationEvent(
+			PurchaseHistoryEventSendableParameter.create(portfolioId, memberId)));
 	}
 }

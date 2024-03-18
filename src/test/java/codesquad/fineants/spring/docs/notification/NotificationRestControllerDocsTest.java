@@ -12,26 +12,32 @@ import static org.springframework.restdocs.request.RequestDocumentation.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.util.List;
-import java.util.Map;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
+import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
 import org.springframework.restdocs.payload.JsonFieldType;
-import org.springframework.restdocs.snippet.Attributes;
 
-import codesquad.fineants.domain.notification.type.NotificationType;
+import codesquad.fineants.domain.member.Member;
+import codesquad.fineants.domain.notification.Notification;
+import codesquad.fineants.domain.portfolio.Portfolio;
+import codesquad.fineants.domain.stock.Stock;
+import codesquad.fineants.domain.stock_target_price.StockTargetPrice;
+import codesquad.fineants.domain.target_price_notification.TargetPriceNotification;
 import codesquad.fineants.spring.api.notification.controller.NotificationRestController;
-import codesquad.fineants.spring.api.notification.request.PortfolioNotificationCreateRequest;
-import codesquad.fineants.spring.api.notification.response.NotifyMessageItem;
-import codesquad.fineants.spring.api.notification.response.NotifyPortfolioMessagesResponse;
-import codesquad.fineants.spring.api.notification.response.PortfolioNotificationCreateResponse;
+import codesquad.fineants.spring.api.notification.response.NotifyMessage;
+import codesquad.fineants.spring.api.notification.response.PortfolioNotificationResponse;
+import codesquad.fineants.spring.api.notification.response.PortfolioNotifyMessage;
+import codesquad.fineants.spring.api.notification.response.PortfolioNotifyMessageItem;
+import codesquad.fineants.spring.api.notification.response.PortfolioNotifyMessagesResponse;
+import codesquad.fineants.spring.api.notification.response.StockNotifyMessage;
+import codesquad.fineants.spring.api.notification.response.TargetPriceNotificationResponse;
 import codesquad.fineants.spring.api.notification.service.NotificationService;
+import codesquad.fineants.spring.api.stock_target_price.response.TargetPriceNotifyMessageItem;
+import codesquad.fineants.spring.api.stock_target_price.response.TargetPriceNotifyMessageResponse;
 import codesquad.fineants.spring.docs.RestDocsSupport;
-import codesquad.fineants.spring.util.ObjectMapperUtil;
 
 class NotificationRestControllerDocsTest extends RestDocsSupport {
 
@@ -42,139 +48,41 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 		return new NotificationRestController(service);
 	}
 
-	@DisplayName("사용자는 알림을 생성한다")
-	@Test
-	void createNotification() throws Exception {
-		// given
-		Map<String, Object> body = Map.of(
-			"portfolioName", "포트폴리오1",
-			"title", "포트폴리오",
-			"type", "PORTFOLIO_TARGET_GAIN",
-			"referenceId", "1"
-		);
-
-		Long notificationId = 1L;
-		String title = "포트폴리오";
-		boolean isRead = false;
-		NotificationType type = NotificationType.PORTFOLIO_TARGET_GAIN;
-		String referenceId = "1";
-		String messageId = "messageId";
-		given(service.createPortfolioNotification(
-			ArgumentMatchers.any(PortfolioNotificationCreateRequest.class),
-			anyLong()))
-			.willReturn(PortfolioNotificationCreateResponse.builder()
-				.notificationId(notificationId)
-				.title(title)
-				.isRead(isRead)
-				.type(type)
-				.referenceId(referenceId)
-				.messageId(messageId)
-				.build());
-		// when
-		mockMvc.perform(post("/api/notifications")
-				.contentType(MediaType.APPLICATION_JSON)
-				.content(ObjectMapperUtil.serialize(body))
-				.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))
-			.andExpect(status().isCreated())
-			.andExpect(jsonPath("code").value(equalTo(201)))
-			.andExpect(jsonPath("status").value(equalTo("Created")))
-			.andExpect(jsonPath("message").value(equalTo("알림이 생성되었습니다")))
-			.andExpect(jsonPath("data.notificationId").value(equalTo(notificationId.intValue())))
-			.andExpect(jsonPath("data.title").value(equalTo(title)))
-			.andExpect(jsonPath("data.isRead").value(equalTo(false)))
-			.andExpect(jsonPath("data.type").value(equalTo(type.name())))
-			.andExpect(jsonPath("data.referenceId").value(equalTo(referenceId)))
-			.andExpect(jsonPath("data.messageId").value(equalTo(messageId)))
-			.andDo(
-				document(
-					"notification-create",
-					preprocessRequest(prettyPrint()),
-					preprocessResponse(prettyPrint()),
-					requestHeaders(
-						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
-					),
-					requestFields(
-						fieldWithPath("portfolioName").type(JsonFieldType.STRING)
-							.description("포트폴리오 이름"),
-						fieldWithPath("title").type(JsonFieldType.STRING)
-							.description("알림 제목"),
-						fieldWithPath("type").type(JsonFieldType.STRING)
-							.attributes(
-								Attributes.key("constraints").value(
-									String.join(",",
-										NotificationType.PORTFOLIO_TARGET_GAIN.name(),
-										NotificationType.PORTFOLIO_MAX_LOSS.name(),
-										NotificationType.STOCK_TARGET_PRICE.name()
-									)
-								)
-							)
-							.description("알림 타입"),
-						fieldWithPath("referenceId").type(JsonFieldType.STRING)
-							.description("참조 등록번호")
-					),
-					responseFields(
-						fieldWithPath("code").type(JsonFieldType.NUMBER)
-							.description("코드"),
-						fieldWithPath("status").type(JsonFieldType.STRING)
-							.description("상태"),
-						fieldWithPath("message").type(JsonFieldType.STRING)
-							.description("메시지"),
-						fieldWithPath("data").type(JsonFieldType.OBJECT)
-							.description("응답 데이터"),
-						fieldWithPath("data.notificationId").type(JsonFieldType.NUMBER)
-							.description("알림 등록번호"),
-						fieldWithPath("data.title").type(JsonFieldType.STRING)
-							.description("알림 제목"),
-						fieldWithPath("data.isRead").type(JsonFieldType.BOOLEAN)
-							.description("읽음 여부"),
-						fieldWithPath("data.type").type(JsonFieldType.STRING)
-							.description("알림 타입"),
-						fieldWithPath("data.referenceId").type(JsonFieldType.STRING)
-							.description("참조 등록번호"),
-						fieldWithPath("data.messageId").type(JsonFieldType.STRING)
-							.description("메시지 아이디")
-					)
-				)
-			);
-	}
-
 	@DisplayName("사용자는 한 포트폴리오의 목표 수익률 도달 알림을 전송받습니다")
 	@Test
 	void notifyPortfolioTargetGainMessages() throws Exception {
 		// given
-		Long notificationId = 1L;
-		String title = "포트폴리오";
-		NotificationType type = NotificationType.PORTFOLIO_TARGET_GAIN;
-		String referenceId = "1";
-		String messageId = "projects/fineants-404407/messages/4754d355-5d5d-4f14-a642-75fecdb91fa5";
-		given(service.notifyPortfolioTargetGainMessages(
-			anyLong(),
-			anyLong()))
-			.willReturn(NotifyPortfolioMessagesResponse.builder()
-				.notifications(List.of(
-					NotifyMessageItem.builder()
-						.title(title)
-						.type(type)
-						.referenceId(referenceId)
-						.messageId(messageId)
-						.memberId(1L)
-						.build()
-				))
-				.build());
+		Member member = createMember();
+		Portfolio portfolio = createPortfolio(member);
+		PortfolioNotifyMessage message = (PortfolioNotifyMessage)portfolio.getTargetGainMessage("token");
+		Notification notification = createPortfolioNotification(message, member);
+		String messageId = "messageId";
+		PortfolioNotifyMessageItem item = PortfolioNotifyMessageItem.from(
+			PortfolioNotificationResponse.from(notification), messageId);
+		List<PortfolioNotifyMessageItem> items = List.of(item);
 
-		Long portfolioId = 1L;
+		given(service.notifyTargetGainBy(
+			anyLong()))
+			.willReturn(PortfolioNotifyMessagesResponse.create(items));
+
 		// when
-		mockMvc.perform(post("/api/notifications/portfolios/{portfolioId}/notify/target-gain", portfolioId)
+		mockMvc.perform(post("/api/notifications/portfolios/{portfolioId}/notify/target-gain", portfolio.getId())
 				.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
 			.andExpect(jsonPath("message").value(equalTo("포트폴리오 목표 수익률 알림 메시지가 전송되었습니다")))
-			.andExpect(jsonPath("data.notifications[0].title").value(equalTo(title)))
-			.andExpect(jsonPath("data.notifications[0].type").value(equalTo(type.name())))
-			.andExpect(jsonPath("data.notifications[0].referenceId").value(equalTo(referenceId)))
-			.andExpect(jsonPath("data.notifications[0].messageId").value(equalTo(messageId)))
-			.andExpect(jsonPath("data.notifications[0].memberId").value(equalTo(1)))
+			.andExpect(
+				jsonPath("data.notifications[0].notificationId").value(equalTo(item.getNotificationId().intValue())))
+			.andExpect(jsonPath("data.notifications[0].isRead").value(equalTo(item.getIsRead())))
+			.andExpect(jsonPath("data.notifications[0].title").value(equalTo(item.getTitle())))
+			.andExpect(jsonPath("data.notifications[0].content").value(equalTo(item.getContent())))
+			.andExpect(jsonPath("data.notifications[0].type").value(equalTo(item.getType().name())))
+			.andExpect(jsonPath("data.notifications[0].referenceId").value(equalTo(item.getReferenceId())))
+			.andExpect(jsonPath("data.notifications[0].memberId").value(equalTo(item.getMemberId().intValue())))
+			.andExpect(jsonPath("data.notifications[0].link").value(equalTo(item.getLink())))
+			.andExpect(jsonPath("data.notifications[0].messageId").value(equalTo(item.getMessageId())))
+			.andExpect(jsonPath("data.notifications[0].name").value(equalTo(item.getName())))
 			.andDo(
 				document(
 					"notification_portfolio_target_gain-notify",
@@ -195,16 +103,26 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 							.description("메시지"),
 						fieldWithPath("data").type(JsonFieldType.OBJECT)
 							.description("응답 데이터"),
+						fieldWithPath("data.notifications[].notificationId").type(JsonFieldType.NUMBER)
+							.description("알림 등록번호"),
+						fieldWithPath("data.notifications[].isRead").type(JsonFieldType.BOOLEAN)
+							.description("알림 읽음 여부"),
 						fieldWithPath("data.notifications[].title").type(JsonFieldType.STRING)
 							.description("알림 제목"),
+						fieldWithPath("data.notifications[].content").type(JsonFieldType.STRING)
+							.description("알림 내용"),
 						fieldWithPath("data.notifications[].type").type(JsonFieldType.STRING)
-							.description("알림 타입"),
+							.description("알림 종류"),
 						fieldWithPath("data.notifications[].referenceId").type(JsonFieldType.STRING)
 							.description("참조 등록번호"),
-						fieldWithPath("data.notifications[].messageId").type(JsonFieldType.STRING)
-							.description("알림 메시지 등록번호"),
 						fieldWithPath("data.notifications[].memberId").type(JsonFieldType.NUMBER)
-							.description("회원 등록 번호")
+							.description("회원 등록 번호"),
+						fieldWithPath("data.notifications[].link").type(JsonFieldType.STRING)
+							.description("알림 링크"),
+						fieldWithPath("data.notifications[].messageId").type(JsonFieldType.STRING)
+							.description("알림 메시지 아이디"),
+						fieldWithPath("data.notifications[].name").type(JsonFieldType.STRING)
+							.description("포트폴리오 이름")
 					)
 				)
 			);
@@ -214,38 +132,36 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 	@Test
 	void notifyPortfolioMaxLossMessages() throws Exception {
 		// given
-		String title = "포트폴리오";
-		NotificationType type = NotificationType.PORTFOLIO_MAX_LOSS;
-		String referenceId = "1";
-		String messageId = "projects/fineants-404407/messages/4754d355-5d5d-4f14-a642-75fecdb91fa5";
-		given(service.notifyPortfolioMaxLossMessages(
-			anyLong(),
+		Member member = createMember();
+		Portfolio portfolio = createPortfolio(member);
+		PortfolioNotifyMessage message = (PortfolioNotifyMessage)portfolio.getMaxLossMessage("token");
+		Notification notification = createPortfolioNotification(message, member);
+		String messageId = "messageId";
+		PortfolioNotifyMessageItem item = PortfolioNotifyMessageItem.from(
+			PortfolioNotificationResponse.from(notification), messageId);
+		List<PortfolioNotifyMessageItem> items = List.of(item);
+		given(service.notifyMaxLoss(
 			anyLong()))
-			.willReturn(NotifyPortfolioMessagesResponse.builder()
-				.notifications(List.of(
-					NotifyMessageItem.builder()
-						.title(title)
-						.type(type)
-						.referenceId(referenceId)
-						.messageId(messageId)
-						.memberId(1L)
-						.build()
-				))
-				.build());
+			.willReturn(PortfolioNotifyMessagesResponse.create(items));
 
-		Long portfolioId = 1L;
 		// when
-		mockMvc.perform(post("/api/notifications/portfolios/{portfolioId}/notify/max-loss", portfolioId)
+		mockMvc.perform(post("/api/notifications/portfolios/{portfolioId}/notify/max-loss", portfolio.getId())
 				.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
 			.andExpect(jsonPath("message").value(equalTo("포트폴리오 최대 손실율 알림 메시지가 전송되었습니다")))
-			.andExpect(jsonPath("data.notifications[0].title").value(equalTo(title)))
-			.andExpect(jsonPath("data.notifications[0].type").value(equalTo(type.name())))
-			.andExpect(jsonPath("data.notifications[0].referenceId").value(equalTo(referenceId)))
-			.andExpect(jsonPath("data.notifications[0].messageId").value(equalTo(messageId)))
-			.andExpect(jsonPath("data.notifications[0].memberId").value(equalTo(1)))
+			.andExpect(
+				jsonPath("data.notifications[0].notificationId").value(equalTo(item.getNotificationId().intValue())))
+			.andExpect(jsonPath("data.notifications[0].isRead").value(equalTo(item.getIsRead())))
+			.andExpect(jsonPath("data.notifications[0].title").value(equalTo(item.getTitle())))
+			.andExpect(jsonPath("data.notifications[0].content").value(equalTo(item.getContent())))
+			.andExpect(jsonPath("data.notifications[0].type").value(equalTo(item.getType().name())))
+			.andExpect(jsonPath("data.notifications[0].referenceId").value(equalTo(item.getReferenceId())))
+			.andExpect(jsonPath("data.notifications[0].memberId").value(equalTo(item.getMemberId().intValue())))
+			.andExpect(jsonPath("data.notifications[0].link").value(equalTo(item.getLink())))
+			.andExpect(jsonPath("data.notifications[0].messageId").value(equalTo(item.getMessageId())))
+			.andExpect(jsonPath("data.notifications[0].name").value(equalTo(item.getName())))
 			.andDo(
 				document(
 					"notification_portfolio_max_loss-notify",
@@ -266,16 +182,111 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 							.description("메시지"),
 						fieldWithPath("data").type(JsonFieldType.OBJECT)
 							.description("응답 데이터"),
+						fieldWithPath("data.notifications[].notificationId").type(JsonFieldType.NUMBER)
+							.description("알림 등록번호"),
+						fieldWithPath("data.notifications[].isRead").type(JsonFieldType.BOOLEAN)
+							.description("알림 읽음 여부"),
 						fieldWithPath("data.notifications[].title").type(JsonFieldType.STRING)
 							.description("알림 제목"),
+						fieldWithPath("data.notifications[].content").type(JsonFieldType.STRING)
+							.description("알림 내용"),
 						fieldWithPath("data.notifications[].type").type(JsonFieldType.STRING)
-							.description("알림 타입"),
+							.description("알림 종류"),
 						fieldWithPath("data.notifications[].referenceId").type(JsonFieldType.STRING)
 							.description("참조 등록번호"),
+						fieldWithPath("data.notifications[].memberId").type(JsonFieldType.NUMBER)
+							.description("회원 등록 번호"),
+						fieldWithPath("data.notifications[].link").type(JsonFieldType.STRING)
+							.description("알림 링크"),
+						fieldWithPath("data.notifications[].messageId").type(JsonFieldType.STRING)
+							.description("알림 메시지 아이디"),
+						fieldWithPath("data.notifications[].name").type(JsonFieldType.STRING)
+							.description("포트폴리오 이름")
+					)
+				)
+			);
+	}
+
+	@DisplayName("종목 지정가 알림 발송 API")
+	@Test
+	void sendStockTargetPriceNotification() throws Exception {
+		// given
+		Member member = createMember();
+		Stock stock = createStock();
+		StockTargetPrice stockTargetPrice = createStockTargetPrice(member, stock);
+		TargetPriceNotification targetPriceNotification = createTargetPriceNotification(stockTargetPrice);
+		NotifyMessage message = targetPriceNotification.getTargetPriceMessage("token");
+		Notification notification = createStockNotification((StockNotifyMessage)message, member);
+		TargetPriceNotificationResponse saveResponse = TargetPriceNotificationResponse.from(notification);
+		TargetPriceNotifyMessageItem item = TargetPriceNotifyMessageItem.from(saveResponse, "messageId");
+		given(service.notifyTargetPriceBy(anyLong()))
+			.willReturn(TargetPriceNotifyMessageResponse.from(List.of(item)));
+
+		// when
+		mockMvc.perform(RestDocumentationRequestBuilders.post("/api/stocks/target-price/notifications/send")
+				.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))
+			.andExpect(status().isCreated())
+			.andExpect(jsonPath("code").value(equalTo(201)))
+			.andExpect(jsonPath("status").value(equalTo("Created")))
+			.andExpect(jsonPath("message").value(equalTo("종목 지정가 알림을 발송하였습니다")))
+			.andExpect(jsonPath("data.notifications").isArray())
+			.andExpect(
+				jsonPath("data.notifications[0].notificationId").value(equalTo(item.getNotificationId().intValue())))
+			.andExpect(jsonPath("data.notifications[0].isRead").value(equalTo(item.getIsRead())))
+			.andExpect(jsonPath("data.notifications[0].title").value(equalTo(item.getTitle())))
+			.andExpect(jsonPath("data.notifications[0].content").value(equalTo(item.getContent())))
+			.andExpect(jsonPath("data.notifications[0].type").value(equalTo(item.getType().name())))
+			.andExpect(jsonPath("data.notifications[0].referenceId").value(equalTo(item.getReferenceId())))
+			.andExpect(jsonPath("data.notifications[0].memberId").value(equalTo(item.getMemberId().intValue())))
+			.andExpect(jsonPath("data.notifications[0].link").value(equalTo(item.getLink())))
+			.andExpect(jsonPath("data.notifications[0].messageId").value(equalTo(item.getMessageId())))
+			.andExpect(jsonPath("data.notifications[0].stockName").value(equalTo(item.getStockName())))
+			.andExpect(jsonPath("data.notifications[0].targetPrice").value(equalTo(item.getTargetPrice().intValue())))
+			.andExpect(jsonPath("data.notifications[0].targetPriceNotificationId").value(
+				equalTo(item.getTargetPriceNotificationId().intValue())))
+			.andDo(
+				document(
+					"stock_target_price-notification-notify",
+					preprocessRequest(prettyPrint()),
+					preprocessResponse(prettyPrint()),
+					requestHeaders(
+						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
+					),
+					responseFields(
+						fieldWithPath("code").type(JsonFieldType.NUMBER)
+							.description("코드"),
+						fieldWithPath("status").type(JsonFieldType.STRING)
+							.description("상태"),
+						fieldWithPath("message").type(JsonFieldType.STRING)
+							.description("메시지"),
+						fieldWithPath("data").type(JsonFieldType.OBJECT)
+							.description("응답 데이터"),
+						fieldWithPath("data.notifications").type(JsonFieldType.ARRAY)
+							.description("종목 지정가 알림 리스트"),
+						fieldWithPath("data.notifications[].notificationId").type(JsonFieldType.NUMBER)
+							.description("알림 등록 번호"),
+						fieldWithPath("data.notifications[].isRead").type(JsonFieldType.BOOLEAN)
+							.description("알림 읽음 여부"),
+						fieldWithPath("data.notifications[].title").type(JsonFieldType.STRING)
+							.description("알림 제목"),
+						fieldWithPath("data.notifications[].content").type(JsonFieldType.STRING)
+							.description("알림 내용"),
+						fieldWithPath("data.notifications[].type").type(JsonFieldType.STRING)
+							.description("알림 종류"),
+						fieldWithPath("data.notifications[].referenceId").type(JsonFieldType.STRING)
+							.description("참조 등록 아이"),
+						fieldWithPath("data.notifications[].memberId").type(JsonFieldType.NUMBER)
+							.description("회원 등록 번호"),
+						fieldWithPath("data.notifications[].link").type(JsonFieldType.STRING)
+							.description("알림 링크"),
 						fieldWithPath("data.notifications[].messageId").type(JsonFieldType.STRING)
 							.description("알림 메시지 등록번호"),
-						fieldWithPath("data.notifications[].memberId").type(JsonFieldType.NUMBER)
-							.description("회원 등록 번호")
+						fieldWithPath("data.notifications[].stockName").type(JsonFieldType.STRING)
+							.description("종목 이름"),
+						fieldWithPath("data.notifications[].targetPrice").type(JsonFieldType.NUMBER)
+							.description("지정"),
+						fieldWithPath("data.notifications[].targetPriceNotificationId").type(JsonFieldType.NUMBER)
+							.description("지정가 알림 등록 번호")
 					)
 				)
 			);

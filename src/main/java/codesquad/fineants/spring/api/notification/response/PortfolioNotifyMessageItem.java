@@ -1,7 +1,6 @@
-package codesquad.fineants.spring.api.stock_target_price.response;
+package codesquad.fineants.spring.api.notification.response;
 
 import codesquad.fineants.domain.notification.type.NotificationType;
-import codesquad.fineants.spring.api.notification.response.TargetPriceNotificationCreateResponse;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,24 +11,32 @@ import lombok.ToString;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-@Builder
+@Builder(access = AccessLevel.PRIVATE)
 @ToString
-public class TargetPriceNotificationSendItem {
+public class PortfolioNotifyMessageItem {
 	private Long notificationId;
-	private Long targetPriceNotificationId;
+	private Boolean isRead;
 	private String title;
+	private String content;
 	private NotificationType type;
 	private String referenceId;
+	private Long memberId;
+	private String link;
 	private String messageId;
+	private String name;
 
-	public static TargetPriceNotificationSendItem from(TargetPriceNotificationCreateResponse response) {
-		return TargetPriceNotificationSendItem.builder()
+	public static PortfolioNotifyMessageItem from(PortfolioNotificationResponse response, String messageId) {
+		return PortfolioNotifyMessageItem.builder()
 			.notificationId(response.getNotificationId())
-			.targetPriceNotificationId(response.getTargetPriceNotificationId())
+			.isRead(response.getIsRead())
 			.title(response.getTitle())
+			.content(response.getContent())
 			.type(response.getType())
 			.referenceId(response.getReferenceId())
-			.messageId(response.getMessageId())
+			.memberId(response.getMemberId())
+			.link(response.getLink())
+			.messageId(messageId)
+			.name(response.getName())
 			.build();
 	}
 }

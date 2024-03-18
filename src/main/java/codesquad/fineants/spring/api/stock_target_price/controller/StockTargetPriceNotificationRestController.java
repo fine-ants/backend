@@ -22,7 +22,6 @@ import codesquad.fineants.spring.api.stock_target_price.request.TargetPriceNotif
 import codesquad.fineants.spring.api.stock_target_price.response.TargetPriceNotificationCreateResponse;
 import codesquad.fineants.spring.api.stock_target_price.response.TargetPriceNotificationDeleteResponse;
 import codesquad.fineants.spring.api.stock_target_price.response.TargetPriceNotificationSearchResponse;
-import codesquad.fineants.spring.api.stock_target_price.response.TargetPriceNotificationSendResponse;
 import codesquad.fineants.spring.api.stock_target_price.response.TargetPriceNotificationSpecifiedSearchResponse;
 import codesquad.fineants.spring.api.stock_target_price.response.TargetPriceNotificationUpdateResponse;
 import codesquad.fineants.spring.api.stock_target_price.service.StockTargetPriceNotificationService;
@@ -48,17 +47,6 @@ public class StockTargetPriceNotificationRestController {
 		);
 		log.info("종목 지정가 알림 추가 결과 : {}", response);
 		return ApiResponse.success(StockSuccessCode.OK_CREATE_TARGET_PRICE_NOTIFICATION, response);
-	}
-
-	// 종목 지정가 알림 발송
-	@ResponseStatus(HttpStatus.CREATED)
-	@PostMapping("/api/stocks/target-price/notifications/send")
-	public ApiResponse<TargetPriceNotificationSendResponse> sendStockTargetPriceNotification(
-		@AuthPrincipalMember AuthMember authMember) {
-		TargetPriceNotificationSendResponse response = service.sendStockTargetPriceNotification(
-			authMember.getMemberId());
-		log.info("종목 지정가 알림 전송 결과 : {}", response);
-		return ApiResponse.success(StockSuccessCode.OK_CREATE_TARGET_PRICE_SEND_NOTIFICATION, response);
 	}
 
 	// 종목 지정가 알림 조회
