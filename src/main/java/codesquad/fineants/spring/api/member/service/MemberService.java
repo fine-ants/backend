@@ -11,6 +11,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -83,6 +84,8 @@ import lombok.extern.slf4j.Slf4j;
 public class MemberService {
 
 	private static final String LOCAL_PROVIDER = "local";
+	public static final Pattern NICKNAME_PATTERN = Pattern.compile("^[가-힣a-zA-Z0-9]{2,10}$");
+	public static final Pattern EMAIL_PATTERN = Pattern.compile("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6}$");
 	private final AuthorizationRequestManager authorizationRequestManager;
 	private final OauthClientRepository oauthClientRepository;
 	private final MemberRepository memberRepository;
@@ -299,12 +302,19 @@ public class MemberService {
 	}
 
 	public void checkNickname(String nickname) {
+		if (!NICKNAME_PATTERN.matcher(nickname).matches()) {
+			throw new BadRequestException(MemberErrorCode.BAD_SIGNUP_INPUT);
+		}
 		if (memberRepository.existsByNickname(nickname)) {
 			throw new BadRequestException(MemberErrorCode.REDUNDANT_NICKNAME);
 		}
+
 	}
 
 	public void checkEmail(String email) {
+		if (!EMAIL_PATTERN.matcher(email).matches()) {
+			throw new BadRequestException(MemberErrorCode.BAD_SIGNUP_INPUT);
+		}
 		if (memberRepository.existsMemberByEmailAndProvider(email, LOCAL_PROVIDER)) {
 			throw new BadRequestException(MemberErrorCode.REDUNDANT_EMAIL);
 		}

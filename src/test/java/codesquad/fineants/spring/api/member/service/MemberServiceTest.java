@@ -596,6 +596,18 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 		assertDoesNotThrow(() -> memberService.checkNickname(nickname));
 	}
 
+	@DisplayName("사용자가 닉네임 중복 체크시 입력형식이 잘못되어 실패한다")
+	@Test
+	void checkNickname_whenInvalidInput_thenThrowException() {
+		// given
+		String nickname = "일";
+		// when & then
+		Throwable throwable = catchThrowable(() -> memberService.checkNickname(nickname));
+		assertThat(throwable)
+			.isInstanceOf(BadRequestException.class)
+			.hasMessage(MemberErrorCode.BAD_SIGNUP_INPUT.getMessage());
+	}
+
 	@DisplayName("사용자는 닉네임이 중복되어 에러를 받는다")
 	@Test
 	void checkNickname_whenDuplicatedNickname_thenThrow400Error() {
