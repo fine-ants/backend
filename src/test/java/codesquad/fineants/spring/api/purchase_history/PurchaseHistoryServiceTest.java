@@ -20,7 +20,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
 
 import codesquad.fineants.domain.fcm_token.FcmRepository;
@@ -159,13 +158,16 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 
 	@DisplayName("사용자는 매입 이력 추가시 목표 수익률을 달성하여 알림을 받는다")
 	@Test
-	void addPurchaseHistory_whenAchieveTargetGain_thenSaveNotification() throws FirebaseMessagingException {
+	void addPurchaseHistory_whenAchieveTargetGain_thenSaveNotification() {
 		// given
 		Member member = memberRepository.save(createMember());
 		notificationPreferenceRepository.save(createNotificationPreference(member));
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Stock stock = stockRepository.save(createStock());
+		Stock stock2 = stockRepository.save(createStock2());
 		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
+		portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock2));
+		purchaseHistoryRepository.save(createPurchaseHistory(holding));
 		fcmRepository.save(createFcmToken("token", member));
 		fcmRepository.save(createFcmToken("token2", member));
 
@@ -407,6 +409,17 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 			.companyNameEng("SamsungElectronics")
 			.stockCode("KR7005930003")
 			.sector("전기전자")
+			.market(Market.KOSPI)
+			.build();
+	}
+
+	private Stock createStock2() {
+		return Stock.builder()
+			.companyName("동화약품보통주")
+			.tickerSymbol("000020")
+			.companyNameEng("DongwhaPharm")
+			.stockCode("KR7000020008")
+			.sector("의약품")
 			.market(Market.KOSPI)
 			.build();
 	}

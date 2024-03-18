@@ -2,7 +2,6 @@ package codesquad.fineants.spring.api.notification.service;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -24,8 +23,6 @@ import codesquad.fineants.domain.notification.policy.target_gain.TargetGainNotif
 import codesquad.fineants.domain.notification.policy.target_price.TargetPriceNotificationPolicy;
 import codesquad.fineants.domain.portfolio.Portfolio;
 import codesquad.fineants.domain.portfolio.PortfolioRepository;
-import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
-import codesquad.fineants.domain.purchase_history.PurchaseHistory;
 import codesquad.fineants.domain.purchase_history.PurchaseHistoryRepository;
 import codesquad.fineants.domain.stock_target_price.StockTargetPrice;
 import codesquad.fineants.domain.stock_target_price.StockTargetPriceRepository;
@@ -108,7 +105,6 @@ public class NotificationService {
 		List<Portfolio> portfolios = portfolioRepository.findAllWithAll().stream()
 			.peek(portfolio -> portfolio.applyCurrentPriceAllHoldingsBy(currentPriceManager))
 			.collect(Collectors.toList());
-		setPurchaseHistoriesForPortfolioHoldings(portfolios);
 
 		Function<PortfolioNotifyMessageItem, CompletionStage<PortfolioNotifyMessageItem>> sentFunction = item -> CompletableFuture.supplyAsync(
 			() -> {
@@ -123,10 +119,8 @@ public class NotificationService {
 	public PortfolioNotifyMessagesResponse notifyTargetGainBy(Long portfolioId) {
 		Portfolio portfolio = portfolioRepository.findByPortfolioIdWithAll(portfolioId).stream()
 			.peek(p -> p.applyCurrentPriceAllHoldingsBy(currentPriceManager))
-			.findAny()
+			.findFirst()
 			.orElseThrow(() -> new FineAntsException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
-		// 각 포트폴리오 홀딩에 대해서 매입 이력을 조회하여 설정
-		setPurchaseHistoriesForPortfolioHoldings(List.of(portfolio));
 
 		Function<PortfolioNotifyMessageItem, CompletionStage<PortfolioNotifyMessageItem>> sentFunction = item -> CompletableFuture.supplyAsync(
 			() -> {
@@ -136,32 +130,12 @@ public class NotificationService {
 		return notifyMessage(List.of(portfolio), targetGainNotificationPolicy, sentFunction);
 	}
 
-	private void setPurchaseHistoriesForPortfolioHoldings(List<Portfolio> portfolios) {
-		List<Long> holdingIds = portfolios.stream()
-			.map(Portfolio::getPortfolioHoldings)
-			.flatMap(Collection::stream)
-			.map(PortfolioHolding::getId)
-			.collect(Collectors.toList());
-		List<PurchaseHistory> histories = purchaseHistoryRepository.findAllByHoldingIds(holdingIds);
-		Map<Long, List<PurchaseHistory>> historyMap = histories.stream()
-			.collect(Collectors.groupingBy(
-				history -> history.getPortfolioHolding().getId(),
-				Collectors.toList()
-			));
-		portfolios.stream()
-			.map(Portfolio::getPortfolioHoldings)
-			.flatMap(Collection::stream)
-			.forEach(holding -> holding.setPurchaseHistories(historyMap.getOrDefault(holding.getId(),
-				Collections.emptyList())));
-	}
-
 	// 모든 트폴리오의 최대 손실율 달성 알림 푸시
 	@Transactional
 	public PortfolioNotifyMessagesResponse notifyMaxLoss() {
 		List<Portfolio> portfolios = portfolioRepository.findAllWithAll().stream()
 			.peek(portfolio -> portfolio.applyCurrentPriceAllHoldingsBy(currentPriceManager))
 			.collect(Collectors.toList());
-		setPurchaseHistoriesForPortfolioHoldings(portfolios);
 		Function<PortfolioNotifyMessageItem, CompletionStage<PortfolioNotifyMessageItem>> sentFunction = item -> CompletableFuture.supplyAsync(
 			() -> {
 				sentManager.addMaxLossSendHistory(Long.valueOf(item.getReferenceId()));
@@ -177,7 +151,6 @@ public class NotificationService {
 			.stream().peek(p -> p.applyCurrentPriceAllHoldingsBy(currentPriceManager))
 			.findAny()
 			.orElseThrow(() -> new FineAntsException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
-		setPurchaseHistoriesForPortfolioHoldings(List.of(portfolio));
 		Function<PortfolioNotifyMessageItem, CompletionStage<PortfolioNotifyMessageItem>> sentFunction = item -> CompletableFuture.supplyAsync(
 			() -> {
 				sentManager.addMaxLossSendHistory(Long.valueOf(item.getReferenceId()));

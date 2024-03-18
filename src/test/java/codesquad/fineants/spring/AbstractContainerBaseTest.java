@@ -11,7 +11,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-
 @ActiveProfiles("test")
 @SpringBootTest
 @Testcontainers

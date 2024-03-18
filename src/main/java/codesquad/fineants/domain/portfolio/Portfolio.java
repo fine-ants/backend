@@ -51,6 +51,7 @@ import lombok.extern.slf4j.Slf4j;
 			@NamedAttributeNode("stock")
 		})})
 })
+
 @Slf4j
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -271,6 +272,7 @@ public class Portfolio extends BaseEntity {
 		long totalGain = histories.stream()
 			.mapToLong(PurchaseHistory::calculateGain)
 			.sum();
+		log.debug("reachedTargetGain.totalGain : {}", totalGain);
 		return budget + totalGain >= targetGain;
 	}
 

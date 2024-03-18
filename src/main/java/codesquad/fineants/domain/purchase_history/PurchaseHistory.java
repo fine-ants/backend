@@ -8,7 +8,6 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
 import codesquad.fineants.domain.BaseEntity;
@@ -34,7 +33,6 @@ public class PurchaseHistory extends BaseEntity {
 	private String memo;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "portfolio_holding_id")
 	private PortfolioHolding portfolioHolding;
 
 	@Builder

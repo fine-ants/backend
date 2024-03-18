@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import codesquad.fineants.domain.portfolio.Portfolio;
+import codesquad.fineants.domain.portfolio.PortfolioRepository;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHoldingRepository;
 import codesquad.fineants.domain.purchase_history.PurchaseHistory;
@@ -12,8 +13,7 @@ import codesquad.fineants.spring.api.common.errors.errorcode.PortfolioErrorCode;
 import codesquad.fineants.spring.api.common.errors.errorcode.PortfolioHoldingErrorCode;
 import codesquad.fineants.spring.api.common.errors.errorcode.PurchaseHistoryErrorCode;
 import codesquad.fineants.spring.api.common.errors.exception.FineAntsException;
-import codesquad.fineants.spring.api.purchase_history.event.PublishEvent;
-import codesquad.fineants.spring.api.purchase_history.event.PushNotificationEvent;
+import codesquad.fineants.spring.api.purchase_history.event.PurchaseHistoryEventPublisher;
 import codesquad.fineants.spring.api.purchase_history.request.PurchaseHistoryCreateRequest;
 import codesquad.fineants.spring.api.purchase_history.request.PurchaseHistoryModifyRequest;
 import codesquad.fineants.spring.api.purchase_history.response.PurchaseHistoryCreateResponse;
@@ -29,9 +29,10 @@ import lombok.extern.slf4j.Slf4j;
 public class PurchaseHistoryService {
 	private final PurchaseHistoryRepository repository;
 	private final PortfolioHoldingRepository portfolioHoldingRepository;
+	private final PurchaseHistoryEventPublisher purchaseHistoryEventPublisher;
+	private final PortfolioRepository portfolioRepository;
 
 	@Transactional
-	@PublishEvent(eventType = PushNotificationEvent.class, params = "#{T(codesquad.fineants.spring.api.purchase_history.event.PurchaseHistoryEventSendableParameter).create(portfolioId, memberId)}")
 	public PurchaseHistoryCreateResponse addPurchaseHistory(
 		PurchaseHistoryCreateRequest request,
 		Long portfolioId,
@@ -39,14 +40,27 @@ public class PurchaseHistoryService {
 		Long memberId) {
 		log.info("매입이력 추가 서비스 요청 : request={}, portfolioHoldingId={}", request, portfolioHoldingId);
 
-		PortfolioHolding portfolioHolding = findPortfolioHolding(portfolioHoldingId, portfolioId);
-		PurchaseHistory history = request.toEntity(portfolioHolding);
-		Portfolio portfolio = portfolioHolding.getPortfolio();
+		Portfolio portfolio = findPortfolio(portfolioId);
+		PortfolioHolding findHolding = portfolio.getPortfolioHoldings().stream()
+			.filter(holding -> holding.getId().equals(portfolioHoldingId))
+			.findAny()
+			.orElseThrow(() -> new FineAntsException(PortfolioHoldingErrorCode.NOT_FOUND_PORTFOLIO_HOLDING));
+		PurchaseHistory history = request.toEntity(findHolding);
+
 		verifyCashSufficientForPurchase(portfolio, history.calculateInvestmentAmount());
 
 		PurchaseHistory newPurchaseHistory = repository.save(history);
+		// 매입 이력 알림 이벤트를 위한 매입 이력 데이터 추가
+		findHolding.addPurchaseHistory(newPurchaseHistory);
+
+		purchaseHistoryEventPublisher.publishPushNotificationEvent(portfolioId, memberId);
 		log.info("매입이력 저장 결과 : newPurchaseHistory={}", newPurchaseHistory);
 		return PurchaseHistoryCreateResponse.from(newPurchaseHistory, portfolioId, memberId);
+	}
+
+	private Portfolio findPortfolio(Long portfolioId) {
+		return portfolioRepository.findByPortfolioIdWithAll(portfolioId)
+			.orElseThrow(() -> new FineAntsException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
 	}
 
 	private void verifyCashSufficientForPurchase(Portfolio portfolio, long investmentAmount) {
@@ -56,7 +70,6 @@ public class PurchaseHistoryService {
 	}
 
 	@Transactional
-	@PublishEvent(eventType = PushNotificationEvent.class, params = "#{T(codesquad.fineants.spring.api.purchase_history.event.PurchaseHistoryEventSendableParameter).create(portfolioId, memberId)}")
 	public PurchaseHistoryModifyResponse modifyPurchaseHistory(PurchaseHistoryModifyRequest request,
 		Long portfolioHoldingId, Long purchaseHistoryId, Long portfolioId, Long memberId) {
 		log.info("매입 내역 수정 서비스 요청 : request={}, portfolioHoldingId={}, purchaseHistoryId={}", request,
@@ -71,18 +84,19 @@ public class PurchaseHistoryService {
 			portfolioId,
 			memberId
 		);
+		purchaseHistoryEventPublisher.publishPushNotificationEvent(portfolioId, memberId);
 		log.info("매입 내역 수정 결과 : response={}", response);
 		return response;
 	}
 
 	@Transactional
-	@PublishEvent(eventType = PushNotificationEvent.class, params = "#{T(codesquad.fineants.spring.api.purchase_history.event.PurchaseHistoryEventSendableParameter).create(portfolioId, memberId)}")
 	public PurchaseHistoryDeleteResponse deletePurchaseHistory(Long portfolioHoldingId, Long purchaseHistoryId,
 		Long portfolioId, Long memberId) {
 		log.info("매입 내역 삭제 서비스 요청 : portfolioHoldingId={}, purchaseHistoryId={}", portfolioHoldingId,
 			purchaseHistoryId);
 		PurchaseHistory deletePurchaseHistory = findPurchaseHistory(purchaseHistoryId);
 		repository.deleteById(purchaseHistoryId);
+		purchaseHistoryEventPublisher.publishPushNotificationEvent(portfolioId, memberId);
 		return PurchaseHistoryDeleteResponse.from(deletePurchaseHistory, portfolioId, memberId);
 	}
 
