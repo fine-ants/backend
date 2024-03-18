@@ -23,7 +23,6 @@ import codesquad.fineants.domain.notification.policy.target_gain.TargetGainNotif
 import codesquad.fineants.domain.notification.policy.target_price.TargetPriceNotificationPolicy;
 import codesquad.fineants.domain.portfolio.Portfolio;
 import codesquad.fineants.domain.portfolio.PortfolioRepository;
-import codesquad.fineants.domain.purchase_history.PurchaseHistoryRepository;
 import codesquad.fineants.domain.stock_target_price.StockTargetPrice;
 import codesquad.fineants.domain.stock_target_price.StockTargetPriceRepository;
 import codesquad.fineants.domain.target_price_notification.TargetPriceNotification;
@@ -61,7 +60,6 @@ public class NotificationService {
 	});
 
 	private final PortfolioRepository portfolioRepository;
-	private final PurchaseHistoryRepository purchaseHistoryRepository;
 	private final FcmService fcmService;
 	private final FirebaseMessagingService firebaseMessagingService;
 	private final NotificationRepository notificationRepository;

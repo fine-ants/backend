@@ -3,7 +3,6 @@ package codesquad.fineants.spring.api.purchase_history.event;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.event.TransactionalEventListener;
 
 import codesquad.fineants.spring.api.notification.response.PortfolioNotifyMessagesResponse;
 import codesquad.fineants.spring.api.notification.service.NotificationService;
@@ -19,7 +18,7 @@ public class PurchaseHistoryEventListener {
 
 	// 매입 이력 이벤트가 발생하면 포트폴리오 목표수익률에 달성하면 푸시 알림
 	@Async
-	@TransactionalEventListener
+	@EventListener
 	public void notifyTargetGainBy(PushNotificationEvent event) {
 		PurchaseHistoryEventSendableParameter parameter = event.getValue();
 		PortfolioNotifyMessagesResponse response = notificationService.notifyTargetGainBy(
