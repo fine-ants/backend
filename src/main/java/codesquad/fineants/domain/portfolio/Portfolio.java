@@ -355,7 +355,7 @@ public class Portfolio extends BaseEntity {
 		return entry -> {
 			Double currentValuation = entry.getValue().stream().mapToDouble(Double::valueOf).sum();
 			Double weight = calculateWeightBy(currentValuation);
-			return new PortfolioSectorChartItem(entry.getKey(), weight);
+			return PortfolioSectorChartItem.create(entry.getKey(), weight);
 		};
 	}
 

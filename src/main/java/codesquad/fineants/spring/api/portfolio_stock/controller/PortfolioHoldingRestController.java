@@ -1,6 +1,5 @@
 package codesquad.fineants.spring.api.portfolio_stock.controller;
 
-import java.time.Duration;
 import java.time.LocalDate;
 
 import javax.validation.Valid;
@@ -21,9 +20,7 @@ import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.oauth.support.AuthPrincipalMember;
 import codesquad.fineants.spring.api.common.response.ApiResponse;
 import codesquad.fineants.spring.api.common.success.PortfolioStockSuccessCode;
-import codesquad.fineants.spring.api.portfolio_stock.manager.SseEmitterKey;
-import codesquad.fineants.spring.api.portfolio_stock.manager.SseEmitterManager;
-import codesquad.fineants.spring.api.portfolio_stock.request.PortfolioStockCreateRequest;
+import codesquad.fineants.spring.api.portfolio_stock.request.PortfolioHoldingCreateRequest;
 import codesquad.fineants.spring.api.portfolio_stock.request.PortfolioStocksDeleteRequest;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioChartResponse;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioHoldingsResponse;
@@ -39,7 +36,6 @@ import lombok.extern.slf4j.Slf4j;
 public class PortfolioHoldingRestController {
 
 	private final PortfolioHoldingService portfolioHoldingService;
-	private final SseEmitterManager manager;
 
 	// 포트폴리오 종목 생성
 	@HasPortfolioAuthorization
@@ -47,8 +43,8 @@ public class PortfolioHoldingRestController {
 	@PostMapping("/holdings")
 	public ApiResponse<Void> createPortfolioHolding(@PathVariable Long portfolioId,
 		@AuthPrincipalMember AuthMember authMember,
-		@Valid @RequestBody PortfolioStockCreateRequest request) {
-		portfolioHoldingService.addPortfolioHolding(portfolioId, request, authMember);
+		@Valid @RequestBody PortfolioHoldingCreateRequest request) {
+		portfolioHoldingService.createPortfolioHolding(portfolioId, request, authMember);
 		return ApiResponse.success(PortfolioStockSuccessCode.CREATED_ADD_PORTFOLIO_STOCK);
 	}
 
@@ -68,22 +64,7 @@ public class PortfolioHoldingRestController {
 		@PathVariable Long portfolioId,
 		@AuthPrincipalMember AuthMember authMember
 	) {
-		SseEmitter emitter = new SseEmitter(Duration.ofSeconds(30).toMillis());
-		SseEmitterKey key = SseEmitterKey.create(portfolioId);
-		emitter.onTimeout(() -> {
-			log.info("emitter{} timeout으로 인한 제거", portfolioId);
-			emitter.complete();
-		});
-		emitter.onCompletion(() -> {
-			log.info("emitter{} completion으로 인한 제거", portfolioId);
-			manager.remove(key);
-		});
-		emitter.onError(throwable -> {
-			log.error(throwable.getMessage(), throwable);
-			emitter.complete();
-		});
-		manager.add(key, emitter);
-		return emitter;
+		return portfolioHoldingService.addSseEmitter(portfolioId);
 	}
 
 	// 포트폴리오 차트 조회

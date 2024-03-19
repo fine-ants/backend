@@ -56,7 +56,7 @@ import codesquad.fineants.spring.api.portfolio_stock.chart.DividendChart;
 import codesquad.fineants.spring.api.portfolio_stock.chart.PieChart;
 import codesquad.fineants.spring.api.portfolio_stock.chart.SectorChart;
 import codesquad.fineants.spring.api.portfolio_stock.manager.SseEmitterManager;
-import codesquad.fineants.spring.api.portfolio_stock.request.PortfolioStockCreateRequest;
+import codesquad.fineants.spring.api.portfolio_stock.request.PortfolioHoldingCreateRequest;
 import codesquad.fineants.spring.api.portfolio_stock.request.PortfolioStocksDeleteRequest;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioChartResponse;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioDividendChartItem;
@@ -246,7 +246,7 @@ class PortfolioHoldingRestControllerTest {
 
 		PortfolioStockCreateResponse response = PortfolioStockCreateResponse.from(
 			PortfolioHolding.empty(portfolio, stock));
-		given(portfolioHoldingService.addPortfolioHolding(anyLong(), any(PortfolioStockCreateRequest.class),
+		given(portfolioHoldingService.createPortfolioHolding(anyLong(), any(PortfolioHoldingCreateRequest.class),
 			any(AuthMember.class))).willReturn(response);
 
 		Map<String, Object> purchaseHistoryMap = new HashMap<>();
@@ -281,7 +281,7 @@ class PortfolioHoldingRestControllerTest {
 
 		PortfolioStockCreateResponse response = PortfolioStockCreateResponse.from(
 			PortfolioHolding.empty(portfolio, stock));
-		given(portfolioHoldingService.addPortfolioHolding(anyLong(), any(PortfolioStockCreateRequest.class),
+		given(portfolioHoldingService.createPortfolioHolding(anyLong(), any(PortfolioHoldingCreateRequest.class),
 			any(AuthMember.class))).willReturn(response);
 
 		Map<String, Object> requestBodyMap = new HashMap<>();
@@ -416,7 +416,7 @@ class PortfolioHoldingRestControllerTest {
 		List<PortfolioDividendChartItem> dividendChartItems = this.dividendChart.createBy(portfolio,
 			LocalDate.of(2024, 1, 16));
 		List<PortfolioSectorChartItem> sectorChartItems = this.sectorChart.createBy(portfolio);
-		PortfolioChartResponse response = new PortfolioChartResponse(pieChartItems, dividendChartItems,
+		PortfolioChartResponse response = PortfolioChartResponse.create(pieChartItems, dividendChartItems,
 			sectorChartItems);
 		given(portfolioHoldingService.readPortfolioCharts(anyLong(), any(LocalDate.class)))
 			.willReturn(response);

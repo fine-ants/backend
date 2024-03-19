@@ -10,7 +10,7 @@ import lombok.ToString;
 
 @Getter
 @ToString
-public class PortfolioStockCreateRequest {
+public class PortfolioHoldingCreateRequest {
 	@NotBlank(message = "티커심볼은 필수 정보입니다")
 	private String tickerSymbol;
 	private PurchaseHistoryCreateRequest purchaseHistory;

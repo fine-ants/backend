@@ -11,42 +11,118 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.*;
 import static org.springframework.restdocs.request.RequestDocumentation.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.restdocs.payload.JsonFieldType;
 import org.springframework.test.web.servlet.ResultActions;
 
 import codesquad.fineants.domain.member.Member;
+import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.portfolio.Portfolio;
 import codesquad.fineants.domain.portfolio_gain_history.PortfolioGainHistory;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
 import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.domain.stock_dividend.StockDividend;
 import codesquad.fineants.spring.api.portfolio_stock.controller.PortfolioHoldingRestController;
-import codesquad.fineants.spring.api.portfolio_stock.manager.SseEmitterManager;
+import codesquad.fineants.spring.api.portfolio_stock.request.PortfolioHoldingCreateRequest;
+import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioChartResponse;
+import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioDividendChartItem;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioHoldingsResponse;
+import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioPieChartItem;
+import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioSectorChartItem;
+import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioStockCreateResponse;
 import codesquad.fineants.spring.api.portfolio_stock.service.PortfolioHoldingService;
 import codesquad.fineants.spring.docs.RestDocsSupport;
+import codesquad.fineants.spring.util.ObjectMapperUtil;
 
 public class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 
 	private PortfolioHoldingService service = Mockito.mock(PortfolioHoldingService.class);
-	private SseEmitterManager manager = Mockito.mock(SseEmitterManager.class);
 
 	@Override
 	protected Object initController() {
-		return new PortfolioHoldingRestController(service, manager);
+		return new PortfolioHoldingRestController(service);
+	}
+
+	@DisplayName("포트폴리오 종목 생성 API")
+	@Test
+	void createPortfolioHolding() throws Exception {
+		// given
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createStock();
+		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
+		given(service.createPortfolioHolding(
+			anyLong(),
+			ArgumentMatchers.any(PortfolioHoldingCreateRequest.class),
+			ArgumentMatchers.any(AuthMember.class)))
+			.willReturn(PortfolioStockCreateResponse.from(holding));
+
+		Map<String, Object> body = Map.of(
+			"tickerSymbol", "005930",
+			"purchaseHistory", Map.of(
+				"purchaseDate", "2023-10-23T13:00:00",
+				"numShares", 3,
+				"purchasePricePerShare", 50000,
+				"memo", "첫구매"
+			)
+		);
+
+		// when & then
+		mockMvc.perform(post("/api/portfolio/{portfolioId}/holdings", portfolio.getId())
+				.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(ObjectMapperUtil.serialize(body)))
+			.andExpect(status().isCreated())
+			.andExpect(jsonPath("code").value(equalTo(201)))
+			.andExpect(jsonPath("status").value(equalTo("Created")))
+			.andExpect(jsonPath("message").value(equalTo("포트폴리오 종목이 추가되었습니다")))
+			.andDo(
+				document(
+					"holding-create",
+					preprocessRequest(prettyPrint()),
+					preprocessResponse(prettyPrint()),
+					requestHeaders(
+						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
+					),
+					pathParameters(
+						parameterWithName("portfolioId").description("포트폴리오 등록번호")
+					),
+					requestFields(
+						fieldWithPath("tickerSymbol").type(JsonFieldType.STRING).description("종목 티커심볼"),
+						fieldWithPath("purchaseHistory").type(JsonFieldType.OBJECT).description("매입 이력").optional(),
+						fieldWithPath("purchaseHistory.purchaseDate").type(JsonFieldType.STRING).description("매입 일자"),
+						fieldWithPath("purchaseHistory.numShares").type(JsonFieldType.NUMBER).description("매입 개수"),
+						fieldWithPath("purchaseHistory.purchasePricePerShare").type(JsonFieldType.NUMBER)
+							.description("평균 매입가"),
+						fieldWithPath("purchaseHistory.memo").type(JsonFieldType.STRING).description("메모")
+					),
+					responseFields(
+						fieldWithPath("code").type(JsonFieldType.NUMBER)
+							.description("코드"),
+						fieldWithPath("status").type(JsonFieldType.STRING)
+							.description("상태"),
+						fieldWithPath("message").type(JsonFieldType.STRING)
+							.description("메시지"),
+						fieldWithPath("data").type(JsonFieldType.NULL)
+							.description("응답 데이터")
+					)
+				)
+			);
+
 	}
 
 	@DisplayName("포트폴리오 종목 조회 API")
 	@Test
-	void readMyPortfolioStocks() throws Exception {
+	void readPortfolioHoldings() throws Exception {
 		// given
 		Member member = createMember();
 		Portfolio portfolio = createPortfolio(member);
@@ -226,6 +302,247 @@ public class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 				)
 			)
 		);
+	}
 
+	@DisplayName("포트폴리오 종목 실시간 조회 API")
+	@Test
+	void readPortfolioHoldingsInRealTime() throws Exception {
+		// given
+		Member member = createMember();
+		Portfolio portfolio = createPortfolio(member);
+
+		// when & then
+		mockMvc.perform(
+				get("/api/portfolio/{portfolioId}/holdings/realtime", portfolio.getId())
+					.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))
+			.andExpect(status().isOk())
+			.andDo(
+				document(
+					"holding_real_time-search",
+					preprocessRequest(prettyPrint()),
+					preprocessResponse(prettyPrint()),
+					requestHeaders(
+						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
+					),
+					pathParameters(
+						parameterWithName("portfolioId").description("포트폴리오 등록번호")
+					)
+				)
+			);
+	}
+
+	@DisplayName("포트폴리오 차트 조회 API")
+	@Test
+	void readPortfolioCharts() throws Exception {
+		// given
+		Portfolio portfolio = createPortfolio(createMember());
+		List<PortfolioPieChartItem> pieChartItems = List.of(
+			PortfolioPieChartItem.stock("삼성전자보통주", 600000L, 54.55, 100000L, 10.00),
+			PortfolioPieChartItem.cash(45.45, 500000L)
+		);
+		List<PortfolioDividendChartItem> dividendChartItems = List.of(
+			PortfolioDividendChartItem.empty(1),
+			PortfolioDividendChartItem.empty(2),
+			PortfolioDividendChartItem.empty(3),
+			PortfolioDividendChartItem.create(4, 3610L),
+			PortfolioDividendChartItem.create(5, 3610L),
+			PortfolioDividendChartItem.empty(6),
+			PortfolioDividendChartItem.empty(7),
+			PortfolioDividendChartItem.create(8, 3610L),
+			PortfolioDividendChartItem.empty(9),
+			PortfolioDividendChartItem.empty(10),
+			PortfolioDividendChartItem.create(11, 3610L),
+			PortfolioDividendChartItem.empty(12)
+		);
+		List<PortfolioSectorChartItem> sectorChartItems = List.of(
+			PortfolioSectorChartItem.create("전기전자", 54.55),
+			PortfolioSectorChartItem.create("현금", 45.45)
+		);
+
+		given(service.readPortfolioCharts(anyLong(), ArgumentMatchers.any(LocalDate.class)))
+			.willReturn(PortfolioChartResponse.create(pieChartItems, dividendChartItems, sectorChartItems));
+
+		// when
+		mockMvc.perform(
+				get("/api/portfolio/{portfolioId}/charts", portfolio.getId())
+					.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("code").value(equalTo(200)))
+			.andExpect(jsonPath("status").value(equalTo("OK")))
+			.andExpect(jsonPath("message").value(equalTo("포트폴리오에 대한 차트 조회가 완료되었습니다")))
+			.andExpect(jsonPath("data.pieChart[0].name").value(equalTo("삼성전자보통주")))
+			.andExpect(jsonPath("data.pieChart[0].valuation").value(equalTo(600000)))
+			.andExpect(jsonPath("data.pieChart[0].weight").value(closeTo(54.55, 0.1)))
+			.andExpect(jsonPath("data.pieChart[0].totalGain").value(equalTo(100000)))
+			.andExpect(jsonPath("data.pieChart[0].totalGainRate").value(closeTo(10.00, 0.1)))
+			.andExpect(jsonPath("data.pieChart[1].name").value(equalTo("현금")))
+			.andExpect(jsonPath("data.pieChart[1].valuation").value(equalTo(500000)))
+			.andExpect(jsonPath("data.pieChart[1].weight").value(closeTo(45.45, 0.1)))
+			.andExpect(jsonPath("data.pieChart[1].totalGain").value(equalTo(0)))
+			.andExpect(jsonPath("data.pieChart[1].totalGainRate").value(closeTo(0.00, 0.1)))
+			.andExpect(jsonPath("data.dividendChart[0].month").value(equalTo(1)))
+			.andExpect(jsonPath("data.dividendChart[0].amount").value(equalTo(0)))
+			.andExpect(jsonPath("data.dividendChart[1].month").value(equalTo(2)))
+			.andExpect(jsonPath("data.dividendChart[1].amount").value(equalTo(0)))
+			.andExpect(jsonPath("data.dividendChart[2].month").value(equalTo(3)))
+			.andExpect(jsonPath("data.dividendChart[2].amount").value(equalTo(0)))
+			.andExpect(jsonPath("data.dividendChart[3].month").value(equalTo(4)))
+			.andExpect(jsonPath("data.dividendChart[3].amount").value(equalTo(3610)))
+			.andExpect(jsonPath("data.dividendChart[4].month").value(equalTo(5)))
+			.andExpect(jsonPath("data.dividendChart[4].amount").value(equalTo(3610)))
+			.andExpect(jsonPath("data.dividendChart[5].month").value(equalTo(6)))
+			.andExpect(jsonPath("data.dividendChart[5].amount").value(equalTo(0)))
+			.andExpect(jsonPath("data.dividendChart[6].month").value(equalTo(7)))
+			.andExpect(jsonPath("data.dividendChart[6].amount").value(equalTo(0)))
+			.andExpect(jsonPath("data.dividendChart[7].month").value(equalTo(8)))
+			.andExpect(jsonPath("data.dividendChart[7].amount").value(equalTo(3610)))
+			.andExpect(jsonPath("data.dividendChart[8].month").value(equalTo(9)))
+			.andExpect(jsonPath("data.dividendChart[8].amount").value(equalTo(0)))
+			.andExpect(jsonPath("data.dividendChart[9].month").value(equalTo(10)))
+			.andExpect(jsonPath("data.dividendChart[9].amount").value(equalTo(0)))
+			.andExpect(jsonPath("data.dividendChart[10].month").value(equalTo(11)))
+			.andExpect(jsonPath("data.dividendChart[10].amount").value(equalTo(3610)))
+			.andExpect(jsonPath("data.dividendChart[11].month").value(equalTo(12)))
+			.andExpect(jsonPath("data.dividendChart[11].amount").value(equalTo(0)))
+			.andExpect(jsonPath("data.sectorChart[0].sector").value(equalTo("전기전자")))
+			.andExpect(jsonPath("data.sectorChart[0].sectorWeight").value(closeTo(54.55, 0.1)))
+			.andExpect(jsonPath("data.sectorChart[1].sector").value(equalTo("현금")))
+			.andExpect(jsonPath("data.sectorChart[1].sectorWeight").value(closeTo(45.45, 0.1)))
+			.andDo(
+				document(
+					"portfolio_charts-search",
+					preprocessRequest(prettyPrint()),
+					preprocessResponse(prettyPrint()),
+					requestHeaders(
+						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
+					),
+					pathParameters(
+						parameterWithName("portfolioId").description("포트폴리오 등록번호")
+					),
+					responseFields(
+						fieldWithPath("code").type(JsonFieldType.NUMBER)
+							.description("코드"),
+						fieldWithPath("status").type(JsonFieldType.STRING)
+							.description("상태"),
+						fieldWithPath("message").type(JsonFieldType.STRING)
+							.description("메시지"),
+						fieldWithPath("data").type(JsonFieldType.OBJECT)
+							.description("응답 데이터"),
+						fieldWithPath("data.pieChart").type(JsonFieldType.ARRAY)
+							.description("파이 차트 리스트"),
+						fieldWithPath("data.pieChart[].name").type(JsonFieldType.STRING)
+							.description("종목 이름"),
+						fieldWithPath("data.pieChart[].valuation").type(JsonFieldType.NUMBER)
+							.description("평가 금액"),
+						fieldWithPath("data.pieChart[].weight").type(JsonFieldType.NUMBER)
+							.description("비중"),
+						fieldWithPath("data.pieChart[].totalGain").type(JsonFieldType.NUMBER)
+							.description("총 손익"),
+						fieldWithPath("data.pieChart[].totalGainRate").type(JsonFieldType.NUMBER)
+							.description("총 손익률"),
+						fieldWithPath("data.dividendChart").type(JsonFieldType.ARRAY)
+							.description("배당금 차트"),
+						fieldWithPath("data.dividendChart[].month").type(JsonFieldType.NUMBER)
+							.description("배당 월"),
+						fieldWithPath("data.dividendChart[].amount").type(JsonFieldType.NUMBER)
+							.description("예상 배당금"),
+						fieldWithPath("data.sectorChart").type(JsonFieldType.ARRAY)
+							.description("섹터 차트"),
+						fieldWithPath("data.sectorChart[].sector").type(JsonFieldType.STRING)
+							.description("섹터명"),
+						fieldWithPath("data.sectorChart[].sectorWeight").type(JsonFieldType.NUMBER)
+							.description("섹터 비중")
+					)
+				)
+			);
+
+	}
+
+	@DisplayName("포트폴리오 종목 단일 삭제")
+	@Test
+	void deletePortfolioHolding() throws Exception {
+		// given
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createStock();
+		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
+
+		// when & then
+		mockMvc.perform(
+				delete("/api/portfolio/{portfolioId}/holdings/{portfolioHoldingId}", portfolio.getId(), holding.getId())
+					.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("code").value(equalTo(200)))
+			.andExpect(jsonPath("status").value(equalTo("OK")))
+			.andExpect(jsonPath("message").value(equalTo("포트폴리오 종목이 삭제되었습니다")))
+			.andDo(
+				document(
+					"holding-one-delete",
+					preprocessRequest(prettyPrint()),
+					preprocessResponse(prettyPrint()),
+					requestHeaders(
+						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
+					),
+					pathParameters(
+						parameterWithName("portfolioId").description("포트폴리오 등록번호"),
+						parameterWithName("portfolioHoldingId").description("포트폴리오 종목 등록번호")
+					),
+					responseFields(
+						fieldWithPath("code").type(JsonFieldType.NUMBER)
+							.description("코드"),
+						fieldWithPath("status").type(JsonFieldType.STRING)
+							.description("상태"),
+						fieldWithPath("message").type(JsonFieldType.STRING)
+							.description("메시지"),
+						fieldWithPath("data").type(JsonFieldType.NULL)
+							.description("응답 데이터")
+					)
+				)
+			);
+	}
+
+	@DisplayName("포트폴리오 종목 다수 삭제")
+	@Test
+	void deletePortfolioHoldings() throws Exception {
+		// given
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createStock();
+
+		Map<String, Object> body = Map.of(
+			"portfolioHoldingIds", List.of(1, 2)
+		);
+
+		// when & then
+		mockMvc.perform(
+				delete("/api/portfolio/{portfolioId}/holdings", portfolio.getId())
+					.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken")
+					.contentType(MediaType.APPLICATION_JSON)
+					.content(ObjectMapperUtil.serialize(body)))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("code").value(equalTo(200)))
+			.andExpect(jsonPath("status").value(equalTo("OK")))
+			.andExpect(jsonPath("message").value(equalTo("포트폴리오 종목들이 삭제되었습니다")))
+			.andDo(
+				document(
+					"holding-multiple-delete",
+					preprocessRequest(prettyPrint()),
+					preprocessResponse(prettyPrint()),
+					requestHeaders(
+						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
+					),
+					pathParameters(
+						parameterWithName("portfolioId").description("포트폴리오 등록번호")
+					),
+					responseFields(
+						fieldWithPath("code").type(JsonFieldType.NUMBER)
+							.description("코드"),
+						fieldWithPath("status").type(JsonFieldType.STRING)
+							.description("상태"),
+						fieldWithPath("message").type(JsonFieldType.STRING)
+							.description("메시지"),
+						fieldWithPath("data").type(JsonFieldType.NULL)
+							.description("응답 데이터")
+					)
+				)
+			);
 	}
 }

@@ -216,14 +216,10 @@ public class PortfolioHolding extends BaseEntity {
 		Long currentValuation = calculateCurrentValuation();
 		Long totalGain = calculateTotalGain();
 		Double totalReturnRate = calculateTotalReturnRate();
-		return new PortfolioPieChartItem(name, currentValuation, weight, totalGain, totalReturnRate);
+		return PortfolioPieChartItem.stock(name, currentValuation, weight, totalGain, totalReturnRate);
 	}
 
 	public Long getLastDayClosingPrice(LastDayClosingPriceManager manager) {
 		return stock.getLastDayClosingPrice(manager);
-	}
-
-	public void setPurchaseHistories(List<PurchaseHistory> histories) {
-		this.purchaseHistory = histories;
 	}
 }

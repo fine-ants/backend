@@ -13,7 +13,7 @@ import javax.persistence.ManyToOne;
 
 import codesquad.fineants.domain.BaseEntity;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
-import codesquad.fineants.spring.api.portfolio_stock.request.PortfolioStockCreateRequest;
+import codesquad.fineants.spring.api.portfolio_stock.request.PortfolioHoldingCreateRequest;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -50,7 +50,7 @@ public class PurchaseHistory extends BaseEntity {
 	}
 
 	public static PurchaseHistory of(PortfolioHolding portFolioHolding,
-		PortfolioStockCreateRequest.PurchaseHistoryCreateRequest purchaseHistory) {
+		PortfolioHoldingCreateRequest.PurchaseHistoryCreateRequest purchaseHistory) {
 		return PurchaseHistory.builder()
 			.portfolioHolding(portFolioHolding)
 			.purchaseDate(purchaseHistory.getPurchaseDate())
