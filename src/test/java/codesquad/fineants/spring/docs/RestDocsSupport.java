@@ -41,6 +41,7 @@ import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.domain.stock_dividend.StockDividend;
 import codesquad.fineants.domain.stock_target_price.StockTargetPrice;
 import codesquad.fineants.domain.target_price_notification.TargetPriceNotification;
+import codesquad.fineants.domain.watch_list.WatchList;
 import codesquad.fineants.spring.api.notification.response.NotifyMessage;
 import codesquad.fineants.spring.api.notification.response.PortfolioNotifyMessage;
 import codesquad.fineants.spring.api.notification.response.StockNotifyMessage;
@@ -248,7 +249,7 @@ public abstract class RestDocsSupport {
 			.build();
 	}
 
-	protected StockTargetPriceNotification createStockTargetPriceNotificaiton(
+	protected StockTargetPriceNotification createStockTargetPriceNotification(
 		TargetPriceNotification targetPriceNotification, Member member) {
 		StockNotifyMessage message = (StockNotifyMessage)targetPriceNotification.getTargetPriceMessage("token");
 		return StockTargetPriceNotification.builder()
@@ -262,6 +263,16 @@ public abstract class RestDocsSupport {
 			.referenceId(message.getReferenceId())
 			.link(message.getLink())
 			.createAt(LocalDateTime.of(2024, 1, 24, 10, 10, 10))
+			.member(member)
+			.build();
+	}
+
+	protected WatchList createWatchList(Member member) {
+		return WatchList.builder()
+			.id(1L)
+			.name("my watchlist 1")
+			.member(member)
+			.createAt(LocalDateTime.now())
 			.member(member)
 			.build();
 	}

@@ -53,7 +53,7 @@ public class WatchListService {
 			.name(request.getName())
 			.build();
 		watchList = watchListRepository.save(watchList);
-		return new CreateWatchListResponse(watchList.getId());
+		return CreateWatchListResponse.create(watchList.getId());
 	}
 
 	@Transactional(readOnly = true)

@@ -59,7 +59,7 @@ public class MemberNotificationRestControllerDocsTest extends RestDocsSupport {
 
 		TargetPriceNotification targetPriceNotification = createTargetPriceNotification(
 			createStockTargetPrice(member, stock));
-		StockTargetPriceNotification stockTargetPriceNotification = createStockTargetPriceNotificaiton(
+		StockTargetPriceNotification stockTargetPriceNotification = createStockTargetPriceNotification(
 			targetPriceNotification, member);
 		MemberNotification memberNotification2 = MemberNotification.from(stockTargetPriceNotification);
 

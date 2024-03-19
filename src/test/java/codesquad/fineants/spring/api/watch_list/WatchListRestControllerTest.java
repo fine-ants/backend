@@ -96,7 +96,7 @@ class WatchListRestControllerTest {
 		requestBodyMap.put("name", "My watchlist");
 		String body = objectMapper.writeValueAsString(requestBodyMap);
 
-		CreateWatchListResponse response = new CreateWatchListResponse(1L);
+		CreateWatchListResponse response = CreateWatchListResponse.create(1L);
 
 		given(authPrincipalArgumentResolver.supportsParameter(any())).willReturn(true);
 		given(authPrincipalArgumentResolver.resolveArgument(any(), any(), any(), any())).willReturn(authMember);
