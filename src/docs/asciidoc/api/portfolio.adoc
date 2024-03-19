@@ -52,6 +52,36 @@ include::{snippets}/portfolio-update/request-fields.adoc[]
 include::{snippets}/portfolio-update/http-response.adoc[]
 include::{snippets}/portfolio-update/response-fields.adoc[]
 
+[[portfolio_notification_target_gain_active-update]]
+=== 포트폴리오 목표수익률 알림 활성화 수정
+
+==== HTTP Request
+
+include::{snippets}/portfolio_notification_target_gain_active-update/http-request.adoc[]
+include::{snippets}/portfolio_notification_target_gain_active-update/request-headers.adoc[]
+include::{snippets}/portfolio_notification_target_gain_active-update/path-parameters.adoc[]
+include::{snippets}/portfolio_notification_target_gain_active-update/request-fields.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/portfolio_notification_target_gain_active-update/http-response.adoc[]
+include::{snippets}/portfolio_notification_target_gain_active-update/response-fields.adoc[]
+
+[[portfolio_notification_maximum_loss_active-update]]
+=== 포트폴리오 최대손실율 알림 활성화 수정
+
+==== HTTP Request
+
+include::{snippets}/portfolio_notification_maximum_loss_active-update/http-request.adoc[]
+include::{snippets}/portfolio_notification_maximum_loss_active-update/request-headers.adoc[]
+include::{snippets}/portfolio_notification_maximum_loss_active-update/path-parameters.adoc[]
+include::{snippets}/portfolio_notification_maximum_loss_active-update/request-fields.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/portfolio_notification_maximum_loss_active-update/http-response.adoc[]
+include::{snippets}/portfolio_notification_maximum_loss_active-update/response-fields.adoc[]
+
 [[portfolio-one-delete]]
 === 포트폴리오 단일 삭제
 

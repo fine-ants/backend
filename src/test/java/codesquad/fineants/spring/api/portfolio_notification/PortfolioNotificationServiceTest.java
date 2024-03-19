@@ -32,8 +32,8 @@ import codesquad.fineants.spring.AbstractContainerBaseTest;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.mail.service.MailService;
 import codesquad.fineants.spring.api.portfolio_notification.manager.MailRedisManager;
-import codesquad.fineants.spring.api.portfolio_notification.request.PortfolioNotificationModifyRequest;
-import codesquad.fineants.spring.api.portfolio_notification.response.PortfolioNotificationModifyResponse;
+import codesquad.fineants.spring.api.portfolio_notification.request.PortfolioNotificationUpdateRequest;
+import codesquad.fineants.spring.api.portfolio_notification.response.PortfolioNotificationUpdateResponse;
 import codesquad.fineants.spring.api.portfolio_notification.service.PortfolioNotificationService;
 
 class PortfolioNotificationServiceTest extends AbstractContainerBaseTest {
@@ -93,11 +93,11 @@ class PortfolioNotificationServiceTest extends AbstractContainerBaseTest {
 
 		Map<String, Boolean> requestBodyMap = new HashMap<>();
 		requestBodyMap.put("isActive", true);
-		PortfolioNotificationModifyRequest request = objectMapper.readValue(
-			objectMapper.writeValueAsString(requestBodyMap), PortfolioNotificationModifyRequest.class);
+		PortfolioNotificationUpdateRequest request = objectMapper.readValue(
+			objectMapper.writeValueAsString(requestBodyMap), PortfolioNotificationUpdateRequest.class);
 
 		// when
-		PortfolioNotificationModifyResponse response = service.modifyPortfolioTargetGainNotification(request,
+		PortfolioNotificationUpdateResponse response = service.updateNotificationTargetGain(request,
 			portfolio.getId());
 
 		// then
@@ -122,11 +122,11 @@ class PortfolioNotificationServiceTest extends AbstractContainerBaseTest {
 		long portfolioId = portfolio.getId();
 		Map<String, Boolean> requestBodyMap = new HashMap<>();
 		requestBodyMap.put("isActive", true);
-		PortfolioNotificationModifyRequest request = objectMapper.readValue(
-			objectMapper.writeValueAsString(requestBodyMap), PortfolioNotificationModifyRequest.class);
+		PortfolioNotificationUpdateRequest request = objectMapper.readValue(
+			objectMapper.writeValueAsString(requestBodyMap), PortfolioNotificationUpdateRequest.class);
 
 		// when
-		PortfolioNotificationModifyResponse response = service.modifyPortfolioMaximumLossNotification(
+		PortfolioNotificationUpdateResponse response = service.updateNotificationMaximumLoss(
 			request, portfolioId);
 
 		// then

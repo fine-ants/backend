@@ -40,8 +40,8 @@ import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.spring.api.common.errors.handler.GlobalExceptionHandler;
 import codesquad.fineants.spring.api.portfolio.service.PortFolioService;
 import codesquad.fineants.spring.api.portfolio_notification.controller.PortfolioNotificationRestController;
-import codesquad.fineants.spring.api.portfolio_notification.request.PortfolioNotificationModifyRequest;
-import codesquad.fineants.spring.api.portfolio_notification.response.PortfolioNotificationModifyResponse;
+import codesquad.fineants.spring.api.portfolio_notification.request.PortfolioNotificationUpdateRequest;
+import codesquad.fineants.spring.api.portfolio_notification.response.PortfolioNotificationUpdateResponse;
 import codesquad.fineants.spring.api.portfolio_notification.service.PortfolioNotificationService;
 import codesquad.fineants.spring.auth.HasPortfolioAuthorizationAspect;
 import codesquad.fineants.spring.config.JpaAuditingConfiguration;
@@ -152,11 +152,11 @@ class PortfolioNotificationRestControllerTest {
 		responseBodyMap.put("portfolioId", portfolioId);
 		responseBodyMap.put("isActive", true);
 
-		PortfolioNotificationModifyResponse response = objectMapper.readValue(
-			objectMapper.writeValueAsString(responseBodyMap), PortfolioNotificationModifyResponse.class);
+		PortfolioNotificationUpdateResponse response = objectMapper.readValue(
+			objectMapper.writeValueAsString(responseBodyMap), PortfolioNotificationUpdateResponse.class);
 		given(portfolioRepository.findById(anyLong())).willReturn(Optional.of(portfolio));
-		given(service.modifyPortfolioTargetGainNotification(
-			any(PortfolioNotificationModifyRequest.class),
+		given(service.updateNotificationTargetGain(
+			any(PortfolioNotificationUpdateRequest.class),
 			anyLong()
 		)).willReturn(response);
 
@@ -184,11 +184,11 @@ class PortfolioNotificationRestControllerTest {
 		responseBodyMap.put("portfolioId", portfolioId);
 		responseBodyMap.put("isActive", false);
 
-		PortfolioNotificationModifyResponse response = objectMapper.readValue(
-			objectMapper.writeValueAsString(responseBodyMap), PortfolioNotificationModifyResponse.class);
+		PortfolioNotificationUpdateResponse response = objectMapper.readValue(
+			objectMapper.writeValueAsString(responseBodyMap), PortfolioNotificationUpdateResponse.class);
 		given(portfolioRepository.findById(anyLong())).willReturn(Optional.of(portfolio));
-		given(service.modifyPortfolioTargetGainNotification(
-			any(PortfolioNotificationModifyRequest.class),
+		given(service.updateNotificationTargetGain(
+			any(PortfolioNotificationUpdateRequest.class),
 			anyLong()
 		)).willReturn(response);
 
@@ -216,11 +216,11 @@ class PortfolioNotificationRestControllerTest {
 		responseBodyMap.put("portfolioId", portfolioId);
 		responseBodyMap.put("isActive", true);
 
-		PortfolioNotificationModifyResponse response = objectMapper.readValue(
-			objectMapper.writeValueAsString(responseBodyMap), PortfolioNotificationModifyResponse.class);
+		PortfolioNotificationUpdateResponse response = objectMapper.readValue(
+			objectMapper.writeValueAsString(responseBodyMap), PortfolioNotificationUpdateResponse.class);
 		given(portfolioRepository.findById(anyLong())).willReturn(Optional.of(portfolio));
-		given(service.modifyPortfolioMaximumLossNotification(
-			any(PortfolioNotificationModifyRequest.class),
+		given(service.updateNotificationMaximumLoss(
+			any(PortfolioNotificationUpdateRequest.class),
 			anyLong()
 		)).willReturn(response);
 
@@ -248,11 +248,11 @@ class PortfolioNotificationRestControllerTest {
 		responseBodyMap.put("portfolioId", portfolioId);
 		responseBodyMap.put("isActive", false);
 
-		PortfolioNotificationModifyResponse response = objectMapper.readValue(
-			objectMapper.writeValueAsString(responseBodyMap), PortfolioNotificationModifyResponse.class);
+		PortfolioNotificationUpdateResponse response = objectMapper.readValue(
+			objectMapper.writeValueAsString(responseBodyMap), PortfolioNotificationUpdateResponse.class);
 		given(portfolioRepository.findById(anyLong())).willReturn(Optional.of(portfolio));
-		given(service.modifyPortfolioMaximumLossNotification(
-			any(PortfolioNotificationModifyRequest.class),
+		given(service.updateNotificationMaximumLoss(
+			any(PortfolioNotificationUpdateRequest.class),
 			anyLong()
 		)).willReturn(response);
 

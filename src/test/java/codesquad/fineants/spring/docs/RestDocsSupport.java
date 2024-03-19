@@ -98,8 +98,8 @@ public abstract class RestDocsSupport {
 			.budget(1000000L)
 			.targetGain(1500000L)
 			.maximumLoss(900000L)
-			.targetGainIsActive(false)
-			.maximumLossIsActive(false)
+			.targetGainIsActive(true)
+			.maximumLossIsActive(true)
 			.member(member)
 			.build();
 	}

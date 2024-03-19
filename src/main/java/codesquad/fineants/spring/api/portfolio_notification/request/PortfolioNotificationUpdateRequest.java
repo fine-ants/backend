@@ -9,7 +9,7 @@ import lombok.ToString;
 
 @Getter
 @ToString
-public class PortfolioNotificationModifyRequest {
+public class PortfolioNotificationUpdateRequest {
 	@JsonProperty("isActive")
 	@NotNull(message = "활성화/비활성 정보는 필수정보입니다.")
 	private Boolean isActive;
