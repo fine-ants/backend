@@ -28,20 +28,20 @@ import codesquad.fineants.domain.portfolio_gain_history.PortfolioGainHistory;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
 import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.domain.stock_dividend.StockDividend;
-import codesquad.fineants.spring.api.portfolio_stock.controller.PortfolioStockRestController;
+import codesquad.fineants.spring.api.portfolio_stock.controller.PortfolioHoldingRestController;
 import codesquad.fineants.spring.api.portfolio_stock.manager.SseEmitterManager;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioHoldingsResponse;
-import codesquad.fineants.spring.api.portfolio_stock.service.PortfolioStockService;
+import codesquad.fineants.spring.api.portfolio_stock.service.PortfolioHoldingService;
 import codesquad.fineants.spring.docs.RestDocsSupport;
 
-public class PortfolioStockRestControllerDocsTest extends RestDocsSupport {
+public class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 
-	private PortfolioStockService service = Mockito.mock(PortfolioStockService.class);
+	private PortfolioHoldingService service = Mockito.mock(PortfolioHoldingService.class);
 	private SseEmitterManager manager = Mockito.mock(SseEmitterManager.class);
 
 	@Override
 	protected Object initController() {
-		return new PortfolioStockRestController(service, manager);
+		return new PortfolioHoldingRestController(service, manager);
 	}
 
 	@DisplayName("포트폴리오 종목 조회 API")
@@ -64,7 +64,7 @@ public class PortfolioStockRestControllerDocsTest extends RestDocsSupport {
 			List.of(portfolioHolding),
 			lastDayClosingPriceMap);
 
-		given(service.readMyPortfolioStocks(anyLong())).willReturn(mockResponse);
+		given(service.readPortfolioHoldings(anyLong())).willReturn(mockResponse);
 		// when & then
 		ResultActions resultActions = mockMvc.perform(get("/api/portfolio/{portfolioId}/holdings", portfolio.getId())
 				.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))

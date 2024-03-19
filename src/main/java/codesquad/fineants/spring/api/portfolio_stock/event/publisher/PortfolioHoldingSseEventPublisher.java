@@ -17,7 +17,7 @@ import codesquad.fineants.spring.api.portfolio_stock.event.PortfolioEvent;
 import codesquad.fineants.spring.api.portfolio_stock.manager.SseEmitterKey;
 import codesquad.fineants.spring.api.portfolio_stock.manager.SseEmitterManager;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioHoldingsRealTimeResponse;
-import codesquad.fineants.spring.api.portfolio_stock.service.PortfolioStockService;
+import codesquad.fineants.spring.api.portfolio_stock.service.PortfolioHoldingService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -28,7 +28,7 @@ public class PortfolioHoldingSseEventPublisher {
 
 	private final ApplicationEventPublisher eventPublisher;
 	private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-	private final PortfolioStockService portfolioStockService;
+	private final PortfolioHoldingService portfolioHoldingService;
 	private final SseEmitterManager manager;
 
 	@PostConstruct
@@ -46,7 +46,7 @@ public class PortfolioHoldingSseEventPublisher {
 		List<SseEmitterKey> deadEmitters = new ArrayList<>();
 		for (SseEmitterKey key : manager.keys()) {
 			try {
-				PortfolioHoldingsRealTimeResponse response = portfolioStockService.readMyPortfolioStocksInRealTime(
+				PortfolioHoldingsRealTimeResponse response = portfolioHoldingService.readMyPortfolioStocksInRealTime(
 					key.getPortfolioId());
 				PortfolioEvent portfolioEvent = new PortfolioEvent(key, response, eventDatetime);
 				eventPublisher.publishEvent(portfolioEvent);

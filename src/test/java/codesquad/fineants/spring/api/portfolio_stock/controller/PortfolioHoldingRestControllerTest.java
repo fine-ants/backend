@@ -65,7 +65,7 @@ import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioPieChartI
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioSectorChartItem;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioStockCreateResponse;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioStockDeletesResponse;
-import codesquad.fineants.spring.api.portfolio_stock.service.PortfolioStockService;
+import codesquad.fineants.spring.api.portfolio_stock.service.PortfolioHoldingService;
 import codesquad.fineants.spring.api.portfolio_stock.service.StockMarketChecker;
 import codesquad.fineants.spring.auth.HasPortfolioAuthorizationAspect;
 import codesquad.fineants.spring.config.JacksonConfig;
@@ -74,14 +74,14 @@ import codesquad.fineants.spring.config.SpringConfig;
 import codesquad.fineants.spring.util.ObjectMapperUtil;
 
 @ActiveProfiles("test")
-@WebMvcTest(controllers = PortfolioStockRestController.class)
+@WebMvcTest(controllers = PortfolioHoldingRestController.class)
 @Import(value = {SpringConfig.class, HasPortfolioAuthorizationAspect.class, JacksonConfig.class})
 @MockBean(JpaAuditingConfiguration.class)
-class PortfolioStockRestControllerTest {
+class PortfolioHoldingRestControllerTest {
 	private MockMvc mockMvc;
 
 	@Autowired
-	private PortfolioStockRestController portfolioStockRestController;
+	private PortfolioHoldingRestController portfolioHoldingRestController;
 
 	@Autowired
 	private GlobalExceptionHandler globalExceptionHandler;
@@ -93,7 +93,7 @@ class PortfolioStockRestControllerTest {
 	private AuthPrincipalArgumentResolver authPrincipalArgumentResolver;
 
 	@MockBean
-	private PortfolioStockService portfolioStockService;
+	private PortfolioHoldingService portfolioHoldingService;
 
 	@MockBean
 	private StockMarketChecker stockMarketChecker;
@@ -115,7 +115,7 @@ class PortfolioStockRestControllerTest {
 
 	@BeforeEach
 	void setup() {
-		mockMvc = MockMvcBuilders.standaloneSetup(portfolioStockRestController)
+		mockMvc = MockMvcBuilders.standaloneSetup(portfolioHoldingRestController)
 			.setControllerAdvice(globalExceptionHandler)
 			.setCustomArgumentResolvers(authPrincipalArgumentResolver)
 			.setMessageConverters(new MappingJackson2HttpMessageConverter(objectMapper))
@@ -154,7 +154,7 @@ class PortfolioStockRestControllerTest {
 			List.of(portfolioHolding),
 			lastDayClosingPriceMap);
 
-		given(portfolioStockService.readMyPortfolioStocks(anyLong())).willReturn(mockResponse);
+		given(portfolioHoldingService.readPortfolioHoldings(anyLong())).willReturn(mockResponse);
 		// when & then
 		ResultActions resultActions = mockMvc.perform(get("/api/portfolio/{portfolioId}/holdings", portfolio.getId()))
 			.andExpect(status().isOk());
@@ -213,7 +213,7 @@ class PortfolioStockRestControllerTest {
 	void readMyPortfolioStocksWithNotExistPortfolioId() throws Exception {
 		// given
 		long portfolioId = 9999L;
-		given(portfolioStockService.readMyPortfolioStocks(anyLong()))
+		given(portfolioHoldingService.readPortfolioHoldings(anyLong()))
 			.willThrow(new NotFoundResourceException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
 
 		// when & then
@@ -227,7 +227,7 @@ class PortfolioStockRestControllerTest {
 	void readMyPortfolioStocksInRealTimeWithNotExistPortfolioId() throws Exception {
 		// given
 		long portfolioId = 9999L;
-		given(portfolioStockService.readMyPortfolioStocksInRealTime(anyLong()))
+		given(portfolioHoldingService.readMyPortfolioStocksInRealTime(anyLong()))
 			.willThrow(new NotFoundResourceException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
 		given(portFolioService.hasAuthorizationBy(anyLong(), anyLong()))
 			.willThrow(new NotFoundResourceException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
@@ -246,7 +246,7 @@ class PortfolioStockRestControllerTest {
 
 		PortfolioStockCreateResponse response = PortfolioStockCreateResponse.from(
 			PortfolioHolding.empty(portfolio, stock));
-		given(portfolioStockService.addPortfolioStock(anyLong(), any(PortfolioStockCreateRequest.class),
+		given(portfolioHoldingService.addPortfolioHolding(anyLong(), any(PortfolioStockCreateRequest.class),
 			any(AuthMember.class))).willReturn(response);
 
 		Map<String, Object> purchaseHistoryMap = new HashMap<>();
@@ -281,7 +281,7 @@ class PortfolioStockRestControllerTest {
 
 		PortfolioStockCreateResponse response = PortfolioStockCreateResponse.from(
 			PortfolioHolding.empty(portfolio, stock));
-		given(portfolioStockService.addPortfolioStock(anyLong(), any(PortfolioStockCreateRequest.class),
+		given(portfolioHoldingService.addPortfolioHolding(anyLong(), any(PortfolioStockCreateRequest.class),
 			any(AuthMember.class))).willReturn(response);
 
 		Map<String, Object> requestBodyMap = new HashMap<>();
@@ -358,7 +358,7 @@ class PortfolioStockRestControllerTest {
 		String body = ObjectMapperUtil.serialize(requestBodyMap);
 
 		PortfolioStockDeletesResponse mockResponse = new PortfolioStockDeletesResponse(delPortfolioHoldingIds);
-		given(portfolioStockService.deletePortfolioStocks(anyLong(), any(AuthMember.class), any(
+		given(portfolioHoldingService.deletePortfolioHoldings(anyLong(), any(AuthMember.class), any(
 			PortfolioStocksDeleteRequest.class))).willReturn(mockResponse);
 		// when & then
 		mockMvc.perform(delete("/api/portfolio/{portfolioId}/holdings", portfolio.getId())
@@ -418,7 +418,7 @@ class PortfolioStockRestControllerTest {
 		List<PortfolioSectorChartItem> sectorChartItems = this.sectorChart.createBy(portfolio);
 		PortfolioChartResponse response = new PortfolioChartResponse(pieChartItems, dividendChartItems,
 			sectorChartItems);
-		given(portfolioStockService.readMyPortfolioCharts(anyLong(), any(LocalDate.class)))
+		given(portfolioHoldingService.readPortfolioCharts(anyLong(), any(LocalDate.class)))
 			.willReturn(response);
 
 		// when & then

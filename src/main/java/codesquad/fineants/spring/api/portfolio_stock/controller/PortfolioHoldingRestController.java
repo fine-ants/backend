@@ -27,7 +27,7 @@ import codesquad.fineants.spring.api.portfolio_stock.request.PortfolioStockCreat
 import codesquad.fineants.spring.api.portfolio_stock.request.PortfolioStocksDeleteRequest;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioChartResponse;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioHoldingsResponse;
-import codesquad.fineants.spring.api.portfolio_stock.service.PortfolioStockService;
+import codesquad.fineants.spring.api.portfolio_stock.service.PortfolioHoldingService;
 import codesquad.fineants.spring.auth.HasPortfolioAuthorization;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,50 +36,35 @@ import lombok.extern.slf4j.Slf4j;
 @RequestMapping("/api/portfolio/{portfolioId}")
 @RequiredArgsConstructor
 @RestController
-public class PortfolioStockRestController {
+public class PortfolioHoldingRestController {
 
-	private final PortfolioStockService portfolioStockService;
+	private final PortfolioHoldingService portfolioHoldingService;
 	private final SseEmitterManager manager;
 
+	// 포트폴리오 종목 생성
 	@HasPortfolioAuthorization
 	@ResponseStatus(HttpStatus.CREATED)
 	@PostMapping("/holdings")
-	public ApiResponse<Void> addPortfolioStock(@PathVariable Long portfolioId,
+	public ApiResponse<Void> createPortfolioHolding(@PathVariable Long portfolioId,
 		@AuthPrincipalMember AuthMember authMember,
 		@Valid @RequestBody PortfolioStockCreateRequest request) {
-		portfolioStockService.addPortfolioStock(portfolioId, request, authMember);
+		portfolioHoldingService.addPortfolioHolding(portfolioId, request, authMember);
 		return ApiResponse.success(PortfolioStockSuccessCode.CREATED_ADD_PORTFOLIO_STOCK);
 	}
 
-	@HasPortfolioAuthorization
-	@DeleteMapping("/holdings/{portfolioHoldingId}")
-	public ApiResponse<Void> deletePortfolioStock(@PathVariable Long portfolioId,
-		@AuthPrincipalMember AuthMember authMember,
-		@PathVariable Long portfolioHoldingId) {
-		portfolioStockService.deletePortfolioStock(portfolioHoldingId, portfolioId, authMember);
-		return ApiResponse.success(PortfolioStockSuccessCode.OK_DELETE_PORTFOLIO_STOCK);
-	}
-
-	@HasPortfolioAuthorization
-	@DeleteMapping("/holdings")
-	public ApiResponse<Void> deletePortfolioStocks(@PathVariable Long portfolioId,
-		@AuthPrincipalMember AuthMember authMember,
-		@Valid @RequestBody PortfolioStocksDeleteRequest request) {
-		portfolioStockService.deletePortfolioStocks(portfolioId, authMember, request);
-		return ApiResponse.success(PortfolioStockSuccessCode.OK_DELETE_PORTFOLIO_STOCKS);
-	}
-
+	// 포트폴리오 종목 조회
 	@HasPortfolioAuthorization
 	@GetMapping("/holdings")
-	public ApiResponse<PortfolioHoldingsResponse> readMyPortfolioStocks(@PathVariable Long portfolioId,
+	public ApiResponse<PortfolioHoldingsResponse> readPortfolioHoldings(@PathVariable Long portfolioId,
 		@AuthPrincipalMember AuthMember authMember) {
 		return ApiResponse.success(PortfolioStockSuccessCode.OK_READ_PORTFOLIO_STOCKS,
-			portfolioStockService.readMyPortfolioStocks(portfolioId));
+			portfolioHoldingService.readPortfolioHoldings(portfolioId));
 	}
 
+	// 포트폴리오 종목 실시간 조회
 	@HasPortfolioAuthorization
 	@GetMapping(value = "/holdings/realtime", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-	public SseEmitter readMyPortfolioStocksInRealTime(
+	public SseEmitter readPortfolioHoldingsInRealTime(
 		@PathVariable Long portfolioId,
 		@AuthPrincipalMember AuthMember authMember
 	) {
@@ -101,11 +86,32 @@ public class PortfolioStockRestController {
 		return emitter;
 	}
 
+	// 포트폴리오 차트 조회
 	@HasPortfolioAuthorization
 	@GetMapping("/charts")
-	public ApiResponse<PortfolioChartResponse> readMyPortfolioCharts(@PathVariable Long portfolioId,
+	public ApiResponse<PortfolioChartResponse> readPortfolioCharts(@PathVariable Long portfolioId,
 		@AuthPrincipalMember AuthMember authMember) {
-		PortfolioChartResponse response = portfolioStockService.readMyPortfolioCharts(portfolioId, LocalDate.now());
+		PortfolioChartResponse response = portfolioHoldingService.readPortfolioCharts(portfolioId, LocalDate.now());
 		return ApiResponse.success(PortfolioStockSuccessCode.OK_READ_PORTFOLIO_CHARTS, response);
+	}
+
+	// 포트폴리오 종목 단일 삭제
+	@HasPortfolioAuthorization
+	@DeleteMapping("/holdings/{portfolioHoldingId}")
+	public ApiResponse<Void> deletePortfolioHolding(@PathVariable Long portfolioId,
+		@AuthPrincipalMember AuthMember authMember,
+		@PathVariable Long portfolioHoldingId) {
+		portfolioHoldingService.deletePortfolioStock(portfolioHoldingId, portfolioId, authMember);
+		return ApiResponse.success(PortfolioStockSuccessCode.OK_DELETE_PORTFOLIO_STOCK);
+	}
+
+	// 포트폴리오 종목 다수 삭제
+	@HasPortfolioAuthorization
+	@DeleteMapping("/holdings")
+	public ApiResponse<Void> deletePortfolioHoldings(@PathVariable Long portfolioId,
+		@AuthPrincipalMember AuthMember authMember,
+		@Valid @RequestBody PortfolioStocksDeleteRequest request) {
+		portfolioHoldingService.deletePortfolioHoldings(portfolioId, authMember, request);
+		return ApiResponse.success(PortfolioStockSuccessCode.OK_DELETE_PORTFOLIO_STOCKS);
 	}
 }

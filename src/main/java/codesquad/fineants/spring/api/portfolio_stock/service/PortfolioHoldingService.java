@@ -51,7 +51,7 @@ import lombok.extern.slf4j.Slf4j;
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 @Service
-public class PortfolioStockService {
+public class PortfolioHoldingService {
 	private final PortfolioRepository portfolioRepository;
 	private final StockRepository stockRepository;
 	private final PortfolioHoldingRepository portfolioHoldingRepository;
@@ -64,7 +64,7 @@ public class PortfolioStockService {
 	private final PortfolioHoldingEventPublisher publisher;
 
 	@Transactional
-	public PortfolioStockCreateResponse addPortfolioStock(Long portfolioId, PortfolioStockCreateRequest request,
+	public PortfolioStockCreateResponse addPortfolioHolding(Long portfolioId, PortfolioStockCreateRequest request,
 		AuthMember authMember) {
 		log.info("포트폴리오 종목 추가 서비스 요청 : portfolioId={}, request={}, authMember={}", request, portfolioId, authMember);
 
@@ -105,7 +105,7 @@ public class PortfolioStockService {
 	}
 
 	@Transactional
-	public PortfolioStockDeletesResponse deletePortfolioStocks(Long portfolioId, AuthMember authMember,
+	public PortfolioStockDeletesResponse deletePortfolioHoldings(Long portfolioId, AuthMember authMember,
 		PortfolioStocksDeleteRequest request) {
 		log.info("포트폴리오 종목 다수 삭제 서비스 : portfolioId={}, authMember={}, request={}", portfolioId, authMember, request);
 
@@ -157,7 +157,7 @@ public class PortfolioStockService {
 		}
 	}
 
-	public PortfolioHoldingsResponse readMyPortfolioStocks(Long portfolioId) {
+	public PortfolioHoldingsResponse readPortfolioHoldings(Long portfolioId) {
 		Portfolio portfolio = findPortfolio(portfolioId);
 		PortfolioDetailResponse portfolioDetail = portfolioDetailFactory.createPortfolioDetailItem(portfolio);
 		List<PortfolioHoldingItem> portfolioHoldingItems = portfolioHoldingDetailFactory.createPortfolioHoldingItems(
@@ -174,7 +174,7 @@ public class PortfolioStockService {
 		return PortfolioHoldingsRealTimeResponse.of(portfolioDetail, portfolioHoldingDetails);
 	}
 
-	public PortfolioChartResponse readMyPortfolioCharts(Long portfolioId, LocalDate currentLocalDate) {
+	public PortfolioChartResponse readPortfolioCharts(Long portfolioId, LocalDate currentLocalDate) {
 		Portfolio portfolio = findPortfolio(portfolioId);
 		List<PortfolioPieChartItem> pieChartItems = pieChart.createBy(portfolio);
 		List<PortfolioDividendChartItem> dividendChartItems = dividendChart.createBy(portfolio, currentLocalDate);

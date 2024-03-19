@@ -37,7 +37,7 @@ import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
 import codesquad.fineants.spring.api.portfolio_stock.manager.SseEmitterKey;
 import codesquad.fineants.spring.api.portfolio_stock.manager.SseEmitterManager;
-import codesquad.fineants.spring.api.portfolio_stock.service.PortfolioStockService;
+import codesquad.fineants.spring.api.portfolio_stock.service.PortfolioHoldingService;
 
 class PortfolioHoldingSseEventPublisherTest extends AbstractContainerBaseTest {
 
@@ -75,7 +75,7 @@ class PortfolioHoldingSseEventPublisherTest extends AbstractContainerBaseTest {
 	private LastDayClosingPriceManager lastDayClosingPriceManager;
 
 	@MockBean
-	private PortfolioStockService portfolioStockService;
+	private PortfolioHoldingService portfolioHoldingService;
 
 	@AfterEach
 	void tearDown() {
@@ -126,7 +126,7 @@ class PortfolioHoldingSseEventPublisherTest extends AbstractContainerBaseTest {
 		currentPriceManager.addCurrentPrice(KisCurrentPrice.create("005930", 60000L));
 		lastDayClosingPriceManager.addPrice("005930", 50000);
 
-		given(portfolioStockService.readMyPortfolioStocksInRealTime(anyLong()))
+		given(portfolioHoldingService.readMyPortfolioStocksInRealTime(anyLong()))
 			.willThrow(new IllegalArgumentException("005930 종목에 대한 가격을 찾을 수 없습니다."));
 
 		SseEmitter emitter = mock(SseEmitter.class);
