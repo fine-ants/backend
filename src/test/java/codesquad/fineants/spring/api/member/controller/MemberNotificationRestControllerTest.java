@@ -86,7 +86,7 @@ class MemberNotificationRestControllerTest {
 
 		List<MemberNotification> mockNotifications = createNotifications();
 		given(notificationService.fetchNotifications(anyLong()))
-			.willReturn(new MemberNotificationResponse(mockNotifications));
+			.willReturn(MemberNotificationResponse.create(mockNotifications));
 
 		// when & then
 		mockMvc.perform(get("/api/members/{memberId}/notifications", member.getId()))

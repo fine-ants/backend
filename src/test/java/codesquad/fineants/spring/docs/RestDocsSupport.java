@@ -41,6 +41,7 @@ import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.domain.stock_dividend.StockDividend;
 import codesquad.fineants.domain.stock_target_price.StockTargetPrice;
 import codesquad.fineants.domain.target_price_notification.TargetPriceNotification;
+import codesquad.fineants.spring.api.notification.response.NotifyMessage;
 import codesquad.fineants.spring.api.notification.response.PortfolioNotifyMessage;
 import codesquad.fineants.spring.api.notification.response.StockNotifyMessage;
 import codesquad.fineants.spring.config.JacksonConfig;
@@ -229,6 +230,39 @@ public abstract class RestDocsSupport {
 			.id(1L)
 			.targetPrice(60000L)
 			.stockTargetPrice(stockTargetPrice)
+			.build();
+	}
+
+	protected PortfolioNotification createPortfolioTargetGainNotification(Portfolio portfolio, Member member) {
+		NotifyMessage message = portfolio.getTargetGainMessage("token");
+		return PortfolioNotification.builder()
+			.id(1L)
+			.name(portfolio.getName())
+			.title(message.getTitle())
+			.isRead(false)
+			.type(message.getType())
+			.referenceId(message.getReferenceId())
+			.link(message.getLink())
+			.createAt(LocalDateTime.of(2024, 1, 24, 10, 10, 10))
+			.member(member)
+			.build();
+	}
+
+	protected StockTargetPriceNotification createStockTargetPriceNotificaiton(
+		TargetPriceNotification targetPriceNotification, Member member) {
+		StockNotifyMessage message = (StockNotifyMessage)targetPriceNotification.getTargetPriceMessage("token");
+		return StockTargetPriceNotification.builder()
+			.id(1L)
+			.stockName(message.getStockName())
+			.targetPrice(message.getTargetPrice())
+			.targetPriceNotificationId(message.getTargetPriceNotificationId())
+			.title(message.getTitle())
+			.isRead(false)
+			.type(message.getType())
+			.referenceId(message.getReferenceId())
+			.link(message.getLink())
+			.createAt(LocalDateTime.of(2024, 1, 24, 10, 10, 10))
+			.member(member)
 			.build();
 	}
 

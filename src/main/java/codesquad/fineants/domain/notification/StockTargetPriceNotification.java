@@ -1,5 +1,7 @@
 package codesquad.fineants.domain.notification;
 
+import java.time.LocalDateTime;
+
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 
@@ -20,11 +22,10 @@ public class StockTargetPriceNotification extends Notification {
 	private Long targetPriceNotificationId;
 
 	@Builder
-	public StockTargetPriceNotification(Long id, String title, Boolean isRead,
-		NotificationType type, String referenceId, String link,
-		Member member, String stockName, Long targetPrice,
-		Long targetPriceNotificationId) {
-		super(id, title, isRead, type, referenceId, link, member);
+	public StockTargetPriceNotification(LocalDateTime createAt, LocalDateTime modifiedAt, Long id,
+		String title, Boolean isRead, NotificationType type, String referenceId, String link, Member member,
+		String stockName, Long targetPrice, Long targetPriceNotificationId) {
+		super(createAt, modifiedAt, id, title, isRead, type, referenceId, link, member);
 		this.stockName = stockName;
 		this.targetPrice = targetPrice;
 		this.targetPriceNotificationId = targetPriceNotificationId;

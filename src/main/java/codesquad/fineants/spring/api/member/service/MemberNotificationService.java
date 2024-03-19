@@ -25,7 +25,7 @@ public class MemberNotificationService {
 
 	public MemberNotificationResponse fetchNotifications(Long memberId) {
 		List<Notification> notifications = notificationRepository.findAllByMemberId(memberId);
-		return new MemberNotificationResponse(
+		return MemberNotificationResponse.create(
 			notifications.stream()
 				.map(MemberNotification::from)
 				.collect(Collectors.toList())

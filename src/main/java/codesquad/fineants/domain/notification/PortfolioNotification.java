@@ -1,5 +1,7 @@
 package codesquad.fineants.domain.notification;
 
+import java.time.LocalDateTime;
+
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 
@@ -16,9 +18,10 @@ public class PortfolioNotification extends Notification {
 	private String name;
 
 	@Builder
-	private PortfolioNotification(Long id, String title, Boolean isRead, NotificationType type, String referenceId,
-		String link, String messageId, Member member, String name) {
-		super(id, title, isRead, type, referenceId, link, member);
+	public PortfolioNotification(LocalDateTime createAt, LocalDateTime modifiedAt, Long id,
+		String title, Boolean isRead, NotificationType type, String referenceId, String link, Member member,
+		String name) {
+		super(createAt, modifiedAt, id, title, isRead, type, referenceId, link, member);
 		this.name = name;
 	}
 

@@ -1,5 +1,7 @@
 package codesquad.fineants.domain.notification;
 
+import java.time.LocalDateTime;
+
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorColumn;
 import javax.persistence.Entity;
@@ -18,13 +20,11 @@ import codesquad.fineants.domain.BaseEntity;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.notification.type.NotificationType;
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor(access = AccessLevel.PROTECTED)
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn
 @Entity
@@ -48,6 +48,18 @@ public abstract class Notification extends BaseEntity {
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "member_id")
 	private Member member;
+
+	protected Notification(LocalDateTime createAt, LocalDateTime modifiedAt, Long id, String title,
+		Boolean isRead, NotificationType type, String referenceId, String link, Member member) {
+		super(createAt, modifiedAt);
+		this.id = id;
+		this.title = title;
+		this.isRead = isRead;
+		this.type = type;
+		this.referenceId = referenceId;
+		this.link = link;
+		this.member = member;
+	}
 
 	public static Notification portfolio(String portfolioName, String title, NotificationType type,
 		String referenceId, String link, Member member) {
