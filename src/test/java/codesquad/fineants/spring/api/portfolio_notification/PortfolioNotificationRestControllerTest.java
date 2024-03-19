@@ -168,7 +168,7 @@ class PortfolioNotificationRestControllerTest {
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
-			.andExpect(jsonPath("message").value(equalTo("목표수익금액의 알림이 활성화되었습니다")))
+			.andExpect(jsonPath("message").value(equalTo("목표 수익률 알림이 활성화되었습니다")))
 			.andExpect(jsonPath("data").value(equalTo(null)));
 	}
 
@@ -200,7 +200,7 @@ class PortfolioNotificationRestControllerTest {
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
-			.andExpect(jsonPath("message").value(equalTo("목표수익금액의 알림이 비활성화되었습니다")))
+			.andExpect(jsonPath("message").value(equalTo("목표 수익률 알림이 비 활성화되었습니다")))
 			.andExpect(jsonPath("data").value(equalTo(null)));
 	}
 
@@ -232,7 +232,7 @@ class PortfolioNotificationRestControllerTest {
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
-			.andExpect(jsonPath("message").value(equalTo("최대손실금액의 알림이 활성화되었습니다")))
+			.andExpect(jsonPath("message").value(equalTo("최대 손실율 알림이 활성화되었습니다")))
 			.andExpect(jsonPath("data").value(equalTo(null)));
 	}
 
@@ -264,7 +264,7 @@ class PortfolioNotificationRestControllerTest {
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
-			.andExpect(jsonPath("message").value(equalTo("최대손실금액의 알림이 비활성화되었습니다")))
+			.andExpect(jsonPath("message").value(equalTo("최대 손실율 알림이 비 활성화되었습니다")))
 			.andExpect(jsonPath("data").value(equalTo(null)));
 	}
 }

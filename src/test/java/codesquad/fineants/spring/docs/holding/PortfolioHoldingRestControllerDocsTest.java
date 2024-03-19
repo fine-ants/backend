@@ -167,8 +167,8 @@ public class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 			.andExpect(jsonPath("data.portfolioDetails.annualDividendYield").value(closeTo(2.41, 0.1)))
 			.andExpect(jsonPath("data.portfolioDetails.annualInvestmentDividendYield").value(closeTo(2.89, 0.1)))
 			.andExpect(jsonPath("data.portfolioDetails.provisionalLossBalance").value(equalTo(0)))
-			.andExpect(jsonPath("data.portfolioDetails.targetGainNotification").value(equalTo(false)))
-			.andExpect(jsonPath("data.portfolioDetails.maxLossNotification").value(equalTo(false)));
+			.andExpect(jsonPath("data.portfolioDetails.targetGainNotification").value(equalTo(true)))
+			.andExpect(jsonPath("data.portfolioDetails.maxLossNotification").value(equalTo(true)));
 
 		resultActions
 			.andExpect(jsonPath("data.portfolioHoldings[0].companyName").value(equalTo("삼성전자보통주")))
