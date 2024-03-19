@@ -1,0 +1,25 @@
+[[stock-search]]
+=== 종목 검색
+
+==== HTTP Request
+
+include::{snippets}/stock-search/http-request.adoc[]
+include::{snippets}/stock-search/request-fields.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/stock-search/http-response.adoc[]
+include::{snippets}/stock-search/response-fields.adoc[]
+
+[[stock-detail-search]]
+=== 종목 상세 검색
+
+==== HTTP Request
+
+include::{snippets}/stock-detail-search/http-request.adoc[]
+include::{snippets}/stock-detail-search/path-parameters.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/stock-detail-search/http-response.adoc[]
+include::{snippets}/stock-detail-search/response-fields.adoc[]

@@ -22,6 +22,14 @@ include::api/portfolio.adoc[]
 
 include::api/holding.adoc[]
 
+== 매입 이력
+
+include::api/purchase_history.adoc[]
+
+== 종목
+
+include::api/stock.adoc[]
+
 == FCM 토큰
 
 include::api/fcm.adoc[]
