@@ -15,10 +15,10 @@ import codesquad.fineants.spring.api.common.errors.errorcode.PurchaseHistoryErro
 import codesquad.fineants.spring.api.common.errors.exception.FineAntsException;
 import codesquad.fineants.spring.api.purchase_history.event.PurchaseHistoryEventPublisher;
 import codesquad.fineants.spring.api.purchase_history.request.PurchaseHistoryCreateRequest;
-import codesquad.fineants.spring.api.purchase_history.request.PurchaseHistoryModifyRequest;
+import codesquad.fineants.spring.api.purchase_history.request.PurchaseHistoryUpdateRequest;
 import codesquad.fineants.spring.api.purchase_history.response.PurchaseHistoryCreateResponse;
 import codesquad.fineants.spring.api.purchase_history.response.PurchaseHistoryDeleteResponse;
-import codesquad.fineants.spring.api.purchase_history.response.PurchaseHistoryModifyResponse;
+import codesquad.fineants.spring.api.purchase_history.response.PurchaseHistoryUpdateResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -33,7 +33,7 @@ public class PurchaseHistoryService {
 	private final PortfolioRepository portfolioRepository;
 
 	@Transactional
-	public PurchaseHistoryCreateResponse addPurchaseHistory(
+	public PurchaseHistoryCreateResponse createPurchaseHistory(
 		PurchaseHistoryCreateRequest request,
 		Long portfolioId,
 		Long portfolioHoldingId,
@@ -70,7 +70,7 @@ public class PurchaseHistoryService {
 	}
 
 	@Transactional
-	public PurchaseHistoryModifyResponse modifyPurchaseHistory(PurchaseHistoryModifyRequest request,
+	public PurchaseHistoryUpdateResponse updatePurchaseHistory(PurchaseHistoryUpdateRequest request,
 		Long portfolioHoldingId, Long purchaseHistoryId, Long portfolioId, Long memberId) {
 		log.info("매입 내역 수정 서비스 요청 : request={}, portfolioHoldingId={}, purchaseHistoryId={}", request,
 			portfolioHoldingId, purchaseHistoryId);
@@ -79,7 +79,7 @@ public class PurchaseHistoryService {
 		PurchaseHistory changePurchaseHistory = request.toEntity(portfolioHolding);
 
 		PurchaseHistory changedPurchaseHistory = originalPurchaseHistory.change(changePurchaseHistory);
-		PurchaseHistoryModifyResponse response = PurchaseHistoryModifyResponse.from(
+		PurchaseHistoryUpdateResponse response = PurchaseHistoryUpdateResponse.from(
 			changedPurchaseHistory,
 			portfolioId,
 			memberId

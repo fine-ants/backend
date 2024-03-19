@@ -15,7 +15,7 @@ import lombok.ToString;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
 @ToString
-public class PurchaseHistoryModifyResponse {
+public class PurchaseHistoryUpdateResponse {
 
 	private Long id;
 	private LocalDateTime purchaseDate;
@@ -25,8 +25,8 @@ public class PurchaseHistoryModifyResponse {
 	private Long portfolioId;
 	private Long memberId;
 
-	public static PurchaseHistoryModifyResponse from(PurchaseHistory history, Long portfolioId, Long memberId) {
-		return PurchaseHistoryModifyResponse.builder()
+	public static PurchaseHistoryUpdateResponse from(PurchaseHistory history, Long portfolioId, Long memberId) {
+		return PurchaseHistoryUpdateResponse.builder()
 			.id(history.getId())
 			.purchaseDate(history.getPurchaseDate())
 			.purchasePricePerShare(history.getPurchasePricePerShare())

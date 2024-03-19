@@ -216,7 +216,7 @@ class PurchaseHistoryRestControllerTest {
 
 		given(portfolioRepository.findById(anyLong())).willReturn(Optional.of(portfolio));
 
-		given(purchaseHistoryService.addPurchaseHistory(
+		given(purchaseHistoryService.createPurchaseHistory(
 			any(PurchaseHistoryCreateRequest.class),
 			anyLong(),
 			anyLong(),

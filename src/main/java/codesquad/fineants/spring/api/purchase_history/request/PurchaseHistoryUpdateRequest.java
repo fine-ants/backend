@@ -19,7 +19,7 @@ import lombok.ToString;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
 @ToString
-public class PurchaseHistoryModifyRequest {
+public class PurchaseHistoryUpdateRequest {
 	@NotNull(message = "매입날짜는 날짜 형식의 필수 정보입니다")
 	private LocalDateTime purchaseDate;
 	@NotNull(message = "매입 개수 정보는 필수 정보입니다")
