@@ -13,9 +13,13 @@ public class ReadWatchListsResponse {
 	private Long id;
 	private String name;
 
+	public static ReadWatchListsResponse from(WatchList watchList) {
+		return new ReadWatchListsResponse(watchList.getId(), watchList.getName());
+	}
+
 	public static List<ReadWatchListsResponse> from(List<WatchList> watchLists) {
 		return watchLists.stream()
-			.map(watchList -> new ReadWatchListsResponse(watchList.getId(), watchList.getName()))
+			.map(ReadWatchListsResponse::from)
 			.collect(Collectors.toList());
 	}
 }

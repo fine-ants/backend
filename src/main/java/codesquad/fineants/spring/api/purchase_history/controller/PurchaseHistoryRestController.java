@@ -17,7 +17,7 @@ import codesquad.fineants.domain.oauth.support.AuthPrincipalMember;
 import codesquad.fineants.spring.api.common.response.ApiResponse;
 import codesquad.fineants.spring.api.common.success.PurchaseHistorySuccessCode;
 import codesquad.fineants.spring.api.purchase_history.request.PurchaseHistoryCreateRequest;
-import codesquad.fineants.spring.api.purchase_history.request.PurchaseHistoryModifyRequest;
+import codesquad.fineants.spring.api.purchase_history.request.PurchaseHistoryUpdateRequest;
 import codesquad.fineants.spring.api.purchase_history.response.PurchaseHistoryDeleteResponse;
 import codesquad.fineants.spring.api.purchase_history.service.PurchaseHistoryService;
 import codesquad.fineants.spring.auth.HasPortfolioAuthorization;
@@ -35,26 +35,26 @@ public class PurchaseHistoryRestController {
 	@HasPortfolioAuthorization
 	@ResponseStatus(HttpStatus.CREATED)
 	@PostMapping
-	public ApiResponse<Void> addPurchaseHistory(
+	public ApiResponse<Void> createPurchaseHistory(
 		@PathVariable Long portfolioId,
 		@AuthPrincipalMember AuthMember authMember,
 		@PathVariable Long portfolioHoldingId,
 		@Valid @RequestBody PurchaseHistoryCreateRequest request) {
 		log.info("매입 내역 추가 요청 : request={}, portfolioHoldingId={}", request, portfolioHoldingId);
-		service.addPurchaseHistory(request, portfolioId, portfolioHoldingId, authMember.getMemberId());
+		service.createPurchaseHistory(request, portfolioId, portfolioHoldingId, authMember.getMemberId());
 		return ApiResponse.success(PurchaseHistorySuccessCode.CREATED_ADD_PURCHASE_HISTORY);
 	}
 
 	@HasPortfolioAuthorization
 	@PutMapping("/{purchaseHistoryId}")
-	public ApiResponse<Void> modifyPurchaseHistory(
+	public ApiResponse<Void> updatePurchaseHistory(
 		@PathVariable Long portfolioId,
 		@AuthPrincipalMember AuthMember authMember,
 		@PathVariable Long portfolioHoldingId,
 		@PathVariable Long purchaseHistoryId,
-		@Valid @RequestBody PurchaseHistoryModifyRequest request) {
+		@Valid @RequestBody PurchaseHistoryUpdateRequest request) {
 		log.info("매입 내역 수정 요청 : request={}, portfolioHoldingId={}", request, portfolioHoldingId);
-		service.modifyPurchaseHistory(request, portfolioHoldingId, purchaseHistoryId, portfolioId,
+		service.updatePurchaseHistory(request, portfolioHoldingId, purchaseHistoryId, portfolioId,
 			authMember.getMemberId());
 		return ApiResponse.success(PurchaseHistorySuccessCode.OK_MODIFY_PURCHASE_HISTORY);
 	}

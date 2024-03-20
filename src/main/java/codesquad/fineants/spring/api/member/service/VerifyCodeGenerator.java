@@ -5,6 +5,9 @@ import java.util.Random;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Component
 public class VerifyCodeGenerator {
 	private final int len;
@@ -22,6 +25,6 @@ public class VerifyCodeGenerator {
 	public String generate() {
 		int code = random.nextInt(limit); // Generates a number between 0 and 999999
 		String format = "%0" + len + "d";
-		return String.format(format, len, code);
+		return String.format(format, code);
 	}
 }

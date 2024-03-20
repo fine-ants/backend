@@ -3,6 +3,7 @@ package codesquad.fineants.domain.portfolio;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -304,6 +305,12 @@ public class Portfolio extends BaseEntity {
 
 		List<PortfolioPieChartItem> result = new ArrayList<>(stocks);
 		result.add(cash);
+
+		// 정렬
+		// 평가금액(valuation) 기준 내림차순
+		// 총손익(totalGain) 기준 내림차순
+		result.sort(((Comparator<PortfolioPieChartItem>)(o1, o2) -> Long.compare(o2.getValuation(), o1.getValuation()))
+			.thenComparing((o1, o2) -> Long.compare(o2.getTotalGain(), o1.getTotalGain())));
 		return result;
 	}
 
@@ -339,6 +346,10 @@ public class Portfolio extends BaseEntity {
 	public List<PortfolioSectorChartItem> createSectorChart() {
 		return calculateSectorCurrentValuationMap().entrySet().stream()
 			.map(mappingSectorChartItem())
+			.sorted(
+				((Comparator<PortfolioSectorChartItem>)(o1, o2) -> Double.compare(o2.getSectorWeight(),
+					o1.getSectorWeight()))
+					.thenComparing(PortfolioSectorChartItem::getSector))
 			.collect(Collectors.toList());
 	}
 
@@ -355,7 +366,7 @@ public class Portfolio extends BaseEntity {
 		return entry -> {
 			Double currentValuation = entry.getValue().stream().mapToDouble(Double::valueOf).sum();
 			Double weight = calculateWeightBy(currentValuation);
-			return new PortfolioSectorChartItem(entry.getKey(), weight);
+			return PortfolioSectorChartItem.create(entry.getKey(), weight);
 		};
 	}
 

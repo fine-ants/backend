@@ -96,7 +96,7 @@ class WatchListRestControllerTest {
 		requestBodyMap.put("name", "My watchlist");
 		String body = objectMapper.writeValueAsString(requestBodyMap);
 
-		CreateWatchListResponse response = new CreateWatchListResponse(1L);
+		CreateWatchListResponse response = CreateWatchListResponse.create(1L);
 
 		given(authPrincipalArgumentResolver.supportsParameter(any())).willReturn(true);
 		given(authPrincipalArgumentResolver.resolveArgument(any(), any(), any(), any())).willReturn(authMember);
@@ -381,8 +381,8 @@ class WatchListRestControllerTest {
 
 		String tickerSymbol = "005930";
 		List<WatchListHasStockResponse> response = List.of(
-			new WatchListHasStockResponse(1L, "My WatchList1", true),
-			new WatchListHasStockResponse(2L, "My WatchList2", false)
+			WatchListHasStockResponse.create(1L, "My WatchList1", true),
+			WatchListHasStockResponse.create(2L, "My WatchList2", false)
 		);
 		given(watchListService.hasStock(any(AuthMember.class), any(String.class))).willReturn(response);
 

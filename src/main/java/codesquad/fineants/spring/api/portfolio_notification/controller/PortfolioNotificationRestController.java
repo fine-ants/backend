@@ -12,8 +12,8 @@ import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.oauth.support.AuthPrincipalMember;
 import codesquad.fineants.spring.api.common.response.ApiResponse;
 import codesquad.fineants.spring.api.common.success.PortfolioSuccessCode;
-import codesquad.fineants.spring.api.portfolio_notification.request.PortfolioNotificationModifyRequest;
-import codesquad.fineants.spring.api.portfolio_notification.response.PortfolioNotificationModifyResponse;
+import codesquad.fineants.spring.api.portfolio_notification.request.PortfolioNotificationUpdateRequest;
+import codesquad.fineants.spring.api.portfolio_notification.response.PortfolioNotificationUpdateResponse;
 import codesquad.fineants.spring.api.portfolio_notification.service.PortfolioNotificationService;
 import codesquad.fineants.spring.auth.HasPortfolioAuthorization;
 import lombok.RequiredArgsConstructor;
@@ -29,12 +29,12 @@ public class PortfolioNotificationRestController {
 
 	@HasPortfolioAuthorization
 	@PutMapping("/targetGain")
-	public ApiResponse<Void> modifyNotificationTargetGain(
+	public ApiResponse<Void> updateNotificationTargetGain(
 		@PathVariable Long portfolioId,
 		@AuthPrincipalMember AuthMember authMember,
-		@Valid @RequestBody PortfolioNotificationModifyRequest request) {
+		@Valid @RequestBody PortfolioNotificationUpdateRequest request) {
 		log.info("포트폴리오 알림 설정 : request={}, portfolioId={}", request, portfolioId);
-		PortfolioNotificationModifyResponse response = service.modifyPortfolioTargetGainNotification(request,
+		PortfolioNotificationUpdateResponse response = service.updateNotificationTargetGain(request,
 			portfolioId);
 		if (response.getIsActive()) {
 			return ApiResponse.success(PortfolioSuccessCode.OK_MODIFY_PORTFOLIO_TARGET_GAIN_ACTIVE_NOTIFICATION);
@@ -44,12 +44,12 @@ public class PortfolioNotificationRestController {
 
 	@HasPortfolioAuthorization
 	@PutMapping("/maxLoss")
-	public ApiResponse<Void> modifyNotificationMaximumLoss(
+	public ApiResponse<Void> updateNotificationMaximumLoss(
 		@PathVariable Long portfolioId,
 		@AuthPrincipalMember AuthMember authMember,
-		@Valid @RequestBody PortfolioNotificationModifyRequest request) {
+		@Valid @RequestBody PortfolioNotificationUpdateRequest request) {
 		log.info("포트폴리오 알림 설정 : request={}, portfolioId={}", request, portfolioId);
-		PortfolioNotificationModifyResponse response = service.modifyPortfolioMaximumLossNotification(request,
+		PortfolioNotificationUpdateResponse response = service.updateNotificationMaximumLoss(request,
 			portfolioId);
 		if (response.getIsActive()) {
 			return ApiResponse.success(PortfolioSuccessCode.OK_MODIFY_PORTFOLIO_MAXIMUM_LOSS_ACTIVE_NOTIFICATION);

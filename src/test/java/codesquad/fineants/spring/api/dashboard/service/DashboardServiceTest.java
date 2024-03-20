@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.assertj.core.data.Offset;
+import org.assertj.core.data.Percentage;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -38,6 +39,7 @@ import codesquad.fineants.spring.api.dashboard.response.DashboardLineChartRespon
 import codesquad.fineants.spring.api.dashboard.response.DashboardPieChartResponse;
 import codesquad.fineants.spring.api.dashboard.response.OverviewResponse;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
+import codesquad.fineants.spring.api.portfolio_stock.request.PortfolioHoldingCreateRequest;
 
 public class DashboardServiceTest extends AbstractContainerBaseTest {
 	@Autowired
@@ -194,8 +196,27 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 			.market(Market.KOSPI)
 			.build());
 
-		portfolioHoldingRepository.save(PortfolioHolding.of(portfolio, stock, 100L));
-		portfolioHoldingRepository.save(PortfolioHolding.of(portfolio1, stock, 100L));
+		PortfolioHolding holding1 = portfolioHoldingRepository.save(
+			PortfolioHolding.of(portfolio, stock, 100L));
+		PortfolioHolding holding2 = portfolioHoldingRepository.save(
+			PortfolioHolding.of(portfolio1, stock, 100L));
+
+		purchaseHistoryRepository.save(PurchaseHistory.of(holding1,
+			PortfolioHoldingCreateRequest.PurchaseHistoryCreateRequest.create(
+				LocalDateTime.now(),
+				3L,
+				70000.0,
+				"첫구매"
+			)
+		));
+		purchaseHistoryRepository.save(PurchaseHistory.of(holding2,
+			PortfolioHoldingCreateRequest.PurchaseHistoryCreateRequest.create(
+				LocalDateTime.now(),
+				3L,
+				60000.0,
+				"첫구매"
+			)
+		));
 
 		given(currentPriceManager.hasCurrentPrice(anyString()))
 			.willReturn(true);
@@ -205,9 +226,13 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 		List<DashboardPieChartResponse> responses = dashboardService.getPieChart(authMember);
 
 		// then
-		assertThat(responses.get(0).getName()).isEqualTo("내꿈은 워렌버핏");
-		assertThat(responses.size()).isEqualTo(2);
-		assertThat(responses.get(0).getWeight()).isEqualTo(50.0);
+		assertThat(responses.get(0).getWeight()).isCloseTo(50.76, Percentage.withPercentage(0.1));
+		assertThat(responses.get(1).getWeight()).isCloseTo(49.23, Percentage.withPercentage(0.1));
+		assertThat(responses)
+			.asList()
+			.hasSize(2)
+			.extracting("id")
+			.containsExactlyInAnyOrder(portfolio1.getId(), portfolio.getId());
 	}
 
 	@Test

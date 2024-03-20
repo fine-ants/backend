@@ -37,7 +37,7 @@ import codesquad.fineants.spring.api.portfolio_stock.event.PortfolioEvent;
 import codesquad.fineants.spring.api.portfolio_stock.manager.SseEmitterKey;
 import codesquad.fineants.spring.api.portfolio_stock.manager.SseEmitterManager;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioHoldingsRealTimeResponse;
-import codesquad.fineants.spring.api.portfolio_stock.service.PortfolioStockService;
+import codesquad.fineants.spring.api.portfolio_stock.service.PortfolioHoldingService;
 
 class HoldingSseEventListenerTest extends AbstractContainerBaseTest {
 
@@ -72,7 +72,7 @@ class HoldingSseEventListenerTest extends AbstractContainerBaseTest {
 	private LastDayClosingPriceManager lastDayClosingPriceManager;
 
 	@Autowired
-	private PortfolioStockService portfolioStockService;
+	private PortfolioHoldingService portfolioHoldingService;
 
 	@Autowired
 	private SseEmitterManager manager;
@@ -108,7 +108,7 @@ class HoldingSseEventListenerTest extends AbstractContainerBaseTest {
 		emitter.onCompletion(() -> manager.remove(key));
 		manager.add(key, emitter);
 
-		PortfolioHoldingsRealTimeResponse response = portfolioStockService.readMyPortfolioStocksInRealTime(
+		PortfolioHoldingsRealTimeResponse response = portfolioHoldingService.readMyPortfolioStocksInRealTime(
 			portfolio.getId());
 		LocalDateTime eventDateTime = LocalDateTime.of(2024, 1, 16, 9, 30);
 
@@ -143,7 +143,7 @@ class HoldingSseEventListenerTest extends AbstractContainerBaseTest {
 			.send(any(SseEmitter.SseEventBuilder.class));
 		manager.add(key, emitter);
 
-		PortfolioHoldingsRealTimeResponse response = portfolioStockService.readMyPortfolioStocksInRealTime(
+		PortfolioHoldingsRealTimeResponse response = portfolioHoldingService.readMyPortfolioStocksInRealTime(
 			portfolio.getId());
 		LocalDateTime eventDateTime = LocalDateTime.of(2024, 1, 16, 9, 30);
 

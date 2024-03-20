@@ -56,7 +56,7 @@ import codesquad.fineants.spring.api.portfolio_stock.chart.DividendChart;
 import codesquad.fineants.spring.api.portfolio_stock.chart.PieChart;
 import codesquad.fineants.spring.api.portfolio_stock.chart.SectorChart;
 import codesquad.fineants.spring.api.portfolio_stock.manager.SseEmitterManager;
-import codesquad.fineants.spring.api.portfolio_stock.request.PortfolioStockCreateRequest;
+import codesquad.fineants.spring.api.portfolio_stock.request.PortfolioHoldingCreateRequest;
 import codesquad.fineants.spring.api.portfolio_stock.request.PortfolioStocksDeleteRequest;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioChartResponse;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioDividendChartItem;
@@ -65,7 +65,7 @@ import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioPieChartI
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioSectorChartItem;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioStockCreateResponse;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioStockDeletesResponse;
-import codesquad.fineants.spring.api.portfolio_stock.service.PortfolioStockService;
+import codesquad.fineants.spring.api.portfolio_stock.service.PortfolioHoldingService;
 import codesquad.fineants.spring.api.portfolio_stock.service.StockMarketChecker;
 import codesquad.fineants.spring.auth.HasPortfolioAuthorizationAspect;
 import codesquad.fineants.spring.config.JacksonConfig;
@@ -74,14 +74,14 @@ import codesquad.fineants.spring.config.SpringConfig;
 import codesquad.fineants.spring.util.ObjectMapperUtil;
 
 @ActiveProfiles("test")
-@WebMvcTest(controllers = PortfolioStockRestController.class)
+@WebMvcTest(controllers = PortfolioHoldingRestController.class)
 @Import(value = {SpringConfig.class, HasPortfolioAuthorizationAspect.class, JacksonConfig.class})
 @MockBean(JpaAuditingConfiguration.class)
-class PortfolioStockRestControllerTest {
+class PortfolioHoldingRestControllerTest {
 	private MockMvc mockMvc;
 
 	@Autowired
-	private PortfolioStockRestController portfolioStockRestController;
+	private PortfolioHoldingRestController portfolioHoldingRestController;
 
 	@Autowired
 	private GlobalExceptionHandler globalExceptionHandler;
@@ -93,7 +93,7 @@ class PortfolioStockRestControllerTest {
 	private AuthPrincipalArgumentResolver authPrincipalArgumentResolver;
 
 	@MockBean
-	private PortfolioStockService portfolioStockService;
+	private PortfolioHoldingService portfolioHoldingService;
 
 	@MockBean
 	private StockMarketChecker stockMarketChecker;
@@ -115,7 +115,7 @@ class PortfolioStockRestControllerTest {
 
 	@BeforeEach
 	void setup() {
-		mockMvc = MockMvcBuilders.standaloneSetup(portfolioStockRestController)
+		mockMvc = MockMvcBuilders.standaloneSetup(portfolioHoldingRestController)
 			.setControllerAdvice(globalExceptionHandler)
 			.setCustomArgumentResolvers(authPrincipalArgumentResolver)
 			.setMessageConverters(new MappingJackson2HttpMessageConverter(objectMapper))
@@ -154,7 +154,7 @@ class PortfolioStockRestControllerTest {
 			List.of(portfolioHolding),
 			lastDayClosingPriceMap);
 
-		given(portfolioStockService.readMyPortfolioStocks(anyLong())).willReturn(mockResponse);
+		given(portfolioHoldingService.readPortfolioHoldings(anyLong())).willReturn(mockResponse);
 		// when & then
 		ResultActions resultActions = mockMvc.perform(get("/api/portfolio/{portfolioId}/holdings", portfolio.getId()))
 			.andExpect(status().isOk());
@@ -213,7 +213,7 @@ class PortfolioStockRestControllerTest {
 	void readMyPortfolioStocksWithNotExistPortfolioId() throws Exception {
 		// given
 		long portfolioId = 9999L;
-		given(portfolioStockService.readMyPortfolioStocks(anyLong()))
+		given(portfolioHoldingService.readPortfolioHoldings(anyLong()))
 			.willThrow(new NotFoundResourceException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
 
 		// when & then
@@ -227,7 +227,7 @@ class PortfolioStockRestControllerTest {
 	void readMyPortfolioStocksInRealTimeWithNotExistPortfolioId() throws Exception {
 		// given
 		long portfolioId = 9999L;
-		given(portfolioStockService.readMyPortfolioStocksInRealTime(anyLong()))
+		given(portfolioHoldingService.readMyPortfolioStocksInRealTime(anyLong()))
 			.willThrow(new NotFoundResourceException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
 		given(portFolioService.hasAuthorizationBy(anyLong(), anyLong()))
 			.willThrow(new NotFoundResourceException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
@@ -246,7 +246,7 @@ class PortfolioStockRestControllerTest {
 
 		PortfolioStockCreateResponse response = PortfolioStockCreateResponse.from(
 			PortfolioHolding.empty(portfolio, stock));
-		given(portfolioStockService.addPortfolioStock(anyLong(), any(PortfolioStockCreateRequest.class),
+		given(portfolioHoldingService.createPortfolioHolding(anyLong(), any(PortfolioHoldingCreateRequest.class),
 			any(AuthMember.class))).willReturn(response);
 
 		Map<String, Object> purchaseHistoryMap = new HashMap<>();
@@ -281,7 +281,7 @@ class PortfolioStockRestControllerTest {
 
 		PortfolioStockCreateResponse response = PortfolioStockCreateResponse.from(
 			PortfolioHolding.empty(portfolio, stock));
-		given(portfolioStockService.addPortfolioStock(anyLong(), any(PortfolioStockCreateRequest.class),
+		given(portfolioHoldingService.createPortfolioHolding(anyLong(), any(PortfolioHoldingCreateRequest.class),
 			any(AuthMember.class))).willReturn(response);
 
 		Map<String, Object> requestBodyMap = new HashMap<>();
@@ -358,7 +358,7 @@ class PortfolioStockRestControllerTest {
 		String body = ObjectMapperUtil.serialize(requestBodyMap);
 
 		PortfolioStockDeletesResponse mockResponse = new PortfolioStockDeletesResponse(delPortfolioHoldingIds);
-		given(portfolioStockService.deletePortfolioStocks(anyLong(), any(AuthMember.class), any(
+		given(portfolioHoldingService.deletePortfolioHoldings(anyLong(), any(AuthMember.class), any(
 			PortfolioStocksDeleteRequest.class))).willReturn(mockResponse);
 		// when & then
 		mockMvc.perform(delete("/api/portfolio/{portfolioId}/holdings", portfolio.getId())
@@ -416,9 +416,9 @@ class PortfolioStockRestControllerTest {
 		List<PortfolioDividendChartItem> dividendChartItems = this.dividendChart.createBy(portfolio,
 			LocalDate.of(2024, 1, 16));
 		List<PortfolioSectorChartItem> sectorChartItems = this.sectorChart.createBy(portfolio);
-		PortfolioChartResponse response = new PortfolioChartResponse(pieChartItems, dividendChartItems,
+		PortfolioChartResponse response = PortfolioChartResponse.create(pieChartItems, dividendChartItems,
 			sectorChartItems);
-		given(portfolioStockService.readMyPortfolioCharts(anyLong(), any(LocalDate.class)))
+		given(portfolioHoldingService.readPortfolioCharts(anyLong(), any(LocalDate.class)))
 			.willReturn(response);
 
 		// when & then
@@ -427,16 +427,16 @@ class PortfolioStockRestControllerTest {
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
 			.andExpect(jsonPath("message").value(equalTo("포트폴리오에 대한 차트 조회가 완료되었습니다")))
-			.andExpect(jsonPath("data.pieChart[0].name").value(equalTo("삼성전자보통주")))
-			.andExpect(jsonPath("data.pieChart[0].valuation").value(equalTo(180000)))
-			.andExpect(jsonPath("data.pieChart[0].weight").value(equalTo(17.48)))
-			.andExpect(jsonPath("data.pieChart[0].totalGain").value(equalTo(30000)))
-			.andExpect(jsonPath("data.pieChart[0].totalGainRate").value(equalTo(20.0)))
-			.andExpect(jsonPath("data.pieChart[1].name").value(equalTo("현금")))
-			.andExpect(jsonPath("data.pieChart[1].valuation").value(equalTo(850000)))
-			.andExpect(jsonPath("data.pieChart[1].weight").value(equalTo(82.52)))
-			.andExpect(jsonPath("data.pieChart[1].totalGain").value(equalTo(0)))
-			.andExpect(jsonPath("data.pieChart[1].totalGainRate").value(equalTo(0.00)))
+			.andExpect(jsonPath("data.pieChart[0].name").value(equalTo("현금")))
+			.andExpect(jsonPath("data.pieChart[0].valuation").value(equalTo(850000)))
+			.andExpect(jsonPath("data.pieChart[0].weight").value(equalTo(82.52)))
+			.andExpect(jsonPath("data.pieChart[0].totalGain").value(equalTo(0)))
+			.andExpect(jsonPath("data.pieChart[0].totalGainRate").value(equalTo(0.00)))
+			.andExpect(jsonPath("data.pieChart[1].name").value(equalTo("삼성전자보통주")))
+			.andExpect(jsonPath("data.pieChart[1].valuation").value(equalTo(180000)))
+			.andExpect(jsonPath("data.pieChart[1].weight").value(equalTo(17.48)))
+			.andExpect(jsonPath("data.pieChart[1].totalGain").value(equalTo(30000)))
+			.andExpect(jsonPath("data.pieChart[1].totalGainRate").value(equalTo(20.0)))
 			.andExpect(jsonPath("data.dividendChart[0].month").value(equalTo(1)))
 			.andExpect(jsonPath("data.dividendChart[0].amount").value(equalTo(0)))
 			.andExpect(jsonPath("data.dividendChart[1].month").value(equalTo(2)))

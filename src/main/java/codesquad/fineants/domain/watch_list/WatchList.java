@@ -1,5 +1,6 @@
 package codesquad.fineants.domain.watch_list;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,9 +42,13 @@ public class WatchList extends BaseEntity {
 	private List<WatchStock> watchStocks = new ArrayList<>();
 
 	@Builder
-	public WatchList(String name, Member member){
+	public WatchList(LocalDateTime createAt, LocalDateTime modifiedAt, Long id, String name,
+		Member member, List<WatchStock> watchStocks) {
+		super(createAt, modifiedAt);
+		this.id = id;
 		this.name = name;
 		this.member = member;
+		this.watchStocks = watchStocks;
 	}
 
 	public void change(String name) {

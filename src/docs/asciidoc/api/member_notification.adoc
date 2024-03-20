@@ -1,0 +1,86 @@
+[[member_notification-search]]
+=== 회원 알림 목록 조회
+
+==== HTTP Request
+
+include::{snippets}/member_notification-search/http-request.adoc[]
+include::{snippets}/member_notification-search/request-headers.adoc[]
+include::{snippets}/member_notification-search/path-parameters.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/member_notification-search/http-response.adoc[]
+include::{snippets}/member_notification-search/response-fields.adoc[]
+
+[[member_notification_settings-update]]
+=== 회원 알림 설정 수정
+
+==== HTTP Request
+
+include::{snippets}/member_notification_settings-update/http-request.adoc[]
+include::{snippets}/member_notification_settings-update/request-headers.adoc[]
+include::{snippets}/member_notification_settings-update/path-parameters.adoc[]
+include::{snippets}/member_notification_settings-update/request-fields.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/member_notification_settings-update/http-response.adoc[]
+include::{snippets}/member_notification_settings-update/response-fields.adoc[]
+
+[[member_notification-all-delete]]
+=== 회원 알림 전체 제거
+
+==== HTTP Request
+
+include::{snippets}/member_notification-all-delete/http-request.adoc[]
+include::{snippets}/member_notification-all-delete/request-headers.adoc[]
+include::{snippets}/member_notification-all-delete/path-parameters.adoc[]
+include::{snippets}/member_notification-all-delete/request-fields.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/member_notification-all-delete/http-response.adoc[]
+include::{snippets}/member_notification-all-delete/response-fields.adoc[]
+
+[[member_notification-one-delete]]
+=== 회원 알림 전체 제거
+
+==== HTTP Request
+
+include::{snippets}/member_notification-one-delete/http-request.adoc[]
+include::{snippets}/member_notification-one-delete/request-headers.adoc[]
+include::{snippets}/member_notification-one-delete/path-parameters.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/member_notification-one-delete/http-response.adoc[]
+include::{snippets}/member_notification-one-delete/response-fields.adoc[]
+
+[[member_notification-all-read]]
+=== 회원 알림 전체 읽음
+
+==== HTTP Request
+
+include::{snippets}/member_notification-all-read/http-request.adoc[]
+include::{snippets}/member_notification-all-read/request-headers.adoc[]
+include::{snippets}/member_notification-all-read/path-parameters.adoc[]
+include::{snippets}/member_notification-all-read/request-fields.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/member_notification-all-read/http-response.adoc[]
+include::{snippets}/member_notification-all-read/response-fields.adoc[]
+
+[[member_notification-one-read]]
+=== 회원 특정 알림 읽음
+
+==== HTTP Request
+
+include::{snippets}/member_notification-one-read/http-request.adoc[]
+include::{snippets}/member_notification-one-read/request-headers.adoc[]
+include::{snippets}/member_notification-one-read/path-parameters.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/member_notification-one-read/http-response.adoc[]
+include::{snippets}/member_notification-one-read/response-fields.adoc[]

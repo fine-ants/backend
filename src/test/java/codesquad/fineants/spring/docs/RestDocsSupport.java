@@ -41,6 +41,8 @@ import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.domain.stock_dividend.StockDividend;
 import codesquad.fineants.domain.stock_target_price.StockTargetPrice;
 import codesquad.fineants.domain.target_price_notification.TargetPriceNotification;
+import codesquad.fineants.domain.watch_list.WatchList;
+import codesquad.fineants.spring.api.notification.response.NotifyMessage;
 import codesquad.fineants.spring.api.notification.response.PortfolioNotifyMessage;
 import codesquad.fineants.spring.api.notification.response.StockNotifyMessage;
 import codesquad.fineants.spring.config.JacksonConfig;
@@ -98,8 +100,8 @@ public abstract class RestDocsSupport {
 			.budget(1000000L)
 			.targetGain(1500000L)
 			.maximumLoss(900000L)
-			.targetGainIsActive(false)
-			.maximumLossIsActive(false)
+			.targetGainIsActive(true)
+			.maximumLossIsActive(true)
 			.member(member)
 			.build();
 	}
@@ -229,6 +231,49 @@ public abstract class RestDocsSupport {
 			.id(1L)
 			.targetPrice(60000L)
 			.stockTargetPrice(stockTargetPrice)
+			.build();
+	}
+
+	protected PortfolioNotification createPortfolioTargetGainNotification(Portfolio portfolio, Member member) {
+		NotifyMessage message = portfolio.getTargetGainMessage("token");
+		return PortfolioNotification.builder()
+			.id(1L)
+			.name(portfolio.getName())
+			.title(message.getTitle())
+			.isRead(false)
+			.type(message.getType())
+			.referenceId(message.getReferenceId())
+			.link(message.getLink())
+			.createAt(LocalDateTime.of(2024, 1, 24, 10, 10, 10))
+			.member(member)
+			.build();
+	}
+
+	protected StockTargetPriceNotification createStockTargetPriceNotification(
+		TargetPriceNotification targetPriceNotification, Member member) {
+		StockNotifyMessage message = (StockNotifyMessage)targetPriceNotification.getTargetPriceMessage("token");
+		return StockTargetPriceNotification.builder()
+			.id(1L)
+			.stockName(message.getStockName())
+			.targetPrice(message.getTargetPrice())
+			.targetPriceNotificationId(message.getTargetPriceNotificationId())
+			.title(message.getTitle())
+			.isRead(false)
+			.type(message.getType())
+			.referenceId(message.getReferenceId())
+			.link(message.getLink())
+			.createAt(LocalDateTime.of(2024, 1, 24, 10, 10, 10))
+			.member(member)
+			.build();
+	}
+
+	protected WatchList createWatchList(Member member) {
+		return WatchList.builder()
+			.id(1L)
+			.name("my watchlist 1")
+			.member(member)
+			.createAt(LocalDateTime.now())
+			.member(member)
 			.build();
 	}
 

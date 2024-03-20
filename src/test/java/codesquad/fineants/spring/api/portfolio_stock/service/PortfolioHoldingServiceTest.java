@@ -39,7 +39,7 @@ import codesquad.fineants.spring.api.kis.client.KisCurrentPrice;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
 import codesquad.fineants.spring.api.portfolio_stock.event.publisher.PortfolioHoldingEventPublisher;
-import codesquad.fineants.spring.api.portfolio_stock.request.PortfolioStockCreateRequest;
+import codesquad.fineants.spring.api.portfolio_stock.request.PortfolioHoldingCreateRequest;
 import codesquad.fineants.spring.api.portfolio_stock.request.PortfolioStocksDeleteRequest;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioChartResponse;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioHoldingsRealTimeResponse;
@@ -49,10 +49,10 @@ import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioStockDele
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioStockDeletesResponse;
 import codesquad.fineants.spring.util.ObjectMapperUtil;
 
-class PortfolioStockServiceTest extends AbstractContainerBaseTest {
+class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 
 	@Autowired
-	private PortfolioStockService service;
+	private PortfolioHoldingService service;
 
 	@Autowired
 	private PurchaseHistoryRepository purchaseHistoryRepository;
@@ -109,7 +109,7 @@ class PortfolioStockServiceTest extends AbstractContainerBaseTest {
 		currentPriceManager.addCurrentPrice(KisCurrentPrice.create("005930", 60000L));
 		lastDayClosingPriceManager.addPrice("005930", 50000);
 		// when
-		PortfolioHoldingsResponse response = service.readMyPortfolioStocks(portfolio.getId());
+		PortfolioHoldingsResponse response = service.readPortfolioHoldings(portfolio.getId());
 
 		// then
 		assertAll(
@@ -162,7 +162,7 @@ class PortfolioStockServiceTest extends AbstractContainerBaseTest {
 		lastDayClosingPriceManager.addPrice("005930", 50000);
 
 		// when
-		PortfolioChartResponse response = service.readMyPortfolioCharts(portfolio.getId(), LocalDate.of(2023, 12, 15));
+		PortfolioChartResponse response = service.readPortfolioCharts(portfolio.getId(), LocalDate.of(2023, 12, 15));
 
 		// then
 		assertAll(
@@ -218,7 +218,7 @@ class PortfolioStockServiceTest extends AbstractContainerBaseTest {
 		stockDividendRepository.saveAll(stockDividends);
 
 		// when
-		PortfolioChartResponse response = service.readMyPortfolioCharts(portfolio.getId(), LocalDate.of(2023, 12, 15));
+		PortfolioChartResponse response = service.readPortfolioCharts(portfolio.getId(), LocalDate.of(2023, 12, 15));
 
 		// then
 		assertAll(
@@ -296,11 +296,11 @@ class PortfolioStockServiceTest extends AbstractContainerBaseTest {
 
 		Map<String, Object> requestBodyMap = new HashMap<>();
 		requestBodyMap.put("tickerSymbol", stock.getTickerSymbol());
-		PortfolioStockCreateRequest request = ObjectMapperUtil.deserialize(ObjectMapperUtil.serialize(requestBodyMap),
-			PortfolioStockCreateRequest.class);
+		PortfolioHoldingCreateRequest request = ObjectMapperUtil.deserialize(ObjectMapperUtil.serialize(requestBodyMap),
+			PortfolioHoldingCreateRequest.class);
 
 		// when
-		PortfolioStockCreateResponse response = service.addPortfolioStock(portfolio.getId(), request,
+		PortfolioStockCreateResponse response = service.createPortfolioHolding(portfolio.getId(), request,
 			AuthMember.from(member));
 
 		// then
@@ -328,10 +328,10 @@ class PortfolioStockServiceTest extends AbstractContainerBaseTest {
 		Map<String, Object> requestBodyMap = new HashMap<>();
 		requestBodyMap.put("tickerSymbol", stock.getTickerSymbol());
 		requestBodyMap.put("purchaseHistory", purchaseHistory);
-		PortfolioStockCreateRequest request = ObjectMapperUtil.deserialize(ObjectMapperUtil.serialize(requestBodyMap),
-			PortfolioStockCreateRequest.class);
+		PortfolioHoldingCreateRequest request = ObjectMapperUtil.deserialize(ObjectMapperUtil.serialize(requestBodyMap),
+			PortfolioHoldingCreateRequest.class);
 		// when
-		PortfolioStockCreateResponse response = service.addPortfolioStock(portfolio.getId(), request,
+		PortfolioStockCreateResponse response = service.createPortfolioHolding(portfolio.getId(), request,
 			AuthMember.from(member));
 
 		// then
@@ -361,10 +361,10 @@ class PortfolioStockServiceTest extends AbstractContainerBaseTest {
 		Map<String, Object> requestBodyMap = new HashMap<>();
 		requestBodyMap.put("tickerSymbol", stock.getTickerSymbol());
 		requestBodyMap.put("purchaseHistory", purchaseHistory);
-		PortfolioStockCreateRequest request = ObjectMapperUtil.deserialize(ObjectMapperUtil.serialize(requestBodyMap),
-			PortfolioStockCreateRequest.class);
+		PortfolioHoldingCreateRequest request = ObjectMapperUtil.deserialize(ObjectMapperUtil.serialize(requestBodyMap),
+			PortfolioHoldingCreateRequest.class);
 		// when
-		PortfolioStockCreateResponse response = service.addPortfolioStock(portfolio.getId(), request,
+		PortfolioStockCreateResponse response = service.createPortfolioHolding(portfolio.getId(), request,
 			AuthMember.from(member));
 
 		// then
@@ -392,11 +392,11 @@ class PortfolioStockServiceTest extends AbstractContainerBaseTest {
 		Map<String, Object> requestBodyMap = new HashMap<>();
 		requestBodyMap.put("tickerSymbol", stock.getTickerSymbol());
 		requestBodyMap.put("purchaseHistory", purchaseHistory);
-		PortfolioStockCreateRequest request = ObjectMapperUtil.deserialize(ObjectMapperUtil.serialize(requestBodyMap),
-			PortfolioStockCreateRequest.class);
+		PortfolioHoldingCreateRequest request = ObjectMapperUtil.deserialize(ObjectMapperUtil.serialize(requestBodyMap),
+			PortfolioHoldingCreateRequest.class);
 
 		// when
-		Throwable throwable = catchThrowable(() -> service.addPortfolioStock(portfolio.getId(), request,
+		Throwable throwable = catchThrowable(() -> service.createPortfolioHolding(portfolio.getId(), request,
 			AuthMember.from(member)));
 
 		// then
@@ -413,11 +413,11 @@ class PortfolioStockServiceTest extends AbstractContainerBaseTest {
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Map<String, Object> requestBodyMap = new HashMap<>();
 		requestBodyMap.put("tickerSymbol", "999999");
-		PortfolioStockCreateRequest request = ObjectMapperUtil.deserialize(ObjectMapperUtil.serialize(requestBodyMap),
-			PortfolioStockCreateRequest.class);
+		PortfolioHoldingCreateRequest request = ObjectMapperUtil.deserialize(ObjectMapperUtil.serialize(requestBodyMap),
+			PortfolioHoldingCreateRequest.class);
 
 		// when
-		Throwable throwable = catchThrowable(() -> service.addPortfolioStock(portfolio.getId(),
+		Throwable throwable = catchThrowable(() -> service.createPortfolioHolding(portfolio.getId(),
 			request, AuthMember.from(member)));
 
 		// then
@@ -498,7 +498,7 @@ class PortfolioStockServiceTest extends AbstractContainerBaseTest {
 			ObjectMapperUtil.serialize(requestBodyMap), PortfolioStocksDeleteRequest.class);
 
 		// when
-		PortfolioStockDeletesResponse response = service.deletePortfolioStocks(portfolio.getId(),
+		PortfolioStockDeletesResponse response = service.deletePortfolioHoldings(portfolio.getId(),
 			AuthMember.from(member), request);
 
 		// then
@@ -532,7 +532,7 @@ class PortfolioStockServiceTest extends AbstractContainerBaseTest {
 
 		// when
 		Throwable throwable = catchThrowable(
-			() -> service.deletePortfolioStocks(portfolio.getId(), AuthMember.from(member), request));
+			() -> service.deletePortfolioHoldings(portfolio.getId(), AuthMember.from(member), request));
 
 		// then
 		assertThat(throwable)
@@ -564,7 +564,7 @@ class PortfolioStockServiceTest extends AbstractContainerBaseTest {
 
 		// when
 		Throwable throwable = catchThrowable(
-			() -> service.deletePortfolioStocks(portfolio.getId(), AuthMember.from(member), request));
+			() -> service.deletePortfolioHoldings(portfolio.getId(), AuthMember.from(member), request));
 
 		// then
 		assertThat(throwable)

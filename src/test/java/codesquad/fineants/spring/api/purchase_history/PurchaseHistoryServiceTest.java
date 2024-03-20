@@ -49,10 +49,10 @@ import codesquad.fineants.spring.api.firebase.service.FirebaseMessagingService;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.notification.manager.NotificationSentManager;
 import codesquad.fineants.spring.api.purchase_history.request.PurchaseHistoryCreateRequest;
-import codesquad.fineants.spring.api.purchase_history.request.PurchaseHistoryModifyRequest;
+import codesquad.fineants.spring.api.purchase_history.request.PurchaseHistoryUpdateRequest;
 import codesquad.fineants.spring.api.purchase_history.response.PurchaseHistoryCreateResponse;
 import codesquad.fineants.spring.api.purchase_history.response.PurchaseHistoryDeleteResponse;
-import codesquad.fineants.spring.api.purchase_history.response.PurchaseHistoryModifyResponse;
+import codesquad.fineants.spring.api.purchase_history.response.PurchaseHistoryUpdateResponse;
 import codesquad.fineants.spring.api.purchase_history.service.PurchaseHistoryService;
 
 class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
@@ -136,7 +136,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 		given(currentPriceManager.getCurrentPrice(anyString()))
 			.willReturn(Optional.of(50000L));
 		// when
-		PurchaseHistoryCreateResponse response = service.addPurchaseHistory(
+		PurchaseHistoryCreateResponse response = service.createPurchaseHistory(
 			request,
 			portfolio.getId(),
 			holding.getId(),
@@ -186,7 +186,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 			.willReturn(Optional.of("messageId"));
 
 		// when
-		PurchaseHistoryCreateResponse response = service.addPurchaseHistory(
+		PurchaseHistoryCreateResponse response = service.createPurchaseHistory(
 			request,
 			portfolio.getId(),
 			holding.getId(),
@@ -234,7 +234,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 			.willReturn(Optional.of("messageId"));
 
 		// when
-		PurchaseHistoryCreateResponse response = service.addPurchaseHistory(
+		PurchaseHistoryCreateResponse response = service.createPurchaseHistory(
 			request,
 			portfolio.getId(),
 			holding.getId(),
@@ -267,7 +267,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 
 		// when
 		Throwable throwable = catchThrowable(() ->
-			service.addPurchaseHistory(request, portfolio.getId(), holding.getId(), member.getId()));
+			service.createPurchaseHistory(request, portfolio.getId(), holding.getId(), member.getId()));
 
 		// then
 		assertThat(throwable)
@@ -286,7 +286,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
 		PurchaseHistory history = purchaseHistoryRepository.save(createPurchaseHistory(holding));
 
-		PurchaseHistoryModifyRequest request = PurchaseHistoryModifyRequest.builder()
+		PurchaseHistoryUpdateRequest request = PurchaseHistoryUpdateRequest.builder()
 			.purchaseDate(LocalDateTime.now())
 			.numShares(4L)
 			.purchasePricePerShare(50000.0)
@@ -296,7 +296,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 		given(currentPriceManager.getCurrentPrice(anyString()))
 			.willReturn(Optional.of(50000L));
 		// when
-		PurchaseHistoryModifyResponse response = service.modifyPurchaseHistory(
+		PurchaseHistoryUpdateResponse response = service.updatePurchaseHistory(
 			request,
 			holding.getId(),
 			history.getId(),
@@ -325,7 +325,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
 		PurchaseHistory history = purchaseHistoryRepository.save(createPurchaseHistory(holding));
 
-		PurchaseHistoryModifyRequest request = PurchaseHistoryModifyRequest.builder()
+		PurchaseHistoryUpdateRequest request = PurchaseHistoryUpdateRequest.builder()
 			.purchaseDate(LocalDateTime.now())
 			.numShares(100L)
 			.purchasePricePerShare(100.0)
@@ -339,7 +339,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 		given(firebaseMessagingService.send(any(Message.class)))
 			.willReturn(Optional.of("messageId"));
 		// when
-		PurchaseHistoryModifyResponse response = service.modifyPurchaseHistory(
+		PurchaseHistoryUpdateResponse response = service.updatePurchaseHistory(
 			request,
 			holding.getId(),
 			history.getId(),

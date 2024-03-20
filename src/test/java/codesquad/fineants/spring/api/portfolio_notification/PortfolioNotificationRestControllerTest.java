@@ -40,8 +40,8 @@ import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.spring.api.common.errors.handler.GlobalExceptionHandler;
 import codesquad.fineants.spring.api.portfolio.service.PortFolioService;
 import codesquad.fineants.spring.api.portfolio_notification.controller.PortfolioNotificationRestController;
-import codesquad.fineants.spring.api.portfolio_notification.request.PortfolioNotificationModifyRequest;
-import codesquad.fineants.spring.api.portfolio_notification.response.PortfolioNotificationModifyResponse;
+import codesquad.fineants.spring.api.portfolio_notification.request.PortfolioNotificationUpdateRequest;
+import codesquad.fineants.spring.api.portfolio_notification.response.PortfolioNotificationUpdateResponse;
 import codesquad.fineants.spring.api.portfolio_notification.service.PortfolioNotificationService;
 import codesquad.fineants.spring.auth.HasPortfolioAuthorizationAspect;
 import codesquad.fineants.spring.config.JpaAuditingConfiguration;
@@ -152,11 +152,11 @@ class PortfolioNotificationRestControllerTest {
 		responseBodyMap.put("portfolioId", portfolioId);
 		responseBodyMap.put("isActive", true);
 
-		PortfolioNotificationModifyResponse response = objectMapper.readValue(
-			objectMapper.writeValueAsString(responseBodyMap), PortfolioNotificationModifyResponse.class);
+		PortfolioNotificationUpdateResponse response = objectMapper.readValue(
+			objectMapper.writeValueAsString(responseBodyMap), PortfolioNotificationUpdateResponse.class);
 		given(portfolioRepository.findById(anyLong())).willReturn(Optional.of(portfolio));
-		given(service.modifyPortfolioTargetGainNotification(
-			any(PortfolioNotificationModifyRequest.class),
+		given(service.updateNotificationTargetGain(
+			any(PortfolioNotificationUpdateRequest.class),
 			anyLong()
 		)).willReturn(response);
 
@@ -168,7 +168,7 @@ class PortfolioNotificationRestControllerTest {
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
-			.andExpect(jsonPath("message").value(equalTo("목표수익금액의 알림이 활성화되었습니다")))
+			.andExpect(jsonPath("message").value(equalTo("목표 수익률 알림이 활성화되었습니다")))
 			.andExpect(jsonPath("data").value(equalTo(null)));
 	}
 
@@ -184,11 +184,11 @@ class PortfolioNotificationRestControllerTest {
 		responseBodyMap.put("portfolioId", portfolioId);
 		responseBodyMap.put("isActive", false);
 
-		PortfolioNotificationModifyResponse response = objectMapper.readValue(
-			objectMapper.writeValueAsString(responseBodyMap), PortfolioNotificationModifyResponse.class);
+		PortfolioNotificationUpdateResponse response = objectMapper.readValue(
+			objectMapper.writeValueAsString(responseBodyMap), PortfolioNotificationUpdateResponse.class);
 		given(portfolioRepository.findById(anyLong())).willReturn(Optional.of(portfolio));
-		given(service.modifyPortfolioTargetGainNotification(
-			any(PortfolioNotificationModifyRequest.class),
+		given(service.updateNotificationTargetGain(
+			any(PortfolioNotificationUpdateRequest.class),
 			anyLong()
 		)).willReturn(response);
 
@@ -200,7 +200,7 @@ class PortfolioNotificationRestControllerTest {
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
-			.andExpect(jsonPath("message").value(equalTo("목표수익금액의 알림이 비활성화되었습니다")))
+			.andExpect(jsonPath("message").value(equalTo("목표 수익률 알림이 비 활성화되었습니다")))
 			.andExpect(jsonPath("data").value(equalTo(null)));
 	}
 
@@ -216,11 +216,11 @@ class PortfolioNotificationRestControllerTest {
 		responseBodyMap.put("portfolioId", portfolioId);
 		responseBodyMap.put("isActive", true);
 
-		PortfolioNotificationModifyResponse response = objectMapper.readValue(
-			objectMapper.writeValueAsString(responseBodyMap), PortfolioNotificationModifyResponse.class);
+		PortfolioNotificationUpdateResponse response = objectMapper.readValue(
+			objectMapper.writeValueAsString(responseBodyMap), PortfolioNotificationUpdateResponse.class);
 		given(portfolioRepository.findById(anyLong())).willReturn(Optional.of(portfolio));
-		given(service.modifyPortfolioMaximumLossNotification(
-			any(PortfolioNotificationModifyRequest.class),
+		given(service.updateNotificationMaximumLoss(
+			any(PortfolioNotificationUpdateRequest.class),
 			anyLong()
 		)).willReturn(response);
 
@@ -232,7 +232,7 @@ class PortfolioNotificationRestControllerTest {
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
-			.andExpect(jsonPath("message").value(equalTo("최대손실금액의 알림이 활성화되었습니다")))
+			.andExpect(jsonPath("message").value(equalTo("최대 손실율 알림이 활성화되었습니다")))
 			.andExpect(jsonPath("data").value(equalTo(null)));
 	}
 
@@ -248,11 +248,11 @@ class PortfolioNotificationRestControllerTest {
 		responseBodyMap.put("portfolioId", portfolioId);
 		responseBodyMap.put("isActive", false);
 
-		PortfolioNotificationModifyResponse response = objectMapper.readValue(
-			objectMapper.writeValueAsString(responseBodyMap), PortfolioNotificationModifyResponse.class);
+		PortfolioNotificationUpdateResponse response = objectMapper.readValue(
+			objectMapper.writeValueAsString(responseBodyMap), PortfolioNotificationUpdateResponse.class);
 		given(portfolioRepository.findById(anyLong())).willReturn(Optional.of(portfolio));
-		given(service.modifyPortfolioMaximumLossNotification(
-			any(PortfolioNotificationModifyRequest.class),
+		given(service.updateNotificationMaximumLoss(
+			any(PortfolioNotificationUpdateRequest.class),
 			anyLong()
 		)).willReturn(response);
 
@@ -264,7 +264,7 @@ class PortfolioNotificationRestControllerTest {
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
-			.andExpect(jsonPath("message").value(equalTo("최대손실금액의 알림이 비활성화되었습니다")))
+			.andExpect(jsonPath("message").value(equalTo("최대 손실율 알림이 비 활성화되었습니다")))
 			.andExpect(jsonPath("data").value(equalTo(null)));
 	}
 }

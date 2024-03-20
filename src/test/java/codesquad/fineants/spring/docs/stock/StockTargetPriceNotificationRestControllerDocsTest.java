@@ -1,4 +1,4 @@
-package codesquad.fineants.spring.docs.stock.stock_target_price;
+package codesquad.fineants.spring.docs.stock;
 
 import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -6,9 +6,12 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
 import static org.springframework.restdocs.headers.HeaderDocumentation.*;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.*;
+import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.delete;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
+import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.put;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
+import static org.springframework.restdocs.request.RequestDocumentation.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -23,17 +26,23 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
 import org.springframework.restdocs.payload.JsonFieldType;
-import org.springframework.restdocs.request.RequestDocumentation;
+import org.springframework.restdocs.snippet.Attributes;
 
+import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.stock.Stock;
+import codesquad.fineants.domain.stock_target_price.StockTargetPrice;
+import codesquad.fineants.domain.target_price_notification.TargetPriceNotification;
 import codesquad.fineants.spring.api.stock_target_price.controller.StockTargetPriceNotificationRestController;
 import codesquad.fineants.spring.api.stock_target_price.request.TargetPriceNotificationCreateRequest;
+import codesquad.fineants.spring.api.stock_target_price.request.TargetPriceNotificationUpdateRequest;
 import codesquad.fineants.spring.api.stock_target_price.response.TargetPriceItem;
 import codesquad.fineants.spring.api.stock_target_price.response.TargetPriceNotificationCreateResponse;
+import codesquad.fineants.spring.api.stock_target_price.response.TargetPriceNotificationDeleteResponse;
 import codesquad.fineants.spring.api.stock_target_price.response.TargetPriceNotificationSearchItem;
 import codesquad.fineants.spring.api.stock_target_price.response.TargetPriceNotificationSearchResponse;
 import codesquad.fineants.spring.api.stock_target_price.response.TargetPriceNotificationSpecificItem;
 import codesquad.fineants.spring.api.stock_target_price.response.TargetPriceNotificationSpecifiedSearchResponse;
+import codesquad.fineants.spring.api.stock_target_price.response.TargetPriceNotificationUpdateResponse;
 import codesquad.fineants.spring.api.stock_target_price.service.StockTargetPriceNotificationService;
 import codesquad.fineants.spring.docs.RestDocsSupport;
 import codesquad.fineants.spring.util.ObjectMapperUtil;
@@ -244,8 +253,8 @@ public class StockTargetPriceNotificationRestControllerDocsTest extends RestDocs
 					requestHeaders(
 						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
 					),
-					RequestDocumentation.pathParameters(
-						RequestDocumentation.parameterWithName("tickerSymbol").description("종목 티커 심볼")
+					pathParameters(
+						parameterWithName("tickerSymbol").description("종목 티커 심볼")
 					),
 					responseFields(
 						fieldWithPath("code").type(JsonFieldType.NUMBER)
@@ -266,4 +275,165 @@ public class StockTargetPriceNotificationRestControllerDocsTest extends RestDocs
 				)
 			);
 	}
+
+	@DisplayName("종목 지정가 알림 설정 수정 API")
+	@Test
+	void updateStockTargetPriceNotification() throws Exception {
+		// given
+		Member member = createMember();
+		Stock stock = createStock();
+		StockTargetPrice stockTargetPrice = createStockTargetPrice(member, stock);
+		given(service.updateStockTargetPriceNotification(
+			any(TargetPriceNotificationUpdateRequest.class),
+			anyLong()))
+			.willReturn(TargetPriceNotificationUpdateResponse.from(stockTargetPrice));
+
+		Map<String, Object> body = Map.of(
+			"tickerSymbol", "005930",
+			"isActive", true
+		);
+
+		// when & then
+		mockMvc.perform(put("/api/stocks/target-price/notifications")
+				.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(ObjectMapperUtil.serialize(body)))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("code").value(equalTo(200)))
+			.andExpect(jsonPath("status").value(equalTo("OK")))
+			.andExpect(jsonPath("message").value(equalTo("종목 지정가 알림을 활성화하였습니다")))
+			.andDo(
+				document(
+					"stock_target_price-update",
+					preprocessRequest(prettyPrint()),
+					preprocessResponse(prettyPrint()),
+					requestHeaders(
+						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
+					),
+					requestFields(
+						fieldWithPath("tickerSymbol").type(JsonFieldType.STRING).description("종목 티커 심볼"),
+						fieldWithPath("isActive").type(JsonFieldType.BOOLEAN).description("알림 활성화 여부")
+							.attributes(
+								Attributes.key("constraints").value(
+									String.join(",",
+										"true", "false"
+									)
+								))
+					),
+					responseFields(
+						fieldWithPath("code").type(JsonFieldType.NUMBER)
+							.description("코드"),
+						fieldWithPath("status").type(JsonFieldType.STRING)
+							.description("상태"),
+						fieldWithPath("message").type(JsonFieldType.STRING)
+							.description("메시지"),
+						fieldWithPath("data").type(JsonFieldType.NULL)
+							.description("응답 데이터")
+					)
+				)
+			);
+	}
+
+	@DisplayName("종목 지정가 알림 전체 제거")
+	@Test
+	void deleteAllStockTargetPriceNotification() throws Exception {
+		// given
+		given(service.deleteAllStockTargetPriceNotification(
+			anyList(),
+			anyString(),
+			anyLong()
+		)).willReturn(TargetPriceNotificationDeleteResponse.from(
+			List.of(1L, 2L)
+		));
+
+		Map<String, Object> body = Map.of(
+			"tickerSymbol", "005930",
+			"targetPriceNotificationIds", List.of(1, 2)
+		);
+
+		// when & then
+		mockMvc.perform(delete("/api/stocks/target-price/notifications")
+				.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(ObjectMapperUtil.serialize(body)))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("code").value(equalTo(200)))
+			.andExpect(jsonPath("status").value(equalTo("OK")))
+			.andExpect(jsonPath("message").value(equalTo("해당 종목 지정가 알림을 제거했습니다")))
+			.andDo(
+				document(
+					"stock_target_price-multiple-delete",
+					preprocessRequest(prettyPrint()),
+					preprocessResponse(prettyPrint()),
+					requestHeaders(
+						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
+					),
+					requestFields(
+						fieldWithPath("tickerSymbol").type(JsonFieldType.STRING).description("종목 티커 심볼"),
+						fieldWithPath("targetPriceNotificationIds").type(JsonFieldType.ARRAY)
+							.description("지정가 알림 등록 번호")
+					),
+					responseFields(
+						fieldWithPath("code").type(JsonFieldType.NUMBER)
+							.description("코드"),
+						fieldWithPath("status").type(JsonFieldType.STRING)
+							.description("상태"),
+						fieldWithPath("message").type(JsonFieldType.STRING)
+							.description("메시지"),
+						fieldWithPath("data").type(JsonFieldType.NULL)
+							.description("응답 데이터")
+					)
+				)
+			);
+	}
+
+	@DisplayName("종목 지정가 알림 단일 제거")
+	@Test
+	void deleteStockTargetPriceNotification() throws Exception {
+		// given
+		Member member = createMember();
+		Stock stock = createStock();
+		StockTargetPrice stockTargetPrice = createStockTargetPrice(member, stock);
+		TargetPriceNotification targetPriceNotification = createTargetPriceNotification(stockTargetPrice);
+
+		given(service.deleteStockTargetPriceNotification(
+			anyLong(),
+			anyLong()
+		)).willReturn(TargetPriceNotificationDeleteResponse.from(
+			List.of(1L)
+		));
+
+		// when & then
+		mockMvc.perform(delete("/api/stocks/target-price/notifications/{targetPriceNotificationId}",
+				targetPriceNotification.getId())
+				.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("code").value(equalTo(200)))
+			.andExpect(jsonPath("status").value(equalTo("OK")))
+			.andExpect(jsonPath("message").value(equalTo("해당 종목 지정가 알림을 제거했습니다")))
+			.andDo(
+				document(
+					"stock_target_price-one-delete",
+					preprocessRequest(prettyPrint()),
+					preprocessResponse(prettyPrint()),
+					requestHeaders(
+						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
+					),
+					pathParameters(
+						parameterWithName("targetPriceNotificationId").description("지정가 알림 등록번호")
+					),
+					responseFields(
+						fieldWithPath("code").type(JsonFieldType.NUMBER)
+							.description("코드"),
+						fieldWithPath("status").type(JsonFieldType.STRING)
+							.description("상태"),
+						fieldWithPath("message").type(JsonFieldType.STRING)
+							.description("메시지"),
+						fieldWithPath("data").type(JsonFieldType.NULL)
+							.description("응답 데이터")
+					)
+				)
+			);
+	}
+
 }

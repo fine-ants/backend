@@ -43,25 +43,15 @@ public class MemberNotificationRestController {
 			notificationService.fetchNotifications(memberId));
 	}
 
-	// 회원의 알림 모두 읽기
 	@HasNotificationAuthorization
-	@PatchMapping("/notifications")
-	public ApiResponse<Void> readAllNotifications(
+	@PutMapping("/notification/settings")
+	public ApiResponse<Void> updateNotificationPreference(
 		@PathVariable Long memberId,
-		@Valid @RequestBody MemberNotificationAllReadRequest request) {
-		List<Long> notificationIds = notificationService.readAllNotifications(memberId, request.getNotificationIds());
-		log.info("회원 알림 모두 읽기 처리 결과 : memberId={}, 읽은 알림 등록 번호={}", memberId, notificationIds);
-		return ApiResponse.success(MemberSuccessCode.OK_FETCH_ALL_NOTIFICATIONS);
-	}
-
-	@HasNotificationAuthorization
-	@PatchMapping("/notifications/{notificationId}")
-	public ApiResponse<Void> readNotification(
-		@PathVariable Long memberId,
-		@PathVariable Long notificationId) {
-		List<Long> notificationIds = notificationService.readAllNotifications(memberId, List.of(notificationId));
-		log.info("회원 알림 모두 읽기 처리 결과 : memberId={}, 읽은 알림 등록 번호={}", memberId, notificationIds);
-		return ApiResponse.success(MemberSuccessCode.OK_FETCH_ALL_NOTIFICATIONS);
+		@Valid @RequestBody MemberNotificationPreferenceRequest request) {
+		MemberNotificationPreferenceResponse response = preferenceService.updateNotificationPreference(memberId,
+			request);
+		log.info("회원 알림 설정 수정 처리 결과 : memberId={}, response={}", memberId, response);
+		return ApiResponse.success(MemberSuccessCode.OK_UPDATE_NOTIFICATION_PREFERENCE);
 	}
 
 	@HasNotificationAuthorization
@@ -90,14 +80,24 @@ public class MemberNotificationRestController {
 		return ApiResponse.success(MemberSuccessCode.OK_DELETED_NOTIFICATION);
 	}
 
+	// 회원의 알림 모두 읽기
 	@HasNotificationAuthorization
-	@PutMapping("/notification/settings")
-	public ApiResponse<Void> updateNotificationPreference(
+	@PatchMapping("/notifications")
+	public ApiResponse<Void> readAllNotifications(
 		@PathVariable Long memberId,
-		@Valid @RequestBody MemberNotificationPreferenceRequest request) {
-		MemberNotificationPreferenceResponse response = preferenceService.updateNotificationPreference(memberId,
-			request);
-		log.info("회원 알림 설정 수정 처리 결과 : memberId={}, response={}", memberId, response);
-		return ApiResponse.success(MemberSuccessCode.OK_UPDATE_NOTIFICATION_PREFERENCE);
+		@Valid @RequestBody MemberNotificationAllReadRequest request) {
+		List<Long> notificationIds = notificationService.readAllNotifications(memberId, request.getNotificationIds());
+		log.info("회원 알림 모두 읽기 처리 결과 : memberId={}, 읽은 알림 등록 번호={}", memberId, notificationIds);
+		return ApiResponse.success(MemberSuccessCode.OK_FETCH_ALL_NOTIFICATIONS);
+	}
+
+	@HasNotificationAuthorization
+	@PatchMapping("/notifications/{notificationId}")
+	public ApiResponse<Void> readNotification(
+		@PathVariable Long memberId,
+		@PathVariable Long notificationId) {
+		List<Long> notificationIds = notificationService.readAllNotifications(memberId, List.of(notificationId));
+		log.info("회원 알림 모두 읽기 처리 결과 : memberId={}, 읽은 알림 등록 번호={}", memberId, notificationIds);
+		return ApiResponse.success(MemberSuccessCode.OK_FETCH_ALL_NOTIFICATIONS);
 	}
 }

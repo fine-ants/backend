@@ -1,5 +1,15 @@
 package codesquad.fineants.spring.api.portfolio_stock.response;
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+
+@Getter
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@ToString
 public class PortfolioPieChartItem {
 	private String name;
 	private Long valuation;
@@ -11,13 +21,9 @@ public class PortfolioPieChartItem {
 		this(name, valuation, weight, 0L, 0.0);
 	}
 
-	public PortfolioPieChartItem(String name, Long valuation, Double weight, Long totalGain,
+	public static PortfolioPieChartItem stock(String name, Long valuation, Double weight, Long totalGain,
 		Double totalGainRate) {
-		this.name = name;
-		this.valuation = valuation;
-		this.weight = weight;
-		this.totalGain = totalGain;
-		this.totalGainRate = totalGainRate;
+		return new PortfolioPieChartItem(name, valuation, weight, totalGain, totalGainRate);
 	}
 
 	public static PortfolioPieChartItem cash(Double weight, Long balance) {

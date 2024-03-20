@@ -6,11 +6,18 @@ import codesquad.fineants.domain.stock.Market;
 import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Getter
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
+@ToString
 public class StockResponse {
 	private String stockCode;
 	private String tickerSymbol;
@@ -24,6 +31,25 @@ public class StockResponse {
 	private Long annualDividend;
 	private Double annualDividendYield;
 	private List<Integer> dividendMonths;
+
+	public static StockResponse create(String stockCode, String tickerSymbol, String companyName,
+		String companyNameEng, Market market, Long currentPrice, Long dailyChange, Double dailyChangeRate,
+		String sector, Long annualDividend, Double annualDividendYield, List<Integer> dividendMonths) {
+		return StockResponse.builder()
+			.stockCode(stockCode)
+			.tickerSymbol(tickerSymbol)
+			.companyName(companyName)
+			.companyNameEng(companyNameEng)
+			.market(market)
+			.currentPrice(currentPrice)
+			.dailyChange(dailyChange)
+			.dailyChangeRate(dailyChangeRate)
+			.sector(sector)
+			.annualDividend(annualDividend)
+			.annualDividendYield(annualDividendYield)
+			.dividendMonths(dividendMonths)
+			.build();
+	}
 
 	public static StockResponse of(Stock stock, CurrentPriceManager currentPriceManager,
 		LastDayClosingPriceManager lastDayClosingPriceManager) {
