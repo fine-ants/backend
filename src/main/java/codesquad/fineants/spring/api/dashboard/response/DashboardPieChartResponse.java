@@ -3,10 +3,14 @@ package codesquad.fineants.spring.api.dashboard.response;
 import codesquad.fineants.domain.portfolio.Portfolio;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.ToString;
 
 @Getter
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
+@ToString
+@EqualsAndHashCode
 public class DashboardPieChartResponse {
 	private Long id;
 	private String name;

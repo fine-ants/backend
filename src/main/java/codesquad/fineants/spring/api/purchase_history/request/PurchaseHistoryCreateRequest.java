@@ -30,6 +30,16 @@ public class PurchaseHistoryCreateRequest {
 	private Double purchasePricePerShare;
 	private String memo;
 
+	public static PurchaseHistoryCreateRequest create(LocalDateTime purchaseDate, Long numShares,
+		Double purchasePricePerShare, String memo) {
+		return PurchaseHistoryCreateRequest.builder()
+			.purchaseDate(purchaseDate)
+			.numShares(numShares)
+			.purchasePricePerShare(purchasePricePerShare)
+			.memo(memo)
+			.build();
+	}
+
 	public PurchaseHistory toEntity(PortfolioHolding portfolioHolding) {
 		return PurchaseHistory.builder()
 			.purchaseDate(purchaseDate)

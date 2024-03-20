@@ -5,7 +5,10 @@ import java.time.LocalDateTime;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Positive;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 @Getter
@@ -16,6 +19,9 @@ public class PortfolioHoldingCreateRequest {
 	private PurchaseHistoryCreateRequest purchaseHistory;
 
 	@ToString
+	@NoArgsConstructor
+	@AllArgsConstructor
+	@Builder
 	@Getter
 	public static class PurchaseHistoryCreateRequest {
 		private LocalDateTime purchaseDate;
@@ -24,6 +30,16 @@ public class PortfolioHoldingCreateRequest {
 		@Positive(message = "매입가는 양수여야 합니다")
 		private Double purchasePricePerShare;
 		private String memo;
+
+		public static PurchaseHistoryCreateRequest create(LocalDateTime purchaseDate, Long numShares,
+			Double purchasePricePerShare, String memo) {
+			return PurchaseHistoryCreateRequest.builder()
+				.purchaseDate(purchaseDate)
+				.numShares(numShares)
+				.purchasePricePerShare(purchasePricePerShare)
+				.memo(memo)
+				.build();
+		}
 	}
 
 	public boolean isPurchaseHistoryAllNull() {

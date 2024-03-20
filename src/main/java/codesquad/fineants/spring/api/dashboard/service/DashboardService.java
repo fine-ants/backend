@@ -2,6 +2,7 @@ package codesquad.fineants.spring.api.dashboard.service;
 
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -80,6 +81,12 @@ public class DashboardService {
 		for (Portfolio portfolio : portfolios) {
 			pieChartResponses.add(DashboardPieChartResponse.of(portfolio, totalValuation));
 		}
+		// 정렬
+		// 1. 가치(평가금액+현금) 기준 내림차순
+		// 2. 총손익 기준 내림차순
+		pieChartResponses.sort(
+			((Comparator<DashboardPieChartResponse>)(o1, o2) -> Long.compare(o2.getValuation(), o1.getValuation()))
+				.thenComparing((o1, o2) -> Long.compare(o2.getTotalGain(), o1.getTotalGain())));
 		return pieChartResponses;
 	}
 
