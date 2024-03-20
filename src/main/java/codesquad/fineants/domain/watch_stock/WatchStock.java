@@ -1,5 +1,7 @@
 package codesquad.fineants.domain.watch_stock;
 
+import java.time.LocalDateTime;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -35,7 +37,10 @@ public class WatchStock extends BaseEntity {
 	private Stock stock;
 
 	@Builder
-	public WatchStock(WatchList watchList, Stock stock){
+	public WatchStock(LocalDateTime createAt, LocalDateTime modifiedAt, Long id, WatchList watchList,
+		Stock stock) {
+		super(createAt, modifiedAt);
+		this.id = id;
 		this.watchList = watchList;
 		this.stock = stock;
 	}

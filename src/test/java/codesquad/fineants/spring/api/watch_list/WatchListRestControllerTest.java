@@ -381,8 +381,8 @@ class WatchListRestControllerTest {
 
 		String tickerSymbol = "005930";
 		List<WatchListHasStockResponse> response = List.of(
-			new WatchListHasStockResponse(1L, "My WatchList1", true),
-			new WatchListHasStockResponse(2L, "My WatchList2", false)
+			WatchListHasStockResponse.create(1L, "My WatchList1", true),
+			WatchListHasStockResponse.create(2L, "My WatchList2", false)
 		);
 		given(watchListService.hasStock(any(AuthMember.class), any(String.class))).willReturn(response);
 
