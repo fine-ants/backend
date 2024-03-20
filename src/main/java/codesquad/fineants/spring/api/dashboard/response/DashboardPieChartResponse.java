@@ -15,6 +15,11 @@ public class DashboardPieChartResponse {
 	private Long totalGain;
 	private Double totalGainRate;
 
+	public static DashboardPieChartResponse create(Long id, String name, Long valuation, Double weight, Long totalGain,
+		Double totalGainRate) {
+		return new DashboardPieChartResponse(id, name, valuation, weight, totalGain, totalGainRate);
+	}
+
 	public static DashboardPieChartResponse of(Portfolio portfolio, Long totalValuation) {
 		return new DashboardPieChartResponse(portfolio.getId(), portfolio.getName(), portfolio.calculateTotalAsset()
 			, ((double)portfolio.calculateTotalAsset() / totalValuation) * 100, portfolio.calculateTotalGain(),
