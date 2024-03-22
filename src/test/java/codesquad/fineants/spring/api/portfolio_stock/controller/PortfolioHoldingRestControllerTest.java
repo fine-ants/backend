@@ -66,6 +66,7 @@ import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioSectorCha
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioStockCreateResponse;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioStockDeletesResponse;
 import codesquad.fineants.spring.api.portfolio_stock.service.PortfolioHoldingService;
+import codesquad.fineants.spring.api.portfolio_stock.service.PortfolioObservableService;
 import codesquad.fineants.spring.api.portfolio_stock.service.StockMarketChecker;
 import codesquad.fineants.spring.auth.HasPortfolioAuthorizationAspect;
 import codesquad.fineants.spring.config.JacksonConfig;
@@ -106,6 +107,9 @@ class PortfolioHoldingRestControllerTest {
 
 	@MockBean
 	private CurrentPriceManager currentPriceManager;
+
+	@MockBean
+	private PortfolioObservableService portfolioObservableService;
 
 	private PieChart pieChart;
 

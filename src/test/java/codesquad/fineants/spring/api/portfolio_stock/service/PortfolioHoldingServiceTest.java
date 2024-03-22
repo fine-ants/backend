@@ -450,7 +450,7 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		Long portfolioHoldingId = portfolioHolding.getId();
 		// when
 		PortfolioStockDeleteResponse response = service.deletePortfolioStock(
-			portfolioHoldingId, portfolio.getId(), AuthMember.from(member));
+			portfolioHoldingId, AuthMember.from(member));
 
 		// then
 		assertAll(
@@ -470,7 +470,7 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 
 		// when
 		Throwable throwable = catchThrowable(() -> service.deletePortfolioStock(
-			portfolioStockId, portfolio.getId(), AuthMember.from(member)));
+			portfolioStockId, AuthMember.from(member)));
 
 		// then
 		assertThat(throwable).isInstanceOf(NotFoundResourceException.class).extracting("message")
