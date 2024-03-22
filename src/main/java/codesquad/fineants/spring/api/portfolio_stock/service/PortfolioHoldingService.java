@@ -115,8 +115,7 @@ public class PortfolioHoldingService {
 	}
 
 	@Transactional
-	public PortfolioStockDeleteResponse deletePortfolioStock(Long portfolioHoldingId, Long portfolioId,
-		AuthMember authMember) {
+	public PortfolioStockDeleteResponse deletePortfolioStock(Long portfolioHoldingId, AuthMember authMember) {
 		log.info("포트폴리오 종목 삭제 서비스 : portfolioHoldingId={}, authMember={}", portfolioHoldingId, authMember);
 
 		purchaseHistoryRepository.deleteAllByPortfolioHoldingIdIn(List.of(portfolioHoldingId));

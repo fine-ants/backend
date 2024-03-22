@@ -5,9 +5,11 @@ import codesquad.fineants.domain.portfolio_gain_history.PortfolioGainHistory;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.ToString;
 
 @Getter
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
+@ToString
 public class PortfolioDetailRealTimeItem {
 	private Long currentValuation;
 	private Long totalGain;
