@@ -15,8 +15,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class HoldingSseEventListener {
 
-	private static final String EVENT_NAME = "portfolioDetails";
-	private static final String COMPLETE_NAME = "complete";
+	public static final String EVENT_NAME = "portfolioDetails";
+	public static final String COMPLETE_NAME = "complete";
 
 	private final StockMarketChecker stockMarketChecker;
 	private final SseEmitterManager manager;

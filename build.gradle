@@ -91,6 +91,9 @@ dependencies {
     // Rest Docs
     asciidoctorExt 'org.springframework.restdocs:spring-restdocs-asciidoctor'
     testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
+
+    // RxJava
+    implementation 'io.reactivex.rxjava3:rxjava:3.1.8'
 }
 
 tasks.named('test') {
