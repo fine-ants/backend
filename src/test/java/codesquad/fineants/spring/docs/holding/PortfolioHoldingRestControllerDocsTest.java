@@ -41,16 +41,19 @@ import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioPieChartI
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioSectorChartItem;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioStockCreateResponse;
 import codesquad.fineants.spring.api.portfolio_stock.service.PortfolioHoldingService;
+import codesquad.fineants.spring.api.portfolio_stock.service.PortfolioObservableService;
 import codesquad.fineants.spring.docs.RestDocsSupport;
 import codesquad.fineants.spring.util.ObjectMapperUtil;
 
 public class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 
-	private PortfolioHoldingService service = Mockito.mock(PortfolioHoldingService.class);
+	private final PortfolioHoldingService service = Mockito.mock(PortfolioHoldingService.class);
+	private final PortfolioObservableService portfolioObservableService = Mockito.mock(
+		PortfolioObservableService.class);
 
 	@Override
 	protected Object initController() {
-		return new PortfolioHoldingRestController(service);
+		return new PortfolioHoldingRestController(service, portfolioObservableService);
 	}
 
 	@DisplayName("포트폴리오 종목 생성 API")

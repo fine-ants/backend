@@ -25,6 +25,7 @@ import codesquad.fineants.spring.api.portfolio_stock.request.PortfolioStocksDele
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioChartResponse;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioHoldingsResponse;
 import codesquad.fineants.spring.api.portfolio_stock.service.PortfolioHoldingService;
+import codesquad.fineants.spring.api.portfolio_stock.service.PortfolioObservableService;
 import codesquad.fineants.spring.auth.HasPortfolioAuthorization;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +37,7 @@ import lombok.extern.slf4j.Slf4j;
 public class PortfolioHoldingRestController {
 
 	private final PortfolioHoldingService portfolioHoldingService;
+	private final PortfolioObservableService portfolioObservableService;
 
 	// 포트폴리오 종목 생성
 	@HasPortfolioAuthorization
@@ -60,11 +62,11 @@ public class PortfolioHoldingRestController {
 	// 포트폴리오 종목 실시간 조회
 	@HasPortfolioAuthorization
 	@GetMapping(value = "/holdings/realtime", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-	public SseEmitter readPortfolioHoldingsInRealTime(
+	public SseEmitter observePortfolioHoldings(
 		@PathVariable Long portfolioId,
 		@AuthPrincipalMember AuthMember authMember
 	) {
-		return portfolioHoldingService.addSseEmitter(portfolioId);
+		return portfolioObservableService.observePortfolioHoldings(portfolioId);
 	}
 
 	// 포트폴리오 차트 조회
@@ -82,7 +84,7 @@ public class PortfolioHoldingRestController {
 	public ApiResponse<Void> deletePortfolioHolding(@PathVariable Long portfolioId,
 		@AuthPrincipalMember AuthMember authMember,
 		@PathVariable Long portfolioHoldingId) {
-		portfolioHoldingService.deletePortfolioStock(portfolioHoldingId, portfolioId, authMember);
+		portfolioHoldingService.deletePortfolioStock(portfolioHoldingId, authMember);
 		return ApiResponse.success(PortfolioStockSuccessCode.OK_DELETE_PORTFOLIO_STOCK);
 	}
 
