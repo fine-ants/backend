@@ -62,20 +62,11 @@ public class PortfolioHoldingRestController {
 	// 포트폴리오 종목 실시간 조회
 	@HasPortfolioAuthorization
 	@GetMapping(value = "/holdings/realtime", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-	public SseEmitter readPortfolioHoldingsInRealTime(
+	public SseEmitter observePortfolioHoldings(
 		@PathVariable Long portfolioId,
 		@AuthPrincipalMember AuthMember authMember
 	) {
-		return portfolioHoldingService.addSseEmitter(portfolioId);
-	}
-
-	@HasPortfolioAuthorization
-	@GetMapping("/holdings/v1/realtime")
-	public SseEmitter readPortfolioHoldingsInRealTimeV1(
-		@PathVariable Long portfolioId,
-		@AuthPrincipalMember AuthMember authMember
-	) {
-		return portfolioObservableService.readPortfolioHoldingsInRealTimeV1(portfolioId);
+		return portfolioObservableService.observePortfolioHoldings(portfolioId);
 	}
 
 	// 포트폴리오 차트 조회

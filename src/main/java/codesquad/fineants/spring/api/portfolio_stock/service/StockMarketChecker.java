@@ -16,14 +16,15 @@ public class StockMarketChecker {
 		DayOfWeek dayOfWeek = dateTime.getDayOfWeek();
 		LocalTime currentTime = dateTime.toLocalTime();
 
-		if (dayOfWeek == DayOfWeek.SATURDAY || dayOfWeek == DayOfWeek.SUNDAY) {
+		if (isWeekend(dayOfWeek)) {
 			return false;
 		}
 
 		// 평일인 경우 개장 시간과 폐장 시간 사이에 있는지 확인한다
-		if (currentTime.isAfter(MARKET_OPEN_TIME) && currentTime.isBefore(MARKET_CLOSE_TIME)) {
-			return true;
-		}
-		return false;
+		return currentTime.isAfter(MARKET_OPEN_TIME) && currentTime.isBefore(MARKET_CLOSE_TIME);
+	}
+
+	private boolean isWeekend(DayOfWeek dayOfWeek) {
+		return dayOfWeek == DayOfWeek.SATURDAY || dayOfWeek == DayOfWeek.SUNDAY;
 	}
 }

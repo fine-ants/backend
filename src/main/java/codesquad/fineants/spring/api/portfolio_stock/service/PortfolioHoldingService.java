@@ -1,13 +1,11 @@
 package codesquad.fineants.spring.api.portfolio_stock.service;
 
-import java.time.Duration;
 import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.portfolio.Portfolio;
@@ -31,8 +29,6 @@ import codesquad.fineants.spring.api.portfolio_stock.chart.SectorChart;
 import codesquad.fineants.spring.api.portfolio_stock.event.publisher.PortfolioHoldingEventPublisher;
 import codesquad.fineants.spring.api.portfolio_stock.factory.PortfolioDetailFactory;
 import codesquad.fineants.spring.api.portfolio_stock.factory.PortfolioHoldingDetailFactory;
-import codesquad.fineants.spring.api.portfolio_stock.manager.SseEmitterKey;
-import codesquad.fineants.spring.api.portfolio_stock.manager.SseEmitterManager;
 import codesquad.fineants.spring.api.portfolio_stock.request.PortfolioHoldingCreateRequest;
 import codesquad.fineants.spring.api.portfolio_stock.request.PortfolioStocksDeleteRequest;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioChartResponse;
@@ -66,7 +62,6 @@ public class PortfolioHoldingService {
 	private final PortfolioDetailFactory portfolioDetailFactory;
 	private final PortfolioHoldingDetailFactory portfolioHoldingDetailFactory;
 	private final PortfolioHoldingEventPublisher publisher;
-	private final SseEmitterManager manager;
 
 	@Transactional
 	public PortfolioStockCreateResponse createPortfolioHolding(Long portfolioId, PortfolioHoldingCreateRequest request,
@@ -93,25 +88,6 @@ public class PortfolioHoldingService {
 		publisher.publishPortfolioHolding(stock.getTickerSymbol());
 		log.info("포트폴리오 종목 추가 결과 : {}", saveHolding);
 		return PortfolioStockCreateResponse.from(saveHolding);
-	}
-
-	public SseEmitter addSseEmitter(Long portfolioId) {
-		SseEmitter emitter = new SseEmitter(Duration.ofSeconds(30).toMillis());
-		SseEmitterKey key = SseEmitterKey.create(portfolioId);
-		emitter.onTimeout(() -> {
-			log.info("emitter{} timeout으로 인한 제거", portfolioId);
-			emitter.complete();
-		});
-		emitter.onCompletion(() -> {
-			log.info("emitter{} completion으로 인한 제거", portfolioId);
-			manager.remove(key);
-		});
-		emitter.onError(throwable -> {
-			log.error(throwable.getMessage(), throwable);
-			emitter.complete();
-		});
-		manager.add(key, emitter);
-		return emitter;
 	}
 
 	@Transactional

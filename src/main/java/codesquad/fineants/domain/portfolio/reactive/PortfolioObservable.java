@@ -17,27 +17,25 @@ public class PortfolioObservable {
 	public Observable<PortfolioHoldingsRealTimeResponse> getPortfolioInfo(Long portfolioId) {
 		return Observable.create(emitter ->
 			Observable.interval(5, TimeUnit.SECONDS)
+				.take(6)
 				.subscribe(i -> {
 					if (!emitter.isDisposed()) {
 						log.debug("PortfolioObservable {}", i);
-						if (i >= 6) {
-							emitter.onComplete();
-						} else {
-							try {
-								emitter.onNext(service.readMyPortfolioStocksInRealTime(portfolioId));
-							} catch (Exception e) {
-								emitter.onError(e);
-							}
+						try {
+							emitter.onNext(service.readMyPortfolioStocksInRealTime(portfolioId));
+						} catch (Exception e) {
+							emitter.onError(e);
 						}
 					}
 				}));
 	}
 
 	public Observable<String> getCloseStockMarket() {
+		String dummyContent = "sse complete";
 		return Observable.create(emitter -> {
 			if (!emitter.isDisposed()) {
 				try {
-					emitter.onNext("sse complete");
+					emitter.onNext(dummyContent);
 					emitter.onComplete();
 				} catch (Exception e) {
 					emitter.onError(e);

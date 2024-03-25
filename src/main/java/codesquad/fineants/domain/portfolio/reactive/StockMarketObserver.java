@@ -1,7 +1,5 @@
 package codesquad.fineants.domain.portfolio.reactive;
 
-import static codesquad.fineants.spring.api.portfolio_stock.event.listener.HoldingSseEventListener.*;
-
 import java.io.IOException;
 
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -9,14 +7,20 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.Observer;
 import io.reactivex.rxjava3.disposables.Disposable;
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@RequiredArgsConstructor
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class StockMarketObserver implements Observer<String> {
 
+	private static final String COMPLETE_NAME = "complete";
 	private final SseEmitter emitter;
+
+	public static StockMarketObserver create(SseEmitter emitter) {
+		return new StockMarketObserver(emitter);
+	}
 
 	@Override
 	public void onSubscribe(@NonNull Disposable d) {

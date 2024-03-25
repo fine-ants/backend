@@ -55,7 +55,6 @@ import codesquad.fineants.spring.api.portfolio.service.PortFolioService;
 import codesquad.fineants.spring.api.portfolio_stock.chart.DividendChart;
 import codesquad.fineants.spring.api.portfolio_stock.chart.PieChart;
 import codesquad.fineants.spring.api.portfolio_stock.chart.SectorChart;
-import codesquad.fineants.spring.api.portfolio_stock.manager.SseEmitterManager;
 import codesquad.fineants.spring.api.portfolio_stock.request.PortfolioHoldingCreateRequest;
 import codesquad.fineants.spring.api.portfolio_stock.request.PortfolioStocksDeleteRequest;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioChartResponse;
@@ -101,9 +100,6 @@ class PortfolioHoldingRestControllerTest {
 
 	@MockBean
 	private PortFolioService portFolioService;
-
-	@MockBean
-	private SseEmitterManager manager;
 
 	@MockBean
 	private CurrentPriceManager currentPriceManager;

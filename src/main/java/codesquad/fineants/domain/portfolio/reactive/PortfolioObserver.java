@@ -1,7 +1,5 @@
 package codesquad.fineants.domain.portfolio.reactive;
 
-import static codesquad.fineants.spring.api.portfolio_stock.event.listener.HoldingSseEventListener.*;
-
 import java.io.IOException;
 
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -10,24 +8,30 @@ import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioHoldingsR
 import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.Observer;
 import io.reactivex.rxjava3.disposables.Disposable;
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@RequiredArgsConstructor
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class PortfolioObserver implements Observer<PortfolioHoldingsRealTimeResponse> {
 
+	public static final String EVENT_NAME = "portfolioDetails";
 	private final SseEmitter emitter;
+
+	public static PortfolioObserver create(SseEmitter emitter) {
+		return new PortfolioObserver(emitter);
+	}
 
 	@Override
 	public void onSubscribe(@NonNull Disposable d) {
 	}
 
 	@Override
-	public void onNext(@NonNull PortfolioHoldingsRealTimeResponse info) {
+	public void onNext(@NonNull PortfolioHoldingsRealTimeResponse data) {
 		try {
 			emitter.send(SseEmitter.event()
-				.data(info)
+				.data(data)
 				.name(EVENT_NAME));
 		} catch (IOException e) {
 			onError(e);

@@ -22,6 +22,7 @@ services:
   redis:
     container_name: fineAnts_redis
     image: redis:latest
+    restart: always
     volumes:
       - ./redis.conf:/usr/local/etc/redis/redis.conf
     command: redis-server /usr/local/etc/redis/redis.conf

@@ -21,17 +21,16 @@ public class PortfolioObservableService {
 	private final PortfolioObservable portfolioObservable;
 	private final StockMarketChecker stockMarketChecker;
 
-	public SseEmitter readPortfolioHoldingsInRealTimeV1(Long portfolioId) {
+	public SseEmitter observePortfolioHoldings(Long portfolioId) {
 		SseEmitter emitter = createSseEmitter(portfolioId);
 
 		if (stockMarketChecker.isMarketOpen(LocalDateTime.now())) {
 			portfolioObservable.getPortfolioInfo(portfolioId)
-				.subscribe(new PortfolioObserver(emitter));
+				.subscribe(PortfolioObserver.create(emitter));
 			return emitter;
 		}
 		portfolioObservable.getCloseStockMarket()
-			.subscribe(new StockMarketObserver(emitter));
-
+			.subscribe(StockMarketObserver.create(emitter));
 		return emitter;
 	}
 

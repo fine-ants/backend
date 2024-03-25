@@ -19,6 +19,17 @@ public class SignUpServiceRequest {
 	private String passwordConfirm;
 	private MultipartFile profileImageFile;
 
+	public static SignUpServiceRequest create(String nickname, String email, String password, String passwordConfirm,
+		MultipartFile profileImageFile) {
+		return SignUpServiceRequest.builder()
+			.nickname(nickname)
+			.email(email)
+			.password(password)
+			.passwordConfirm(passwordConfirm)
+			.profileImageFile(profileImageFile)
+			.build();
+	}
+
 	public static SignUpServiceRequest of(SignUpRequest request, MultipartFile profileImageFile) {
 		return SignUpServiceRequest.builder()
 			.nickname(request.getNickname())
