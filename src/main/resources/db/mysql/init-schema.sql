@@ -10,7 +10,7 @@ create table if not exists fineAnts.member
     create_at   datetime     null,
     modified_at datetime     null,
     email       varchar(255) null,
-    nickname    varchar(255) null,
+    nickname varchar(255) not null unique,
     password    varchar(255) null,
     profile_url varchar(255) null,
     provider    varchar(255) null
