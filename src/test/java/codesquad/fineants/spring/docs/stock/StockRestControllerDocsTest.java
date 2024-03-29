@@ -2,6 +2,7 @@ package codesquad.fineants.spring.docs.stock;
 
 import static org.hamcrest.Matchers.*;
 import static org.mockito.BDDMockito.*;
+import static org.springframework.restdocs.headers.HeaderDocumentation.*;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.*;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.*;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
@@ -17,6 +18,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.payload.JsonFieldType;
 
@@ -25,6 +27,7 @@ import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
 import codesquad.fineants.spring.api.stock.controller.StockRestController;
 import codesquad.fineants.spring.api.stock.request.StockSearchRequest;
+import codesquad.fineants.spring.api.stock.response.StockRefreshResponse;
 import codesquad.fineants.spring.api.stock.response.StockResponse;
 import codesquad.fineants.spring.api.stock.response.StockSearchItem;
 import codesquad.fineants.spring.api.stock.service.StockService;
@@ -98,6 +101,52 @@ public class StockRestControllerDocsTest extends RestDocsSupport {
 				)
 			);
 
+	}
+
+	@DisplayName("종목 최신화 API")
+	@Test
+	void refreshStocks() throws Exception {
+		// given
+		Stock stock = createStock();
+		given(service.refreshStocks())
+			.willReturn(StockRefreshResponse.create(
+				List.of("123456", "234567"),
+				List.of("345678", "456789")
+			));
+
+		// when & then
+		mockMvc.perform(post("/api/stocks/refresh")
+				.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("code").value(equalTo(200)))
+			.andExpect(jsonPath("status").value(equalTo("OK")))
+			.andExpect(jsonPath("message").value(equalTo("종목 최신화가 완료되었습니다")))
+			.andExpect(jsonPath("data.addedStocks").value(equalTo(List.of("123456", "234567"))))
+			.andExpect(jsonPath("data.deletedStocks").value(equalTo(List.of("345678", "456789"))))
+			.andDo(
+				document(
+					"stock-refresh",
+					preprocessRequest(prettyPrint()),
+					preprocessResponse(prettyPrint()),
+					requestHeaders(
+						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
+					),
+					responseFields(
+						fieldWithPath("code").type(JsonFieldType.NUMBER)
+							.description("코드"),
+						fieldWithPath("status").type(JsonFieldType.STRING)
+							.description("상태"),
+						fieldWithPath("message").type(JsonFieldType.STRING)
+							.description("메시지"),
+						fieldWithPath("data").type(JsonFieldType.OBJECT)
+							.description("응답 데이터"),
+						fieldWithPath("data.addedStocks").type(JsonFieldType.ARRAY)
+							.description("상장된 종목 티커 심볼 리스트"),
+						fieldWithPath("data.deletedStocks").type(JsonFieldType.ARRAY)
+							.description("폐지된 종목 티커 심볼 리스트")
+					)
+				)
+			);
 	}
 
 	@DisplayName("종목 상세 정보 조회 API")

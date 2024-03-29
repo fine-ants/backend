@@ -91,6 +91,13 @@ public class StockService {
 		return StockResponse.of(stock, currentPriceManager, lastDayClosingPriceManager);
 	}
 
+	@Scheduled(cron = "0 0 8 * * ?") // 매일 오전 8시 (초, 분, 시간)
+	@Transactional
+	public void scheduledRefreshStocks() {
+		StockRefreshResponse response = refreshStocks();
+		log.info("refreshStocks response : {}", response);
+	}
+
 	// 최신 종목을 조회하고 데이터베이스의 종목 데이터들을 최신화한다
 	@Transactional
 	public StockRefreshResponse refreshStocks() {

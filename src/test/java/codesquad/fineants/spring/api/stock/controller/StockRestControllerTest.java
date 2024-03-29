@@ -1,4 +1,4 @@
-package codesquad.fineants.spring.api.stock;
+package codesquad.fineants.spring.api.stock.controller;
 
 import static org.hamcrest.Matchers.*;
 import static org.mockito.BDDMockito.*;
@@ -25,7 +25,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import codesquad.fineants.domain.oauth.support.AuthPrincipalArgumentResolver;
 import codesquad.fineants.domain.stock.Market;
 import codesquad.fineants.spring.api.common.errors.handler.GlobalExceptionHandler;
-import codesquad.fineants.spring.api.stock.controller.StockRestController;
 import codesquad.fineants.spring.api.stock.response.StockResponse;
 import codesquad.fineants.spring.api.stock.service.StockService;
 import codesquad.fineants.spring.config.JpaAuditingConfiguration;
@@ -62,7 +61,7 @@ public class StockRestControllerTest {
 			.alwaysDo(print())
 			.build();
 	}
-
+	
 	@DisplayName("주식 종목을 조회한다.")
 	@Test
 	void getStock() throws Exception {
