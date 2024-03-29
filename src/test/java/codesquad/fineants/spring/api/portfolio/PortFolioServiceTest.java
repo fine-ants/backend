@@ -291,7 +291,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 			PortfolioModifyRequest.class);
 		Long portfolioId = originPortfolio.getId();
 
-		Member hacker = memberRepository.save(createMember("hack1234@naver.com"));
+		Member hacker = memberRepository.save(createMember("hacker1234", "hack1234@naver.com"));
 		// when
 		Throwable throwable = catchThrowable(
 			() -> service.updatePortfolio(request, portfolioId, AuthMember.from(hacker)));
@@ -464,12 +464,12 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 	}
 
 	private Member createMember() {
-		return createMember("kim1234@gmail.com");
+		return createMember("일개미1234", "kim1234@gmail.com");
 	}
 
-	private Member createMember(String email) {
+	private Member createMember(String nickname, String email) {
 		return Member.builder()
-			.nickname("일개미1234")
+			.nickname(nickname)
 			.email(email)
 			.password("kim1234@")
 			.provider("local")

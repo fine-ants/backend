@@ -9,8 +9,8 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import codesquad.fineants.domain.oauth.support.AuthPrincipalArgumentResolver;
+import codesquad.fineants.spring.api.member.controller.intercetpor.LogoutInterceptor;
 import codesquad.fineants.spring.converter.SseEventStreamMessageConverter;
-import codesquad.fineants.spring.intercetpor.LogoutInterceptor;
 import lombok.RequiredArgsConstructor;
 
 @Configuration

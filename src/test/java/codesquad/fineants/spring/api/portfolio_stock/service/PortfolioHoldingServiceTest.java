@@ -552,7 +552,7 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		PortfolioHolding portfolioHolding = portFolioHoldingRepository.save(createPortfolioHolding(portfolio, stock1));
 		PurchaseHistory purchaseHistory = purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding));
 
-		Member member2 = memberRepository.save(createMember());
+		Member member2 = memberRepository.save(createMember("일개미2222", "user2@gmail.com"));
 		Portfolio portfolio2 = portfolioRepository.save(createPortfolio(member2));
 		PortfolioHolding portfolioHolding2 = portFolioHoldingRepository.save(
 			createPortfolioHolding(portfolio2, stock1));

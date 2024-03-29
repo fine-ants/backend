@@ -38,12 +38,12 @@ import codesquad.fineants.domain.purchase_history.PurchaseHistory;
 import codesquad.fineants.domain.stock.Market;
 import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.spring.api.common.errors.handler.GlobalExceptionHandler;
+import codesquad.fineants.spring.api.portfolio.aop.HasPortfolioAuthorizationAspect;
 import codesquad.fineants.spring.api.portfolio.service.PortFolioService;
 import codesquad.fineants.spring.api.portfolio_notification.controller.PortfolioNotificationRestController;
 import codesquad.fineants.spring.api.portfolio_notification.request.PortfolioNotificationUpdateRequest;
 import codesquad.fineants.spring.api.portfolio_notification.response.PortfolioNotificationUpdateResponse;
 import codesquad.fineants.spring.api.portfolio_notification.service.PortfolioNotificationService;
-import codesquad.fineants.spring.auth.HasPortfolioAuthorizationAspect;
 import codesquad.fineants.spring.config.JpaAuditingConfiguration;
 import codesquad.fineants.spring.config.SpringConfig;
 

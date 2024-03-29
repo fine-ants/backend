@@ -1,4 +1,4 @@
-package codesquad.fineants.spring.intercetpor;
+package codesquad.fineants.spring.api.member.controller.intercetpor;
 
 import static codesquad.fineants.spring.filter.JwtAuthorizationFilter.*;
 

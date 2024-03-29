@@ -42,11 +42,11 @@ import codesquad.fineants.domain.stock_dividend.StockDividend;
 import codesquad.fineants.domain.stock_target_price.StockTargetPrice;
 import codesquad.fineants.domain.target_price_notification.TargetPriceNotification;
 import codesquad.fineants.domain.watch_list.WatchList;
+import codesquad.fineants.spring.api.member.controller.intercetpor.LogoutInterceptor;
 import codesquad.fineants.spring.api.notification.response.NotifyMessage;
 import codesquad.fineants.spring.api.notification.response.PortfolioNotifyMessage;
 import codesquad.fineants.spring.api.notification.response.StockNotifyMessage;
 import codesquad.fineants.spring.config.JacksonConfig;
-import codesquad.fineants.spring.intercetpor.LogoutInterceptor;
 
 @ExtendWith(RestDocumentationExtension.class)
 public abstract class RestDocsSupport {

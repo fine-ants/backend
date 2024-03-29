@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import codesquad.fineants.spring.api.common.response.ApiResponse;
 import codesquad.fineants.spring.api.common.success.MemberSuccessCode;
+import codesquad.fineants.spring.api.member.aop.HasNotificationAuthorization;
 import codesquad.fineants.spring.api.member.request.MemberNotificationAllDeleteRequest;
 import codesquad.fineants.spring.api.member.request.MemberNotificationAllReadRequest;
 import codesquad.fineants.spring.api.member.request.MemberNotificationPreferenceRequest;
@@ -22,7 +23,6 @@ import codesquad.fineants.spring.api.member.response.MemberNotificationPreferenc
 import codesquad.fineants.spring.api.member.response.MemberNotificationResponse;
 import codesquad.fineants.spring.api.member.service.MemberNotificationPreferenceService;
 import codesquad.fineants.spring.api.member.service.MemberNotificationService;
-import codesquad.fineants.spring.auth.HasNotificationAuthorization;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
