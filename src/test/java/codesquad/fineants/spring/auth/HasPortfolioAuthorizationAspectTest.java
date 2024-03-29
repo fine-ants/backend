@@ -13,6 +13,7 @@ import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.portfolio.Portfolio;
 import codesquad.fineants.domain.portfolio.PortfolioRepository;
 import codesquad.fineants.spring.AbstractContainerBaseTest;
+import codesquad.fineants.spring.api.portfolio.aop.HasPortfolioAuthorizationAspect;
 
 class HasPortfolioAuthorizationAspectTest extends AbstractContainerBaseTest {
 

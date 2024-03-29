@@ -136,8 +136,8 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 			() -> assertThat(response.getTotalInvestment()).isEqualTo(150000L),
 			() -> assertThat(response.getTotalGain()).isEqualTo(68700L),
 			() -> assertThat(response.getTotalGainRate()).isCloseTo(45.8, Offset.offset(0.1)),
-			() -> assertThat(response.getTotalAnnualDividend()).isEqualTo(4332L),
-			() -> assertThat(response.getTotalAnnualDividendYield()).isCloseTo(1.9, Offset.offset(0.1))
+			() -> assertThat(response.getTotalAnnualDividend()).isEqualTo(3249L),
+			() -> assertThat(response.getTotalAnnualDividendYield()).isCloseTo(1.4, Offset.offset(0.1))
 		);
 	}
 

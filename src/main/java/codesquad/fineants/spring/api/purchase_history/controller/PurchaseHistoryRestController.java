@@ -16,11 +16,11 @@ import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.oauth.support.AuthPrincipalMember;
 import codesquad.fineants.spring.api.common.response.ApiResponse;
 import codesquad.fineants.spring.api.common.success.PurchaseHistorySuccessCode;
+import codesquad.fineants.spring.api.portfolio.aop.HasPortfolioAuthorization;
 import codesquad.fineants.spring.api.purchase_history.request.PurchaseHistoryCreateRequest;
 import codesquad.fineants.spring.api.purchase_history.request.PurchaseHistoryUpdateRequest;
 import codesquad.fineants.spring.api.purchase_history.response.PurchaseHistoryDeleteResponse;
 import codesquad.fineants.spring.api.purchase_history.service.PurchaseHistoryService;
-import codesquad.fineants.spring.auth.HasPortfolioAuthorization;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 

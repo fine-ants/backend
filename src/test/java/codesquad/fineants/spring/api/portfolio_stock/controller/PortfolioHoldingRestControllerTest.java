@@ -51,6 +51,7 @@ import codesquad.fineants.spring.api.common.errors.errorcode.PortfolioErrorCode;
 import codesquad.fineants.spring.api.common.errors.exception.NotFoundResourceException;
 import codesquad.fineants.spring.api.common.errors.handler.GlobalExceptionHandler;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
+import codesquad.fineants.spring.api.portfolio.aop.HasPortfolioAuthorizationAspect;
 import codesquad.fineants.spring.api.portfolio.service.PortFolioService;
 import codesquad.fineants.spring.api.portfolio_stock.chart.DividendChart;
 import codesquad.fineants.spring.api.portfolio_stock.chart.PieChart;
@@ -67,7 +68,6 @@ import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioStockDele
 import codesquad.fineants.spring.api.portfolio_stock.service.PortfolioHoldingService;
 import codesquad.fineants.spring.api.portfolio_stock.service.PortfolioObservableService;
 import codesquad.fineants.spring.api.portfolio_stock.service.StockMarketChecker;
-import codesquad.fineants.spring.auth.HasPortfolioAuthorizationAspect;
 import codesquad.fineants.spring.config.JacksonConfig;
 import codesquad.fineants.spring.config.JpaAuditingConfiguration;
 import codesquad.fineants.spring.config.SpringConfig;

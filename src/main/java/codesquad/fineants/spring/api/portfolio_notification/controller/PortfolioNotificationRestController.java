@@ -12,10 +12,10 @@ import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.oauth.support.AuthPrincipalMember;
 import codesquad.fineants.spring.api.common.response.ApiResponse;
 import codesquad.fineants.spring.api.common.success.PortfolioSuccessCode;
+import codesquad.fineants.spring.api.portfolio.aop.HasPortfolioAuthorization;
 import codesquad.fineants.spring.api.portfolio_notification.request.PortfolioNotificationUpdateRequest;
 import codesquad.fineants.spring.api.portfolio_notification.response.PortfolioNotificationUpdateResponse;
 import codesquad.fineants.spring.api.portfolio_notification.service.PortfolioNotificationService;
-import codesquad.fineants.spring.auth.HasPortfolioAuthorization;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 

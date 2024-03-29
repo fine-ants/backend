@@ -11,6 +11,19 @@ include::{snippets}/stock-search/request-fields.adoc[]
 include::{snippets}/stock-search/http-response.adoc[]
 include::{snippets}/stock-search/response-fields.adoc[]
 
+[[stock-refresh]]
+=== 종목 최신화
+
+==== HTTP Request
+
+include::{snippets}/stock-refresh/http-request.adoc[]
+include::{snippets}/stock-refresh/request-headers.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/stock-refresh/http-response.adoc[]
+include::{snippets}/stock-refresh/response-fields.adoc[]
+
 [[stock-detail-search]]
 === 종목 상세 검색
 

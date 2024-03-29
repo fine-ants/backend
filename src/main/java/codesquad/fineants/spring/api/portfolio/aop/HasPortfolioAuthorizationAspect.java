@@ -1,4 +1,4 @@
-package codesquad.fineants.spring.auth;
+package codesquad.fineants.spring.api.portfolio.aop;
 
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;

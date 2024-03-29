@@ -1,4 +1,4 @@
-package codesquad.fineants.spring.auth;
+package codesquad.fineants.spring.api.member.aop;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -11,6 +11,6 @@ import org.springframework.core.annotation.Order;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 @Order(Ordered.HIGHEST_PRECEDENCE)
-public @interface HasPortfolioAuthorization {
+public @interface HasNotificationAuthorization {
 
 }

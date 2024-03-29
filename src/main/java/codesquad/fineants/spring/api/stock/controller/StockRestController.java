@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import codesquad.fineants.spring.api.common.response.ApiResponse;
 import codesquad.fineants.spring.api.common.success.StockSuccessCode;
 import codesquad.fineants.spring.api.stock.request.StockSearchRequest;
+import codesquad.fineants.spring.api.stock.response.StockRefreshResponse;
 import codesquad.fineants.spring.api.stock.response.StockResponse;
 import codesquad.fineants.spring.api.stock.response.StockSearchItem;
 import codesquad.fineants.spring.api.stock.service.StockService;
@@ -27,6 +28,11 @@ public class StockRestController {
 	@PostMapping("/search")
 	public ApiResponse<List<StockSearchItem>> search(@RequestBody final StockSearchRequest request) {
 		return ApiResponse.success(StockSuccessCode.OK_SEARCH_STOCKS, stockService.search(request));
+	}
+
+	@PostMapping("/refresh")
+	public ApiResponse<StockRefreshResponse> refreshStocks() {
+		return ApiResponse.success(StockSuccessCode.OK_REFRESH_STOCKS, stockService.refreshStocks());
 	}
 
 	@GetMapping("/{tickerSymbol}")

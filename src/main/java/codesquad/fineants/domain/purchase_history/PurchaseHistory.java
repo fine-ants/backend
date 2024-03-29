@@ -15,6 +15,7 @@ import codesquad.fineants.domain.BaseEntity;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
 import codesquad.fineants.spring.api.portfolio_stock.request.PortfolioHoldingCreateRequest;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -24,6 +25,8 @@ import lombok.ToString;
 @ToString(exclude = {"portfolioHolding"})
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@Builder
 public class PurchaseHistory extends BaseEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -36,18 +39,6 @@ public class PurchaseHistory extends BaseEntity {
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "portfolio_holding_id")
 	private PortfolioHolding portfolioHolding;
-
-	@Builder
-	public PurchaseHistory(Long id, LocalDateTime purchaseDate, Double purchasePricePerShare, Long numShares,
-		String memo,
-		PortfolioHolding portfolioHolding) {
-		this.id = id;
-		this.purchaseDate = purchaseDate;
-		this.purchasePricePerShare = purchasePricePerShare;
-		this.numShares = numShares;
-		this.memo = memo;
-		this.portfolioHolding = portfolioHolding;
-	}
 
 	public static PurchaseHistory of(PortfolioHolding portFolioHolding,
 		PortfolioHoldingCreateRequest.PurchaseHistoryCreateRequest purchaseHistory) {
