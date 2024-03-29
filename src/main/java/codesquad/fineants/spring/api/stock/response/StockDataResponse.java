@@ -5,6 +5,8 @@ import java.util.Set;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import codesquad.fineants.domain.stock.Market;
+import codesquad.fineants.domain.stock.Stock;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -55,6 +57,63 @@ public class StockDataResponse {
 				.tickerSymbol(tickerSymbol)
 				.companyName(companyName)
 				.companyNameEng(companyNameEng)
+				.market(market)
+				.build();
+		}
+
+		public static StockInfo from(Stock stock) {
+			return StockInfo.builder()
+				.stockCode(stock.getStockCode())
+				.tickerSymbol(stock.getTickerSymbol())
+				.companyName(stock.getCompanyName())
+				.companyNameEng(stock.getCompanyNameEng())
+				.market(stock.getMarket().name())
+				.build();
+		}
+	}
+
+	@Getter
+	@NoArgsConstructor(access = AccessLevel.PRIVATE)
+	@AllArgsConstructor(access = AccessLevel.PRIVATE)
+	@Builder(access = AccessLevel.PRIVATE)
+	@EqualsAndHashCode(of = "tickerSymbol")
+	public static class StockIntegrationInfo {
+		private String tickerSymbol;
+		private String companyName;
+		private String companyNameEng;
+		private String stockCode;
+		private String sector;
+		private Market market;
+
+		public static StockIntegrationInfo from(StockInfo stockInfo, String sector) {
+			return StockIntegrationInfo.builder()
+				.tickerSymbol(stockInfo.getTickerSymbol())
+				.companyName(stockInfo.getCompanyName())
+				.companyNameEng(stockInfo.getCompanyNameEng())
+				.stockCode(stockInfo.getStockCode())
+				.sector(sector)
+				.market(Market.ofMarket(stockInfo.getMarket()))
+				.build();
+		}
+
+		public static StockIntegrationInfo from(Stock stock) {
+			return StockIntegrationInfo.builder()
+				.tickerSymbol(stock.getTickerSymbol())
+				.companyName(stock.getCompanyName())
+				.companyNameEng(stock.getCompanyNameEng())
+				.stockCode(stock.getStockCode())
+				.sector(stock.getSector())
+				.market(stock.getMarket())
+				.build();
+		}
+
+		public Stock toEntity() {
+			return Stock.builder()
+				.tickerSymbol(tickerSymbol)
+				.companyName(companyName)
+				.companyNameEng(companyNameEng)
+				.stockCode(stockCode)
+				.sector(sector)
 				.market(market)
 				.build();
 		}
