@@ -3,7 +3,6 @@ package codesquad.fineants.spring.api.notification.response;
 import java.util.Map;
 
 import com.google.firebase.messaging.Message;
-import com.google.firebase.messaging.Notification;
 import com.google.firebase.messaging.WebpushConfig;
 import com.google.firebase.messaging.WebpushFcmOptions;
 
@@ -43,13 +42,8 @@ public abstract class NotifyMessage {
 			"title", title,
 			"body", content
 		);
-		Notification notification = Notification.builder()
-			.setTitle(title)
-			.setBody(content)
-			.build();
 		return Message.builder()
 			.setToken(token)
-			.setNotification(notification)
 			.putAllData(data)
 			.setWebpushConfig(WebpushConfig.builder()
 				.setFcmOptions(WebpushFcmOptions.builder()
