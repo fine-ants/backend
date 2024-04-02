@@ -1,21 +1,14 @@
 package codesquad.fineants.spring.api.stock.service;
 
-import static org.springframework.http.HttpHeaders.*;
-
-import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
-import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 
 import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHoldingRepository;
@@ -28,15 +21,12 @@ import codesquad.fineants.spring.api.common.errors.exception.NotFoundResourceExc
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
 import codesquad.fineants.spring.api.krx.service.KRXService;
-import codesquad.fineants.spring.api.member.service.WebClientWrapper;
 import codesquad.fineants.spring.api.stock.request.StockSearchRequest;
 import codesquad.fineants.spring.api.stock.response.StockDataResponse;
 import codesquad.fineants.spring.api.stock.response.StockRefreshResponse;
 import codesquad.fineants.spring.api.stock.response.StockResponse;
 import codesquad.fineants.spring.api.stock.response.StockSearchItem;
 import codesquad.fineants.spring.api.stock.response.StockSectorResponse;
-import codesquad.fineants.spring.util.ObjectMapperUtil;
-import codesquad.fineants.spring.util.StockFileUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -48,7 +38,6 @@ public class StockService {
 	private final PortfolioHoldingRepository portfolioHoldingRepository;
 	private final PurchaseHistoryRepository purchaseHistoryRepository;
 	private final StockDividendRepository stockDividendRepository;
-	private final WebClientWrapper webClient;
 	private final CurrentPriceManager currentPriceManager;
 	private final LastDayClosingPriceManager lastDayClosingPriceManager;
 	private final KRXService krxService;
@@ -58,30 +47,6 @@ public class StockService {
 			.stream()
 			.map(StockSearchItem::from)
 			.collect(Collectors.toList());
-	}
-
-	@Scheduled(cron = "0 0 * * * ?")
-	@Transactional
-	public void refreshStockFile() {
-		String requestUri = "http://data.krx.co.kr/comm/bldAttendant/getJsonData.cmd";
-		String responseText = webClient.post(requestUri, createHeader(), createStockInfoBody(), String.class);
-		Set<StockDataResponse.StockInfo> response = ObjectMapperUtil.deserialize(responseText, StockDataResponse.class)
-			.getStockInfos();
-		Set<StockDataResponse.StockInfo> initialStockInfos = StockFileUtil.readStockFile();
-		initialStockInfos.removeAll(response);
-		for (StockDataResponse.StockInfo stockInfo : initialStockInfos) {
-			Optional<PortfolioHolding> portfolioHolding = portfolioHoldingRepository.findByTickerSymbol(
-				stockInfo.getTickerSymbol());
-			if (portfolioHolding.isPresent()) {
-				purchaseHistoryRepository.deleteByPortfolioHoldingId(portfolioHolding.get().getId());
-				portfolioHoldingRepository.deleteById(portfolioHolding.get().getId());
-			}
-			stockDividendRepository.deleteByTickerSymbol(stockInfo.getTickerSymbol());
-			stockRepository.deleteByTickerSymbol(stockInfo.getTickerSymbol());
-		}
-		StockFileUtil.convertToTsvFile(response);
-
-		System.out.println(0);
 	}
 
 	@Transactional(readOnly = true)
@@ -192,23 +157,5 @@ public class StockService {
 		return stockRepository.saveAll(stocks).parallelStream()
 			.map(Stock::getTickerSymbol)
 			.collect(Collectors.toList());
-	}
-
-	private MultiValueMap<String, String> createHeader() {
-		MultiValueMap<String, String> result = new LinkedMultiValueMap<>();
-		result.add(CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE);
-		result.add(ACCEPT, MediaType.TEXT_HTML_VALUE);
-		result.add(ACCEPT_CHARSET, StandardCharsets.UTF_8.name());
-		return result;
-	}
-
-	private MultiValueMap<String, String> createStockInfoBody() {
-		MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-		formData.add("bld", "dbms/MDC/STAT/standard/MDCSTAT01901");
-		formData.add("locale", "ko_KR");
-		formData.add("mktId", "ALL");
-		formData.add("share", "1");
-		formData.add("csvxls_isNo", "false");
-		return formData;
 	}
 }
