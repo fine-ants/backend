@@ -3,8 +3,11 @@ package codesquad.fineants.spring.api.purchase_history.request;
 import java.time.LocalDateTime;
 
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Positive;
 
+import codesquad.fineants.domain.common.count.Count;
+import codesquad.fineants.domain.common.count.annotation.StockCount;
+import codesquad.fineants.domain.common.money.Money;
+import codesquad.fineants.domain.common.money.annotation.PurchasePrice;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
 import codesquad.fineants.domain.purchase_history.PurchaseHistory;
 import lombok.AccessLevel;
@@ -22,16 +25,14 @@ import lombok.ToString;
 public class PurchaseHistoryCreateRequest {
 	@NotNull(message = "매입날짜는 날짜 형식의 필수 정보입니다")
 	private LocalDateTime purchaseDate;
-	@NotNull(message = "매입 개수 정보는 필수 정보입니다")
-	@Positive(message = "주식 개수는 양수여야 합니다")
-	private Long numShares;
-	@NotNull(message = "매입가는 필수 정보입니다")
-	@Positive(message = "매입가는 양수여야 합니다")
-	private Double purchasePricePerShare;
+	@StockCount
+	private Count numShares;
+	@PurchasePrice
+	private Money purchasePricePerShare;
 	private String memo;
 
-	public static PurchaseHistoryCreateRequest create(LocalDateTime purchaseDate, Long numShares,
-		Double purchasePricePerShare, String memo) {
+	public static PurchaseHistoryCreateRequest create(LocalDateTime purchaseDate, Count numShares,
+		Money purchasePricePerShare, String memo) {
 		return PurchaseHistoryCreateRequest.builder()
 			.purchaseDate(purchaseDate)
 			.numShares(numShares)
@@ -40,13 +41,13 @@ public class PurchaseHistoryCreateRequest {
 			.build();
 	}
 
-	public PurchaseHistory toEntity(PortfolioHolding portfolioHolding) {
+	public PurchaseHistory toEntity(PortfolioHolding holding) {
 		return PurchaseHistory.builder()
 			.purchaseDate(purchaseDate)
-			.numShares(numShares)
-			.purchasePricePerShare(purchasePricePerShare)
+			.numShares(numShares.getValue().longValue())
+			.purchasePricePerShare(purchasePricePerShare.getAmount().doubleValue())
 			.memo(memo)
-			.portfolioHolding(portfolioHolding)
+			.portfolioHolding(holding)
 			.build();
 	}
 }

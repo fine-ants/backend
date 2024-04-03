@@ -27,6 +27,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
+import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.member.MemberRepository;
 import codesquad.fineants.domain.oauth.support.AuthMember;
@@ -225,9 +226,12 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 
 		// then
 		Portfolio changePortfolio = portfolioRepository.findById(portfolioId).orElseThrow();
-		assertThat(changePortfolio)
-			.extracting("name", "securitiesFirm", "budget", "targetGain", "maximumLoss")
-			.containsExactly(name, securitiesFirm, budget, targetGain, maximumLoss);
+		assertThat(changePortfolio.getName()).isEqualTo(name);
+		assertThat(changePortfolio.getSecuritiesFirm()).isEqualTo(securitiesFirm);
+		assertThat(changePortfolio.getBudget())
+			.isEqualByComparingTo(Money.from(budget));
+		assertThat(changePortfolio.getTargetGain()).isEqualTo(targetGain);
+		assertThat(changePortfolio.getMaximumLoss()).isEqualTo(maximumLoss);
 	}
 
 	@DisplayName("회원은 포트폴리오의 정보를 수정시 이름이 그대로인 경우 그대로 수정합니다.")
@@ -248,9 +252,12 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 
 		// then
 		Portfolio changePortfolio = portfolioRepository.findById(portfolioId).orElseThrow();
+
 		assertThat(changePortfolio)
-			.extracting("name", "securitiesFirm", "budget", "targetGain", "maximumLoss")
-			.containsExactly("내꿈은 워렌버핏", "미래에셋증권", 1500000L, 2000000L, 900000L);
+			.extracting(Portfolio::getName, Portfolio::getSecuritiesFirm, Portfolio::getBudget,
+				Portfolio::getTargetGain, Portfolio::getMaximumLoss)
+			.usingComparatorForType(Money::compareTo, Money.class)
+			.containsExactly("내꿈은 워렌버핏", "미래에셋증권", Money.from(1500000L), 2000000L, 900000L);
 	}
 
 	@DisplayName("회원이 포트폴리오의 이름을 수정할때 본인이 가지고 있는 다른 포트폴리오의 이름과 중복될 수 없다")
@@ -484,7 +491,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 		return Portfolio.builder()
 			.name(name)
 			.securitiesFirm("토스증권")
-			.budget(1000000L)
+			.budget(Money.from(1000000L))
 			.targetGain(1500000L)
 			.maximumLoss(900000L)
 			.member(member)
@@ -498,7 +505,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 		return Portfolio.builder()
 			.name("내꿈은 워렌버핏" + randomPostfix)
 			.securitiesFirm("토스증권")
-			.budget(1000000L)
+			.budget(Money.from(1000000L))
 			.targetGain(1500000L)
 			.maximumLoss(900000L)
 			.member(member)

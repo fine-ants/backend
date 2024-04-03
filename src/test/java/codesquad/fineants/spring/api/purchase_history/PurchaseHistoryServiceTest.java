@@ -22,6 +22,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.firebase.messaging.Message;
 
+import codesquad.fineants.domain.common.count.Count;
+import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.fcm_token.FcmRepository;
 import codesquad.fineants.domain.fcm_token.FcmToken;
 import codesquad.fineants.domain.member.Member;
@@ -128,8 +130,8 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 
 		PurchaseHistoryCreateRequest request = PurchaseHistoryCreateRequest.builder()
 			.purchaseDate(LocalDateTime.now())
-			.numShares(3L)
-			.purchasePricePerShare(50000.0)
+			.numShares(Count.from(3L))
+			.purchasePricePerShare(Money.from(50000.0))
 			.memo("첫구매")
 			.build();
 
@@ -173,8 +175,8 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 
 		PurchaseHistoryCreateRequest request = PurchaseHistoryCreateRequest.builder()
 			.purchaseDate(LocalDateTime.now())
-			.numShares(100L)
-			.purchasePricePerShare(100.0)
+			.numShares(Count.from(100L))
+			.purchasePricePerShare(Money.from(100.0))
 			.memo("첫구매")
 			.build();
 
@@ -221,8 +223,8 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 
 		PurchaseHistoryCreateRequest request = PurchaseHistoryCreateRequest.builder()
 			.purchaseDate(LocalDateTime.now())
-			.numShares(10L)
-			.purchasePricePerShare(90000.0)
+			.numShares(Count.from(10L))
+			.purchasePricePerShare(Money.from(90000.0))
 			.memo("첫구매")
 			.build();
 
@@ -260,8 +262,8 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 
 		PurchaseHistoryCreateRequest request = PurchaseHistoryCreateRequest.builder()
 			.purchaseDate(LocalDateTime.now())
-			.numShares(3L)
-			.purchasePricePerShare(500000.0)
+			.numShares(Count.from(3L))
+			.purchasePricePerShare(Money.from(500000.0))
 			.memo("첫구매")
 			.build();
 
@@ -460,7 +462,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 		return Portfolio.builder()
 			.name("내꿈은 워렌버핏")
 			.securitiesFirm("토스")
-			.budget(1000000L)
+			.budget(Money.from(1000000L))
 			.targetGain(1500000L)
 			.maximumLoss(900000L)
 			.member(member)
@@ -473,7 +475,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 		return Portfolio.builder()
 			.name("내꿈은 워렌버핏")
 			.securitiesFirm("토스")
-			.budget(0L)
+			.budget(Money.from(0L))
 			.targetGain(0L)
 			.maximumLoss(0L)
 			.member(member)

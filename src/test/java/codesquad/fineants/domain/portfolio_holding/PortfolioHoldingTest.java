@@ -12,6 +12,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
 
+import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.portfolio.Portfolio;
 import codesquad.fineants.domain.purchase_history.PurchaseHistory;
 import codesquad.fineants.domain.stock.Market;
@@ -224,7 +225,7 @@ class PortfolioHoldingTest {
 	private Portfolio createPortfolio() {
 		return Portfolio.builder()
 			.id(1L)
-			.budget(1000000L)
+			.budget(Money.from(1000000L))
 			.targetGain(1500000L)
 			.maximumLoss(900000L)
 			.build();

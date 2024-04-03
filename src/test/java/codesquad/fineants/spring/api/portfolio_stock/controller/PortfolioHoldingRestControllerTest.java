@@ -37,6 +37,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.oauth.support.AuthPrincipalArgumentResolver;
@@ -488,7 +489,7 @@ class PortfolioHoldingRestControllerTest {
 			.id(1L)
 			.name("내꿈은 워렌버핏")
 			.securitiesFirm("토스")
-			.budget(1000000L)
+			.budget(Money.from(1000000L))
 			.targetGain(1500000L)
 			.maximumLoss(900000L)
 			.targetGainIsActive(false)

@@ -35,7 +35,7 @@ public class PortFolioItem {
 			.id(portfolio.getId())
 			.securitiesFirm(portfolio.getSecuritiesFirm())
 			.name(portfolio.getName())
-			.budget(portfolio.getBudget())
+			.budget(portfolio.getBudget().getAmount().longValue())
 			.totalGain(portfolio.calculateTotalGain())
 			.totalGainRate(portfolio.calculateTotalGainRate())
 			.dailyGain(portfolio.calculateDailyGain(prevHistory))

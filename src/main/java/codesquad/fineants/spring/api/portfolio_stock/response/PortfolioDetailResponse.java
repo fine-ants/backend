@@ -42,7 +42,7 @@ public class PortfolioDetailResponse {
 			.id(portfolio.getId())
 			.securitiesFirm(portfolio.getSecuritiesFirm())
 			.name(portfolio.getName())
-			.budget(portfolio.getBudget())
+			.budget(portfolio.getBudget().getAmount().longValue())
 			.targetGain(portfolio.getTargetGain())
 			.targetReturnRate(portfolio.calculateTargetReturnRate())
 			.maximumLoss(portfolio.getMaximumLoss())

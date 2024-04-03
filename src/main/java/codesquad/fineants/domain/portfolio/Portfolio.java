@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
@@ -21,10 +22,14 @@ import javax.persistence.NamedEntityGraph;
 import javax.persistence.NamedEntityGraphs;
 import javax.persistence.NamedSubgraph;
 import javax.persistence.OneToMany;
+import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
 
 import org.hibernate.annotations.BatchSize;
 
 import codesquad.fineants.domain.BaseEntity;
+import codesquad.fineants.domain.common.money.Money;
+import codesquad.fineants.domain.common.money.MoneyConverter;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.notification.type.NotificationType;
 import codesquad.fineants.domain.portfolio_gain_history.PortfolioGainHistory;
@@ -52,19 +57,22 @@ import lombok.extern.slf4j.Slf4j;
 			@NamedAttributeNode("stock")
 		})})
 })
-
 @Slf4j
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @ToString(exclude = {"member", "portfolioHoldings"})
 @Entity
+@Table(name = "portfolio", uniqueConstraints = {
+	@UniqueConstraint(columnNames = {"name", "member_id"})
+})
 public class Portfolio extends BaseEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	private String name;
 	private String securitiesFirm;
-	private Long budget;
+	@Convert(converter = MoneyConverter.class)
+	private Money budget;
 	private Long targetGain;
 	private Long maximumLoss;
 	private Boolean targetGainIsActive;
@@ -79,7 +87,7 @@ public class Portfolio extends BaseEntity {
 	private final List<PortfolioHolding> portfolioHoldings = new ArrayList<>();
 
 	@Builder
-	public Portfolio(Long id, String name, String securitiesFirm, Long budget, Long targetGain, Long maximumLoss,
+	public Portfolio(Long id, String name, String securitiesFirm, Money budget, Long targetGain, Long maximumLoss,
 		Boolean targetGainIsActive, Boolean maximumLossIsActive, Member member) {
 		this.id = id;
 		this.name = name;
@@ -182,7 +190,7 @@ public class Portfolio extends BaseEntity {
 
 	// 잔고 = 예산 - 총 투자 금액
 	public Long calculateBalance() {
-		return budget - calculateTotalInvestmentAmount();
+		return budget.getAmount().longValue() - calculateTotalInvestmentAmount();
 	}
 
 	// 총 연간 배당금 = 각 종목들의 연배당금의 합계
@@ -206,7 +214,8 @@ public class Portfolio extends BaseEntity {
 
 	// 최대손실율 = ((예산 - 최대손실금액) / 예산) * 100
 	public Double calculateMaximumLossRate() {
-		return ((budget.doubleValue() - maximumLoss.doubleValue()) / budget.doubleValue()) * 100;
+		return ((budget.getAmount().doubleValue() - maximumLoss.doubleValue()) / budget.getAmount().doubleValue())
+			* 100;
 	}
 
 	// 투자대비 연간 배당율 = 포트폴리오 총 연배당금 / 포트폴리오 투자금액 * 100
@@ -244,7 +253,7 @@ public class Portfolio extends BaseEntity {
 
 	// 목표 수익률 = ((목표 수익 금액 - 예산) / 예산) * 100
 	public Double calculateTargetReturnRate() {
-		return ((targetGain.doubleValue() - budget.doubleValue()) / budget.doubleValue()) * 100;
+		return ((targetGain.doubleValue() - budget.getAmount().doubleValue()) / budget.getAmount().doubleValue()) * 100;
 	}
 
 	// 총 자산 = 잔고 + 평가금액 합계
@@ -276,7 +285,7 @@ public class Portfolio extends BaseEntity {
 			.mapToLong(PurchaseHistory::calculateGain)
 			.sum();
 		log.debug("reachedTargetGain.totalGain : {}", totalGain);
-		return budget + totalGain >= targetGain;
+		return budget.getAmount().longValue() + totalGain >= targetGain;
 	}
 
 	// 포트폴리오가 최대손실금액에 도달했는지 검사
@@ -293,7 +302,7 @@ public class Portfolio extends BaseEntity {
 			.mapToLong(PurchaseHistory::calculateGain)
 			.sum();
 		log.debug("totalGain : {}", totalGain);
-		return budget + totalGain <= maximumLoss;
+		return budget.getAmount().longValue() + totalGain <= maximumLoss;
 	}
 
 	// 파이 차트 생성
@@ -376,7 +385,7 @@ public class Portfolio extends BaseEntity {
 
 	// 매입 이력을 포트폴리오에 추가시 현금이 충분한지 판단
 	public boolean isCashSufficientForPurchase(long investmentAmount) {
-		return calculateTotalInvestmentAmount() + investmentAmount > budget;
+		return calculateTotalInvestmentAmount() + investmentAmount > budget.getAmount().longValue();
 	}
 
 	public boolean isSameTargetGainActive(boolean active) {

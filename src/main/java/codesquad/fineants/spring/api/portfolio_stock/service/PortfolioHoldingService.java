@@ -135,7 +135,9 @@ public class PortfolioHoldingService {
 		Double purchasedAmount =
 			request.getPurchaseHistory().getNumShares() * request.getPurchaseHistory()
 				.getPurchasePricePerShare();
-		if (portfolio.calculateTotalInvestmentAmount() + purchasedAmount > portfolio.getBudget()) {
+		if (portfolio.calculateTotalInvestmentAmount() + purchasedAmount > portfolio.getBudget()
+			.getAmount()
+			.longValue()) {
 			throw new FineAntsException(PortfolioErrorCode.TOTAL_INVESTMENT_PRICE_EXCEEDS_BUDGET);
 		}
 	}

@@ -4,6 +4,7 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.PositiveOrZero;
 
+import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.portfolio.Portfolio;
 import lombok.AccessLevel;
@@ -35,7 +36,7 @@ public class PortfolioCreateRequest {
 		return Portfolio.builder()
 			.name(name)
 			.securitiesFirm(securitiesFirm)
-			.budget(budget)
+			.budget(Money.from(budget))
 			.targetGain(targetGain)
 			.maximumLoss(maximumLoss)
 			.targetGainIsActive(false)
