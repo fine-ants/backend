@@ -40,7 +40,7 @@ public class TargetPriceNotificationResponse {
 			.memberId(priceNotification.getMember().getId())
 			.link(priceNotification.getLink())
 			.stockName(priceNotification.getStockName())
-			.targetPrice(priceNotification.getTargetPrice())
+			.targetPrice(priceNotification.getTargetPrice().getAmount().longValue())
 			.targetPriceNotificationId(priceNotification.getTargetPriceNotificationId())
 			.build();
 	}

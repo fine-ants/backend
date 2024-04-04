@@ -17,6 +17,8 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -29,6 +31,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import codesquad.fineants.domain.common.count.Count;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.oauth.support.AuthMember;
@@ -119,8 +122,8 @@ class PurchaseHistoryRestControllerTest {
 			.name("내꿈은 워렌버핏")
 			.securitiesFirm("토스")
 			.budget(Money.from(1000000L))
-			.targetGain(1500000L)
-			.maximumLoss(900000L)
+			.targetGain(Money.from(1500000L))
+			.maximumLoss(Money.from(900000L))
 			.member(member)
 			.build();
 
@@ -141,8 +144,8 @@ class PurchaseHistoryRestControllerTest {
 		purchaseHistory = PurchaseHistory.builder()
 			.id(1L)
 			.purchaseDate(LocalDateTime.now())
-			.purchasePricePerShare(50000.0)
-			.numShares(3L)
+			.purchasePricePerShare(Money.from(50000.0))
+			.numShares(Count.from(3L))
 			.memo("첫구매")
 			.build();
 
@@ -150,14 +153,15 @@ class PurchaseHistoryRestControllerTest {
 	}
 
 	@DisplayName("사용자가 매입 이력을 추가한다")
-	@Test
-	void addPurchaseHistory() throws Exception {
+	@CsvSource(value = {"3", "10000000000000000000000000000"})
+	@ParameterizedTest
+	void addPurchaseHistory(Count numShares) throws Exception {
 		// given
 		String url = String.format("/api/portfolio/%d/holdings/%d/purchaseHistory", portfolio.getId(),
 			portfolioHolding.getId());
 		Map<String, Object> requestBody = new HashMap<>();
 		requestBody.put("purchaseDate", LocalDateTime.now().toString());
-		requestBody.put("numShares", 3);
+		requestBody.put("numShares", numShares.getValue());
 		requestBody.put("purchasePricePerShare", 50000);
 		requestBody.put("memo", "첫구매");
 

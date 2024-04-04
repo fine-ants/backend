@@ -5,20 +5,21 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.firebase.messaging.Message;
 
@@ -119,24 +120,27 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 	}
 
 	@DisplayName("사용자는 매입 이력을 추가한다")
-	@Test
-	void addPurchaseHistory() throws JsonProcessingException {
+	@CsvSource(value = {"3", "1000000000000"})
+	@ParameterizedTest
+	void addPurchaseHistory(Count numShares) throws JsonProcessingException {
 		// given
 		Member member = memberRepository.save(createMember());
 		notificationPreferenceRepository.save(createNotificationPreference(member));
-		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
+		Portfolio portfolio = portfolioRepository.save(
+			createPortfolio(member, new BigDecimal("50000000000000000")));
 		Stock stock = stockRepository.save(createStock());
 		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
 
+		LocalDateTime now = LocalDateTime.now();
+		Money money = Money.from(50000.0);
 		PurchaseHistoryCreateRequest request = PurchaseHistoryCreateRequest.builder()
-			.purchaseDate(LocalDateTime.now())
-			.numShares(Count.from(3L))
-			.purchasePricePerShare(Money.from(50000.0))
+			.purchaseDate(now)
+			.numShares(numShares)
+			.purchasePricePerShare(money)
 			.memo("첫구매")
 			.build();
-
 		given(currentPriceManager.getCurrentPrice(anyString()))
-			.willReturn(Optional.of(50000L));
+			.willReturn(Optional.of(Money.from(50000L)));
 		// when
 		PurchaseHistoryCreateResponse response = service.createPurchaseHistory(
 			request,
@@ -145,16 +149,16 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 			member.getId()
 		);
 
-		TypeReference<Map<String, Object>> typeReference = new TypeReference<>() {
-		};
-		String json = objectMapper.writeValueAsString(response);
-		Map<String, Object> map = objectMapper.readValue(json, typeReference);
-
 		// then
+		PurchaseHistory findPurchaseHistory = purchaseHistoryRepository.findById(response.getId()).orElseThrow();
 		assertAll(
 			() -> assertThat(response).extracting("id").isNotNull(),
-			() -> assertThat(purchaseHistoryRepository.findById(
-				Long.valueOf(String.valueOf(map.get("id")))).isPresent()).isTrue()
+			() -> assertThat(findPurchaseHistory)
+				.extracting(PurchaseHistory::getId, PurchaseHistory::getPurchaseLocalDate,
+					PurchaseHistory::getPurchasePricePerShare, PurchaseHistory::getNumShares, PurchaseHistory::getMemo)
+				.usingComparatorForType(Money::compareTo, Money.class)
+				.usingComparatorForType(Count::compareTo, Count.class)
+				.containsExactlyInAnyOrder(response.getId(), now.toLocalDate(), Money.from(50000.0), numShares, "첫구매")
 		);
 	}
 
@@ -181,7 +185,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 			.build();
 
 		given(currentPriceManager.getCurrentPrice(anyString()))
-			.willReturn(Optional.of(50000L));
+			.willReturn(Optional.of(Money.from(50000L)));
 		given(sentManager.hasTargetGainSendHistory(anyLong()))
 			.willReturn(false);
 		given(firebaseMessagingService.send(any(Message.class)))
@@ -229,7 +233,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 			.build();
 
 		given(currentPriceManager.getCurrentPrice(anyString()))
-			.willReturn(Optional.of(50000L));
+			.willReturn(Optional.of(Money.from(50000L)));
 		given(sentManager.hasTargetGainSendHistory(anyLong()))
 			.willReturn(false);
 		given(firebaseMessagingService.send(any(Message.class)))
@@ -290,13 +294,13 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 
 		PurchaseHistoryUpdateRequest request = PurchaseHistoryUpdateRequest.builder()
 			.purchaseDate(LocalDateTime.now())
-			.numShares(4L)
-			.purchasePricePerShare(50000.0)
+			.numShares(Count.from(4L))
+			.purchasePricePerShare(Money.from(50000.0))
 			.memo("첫구매")
 			.build();
 
 		given(currentPriceManager.getCurrentPrice(anyString()))
-			.willReturn(Optional.of(50000L));
+			.willReturn(Optional.of(Money.from(50000L)));
 		// when
 		PurchaseHistoryUpdateResponse response = service.updatePurchaseHistory(
 			request,
@@ -311,7 +315,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 		assertAll(
 			() -> assertThat(response).extracting("id").isNotNull(),
 			() -> assertThat(response).extracting("numShares").isEqualTo(4L),
-			() -> assertThat(changePurchaseHistory.getNumShares()).isEqualTo(4L)
+			() -> assertThat(changePurchaseHistory.getNumShares()).isEqualByComparingTo(Count.from(4L))
 		);
 	}
 
@@ -329,13 +333,13 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 
 		PurchaseHistoryUpdateRequest request = PurchaseHistoryUpdateRequest.builder()
 			.purchaseDate(LocalDateTime.now())
-			.numShares(100L)
-			.purchasePricePerShare(100.0)
+			.numShares(Count.from(100L))
+			.purchasePricePerShare(Money.from(100.0))
 			.memo("첫구매")
 			.build();
 
 		given(currentPriceManager.getCurrentPrice(anyString()))
-			.willReturn(Optional.of(50000L));
+			.willReturn(Optional.of(Money.from(50000L)));
 		given(sentManager.hasTargetGainSendHistory(anyLong()))
 			.willReturn(false);
 		given(firebaseMessagingService.send(any(Message.class)))
@@ -354,7 +358,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 		assertAll(
 			() -> assertThat(response).extracting("id").isNotNull(),
 			() -> assertThat(response).extracting("numShares").isEqualTo(100L),
-			() -> assertThat(changePurchaseHistory.getNumShares()).isEqualTo(100L),
+			() -> assertThat(changePurchaseHistory.getNumShares()).isEqualByComparingTo(Count.from(100L)),
 			() -> assertThat(notificationRepository.findAllByMemberId(member.getId())).hasSize(1)
 		);
 	}
@@ -399,7 +403,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 		fcmRepository.save(createFcmToken("token", member));
 
 		given(currentPriceManager.getCurrentPrice(anyString()))
-			.willReturn(Optional.of(50000L));
+			.willReturn(Optional.of(Money.from(50000L)));
 		given(sentManager.hasTargetGainSendHistory(anyLong()))
 			.willReturn(false);
 		given(firebaseMessagingService.send(any(Message.class)))
@@ -463,24 +467,24 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 			.name("내꿈은 워렌버핏")
 			.securitiesFirm("토스")
 			.budget(Money.from(1000000L))
-			.targetGain(1500000L)
-			.maximumLoss(900000L)
+			.targetGain(Money.from(1500000L))
+			.maximumLoss(Money.from(900000L))
 			.member(member)
 			.targetGainIsActive(true)
 			.maximumLossIsActive(true)
 			.build();
 	}
 
-	private Portfolio createPortfolioWithZero(Member member) {
+	private Portfolio createPortfolio(Member member, BigDecimal budget) {
 		return Portfolio.builder()
 			.name("내꿈은 워렌버핏")
 			.securitiesFirm("토스")
-			.budget(Money.from(0L))
-			.targetGain(0L)
-			.maximumLoss(0L)
+			.budget(Money.from(budget))
+			.targetGain(Money.from(1500000L))
+			.maximumLoss(Money.from(900000L))
 			.member(member)
-			.targetGainIsActive(false)
-			.maximumLossIsActive(false)
+			.targetGainIsActive(true)
+			.maximumLossIsActive(true)
 			.build();
 	}
 
@@ -521,7 +525,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 	private StockDividend createStockDividend(LocalDate exDividendDate, LocalDate recordDate, LocalDate paymentDate,
 		Stock stock) {
 		return StockDividend.builder()
-			.dividend(361L)
+			.dividend(Money.from(361L))
 			.exDividendDate(exDividendDate)
 			.recordDate(recordDate)
 			.paymentDate(paymentDate)
@@ -539,8 +543,8 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 	private PurchaseHistory createPurchaseHistory(PortfolioHolding portfolioHolding) {
 		return PurchaseHistory.builder()
 			.purchaseDate(LocalDateTime.of(2023, 9, 26, 9, 30, 0))
-			.numShares(3L)
-			.purchasePricePerShare(50000.0)
+			.numShares(Count.from(3L))
+			.purchasePricePerShare(Money.from(50000.0))
 			.memo("첫구매")
 			.portfolioHolding(portfolioHolding)
 			.build();
@@ -550,8 +554,8 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 		Double purchasePricePerShare) {
 		return PurchaseHistory.builder()
 			.purchaseDate(LocalDateTime.of(2023, 9, 26, 9, 30, 0))
-			.numShares(numShares)
-			.purchasePricePerShare(purchasePricePerShare)
+			.numShares(Count.from(numShares))
+			.purchasePricePerShare(Money.from(purchasePricePerShare))
 			.memo("첫구매")
 			.portfolioHolding(portfolioHolding)
 			.build();

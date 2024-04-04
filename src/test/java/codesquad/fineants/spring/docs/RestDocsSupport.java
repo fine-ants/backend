@@ -26,6 +26,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.multipart.MultipartFile;
 
+import codesquad.fineants.domain.common.count.Count;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.notification.Notification;
@@ -99,8 +100,8 @@ public abstract class RestDocsSupport {
 			.name("내꿈은 워렌버핏")
 			.securitiesFirm("토스")
 			.budget(Money.from(1000000L))
-			.targetGain(1500000L)
-			.maximumLoss(900000L)
+			.targetGain(Money.from(1500000L))
+			.maximumLoss(Money.from(900000L))
 			.targetGainIsActive(true)
 			.maximumLossIsActive(true)
 			.member(member)
@@ -112,7 +113,7 @@ public abstract class RestDocsSupport {
 			.id(1L)
 			.portfolio(portfolio)
 			.stock(stock)
-			.currentPrice(60000L)
+			.currentPrice(Money.from(60000L))
 			.build();
 	}
 
@@ -120,8 +121,8 @@ public abstract class RestDocsSupport {
 		return PurchaseHistory.builder()
 			.id(1L)
 			.purchaseDate(purchaseDate)
-			.numShares(3L)
-			.purchasePricePerShare(50000.0)
+			.numShares(Count.from(3L))
+			.purchasePricePerShare(Money.from(50000.0))
 			.memo("첫구매")
 			.portfolioHolding(portfolioHolding)
 			.build();
@@ -134,7 +135,7 @@ public abstract class RestDocsSupport {
 	protected StockDividend createStockDividend(LocalDate exDividendDate, LocalDate recordDate, LocalDate paymentDate,
 		Stock stock) {
 		return StockDividend.builder()
-			.dividend(361L)
+			.dividend(Money.from(361L))
 			.exDividendDate(exDividendDate)
 			.recordDate(recordDate)
 			.paymentDate(paymentDate)
@@ -230,7 +231,7 @@ public abstract class RestDocsSupport {
 	protected TargetPriceNotification createTargetPriceNotification(StockTargetPrice stockTargetPrice) {
 		return TargetPriceNotification.builder()
 			.id(1L)
-			.targetPrice(60000L)
+			.targetPrice(Money.from(60000L))
 			.stockTargetPrice(stockTargetPrice)
 			.build();
 	}

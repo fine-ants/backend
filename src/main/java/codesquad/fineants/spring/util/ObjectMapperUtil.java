@@ -2,10 +2,10 @@ package codesquad.fineants.spring.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import codesquad.fineants.spring.api.common.errors.errorcode.ObjectMapperErrorCode;
 import codesquad.fineants.spring.api.common.errors.exception.ServerInternalException;
+import codesquad.fineants.spring.config.JacksonConfig;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,13 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ObjectMapperUtil {
-	private static final ObjectMapper objectMapper;
-
-	static {
-		objectMapper = new ObjectMapper();
-		objectMapper.registerModule(new JavaTimeModule()); // JavaTimeModule 등록
-		// 여기에 다른 설정이 필요한 경우 추가할 수 있습니다.
-	}
+	private static final ObjectMapper objectMapper = new JacksonConfig().objectMapper();
 
 	public static <T> String serialize(T obj) {
 		try {

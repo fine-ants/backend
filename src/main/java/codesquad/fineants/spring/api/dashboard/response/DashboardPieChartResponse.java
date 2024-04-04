@@ -1,5 +1,6 @@
 package codesquad.fineants.spring.api.dashboard.response;
 
+import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.portfolio.Portfolio;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -24,9 +25,14 @@ public class DashboardPieChartResponse {
 		return new DashboardPieChartResponse(id, name, valuation, weight, totalGain, totalGainRate);
 	}
 
-	public static DashboardPieChartResponse of(Portfolio portfolio, Long totalValuation) {
-		return new DashboardPieChartResponse(portfolio.getId(), portfolio.getName(), portfolio.calculateTotalAsset()
-			, ((double)portfolio.calculateTotalAsset() / totalValuation) * 100, portfolio.calculateTotalGain(),
-			portfolio.calculateTotalGainRate());
+	public static DashboardPieChartResponse of(Portfolio portfolio, Money totalValuation) {
+		return new DashboardPieChartResponse(
+			portfolio.getId(),
+			portfolio.getName(),
+			portfolio.calculateTotalAsset().getAmount().longValue(),
+			portfolio.calculateTotalAsset().divide(totalValuation).toPercentage(),
+			portfolio.calculateTotalGain().getAmount().longValue(),
+			portfolio.calculateTotalGainRate()
+		);
 	}
 }

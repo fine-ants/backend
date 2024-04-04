@@ -22,10 +22,10 @@ public class PortfolioDetailRealTimeItem {
 
 	public static PortfolioDetailRealTimeItem of(Portfolio portfolio, PortfolioGainHistory history) {
 		return new PortfolioDetailRealTimeItem(
-			portfolio.calculateTotalCurrentValuation(),
-			portfolio.calculateTotalGain(),
+			portfolio.calculateTotalCurrentValuation().getAmount().longValue(),
+			portfolio.calculateTotalGain().getAmount().longValue(),
 			portfolio.calculateTotalGainRate(),
-			portfolio.calculateDailyGain(history),
+			portfolio.calculateDailyGain(history).getAmount().longValue(),
 			portfolio.calculateDailyGainRate(history),
 			0L
 		);

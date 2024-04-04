@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.stock_target_price.StockTargetPrice;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
 import lombok.AccessLevel;
@@ -36,7 +37,9 @@ public class TargetPriceNotificationSearchItem {
 		return TargetPriceNotificationSearchItem.builder()
 			.companyName(stockTargetPrice.getStock().getCompanyName())
 			.tickerSymbol(stockTargetPrice.getStock().getTickerSymbol())
-			.lastPrice(manager.getPrice(stockTargetPrice.getStock().getTickerSymbol()).orElse(null))
+			.lastPrice(manager.getPrice(stockTargetPrice.getStock().getTickerSymbol())
+				.orElse(Money.zero())
+				.getAmount().longValue())
 			.targetPrices(targetPrices)
 			.isActive(stockTargetPrice.getIsActive())
 			.lastUpdated(stockTargetPrice.getModifiedAt())

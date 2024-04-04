@@ -27,6 +27,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
+import codesquad.fineants.domain.common.count.Count;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.member.MemberRepository;
@@ -230,8 +231,8 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 		assertThat(changePortfolio.getSecuritiesFirm()).isEqualTo(securitiesFirm);
 		assertThat(changePortfolio.getBudget())
 			.isEqualByComparingTo(Money.from(budget));
-		assertThat(changePortfolio.getTargetGain()).isEqualTo(targetGain);
-		assertThat(changePortfolio.getMaximumLoss()).isEqualTo(maximumLoss);
+		assertThat(changePortfolio.getTargetGain()).isEqualByComparingTo(Money.from(targetGain));
+		assertThat(changePortfolio.getMaximumLoss()).isEqualByComparingTo(Money.from(maximumLoss));
 	}
 
 	@DisplayName("회원은 포트폴리오의 정보를 수정시 이름이 그대로인 경우 그대로 수정합니다.")
@@ -257,7 +258,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 			.extracting(Portfolio::getName, Portfolio::getSecuritiesFirm, Portfolio::getBudget,
 				Portfolio::getTargetGain, Portfolio::getMaximumLoss)
 			.usingComparatorForType(Money::compareTo, Money.class)
-			.containsExactly("내꿈은 워렌버핏", "미래에셋증권", Money.from(1500000L), 2000000L, 900000L);
+			.containsExactly("내꿈은 워렌버핏", "미래에셋증권", Money.from(1500000L), Money.from(2000000L), Money.from(900000L));
 	}
 
 	@DisplayName("회원이 포트폴리오의 이름을 수정할때 본인이 가지고 있는 다른 포트폴리오의 이름과 중복될 수 없다")
@@ -421,15 +422,15 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 		PortfolioHolding portfolioHolding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
 		purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding, 3L, 90000.0));
 		portfolioGainHistoryRepository.save(PortfolioGainHistory.builder()
-			.totalGain(-120000L)
-			.dailyGain(-120000L)
-			.cash(730000L)
-			.currentValuation(150000L)
+			.totalGain(Money.from(-120000L))
+			.dailyGain(Money.from(-120000L))
+			.cash(Money.from(730000L))
+			.currentValuation(Money.from(150000L))
 			.portfolio(portfolio)
 			.build());
 
 		given(currentPriceManager.hasCurrentPrice(anyString())).willReturn(true);
-		given(currentPriceManager.getCurrentPrice(anyString())).willReturn(Optional.of(40000L));
+		given(currentPriceManager.getCurrentPrice(anyString())).willReturn(Optional.of(Money.from(40000L)));
 
 		// when
 		PortfoliosResponse response = service.readMyAllPortfolio(AuthMember.from(member));
@@ -438,7 +439,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 		assertThat(response.getPortfolios().get(0).getDailyGain()).isEqualTo(-30000);
 		assertThat(response.getPortfolios().get(0).getDailyGainRate()).isEqualTo(-20);
 		assertThat(response.getPortfolios().get(0).getTotalGain()).isEqualTo(-150000);
-		assertThat(response.getPortfolios().get(0).getTotalGainRate()).isCloseTo(-55.55,
+		assertThat(response.getPortfolios().get(0).getTotalGainRate()).isCloseTo(-55.56,
 			Offset.offset(0.1));
 	}
 
@@ -492,8 +493,8 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 			.name(name)
 			.securitiesFirm("토스증권")
 			.budget(Money.from(1000000L))
-			.targetGain(1500000L)
-			.maximumLoss(900000L)
+			.targetGain(Money.from(1500000L))
+			.maximumLoss(Money.from(900000L))
 			.member(member)
 			.targetGainIsActive(false)
 			.maximumLossIsActive(false)
@@ -506,8 +507,8 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 			.name("내꿈은 워렌버핏" + randomPostfix)
 			.securitiesFirm("토스증권")
 			.budget(Money.from(1000000L))
-			.targetGain(1500000L)
-			.maximumLoss(900000L)
+			.targetGain(Money.from(1500000L))
+			.maximumLoss(Money.from(900000L))
 			.member(member)
 			.targetGainIsActive(false)
 			.maximumLossIsActive(false)
@@ -538,7 +539,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 	private StockDividend createStockDividend(LocalDate exDividendDate, LocalDate recordDate, LocalDate paymentDate,
 		Stock stock) {
 		return StockDividend.builder()
-			.dividend(361L)
+			.dividend(Money.from(361L))
 			.exDividendDate(exDividendDate)
 			.recordDate(recordDate)
 			.paymentDate(paymentDate)
@@ -556,8 +557,8 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 	private PurchaseHistory createPurchaseHistory(PortfolioHolding portfolioHolding) {
 		return PurchaseHistory.builder()
 			.purchaseDate(LocalDateTime.of(2023, 9, 26, 9, 30, 0))
-			.numShares(3L)
-			.purchasePricePerShare(50000.0)
+			.numShares(Count.from(3L))
+			.purchasePricePerShare(Money.from(50000.0))
 			.memo("첫구매")
 			.portfolioHolding(portfolioHolding)
 			.build();
@@ -567,8 +568,8 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 		Double purchasePricePerShare) {
 		return PurchaseHistory.builder()
 			.purchaseDate(LocalDateTime.of(2023, 9, 26, 9, 30, 0))
-			.numShares(numShares)
-			.purchasePricePerShare(purchasePricePerShare)
+			.numShares(Count.from(numShares))
+			.purchasePricePerShare(Money.from(purchasePricePerShare))
 			.memo("첫구매")
 			.portfolioHolding(portfolioHolding)
 			.build();

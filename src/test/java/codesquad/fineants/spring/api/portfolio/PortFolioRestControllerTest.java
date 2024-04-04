@@ -292,8 +292,8 @@ class PortFolioRestControllerTest {
 			.name("내꿈은 워렌버핏")
 			.securitiesFirm("토스")
 			.budget(Money.from(budget))
-			.targetGain(targetGain)
-			.maximumLoss(maximumLoss)
+			.targetGain(Money.from(targetGain))
+			.maximumLoss(Money.from(maximumLoss))
 			.member(member)
 			.build();
 	}

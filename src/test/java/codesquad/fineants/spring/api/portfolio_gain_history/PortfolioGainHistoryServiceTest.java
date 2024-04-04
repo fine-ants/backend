@@ -15,11 +15,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
+import codesquad.fineants.domain.common.count.Count;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.member.MemberRepository;
 import codesquad.fineants.domain.portfolio.Portfolio;
 import codesquad.fineants.domain.portfolio.PortfolioRepository;
+import codesquad.fineants.domain.portfolio_gain_history.PortfolioGainHistory;
 import codesquad.fineants.domain.portfolio_gain_history.PortfolioGainHistoryRepository;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHoldingRepository;
@@ -83,8 +85,8 @@ class PortfolioGainHistoryServiceTest extends AbstractContainerBaseTest {
 			.name("내꿈은 워렌버핏")
 			.securitiesFirm("토스")
 			.budget(Money.from(1000000L))
-			.targetGain(1500000L)
-			.maximumLoss(900000L)
+			.targetGain(Money.from(1500000L))
+			.maximumLoss(Money.from(900000L))
 			.member(member)
 			.build();
 		this.portfolio = portfolio;
@@ -115,11 +117,11 @@ class PortfolioGainHistoryServiceTest extends AbstractContainerBaseTest {
 	void addPortfolioGainHistory() {
 		// given
 		Portfolio savePortfolio = portfolioRepository.save(portfolio);
-		PortfolioHolding portfolioHolding = PortfolioHolding.of(savePortfolio, stock, 60000L);
+		PortfolioHolding portfolioHolding = PortfolioHolding.of(savePortfolio, stock, Money.from(60000L));
 		PurchaseHistory purchaseHistory = PurchaseHistory.builder()
 			.purchaseDate(LocalDateTime.now())
-			.numShares(3L)
-			.purchasePricePerShare(50000.0)
+			.numShares(Count.from(3L))
+			.purchasePricePerShare(Money.from(50000.0))
 			.memo("첫구매")
 			.portfolioHolding(portfolioHolding)
 			.build();
@@ -128,7 +130,7 @@ class PortfolioGainHistoryServiceTest extends AbstractContainerBaseTest {
 		purchaseHistoryRepository.save(purchaseHistory);
 
 		given(currentPriceManager.hasCurrentPrice("005930")).willReturn(true);
-		given(currentPriceManager.getCurrentPrice("005930")).willReturn(Optional.of(60000L));
+		given(currentPriceManager.getCurrentPrice("005930")).willReturn(Optional.of(Money.from(60000L)));
 
 		// when
 		PortfolioGainHistoryCreateResponse response = service.addPortfolioGainHistory();
@@ -139,8 +141,10 @@ class PortfolioGainHistoryServiceTest extends AbstractContainerBaseTest {
 				.asList()
 				.hasSize(1),
 			() -> assertThat(portfolioGainHistoryRepository.findAll())
-				.extracting("totalGain", "dailyGain", "currentValuation")
-				.containsExactlyInAnyOrder(Tuple.tuple(30000L, 30000L, 180000L))
+				.extracting(PortfolioGainHistory::getTotalGain, PortfolioGainHistory::getDailyGain,
+					PortfolioGainHistory::getCurrentValuation)
+				.usingComparatorForType(Money::compareTo, Money.class)
+				.containsExactlyInAnyOrder(Tuple.tuple(Money.from(30000L), Money.from(30000L), Money.from(180000L)))
 		);
 	}
 }

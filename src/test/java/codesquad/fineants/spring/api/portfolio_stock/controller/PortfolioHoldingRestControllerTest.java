@@ -37,6 +37,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import codesquad.fineants.domain.common.count.Count;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.oauth.support.AuthMember;
@@ -150,7 +151,7 @@ class PortfolioHoldingRestControllerTest {
 		portfolio.addPortfolioStock(portfolioHolding);
 		PortfolioGainHistory history = createEmptyPortfolioGainHistory();
 
-		Map<String, Long> lastDayClosingPriceMap = Map.of("005930", 50000L);
+		Map<String, Money> lastDayClosingPriceMap = Map.of("005930", Money.from(50000L));
 		PortfolioHoldingsResponse mockResponse = PortfolioHoldingsResponse.of(portfolio, history,
 			List.of(portfolioHolding),
 			lastDayClosingPriceMap);
@@ -490,8 +491,8 @@ class PortfolioHoldingRestControllerTest {
 			.name("내꿈은 워렌버핏")
 			.securitiesFirm("토스")
 			.budget(Money.from(1000000L))
-			.targetGain(1500000L)
-			.maximumLoss(900000L)
+			.targetGain(Money.from(1500000L))
+			.maximumLoss(Money.from(900000L))
 			.targetGainIsActive(false)
 			.maximumLossIsActive(false)
 			.member(member)
@@ -503,7 +504,7 @@ class PortfolioHoldingRestControllerTest {
 			.id(1L)
 			.portfolio(portfolio)
 			.stock(stock)
-			.currentPrice(60000L)
+			.currentPrice(Money.from(60000L))
 			.build();
 	}
 
@@ -511,8 +512,8 @@ class PortfolioHoldingRestControllerTest {
 		return PurchaseHistory.builder()
 			.id(1L)
 			.purchaseDate(purchaseDate)
-			.numShares(3L)
-			.purchasePricePerShare(50000.0)
+			.numShares(Count.from(3L))
+			.purchasePricePerShare(Money.from(50000.0))
 			.memo("첫구매")
 			.portfolioHolding(portfolioHolding)
 			.build();
@@ -532,7 +533,7 @@ class PortfolioHoldingRestControllerTest {
 	private StockDividend createStockDividend(LocalDate exDividendDate, LocalDate recordDate, LocalDate paymentDate,
 		Stock stock) {
 		return StockDividend.builder()
-			.dividend(361L)
+			.dividend(Money.from(361L))
 			.exDividendDate(exDividendDate)
 			.recordDate(recordDate)
 			.paymentDate(paymentDate)

@@ -3,8 +3,11 @@ package codesquad.fineants.spring.api.purchase_history.request;
 import java.time.LocalDateTime;
 
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Positive;
 
+import codesquad.fineants.domain.common.count.Count;
+import codesquad.fineants.domain.common.count.valiator.CountNumber;
+import codesquad.fineants.domain.common.money.Money;
+import codesquad.fineants.domain.common.money.valiator.MoneyNumber;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
 import codesquad.fineants.domain.purchase_history.PurchaseHistory;
 import lombok.AccessLevel;
@@ -22,12 +25,10 @@ import lombok.ToString;
 public class PurchaseHistoryUpdateRequest {
 	@NotNull(message = "매입날짜는 날짜 형식의 필수 정보입니다")
 	private LocalDateTime purchaseDate;
-	@NotNull(message = "매입 개수 정보는 필수 정보입니다")
-	@Positive(message = "주식 개수는 양수여야 합니다")
-	private Long numShares;
-	@NotNull(message = "매입가는 필수 정보입니다")
-	@Positive(message = "매입가는 양수여야 합니다")
-	private Double purchasePricePerShare;
+	@CountNumber
+	private Count numShares;
+	@MoneyNumber
+	private Money purchasePricePerShare;
 	private String memo;
 
 	public PurchaseHistory toEntity(PortfolioHolding portfolioHolding) {

@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
+import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.fcm_token.FcmRepository;
 import codesquad.fineants.domain.fcm_token.FcmToken;
 import codesquad.fineants.domain.member.Member;
@@ -93,7 +94,7 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 		Stock stock = stockRepository.save(createStock());
 		TargetPriceNotificationCreateRequest request = TargetPriceNotificationCreateRequest.builder()
 			.tickerSymbol(stock.getTickerSymbol())
-			.targetPrice(60000L)
+			.targetPrice(Money.from(60000L))
 			.build();
 
 		// when
@@ -119,7 +120,7 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 		Stock stock = stockRepository.save(createStock());
 		TargetPriceNotificationCreateRequest request = TargetPriceNotificationCreateRequest.builder()
 			.tickerSymbol(stock.getTickerSymbol())
-			.targetPrice(60000L)
+			.targetPrice(Money.from(60000L))
 			.build();
 		StockTargetPrice stockTargetPrice = repository.save(createStockTargetPrice(member, stock));
 		targetPriceNotificationRepository.saveAll(createTargetPriceNotification(
@@ -144,7 +145,7 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 		Stock stock = stockRepository.save(createStock());
 		TargetPriceNotificationCreateRequest request = TargetPriceNotificationCreateRequest.builder()
 			.tickerSymbol(stock.getTickerSymbol())
-			.targetPrice(60000L)
+			.targetPrice(Money.from(60000L))
 			.build();
 		StockTargetPrice stockTargetPrice = repository.save(createStockTargetPrice(member, stock));
 		targetPriceNotificationRepository.saveAll(createTargetPriceNotification(stockTargetPrice, List.of(60000L)));
@@ -177,7 +178,7 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 			createTargetPriceNotification(stockTargetPrice2, List.of(60000L, 70000L)));
 
 		given(manager.getPrice(anyString()))
-			.willReturn(Optional.of(50000L));
+			.willReturn(Optional.of(Money.from(50000L)));
 
 		// when
 		TargetPriceNotificationSearchResponse response = service.searchStockTargetPriceNotification(member.getId());
@@ -223,7 +224,7 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 			createTargetPriceNotification(stockTargetPrice, List.of(60000L, 70000L)));
 
 		given(manager.getPrice(anyString()))
-			.willReturn(Optional.of(50000L));
+			.willReturn(Optional.of(Money.from(50000L)));
 
 		// when
 		TargetPriceNotificationSpecifiedSearchResponse response = service.searchTargetPriceNotifications(
@@ -526,7 +527,7 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 
 	private TargetPriceNotification createTargetPriceNotification(StockTargetPrice stockTargetPrice, Long targetPrice) {
 		return TargetPriceNotification.builder()
-			.targetPrice(targetPrice)
+			.targetPrice(Money.from(targetPrice))
 			.stockTargetPrice(stockTargetPrice)
 			.build();
 	}
@@ -535,7 +536,7 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 		List<Long> targetPrices) {
 		return targetPrices.stream()
 			.map(targetPrice -> TargetPriceNotification.builder()
-				.targetPrice(targetPrice)
+				.targetPrice(Money.from(targetPrice))
 				.stockTargetPrice(stockTargetPrice)
 				.build())
 			.collect(Collectors.toList());

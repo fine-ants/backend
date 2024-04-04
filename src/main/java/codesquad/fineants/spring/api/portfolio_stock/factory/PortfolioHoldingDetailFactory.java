@@ -24,8 +24,10 @@ public class PortfolioHoldingDetailFactory {
 
 		return portfolio.getPortfolioHoldings().stream()
 			.map(portfolioHolding -> PortfolioHoldingItem.from(
-				portfolioHolding,
-				portfolioHolding.getLastDayClosingPrice(lastDayClosingPriceManager)))
+					portfolioHolding,
+					portfolioHolding.getLastDayClosingPrice(lastDayClosingPriceManager)
+				)
+			)
 			.collect(Collectors.toList());
 	}
 

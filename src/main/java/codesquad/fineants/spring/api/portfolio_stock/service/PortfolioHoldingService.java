@@ -7,6 +7,7 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.portfolio.Portfolio;
 import codesquad.fineants.domain.portfolio.PortfolioRepository;
@@ -132,12 +133,9 @@ public class PortfolioHoldingService {
 	}
 
 	private void validateInvestAmountNotExceedsBudget(PortfolioHoldingCreateRequest request, Portfolio portfolio) {
-		Double purchasedAmount =
-			request.getPurchaseHistory().getNumShares() * request.getPurchaseHistory()
-				.getPurchasePricePerShare();
-		if (portfolio.calculateTotalInvestmentAmount() + purchasedAmount > portfolio.getBudget()
-			.getAmount()
-			.longValue()) {
+		Money purchasedAmount = request.getPurchaseHistory().getNumShares()
+			.multiply(request.getPurchaseHistory().getPurchasePricePerShare());
+		if (portfolio.calculateTotalInvestmentAmount().add(purchasedAmount).compareTo(portfolio.getBudget()) > 0) {
 			throw new FineAntsException(PortfolioErrorCode.TOTAL_INVESTMENT_PRICE_EXCEEDS_BUDGET);
 		}
 	}

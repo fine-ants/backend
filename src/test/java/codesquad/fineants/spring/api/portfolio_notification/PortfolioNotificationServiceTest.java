@@ -16,6 +16,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import codesquad.fineants.domain.common.count.Count;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.member.MemberRepository;
@@ -156,8 +157,8 @@ class PortfolioNotificationServiceTest extends AbstractContainerBaseTest {
 			.name("내꿈은 워렌버핏")
 			.securitiesFirm("토스")
 			.budget(Money.from(budget))
-			.targetGain(targetGain)
-			.maximumLoss(maximumLoss)
+			.targetGain(Money.from(targetGain))
+			.maximumLoss(Money.from(maximumLoss))
 			.member(member)
 			.targetGainIsActive(true)
 			.maximumLossIsActive(true)
@@ -181,8 +182,8 @@ class PortfolioNotificationServiceTest extends AbstractContainerBaseTest {
 	private PurchaseHistory createPurchaseHistory(PortfolioHolding portfolioHolding) {
 		return PurchaseHistory.builder()
 			.purchaseDate(LocalDateTime.now())
-			.numShares(3L)
-			.purchasePricePerShare(50000.0)
+			.numShares(Count.from(3L))
+			.purchasePricePerShare(Money.from(50000.0))
 			.memo("첫구매")
 			.portfolioHolding(portfolioHolding)
 			.build();

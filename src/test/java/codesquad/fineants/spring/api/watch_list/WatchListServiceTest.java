@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
+import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.member.MemberRepository;
 import codesquad.fineants.domain.oauth.support.AuthMember;
@@ -150,7 +151,7 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 				.exDividendDate(LocalDate.now())
 				.recordDate(LocalDate.now())
 				.paymentDate(LocalDate.now())
-				.dividend(362L)
+				.dividend(Money.from(362L))
 				.stock(stock)
 				.build()
 		);
@@ -168,8 +169,8 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 				.build()
 		);
 
-		given(currentPriceManager.getCurrentPrice(any(String.class))).willReturn(Optional.of(77000L));
-		given(lastDayClosingPriceManager.getPrice(any(String.class))).willReturn(Optional.of(77000L));
+		given(currentPriceManager.getCurrentPrice(any(String.class))).willReturn(Optional.of(Money.from(77000L)));
+		given(lastDayClosingPriceManager.getPrice(any(String.class))).willReturn(Optional.of(Money.from(77000L)));
 
 		// when
 		ReadWatchListResponse response = watchListService.readWatchList(authMember, watchList.getId());

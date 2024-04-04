@@ -22,7 +22,7 @@ public class TargetPriceNotificationCreateResponse {
 		return TargetPriceNotificationCreateResponse.builder()
 			.targetPriceNotificationId(targetPriceNotification.getId())
 			.tickerSymbol(stockTargetPrice.getStock().getTickerSymbol())
-			.targetPrice(targetPriceNotification.getTargetPrice())
+			.targetPrice(targetPriceNotification.getTargetPrice().getAmount().longValue())
 			.build();
 	}
 }

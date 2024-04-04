@@ -18,6 +18,7 @@ import org.mockito.Mockito;
 import org.springframework.http.HttpHeaders;
 import org.springframework.restdocs.payload.JsonFieldType;
 
+import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.spring.api.dashboard.controller.DashboardRestController;
 import codesquad.fineants.spring.api.dashboard.response.DashboardLineChartResponse;
@@ -172,8 +173,8 @@ public class DashboardRestControllerDocsTest extends RestDocsSupport {
 		// given
 		given(service.getLineChart(ArgumentMatchers.any(AuthMember.class)))
 			.willReturn(List.of(
-				DashboardLineChartResponse.of("2018-10-19", 5012346L),
-				DashboardLineChartResponse.of("2018-10-22", 4678901L)
+				DashboardLineChartResponse.of("2018-10-19", Money.from(5012346L)),
+				DashboardLineChartResponse.of("2018-10-22", Money.from(4678901L))
 			));
 
 		// when & then

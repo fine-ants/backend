@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.stock_target_price.StockTargetPrice;
 
 public interface TargetPriceNotificationRepository extends JpaRepository<TargetPriceNotification, Long> {
@@ -18,7 +19,7 @@ public interface TargetPriceNotificationRepository extends JpaRepository<TargetP
 	@Query("select t from TargetPriceNotification t where t.stockTargetPrice.stock.tickerSymbol = :tickerSymbol and t.targetPrice = :targetPrice and t.stockTargetPrice.member.id = :memberId")
 	Optional<TargetPriceNotification> findByTickerSymbolAndTargetPriceAndMemberId(
 		@Param("tickerSymbol") String tickerSymbol,
-		@Param("targetPrice") Long targetPrice,
+		@Param("targetPrice") Money targetPrice,
 		@Param("memberId") Long memberId);
 
 	@Modifying

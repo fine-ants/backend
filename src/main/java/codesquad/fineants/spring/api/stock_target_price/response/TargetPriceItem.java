@@ -23,7 +23,7 @@ public class TargetPriceItem {
 	public static TargetPriceItem from(TargetPriceNotification targetPriceNotification) {
 		return TargetPriceItem.builder()
 			.notificationId(targetPriceNotification.getId())
-			.targetPrice(targetPriceNotification.getTargetPrice())
+			.targetPrice(targetPriceNotification.getTargetPrice().getAmount().longValue())
 			.dateAdded(targetPriceNotification.getCreateAt())
 			.build();
 	}

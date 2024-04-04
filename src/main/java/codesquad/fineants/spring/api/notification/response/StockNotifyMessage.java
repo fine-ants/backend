@@ -1,5 +1,6 @@
 package codesquad.fineants.spring.api.notification.response;
 
+import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.notification.type.NotificationType;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -11,12 +12,12 @@ import lombok.ToString;
 public class StockNotifyMessage extends NotifyMessage {
 
 	private final String stockName;
-	private final Long targetPrice;
+	private final Money targetPrice;
 	private final Long targetPriceNotificationId;
 
 	@Builder(access = AccessLevel.PRIVATE)
 	public StockNotifyMessage(String title, String content, NotificationType type, String referenceId, Long memberId,
-		String token, String link, String stockName, Long targetPrice, Long targetPriceNotificationId) {
+		String token, String link, String stockName, Money targetPrice, Long targetPriceNotificationId) {
 		super(title, content, type, referenceId, memberId, token, link);
 		this.stockName = stockName;
 		this.targetPrice = targetPrice;
@@ -24,7 +25,7 @@ public class StockNotifyMessage extends NotifyMessage {
 	}
 
 	public static NotifyMessage create(String title, String content, NotificationType type, String referenceId,
-		Long memberId, String token, String link, String stockName, Long targetPrice, Long targetPriceNotificationId) {
+		Long memberId, String token, String link, String stockName, Money targetPrice, Long targetPriceNotificationId) {
 		return StockNotifyMessage.builder()
 			.title(title)
 			.content(content)

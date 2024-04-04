@@ -8,6 +8,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
 
+import codesquad.fineants.domain.common.count.Count;
+import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.purchase_history.PurchaseHistory;
 
 @ActiveProfiles("test")
@@ -21,8 +23,8 @@ class PurchaseHistoryItemTest {
 		PurchaseHistory history = PurchaseHistory.builder()
 			.id(1L)
 			.purchaseDate(now)
-			.numShares(3L)
-			.purchasePricePerShare(30000.0)
+			.numShares(Count.from(3L))
+			.purchasePricePerShare(Money.from(30000.0))
 			.memo("첫구매")
 			.build();
 		// when

@@ -1,5 +1,6 @@
 package codesquad.fineants.spring.api.portfolio_stock.response;
 
+import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -26,18 +27,18 @@ public class PortfolioHoldingDetailItem {
 	private Long annualDividend;
 	private Double annualDividendYield;
 
-	public static PortfolioHoldingDetailItem from(PortfolioHolding portfolioHolding, long lastDayClosingPrice) {
+	public static PortfolioHoldingDetailItem from(PortfolioHolding portfolioHolding, Money lastDayClosingPrice) {
 		return PortfolioHoldingDetailItem.builder()
 			.portfolioHoldingId(portfolioHolding.getId())
-			.currentValuation(portfolioHolding.calculateCurrentValuation())
-			.currentPrice(portfolioHolding.getCurrentPrice())
-			.averageCostPerShare(portfolioHolding.calculateAverageCostPerShare())
-			.numShares(portfolioHolding.calculateNumShares())
-			.dailyChange(portfolioHolding.calculateDailyChange(lastDayClosingPrice))
+			.currentValuation(portfolioHolding.calculateCurrentValuation().getAmount().longValue())
+			.currentPrice(portfolioHolding.getCurrentPrice().getAmount().longValue())
+			.averageCostPerShare(portfolioHolding.calculateAverageCostPerShare().getAmount().doubleValue())
+			.numShares(portfolioHolding.calculateNumShares().getValue().longValue())
+			.dailyChange(portfolioHolding.calculateDailyChange(lastDayClosingPrice).getAmount().longValue())
 			.dailyChangeRate(portfolioHolding.calculateDailyChangeRate(lastDayClosingPrice))
-			.totalGain(portfolioHolding.calculateTotalGain())
+			.totalGain(portfolioHolding.calculateTotalGain().getAmount().longValue())
 			.totalReturnRate(portfolioHolding.calculateTotalReturnRate())
-			.annualDividend(portfolioHolding.calculateAnnualExpectedDividend())
+			.annualDividend(portfolioHolding.calculateAnnualExpectedDividend().getAmount().longValue())
 			.annualDividendYield(portfolioHolding.calculateAnnualExpectedDividendYield())
 			.build();
 	}

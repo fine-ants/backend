@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
+import codesquad.fineants.domain.common.count.Count;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.member.MemberRepository;
@@ -40,7 +41,7 @@ import codesquad.fineants.spring.api.dashboard.response.DashboardLineChartRespon
 import codesquad.fineants.spring.api.dashboard.response.DashboardPieChartResponse;
 import codesquad.fineants.spring.api.dashboard.response.OverviewResponse;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
-import codesquad.fineants.spring.api.portfolio_stock.request.PortfolioHoldingCreateRequest;
+import codesquad.fineants.spring.api.purchase_history.request.PurchaseHistoryCreateRequest;
 
 public class DashboardServiceTest extends AbstractContainerBaseTest {
 	@Autowired
@@ -98,8 +99,8 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 			.name("내꿈은 워렌버핏")
 			.securitiesFirm("토스")
 			.budget(Money.from(1000000L))
-			.targetGain(1500000L)
-			.maximumLoss(900000L)
+			.targetGain(Money.from(1500000L))
+			.maximumLoss(Money.from(900000L))
 			.member(member)
 			.build());
 		Stock stock = stockRepository.save(Stock.builder()
@@ -112,21 +113,21 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 		stockDividendRepository.saveAll(createStockDividendWith(stock));
 
 		PortfolioHolding portfolioHolding = portfolioHoldingRepository.save(
-			PortfolioHolding.of(portfolio, stock, 72900L));
+			PortfolioHolding.of(portfolio, stock, Money.from(72900L)));
 
 		PurchaseHistory purchaseHistory = purchaseHistoryRepository.save(
 			PurchaseHistory.builder()
 				.portfolioHolding(portfolioHolding)
 				.purchaseDate(LocalDateTime.now())
-				.purchasePricePerShare(50000.0)
-				.numShares(3L)
+				.purchasePricePerShare(Money.from(50000.0))
+				.numShares(Count.from(3L))
 				.build()
 		);
 
 		given(currentPriceManager.hasCurrentPrice(anyString()))
 			.willReturn(true);
 		given(currentPriceManager.getCurrentPrice(anyString()))
-			.willReturn(Optional.of(72900L));
+			.willReturn(Optional.of(Money.from(72900L)));
 		// when
 		OverviewResponse response = dashboardService.getOverview(authMember);
 
@@ -154,7 +155,7 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 		given(currentPriceManager.hasCurrentPrice(anyString()))
 			.willReturn(true);
 		given(currentPriceManager.getCurrentPrice(anyString()))
-			.willReturn(Optional.of(50000L));
+			.willReturn(Optional.of(Money.from(50000L)));
 
 		// when
 		OverviewResponse response = dashboardService.getOverview(AuthMember.from(member));
@@ -177,16 +178,16 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 			.name("내꿈은 워렌버핏")
 			.securitiesFirm("토스")
 			.budget(Money.from(1000000L))
-			.targetGain(1500000L)
-			.maximumLoss(900000L)
+			.targetGain(Money.from(1500000L))
+			.maximumLoss(Money.from(900000L))
 			.member(member)
 			.build());
 		Portfolio portfolio1 = portfolioRepository.save(Portfolio.builder()
 			.name("내꿈은 워렌버핏1")
 			.securitiesFirm("토스")
 			.budget(Money.from(1000000L))
-			.targetGain(1500000L)
-			.maximumLoss(900000L)
+			.targetGain(Money.from(1500000L))
+			.maximumLoss(Money.from(900000L))
 			.member(member)
 			.build());
 		Stock stock = stockRepository.save(Stock.builder()
@@ -198,23 +199,23 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 			.build());
 
 		PortfolioHolding holding1 = portfolioHoldingRepository.save(
-			PortfolioHolding.of(portfolio, stock, 100L));
+			PortfolioHolding.of(portfolio, stock, Money.from(100L)));
 		PortfolioHolding holding2 = portfolioHoldingRepository.save(
-			PortfolioHolding.of(portfolio1, stock, 100L));
+			PortfolioHolding.of(portfolio1, stock, Money.from(100L)));
 
 		purchaseHistoryRepository.save(PurchaseHistory.of(holding1,
-			PortfolioHoldingCreateRequest.PurchaseHistoryCreateRequest.create(
+			PurchaseHistoryCreateRequest.create(
 				LocalDateTime.now(),
-				3L,
-				70000.0,
+				Count.from(3L),
+				Money.from(70000.0),
 				"첫구매"
 			)
 		));
 		purchaseHistoryRepository.save(PurchaseHistory.of(holding2,
-			PortfolioHoldingCreateRequest.PurchaseHistoryCreateRequest.create(
+			PurchaseHistoryCreateRequest.create(
 				LocalDateTime.now(),
-				3L,
-				60000.0,
+				Count.from(3L),
+				Money.from(60000.0),
 				"첫구매"
 			)
 		));
@@ -222,18 +223,20 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 		given(currentPriceManager.hasCurrentPrice(anyString()))
 			.willReturn(true);
 		given(currentPriceManager.getCurrentPrice(anyString()))
-			.willReturn(Optional.of(60000L));
+			.willReturn(Optional.of(Money.from(60000L)));
 		// when
 		List<DashboardPieChartResponse> responses = dashboardService.getPieChart(authMember);
 
 		// then
-		assertThat(responses.get(0).getWeight()).isCloseTo(50.76, Percentage.withPercentage(0.1));
-		assertThat(responses.get(1).getWeight()).isCloseTo(49.23, Percentage.withPercentage(0.1));
-		assertThat(responses)
-			.asList()
-			.hasSize(2)
-			.extracting("id")
-			.containsExactlyInAnyOrder(portfolio1.getId(), portfolio.getId());
+		Assertions.assertAll(
+			() -> assertThat(responses.get(0).getWeight()).isCloseTo(50.76, Percentage.withPercentage(0.1)),
+			() -> assertThat(responses.get(1).getWeight()).isCloseTo(49.24, Percentage.withPercentage(0.1)),
+			() -> assertThat(responses)
+				.asList()
+				.hasSize(2)
+				.extracting("id")
+				.containsExactlyInAnyOrder(portfolio1.getId(), portfolio.getId())
+		);
 	}
 
 	@Test
@@ -246,22 +249,22 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 			.name("내꿈은 워렌버핏")
 			.securitiesFirm("토스")
 			.budget(Money.from(1000000L))
-			.targetGain(1500000L)
-			.maximumLoss(900000L)
+			.targetGain(Money.from(1500000L))
+			.maximumLoss(Money.from(900000L))
 			.member(member)
 			.build());
 		PortfolioGainHistory portfolioGainHistory = portfolioGainHistoryRepository.save(PortfolioGainHistory.builder()
-			.totalGain(100L)
-			.dailyGain(50L)
-			.currentValuation(60L)
-			.cash(20L)
+			.totalGain(Money.from(100L))
+			.dailyGain(Money.from(50L))
+			.currentValuation(Money.from(60L))
+			.cash(Money.from(20L))
 			.portfolio(portfolio)
 			.build());
 		PortfolioGainHistory portfolioGainHistory1 = portfolioGainHistoryRepository.save(PortfolioGainHistory.builder()
-			.totalGain(100L)
-			.dailyGain(50L)
-			.currentValuation(60L)
-			.cash(20L)
+			.totalGain(Money.from(100L))
+			.dailyGain(Money.from(50L))
+			.currentValuation(Money.from(60L))
+			.cash(Money.from(20L))
 			.portfolio(portfolio)
 			.build());
 
@@ -293,8 +296,8 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 			.name("내꿈은 워렌버핏")
 			.securitiesFirm("토스")
 			.budget(Money.from(1000000L))
-			.targetGain(1500000L)
-			.maximumLoss(900000L)
+			.targetGain(Money.from(1500000L))
+			.maximumLoss(Money.from(900000L))
 			.member(member)
 			.targetGainIsActive(false)
 			.maximumLossIsActive(false)
@@ -315,7 +318,7 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 	private StockDividend createStockDividend(LocalDate exDividendDate, LocalDate recordDate, LocalDate paymentDate,
 		Stock stock) {
 		return StockDividend.builder()
-			.dividend(361L)
+			.dividend(Money.from(361L))
 			.exDividendDate(exDividendDate)
 			.recordDate(recordDate)
 			.paymentDate(paymentDate)

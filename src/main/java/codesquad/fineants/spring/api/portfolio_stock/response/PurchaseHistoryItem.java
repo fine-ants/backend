@@ -15,8 +15,11 @@ public class PurchaseHistoryItem {
 	private String memo;
 
 	public static PurchaseHistoryItem from(PurchaseHistory history) {
-		return new PurchaseHistoryItem(history.getId(), history.getPurchaseDate(), history.getNumShares(),
-			history.getPurchasePricePerShare(),
+		return new PurchaseHistoryItem(
+			history.getId(),
+			history.getPurchaseDate(),
+			history.getNumShares().getValue().longValue(),
+			history.getPurchasePricePerShare().getAmount().doubleValue(),
 			history.getMemo());
 	}
 }

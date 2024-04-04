@@ -1,5 +1,9 @@
 package codesquad.fineants.spring.api.stock_target_price.request;
 
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.PositiveOrZero;
+
+import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.notification.Notification;
 import codesquad.fineants.domain.notification.type.NotificationType;
@@ -19,7 +23,9 @@ import lombok.ToString;
 @ToString
 public class StockNotificationRequest {
 	private String stockName;
-	private Long targetPrice;
+	@NotNull
+	@PositiveOrZero
+	private Money targetPrice;
 	private String title;
 	private NotificationType type;
 	private String referenceId;

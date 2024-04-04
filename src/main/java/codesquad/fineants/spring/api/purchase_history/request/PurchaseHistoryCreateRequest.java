@@ -5,9 +5,9 @@ import java.time.LocalDateTime;
 import javax.validation.constraints.NotNull;
 
 import codesquad.fineants.domain.common.count.Count;
-import codesquad.fineants.domain.common.count.annotation.StockCount;
+import codesquad.fineants.domain.common.count.valiator.CountNumber;
 import codesquad.fineants.domain.common.money.Money;
-import codesquad.fineants.domain.common.money.annotation.PurchasePrice;
+import codesquad.fineants.domain.common.money.valiator.MoneyNumber;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
 import codesquad.fineants.domain.purchase_history.PurchaseHistory;
 import lombok.AccessLevel;
@@ -25,9 +25,9 @@ import lombok.ToString;
 public class PurchaseHistoryCreateRequest {
 	@NotNull(message = "매입날짜는 날짜 형식의 필수 정보입니다")
 	private LocalDateTime purchaseDate;
-	@StockCount
+	@CountNumber
 	private Count numShares;
-	@PurchasePrice
+	@MoneyNumber
 	private Money purchasePricePerShare;
 	private String memo;
 
@@ -44,8 +44,8 @@ public class PurchaseHistoryCreateRequest {
 	public PurchaseHistory toEntity(PortfolioHolding holding) {
 		return PurchaseHistory.builder()
 			.purchaseDate(purchaseDate)
-			.numShares(numShares.getValue().longValue())
-			.purchasePricePerShare(purchasePricePerShare.getAmount().doubleValue())
+			.numShares(numShares)
+			.purchasePricePerShare(purchasePricePerShare)
 			.memo(memo)
 			.portfolioHolding(holding)
 			.build();
