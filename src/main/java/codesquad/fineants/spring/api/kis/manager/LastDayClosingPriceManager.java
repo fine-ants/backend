@@ -6,6 +6,7 @@ import java.util.Optional;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
+import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.spring.api.kis.response.KisClosingPrice;
 import lombok.RequiredArgsConstructor;
 
@@ -25,11 +26,11 @@ public class LastDayClosingPriceManager {
 			.set(String.format(format, price.getTickerSymbol()), String.valueOf(price.getPrice()), Duration.ofDays(2));
 	}
 
-	public Optional<Long> getPrice(String tickerSymbol) {
+	public Optional<Money> getPrice(String tickerSymbol) {
 		String closingPrice = redisTemplate.opsForValue().get(String.format(format, tickerSymbol));
 		if (closingPrice == null) {
 			return Optional.empty();
 		}
-		return Optional.of(Long.valueOf(closingPrice));
+		return Optional.of(Money.from(closingPrice));
 	}
 }

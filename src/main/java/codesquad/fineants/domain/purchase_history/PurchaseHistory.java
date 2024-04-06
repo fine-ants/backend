@@ -3,6 +3,8 @@ package codesquad.fineants.domain.purchase_history;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import javax.persistence.Column;
+import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
@@ -12,8 +14,12 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
 import codesquad.fineants.domain.BaseEntity;
+import codesquad.fineants.domain.common.count.Count;
+import codesquad.fineants.domain.common.count.CountConverter;
+import codesquad.fineants.domain.common.money.Money;
+import codesquad.fineants.domain.common.money.MoneyConverter;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
-import codesquad.fineants.spring.api.portfolio_stock.request.PortfolioHoldingCreateRequest;
+import codesquad.fineants.spring.api.purchase_history.request.PurchaseHistoryCreateRequest;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -32,16 +38,18 @@ public class PurchaseHistory extends BaseEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	private LocalDateTime purchaseDate;
-	private Double purchasePricePerShare;
-	private Long numShares;
+	@Convert(converter = MoneyConverter.class)
+	@Column(precision = 19, nullable = false)
+	private Money purchasePricePerShare;
+	@Convert(converter = CountConverter.class)
+	private Count numShares;
 	private String memo;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "portfolio_holding_id")
 	private PortfolioHolding portfolioHolding;
 
-	public static PurchaseHistory of(PortfolioHolding portFolioHolding,
-		PortfolioHoldingCreateRequest.PurchaseHistoryCreateRequest purchaseHistory) {
+	public static PurchaseHistory of(PortfolioHolding portFolioHolding, PurchaseHistoryCreateRequest purchaseHistory) {
 		return PurchaseHistory.builder()
 			.portfolioHolding(portFolioHolding)
 			.purchaseDate(purchaseHistory.getPurchaseDate())
@@ -52,13 +60,13 @@ public class PurchaseHistory extends BaseEntity {
 	}
 
 	// 투자 금액 = 주당 매입가 * 개수
-	public Long calculateInvestmentAmount() {
-		return purchasePricePerShare.longValue() * numShares;
+	public Money calculateInvestmentAmount() {
+		return purchasePricePerShare.multiply(numShares);
 	}
 
 	// 손익 = (현재가 - 평균 매입가) * 주식개수
-	public Long calculateGain() {
-		return (portfolioHolding.getCurrentPrice() - purchasePricePerShare.longValue()) * numShares;
+	public Money calculateGain() {
+		return portfolioHolding.getCurrentPrice().subtract(purchasePricePerShare).multiply(numShares);
 	}
 
 	public PurchaseHistory change(PurchaseHistory history) {

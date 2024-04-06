@@ -2,6 +2,8 @@ package codesquad.fineants.spring.api.purchase_history.response;
 
 import java.time.LocalDateTime;
 
+import codesquad.fineants.domain.common.count.Count;
+import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.purchase_history.PurchaseHistory;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -19,8 +21,8 @@ public class PurchaseHistoryUpdateResponse {
 
 	private Long id;
 	private LocalDateTime purchaseDate;
-	private Double purchasePricePerShare;
-	private Long numShares;
+	private Money purchasePricePerShare;
+	private Count numShares;
 	private String memo;
 	private Long portfolioId;
 	private Long memberId;

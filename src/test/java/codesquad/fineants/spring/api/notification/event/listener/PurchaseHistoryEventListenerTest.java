@@ -15,6 +15,8 @@ import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
 
+import codesquad.fineants.domain.common.count.Count;
+import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.member.MemberRepository;
 import codesquad.fineants.domain.notification_preference.NotificationPreference;
@@ -29,7 +31,6 @@ import codesquad.fineants.domain.stock.Market;
 import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.domain.stock.StockRepository;
 import codesquad.fineants.domain.stock_target_price.StockTargetPrice;
-import codesquad.fineants.domain.target_price_notification.TargetPriceNotification;
 import codesquad.fineants.spring.AbstractContainerBaseTest;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.purchase_history.event.PurchaseHistoryEventListener;
@@ -82,7 +83,7 @@ class PurchaseHistoryEventListenerTest extends AbstractContainerBaseTest {
 		given(firebaseMessaging.send(any(Message.class)))
 			.willReturn("projects/fineants-404407/messages/4754d355-5d5d-4f14-a642-75fecdb91fa5");
 		given(currentPriceManager.getCurrentPrice(anyString()))
-			.willReturn(Optional.of(50000L));
+			.willReturn(Optional.of(Money.from(50000L)));
 
 		Member member = memberRepository.save(createMember());
 		notificationPreferenceRepository.save(NotificationPreference.builder()
@@ -120,9 +121,9 @@ class PurchaseHistoryEventListenerTest extends AbstractContainerBaseTest {
 		return Portfolio.builder()
 			.name("내꿈은 워렌버핏")
 			.securitiesFirm("토스")
-			.budget(1000000L)
-			.targetGain(1500000L)
-			.maximumLoss(900000L)
+			.budget(Money.from(1000000L))
+			.targetGain(Money.from(1500000L))
+			.maximumLoss(Money.from(900000L))
 			.member(member)
 			.targetGainIsActive(false)
 			.maximumLossIsActive(false)
@@ -148,13 +149,6 @@ class PurchaseHistoryEventListenerTest extends AbstractContainerBaseTest {
 			.build();
 	}
 
-	private TargetPriceNotification createTargetPriceNotification(StockTargetPrice stockTargetPrice, Long targetPrice) {
-		return TargetPriceNotification.builder()
-			.targetPrice(targetPrice)
-			.stockTargetPrice(stockTargetPrice)
-			.build();
-	}
-
 	private PortfolioHolding createPortfolioHolding(Portfolio portfolio, Stock stock) {
 		return PortfolioHolding.builder()
 			.portfolio(portfolio)
@@ -166,8 +160,8 @@ class PurchaseHistoryEventListenerTest extends AbstractContainerBaseTest {
 		Double purchasePricePerShare) {
 		return PurchaseHistory.builder()
 			.purchaseDate(LocalDateTime.of(2023, 9, 26, 9, 30, 0))
-			.numShares(numShares)
-			.purchasePricePerShare(purchasePricePerShare)
+			.numShares(Count.from(numShares))
+			.purchasePricePerShare(Money.from(purchasePricePerShare))
 			.memo("첫구매")
 			.portfolioHolding(portfolioHolding)
 			.build();

@@ -17,17 +17,22 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import codesquad.fineants.domain.common.count.Count;
+import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.oauth.support.AuthPrincipalArgumentResolver;
@@ -45,12 +50,14 @@ import codesquad.fineants.spring.api.portfolio.service.PortFolioService;
 import codesquad.fineants.spring.api.purchase_history.controller.PurchaseHistoryRestController;
 import codesquad.fineants.spring.api.purchase_history.request.PurchaseHistoryCreateRequest;
 import codesquad.fineants.spring.api.purchase_history.service.PurchaseHistoryService;
+import codesquad.fineants.spring.config.JacksonConfig;
 import codesquad.fineants.spring.config.JpaAuditingConfiguration;
 import codesquad.fineants.spring.config.SpringConfig;
+import codesquad.fineants.spring.util.ObjectMapperUtil;
 
 @ActiveProfiles("test")
 @WebMvcTest(controllers = PurchaseHistoryRestController.class)
-@Import(value = {SpringConfig.class, HasPortfolioAuthorizationAspect.class})
+@Import(value = {SpringConfig.class, HasPortfolioAuthorizationAspect.class, JacksonConfig.class})
 @MockBean(JpaAuditingConfiguration.class)
 class PurchaseHistoryRestControllerTest {
 
@@ -91,6 +98,7 @@ class PurchaseHistoryRestControllerTest {
 		mockMvc = MockMvcBuilders.standaloneSetup(purchaseHistoryRestController)
 			.setControllerAdvice(globalExceptionHandler)
 			.setCustomArgumentResolvers(authPrincipalArgumentResolver)
+			.setMessageConverters(new MappingJackson2HttpMessageConverter(objectMapper))
 			.alwaysDo(print())
 			.build();
 
@@ -113,9 +121,9 @@ class PurchaseHistoryRestControllerTest {
 			.id(1L)
 			.name("내꿈은 워렌버핏")
 			.securitiesFirm("토스")
-			.budget(1000000L)
-			.targetGain(1500000L)
-			.maximumLoss(900000L)
+			.budget(Money.from(1000000L))
+			.targetGain(Money.from(1500000L))
+			.maximumLoss(Money.from(900000L))
 			.member(member)
 			.build();
 
@@ -136,8 +144,8 @@ class PurchaseHistoryRestControllerTest {
 		purchaseHistory = PurchaseHistory.builder()
 			.id(1L)
 			.purchaseDate(LocalDateTime.now())
-			.purchasePricePerShare(50000.0)
-			.numShares(3L)
+			.purchasePricePerShare(Money.from(50000.0))
+			.numShares(Count.from(3L))
 			.memo("첫구매")
 			.build();
 
@@ -145,18 +153,17 @@ class PurchaseHistoryRestControllerTest {
 	}
 
 	@DisplayName("사용자가 매입 이력을 추가한다")
-	@Test
-	void addPurchaseHistory() throws Exception {
+	@CsvSource(value = {"3", "10000000000000000000000000000"})
+	@ParameterizedTest
+	void addPurchaseHistory(Count numShares) throws Exception {
 		// given
 		String url = String.format("/api/portfolio/%d/holdings/%d/purchaseHistory", portfolio.getId(),
 			portfolioHolding.getId());
 		Map<String, Object> requestBody = new HashMap<>();
 		requestBody.put("purchaseDate", LocalDateTime.now().toString());
-		requestBody.put("numShares", 3);
+		requestBody.put("numShares", numShares.getValue());
 		requestBody.put("purchasePricePerShare", 50000);
 		requestBody.put("memo", "첫구매");
-
-		String body = objectMapper.writeValueAsString(requestBody);
 
 		given(portfolioRepository.findById(anyLong())).willReturn(Optional.of(portfolio));
 
@@ -164,7 +171,7 @@ class PurchaseHistoryRestControllerTest {
 		mockMvc.perform(post(url)
 				.contentType(MediaType.APPLICATION_JSON)
 				.characterEncoding(StandardCharsets.UTF_8)
-				.content(body))
+				.content(ObjectMapperUtil.serialize(requestBody)))
 			.andExpect(status().isCreated())
 			.andExpect(jsonPath("code").value(equalTo(201)))
 			.andExpect(jsonPath("status").value(equalTo("Created")))

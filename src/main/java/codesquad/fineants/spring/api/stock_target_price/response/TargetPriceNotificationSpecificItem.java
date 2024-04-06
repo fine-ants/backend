@@ -2,6 +2,7 @@ package codesquad.fineants.spring.api.stock_target_price.response;
 
 import java.time.LocalDateTime;
 
+import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.target_price_notification.TargetPriceNotification;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -17,7 +18,7 @@ import lombok.ToString;
 @ToString
 public class TargetPriceNotificationSpecificItem {
 	private Long notificationId;
-	private Long targetPrice;
+	private Money targetPrice;
 	private LocalDateTime dateAdded;
 
 	public static TargetPriceNotificationSpecificItem from(TargetPriceNotification targetPriceNotification) {

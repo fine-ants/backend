@@ -28,6 +28,7 @@ import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
 import org.springframework.restdocs.payload.JsonFieldType;
 import org.springframework.restdocs.snippet.Attributes;
 
+import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.domain.stock_target_price.StockTargetPrice;
@@ -66,7 +67,7 @@ public class StockTargetPriceNotificationRestControllerDocsTest extends RestDocs
 			.willReturn(TargetPriceNotificationCreateResponse.builder()
 				.targetPriceNotificationId(1L)
 				.tickerSymbol("005930")
-				.targetPrice(60000L)
+				.targetPrice(Money.from(60000L))
 				.build());
 
 		String tickerSymbol = "005930";
@@ -131,16 +132,16 @@ public class StockTargetPriceNotificationRestControllerDocsTest extends RestDocs
 				.stocks(List.of(TargetPriceNotificationSearchItem.builder()
 					.companyName(stock.getCompanyName())
 					.tickerSymbol(stock.getTickerSymbol())
-					.lastPrice(50000L)
+					.lastPrice(Money.from(50000L))
 					.targetPrices(List.of(
 						TargetPriceItem.builder()
 							.notificationId(1L)
-							.targetPrice(60000L)
+							.targetPrice(Money.from(60000L))
 							.dateAdded(now)
 							.build(),
 						TargetPriceItem.builder()
 							.notificationId(2L)
-							.targetPrice(70000L)
+							.targetPrice(Money.from(70000L))
 							.dateAdded(now)
 							.build()
 					))
@@ -220,12 +221,12 @@ public class StockTargetPriceNotificationRestControllerDocsTest extends RestDocs
 				.targetPrices(List.of(
 					TargetPriceNotificationSpecificItem.builder()
 						.notificationId(1L)
-						.targetPrice(60000L)
+						.targetPrice(Money.from(60000L))
 						.dateAdded(now)
 						.build(),
 					TargetPriceNotificationSpecificItem.builder()
 						.notificationId(2L)
-						.targetPrice(70000L)
+						.targetPrice(Money.from(70000L))
 						.dateAdded(now)
 						.build()
 				))

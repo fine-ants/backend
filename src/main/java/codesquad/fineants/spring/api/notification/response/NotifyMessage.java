@@ -5,17 +5,20 @@ import com.google.firebase.messaging.Notification;
 import com.google.firebase.messaging.WebpushConfig;
 import com.google.firebase.messaging.WebpushFcmOptions;
 
+import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.notification.type.NotificationType;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @AllArgsConstructor
 @EqualsAndHashCode(of = {"referenceId", "memberId"})
+@ToString
 public abstract class NotifyMessage {
 	private String title;
 	private String content;
@@ -31,7 +34,7 @@ public abstract class NotifyMessage {
 	}
 
 	public static NotifyMessage stock(String title, String content, NotificationType type, String referenceId,
-		Long memberId, String token, String link, String stockName, Long targetPrice, Long targetPriceNotificationId) {
+		Long memberId, String token, String link, String stockName, Money targetPrice, Long targetPriceNotificationId) {
 		return StockNotifyMessage.create(title, content, type, referenceId, memberId, token, link, stockName,
 			targetPrice, targetPriceNotificationId);
 	}

@@ -9,6 +9,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.member.MemberRepository;
 import codesquad.fineants.domain.portfolio.Portfolio;
@@ -47,22 +48,24 @@ class PortfolioGainHistoryServiceRepositoryTest extends AbstractContainerBaseTes
 		Portfolio portfolio = portfolioRepository.save(Portfolio.builder()
 			.name("내꿈은 워렌버핏")
 			.securitiesFirm("토스")
-			.budget(1000000L)
-			.targetGain(1500000L)
-			.maximumLoss(900000L)
+			.budget(Money.from(1000000L))
+			.targetGain(Money.from(1500000L))
+			.maximumLoss(Money.from(900000L))
 			.member(member)
 			.build());
 
 		PortfolioGainHistory portfolioGainHistory1 = PortfolioGainHistory.builder()
-			.totalGain(10000L)
-			.dailyGain(10000L)
-			.currentValuation(110000L)
+			.totalGain(Money.from(10000L))
+			.dailyGain(Money.from(10000L))
+			.cash(Money.from(1000000L))
+			.currentValuation(Money.from(110000L))
 			.portfolio(portfolio)
 			.build();
 		PortfolioGainHistory portfolioGainHistory2 = PortfolioGainHistory.builder()
-			.totalGain(20000L)
-			.dailyGain(10000L)
-			.currentValuation(120000L)
+			.totalGain(Money.from(20000L))
+			.dailyGain(Money.from(10000L))
+			.cash(Money.from(1000000L))
+			.currentValuation(Money.from(120000L))
 			.portfolio(portfolio)
 			.build();
 		repository.save(portfolioGainHistory1);
@@ -73,7 +76,7 @@ class PortfolioGainHistoryServiceRepositoryTest extends AbstractContainerBaseTes
 			portfolio.getId(), LocalDateTime.now()).orElseThrow();
 
 		// then
-		assertThat(result).extracting("currentValuation").isEqualTo(120000L);
+		assertThat(result.getCurrentValuation()).isEqualByComparingTo(Money.from(120000L));
 
 	}
 

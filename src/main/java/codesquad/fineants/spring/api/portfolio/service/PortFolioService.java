@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.member.MemberRepository;
 import codesquad.fineants.domain.oauth.support.AuthMember;
@@ -67,14 +68,14 @@ public class PortFolioService {
 			.orElseThrow(() -> new NotFoundResourceException(MemberErrorCode.NOT_FOUND_MEMBER));
 	}
 
-	private void validateTargetGainIsEqualLessThanBudget(Long targetGain, Long budget) {
-		if (budget > 0 && targetGain <= budget) {
+	private void validateTargetGainIsEqualLessThanBudget(Money targetGain, Money budget) {
+		if (budget.compareTo(Money.zero()) > 0 && targetGain.compareTo(budget) <= 0) {
 			throw new BadRequestException(PortfolioErrorCode.TARGET_GAIN_LOSS_IS_EQUAL_LESS_THAN_BUDGET);
 		}
 	}
 
-	private void validateMaximumLossIsEqualGraterThanBudget(Long maximumLoss, Long budget) {
-		if (budget > 0 && maximumLoss >= budget) {
+	private void validateMaximumLossIsEqualGraterThanBudget(Money maximumLoss, Money budget) {
+		if (budget.compareTo(Money.zero()) > 0 && maximumLoss.compareTo(budget) >= 0) {
 			throw new BadRequestException(PortfolioErrorCode.MAXIMUM_LOSS_IS_EQUAL_GREATER_THAN_BUDGET);
 		}
 	}

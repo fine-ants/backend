@@ -1,5 +1,6 @@
 package codesquad.fineants.spring.api.stock_target_price.response;
 
+import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.stock_target_price.StockTargetPrice;
 import codesquad.fineants.domain.target_price_notification.TargetPriceNotification;
 import lombok.AccessLevel;
@@ -15,7 +16,7 @@ import lombok.NoArgsConstructor;
 public class TargetPriceNotificationCreateResponse {
 	private Long targetPriceNotificationId;
 	private String tickerSymbol;
-	private Long targetPrice;
+	private Money targetPrice;
 
 	public static TargetPriceNotificationCreateResponse from(StockTargetPrice stockTargetPrice,
 		TargetPriceNotification targetPriceNotification) {

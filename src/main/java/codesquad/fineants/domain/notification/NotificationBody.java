@@ -1,5 +1,6 @@
 package codesquad.fineants.domain.notification;
 
+import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.notification.type.NotificationType;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -24,10 +25,10 @@ public class NotificationBody {
 			.build();
 	}
 
-	public static NotificationBody stock(String tickerSymbol, Long price) {
+	public static NotificationBody stock(String tickerSymbol, Money price) {
 		return NotificationBody.builder()
 			.name(tickerSymbol)
-			.target(price.toString())
+			.target(String.valueOf(price.getAmount().longValue()))
 			.build();
 	}
 }

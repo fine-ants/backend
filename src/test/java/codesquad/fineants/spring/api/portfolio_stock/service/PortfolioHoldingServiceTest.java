@@ -16,6 +16,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
+import codesquad.fineants.domain.common.count.Count;
+import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.member.MemberRepository;
 import codesquad.fineants.domain.oauth.support.AuthMember;
@@ -42,6 +44,7 @@ import codesquad.fineants.spring.api.portfolio_stock.event.publisher.PortfolioHo
 import codesquad.fineants.spring.api.portfolio_stock.request.PortfolioHoldingCreateRequest;
 import codesquad.fineants.spring.api.portfolio_stock.request.PortfolioStocksDeleteRequest;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioChartResponse;
+import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioDetailResponse;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioHoldingsRealTimeResponse;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioHoldingsResponse;
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioStockCreateResponse;
@@ -112,36 +115,68 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		PortfolioHoldingsResponse response = service.readPortfolioHoldings(portfolio.getId());
 
 		// then
+		PortfolioDetailResponse details = response.getPortfolioDetails();
 		assertAll(
-			() -> assertThat(response).extracting("portfolioDetails")
-				.extracting("securitiesFirm", "name", "budget", "targetGain", "targetReturnRate",
-					"maximumLoss", "maximumLossRate", "investedAmount", "totalGain", "totalGainRate", "dailyGain",
-					"dailyGainRate", "balance", "annualDividend", "annualDividendYield",
-					"provisionalLossBalance",
-					"targetGainNotification", "maxLossNotification")
-				.containsExactlyInAnyOrder("토스", "내꿈은 워렌버핏", 1000000L, 1500000L, 50.0, 900000L, 10.0, 150000L, 30000L,
-					20.0, 30000L, 20.0, 850000L, 4332L, 2.4066666666666667, 0L, false, false),
-			() -> assertThat(response).extracting("portfolioHoldings")
-				.asList()
+			() -> assertThat(details.getSecuritiesFirm()).isEqualTo("토스"),
+			() -> assertThat(details.getName()).isEqualTo("내꿈은 워렌버핏"),
+			() -> assertThat(details.getBudget()).isEqualByComparingTo(Money.from(1000000L)),
+			() -> assertThat(details.getTargetGain()).isEqualByComparingTo(Money.from(1500000L)),
+			() -> assertThat(details.getTargetReturnRate()).isEqualByComparingTo(50.0),
+			() -> assertThat(details.getMaximumLoss()).isEqualByComparingTo(Money.from(900000L)),
+			() -> assertThat(details.getMaximumLossRate()).isEqualByComparingTo(10.0),
+			() -> assertThat(details.getInvestedAmount()).isEqualByComparingTo(Money.from(150000L)),
+			() -> assertThat(details.getTotalGain()).isEqualByComparingTo(Money.from(30000L)),
+			() -> assertThat(details.getTotalGainRate()).isEqualByComparingTo(20.0),
+			() -> assertThat(details.getDailyGain()).isEqualByComparingTo(Money.from(30000L)),
+			() -> assertThat(details.getDailyGainRate()).isEqualByComparingTo(20.0),
+			() -> assertThat(details.getBalance()).isEqualByComparingTo(Money.from(850000L)),
+			() -> assertThat(details.getAnnualDividend()).isEqualByComparingTo(Money.from(4332L)),
+			() -> assertThat(details.getAnnualDividendYield()).isEqualByComparingTo(2.41),
+			() -> assertThat(details.getProvisionalLossBalance()).isEqualByComparingTo(Money.from(0L)),
+			() -> assertThat(details.getTargetGainNotification()).isFalse(),
+			() -> assertThat(details.getMaxLossNotification()).isFalse(),
+
+			() -> assertThat(response.getPortfolioHoldings())
 				.hasSize(1)
 				.extracting("stock")
 				.extracting("companyName", "tickerSymbol")
 				.containsExactlyInAnyOrder(Tuple.tuple("삼성전자보통주", "005930")),
 
-			() -> assertThat(response).extracting("portfolioHoldings")
-				.asList()
+			() -> assertThat(response.getPortfolioHoldings())
 				.hasSize(1)
 				.extracting("portfolioHolding")
 				.extracting("portfolioHoldingId", "currentValuation", "currentPrice", "averageCostPerShare",
 					"numShares", "dailyChange", "dailyChangeRate", "totalGain", "totalReturnRate", "annualDividend")
-				.containsExactlyInAnyOrder(Tuple.tuple(
-					portfolioHolding.getId(), 180000L, 60000L, 50000.0, 3L, 10000L, 20.00, 30000L, 20.00, 4332L)),
-			() -> assertThat(response).extracting("portfolioHoldings")
-				.asList()
+				.usingComparatorForType(Money::compareTo, Money.class)
+				.usingComparatorForType(Count::compareTo, Count.class)
+				.containsExactlyInAnyOrder(
+					Tuple.tuple(
+						portfolioHolding.getId(),
+						Money.from(180000L),
+						Money.from(60000L),
+						Money.from(50000L),
+						Count.from(3L),
+						Money.from(10000L),
+						20.00,
+						Money.from(30000L),
+						20.00,
+						Money.from(4332L)
+					)
+				),
+			() -> assertThat(response.getPortfolioHoldings())
 				.hasSize(1)
 				.flatExtracting("purchaseHistory")
 				.extracting("purchaseDate", "numShares", "purchasePricePerShare", "memo")
-				.containsExactlyInAnyOrder(Tuple.tuple(LocalDateTime.of(2023, 9, 26, 9, 30, 0), 3L, 50000.0, "첫구매"))
+				.usingComparatorForType(Money::compareTo, Money.class)
+				.usingComparatorForType(Count::compareTo, Count.class)
+				.containsExactlyInAnyOrder(
+					Tuple.tuple(
+						LocalDateTime.of(2023, 9, 26, 9, 30, 0),
+						Count.from(3L),
+						Money.from(50000.0),
+						"첫구매"
+					)
+				)
 		);
 	}
 
@@ -171,28 +206,30 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 				.asList()
 				.hasSize(2)
 				.extracting("name", "valuation", "weight", "totalGain", "totalGainRate")
+				.usingComparatorForType(Money::compareTo, Money.class)
 				.containsExactlyInAnyOrder(
-					Tuple.tuple("삼성전자보통주", 180000L, 17.475728155339805, 30000L, 20.00),
-					Tuple.tuple("현금", 850000L, 82.52427184466019, 0L, 0.00)
+					Tuple.tuple("현금", Money.from(850000L), 82.52, Money.zero(), 0.00),
+					Tuple.tuple("삼성전자보통주", Money.from(180000L), 17.48, Money.from(30000L), 20.00)
 				),
 			() -> assertThat(response)
 				.extracting("dividendChart")
 				.asList()
 				.hasSize(12)
 				.extracting("month", "amount")
+				.usingComparatorForType(Money::compareTo, Money.class)
 				.containsExactlyInAnyOrder(
-					Tuple.tuple(1, 0L),
-					Tuple.tuple(2, 0L),
-					Tuple.tuple(3, 0L),
-					Tuple.tuple(4, 0L),
-					Tuple.tuple(5, 0L),
-					Tuple.tuple(6, 0L),
-					Tuple.tuple(7, 0L),
-					Tuple.tuple(8, 0L),
-					Tuple.tuple(9, 0L),
-					Tuple.tuple(10, 0L),
-					Tuple.tuple(11, 1083L),
-					Tuple.tuple(12, 0L)
+					Tuple.tuple(1, Money.zero()),
+					Tuple.tuple(2, Money.zero()),
+					Tuple.tuple(3, Money.zero()),
+					Tuple.tuple(4, Money.zero()),
+					Tuple.tuple(5, Money.zero()),
+					Tuple.tuple(6, Money.zero()),
+					Tuple.tuple(7, Money.zero()),
+					Tuple.tuple(8, Money.zero()),
+					Tuple.tuple(9, Money.zero()),
+					Tuple.tuple(10, Money.zero()),
+					Tuple.tuple(11, Money.from(1083L)),
+					Tuple.tuple(12, Money.zero())
 				),
 			() -> assertThat(response)
 				.extracting("sectorChart")
@@ -200,8 +237,8 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 				.hasSize(2)
 				.extracting("sector", "sectorWeight")
 				.containsExactlyInAnyOrder(
-					Tuple.tuple("전기전자", 17.475728155339805),
-					Tuple.tuple("현금", 82.52427184466019)
+					Tuple.tuple("현금", 82.52),
+					Tuple.tuple("전기전자", 17.48)
 				)
 		);
 	}
@@ -227,8 +264,9 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 				.asList()
 				.hasSize(1)
 				.extracting("name", "valuation", "weight", "totalGain", "totalGainRate")
+				.usingComparatorForType(Money::compareTo, Money.class)
 				.containsExactlyInAnyOrder(
-					Tuple.tuple("현금", 0L, 0.0, 0L, 0.00)
+					Tuple.tuple("현금", Money.zero(), 0.0, Money.zero(), 0.00)
 				),
 			() -> assertThat(response)
 				.extracting("dividendChart")
@@ -270,19 +308,25 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 
 		// then
 		assertAll(
-			() -> assertThat(response).extracting("portfolioDetails")
+			() -> assertThat(response)
+				.extracting("portfolioDetails")
 				.extracting("currentValuation", "totalGain", "totalGainRate", "dailyGain", "dailyGainRate",
 					"provisionalLossBalance")
-				.containsExactlyInAnyOrder(720000L, 120000L, 20.0, 120000L, 20.0, 0L),
+				.usingComparatorForType(Money::compareTo, Money.class)
+				.containsExactlyInAnyOrder(Money.from(720000L), Money.from(120000L), 20.0, Money.from(120000L), 20.0,
+					Money.zero()),
 
 			() -> assertThat(response).extracting("portfolioHoldings")
 				.asList()
 				.hasSize(2)
 				.extracting("currentValuation", "currentPrice", "dailyChange", "dailyChangeRate", "totalGain",
 					"totalReturnRate")
+				.usingComparatorForType(Money::compareTo, Money.class)
 				.containsExactlyInAnyOrder(
-					Tuple.tuple(360000L, 60000L, 10000L, 20.0, 60000L, 20.0),
-					Tuple.tuple(360000L, 60000L, 10000L, 20.0, 60000L, 20.0))
+					Tuple.tuple(Money.from(360000L), Money.from(60000L), Money.from(10000L), 20.0, Money.from(60000L),
+						20.0),
+					Tuple.tuple(Money.from(360000L), Money.from(60000L), Money.from(10000L), 20.0, Money.from(60000L),
+						20.0))
 		);
 	}
 
@@ -441,8 +485,8 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		purchaseHistoryRepository.save(
 			PurchaseHistory.builder()
 				.purchaseDate(LocalDateTime.now())
-				.purchasePricePerShare(10000.0)
-				.numShares(1L)
+				.purchasePricePerShare(Money.from(10000.0))
+				.numShares(Count.from(1L))
 				.memo("첫구매")
 				.build()
 		);
@@ -592,9 +636,9 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		return Portfolio.builder()
 			.name("내꿈은 워렌버핏")
 			.securitiesFirm("토스")
-			.budget(1000000L)
-			.targetGain(1500000L)
-			.maximumLoss(900000L)
+			.budget(Money.from(1000000L))
+			.targetGain(Money.from(1500000L))
+			.maximumLoss(Money.from(900000L))
 			.member(member)
 			.targetGainIsActive(false)
 			.maximumLossIsActive(false)
@@ -605,9 +649,9 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		return Portfolio.builder()
 			.name("내꿈은 워렌버핏")
 			.securitiesFirm("토스")
-			.budget(0L)
-			.targetGain(0L)
-			.maximumLoss(0L)
+			.budget(Money.from(0L))
+			.targetGain(Money.zero())
+			.maximumLoss(Money.zero())
 			.member(member)
 			.targetGainIsActive(false)
 			.maximumLossIsActive(false)
@@ -640,7 +684,7 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 	private StockDividend createStockDividend(LocalDate exDividendDate, LocalDate recordDate, LocalDate paymentDate,
 		Stock stock) {
 		return StockDividend.builder()
-			.dividend(361L)
+			.dividend(Money.from(361L))
 			.exDividendDate(exDividendDate)
 			.recordDate(recordDate)
 			.paymentDate(paymentDate)
@@ -658,8 +702,8 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 	private PurchaseHistory createPurchaseHistory(PortfolioHolding portfolioHolding) {
 		return PurchaseHistory.builder()
 			.purchaseDate(LocalDateTime.of(2023, 9, 26, 9, 30, 0))
-			.numShares(3L)
-			.purchasePricePerShare(50000.0)
+			.numShares(Count.from(3L))
+			.purchasePricePerShare(Money.from(50000.0))
 			.memo("첫구매")
 			.portfolioHolding(portfolioHolding)
 			.build();

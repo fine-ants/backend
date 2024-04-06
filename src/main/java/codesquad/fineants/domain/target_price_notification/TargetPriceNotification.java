@@ -2,6 +2,8 @@ package codesquad.fineants.domain.target_price_notification;
 
 import java.time.LocalDateTime;
 
+import javax.persistence.Column;
+import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
@@ -12,6 +14,8 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 import codesquad.fineants.domain.BaseEntity;
+import codesquad.fineants.domain.common.money.Money;
+import codesquad.fineants.domain.common.money.MoneyConverter;
 import codesquad.fineants.domain.notification.type.NotificationType;
 import codesquad.fineants.domain.stock_target_price.StockTargetPrice;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
@@ -32,7 +36,9 @@ public class TargetPriceNotification extends BaseEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	private Long targetPrice;
+	@Convert(converter = MoneyConverter.class)
+	@Column(precision = 19, nullable = false)
+	private Money targetPrice;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "stock_target_price_id")
@@ -40,7 +46,7 @@ public class TargetPriceNotification extends BaseEntity {
 
 	@Builder
 	public TargetPriceNotification(LocalDateTime createAt, LocalDateTime modifiedAt, Long id,
-		Long targetPrice, StockTargetPrice stockTargetPrice) {
+		Money targetPrice, StockTargetPrice stockTargetPrice) {
 		super(createAt, modifiedAt);
 		this.id = id;
 		this.targetPrice = targetPrice;
@@ -62,7 +68,7 @@ public class TargetPriceNotification extends BaseEntity {
 	public NotifyMessage getTargetPriceMessage(String token) {
 		NotificationType type = NotificationType.STOCK_TARGET_PRICE;
 		String title = type.getName();
-		String content = String.format("%s이(가) %d 금액에 도달했습니다", stockTargetPrice.getStock().getCompanyName(),
+		String content = String.format("%s이(가) %s 금액에 도달했습니다", stockTargetPrice.getStock().getCompanyName(),
 			targetPrice);
 		String referenceId = stockTargetPrice.getStock().getTickerSymbol();
 		Long memberId = stockTargetPrice.getMember().getId();
@@ -83,7 +89,7 @@ public class TargetPriceNotification extends BaseEntity {
 	}
 
 	public boolean isSameTargetPrice(CurrentPriceManager manager) {
-		Long currentPrice = stockTargetPrice.getCurrentPrice(manager);
-		return targetPrice.equals(currentPrice);
+		Money currentPrice = stockTargetPrice.getCurrentPrice(manager);
+		return targetPrice.compareTo(currentPrice) == 0;
 	}
 }

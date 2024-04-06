@@ -3,6 +3,7 @@ package codesquad.fineants.spring.api.purchase_history.service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.portfolio.Portfolio;
 import codesquad.fineants.domain.portfolio.PortfolioRepository;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
@@ -63,7 +64,7 @@ public class PurchaseHistoryService {
 			.orElseThrow(() -> new FineAntsException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
 	}
 
-	private void verifyCashSufficientForPurchase(Portfolio portfolio, long investmentAmount) {
+	private void verifyCashSufficientForPurchase(Portfolio portfolio, Money investmentAmount) {
 		if (portfolio.isCashSufficientForPurchase(investmentAmount)) {
 			throw new FineAntsException(PortfolioErrorCode.TOTAL_INVESTMENT_PRICE_EXCEEDS_BUDGET);
 		}

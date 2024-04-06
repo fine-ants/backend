@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.member.MemberRepository;
 import codesquad.fineants.domain.stock.Stock;
@@ -101,8 +102,10 @@ public class StockTargetPriceNotificationService {
 			.build();
 	}
 
-	private void verifyExistTargetPriceNotification(String tickerSymbol, Long targetPrice, Long memberId) {
-		if (targetPriceNotificationRepository.findByTickerSymbolAndTargetPriceAndMemberId(tickerSymbol, targetPrice,
+	private void verifyExistTargetPriceNotification(String tickerSymbol, Money targetPrice, Long memberId) {
+		if (targetPriceNotificationRepository.findByTickerSymbolAndTargetPriceAndMemberId(
+			tickerSymbol,
+			targetPrice,
 			memberId).isPresent()) {
 			throw new BadRequestException(StockErrorCode.BAD_REQUEST_TARGET_PRICE_NOTIFICATION_EXIST);
 		}

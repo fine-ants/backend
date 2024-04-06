@@ -1,5 +1,6 @@
 package codesquad.fineants.spring.api.portfolio_stock.response;
 
+import codesquad.fineants.domain.common.money.Money;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -12,21 +13,26 @@ import lombok.ToString;
 @ToString
 public class PortfolioPieChartItem {
 	private String name;
-	private Long valuation;
+	private Money valuation;
 	private Double weight;
-	private Long totalGain;
+	private Money totalGain;
 	private Double totalGainRate;
 
-	private PortfolioPieChartItem(String name, Long valuation, Double weight) {
-		this(name, valuation, weight, 0L, 0.0);
+	private PortfolioPieChartItem(String name, Money valuation, Double weight) {
+		this(name, valuation, weight, Money.zero(), 0.0);
 	}
 
-	public static PortfolioPieChartItem stock(String name, Long valuation, Double weight, Long totalGain,
+	public static PortfolioPieChartItem stock(String name, Money valuation, Double weight, Money totalGain,
 		Double totalGainRate) {
-		return new PortfolioPieChartItem(name, valuation, weight, totalGain, totalGainRate);
+		return new PortfolioPieChartItem(
+			name,
+			valuation,
+			weight,
+			totalGain,
+			totalGainRate);
 	}
 
-	public static PortfolioPieChartItem cash(Double weight, Long balance) {
+	public static PortfolioPieChartItem cash(Double weight, Money balance) {
 		return new PortfolioPieChartItem(
 			"현금",
 			balance,

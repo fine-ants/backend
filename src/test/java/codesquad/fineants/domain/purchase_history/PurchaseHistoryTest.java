@@ -8,6 +8,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
 
+import codesquad.fineants.domain.common.count.Count;
+import codesquad.fineants.domain.common.money.Money;
+
 @ActiveProfiles("test")
 class PurchaseHistoryTest {
 
@@ -17,15 +20,15 @@ class PurchaseHistoryTest {
 		// given
 		PurchaseHistory purchaseHistory = PurchaseHistory.builder()
 			.purchaseDate(LocalDateTime.now())
-			.numShares(5L)
-			.purchasePricePerShare(10000.0)
+			.numShares(Count.from(5L))
+			.purchasePricePerShare(Money.from(10000.0))
 			.build();
 
 		// when
-		long result = purchaseHistory.calculateInvestmentAmount();
+		Money result = purchaseHistory.calculateInvestmentAmount();
 
 		// then
-		assertThat(result).isEqualTo(50000L);
+		assertThat(result).isEqualByComparingTo(Money.from(50000L));
 	}
 
 }

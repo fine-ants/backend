@@ -22,6 +22,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.payload.JsonFieldType;
 
+import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
@@ -158,9 +159,9 @@ public class StockRestControllerDocsTest extends RestDocsSupport {
 		LastDayClosingPriceManager lastDayClosingPriceManager = Mockito.mock(LastDayClosingPriceManager.class);
 
 		given(currentPriceManager.getCurrentPrice(stock.getTickerSymbol()))
-			.willReturn(Optional.of(68000L));
+			.willReturn(Optional.of(Money.from(68000L)));
 		given(lastDayClosingPriceManager.getPrice(stock.getTickerSymbol()))
-			.willReturn(Optional.of(80000L));
+			.willReturn(Optional.of(Money.from(80000L)));
 		given(service.getStock(stock.getTickerSymbol()))
 			.willReturn(StockResponse.create(
 				stock.getStockCode(),
@@ -168,11 +169,11 @@ public class StockRestControllerDocsTest extends RestDocsSupport {
 				stock.getCompanyName(),
 				stock.getCompanyNameEng(),
 				stock.getMarket(),
-				68000L,
-				12000L,
+				Money.from(68000L),
+				Money.from(12000L),
 				20.45,
 				stock.getSector(),
-				6000L,
+				Money.from(6000L),
 				10.00,
 				List.of(1, 4)
 			));

@@ -1,5 +1,6 @@
 package codesquad.fineants.spring.api.portfolio_stock.response;
 
+import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.portfolio.Portfolio;
 import codesquad.fineants.domain.portfolio_gain_history.PortfolioGainHistory;
 import lombok.AccessLevel;
@@ -13,12 +14,12 @@ import lombok.ToString;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @ToString
 public class PortfolioDetailRealTimeItem {
-	private Long currentValuation;
-	private Long totalGain;
+	private Money currentValuation;
+	private Money totalGain;
 	private Double totalGainRate;
-	private Long dailyGain;
+	private Money dailyGain;
 	private Double dailyGainRate;
-	private Long provisionalLossBalance;
+	private Money provisionalLossBalance;
 
 	public static PortfolioDetailRealTimeItem of(Portfolio portfolio, PortfolioGainHistory history) {
 		return new PortfolioDetailRealTimeItem(
@@ -27,7 +28,7 @@ public class PortfolioDetailRealTimeItem {
 			portfolio.calculateTotalGainRate(),
 			portfolio.calculateDailyGain(history),
 			portfolio.calculateDailyGainRate(history),
-			0L
+			Money.zero()
 		);
 	}
 }

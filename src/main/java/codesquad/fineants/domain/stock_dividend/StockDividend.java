@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import javax.persistence.Column;
+import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
@@ -15,6 +16,9 @@ import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 
 import codesquad.fineants.domain.BaseEntity;
+import codesquad.fineants.domain.common.count.Count;
+import codesquad.fineants.domain.common.money.Money;
+import codesquad.fineants.domain.common.money.MoneyConverter;
 import codesquad.fineants.domain.stock.Stock;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -33,13 +37,15 @@ public class StockDividend extends BaseEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
-	private Long dividend;
+	@Convert(converter = MoneyConverter.class)
+	@Column(precision = 19, nullable = false)
+	private Money dividend;
 
 	@Column(nullable = false)
 	private LocalDate exDividendDate;
 	@Column(nullable = false)
 	private LocalDate recordDate;
-	@Column(nullable = true)
+	@Column
 	private LocalDate paymentDate;
 
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -48,7 +54,7 @@ public class StockDividend extends BaseEntity {
 
 	@Builder
 	public StockDividend(Long id, LocalDate exDividendDate, LocalDate recordDate,
-		LocalDate paymentDate, Long dividend, Stock stock) {
+		LocalDate paymentDate, Money dividend, Stock stock) {
 		this.id = id;
 		this.exDividendDate = exDividendDate;
 		this.recordDate = recordDate;
@@ -59,8 +65,8 @@ public class StockDividend extends BaseEntity {
 
 	// 주식 개수에 따른 배당금 합계 계산
 	// 배당금 합계 = 주당 배당금 * 주식 개수
-	public Long calculateDividendSum(Long numShares) {
-		return dividend * numShares;
+	public Money calculateDividendSum(Count numShares) {
+		return dividend.multiply(numShares);
 	}
 
 	// 배당금을 받을 수 있는지 검사

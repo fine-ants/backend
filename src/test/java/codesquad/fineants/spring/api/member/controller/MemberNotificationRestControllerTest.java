@@ -30,6 +30,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.notification.NotificationBody;
 import codesquad.fineants.domain.oauth.support.AuthMember;
@@ -294,7 +295,7 @@ class MemberNotificationRestControllerTest {
 			MemberNotification.builder()
 				.notificationId(1L)
 				.title("지정가")
-				.body(NotificationBody.stock("삼성전자", 60000L))
+				.body(NotificationBody.stock("삼성전자", Money.from(60000L)))
 				.timestamp(LocalDateTime.of(2024, 1, 22, 10, 10, 10))
 				.isRead(true)
 				.type(STOCK_TARGET_PRICE.getCategory())

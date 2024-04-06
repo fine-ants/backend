@@ -8,6 +8,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
 
+import codesquad.fineants.domain.common.count.Count;
+import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.purchase_history.PurchaseHistory;
 
 @ActiveProfiles("test")
@@ -21,15 +23,29 @@ class PurchaseHistoryItemTest {
 		PurchaseHistory history = PurchaseHistory.builder()
 			.id(1L)
 			.purchaseDate(now)
-			.numShares(3L)
-			.purchasePricePerShare(30000.0)
+			.numShares(Count.from(3L))
+			.purchasePricePerShare(Money.from(30000.0))
 			.memo("첫구매")
 			.build();
 		// when
 		PurchaseHistoryItem historyItem = PurchaseHistoryItem.from(history);
 		// then
 		assertThat(historyItem)
-			.extracting("purchaseHistoryId", "purchaseDate", "numShares", "purchasePricePerShare", "memo")
-			.containsExactlyInAnyOrder(1L, now, 3L, 30000.0, "첫구매");
+			.extracting(
+				PurchaseHistoryItem::getPurchaseHistoryId,
+				PurchaseHistoryItem::getPurchaseDate,
+				PurchaseHistoryItem::getNumShares,
+				PurchaseHistoryItem::getPurchasePricePerShare,
+				PurchaseHistoryItem::getMemo
+			)
+			.usingComparatorForType(Money::compareTo, Money.class)
+			.usingComparatorForType(Count::compareTo, Count.class)
+			.containsExactlyInAnyOrder(
+				1L,
+				now,
+				Count.from(3L),
+				Money.from(30000L),
+				"첫구매"
+			);
 	}
 }

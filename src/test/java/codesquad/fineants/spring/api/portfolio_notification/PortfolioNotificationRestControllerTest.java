@@ -28,6 +28,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import codesquad.fineants.domain.common.count.Count;
+import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.oauth.support.AuthPrincipalArgumentResolver;
@@ -109,9 +111,9 @@ class PortfolioNotificationRestControllerTest {
 			.id(1L)
 			.name("내꿈은 워렌버핏")
 			.securitiesFirm("토스")
-			.budget(1000000L)
-			.targetGain(1500000L)
-			.maximumLoss(900000L)
+			.budget(Money.from(1000000L))
+			.targetGain(Money.from(1500000L))
+			.maximumLoss(Money.from(900000L))
 			.member(member)
 			.build();
 
@@ -132,8 +134,8 @@ class PortfolioNotificationRestControllerTest {
 		purchaseHistory = PurchaseHistory.builder()
 			.id(1L)
 			.purchaseDate(LocalDateTime.now())
-			.purchasePricePerShare(50000.0)
-			.numShares(3L)
+			.purchasePricePerShare(Money.from(50000.0))
+			.numShares(Count.from(3L))
 			.memo("첫구매")
 			.build();
 

@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
+import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.fcm_token.FcmRepository;
 import codesquad.fineants.domain.fcm_token.FcmToken;
 import codesquad.fineants.domain.member.Member;
@@ -93,7 +94,7 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 		Stock stock = stockRepository.save(createStock());
 		TargetPriceNotificationCreateRequest request = TargetPriceNotificationCreateRequest.builder()
 			.tickerSymbol(stock.getTickerSymbol())
-			.targetPrice(60000L)
+			.targetPrice(Money.from(60000L))
 			.build();
 
 		// when
@@ -106,9 +107,10 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 
 		assertThat(response)
 			.extracting("targetPriceNotificationId", "tickerSymbol", "targetPrice")
+			.usingComparatorForType(Money::compareTo, Money.class)
 			.containsExactlyInAnyOrder(targetPriceNotification.getId(),
 				stock.getTickerSymbol(),
-				60000L);
+				Money.from(60000L));
 	}
 
 	@DisplayName("사용자는 한 종목의 지정가 알림 개수를 5개를 초과할 수 없다")
@@ -119,7 +121,7 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 		Stock stock = stockRepository.save(createStock());
 		TargetPriceNotificationCreateRequest request = TargetPriceNotificationCreateRequest.builder()
 			.tickerSymbol(stock.getTickerSymbol())
-			.targetPrice(60000L)
+			.targetPrice(Money.from(60000L))
 			.build();
 		StockTargetPrice stockTargetPrice = repository.save(createStockTargetPrice(member, stock));
 		targetPriceNotificationRepository.saveAll(createTargetPriceNotification(
@@ -144,7 +146,7 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 		Stock stock = stockRepository.save(createStock());
 		TargetPriceNotificationCreateRequest request = TargetPriceNotificationCreateRequest.builder()
 			.tickerSymbol(stock.getTickerSymbol())
-			.targetPrice(60000L)
+			.targetPrice(Money.from(60000L))
 			.build();
 		StockTargetPrice stockTargetPrice = repository.save(createStockTargetPrice(member, stock));
 		targetPriceNotificationRepository.saveAll(createTargetPriceNotification(stockTargetPrice, List.of(60000L)));
@@ -177,21 +179,21 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 			createTargetPriceNotification(stockTargetPrice2, List.of(60000L, 70000L)));
 
 		given(manager.getPrice(anyString()))
-			.willReturn(Optional.of(50000L));
+			.willReturn(Optional.of(Money.from(50000L)));
 
 		// when
 		TargetPriceNotificationSearchResponse response = service.searchStockTargetPriceNotification(member.getId());
 
 		// then
 		assertAll(
-			() -> assertThat(response)
-				.extracting("stocks")
+			() -> assertThat(response.getStocks())
 				.asList()
 				.hasSize(2)
 				.extracting("companyName", "tickerSymbol", "lastPrice", "isActive")
+				.usingComparatorForType(Money::compareTo, Money.class)
 				.containsExactly(
-					Tuple.tuple(stock.getCompanyName(), stock.getTickerSymbol(), 50000L, true),
-					Tuple.tuple(stock2.getCompanyName(), stock2.getTickerSymbol(), 50000L, true)
+					Tuple.tuple(stock.getCompanyName(), stock.getTickerSymbol(), Money.from(50000L), true),
+					Tuple.tuple(stock2.getCompanyName(), stock2.getTickerSymbol(), Money.from(50000L), true)
 				),
 			() -> assertThat(response.getStocks().get(0))
 				.extracting("targetPrices")
@@ -199,16 +201,17 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 				.hasSize(2)
 				.extracting("notificationId", "targetPrice")
 				.containsExactly(
-					Tuple.tuple(targetPriceNotifications.get(0).getId(), 60000L),
-					Tuple.tuple(targetPriceNotifications.get(1).getId(), 70000L)),
+					Tuple.tuple(targetPriceNotifications.get(0).getId(), Money.from(60000L)),
+					Tuple.tuple(targetPriceNotifications.get(1).getId(), Money.from(70000L))),
 			() -> assertThat(response.getStocks().get(1))
 				.extracting("targetPrices")
 				.asList()
 				.hasSize(2)
 				.extracting("notificationId", "targetPrice")
+				.usingComparatorForType(Money::compareTo, Money.class)
 				.containsExactly(
-					Tuple.tuple(targetPriceNotifications2.get(0).getId(), 60000L),
-					Tuple.tuple(targetPriceNotifications2.get(1).getId(), 70000L))
+					Tuple.tuple(targetPriceNotifications2.get(0).getId(), Money.from(60000L)),
+					Tuple.tuple(targetPriceNotifications2.get(1).getId(), Money.from(70000L)))
 		);
 	}
 
@@ -223,7 +226,7 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 			createTargetPriceNotification(stockTargetPrice, List.of(60000L, 70000L)));
 
 		given(manager.getPrice(anyString()))
-			.willReturn(Optional.of(50000L));
+			.willReturn(Optional.of(Money.from(50000L)));
 
 		// when
 		TargetPriceNotificationSpecifiedSearchResponse response = service.searchTargetPriceNotifications(
@@ -235,9 +238,10 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 			.asList()
 			.hasSize(2)
 			.extracting("notificationId", "targetPrice")
+			.usingComparatorForType(Money::compareTo, Money.class)
 			.containsExactlyInAnyOrder(
-				Tuple.tuple(targetPriceNotifications.get(0).getId(), 60000L),
-				Tuple.tuple(targetPriceNotifications.get(1).getId(), 70000L));
+				Tuple.tuple(targetPriceNotifications.get(0).getId(), Money.from(60000L)),
+				Tuple.tuple(targetPriceNotifications.get(1).getId(), Money.from(70000L)));
 	}
 
 	@DisplayName("사용자가 없는 종목을 대상으로 지정가 알림 목록 조회시 빈 리스트를 반환받는다")
@@ -526,7 +530,7 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 
 	private TargetPriceNotification createTargetPriceNotification(StockTargetPrice stockTargetPrice, Long targetPrice) {
 		return TargetPriceNotification.builder()
-			.targetPrice(targetPrice)
+			.targetPrice(Money.from(targetPrice))
 			.stockTargetPrice(stockTargetPrice)
 			.build();
 	}
@@ -535,7 +539,7 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 		List<Long> targetPrices) {
 		return targetPrices.stream()
 			.map(targetPrice -> TargetPriceNotification.builder()
-				.targetPrice(targetPrice)
+				.targetPrice(Money.from(targetPrice))
 				.stockTargetPrice(stockTargetPrice)
 				.build())
 			.collect(Collectors.toList());

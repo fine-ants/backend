@@ -1,5 +1,7 @@
 package codesquad.fineants.spring.api.portfolio_stock.response;
 
+import codesquad.fineants.domain.common.count.Count;
+import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -15,18 +17,18 @@ import lombok.ToString;
 @ToString
 public class PortfolioHoldingDetailItem {
 	private Long portfolioHoldingId;
-	private Long currentValuation;
-	private Long currentPrice;
-	private Double averageCostPerShare;
-	private Long numShares;
-	private Long dailyChange;
+	private Money currentValuation;
+	private Money currentPrice;
+	private Money averageCostPerShare;
+	private Count numShares;
+	private Money dailyChange;
 	private Double dailyChangeRate;
-	private Long totalGain;
+	private Money totalGain;
 	private Double totalReturnRate;
-	private Long annualDividend;
+	private Money annualDividend;
 	private Double annualDividendYield;
 
-	public static PortfolioHoldingDetailItem from(PortfolioHolding portfolioHolding, long lastDayClosingPrice) {
+	public static PortfolioHoldingDetailItem from(PortfolioHolding portfolioHolding, Money lastDayClosingPrice) {
 		return PortfolioHoldingDetailItem.builder()
 			.portfolioHoldingId(portfolioHolding.getId())
 			.currentValuation(portfolioHolding.calculateCurrentValuation())

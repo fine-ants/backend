@@ -1,5 +1,6 @@
 package codesquad.fineants.spring.api.notification.response;
 
+import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.notification.Notification;
 import codesquad.fineants.domain.notification.StockTargetPriceNotification;
 import codesquad.fineants.domain.notification.type.NotificationType;
@@ -25,7 +26,7 @@ public class TargetPriceNotificationResponse {
 	private Long memberId;
 	private String link;
 	private String stockName;
-	private Long targetPrice;
+	private Money targetPrice;
 	private Long targetPriceNotificationId;
 
 	public static TargetPriceNotificationResponse from(Notification notification) {

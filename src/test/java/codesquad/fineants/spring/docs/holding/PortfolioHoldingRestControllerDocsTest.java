@@ -25,6 +25,7 @@ import org.springframework.http.MediaType;
 import org.springframework.restdocs.payload.JsonFieldType;
 import org.springframework.test.web.servlet.ResultActions;
 
+import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.portfolio.Portfolio;
@@ -138,7 +139,7 @@ public class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 		portfolio.addPortfolioStock(portfolioHolding);
 		PortfolioGainHistory history = createEmptyPortfolioGainHistory();
 
-		Map<String, Long> lastDayClosingPriceMap = Map.of("005930", 50000L);
+		Map<String, Money> lastDayClosingPriceMap = Map.of("005930", Money.from(50000L));
 		PortfolioHoldingsResponse mockResponse = PortfolioHoldingsResponse.of(portfolio, history,
 			List.of(portfolioHolding),
 			lastDayClosingPriceMap);
@@ -179,7 +180,7 @@ public class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 			.andExpect(jsonPath("data.portfolioHoldings[0].portfolioHoldingId").value(equalTo(1)))
 			.andExpect(jsonPath("data.portfolioHoldings[0].currentValuation").value(equalTo(180000)))
 			.andExpect(jsonPath("data.portfolioHoldings[0].currentPrice").value(equalTo(60000)))
-			.andExpect(jsonPath("data.portfolioHoldings[0].averageCostPerShare").value(equalTo(50000.00)))
+			.andExpect(jsonPath("data.portfolioHoldings[0].averageCostPerShare").value(equalTo(50000)))
 			.andExpect(jsonPath("data.portfolioHoldings[0].numShares").value(equalTo(3)))
 			.andExpect(jsonPath("data.portfolioHoldings[0].dailyChange").value(equalTo(10000)))
 			.andExpect(jsonPath("data.portfolioHoldings[0].dailyChangeRate").value(closeTo(20.0, 0.1)))
@@ -194,7 +195,7 @@ public class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 				equalTo("2023-11-01T09:30:00")))
 			.andExpect(jsonPath("data.portfolioHoldings[0].purchaseHistory[0].numShares").value(equalTo(3)))
 			.andExpect(
-				jsonPath("data.portfolioHoldings[0].purchaseHistory[0].purchasePricePerShare").value(equalTo(50000.00)))
+				jsonPath("data.portfolioHoldings[0].purchaseHistory[0].purchasePricePerShare").value(equalTo(50000)))
 			.andExpect(jsonPath("data.portfolioHoldings[0].purchaseHistory[0].memo").value(equalTo("첫구매")));
 
 		resultActions.andDo(
@@ -340,21 +341,21 @@ public class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 		// given
 		Portfolio portfolio = createPortfolio(createMember());
 		List<PortfolioPieChartItem> pieChartItems = List.of(
-			PortfolioPieChartItem.stock("삼성전자보통주", 600000L, 54.55, 100000L, 10.00),
-			PortfolioPieChartItem.cash(45.45, 500000L)
+			PortfolioPieChartItem.stock("삼성전자보통주", Money.from(600000L), 54.55, Money.from(100000L), 10.00),
+			PortfolioPieChartItem.cash(45.45, Money.from(500000L))
 		);
 		List<PortfolioDividendChartItem> dividendChartItems = List.of(
 			PortfolioDividendChartItem.empty(1),
 			PortfolioDividendChartItem.empty(2),
 			PortfolioDividendChartItem.empty(3),
-			PortfolioDividendChartItem.create(4, 3610L),
-			PortfolioDividendChartItem.create(5, 3610L),
+			PortfolioDividendChartItem.create(4, Money.from(3610L)),
+			PortfolioDividendChartItem.create(5, Money.from(3610L)),
 			PortfolioDividendChartItem.empty(6),
 			PortfolioDividendChartItem.empty(7),
-			PortfolioDividendChartItem.create(8, 3610L),
+			PortfolioDividendChartItem.create(8, Money.from(3610L)),
 			PortfolioDividendChartItem.empty(9),
 			PortfolioDividendChartItem.empty(10),
-			PortfolioDividendChartItem.create(11, 3610L),
+			PortfolioDividendChartItem.create(11, Money.from(3610L)),
 			PortfolioDividendChartItem.empty(12)
 		);
 		List<PortfolioSectorChartItem> sectorChartItems = List.of(

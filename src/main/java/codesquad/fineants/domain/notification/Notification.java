@@ -17,6 +17,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
 import codesquad.fineants.domain.BaseEntity;
+import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.notification.type.NotificationType;
 import lombok.AccessLevel;
@@ -70,7 +71,7 @@ public abstract class Notification extends BaseEntity {
 		throw new IllegalArgumentException("잘못된 타입입니다. type=" + type);
 	}
 
-	public static Notification stock(String stockName, Long targetPrice, String title,
+	public static Notification stock(String stockName, Money targetPrice, String title,
 		String referenceId, String link, Long targetPriceNotificationId, Member member) {
 		return StockTargetPriceNotification.create(stockName, targetPrice, title, referenceId,
 			link, targetPriceNotificationId, member);

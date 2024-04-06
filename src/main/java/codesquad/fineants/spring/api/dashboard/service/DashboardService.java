@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.member.MemberRepository;
 import codesquad.fineants.domain.oauth.support.AuthMember;
@@ -41,29 +42,34 @@ public class DashboardService {
 		List<Portfolio> portfolios = portfolioRepository.findAllByMemberId(authMember.getMemberId());
 		Member member = memberRepository.findById(authMember.getMemberId())
 			.orElseThrow(() -> new BadRequestException(MemberErrorCode.NOT_FOUND_MEMBER));
-		Long totalValuation = 0L;// 평가 금액 + 현금?
-		Long totalCurrentValuation = 0L; // 평가 금액
-		Long totalInvestment = 0L; //총 주식에 투자된 돈
-		Long totalGain = 0L; // 총 수익
-		Long totalAnnualDividend = 0L; // 총 연간 배당금
+		Money totalValuation = Money.zero();
+		Money totalCurrentValuation = Money.zero();
+		Money totalInvestment = Money.zero();
+		Money totalGain = Money.zero();
+		Money totalAnnualDividend = Money.zero();
 		if (portfolios.isEmpty()) {
 			return OverviewResponse.empty(member.getNickname());
 		}
 		for (Portfolio portfolio : portfolios) {
 			portfolio.applyCurrentPriceAllHoldingsBy(currentPriceManager);
-			totalValuation += portfolio.calculateTotalAsset();
-			totalCurrentValuation += portfolio.calculateTotalCurrentValuation();
-			totalInvestment += portfolio.calculateTotalInvestmentAmount();
-			totalGain += portfolio.calculateTotalGain();
-			totalAnnualDividend += portfolio.calculateAnnualDividend();
+			totalValuation = totalValuation.add(portfolio.calculateTotalAsset());
+			totalCurrentValuation = totalCurrentValuation.add(portfolio.calculateTotalCurrentValuation());
+			totalInvestment = totalInvestment.add(portfolio.calculateTotalInvestmentAmount());
+			totalGain = totalGain.add(portfolio.calculateTotalGain());
+			totalAnnualDividend = totalAnnualDividend.add(portfolio.calculateAnnualDividend());
 		}
-		Double totalAnnualDividendYield = totalCurrentValuation != 0 ?
-			(totalAnnualDividend.doubleValue() / totalCurrentValuation.doubleValue()) * 100 : 0.0;
-		Double totalGainRate = totalInvestment != 0 ?
-			(totalGain.doubleValue() / totalInvestment.doubleValue()) * 100 : 0.0;
+		double totalAnnualDividendYield = totalAnnualDividend.divide(totalCurrentValuation).toPercentage();
+		double totalGainRate = totalGain.divide(totalInvestment).toPercentage();
 
-		return OverviewResponse.of(member.getNickname(), totalValuation, totalInvestment,
-			totalGain, totalGainRate, totalAnnualDividend, totalAnnualDividendYield);
+		return OverviewResponse.of(
+			member.getNickname(),
+			totalValuation,
+			totalInvestment,
+			totalGain,
+			totalGainRate,
+			totalAnnualDividend,
+			totalAnnualDividendYield
+		);
 	}
 
 	@Transactional(readOnly = true)
@@ -72,10 +78,10 @@ public class DashboardService {
 		if (portfolios.isEmpty()) {
 			return new ArrayList<>();
 		}
-		Long totalValuation = 0L;// 평가 금액 + 현금?
+		Money totalValuation = Money.zero();// 평가 금액 + 현금
 		for (Portfolio portfolio : portfolios) {
 			portfolio.applyCurrentPriceAllHoldingsBy(currentPriceManager);
-			totalValuation += portfolio.calculateTotalAsset();
+			totalValuation = totalValuation.add(portfolio.calculateTotalAsset());
 		}
 		List<DashboardPieChartResponse> pieChartResponses = new ArrayList<>();
 		for (Portfolio portfolio : portfolios) {
@@ -85,8 +91,8 @@ public class DashboardService {
 		// 1. 가치(평가금액+현금) 기준 내림차순
 		// 2. 총손익 기준 내림차순
 		pieChartResponses.sort(
-			((Comparator<DashboardPieChartResponse>)(o1, o2) -> Long.compare(o2.getValuation(), o1.getValuation()))
-				.thenComparing((o1, o2) -> Long.compare(o2.getTotalGain(), o1.getTotalGain())));
+			((Comparator<DashboardPieChartResponse>)(o1, o2) -> o2.getValuation().compareTo(o1.getValuation()))
+				.thenComparing((o1, o2) -> o2.getTotalGain().compareTo(o1.getTotalGain())));
 		return pieChartResponses;
 	}
 
@@ -100,11 +106,12 @@ public class DashboardService {
 		for (Portfolio portfolio : portfolios) {
 			portfolioGainHistories.addAll(portfolioGainHistoryRepository.findAllByPortfolioId(portfolio.getId()));
 		}
-		Map<String, Long> timeValueMap = new HashMap<>();
+		Map<String, Money> timeValueMap = new HashMap<>();
 		for (PortfolioGainHistory portfolioGainHistory : portfolioGainHistories) {
 			String time = portfolioGainHistory.getCreateAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-			timeValueMap.put(time, timeValueMap.getOrDefault(time, 0L) + portfolioGainHistory.getCash()
-				+ portfolioGainHistory.getCurrentValuation());
+			timeValueMap.put(time, timeValueMap.getOrDefault(time, Money.zero())
+				.add(portfolioGainHistory.getCash())
+				.add(portfolioGainHistory.getCurrentValuation()));
 		}
 		return timeValueMap.keySet()
 			.stream()

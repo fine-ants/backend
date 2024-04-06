@@ -4,25 +4,30 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.portfolio.Portfolio;
 import codesquad.fineants.domain.portfolio_gain_history.PortfolioGainHistory;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-@ToString
+@Getter
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
+@ToString
 public class PortfolioHoldingsResponse {
 	private PortfolioDetailResponse portfolioDetails;
 	private List<PortfolioHoldingItem> portfolioHoldings;
 
 	public static PortfolioHoldingsResponse of(Portfolio portfolio, PortfolioGainHistory history,
-		List<PortfolioHolding> portfolioHoldings, Map<String, Long> lastDayClosingPriceMap) {
+		List<PortfolioHolding> portfolioHoldings, Map<String, Money> lastDayClosingPriceMap) {
 		PortfolioDetailResponse portfolioDetailResponse = PortfolioDetailResponse.from(portfolio, history);
 		List<PortfolioHoldingItem> portfolioHoldingItems = portfolioHoldings.stream()
 			.map(portfolioHolding -> PortfolioHoldingItem.from(portfolioHolding,
-				lastDayClosingPriceMap.getOrDefault(portfolioHolding.getStock().getTickerSymbol(), 0L)))
+				lastDayClosingPriceMap.getOrDefault(portfolioHolding.getStock().getTickerSymbol(), Money.zero())))
 			.collect(Collectors.toList());
 		return new PortfolioHoldingsResponse(portfolioDetailResponse, portfolioHoldingItems);
 	}

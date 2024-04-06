@@ -241,7 +241,8 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 			.andExpect(jsonPath("data.notifications[0].link").value(equalTo(item.getLink())))
 			.andExpect(jsonPath("data.notifications[0].messageId").value(equalTo(item.getMessageId())))
 			.andExpect(jsonPath("data.notifications[0].stockName").value(equalTo(item.getStockName())))
-			.andExpect(jsonPath("data.notifications[0].targetPrice").value(equalTo(item.getTargetPrice().intValue())))
+			.andExpect(jsonPath("data.notifications[0].targetPrice").value(
+				equalTo(item.getTargetPrice().getAmount().intValue())))
 			.andExpect(jsonPath("data.notifications[0].targetPriceNotificationId").value(
 				equalTo(item.getTargetPriceNotificationId().intValue())))
 			.andDo(

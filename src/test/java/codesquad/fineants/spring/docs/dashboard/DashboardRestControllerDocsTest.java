@@ -18,6 +18,7 @@ import org.mockito.Mockito;
 import org.springframework.http.HttpHeaders;
 import org.springframework.restdocs.payload.JsonFieldType;
 
+import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.spring.api.dashboard.controller.DashboardRestController;
 import codesquad.fineants.spring.api.dashboard.response.DashboardLineChartResponse;
@@ -43,11 +44,11 @@ public class DashboardRestControllerDocsTest extends RestDocsSupport {
 		given(service.getOverview(ArgumentMatchers.any(AuthMember.class)))
 			.willReturn(OverviewResponse.builder()
 				.username("일개미1234")
-				.totalValuation(1000000L)
-				.totalInvestment(0L)
-				.totalGain(0L)
+				.totalValuation(Money.from(1000000L))
+				.totalInvestment(Money.zero())
+				.totalGain(Money.zero())
 				.totalGainRate(0.0)
-				.totalAnnualDividend(0L)
+				.totalAnnualDividend(Money.zero())
 				.totalAnnualDividendYield(0.0)
 				.build());
 
@@ -111,9 +112,9 @@ public class DashboardRestControllerDocsTest extends RestDocsSupport {
 				DashboardPieChartResponse.create(
 					1L,
 					"포트폴리오1",
-					610888L,
+					Money.from(610888L),
 					6.68,
-					30022L,
+					Money.from(30022L),
 					6.41
 				)
 			));
@@ -172,8 +173,8 @@ public class DashboardRestControllerDocsTest extends RestDocsSupport {
 		// given
 		given(service.getLineChart(ArgumentMatchers.any(AuthMember.class)))
 			.willReturn(List.of(
-				DashboardLineChartResponse.of("2018-10-19", 5012346L),
-				DashboardLineChartResponse.of("2018-10-22", 4678901L)
+				DashboardLineChartResponse.of("2018-10-19", Money.from(5012346L)),
+				DashboardLineChartResponse.of("2018-10-22", Money.from(4678901L))
 			));
 
 		// when & then

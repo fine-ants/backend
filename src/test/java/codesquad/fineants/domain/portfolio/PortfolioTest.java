@@ -11,6 +11,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
 
+import codesquad.fineants.domain.common.count.Count;
+import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
 import codesquad.fineants.domain.purchase_history.PurchaseHistory;
 import codesquad.fineants.domain.stock.Market;
@@ -30,9 +32,9 @@ class PortfolioTest {
 	@BeforeEach
 	void init() {
 		portfolio = Portfolio.builder()
-			.budget(1000000L)
-			.targetGain(1500000L)
-			.maximumLoss(900000L)
+			.budget(Money.from(1000000L))
+			.targetGain(Money.from(1500000L))
+			.maximumLoss(Money.from(900000L))
 			.build();
 
 		stock = Stock.builder()
@@ -58,19 +60,19 @@ class PortfolioTest {
 	@Test
 	void calculateTotalGain() {
 		// given
-		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock, 20000L);
+		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock, Money.from(20000L));
 
 		PurchaseHistory purchaseHistory1 = PurchaseHistory.builder()
 			.purchaseDate(LocalDateTime.now())
-			.numShares(5L)
-			.purchasePricePerShare(10000.0)
+			.numShares(Count.from(5L))
+			.purchasePricePerShare(Money.from(10000.0))
 			.portfolioHolding(portFolioHolding)
 			.build();
 
 		PurchaseHistory purchaseHistory2 = PurchaseHistory.builder()
 			.purchaseDate(LocalDateTime.now())
-			.numShares(5L)
-			.purchasePricePerShare(10000.0)
+			.numShares(Count.from(5L))
+			.purchasePricePerShare(Money.from(10000.0))
 			.portfolioHolding(portFolioHolding)
 			.build();
 
@@ -80,28 +82,28 @@ class PortfolioTest {
 		portfolio.addPortfolioStock(portFolioHolding);
 
 		// when
-		Long result = portfolio.calculateTotalGain();
+		Money result = portfolio.calculateTotalGain();
 
 		// then
-		assertThat(result).isEqualTo(100000L);
+		assertThat(result).isEqualByComparingTo(Money.from(100000L));
 	}
 
 	@DisplayName("포트폴리오의 총 손익율 계산한다")
 	@Test
 	void calculateTotalReturnRate() {
 		// given
-		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock, 20000L);
+		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock, Money.from(20000L));
 
 		PurchaseHistory purchaseHistory1 = PurchaseHistory.builder()
 			.purchaseDate(LocalDateTime.now())
-			.numShares(5L)
-			.purchasePricePerShare(10000.0)
+			.numShares(Count.from(5L))
+			.purchasePricePerShare(Money.from(10000.0))
 			.build();
 
 		PurchaseHistory purchaseHistory2 = PurchaseHistory.builder()
 			.purchaseDate(LocalDateTime.now())
-			.numShares(5L)
-			.purchasePricePerShare(10000.0)
+			.numShares(Count.from(5L))
+			.purchasePricePerShare(Money.from(10000.0))
 			.build();
 
 		portFolioHolding.addPurchaseHistory(purchaseHistory1);
@@ -120,20 +122,20 @@ class PortfolioTest {
 	@Test
 	void createPieChart() {
 		// given
-		PortfolioHolding holding1 = PortfolioHolding.of(portfolio, stock, 20000L);
-		PortfolioHolding holding2 = PortfolioHolding.of(portfolio, stock2, 20000L);
+		PortfolioHolding holding1 = PortfolioHolding.of(portfolio, stock, Money.from(20000L));
+		PortfolioHolding holding2 = PortfolioHolding.of(portfolio, stock2, Money.from(20000L));
 
 		PurchaseHistory purchaseHistory1 = PurchaseHistory.builder()
 			.purchaseDate(LocalDateTime.now())
-			.numShares(5L)
-			.purchasePricePerShare(10000.0)
+			.numShares(Count.from(5L))
+			.purchasePricePerShare(Money.from(10000.0))
 			.portfolioHolding(holding1)
 			.build();
 
 		PurchaseHistory purchaseHistory2 = PurchaseHistory.builder()
 			.purchaseDate(LocalDateTime.now())
-			.numShares(5L)
-			.purchasePricePerShare(20000.0)
+			.numShares(Count.from(5L))
+			.purchasePricePerShare(Money.from(20000.0))
 			.portfolioHolding(holding2)
 			.build();
 
@@ -151,30 +153,31 @@ class PortfolioTest {
 			.asList()
 			.hasSize(3)
 			.extracting("name", "valuation", "totalGain")
+			.usingComparatorForType(Money::compareTo, Money.class)
 			.containsExactlyInAnyOrder(
-				Tuple.tuple("현금", 850000L, 0L),
-				Tuple.tuple("삼성전자보통주", 100000L, 50000L),
-				Tuple.tuple("동화약품보통주", 100000L, 0L));
+				Tuple.tuple("현금", Money.from(850000L), Money.zero()),
+				Tuple.tuple("삼성전자보통주", Money.from(100000L), Money.from(50000L)),
+				Tuple.tuple("동화약품보통주", Money.from(100000L), Money.zero()));
 	}
 
 	@DisplayName("사용자는 포트폴리오의 섹터 차트를 요청한다")
 	@Test
 	void createSectorChart() {
 		// given
-		PortfolioHolding holding1 = PortfolioHolding.of(portfolio, stock, 20000L);
-		PortfolioHolding holding2 = PortfolioHolding.of(portfolio, stock2, 20000L);
+		PortfolioHolding holding1 = PortfolioHolding.of(portfolio, stock, Money.from(20000L));
+		PortfolioHolding holding2 = PortfolioHolding.of(portfolio, stock2, Money.from(20000L));
 
 		PurchaseHistory purchaseHistory1 = PurchaseHistory.builder()
 			.purchaseDate(LocalDateTime.now())
-			.numShares(5L)
-			.purchasePricePerShare(10000.0)
+			.numShares(Count.from(5L))
+			.purchasePricePerShare(Money.from(10000.0))
 			.portfolioHolding(holding1)
 			.build();
 
 		PurchaseHistory purchaseHistory2 = PurchaseHistory.builder()
 			.purchaseDate(LocalDateTime.now())
-			.numShares(5L)
-			.purchasePricePerShare(20000.0)
+			.numShares(Count.from(5L))
+			.purchasePricePerShare(Money.from(20000.0))
 			.portfolioHolding(holding2)
 			.build();
 

@@ -267,6 +267,7 @@ public class NotificationService {
 					.ifPresent(notifyMessages::add);
 			}
 		}
+		log.debug("notifyMessage : {}", notifyMessages);
 
 		// 알림 전송
 		List<SentNotifyMessage> sentNotifyMessages = new ArrayList<>();

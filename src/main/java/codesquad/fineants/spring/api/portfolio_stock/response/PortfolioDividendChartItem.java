@@ -1,17 +1,28 @@
 package codesquad.fineants.spring.api.portfolio_stock.response;
 
+import codesquad.fineants.domain.common.money.Money;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
-@AllArgsConstructor
+@Getter
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@ToString
 public class PortfolioDividendChartItem {
 	private int month;
-	private Long amount;
+	private Money amount;
 
 	public static PortfolioDividendChartItem empty(int month) {
-		return create(month, 0L);
+		return create(month, Money.zero());
 	}
 
-	public static PortfolioDividendChartItem create(int month, Long amount) {
-		return new PortfolioDividendChartItem(month, amount);
+	public static PortfolioDividendChartItem create(int month, Money amount) {
+		return new PortfolioDividendChartItem(
+			month,
+			amount
+		);
 	}
 }

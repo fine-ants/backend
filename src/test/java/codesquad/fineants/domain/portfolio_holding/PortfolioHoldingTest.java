@@ -12,6 +12,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
 
+import codesquad.fineants.domain.common.count.Count;
+import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.portfolio.Portfolio;
 import codesquad.fineants.domain.purchase_history.PurchaseHistory;
 import codesquad.fineants.domain.stock.Market;
@@ -27,19 +29,19 @@ class PortfolioHoldingTest {
 		// given
 		Portfolio portfolio = createPortfolio();
 		Stock stock = createStock();
-		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock, 10000L);
+		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock, Money.from(10000L));
 
 		PurchaseHistory purchaseHistory1 = PurchaseHistory.builder()
 			.purchaseDate(LocalDateTime.now())
-			.numShares(5L)
-			.purchasePricePerShare(10000.0)
+			.numShares(Count.from(5L))
+			.purchasePricePerShare(Money.from(10000.0))
 			.portfolioHolding(portFolioHolding)
 			.build();
 
 		PurchaseHistory purchaseHistory2 = PurchaseHistory.builder()
 			.purchaseDate(LocalDateTime.now())
-			.numShares(5L)
-			.purchasePricePerShare(10000.0)
+			.numShares(Count.from(5L))
+			.purchasePricePerShare(Money.from(10000.0))
 			.portfolioHolding(portFolioHolding)
 			.build();
 
@@ -47,10 +49,10 @@ class PortfolioHoldingTest {
 		portFolioHolding.addPurchaseHistory(purchaseHistory2);
 
 		// when
-		long result = portFolioHolding.calculateTotalInvestmentAmount();
+		Money result = portFolioHolding.calculateTotalInvestmentAmount();
 
 		// then
-		assertThat(result).isEqualTo(100000L);
+		assertThat(result).isEqualByComparingTo(Money.from(100000L));
 	}
 
 	@DisplayName("한 종목의 평균 매입가를 계산한다")
@@ -59,19 +61,19 @@ class PortfolioHoldingTest {
 		// given
 		Portfolio portfolio = createPortfolio();
 		Stock stock = createStock();
-		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock, 10000L);
+		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock, Money.from(10000L));
 
 		PurchaseHistory purchaseHistory1 = PurchaseHistory.builder()
 			.purchaseDate(LocalDateTime.now())
-			.numShares(5L)
-			.purchasePricePerShare(10000.0)
+			.numShares(Count.from(5L))
+			.purchasePricePerShare(Money.from(10000.0))
 			.portfolioHolding(portFolioHolding)
 			.build();
 
 		PurchaseHistory purchaseHistory2 = PurchaseHistory.builder()
 			.purchaseDate(LocalDateTime.now())
-			.numShares(5L)
-			.purchasePricePerShare(10000.0)
+			.numShares(Count.from(5L))
+			.purchasePricePerShare(Money.from(10000.0))
 			.portfolioHolding(portFolioHolding)
 			.build();
 
@@ -79,10 +81,10 @@ class PortfolioHoldingTest {
 		portFolioHolding.addPurchaseHistory(purchaseHistory2);
 
 		// when
-		Double result = portFolioHolding.calculateAverageCostPerShare();
+		Money money = portFolioHolding.calculateAverageCostPerShare();
 
 		// then
-		assertThat(result).isEqualTo(10000.0);
+		assertThat(money).isEqualByComparingTo(Money.from(10000.0));
 	}
 
 	@DisplayName("한 종목의 총 손익을 계산한다")
@@ -91,19 +93,19 @@ class PortfolioHoldingTest {
 		// given
 		Portfolio portfolio = createPortfolio();
 		Stock stock = createStock();
-		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock, 20000L);
+		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock, Money.from(20000L));
 
 		PurchaseHistory purchaseHistory1 = PurchaseHistory.builder()
 			.purchaseDate(LocalDateTime.now())
-			.numShares(5L)
-			.purchasePricePerShare(10000.0)
+			.numShares(Count.from(5L))
+			.purchasePricePerShare(Money.from(10000.0))
 			.portfolioHolding(portFolioHolding)
 			.build();
 
 		PurchaseHistory purchaseHistory2 = PurchaseHistory.builder()
 			.purchaseDate(LocalDateTime.now())
-			.numShares(5L)
-			.purchasePricePerShare(10000.0)
+			.numShares(Count.from(5L))
+			.purchasePricePerShare(Money.from(10000.0))
 			.portfolioHolding(portFolioHolding)
 			.build();
 
@@ -111,10 +113,10 @@ class PortfolioHoldingTest {
 		portFolioHolding.addPurchaseHistory(purchaseHistory2);
 
 		// when
-		long result = portFolioHolding.calculateTotalGain();
+		Money result = portFolioHolding.calculateTotalGain();
 
 		// then
-		assertThat(result).isEqualTo(100000L);
+		assertThat(result).isEqualByComparingTo(Money.from(100000L));
 	}
 
 	@DisplayName("한 종목의 총 손익율 계산한다")
@@ -123,19 +125,19 @@ class PortfolioHoldingTest {
 		// given
 		Portfolio portfolio = createPortfolio();
 		Stock stock = createStock();
-		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock, 20000L);
+		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock, Money.from(20000L));
 
 		PurchaseHistory purchaseHistory1 = PurchaseHistory.builder()
 			.purchaseDate(LocalDateTime.now())
-			.numShares(5L)
-			.purchasePricePerShare(10000.0)
+			.numShares(Count.from(5L))
+			.purchasePricePerShare(Money.from(10000.0))
 			.portfolioHolding(portFolioHolding)
 			.build();
 
 		PurchaseHistory purchaseHistory2 = PurchaseHistory.builder()
 			.purchaseDate(LocalDateTime.now())
-			.numShares(5L)
-			.purchasePricePerShare(10000.0)
+			.numShares(Count.from(5L))
+			.purchasePricePerShare(Money.from(10000.0))
 			.portfolioHolding(portFolioHolding)
 			.build();
 
@@ -165,23 +167,27 @@ class PortfolioHoldingTest {
 		);
 		portfolioHolding.addPurchaseHistory(purchaseHistory);
 		// when
-		Map<Integer, Long> result = portfolioHolding.createMonthlyDividendMap(LocalDate.of(2023, 12, 15));
+		Map<Integer, Money> result = portfolioHolding.createMonthlyDividendMap(LocalDate.of(2023, 12, 15));
 
 		// then
-		Map<Integer, Long> expected = new HashMap<>();
-		expected.put(1, 0L);
-		expected.put(2, 0L);
-		expected.put(3, 0L);
-		expected.put(4, 0L);
-		expected.put(5, 1083L);
-		expected.put(6, 0L);
-		expected.put(7, 0L);
-		expected.put(8, 1083L);
-		expected.put(9, 0L);
-		expected.put(10, 0L);
-		expected.put(11, 1083L);
-		expected.put(12, 0L);
-		assertThat(result).isEqualTo(expected);
+		Map<Integer, Money> expected = new HashMap<>();
+		expected.put(1, Money.zero());
+		expected.put(2, Money.zero());
+		expected.put(3, Money.zero());
+		expected.put(4, Money.zero());
+		expected.put(5, Money.from(1083L));
+		expected.put(6, Money.zero());
+		expected.put(7, Money.zero());
+		expected.put(8, Money.from(1083L));
+		expected.put(9, Money.zero());
+		expected.put(10, Money.zero());
+		expected.put(11, Money.from(1083L));
+		expected.put(12, Money.zero());
+		assertThat(result.keySet())
+			.isEqualTo(expected.keySet());
+		assertThat(result.values())
+			.usingComparatorForType(Money::compareTo, Money.class)
+			.isEqualTo(expected.values());
 	}
 
 	private List<StockDividend> createStockDividends(Stock stock) {
@@ -213,7 +219,7 @@ class PortfolioHoldingTest {
 		Stock stock) {
 		return StockDividend.builder()
 			.id(System.currentTimeMillis())
-			.dividend(361L)
+			.dividend(Money.from(361L))
 			.recordDate(recordDate)
 			.exDividendDate(exDividendDate)
 			.paymentDate(paymentDate)
@@ -224,9 +230,9 @@ class PortfolioHoldingTest {
 	private Portfolio createPortfolio() {
 		return Portfolio.builder()
 			.id(1L)
-			.budget(1000000L)
-			.targetGain(1500000L)
-			.maximumLoss(900000L)
+			.budget(Money.from(1000000L))
+			.targetGain(Money.from(1500000L))
+			.maximumLoss(Money.from(900000L))
 			.build();
 	}
 
@@ -245,7 +251,7 @@ class PortfolioHoldingTest {
 			.id(System.currentTimeMillis())
 			.portfolio(portfolio)
 			.stock(stock)
-			.currentPrice(currentPrice)
+			.currentPrice(Money.from(currentPrice))
 			.build();
 	}
 
@@ -253,8 +259,8 @@ class PortfolioHoldingTest {
 		return PurchaseHistory.builder()
 			.id(System.currentTimeMillis())
 			.purchaseDate(purchaseDate)
-			.purchasePricePerShare(50000.0)
-			.numShares(3L)
+			.purchasePricePerShare(Money.from(50000.0))
+			.numShares(Count.from(3L))
 			.memo("구매 메모")
 			.portfolioHolding(portfolioHolding)
 			.build();

@@ -2,7 +2,7 @@ package codesquad.fineants.spring.api.portfolio_stock.response;
 
 import java.time.LocalDateTime;
 
-import codesquad.fineants.domain.stock_dividend.StockDividend;
+import codesquad.fineants.domain.common.money.Money;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 
@@ -10,5 +10,5 @@ import lombok.AllArgsConstructor;
 public class StockDividendItem {
 	private Long dividendId;
 	private LocalDateTime dividendMonth;
-	private Long dividendAmount;
+	private Money dividendAmount;
 }

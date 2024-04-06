@@ -15,6 +15,7 @@ import javax.persistence.Id;
 import javax.persistence.OneToMany;
 
 import codesquad.fineants.domain.BaseEntity;
+import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.purchase_history.PurchaseHistory;
 import codesquad.fineants.domain.stock.converter.MarketConverter;
 import codesquad.fineants.domain.stock_dividend.StockDividend;
@@ -77,11 +78,11 @@ public class Stock extends BaseEntity {
 			.collect(Collectors.toList());
 	}
 
-	public Map<Integer, Long> createMonthlyDividends(List<PurchaseHistory> purchaseHistories,
+	public Map<Integer, Money> createMonthlyDividends(List<PurchaseHistory> purchaseHistories,
 		LocalDate currentLocalDate) {
-		Map<Integer, Long> result = new HashMap<>();
+		Map<Integer, Money> result = new HashMap<>();
 		for (int month = 1; month <= 12; month++) {
-			result.put(month, 0L);
+			result.put(month, Money.zero());
 		}
 
 		List<StockDividend> currentYearStockDividends = stockDividends.stream()
@@ -92,8 +93,8 @@ public class Stock extends BaseEntity {
 			for (PurchaseHistory purchaseHistory : purchaseHistories) {
 				if (stockDividend.isSatisfied(purchaseHistory.getPurchaseLocalDate())) {
 					int paymentMonth = stockDividend.getMonthValueByPaymentDate();
-					long dividendSum = stockDividend.calculateDividendSum(purchaseHistory.getNumShares());
-					result.put(paymentMonth, result.getOrDefault(paymentMonth, 0L) + dividendSum);
+					Money dividendSum = stockDividend.calculateDividendSum(purchaseHistory.getNumShares());
+					result.put(paymentMonth, result.getOrDefault(paymentMonth, Money.zero()).add(dividendSum));
 				}
 			}
 		}
@@ -101,11 +102,11 @@ public class Stock extends BaseEntity {
 		return result;
 	}
 
-	public Map<Integer, Long> createMonthlyExpectedDividends(List<PurchaseHistory> purchaseHistories,
+	public Map<Integer, Money> createMonthlyExpectedDividends(List<PurchaseHistory> purchaseHistories,
 		LocalDate currentLocalDate) {
-		Map<Integer, Long> result = new HashMap<>();
+		Map<Integer, Money> result = new HashMap<>();
 		for (int month = 1; month <= 12; month++) {
-			result.put(month, 0L);
+			result.put(month, Money.zero());
 		}
 
 		// 0. 현재년도에 해당하는 배당금 정보를 필터링하여 별도 저장합니다.
@@ -123,59 +124,58 @@ public class Stock extends BaseEntity {
 				// 3. 필터링한 배당금 정보들을 이용하여 배당금을 계산합니다.
 				for (PurchaseHistory purchaseHistory : purchaseHistories) {
 					int paymentMonth = stockDividend.getMonthValueByPaymentDate();
-					long dividendSum = stockDividend.calculateDividendSum(purchaseHistory.getNumShares());
-					result.put(paymentMonth, result.getOrDefault(paymentMonth, 0L) + dividendSum);
+					Money dividendSum = stockDividend.calculateDividendSum(purchaseHistory.getNumShares());
+					result.put(paymentMonth, result.getOrDefault(paymentMonth, Money.zero()).add(dividendSum));
 				}
 			});
 		return result;
 	}
 
-	public Long getAnnualDividend() {
+	public Money getAnnualDividend() {
 		return stockDividends.stream()
 			.filter(dividend -> dividend.isCurrentYearPaymentDate(LocalDate.now()))
-			.mapToLong(StockDividend::getDividend)
-			.sum();
+			.map(StockDividend::getDividend)
+			.reduce(Money.zero(), Money::add);
 	}
 
-	public Double getAnnualDividendYield(CurrentPriceManager manager) {
-		long dividends = stockDividends.stream()
+	public double getAnnualDividendYield(CurrentPriceManager manager) {
+		Money dividends = stockDividends.stream()
 			.filter(dividend -> dividend.getPaymentDate().getYear() == LocalDate.now().getYear())
-			.mapToLong(StockDividend::getDividend)
-			.sum();
-		Long currentPrice = getCurrentPrice(manager);
-		if (currentPrice == null || currentPrice == 0)
-			return 0.0;
-		return ((double)dividends / currentPrice.doubleValue()) * 100;
+			.map(StockDividend::getDividend)
+			.reduce(Money.zero(), Money::add);
+		Money currentPrice = getCurrentPrice(manager);
+		if (currentPrice == null) {
+			return 0;
+		}
+		return dividends.divide(currentPrice).toPercentage();
 	}
 
-	public Long getDailyChange(CurrentPriceManager currentPriceManager,
+	public Money getDailyChange(CurrentPriceManager currentPriceManager,
 		LastDayClosingPriceManager lastDayClosingPriceManager) {
-		Optional<Long> currentPrice = currentPriceManager.getCurrentPrice(tickerSymbol);
-		Optional<Long> closingPrice = lastDayClosingPriceManager.getPrice(tickerSymbol);
+		Optional<Money> currentPrice = currentPriceManager.getCurrentPrice(tickerSymbol);
+		Optional<Money> closingPrice = lastDayClosingPriceManager.getPrice(tickerSymbol);
 
 		if (currentPrice.isEmpty() || closingPrice.isEmpty()) {
 			return null;
 		}
-
-		return currentPrice.get() - closingPrice.get();
+		return currentPrice.get().subtract(closingPrice.get());
 	}
 
 	public Double getDailyChangeRate(CurrentPriceManager currentPriceManager,
 		LastDayClosingPriceManager lastDayClosingPriceManager) {
-		Long currentPrice = currentPriceManager.getCurrentPrice(tickerSymbol).orElse(null);
-		Long lastDayClosingPrice = lastDayClosingPriceManager.getPrice(tickerSymbol).orElse(null);
-		if (currentPrice == null || lastDayClosingPrice == null || lastDayClosingPrice == 0L) {
+		Money currentPrice = currentPriceManager.getCurrentPrice(tickerSymbol).orElse(null);
+		Money lastDayClosingPrice = lastDayClosingPriceManager.getPrice(tickerSymbol).orElse(null);
+		if (currentPrice == null || lastDayClosingPrice == null) {
 			return null;
 		}
-		return ((currentPrice.doubleValue() - lastDayClosingPrice.doubleValue()) / lastDayClosingPrice.doubleValue())
-			* 100;
+		return currentPrice.subtract(lastDayClosingPrice).divide(lastDayClosingPrice).toPercentage();
 	}
 
-	public Long getCurrentPrice(CurrentPriceManager manager) {
+	public Money getCurrentPrice(CurrentPriceManager manager) {
 		return manager.getCurrentPrice(tickerSymbol).orElse(null);
 	}
 
-	public Long getLastDayClosingPrice(LastDayClosingPriceManager manager) {
+	public Money getLastDayClosingPrice(LastDayClosingPriceManager manager) {
 		return manager.getPrice(tickerSymbol).orElse(null);
 	}
 
