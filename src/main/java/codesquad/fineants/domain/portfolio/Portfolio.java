@@ -75,13 +75,13 @@ public class Portfolio extends BaseEntity {
 	private String name;
 	private String securitiesFirm;
 	@Convert(converter = MoneyConverter.class)
-	@Column(precision = 19, scale = 2, nullable = false)
+	@Column(precision = 19, nullable = false)
 	private Money budget;
 	@Convert(converter = MoneyConverter.class)
-	@Column(precision = 19, scale = 2, nullable = false)
+	@Column(precision = 19, nullable = false)
 	private Money targetGain;
 	@Convert(converter = MoneyConverter.class)
-	@Column(precision = 19, scale = 2, nullable = false)
+	@Column(precision = 19, nullable = false)
 	private Money maximumLoss;
 	private Boolean targetGainIsActive;
 	private Boolean maximumLossIsActive;

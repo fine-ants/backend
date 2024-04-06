@@ -19,7 +19,6 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.firebase.messaging.Message;
 
@@ -120,14 +119,14 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 	}
 
 	@DisplayName("사용자는 매입 이력을 추가한다")
-	@CsvSource(value = {"3", "1000000000000"})
+	@CsvSource(value = {"3,1000000", "1000000000000,50000000000000000", "10,9223372036854775807", ""})
 	@ParameterizedTest
-	void addPurchaseHistory(Count numShares) throws JsonProcessingException {
+	void addPurchaseHistory(Count numShares, BigDecimal budget) {
 		// given
 		Member member = memberRepository.save(createMember());
 		notificationPreferenceRepository.save(createNotificationPreference(member));
 		Portfolio portfolio = portfolioRepository.save(
-			createPortfolio(member, new BigDecimal("50000000000000000")));
+			createPortfolio(member, budget));
 		Stock stock = stockRepository.save(createStock());
 		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
 
