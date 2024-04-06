@@ -162,12 +162,12 @@ public class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 			.andExpect(jsonPath("data.portfolioDetails.targetReturnRate").value(closeTo(50.0, 0.1)))
 			.andExpect(jsonPath("data.portfolioDetails.maximumLoss").value(equalTo(900000)))
 			.andExpect(jsonPath("data.portfolioDetails.maximumLossRate").value(closeTo(10.0, 0.1)))
-			.andExpect(jsonPath("data.portfolioDetails.currentValuation").value(equalTo(180000.0)))
-			.andExpect(jsonPath("data.portfolioDetails.investedAmount").value(equalTo(150000.0)))
-			.andExpect(jsonPath("data.portfolioDetails.totalGain").value(equalTo(30000.0)))
+			.andExpect(jsonPath("data.portfolioDetails.currentValuation").value(equalTo(180000)))
+			.andExpect(jsonPath("data.portfolioDetails.investedAmount").value(equalTo(150000)))
+			.andExpect(jsonPath("data.portfolioDetails.totalGain").value(equalTo(30000)))
 			.andExpect(jsonPath("data.portfolioDetails.totalGainRate").value(closeTo(20.0, 0.1)))
-			.andExpect(jsonPath("data.portfolioDetails.balance").value(equalTo(850000.0)))
-			.andExpect(jsonPath("data.portfolioDetails.annualDividend").value(equalTo(4332.0)))
+			.andExpect(jsonPath("data.portfolioDetails.balance").value(equalTo(850000)))
+			.andExpect(jsonPath("data.portfolioDetails.annualDividend").value(equalTo(4332)))
 			.andExpect(jsonPath("data.portfolioDetails.annualDividendYield").value(closeTo(2.41, 0.1)))
 			.andExpect(jsonPath("data.portfolioDetails.annualInvestmentDividendYield").value(closeTo(2.89, 0.1)))
 			.andExpect(jsonPath("data.portfolioDetails.provisionalLossBalance").value(equalTo(0)))
@@ -178,15 +178,15 @@ public class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 			.andExpect(jsonPath("data.portfolioHoldings[0].companyName").value(equalTo("삼성전자보통주")))
 			.andExpect(jsonPath("data.portfolioHoldings[0].tickerSymbol").value(equalTo("005930")))
 			.andExpect(jsonPath("data.portfolioHoldings[0].portfolioHoldingId").value(equalTo(1)))
-			.andExpect(jsonPath("data.portfolioHoldings[0].currentValuation").value(equalTo(180000.0)))
+			.andExpect(jsonPath("data.portfolioHoldings[0].currentValuation").value(equalTo(180000)))
 			.andExpect(jsonPath("data.portfolioHoldings[0].currentPrice").value(equalTo(60000)))
-			.andExpect(jsonPath("data.portfolioHoldings[0].averageCostPerShare").value(equalTo(50000.00)))
+			.andExpect(jsonPath("data.portfolioHoldings[0].averageCostPerShare").value(equalTo(50000)))
 			.andExpect(jsonPath("data.portfolioHoldings[0].numShares").value(equalTo(3)))
 			.andExpect(jsonPath("data.portfolioHoldings[0].dailyChange").value(equalTo(10000)))
 			.andExpect(jsonPath("data.portfolioHoldings[0].dailyChangeRate").value(closeTo(20.0, 0.1)))
-			.andExpect(jsonPath("data.portfolioHoldings[0].totalGain").value(equalTo(30000.0)))
+			.andExpect(jsonPath("data.portfolioHoldings[0].totalGain").value(equalTo(30000)))
 			.andExpect(jsonPath("data.portfolioHoldings[0].totalReturnRate").value(closeTo(20.0, 0.1)))
-			.andExpect(jsonPath("data.portfolioHoldings[0].annualDividend").value(equalTo(4332.0)))
+			.andExpect(jsonPath("data.portfolioHoldings[0].annualDividend").value(equalTo(4332)))
 			.andExpect(jsonPath("data.portfolioHoldings[0].annualDividendYield").value(closeTo(2.41, 0.1)));
 
 		resultActions
@@ -195,7 +195,7 @@ public class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 				equalTo("2023-11-01T09:30:00")))
 			.andExpect(jsonPath("data.portfolioHoldings[0].purchaseHistory[0].numShares").value(equalTo(3)))
 			.andExpect(
-				jsonPath("data.portfolioHoldings[0].purchaseHistory[0].purchasePricePerShare").value(equalTo(50000.00)))
+				jsonPath("data.portfolioHoldings[0].purchaseHistory[0].purchasePricePerShare").value(equalTo(50000)))
 			.andExpect(jsonPath("data.portfolioHoldings[0].purchaseHistory[0].memo").value(equalTo("첫구매")));
 
 		resultActions.andDo(
