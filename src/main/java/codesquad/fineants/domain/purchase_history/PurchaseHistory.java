@@ -39,7 +39,7 @@ public class PurchaseHistory extends BaseEntity {
 	private Long id;
 	private LocalDateTime purchaseDate;
 	@Convert(converter = MoneyConverter.class)
-	@Column(precision = 19, scale = 2, nullable = false)
+	@Column(precision = 19, nullable = false)
 	private Money purchasePricePerShare;
 	@Convert(converter = CountConverter.class)
 	private Count numShares;

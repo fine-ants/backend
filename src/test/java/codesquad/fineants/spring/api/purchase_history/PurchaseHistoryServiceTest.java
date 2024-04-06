@@ -119,7 +119,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 	}
 
 	@DisplayName("사용자는 매입 이력을 추가한다")
-	@CsvSource(value = {"3,1000000", "1000000000000,50000000000000000", "10,9223372036854775807", ""})
+	@CsvSource(value = {"3,1000000", "1000000000000,50000000000000000", "10,9223372036854775807"})
 	@ParameterizedTest
 	void addPurchaseHistory(Count numShares, BigDecimal budget) {
 		// given

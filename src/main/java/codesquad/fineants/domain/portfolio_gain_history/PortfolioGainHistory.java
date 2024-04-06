@@ -27,16 +27,16 @@ public class PortfolioGainHistory extends BaseEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	@Convert(converter = MoneyConverter.class)
-	@Column(precision = 19, scale = 2, nullable = false)
+	@Column(precision = 19, nullable = false)
 	private Money totalGain;
 	@Convert(converter = MoneyConverter.class)
-	@Column(precision = 19, scale = 2, nullable = false)
+	@Column(precision = 19, nullable = false)
 	private Money dailyGain;
 	@Convert(converter = MoneyConverter.class)
-	@Column(precision = 19, scale = 2, nullable = false)
+	@Column(precision = 19, nullable = false)
 	private Money cash;
 	@Convert(converter = MoneyConverter.class)
-	@Column(precision = 19, scale = 2, nullable = false)
+	@Column(precision = 19, nullable = false)
 	private Money currentValuation;
 
 	@ManyToOne(fetch = FetchType.LAZY)

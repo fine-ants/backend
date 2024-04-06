@@ -38,7 +38,7 @@ public class StockDividend extends BaseEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	@Convert(converter = MoneyConverter.class)
-	@Column(precision = 19, scale = 2, nullable = false)
+	@Column(precision = 19, nullable = false)
 	private Money dividend;
 
 	@Column(nullable = false)
