@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -50,6 +51,14 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<ApiResponse<Object>> handleMissingServletRequestPartException(
 		MissingServletRequestPartException exception) {
 		log.error(exception.getMessage(), exception);
+		ApiResponse<Object> body = ApiResponse.of(HttpStatus.BAD_REQUEST, exception.getMessage(), null);
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+	}
+
+	@ExceptionHandler(DataIntegrityViolationException.class)
+	public ResponseEntity<ApiResponse<Object>> handleDataIntegrityViolationException(
+		DataIntegrityViolationException exception) {
+		log.error(exception.getMessage());
 		ApiResponse<Object> body = ApiResponse.of(HttpStatus.BAD_REQUEST, exception.getMessage(), null);
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
 	}
