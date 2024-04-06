@@ -169,11 +169,11 @@ public class StockRestControllerDocsTest extends RestDocsSupport {
 				stock.getCompanyName(),
 				stock.getCompanyNameEng(),
 				stock.getMarket(),
-				68000L,
-				12000L,
+				Money.from(68000L),
+				Money.from(12000L),
 				20.45,
 				stock.getSector(),
-				6000L,
+				Money.from(6000L),
 				10.00,
 				List.of(1, 4)
 			));

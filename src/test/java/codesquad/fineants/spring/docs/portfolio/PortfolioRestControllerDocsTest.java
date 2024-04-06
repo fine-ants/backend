@@ -25,6 +25,8 @@ import org.springframework.http.MediaType;
 import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
 import org.springframework.restdocs.payload.JsonFieldType;
 
+import codesquad.fineants.domain.common.count.Count;
+import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.portfolio.Portfolio;
@@ -114,14 +116,14 @@ public class PortfolioRestControllerDocsTest extends RestDocsSupport {
 			.id(1L)
 			.securitiesFirm("토스증권")
 			.name("내꿈은 워렌버핏")
-			.budget(1000000L)
-			.totalGain(100000L)
+			.budget(Money.from(1000000L))
+			.totalGain(Money.from(100000L))
 			.totalGainRate(10.00)
-			.dailyGain(100000L)
+			.dailyGain(Money.from(100000L))
 			.dailyGainRate(10.00)
-			.currentValuation(100000L)
-			.expectedMonthlyDividend(20000L)
-			.numShares(9)
+			.currentValuation(Money.from(100000L))
+			.expectedMonthlyDividend(Money.from(20000L))
+			.numShares(Count.from(9))
 			.dateCreated(LocalDateTime.now())
 			.build();
 		given(portFolioService.readMyAllPortfolio(any(AuthMember.class)))
@@ -139,17 +141,21 @@ public class PortfolioRestControllerDocsTest extends RestDocsSupport {
 			.andExpect(jsonPath("data.portfolios[0].id").value(equalTo(portFolioItem.getId().intValue())))
 			.andExpect(jsonPath("data.portfolios[0].securitiesFirm").value(equalTo(portFolioItem.getSecuritiesFirm())))
 			.andExpect(jsonPath("data.portfolios[0].name").value(equalTo(portFolioItem.getName())))
-			.andExpect(jsonPath("data.portfolios[0].budget").value(equalTo(portFolioItem.getBudget().intValue())))
-			.andExpect(jsonPath("data.portfolios[0].totalGain").value(equalTo(portFolioItem.getTotalGain().intValue())))
+			.andExpect(
+				jsonPath("data.portfolios[0].budget").value(equalTo(portFolioItem.getBudget().getAmount().intValue())))
+			.andExpect(jsonPath("data.portfolios[0].totalGain").value(
+				equalTo(portFolioItem.getTotalGain().getAmount().intValue())))
 			.andExpect(jsonPath("data.portfolios[0].totalGainRate").value(equalTo(portFolioItem.getTotalGainRate())))
-			.andExpect(jsonPath("data.portfolios[0].dailyGain").value(equalTo(portFolioItem.getDailyGain().intValue())))
+			.andExpect(jsonPath("data.portfolios[0].dailyGain").value(
+				equalTo(portFolioItem.getDailyGain().getAmount().intValue())))
 			.andExpect(jsonPath("data.portfolios[0].dailyGainRate").value(equalTo(portFolioItem.getDailyGainRate())))
 			.andExpect(
 				jsonPath("data.portfolios[0].currentValuation").value(
-					equalTo(portFolioItem.getCurrentValuation().intValue())))
+					equalTo(portFolioItem.getCurrentValuation().getAmount().intValue())))
 			.andExpect(jsonPath("data.portfolios[0].expectedMonthlyDividend").value(
-				equalTo(portFolioItem.getExpectedMonthlyDividend().intValue())))
-			.andExpect(jsonPath("data.portfolios[0].numShares").value(equalTo(portFolioItem.getNumShares())))
+				equalTo(portFolioItem.getExpectedMonthlyDividend().getAmount().intValue())))
+			.andExpect(jsonPath("data.portfolios[0].numShares").value(
+				equalTo(portFolioItem.getNumShares().getValue().intValue())))
 			.andExpect(jsonPath("data.portfolios[0].dateCreated").isNotEmpty())
 			.andDo(
 				document(

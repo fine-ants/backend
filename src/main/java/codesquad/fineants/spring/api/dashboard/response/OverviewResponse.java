@@ -1,5 +1,6 @@
 package codesquad.fineants.spring.api.dashboard.response;
 
+import codesquad.fineants.domain.common.money.Money;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,15 +15,15 @@ import lombok.ToString;
 @ToString
 public class OverviewResponse {
 	private String username;
-	private Long totalValuation;
-	private Long totalInvestment;
-	private Long totalGain;
+	private Money totalValuation;
+	private Money totalInvestment;
+	private Money totalGain;
 	private Double totalGainRate;
-	private Long totalAnnualDividend;
+	private Money totalAnnualDividend;
 	private Double totalAnnualDividendYield;
 
-	public static OverviewResponse of(String username, Long totalValuation, Long totalInvestment, Long totalGain,
-		Double totalGainRate, Long totalAnnualDividend, Double totalAnnualDividendYield) {
+	public static OverviewResponse of(String username, Money totalValuation, Money totalInvestment, Money totalGain,
+		Double totalGainRate, Money totalAnnualDividend, Double totalAnnualDividendYield) {
 		return OverviewResponse.builder()
 			.username(username)
 			.totalValuation(totalValuation)
@@ -37,12 +38,12 @@ public class OverviewResponse {
 	public static OverviewResponse empty(String username) {
 		return OverviewResponse.builder()
 			.username(username)
-			.totalValuation(0L)
-			.totalInvestment(0L)
-			.totalGain(0L)
+			.totalValuation(Money.zero())
+			.totalInvestment(Money.zero())
+			.totalGain(Money.zero())
 			.totalGainRate(0.0)
-			.totalAnnualDividend(0L)
-			.totalAnnualDividendYield(0.00)
+			.totalAnnualDividend(Money.zero())
+			.totalAnnualDividendYield(0.0)
 			.build();
 	}
 }

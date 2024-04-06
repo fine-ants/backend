@@ -30,6 +30,7 @@ import javax.persistence.UniqueConstraint;
 import org.hibernate.annotations.BatchSize;
 
 import codesquad.fineants.domain.BaseEntity;
+import codesquad.fineants.domain.common.count.Count;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.common.money.MoneyConverter;
 import codesquad.fineants.domain.member.Member;
@@ -189,8 +190,8 @@ public class Portfolio extends BaseEntity {
 			.reduce(Money.zero(), Money::add);
 	}
 
-	public Integer getNumberOfShares() {
-		return portfolioHoldings.size();
+	public Count getNumberOfShares() {
+		return Count.from(portfolioHoldings.size());
 	}
 
 	// 잔고 = 예산 - 총 투자 금액
@@ -316,8 +317,8 @@ public class Portfolio extends BaseEntity {
 		// 정렬
 		// 평가금액(valuation) 기준 내림차순
 		// 총손익(totalGain) 기준 내림차순
-		result.sort(((Comparator<PortfolioPieChartItem>)(o1, o2) -> Long.compare(o2.getValuation(), o1.getValuation()))
-			.thenComparing((o1, o2) -> Long.compare(o2.getTotalGain(), o1.getTotalGain())));
+		result.sort(((Comparator<PortfolioPieChartItem>)(o1, o2) -> o2.getValuation().compareTo(o1.getValuation()))
+			.thenComparing((o1, o2) -> o2.getTotalGain().compareTo(o1.getTotalGain())));
 		return result;
 	}
 

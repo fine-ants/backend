@@ -9,11 +9,9 @@ import lombok.Getter;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class DashboardLineChartResponse {
 	private String time;
-	private Long value;
+	private Money value;
 
 	public static DashboardLineChartResponse of(String time, Money value) {
-		return new DashboardLineChartResponse(
-			time,
-			value.getAmount().longValue());
+		return new DashboardLineChartResponse(time, value);
 	}
 }

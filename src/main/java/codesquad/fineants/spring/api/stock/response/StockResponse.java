@@ -2,6 +2,7 @@ package codesquad.fineants.spring.api.stock.response;
 
 import java.util.List;
 
+import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.stock.Market;
 import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
@@ -24,17 +25,17 @@ public class StockResponse {
 	private String companyName;
 	private String companyNameEng;
 	private Market market;
-	private Long currentPrice;
-	private Long dailyChange;
+	private Money currentPrice;
+	private Money dailyChange;
 	private Double dailyChangeRate;
 	private String sector;
-	private Long annualDividend;
+	private Money annualDividend;
 	private Double annualDividendYield;
 	private List<Integer> dividendMonths;
 
 	public static StockResponse create(String stockCode, String tickerSymbol, String companyName,
-		String companyNameEng, Market market, Long currentPrice, Long dailyChange, Double dailyChangeRate,
-		String sector, Long annualDividend, Double annualDividendYield, List<Integer> dividendMonths) {
+		String companyNameEng, Market market, Money currentPrice, Money dailyChange, Double dailyChangeRate,
+		String sector, Money annualDividend, Double annualDividendYield, List<Integer> dividendMonths) {
 		return StockResponse.builder()
 			.stockCode(stockCode)
 			.tickerSymbol(tickerSymbol)
@@ -59,11 +60,11 @@ public class StockResponse {
 			.companyName(stock.getCompanyName())
 			.companyNameEng(stock.getCompanyNameEng())
 			.market(stock.getMarket())
-			.currentPrice(stock.getCurrentPrice(currentPriceManager).getAmount().longValue())
-			.dailyChange(stock.getDailyChange(currentPriceManager, lastDayClosingPriceManager).getAmount().longValue())
+			.currentPrice(stock.getCurrentPrice(currentPriceManager))
+			.dailyChange(stock.getDailyChange(currentPriceManager, lastDayClosingPriceManager))
 			.dailyChangeRate(stock.getDailyChangeRate(currentPriceManager, lastDayClosingPriceManager))
 			.sector(stock.getSector())
-			.annualDividend(stock.getAnnualDividend().getAmount().longValue())
+			.annualDividend(stock.getAnnualDividend())
 			.annualDividendYield(stock.getAnnualDividendYield(currentPriceManager))
 			.dividendMonths(stock.getDividendMonths())
 			.build();

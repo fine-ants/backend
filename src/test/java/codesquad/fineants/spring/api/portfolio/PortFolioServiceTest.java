@@ -436,9 +436,9 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 		PortfoliosResponse response = service.readMyAllPortfolio(AuthMember.from(member));
 
 		// then
-		assertThat(response.getPortfolios().get(0).getDailyGain()).isEqualTo(-30000);
+		assertThat(response.getPortfolios().get(0).getDailyGain()).isEqualByComparingTo(Money.from(-30000));
 		assertThat(response.getPortfolios().get(0).getDailyGainRate()).isEqualTo(-20);
-		assertThat(response.getPortfolios().get(0).getTotalGain()).isEqualTo(-150000);
+		assertThat(response.getPortfolios().get(0).getTotalGain()).isEqualByComparingTo(Money.from(-150000));
 		assertThat(response.getPortfolios().get(0).getTotalGainRate()).isCloseTo(-55.56,
 			Offset.offset(0.1));
 	}

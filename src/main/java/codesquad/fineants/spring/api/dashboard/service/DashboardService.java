@@ -42,29 +42,34 @@ public class DashboardService {
 		List<Portfolio> portfolios = portfolioRepository.findAllByMemberId(authMember.getMemberId());
 		Member member = memberRepository.findById(authMember.getMemberId())
 			.orElseThrow(() -> new BadRequestException(MemberErrorCode.NOT_FOUND_MEMBER));
-		Long totalValuation = 0L;// 평가 금액 + 현금?
-		long totalCurrentValuation = 0L; // 평가 금액
-		long totalInvestment = 0L; //총 주식에 투자된 돈
-		long totalGain = 0L; // 총 수익
-		Long totalAnnualDividend = 0L; // 총 연간 배당금
+		Money totalValuation = Money.zero();
+		Money totalCurrentValuation = Money.zero();
+		Money totalInvestment = Money.zero();
+		Money totalGain = Money.zero();
+		Money totalAnnualDividend = Money.zero();
 		if (portfolios.isEmpty()) {
 			return OverviewResponse.empty(member.getNickname());
 		}
 		for (Portfolio portfolio : portfolios) {
 			portfolio.applyCurrentPriceAllHoldingsBy(currentPriceManager);
-			totalValuation += portfolio.calculateTotalAsset().getAmount().longValue();
-			totalCurrentValuation += portfolio.calculateTotalCurrentValuation().getAmount().longValue();
-			totalInvestment += portfolio.calculateTotalInvestmentAmount().getAmount().longValue();
-			totalGain += portfolio.calculateTotalGain().getAmount().longValue();
-			totalAnnualDividend += portfolio.calculateAnnualDividend().getAmount().longValue();
+			totalValuation = totalValuation.add(portfolio.calculateTotalAsset());
+			totalCurrentValuation = totalCurrentValuation.add(portfolio.calculateTotalCurrentValuation());
+			totalInvestment = totalInvestment.add(portfolio.calculateTotalInvestmentAmount());
+			totalGain = totalGain.add(portfolio.calculateTotalGain());
+			totalAnnualDividend = totalAnnualDividend.add(portfolio.calculateAnnualDividend());
 		}
-		Double totalAnnualDividendYield = totalCurrentValuation != 0 ?
-			(totalAnnualDividend.doubleValue() / (double)totalCurrentValuation) * 100 : 0.0;
-		Double totalGainRate = totalInvestment != 0 ?
-			((double)totalGain / (double)totalInvestment) * 100 : 0.0;
+		double totalAnnualDividendYield = totalAnnualDividend.divide(totalCurrentValuation).toPercentage();
+		double totalGainRate = totalGain.divide(totalInvestment).toPercentage();
 
-		return OverviewResponse.of(member.getNickname(), totalValuation, totalInvestment,
-			totalGain, totalGainRate, totalAnnualDividend, totalAnnualDividendYield);
+		return OverviewResponse.of(
+			member.getNickname(),
+			totalValuation,
+			totalInvestment,
+			totalGain,
+			totalGainRate,
+			totalAnnualDividend,
+			totalAnnualDividendYield
+		);
 	}
 
 	@Transactional(readOnly = true)
@@ -86,8 +91,8 @@ public class DashboardService {
 		// 1. 가치(평가금액+현금) 기준 내림차순
 		// 2. 총손익 기준 내림차순
 		pieChartResponses.sort(
-			((Comparator<DashboardPieChartResponse>)(o1, o2) -> Long.compare(o2.getValuation(), o1.getValuation()))
-				.thenComparing((o1, o2) -> Long.compare(o2.getTotalGain(), o1.getTotalGain())));
+			((Comparator<DashboardPieChartResponse>)(o1, o2) -> o2.getValuation().compareTo(o1.getValuation()))
+				.thenComparing((o1, o2) -> o2.getTotalGain().compareTo(o1.getTotalGain())));
 		return pieChartResponses;
 	}
 

@@ -153,10 +153,11 @@ class PortfolioTest {
 			.asList()
 			.hasSize(3)
 			.extracting("name", "valuation", "totalGain")
+			.usingComparatorForType(Money::compareTo, Money.class)
 			.containsExactlyInAnyOrder(
-				Tuple.tuple("현금", 850000L, 0L),
-				Tuple.tuple("삼성전자보통주", 100000L, 50000L),
-				Tuple.tuple("동화약품보통주", 100000L, 0L));
+				Tuple.tuple("현금", Money.from(850000L), Money.zero()),
+				Tuple.tuple("삼성전자보통주", Money.from(100000L), Money.from(50000L)),
+				Tuple.tuple("동화약품보통주", Money.from(100000L), Money.zero()));
 	}
 
 	@DisplayName("사용자는 포트폴리오의 섹터 차트를 요청한다")

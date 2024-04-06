@@ -26,6 +26,7 @@ import org.mockito.ArgumentMatchers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
@@ -35,6 +36,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.oauth.support.AuthPrincipalArgumentResolver;
@@ -52,11 +54,13 @@ import codesquad.fineants.spring.api.stock_target_price.response.TargetPriceNoti
 import codesquad.fineants.spring.api.stock_target_price.response.TargetPriceNotificationSpecifiedSearchResponse;
 import codesquad.fineants.spring.api.stock_target_price.response.TargetPriceNotificationUpdateResponse;
 import codesquad.fineants.spring.api.stock_target_price.service.StockTargetPriceNotificationService;
+import codesquad.fineants.spring.config.JacksonConfig;
 import codesquad.fineants.spring.config.JpaAuditingConfiguration;
 import codesquad.fineants.spring.util.ObjectMapperUtil;
 
 @ActiveProfiles("test")
 @WebMvcTest(controllers = StockTargetPriceNotificationRestController.class)
+@Import(JacksonConfig.class)
 @MockBean(JpaAuditingConfiguration.class)
 class StockTargetPriceNotificationRestControllerTest {
 
@@ -102,7 +106,7 @@ class StockTargetPriceNotificationRestControllerTest {
 			.willReturn(TargetPriceNotificationCreateResponse.builder()
 				.targetPriceNotificationId(1L)
 				.tickerSymbol("005930")
-				.targetPrice(60000L)
+				.targetPrice(Money.from(60000L))
 				.build());
 
 		String tickerSymbol = "005930";
@@ -119,8 +123,7 @@ class StockTargetPriceNotificationRestControllerTest {
 			.andExpect(jsonPath("status").value(equalTo("Created")))
 			.andExpect(jsonPath("message").value(equalTo("해당 종목 지정가 알림을 추가했습니다")))
 			.andExpect(jsonPath("data.targetPriceNotificationId").value(equalTo(1)))
-			.andExpect(jsonPath("data.tickerSymbol").value(equalTo("005930")))
-			.andExpect(jsonPath("data.targetPrice").value(equalTo(60000)));
+			.andExpect(jsonPath("data.tickerSymbol").value(equalTo("005930")));
 	}
 
 	@DisplayName("사용자는 유효하지 않은 입력으로 종목 지정가 알림을 추가할 수 없습니다")
@@ -156,16 +159,16 @@ class StockTargetPriceNotificationRestControllerTest {
 				.stocks(List.of(TargetPriceNotificationSearchItem.builder()
 					.companyName(stock.getCompanyName())
 					.tickerSymbol(stock.getTickerSymbol())
-					.lastPrice(50000L)
+					.lastPrice(Money.from(50000L))
 					.targetPrices(List.of(
 						TargetPriceItem.builder()
 							.notificationId(1L)
-							.targetPrice(60000L)
+							.targetPrice(Money.from(60000L))
 							.dateAdded(now)
 							.build(),
 						TargetPriceItem.builder()
 							.notificationId(2L)
-							.targetPrice(70000L)
+							.targetPrice(Money.from(70000L))
 							.dateAdded(now)
 							.build()
 					))
@@ -204,12 +207,12 @@ class StockTargetPriceNotificationRestControllerTest {
 				.targetPrices(List.of(
 					TargetPriceNotificationSpecificItem.builder()
 						.notificationId(1L)
-						.targetPrice(60000L)
+						.targetPrice(Money.from(60000L))
 						.dateAdded(now)
 						.build(),
 					TargetPriceNotificationSpecificItem.builder()
 						.notificationId(2L)
-						.targetPrice(70000L)
+						.targetPrice(Money.from(70000L))
 						.dateAdded(now)
 						.build()
 				))

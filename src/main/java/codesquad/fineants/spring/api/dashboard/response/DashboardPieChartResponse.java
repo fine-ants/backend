@@ -15,12 +15,13 @@ import lombok.ToString;
 public class DashboardPieChartResponse {
 	private Long id;
 	private String name;
-	private Long valuation;
+	private Money valuation;
 	private Double weight;
-	private Long totalGain;
+	private Money totalGain;
 	private Double totalGainRate;
 
-	public static DashboardPieChartResponse create(Long id, String name, Long valuation, Double weight, Long totalGain,
+	public static DashboardPieChartResponse create(Long id, String name, Money valuation, Double weight,
+		Money totalGain,
 		Double totalGainRate) {
 		return new DashboardPieChartResponse(id, name, valuation, weight, totalGain, totalGainRate);
 	}
@@ -29,9 +30,9 @@ public class DashboardPieChartResponse {
 		return new DashboardPieChartResponse(
 			portfolio.getId(),
 			portfolio.getName(),
-			portfolio.calculateTotalAsset().getAmount().longValue(),
+			portfolio.calculateTotalAsset(),
 			portfolio.calculateTotalAsset().divide(totalValuation).toPercentage(),
-			portfolio.calculateTotalGain().getAmount().longValue(),
+			portfolio.calculateTotalGain(),
 			portfolio.calculateTotalGainRate()
 		);
 	}

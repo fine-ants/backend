@@ -33,6 +33,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import codesquad.fineants.domain.common.count.Count;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.oauth.support.AuthMember;
@@ -49,13 +50,14 @@ import codesquad.fineants.spring.api.portfolio.response.PortFolioItem;
 import codesquad.fineants.spring.api.portfolio.response.PortfolioModifyResponse;
 import codesquad.fineants.spring.api.portfolio.response.PortfoliosResponse;
 import codesquad.fineants.spring.api.portfolio.service.PortFolioService;
+import codesquad.fineants.spring.config.JacksonConfig;
 import codesquad.fineants.spring.config.JpaAuditingConfiguration;
 import codesquad.fineants.spring.config.SpringConfig;
 import codesquad.fineants.spring.util.ObjectMapperUtil;
 
 @ActiveProfiles("test")
 @WebMvcTest(controllers = PortFolioRestController.class)
-@Import(value = {SpringConfig.class, HasPortfolioAuthorizationAspect.class})
+@Import(value = {SpringConfig.class, HasPortfolioAuthorizationAspect.class, JacksonConfig.class})
 @MockBean(JpaAuditingConfiguration.class)
 class PortFolioRestControllerTest {
 
@@ -161,13 +163,14 @@ class PortFolioRestControllerTest {
 			.id(1L)
 			.securitiesFirm("토스증권")
 			.name("내꿈은 워렌버핏")
-			.budget(1000000L)
-			.totalGain(100000L)
+			.budget(Money.from(1000000L))
+			.totalGain(Money.from(100000L))
 			.totalGainRate(10.00)
-			.dailyGain(100000L)
+			.dailyGain(Money.from(100000L))
 			.dailyGainRate(10.00)
-			.currentValuation(100000L)
-			.expectedMonthlyDividend(20000L)
+			.currentValuation(Money.from(100000L))
+			.expectedMonthlyDividend(Money.from(20000L))
+			.numShares(Count.from(0))
 			.dateCreated(LocalDateTime.now())
 			.build();
 		given(portFolioService.readMyAllPortfolio(any(AuthMember.class)))
@@ -184,17 +187,21 @@ class PortFolioRestControllerTest {
 			.andExpect(jsonPath("data.portfolios[0].id").value(equalTo(portFolioItem.getId().intValue())))
 			.andExpect(jsonPath("data.portfolios[0].securitiesFirm").value(equalTo(portFolioItem.getSecuritiesFirm())))
 			.andExpect(jsonPath("data.portfolios[0].name").value(equalTo(portFolioItem.getName())))
-			.andExpect(jsonPath("data.portfolios[0].budget").value(equalTo(portFolioItem.getBudget().intValue())))
-			.andExpect(jsonPath("data.portfolios[0].totalGain").value(equalTo(portFolioItem.getTotalGain().intValue())))
+			.andExpect(
+				jsonPath("data.portfolios[0].budget").value(equalTo(portFolioItem.getBudget().getAmount().intValue())))
+			.andExpect(jsonPath("data.portfolios[0].totalGain").value(
+				equalTo(portFolioItem.getTotalGain().getAmount().intValue())))
 			.andExpect(jsonPath("data.portfolios[0].totalGainRate").value(equalTo(portFolioItem.getTotalGainRate())))
-			.andExpect(jsonPath("data.portfolios[0].dailyGain").value(equalTo(portFolioItem.getDailyGain().intValue())))
+			.andExpect(jsonPath("data.portfolios[0].dailyGain").value(
+				equalTo(portFolioItem.getDailyGain().getAmount().intValue())))
 			.andExpect(jsonPath("data.portfolios[0].dailyGainRate").value(equalTo(portFolioItem.getDailyGainRate())))
 			.andExpect(
 				jsonPath("data.portfolios[0].currentValuation").value(
-					equalTo(portFolioItem.getCurrentValuation().intValue())))
+					equalTo(portFolioItem.getCurrentValuation().getAmount().intValue())))
 			.andExpect(jsonPath("data.portfolios[0].expectedMonthlyDividend").value(
-				equalTo(portFolioItem.getExpectedMonthlyDividend().intValue())))
-			.andExpect(jsonPath("data.portfolios[0].numShares").value(equalTo(portFolioItem.getNumShares())))
+				equalTo(portFolioItem.getExpectedMonthlyDividend().getAmount().intValue())))
+			.andExpect(jsonPath("data.portfolios[0].numShares").value(
+				equalTo(portFolioItem.getNumShares().getValue().intValue())))
 			.andExpect(jsonPath("data.portfolios[0].dateCreated").isNotEmpty());
 	}
 

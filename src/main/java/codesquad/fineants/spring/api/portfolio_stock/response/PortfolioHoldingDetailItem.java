@@ -1,5 +1,6 @@
 package codesquad.fineants.spring.api.portfolio_stock.response;
 
+import codesquad.fineants.domain.common.count.Count;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
 import lombok.AccessLevel;
@@ -16,29 +17,29 @@ import lombok.ToString;
 @ToString
 public class PortfolioHoldingDetailItem {
 	private Long portfolioHoldingId;
-	private Long currentValuation;
-	private Long currentPrice;
-	private Double averageCostPerShare;
-	private Long numShares;
-	private Long dailyChange;
+	private Money currentValuation;
+	private Money currentPrice;
+	private Money averageCostPerShare;
+	private Count numShares;
+	private Money dailyChange;
 	private Double dailyChangeRate;
-	private Long totalGain;
+	private Money totalGain;
 	private Double totalReturnRate;
-	private Long annualDividend;
+	private Money annualDividend;
 	private Double annualDividendYield;
 
 	public static PortfolioHoldingDetailItem from(PortfolioHolding portfolioHolding, Money lastDayClosingPrice) {
 		return PortfolioHoldingDetailItem.builder()
 			.portfolioHoldingId(portfolioHolding.getId())
-			.currentValuation(portfolioHolding.calculateCurrentValuation().getAmount().longValue())
-			.currentPrice(portfolioHolding.getCurrentPrice().getAmount().longValue())
-			.averageCostPerShare(portfolioHolding.calculateAverageCostPerShare().getAmount().doubleValue())
-			.numShares(portfolioHolding.calculateNumShares().getValue().longValue())
-			.dailyChange(portfolioHolding.calculateDailyChange(lastDayClosingPrice).getAmount().longValue())
+			.currentValuation(portfolioHolding.calculateCurrentValuation())
+			.currentPrice(portfolioHolding.getCurrentPrice())
+			.averageCostPerShare(portfolioHolding.calculateAverageCostPerShare())
+			.numShares(portfolioHolding.calculateNumShares())
+			.dailyChange(portfolioHolding.calculateDailyChange(lastDayClosingPrice))
 			.dailyChangeRate(portfolioHolding.calculateDailyChangeRate(lastDayClosingPrice))
-			.totalGain(portfolioHolding.calculateTotalGain().getAmount().longValue())
+			.totalGain(portfolioHolding.calculateTotalGain())
 			.totalReturnRate(portfolioHolding.calculateTotalReturnRate())
-			.annualDividend(portfolioHolding.calculateAnnualExpectedDividend().getAmount().longValue())
+			.annualDividend(portfolioHolding.calculateAnnualExpectedDividend())
 			.annualDividendYield(portfolioHolding.calculateAnnualExpectedDividendYield())
 			.build();
 	}

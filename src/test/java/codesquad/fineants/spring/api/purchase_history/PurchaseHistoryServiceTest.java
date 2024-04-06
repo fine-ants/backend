@@ -314,7 +314,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 		PurchaseHistory changePurchaseHistory = purchaseHistoryRepository.findById(history.getId()).orElseThrow();
 		assertAll(
 			() -> assertThat(response).extracting("id").isNotNull(),
-			() -> assertThat(response).extracting("numShares").isEqualTo(4L),
+			() -> assertThat(response.getNumShares()).isEqualByComparingTo(Count.from(4)),
 			() -> assertThat(changePurchaseHistory.getNumShares()).isEqualByComparingTo(Count.from(4L))
 		);
 	}
@@ -357,7 +357,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 		PurchaseHistory changePurchaseHistory = purchaseHistoryRepository.findById(history.getId()).orElseThrow();
 		assertAll(
 			() -> assertThat(response).extracting("id").isNotNull(),
-			() -> assertThat(response).extracting("numShares").isEqualTo(100L),
+			() -> assertThat(response.getNumShares()).isEqualByComparingTo(Count.from(100)),
 			() -> assertThat(changePurchaseHistory.getNumShares()).isEqualByComparingTo(Count.from(100L)),
 			() -> assertThat(notificationRepository.findAllByMemberId(member.getId())).hasSize(1)
 		);

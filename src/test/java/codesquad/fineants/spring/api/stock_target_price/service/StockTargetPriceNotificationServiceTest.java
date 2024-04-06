@@ -107,9 +107,10 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 
 		assertThat(response)
 			.extracting("targetPriceNotificationId", "tickerSymbol", "targetPrice")
+			.usingComparatorForType(Money::compareTo, Money.class)
 			.containsExactlyInAnyOrder(targetPriceNotification.getId(),
 				stock.getTickerSymbol(),
-				60000L);
+				Money.from(60000L));
 	}
 
 	@DisplayName("사용자는 한 종목의 지정가 알림 개수를 5개를 초과할 수 없다")
@@ -185,14 +186,14 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 
 		// then
 		assertAll(
-			() -> assertThat(response)
-				.extracting("stocks")
+			() -> assertThat(response.getStocks())
 				.asList()
 				.hasSize(2)
 				.extracting("companyName", "tickerSymbol", "lastPrice", "isActive")
+				.usingComparatorForType(Money::compareTo, Money.class)
 				.containsExactly(
-					Tuple.tuple(stock.getCompanyName(), stock.getTickerSymbol(), 50000L, true),
-					Tuple.tuple(stock2.getCompanyName(), stock2.getTickerSymbol(), 50000L, true)
+					Tuple.tuple(stock.getCompanyName(), stock.getTickerSymbol(), Money.from(50000L), true),
+					Tuple.tuple(stock2.getCompanyName(), stock2.getTickerSymbol(), Money.from(50000L), true)
 				),
 			() -> assertThat(response.getStocks().get(0))
 				.extracting("targetPrices")
@@ -200,16 +201,17 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 				.hasSize(2)
 				.extracting("notificationId", "targetPrice")
 				.containsExactly(
-					Tuple.tuple(targetPriceNotifications.get(0).getId(), 60000L),
-					Tuple.tuple(targetPriceNotifications.get(1).getId(), 70000L)),
+					Tuple.tuple(targetPriceNotifications.get(0).getId(), Money.from(60000L)),
+					Tuple.tuple(targetPriceNotifications.get(1).getId(), Money.from(70000L))),
 			() -> assertThat(response.getStocks().get(1))
 				.extracting("targetPrices")
 				.asList()
 				.hasSize(2)
 				.extracting("notificationId", "targetPrice")
+				.usingComparatorForType(Money::compareTo, Money.class)
 				.containsExactly(
-					Tuple.tuple(targetPriceNotifications2.get(0).getId(), 60000L),
-					Tuple.tuple(targetPriceNotifications2.get(1).getId(), 70000L))
+					Tuple.tuple(targetPriceNotifications2.get(0).getId(), Money.from(60000L)),
+					Tuple.tuple(targetPriceNotifications2.get(1).getId(), Money.from(70000L)))
 		);
 	}
 
@@ -236,9 +238,10 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 			.asList()
 			.hasSize(2)
 			.extracting("notificationId", "targetPrice")
+			.usingComparatorForType(Money::compareTo, Money.class)
 			.containsExactlyInAnyOrder(
-				Tuple.tuple(targetPriceNotifications.get(0).getId(), 60000L),
-				Tuple.tuple(targetPriceNotifications.get(1).getId(), 70000L));
+				Tuple.tuple(targetPriceNotifications.get(0).getId(), Money.from(60000L)),
+				Tuple.tuple(targetPriceNotifications.get(1).getId(), Money.from(70000L)));
 	}
 
 	@DisplayName("사용자가 없는 종목을 대상으로 지정가 알림 목록 조회시 빈 리스트를 반환받는다")

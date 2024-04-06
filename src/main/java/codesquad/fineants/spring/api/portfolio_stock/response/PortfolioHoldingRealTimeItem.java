@@ -13,20 +13,20 @@ import lombok.ToString;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @ToString
 public class PortfolioHoldingRealTimeItem {
-	private Long currentValuation;
-	private Long currentPrice;
-	private Long dailyChange;
+	private Money currentValuation;
+	private Money currentPrice;
+	private Money dailyChange;
 	private Double dailyChangeRate;
-	private Long totalGain;
+	private Money totalGain;
 	private Double totalReturnRate;
 
 	public static PortfolioHoldingRealTimeItem of(PortfolioHolding portfolioHolding, Money lastDayClosingPrice) {
 		return new PortfolioHoldingRealTimeItem(
-			portfolioHolding.calculateCurrentValuation().getAmount().longValue(),
-			portfolioHolding.getCurrentPrice().getAmount().longValue(),
-			portfolioHolding.calculateDailyChange(lastDayClosingPrice).getAmount().longValue(),
+			portfolioHolding.calculateCurrentValuation(),
+			portfolioHolding.getCurrentPrice(),
+			portfolioHolding.calculateDailyChange(lastDayClosingPrice),
 			portfolioHolding.calculateDailyChangeRate(lastDayClosingPrice),
-			portfolioHolding.calculateTotalGain().getAmount().longValue(),
+			portfolioHolding.calculateTotalGain(),
 			portfolioHolding.calculateTotalReturnRate());
 	}
 }

@@ -22,7 +22,7 @@ import lombok.ToString;
 public class TargetPriceNotificationSearchItem {
 	private String companyName;
 	private String tickerSymbol;
-	private Long lastPrice;
+	private Money lastPrice;
 	private List<TargetPriceItem> targetPrices;
 	private Boolean isActive;
 	private LocalDateTime lastUpdated;
@@ -38,8 +38,7 @@ public class TargetPriceNotificationSearchItem {
 			.companyName(stockTargetPrice.getStock().getCompanyName())
 			.tickerSymbol(stockTargetPrice.getStock().getTickerSymbol())
 			.lastPrice(manager.getPrice(stockTargetPrice.getStock().getTickerSymbol())
-				.orElse(Money.zero())
-				.getAmount().longValue())
+				.orElse(Money.zero()))
 			.targetPrices(targetPrices)
 			.isActive(stockTargetPrice.getIsActive())
 			.lastUpdated(stockTargetPrice.getModifiedAt())

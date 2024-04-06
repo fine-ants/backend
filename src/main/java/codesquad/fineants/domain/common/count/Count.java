@@ -33,6 +33,10 @@ public class Count implements Comparable<Count> {
 		return new Count(BigInteger.valueOf(value));
 	}
 
+	public static Count from(Integer value) {
+		return new Count(BigInteger.valueOf(value));
+	}
+
 	public Count add(Count count) {
 		return new Count(value.add(count.value));
 	}
@@ -67,5 +71,10 @@ public class Count implements Comparable<Count> {
 	@Override
 	public int compareTo(Count count) {
 		return this.value.compareTo(count.value);
+	}
+
+	@Override
+	public String toString() {
+		return value.toString();
 	}
 }

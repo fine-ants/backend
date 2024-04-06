@@ -13,7 +13,7 @@ import lombok.ToString;
 @ToString
 public class PortfolioDividendChartItem {
 	private int month;
-	private Long amount;
+	private Money amount;
 
 	public static PortfolioDividendChartItem empty(int month) {
 		return create(month, Money.zero());
@@ -22,7 +22,7 @@ public class PortfolioDividendChartItem {
 	public static PortfolioDividendChartItem create(int month, Money amount) {
 		return new PortfolioDividendChartItem(
 			month,
-			amount.getAmount().longValue()
+			amount
 		);
 	}
 }

@@ -9,7 +9,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
-import org.assertj.core.data.Offset;
 import org.assertj.core.data.Percentage;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -85,8 +84,20 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 		OverviewResponse response = dashboardService.getOverview(authMember);
 
 		// then
-		assertThat(response.getUsername()).isEqualTo(member.getNickname());
-		assertThat(response.getTotalValuation()).isEqualTo(0);
+		Assertions.assertAll(
+			() -> assertThat(response)
+				.extracting(
+					OverviewResponse::getUsername,
+					OverviewResponse::getTotalValuation,
+					OverviewResponse::getTotalInvestment,
+					OverviewResponse::getTotalGain,
+					OverviewResponse::getTotalGainRate,
+					OverviewResponse::getTotalAnnualDividend,
+					OverviewResponse::getTotalAnnualDividendYield
+				)
+				.usingComparatorForType(Money::compareTo, Money.class)
+				.containsExactly(member.getNickname(), Money.zero(), Money.zero(), Money.zero(), 0.0, Money.zero(), 0.0)
+		);
 	}
 
 	@Test
@@ -133,13 +144,25 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 
 		// then
 		Assertions.assertAll(
-			() -> assertThat(response.getUsername()).isEqualTo(member.getNickname()),
-			() -> assertThat(response.getTotalValuation()).isEqualTo(1068700L),
-			() -> assertThat(response.getTotalInvestment()).isEqualTo(150000L),
-			() -> assertThat(response.getTotalGain()).isEqualTo(68700L),
-			() -> assertThat(response.getTotalGainRate()).isCloseTo(45.8, Offset.offset(0.1)),
-			() -> assertThat(response.getTotalAnnualDividend()).isEqualTo(3249L),
-			() -> assertThat(response.getTotalAnnualDividendYield()).isCloseTo(1.4, Offset.offset(0.1))
+			() -> assertThat(response)
+				.extracting(
+					OverviewResponse::getUsername,
+					OverviewResponse::getTotalValuation,
+					OverviewResponse::getTotalInvestment,
+					OverviewResponse::getTotalGain,
+					OverviewResponse::getTotalGainRate,
+					OverviewResponse::getTotalAnnualDividend,
+					OverviewResponse::getTotalAnnualDividendYield
+				).usingComparatorForType(Money::compareTo, Money.class)
+				.containsExactlyInAnyOrder(
+					member.getNickname(),
+					Money.from(1068700L),
+					Money.from(150000L),
+					Money.from(68700L),
+					45.8,
+					Money.from(3249L),
+					1.49
+				)
 		);
 	}
 
@@ -161,11 +184,25 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 		OverviewResponse response = dashboardService.getOverview(AuthMember.from(member));
 
 		// then
-
 		assertThat(response)
-			.extracting("username", "totalValuation", "totalInvestment", "totalGain", "totalGainRate",
-				"totalAnnualDividend", "totalAnnualDividendYield")
-			.containsExactlyInAnyOrder("일개미1234", 1000000L, 0L, 0L, 0.00, 0L, 0.00);
+			.extracting(
+				OverviewResponse::getUsername,
+				OverviewResponse::getTotalValuation,
+				OverviewResponse::getTotalInvestment,
+				OverviewResponse::getTotalGain,
+				OverviewResponse::getTotalGainRate,
+				OverviewResponse::getTotalAnnualDividend,
+				OverviewResponse::getTotalAnnualDividendYield
+			).usingComparatorForType(Money::compareTo, Money.class)
+			.containsExactlyInAnyOrder(
+				member.getNickname(),
+				Money.from(1000000L),
+				Money.zero(),
+				Money.zero(),
+				0.00,
+				Money.zero(),
+				0.00
+			);
 	}
 
 	@Test
@@ -272,10 +309,16 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 		List<DashboardLineChartResponse> responses = dashboardService.getLineChart(authMember);
 
 		// then
-		assertThat(responses.get(0).getTime()).isEqualTo(
-			LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
-		assertThat(responses.size()).isEqualTo(1);
-		assertThat(responses.get(0).getValue()).isEqualTo(160L);
+		Assertions.assertAll(
+			() -> assertThat(responses.stream().findAny().orElseThrow())
+				.extracting(DashboardLineChartResponse::getTime, DashboardLineChartResponse::getValue)
+				.usingComparatorForType(Money::compareTo, Money.class)
+				.containsExactly(
+					LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+					Money.from(160L)
+				),
+			() -> assertThat(responses.size()).isEqualTo(1)
+		);
 	}
 
 	private Member createMember() {

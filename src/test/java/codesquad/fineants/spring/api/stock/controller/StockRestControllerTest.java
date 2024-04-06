@@ -16,23 +16,26 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.oauth.support.AuthPrincipalArgumentResolver;
 import codesquad.fineants.domain.stock.Market;
 import codesquad.fineants.spring.api.common.errors.handler.GlobalExceptionHandler;
 import codesquad.fineants.spring.api.stock.response.StockResponse;
 import codesquad.fineants.spring.api.stock.service.StockService;
+import codesquad.fineants.spring.config.JacksonConfig;
 import codesquad.fineants.spring.config.JpaAuditingConfiguration;
 import codesquad.fineants.spring.config.SpringConfig;
 
 @ActiveProfiles("test")
 @WebMvcTest(controllers = StockRestController.class)
-@Import(value = {SpringConfig.class})
+@Import(value = {SpringConfig.class, JacksonConfig.class})
 @MockBean(JpaAuditingConfiguration.class)
 public class StockRestControllerTest {
 
@@ -58,10 +61,11 @@ public class StockRestControllerTest {
 		mockMvc = MockMvcBuilders.standaloneSetup(stockRestController)
 			.setControllerAdvice(globalExceptionHandler)
 			.setCustomArgumentResolvers(authPrincipalArgumentResolver)
+			.setMessageConverters(new MappingJackson2HttpMessageConverter(objectMapper))
 			.alwaysDo(print())
 			.build();
 	}
-	
+
 	@DisplayName("주식 종목을 조회한다.")
 	@Test
 	void getStock() throws Exception {
@@ -73,11 +77,11 @@ public class StockRestControllerTest {
 			.companyName("삼성공조보통주")
 			.companyNameEng("SamsungClimateControlCo.,Ltd")
 			.market(Market.KOSPI)
-			.currentPrice(68000L)
-			.dailyChange(12000L)
+			.currentPrice(Money.from(68000L))
+			.dailyChange(Money.from(12000L))
 			.dailyChangeRate(20.45)
 			.sector("전기전자")
-			.annualDividend(6000L)
+			.annualDividend(Money.from(6000L))
 			.annualDividendYield(10.00)
 			.dividendMonths(List.of(1, 4))
 			.build();

@@ -2,6 +2,8 @@ package codesquad.fineants.spring.api.portfolio.response;
 
 import java.time.LocalDateTime;
 
+import codesquad.fineants.domain.common.count.Count;
+import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.portfolio.Portfolio;
 import codesquad.fineants.domain.portfolio_gain_history.PortfolioGainHistory;
 import lombok.AccessLevel;
@@ -20,14 +22,14 @@ public class PortFolioItem {
 	private Long id;
 	private String securitiesFirm;
 	private String name;
-	private Long budget;
-	private Long totalGain;
+	private Money budget;
+	private Money totalGain;
 	private Double totalGainRate;
-	private Long dailyGain;
+	private Money dailyGain;
 	private Double dailyGainRate;
-	private Long currentValuation;
-	private Long expectedMonthlyDividend;
-	private Integer numShares;
+	private Money currentValuation;
+	private Money expectedMonthlyDividend;
+	private Count numShares;
 	private LocalDateTime dateCreated;
 
 	public static PortFolioItem of(Portfolio portfolio, PortfolioGainHistory prevHistory) {
@@ -35,13 +37,13 @@ public class PortFolioItem {
 			.id(portfolio.getId())
 			.securitiesFirm(portfolio.getSecuritiesFirm())
 			.name(portfolio.getName())
-			.budget(portfolio.getBudget().getAmount().longValue())
-			.totalGain(portfolio.calculateTotalGain().getAmount().longValue())
+			.budget(portfolio.getBudget())
+			.totalGain(portfolio.calculateTotalGain())
 			.totalGainRate(portfolio.calculateTotalGainRate())
-			.dailyGain(portfolio.calculateDailyGain(prevHistory).getAmount().longValue())
+			.dailyGain(portfolio.calculateDailyGain(prevHistory))
 			.dailyGainRate(portfolio.calculateDailyGainRate(prevHistory))
-			.currentValuation(portfolio.calculateTotalCurrentValuation().getAmount().longValue())
-			.expectedMonthlyDividend(portfolio.calculateCurrentMonthDividend().getAmount().longValue())
+			.currentValuation(portfolio.calculateTotalCurrentValuation())
+			.expectedMonthlyDividend(portfolio.calculateCurrentMonthDividend())
 			.numShares(portfolio.getNumberOfShares())
 			.dateCreated(portfolio.getCreateAt())
 			.build();
