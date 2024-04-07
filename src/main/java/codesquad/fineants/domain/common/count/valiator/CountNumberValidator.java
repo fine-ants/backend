@@ -13,6 +13,6 @@ public class CountNumberValidator implements ConstraintValidator<CountNumber, Co
 		if (value == null) {
 			return false;
 		}
-		return value.getValue().compareTo(BigInteger.ZERO) >= 0;
+		return value.getValue().compareTo(BigInteger.ZERO) > 0;
 	}
 }

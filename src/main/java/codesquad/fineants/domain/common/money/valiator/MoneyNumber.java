@@ -10,11 +10,11 @@ import javax.validation.Constraint;
 import javax.validation.Payload;
 
 @Documented
-@Constraint(validatedBy = {MoneyValidator.class})
+@Constraint(validatedBy = MoneyValidator.class)
 @Target({ElementType.PARAMETER, ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface MoneyNumber {
-	String message() default "0포함 양수여야 합니다";
+	String message() default "금액은 양수여야 합니다";
 
 	Class<?>[] groups() default {};
 
