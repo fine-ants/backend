@@ -14,7 +14,7 @@ import javax.validation.Payload;
 @Target({ElementType.PARAMETER, ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface CountNumber {
-	String message() default "0포함 양수여야 합니다";
+	String message() default "개수는 양수여야 합니다";
 
 	Class<?>[] groups() default {};
 

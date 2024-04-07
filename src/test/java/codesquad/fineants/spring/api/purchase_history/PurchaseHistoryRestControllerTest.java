@@ -191,15 +191,14 @@ class PurchaseHistoryRestControllerTest {
 		requestBody.put("purchasePricePerShare", 0);
 		requestBody.put("memo", "첫구매");
 
-		String body = objectMapper.writeValueAsString(requestBody);
-
-		given(portfolioRepository.findById(anyLong())).willReturn(Optional.of(portfolio));
+		given(portfolioRepository.findById(anyLong()))
+			.willReturn(Optional.of(portfolio));
 
 		// when & then
 		mockMvc.perform(post(url)
 				.contentType(MediaType.APPLICATION_JSON)
 				.characterEncoding(StandardCharsets.UTF_8)
-				.content(body))
+				.content(ObjectMapperUtil.serialize(requestBody)))
 			.andExpect(status().isBadRequest())
 			.andExpect(jsonPath("code").value(equalTo(400)))
 			.andExpect(jsonPath("status").value(equalTo("Bad Request")))
