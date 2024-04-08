@@ -35,8 +35,8 @@ public class PortfolioDetailResponse {
 	private Double annualDividendYield;
 	private Double annualInvestmentDividendYield;
 	private Money provisionalLossBalance;
-	private Boolean targetGainNotification;
-	private Boolean maxLossNotification;
+	private Boolean targetGainNotify;
+	private Boolean maxLossNotify;
 
 	public static PortfolioDetailResponse from(Portfolio portfolio, PortfolioGainHistory history) {
 		return PortfolioDetailResponse.builder()
@@ -59,8 +59,8 @@ public class PortfolioDetailResponse {
 			.annualDividendYield(portfolio.calculateAnnualDividendYield())
 			.annualInvestmentDividendYield(portfolio.calculateAnnualInvestmentDividendYield())
 			.provisionalLossBalance(Money.zero())
-			.targetGainNotification(portfolio.getTargetGainIsActive())
-			.maxLossNotification(portfolio.getMaximumLossIsActive())
+			.targetGainNotify(portfolio.getTargetGainIsActive())
+			.maxLossNotify(portfolio.getMaximumLossIsActive())
 			.build();
 	}
 

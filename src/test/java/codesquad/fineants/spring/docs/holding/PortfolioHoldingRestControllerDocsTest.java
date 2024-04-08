@@ -171,8 +171,8 @@ public class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 			.andExpect(jsonPath("data.portfolioDetails.annualDividendYield").value(closeTo(2.41, 0.1)))
 			.andExpect(jsonPath("data.portfolioDetails.annualInvestmentDividendYield").value(closeTo(2.89, 0.1)))
 			.andExpect(jsonPath("data.portfolioDetails.provisionalLossBalance").value(equalTo(0)))
-			.andExpect(jsonPath("data.portfolioDetails.targetGainNotification").value(equalTo(true)))
-			.andExpect(jsonPath("data.portfolioDetails.maxLossNotification").value(equalTo(true)));
+			.andExpect(jsonPath("data.portfolioDetails.targetGainNotify").value(equalTo(true)))
+			.andExpect(jsonPath("data.portfolioDetails.maxLossNotify").value(equalTo(true)));
 
 		resultActions
 			.andExpect(jsonPath("data.portfolioHoldings[0].companyName").value(equalTo("삼성전자보통주")))
@@ -256,9 +256,9 @@ public class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 						.description("투자 대비 연간 배당율"),
 					fieldWithPath("data.portfolioDetails.provisionalLossBalance").type(JsonFieldType.NUMBER)
 						.description("잠정 손실 잔고"),
-					fieldWithPath("data.portfolioDetails.targetGainNotification").type(JsonFieldType.BOOLEAN)
+					fieldWithPath("data.portfolioDetails.targetGainNotify").type(JsonFieldType.BOOLEAN)
 						.description("목표 수익 금액 알림 여부"),
-					fieldWithPath("data.portfolioDetails.maxLossNotification").type(JsonFieldType.BOOLEAN)
+					fieldWithPath("data.portfolioDetails.maxLossNotify").type(JsonFieldType.BOOLEAN)
 						.description("최대 손실 금액 알림 여부"),
 
 					fieldWithPath("data.portfolioHoldings[].companyName").type(JsonFieldType.STRING)
