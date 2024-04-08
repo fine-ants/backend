@@ -2,7 +2,8 @@ package codesquad.fineants.spring.api.portfolio.request;
 
 import javax.validation.constraints.NotBlank;
 
-import codesquad.fineants.domain.common.money.valiator.MoneyNumber;
+import codesquad.fineants.domain.common.money.Money;
+import codesquad.fineants.domain.common.money.valiator.MoneyNumberWithZero;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.portfolio.Portfolio;
 import lombok.AccessLevel;
@@ -18,14 +19,14 @@ public class PortfolioModifyRequest {
 	@NotBlank(message = "증권사는 필수 정보입니다")
 	private String securitiesFirm;
 
-	@MoneyNumber
-	private codesquad.fineants.domain.common.money.Money budget;
+	@MoneyNumberWithZero
+	private Money budget;
 
-	@MoneyNumber
-	private codesquad.fineants.domain.common.money.Money targetGain;
+	@MoneyNumberWithZero
+	private Money targetGain;
 
-	@MoneyNumber
-	private codesquad.fineants.domain.common.money.Money maximumLoss;
+	@MoneyNumberWithZero
+	private Money maximumLoss;
 
 	public Portfolio toEntity(Member member) {
 		return Portfolio.builder()
