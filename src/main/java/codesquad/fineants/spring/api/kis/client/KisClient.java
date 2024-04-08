@@ -71,7 +71,7 @@ public class KisClient {
 	}
 
 	// 직전 거래일의 종가 조회
-	public Mono<KisClosingPrice> readLastDayClosingPrice(String tickerSymbol, String authorization) {
+	public Mono<KisClosingPrice> fetchClosingPrice(String tickerSymbol, String authorization) {
 		MultiValueMap<String, String> headerMap = new LinkedMultiValueMap<>();
 		headerMap.add("authorization", authorization);
 		headerMap.add("appkey", oauthKisProperties.getAppkey());

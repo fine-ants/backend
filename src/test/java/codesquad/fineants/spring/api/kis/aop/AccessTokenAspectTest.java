@@ -16,7 +16,6 @@ import codesquad.fineants.spring.AbstractContainerBaseTest;
 import codesquad.fineants.spring.api.kis.client.KisAccessToken;
 import codesquad.fineants.spring.api.kis.client.KisClient;
 import codesquad.fineants.spring.api.kis.manager.KisAccessTokenManager;
-import codesquad.fineants.spring.api.kis.properties.OauthKisProperties;
 import codesquad.fineants.spring.api.kis.service.KisAccessTokenRedisService;
 import reactor.core.publisher.Mono;
 
@@ -28,9 +27,6 @@ class AccessTokenAspectTest extends AbstractContainerBaseTest {
 	@Autowired
 	private KisAccessTokenRedisService kisAccessTokenRedisService;
 
-	@Autowired
-	private OauthKisProperties oauthKisProperties;
-
 	@AfterEach
 	void tearDown() {
 		kisAccessTokenRedisService.deleteAccessTokenMap();
@@ -41,7 +37,7 @@ class AccessTokenAspectTest extends AbstractContainerBaseTest {
 	void checkAccessTokenExpiration() {
 		// given
 		AccessTokenAspect accessTokenAspect = new AccessTokenAspect(new KisAccessTokenManager(null), client,
-			kisAccessTokenRedisService, oauthKisProperties);
+			kisAccessTokenRedisService);
 		kisAccessTokenRedisService.deleteAccessTokenMap();
 
 		given(client.fetchAccessToken())

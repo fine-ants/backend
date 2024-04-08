@@ -1,6 +1,7 @@
 package codesquad.fineants.spring.api.kis.aop;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 
 import org.aspectj.lang.annotation.Aspect;
@@ -8,9 +9,9 @@ import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.stereotype.Component;
 
+import codesquad.fineants.spring.api.kis.client.KisAccessToken;
 import codesquad.fineants.spring.api.kis.client.KisClient;
 import codesquad.fineants.spring.api.kis.manager.KisAccessTokenManager;
-import codesquad.fineants.spring.api.kis.properties.OauthKisProperties;
 import codesquad.fineants.spring.api.kis.service.KisAccessTokenRedisService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +25,6 @@ public class AccessTokenAspect {
 	private final KisAccessTokenManager manager;
 	private final KisClient client;
 	private final KisAccessTokenRedisService redisService;
-	private final OauthKisProperties oauthKisProperties;
 
 	@Pointcut("execution(* codesquad.fineants.spring.api.kis.service.KisService.scheduleRefreshingAllStockCurrentPrice())")
 	public void scheduleRefreshingAllStockCurrentPrice() {
@@ -38,8 +38,12 @@ public class AccessTokenAspect {
 	public void checkAccessTokenExpiration() {
 		LocalDateTime now = LocalDateTime.now();
 		if (manager.isAccessTokenExpired(now)) {
-			redisService.getAccessTokenMap()
-				.ifPresentOrElse(manager::refreshAccessToken, () -> handleNewAccessToken(now));
+			Optional<KisAccessToken> optionalKisAccessToken = redisService.getAccessTokenMap();
+			if (optionalKisAccessToken.isPresent()) {
+				manager.refreshAccessToken(optionalKisAccessToken.get());
+			} else {
+				handleNewAccessToken(now);
+			}
 		}
 	}
 

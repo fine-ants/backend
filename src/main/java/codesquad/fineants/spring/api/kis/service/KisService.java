@@ -35,7 +35,7 @@ import reactor.core.publisher.Mono;
 @Service
 public class KisService {
 	private static final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
-	private static final Duration TIMEOUT = Duration.ofMinutes(1L);
+	public static final Duration TIMEOUT = Duration.ofMinutes(1L);
 
 	private final KisClient kisClient;
 	private final PortfolioHoldingRepository portFolioHoldingRepository;
@@ -167,7 +167,7 @@ public class KisService {
 		CompletableFuture<KisClosingPrice> future = createCompletableFuture();
 		executorService.schedule(() -> {
 			try {
-				future.complete(kisClient.readLastDayClosingPrice(tickerSymbol, manager.createAuthorization())
+				future.complete(fetchClosingPrice(tickerSymbol)
 					.blockOptional(TIMEOUT)
 					.orElseGet(() -> KisClosingPrice.empty(tickerSymbol)));
 			} catch (KisException e) {
@@ -175,5 +175,9 @@ public class KisService {
 			}
 		}, 1L, TimeUnit.SECONDS);
 		return future;
+	}
+
+	public Mono<KisClosingPrice> fetchClosingPrice(String tickerSymbol) {
+		return kisClient.fetchClosingPrice(tickerSymbol, manager.createAuthorization());
 	}
 }

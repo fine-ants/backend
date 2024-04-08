@@ -160,7 +160,7 @@ public class StockRestControllerDocsTest extends RestDocsSupport {
 
 		given(currentPriceManager.getCurrentPrice(stock.getTickerSymbol()))
 			.willReturn(Optional.of(Money.from(68000L)));
-		given(lastDayClosingPriceManager.getPrice(stock.getTickerSymbol()))
+		given(lastDayClosingPriceManager.getClosingPrice(stock.getTickerSymbol()))
 			.willReturn(Optional.of(Money.from(80000L)));
 		given(service.getStock(stock.getTickerSymbol()))
 			.willReturn(StockResponse.create(

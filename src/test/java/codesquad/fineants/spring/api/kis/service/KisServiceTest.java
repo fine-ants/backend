@@ -154,7 +154,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		stocks.forEach(stock -> portfolioHoldingRepository.save(createPortfolioHolding(portfolio, stock)));
 
 		given(kisAccessTokenManager.createAuthorization()).willReturn(createAuthorization());
-		given(client.readLastDayClosingPrice(anyString(), anyString()))
+		given(client.fetchClosingPrice(anyString(), anyString()))
 			.willThrow(new KisException("요청건수가 초과되었습니다"))
 			.willThrow(new KisException("요청건수가 초과되었습니다"))
 			.willReturn(Mono.just(KisClosingPrice.create("000270", 10000L)));
@@ -163,7 +163,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		kisService.refreshLastDayClosingPrice(tickerSymbols);
 
 		// then
-		verify(client, times(1)).readLastDayClosingPrice(anyString(), anyString());
+		verify(client, times(1)).fetchClosingPrice(anyString(), anyString());
 	}
 
 	@DisplayName("휴장일에는 종목 가격 정보를 갱신하지 않는다")

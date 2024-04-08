@@ -37,7 +37,7 @@ public class TargetPriceNotificationSearchItem {
 		return TargetPriceNotificationSearchItem.builder()
 			.companyName(stockTargetPrice.getStock().getCompanyName())
 			.tickerSymbol(stockTargetPrice.getStock().getTickerSymbol())
-			.lastPrice(manager.getPrice(stockTargetPrice.getStock().getTickerSymbol())
+			.lastPrice(manager.getClosingPrice(stockTargetPrice.getStock().getTickerSymbol())
 				.orElse(Money.zero()))
 			.targetPrices(targetPrices)
 			.isActive(stockTargetPrice.getIsActive())

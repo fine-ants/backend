@@ -178,7 +178,7 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 		List<TargetPriceNotification> targetPriceNotifications2 = targetPriceNotificationRepository.saveAll(
 			createTargetPriceNotification(stockTargetPrice2, List.of(60000L, 70000L)));
 
-		given(manager.getPrice(anyString()))
+		given(manager.getClosingPrice(anyString()))
 			.willReturn(Optional.of(Money.from(50000L)));
 
 		// when
@@ -225,7 +225,7 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 		List<TargetPriceNotification> targetPriceNotifications = targetPriceNotificationRepository.saveAll(
 			createTargetPriceNotification(stockTargetPrice, List.of(60000L, 70000L)));
 
-		given(manager.getPrice(anyString()))
+		given(manager.getClosingPrice(anyString()))
 			.willReturn(Optional.of(Money.from(50000L)));
 
 		// when
