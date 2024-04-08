@@ -133,8 +133,8 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 			() -> assertThat(details.getAnnualDividend()).isEqualByComparingTo(Money.from(4332L)),
 			() -> assertThat(details.getAnnualDividendYield()).isEqualByComparingTo(2.41),
 			() -> assertThat(details.getProvisionalLossBalance()).isEqualByComparingTo(Money.from(0L)),
-			() -> assertThat(details.getTargetGainNotification()).isFalse(),
-			() -> assertThat(details.getMaxLossNotification()).isFalse(),
+			() -> assertThat(details.getTargetGainNotify()).isFalse(),
+			() -> assertThat(details.getMaxLossNotify()).isFalse(),
 
 			() -> assertThat(response.getPortfolioHoldings())
 				.hasSize(1)
