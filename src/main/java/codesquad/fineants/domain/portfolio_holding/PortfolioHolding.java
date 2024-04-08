@@ -213,6 +213,6 @@ public class PortfolioHolding extends BaseEntity {
 	}
 
 	public Money getLastDayClosingPrice(LastDayClosingPriceManager manager) {
-		return stock.getLastDayClosingPrice(manager);
+		return stock.getClosingPrice(manager);
 	}
 }
