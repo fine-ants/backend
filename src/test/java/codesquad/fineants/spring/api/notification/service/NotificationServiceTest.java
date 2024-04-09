@@ -126,13 +126,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 	void notifyTargetGainBy() {
 		// given
 		Member member = memberRepository.save(createMember());
-		notificationPreferenceRepository.save(NotificationPreference.builder()
-			.browserNotify(true)
-			.targetGainNotify(true)
-			.maxLossNotify(true)
-			.targetPriceNotify(true)
-			.member(member)
-			.build());
+		notificationPreferenceRepository.save(createNotificationPreference(member));
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Stock stock = stockRepository.save(createStock());
 		PortfolioHolding portfolioHolding = portfolioHoldingRepository.save(createPortfolioHolding(portfolio, stock));
@@ -140,8 +134,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 
 		fcmRepository.save(FcmToken.builder()
 			.latestActivationTime(LocalDateTime.now())
-			.token(
-				"fahY76rRwq8HGy0m1lwckx:APA91bEovbLJyqdSRq8MWDbsIN8sbk90JiNHbIBs6rDoiOKeC-aa5P1QydiRa6okGrIZELrxx_cYieWUN44iX-AD6jma-cYRUR7e3bTMXwkqZFLRZh5s7-bcksGniB7Y2DkoONHtSjos")
+			.token("fcmToken")
 			.member(member)
 			.build());
 
@@ -157,6 +150,48 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		assertAll(
 			() -> assertThat(response.getNotifications()).hasSize(1),
 			() -> assertThat(notificationRepository.findAllByMemberId(member.getId())).hasSize(1)
+		);
+	}
+
+	@DisplayName("목표수익률에 도달하지 않아서 알림을 보내지 않는다")
+	@Test
+	void notifyTargetGainBy_whenNoTargetGain_thenNotSendNotification() {
+		// given
+		Member member = memberRepository.save(createMember());
+		notificationPreferenceRepository.save(createNotificationPreference(member));
+		Portfolio portfolio = portfolioRepository.save(
+			createPortfolio(member, Money.from(1000000L), Money.from(1100000L), Money.from(900000L)));
+		Stock samsung = stockRepository.save(createStock());
+		Stock ccs = stockRepository.save(
+			createStack("씨씨에스충북방송", "066790", "KOREA CABLE T.V CHUNG-BUK SYSTEM CO.,LTD.", "KR7066790007", "방송서비스",
+				Market.KOSDAQ));
+
+		PortfolioHolding sumsungHolding = portfolioHoldingRepository.save(createPortfolioHolding(portfolio, samsung));
+		purchaseHistoryRepository.save(createPurchaseHistory(sumsungHolding, 12L, 60000.0));
+
+		PortfolioHolding ccsHolding = portfolioHoldingRepository.save(createPortfolioHolding(portfolio, ccs));
+		purchaseHistoryRepository.save(createPurchaseHistory(ccsHolding, 15L, 2000.0));
+
+		fcmRepository.save(FcmToken.builder()
+			.latestActivationTime(LocalDateTime.now())
+			.token("fcmToken")
+			.member(member)
+			.build());
+
+		given(firebaseMessagingService.send(any(Message.class)))
+			.willReturn(Optional.of("projects/fineants-404407/messages/4754d355-5d5d-4f14-a642-75fecdb91fa5"));
+		given(manager.getCurrentPrice(samsung.getTickerSymbol()))
+			.willReturn(Optional.of(Money.from(83300L)));
+		given(manager.getCurrentPrice(ccs.getTickerSymbol()))
+			.willReturn(Optional.of(Money.from(3750L)));
+
+		// when
+		PortfolioNotifyMessagesResponse response = service.notifyTargetGainBy(portfolio.getId());
+
+		// then
+		assertAll(
+			() -> assertThat(response.getNotifications()).hasSize(0),
+			() -> assertThat(notificationRepository.findAllByMemberId(member.getId())).hasSize(0)
 		);
 	}
 
@@ -295,7 +330,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Stock stock = stockRepository.save(createStock());
 		PortfolioHolding portfolioHolding = portfolioHoldingRepository.save(createPortfolioHolding(portfolio, stock));
-		purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding, 50L, 60000.0));
+		purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding, 10L, 60000.0));
 
 		FcmToken fcmToken = fcmRepository.save(FcmToken.builder()
 			.latestActivationTime(LocalDateTime.now())
@@ -614,12 +649,16 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 	}
 
 	private Portfolio createPortfolio(Member member) {
+		return createPortfolio(member, Money.from(1000000L), Money.from(1500000L), Money.from(900000L));
+	}
+
+	private Portfolio createPortfolio(Member member, Money budget, Money targetGain, Money maxLoss) {
 		return Portfolio.builder()
 			.name("내꿈은 워렌버핏")
 			.securitiesFirm("토스")
-			.budget(Money.from(1000000L))
-			.targetGain(Money.from(1500000L))
-			.maximumLoss(Money.from(900000L))
+			.budget(budget)
+			.targetGain(targetGain)
+			.maximumLoss(maxLoss)
 			.member(member)
 			.targetGainIsActive(true)
 			.maximumLossIsActive(true)
@@ -627,13 +666,18 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 	}
 
 	private Stock createStock() {
+		return createStack("삼성전자보통주", "005930", "SamsungElectronics", "KR7005930003", "전기전자", Market.KOSPI);
+	}
+
+	private Stock createStack(String companyName, String tickerSymbol, String companyNameEng, String stockCode,
+		String sector, Market market) {
 		return Stock.builder()
-			.companyName("삼성전자보통주")
-			.tickerSymbol("005930")
-			.companyNameEng("SamsungElectronics")
-			.stockCode("KR7005930003")
-			.sector("전기전자")
-			.market(Market.KOSPI)
+			.companyName(companyName)
+			.tickerSymbol(tickerSymbol)
+			.companyNameEng(companyNameEng)
+			.stockCode(stockCode)
+			.sector(sector)
+			.market(market)
 			.build();
 	}
 

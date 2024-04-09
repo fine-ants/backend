@@ -1,9 +1,7 @@
 package codesquad.fineants.domain.portfolio;
 
-import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -37,7 +35,6 @@ import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.notification.type.NotificationType;
 import codesquad.fineants.domain.portfolio_gain_history.PortfolioGainHistory;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
-import codesquad.fineants.domain.purchase_history.PurchaseHistory;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.notification.manager.NotificationSentManager;
 import codesquad.fineants.spring.api.notification.response.NotifyMessage;
@@ -133,8 +130,7 @@ public class Portfolio extends BaseEntity {
 		if (totalInvestmentAmount.isZero()) {
 			return 0;
 		}
-		Money rate = calculateTotalGain().divide(totalInvestmentAmount).multiply(BigInteger.valueOf(100L));
-		return rate.getAmount().doubleValue();
+		return calculateTotalGain().divide(totalInvestmentAmount).toPercentage();
 	}
 
 	// 포트폴리오 총 손익 = 모든 종목 총 손익의 합계
@@ -270,37 +266,17 @@ public class Portfolio extends BaseEntity {
 		this.maximumLossIsActive = isActive;
 	}
 
+	// 포트폴리오가 목표수익금액에 도달했는지 검사 (평가금액이 목표수익금액보다 같거나 큰 경우)
 	public boolean reachedTargetGain() {
-		List<PurchaseHistory> histories = portfolioHoldings.stream()
-			.map(PortfolioHolding::getPurchaseHistory)
-			.flatMap(Collection::stream)
-			.collect(Collectors.toList());
-		return reachedTargetGain(histories);
+		Money currentValuation = calculateTotalCurrentValuation();
+		log.debug("reachedTargetGain currentValuation={}, targetGain={}", currentValuation, targetGain);
+		return currentValuation.compareTo(targetGain) >= 0;
 	}
 
-	// 포트폴리오가 목표수익금액에 도달했는지 검사
-	public boolean reachedTargetGain(List<PurchaseHistory> histories) {
-		Money totalGain = histories.stream()
-			.map(PurchaseHistory::calculateGain)
-			.reduce(Money.zero(), Money::add);
-		log.debug("reachedTargetGain.totalGain : {}", totalGain);
-		return budget.add(totalGain).compareTo(targetGain) >= 0;
-	}
-
-	// 포트폴리오가 최대손실금액에 도달했는지 검사
+	// 포트폴리오가 최대손실금액에 도달했는지 검사 (예산 + 총손익이 최대손실금액보다 작은 경우)
 	public boolean reachedMaximumLoss() {
-		return reachedMaximumLoss(portfolioHoldings.stream()
-			.map(PortfolioHolding::getPurchaseHistory)
-			.flatMap(Collection::stream)
-			.collect(Collectors.toList()));
-	}
-
-	// 포트폴리오가 최대손실금액에 도달했는지 검사
-	public boolean reachedMaximumLoss(List<PurchaseHistory> histories) {
-		Money totalGain = histories.stream()
-			.map(PurchaseHistory::calculateGain)
-			.reduce(Money.zero(), Money::add);
-		log.debug("totalGain : {}", totalGain);
+		Money totalGain = calculateTotalGain();
+		log.debug("reachedTargetGain totalGain={}", totalGain);
 		return budget.add(totalGain).compareTo(maximumLoss) <= 0;
 	}
 

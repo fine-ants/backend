@@ -22,7 +22,7 @@ import lombok.ToString;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@ToString
+@ToString(exclude = "member")
 @Table(name = "fcm_token", uniqueConstraints = {
 	@UniqueConstraint(name = "token_member_id_unique", columnNames = {"token", "member_id"})
 })

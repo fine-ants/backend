@@ -103,7 +103,6 @@ public class NotificationService {
 		List<Portfolio> portfolios = portfolioRepository.findAllWithAll().stream()
 			.peek(portfolio -> portfolio.applyCurrentPriceAllHoldingsBy(currentPriceManager))
 			.collect(Collectors.toList());
-
 		Function<PortfolioNotifyMessageItem, CompletionStage<PortfolioNotifyMessageItem>> sentFunction = item -> CompletableFuture.supplyAsync(
 			() -> {
 				sentManager.addTargetGainSendHistory(Long.valueOf(item.getReferenceId()));
@@ -119,7 +118,6 @@ public class NotificationService {
 			.peek(p -> p.applyCurrentPriceAllHoldingsBy(currentPriceManager))
 			.findFirst()
 			.orElseThrow(() -> new FineAntsException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
-
 		Function<PortfolioNotifyMessageItem, CompletionStage<PortfolioNotifyMessageItem>> sentFunction = item -> CompletableFuture.supplyAsync(
 			() -> {
 				sentManager.addTargetGainSendHistory(Long.valueOf(item.getReferenceId()));
