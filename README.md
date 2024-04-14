@@ -35,6 +35,10 @@
 
 ## 4. 핵심 기능
 
+<details>
+<summary>포트폴리오 생성</summary>
+<div markdown="1">
+
 ### 4.1 포트폴리오 생성
 
 ![image](https://github.com/fine-ants/FineAnts-was/assets/33227831/19f0a177-f0c4-4c16-b859-145deeaa5fe3)
@@ -44,6 +48,13 @@
     - 최대손실금액(maximumLoss)이 예산보다 미만이어야 한다
     - 증권사 이름이 관리하는 리스트에 존재해야 한다
     - 사용자가 가지고 있는 포트폴리오들의 이름들은 서로 중복되면 안된다
+
+</div>
+</details>
+
+<details>
+<summary>포트폴리오 종목 추가</summary>
+<div markdown="1">
 
 ### 4.2 포트폴리오 종목 추가
 
@@ -55,6 +66,13 @@
 - 포트폴리오 종목 추가시 이벤트
     - 종목 추가시 현재가 및 종가를 저장하지 않는다면 KisService를 이용하여 한국투자증권 서버로부터 조회하여 Redis에 저장
 
+</div>
+</details>
+
+<details>
+<summary>포트폴리오 매입 이력 추가</summary>
+<div markdown="1">
+
 ### 4.3 포트폴리오 매입 이력 추가
 
 ![image](https://github.com/fine-ants/FineAnts-was/assets/33227831/9902cd4e-48b3-4b79-b32f-99c797050a80)
@@ -64,6 +82,13 @@
 - 매입 이력 추가시 이벤트
     - 매입 이력 추가로 인한 목표수익률/최대손실금액 도달 알림 이벤트 수행
 
+</div>
+</details>
+
+<details>
+<summary>포트폴리오 상세 정보 실시간 조회</summary>
+<div markdown="1">
+
 ### 4.4 포트폴리오 상세 정보 실시간 조회
 
 ![image](https://github.com/fine-ants/FineAnts-was/assets/33227831/aee6d18b-6d3e-4965-b193-b8eb99860f43)
@@ -72,6 +97,13 @@
 - Observable 객체는 일반적으로 30초 동안 5초 간격으로 포트폴리오의 상세 정보를 조회한 결과를 SseEmitter를 통해서 전달
 - 장시간이 아닌 경우에는 더미 데이터를 한번 전송하고 SSE 연결을 종료
 - 클라이언트에게는 SseEmitter 객체 전달하여 데이터를 전달받도록 한다
+
+</div>
+</details>
+
+<details>
+<summary>포트폴리오 목표 수익률/최대 손실율 알림</summary>
+<div markdown="1">
 
 ### 4.5 포트폴리오 목표 수익률/최대 손실율 알림
 
@@ -88,6 +120,13 @@
     - 매입 이력 추가/수정/삭제 이벤트
     - 장시간 동안의 종목 현재가 갱신
 
+</div>
+</details>
+
+<details>
+<summary>종목의 현재가 및 종가 조회</summary>
+<div markdown="1">
+
 ### 4.6 종목의 현재가 및 종가 조회
 
 ![image](https://github.com/fine-ants/FineAnts-was/assets/33227831/d74f36e2-13c4-45f6-b540-dc6f9995e786)
@@ -95,6 +134,9 @@
 - 스케줄링을 통하여 장시간 동안 5초 간격으로 종목의 현재가를 갱신
 - 종가의 경우에는 스케줄링을 통하여 3시 30분에 하루 한번만 실행
 - 갱신된 현재가 및 종가는 Redis에 저장
+
+</div>
+</details>
 
 ## 5. 핵심 트러블 슈팅
 
