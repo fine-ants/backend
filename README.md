@@ -44,21 +44,163 @@
 
 ## 5. 핵심 트러블 슈팅
 
-- 알림 관련 문제
-    - [x] 매입 이력 추가 후 목표수익률 이벤트 지연 로딩 문제
-    - [x] FCM 토큰 등록 오류
-    - [x] 회원 알림 관련 API 권한 문제
-- 한국투자증권 관련 문제
-    - [x] 한국투자증권 액세스 토큰 만료시 발급 문제
-    - [x] redis accessTokenMap 만료시간 문제
-    - [x] 종목 종가 갱신 문제
-    - [x] 서버 시작시 KIS 액세스 토큰 발급 실패 문제
-    - [x] 종가 갱신 스케줄링 메소드 실행전 액세스 토큰 발급 문제
-- SSE
-    - [x] Hikari Connection Pool 고갈 문제
-    - [x] 포트폴리오 상세 조회 SSE 데이터 응답 문제
-- API
-    - [x] 종목 최신화시 데이터가 db에 반영되지 않는 문제
+<details>
+<summary>매입 이력 추가 후 목표수익률 이벤트 지연 로딩 문제</summary>
+<div markdown="1">
+
+- 매입 이력 추가 서비스 과정에서 지연 로딩된 연관 엔티티를 이미 로딩되었기 때문에 이벤트 수행 과정에서 직전에 추가된 매입이력이 조회되지 않은 것이 원인
+- 매입 이력 추가 서비스에서 직전에 추가된 매입 이력을 연관 엔티티 리스트에 추가하도록 하여 문제 해결(영속성 전이는 설정하지 않고 별도로 db에 추가하도록 하는 방식으로 수행)
+
+- [issue#275](https://github.com/fine-ants/FineAnts-was/issues/275)
+
+</div>
+</details>
+
+<details>
+<summary>FCM 토큰 등록 오류</summary>
+<div markdown="1">
+
+- 배포 db 서버의 FcmToken 테이블의 PK 컬럼에 auto_increment가 적용되지 않은 것이 원인
+- PK 컬럼에 auto_increment 적용하여 문제 해
+
+- [issue#208](https://github.com/fine-ants/FineAnts-was/issues/208)
+
+</div>
+</details>
+
+<details>
+<summary>회원 알림 관련 API 권한 문제</summary>
+<div markdown="1">
+
+- API 경로중 경로 변수 중에서 회원의 등록번호(memberId)가 존재하는데 서비스 수행시 회원 본인의 것인지 검증하지 않은 것이 원인
+- 해당 서비스에 AOP를 적용하여 알림을 전송할 권한이 있는지 검증하도록 하여 문제 해결
+
+```java
+
+@Slf4j
+@RequiredArgsConstructor
+@Aspect
+@Component
+public class HasNotificationAuthorizationAspect {
+
+	private final AuthenticationContext authenticationContext;
+
+	@Before(value = "within(@org.springframework.web.bind.annotation.RestController *) && @annotation(hasNotificationAuthorization) && args(memberId, ..)", argNames = "hasNotificationAuthorization,memberId")
+	public void hasAuthorization(final HasNotificationAuthorization hasNotificationAuthorization,
+		@PathVariable final Long memberId) {
+		AuthMember authMember = authenticationContext.getAuthMember();
+		log.info("알림 권한 확인 시작, memberId={}, authMember : {}", memberId, authMember);
+		if (!memberId.equals(authMember.getMemberId())) {
+			throw new ForBiddenException(MemberErrorCode.FORBIDDEN_MEMBER);
+		}
+	}
+} 
+```
+
+- [issue#203](https://github.com/fine-ants/FineAnts-was/issues/203)
+
+</div>
+</details>
+
+<details>
+<summary>한국투자증권 액세스 토큰 만료시 발급 문제</summary>
+<div markdown="1">
+
+- 액세스 토큰 재발급시 재발급 처리가 종료되기전까지 메서드가 대기하지 않고 종료된 것이 원인
+- CountDownLatch 객체를 사용하여 액세스 토큰 재발급 처리가 완료될때까지 대기하여 문제 해결
+
+- [issue#131](https://github.com/fine-ants/FineAnts-was/issues/131)
+
+</div>
+</details>
+
+<details>
+<summary>redis accessTokenMap 만료시간 문제</summary>
+<div markdown="1">
+
+- 한국투자증권 서버로부터 발급받은 액세스 토큰은 실제 만료시간은 22시간동안 유지되지만 `expires_in` 프로퍼티는 24시간을 가리키고 있음. 액세스 토큰 발급 만료시간 계산시 `expires_in`
+  프로퍼티를 기준으로 계산한 것이 원인.
+- `access_token_token_expired` 프로퍼티를 기준으로 액세스 토큰 만료시간을 설정하도록 변경하여 문제 해결
+
+- [issue#63](https://github.com/fine-ants/FineAnts-was/issues/63)
+
+</div>
+</details>
+
+<details>
+<summary>종목 종가 갱신 문제</summary>
+<div markdown="1">
+
+- 액세스 토큰 만료시간을 `expires_in`을 기준으로 하는 것이 아닌 `access_token_token_expired` 프로퍼티를 기준으로 설정하도록 하여 문제 해결
+- CompletableFuture 객체의 잘못된 순서의 타임아웃 콜백 설정 및 예외 처리 설정으로 인한 무한대기가 원인입니다. CompletableFuture 객체 생성시 바로 다음에 타임아웃 콜백 및 예외 처리
+  설정하여 문제를 해결
+
+- [issue#90](https://github.com/fine-ants/FineAnts-was/issues/90)
+
+</div>
+</details>
+
+<details>
+<summary>서버 시작시 KIS 액세스 토큰 발급 실패 문제</summary>
+<div markdown="1">
+
+- 서버 시작시 종목 및 종가 갱신하기 전 한국투자증권 서버의 액세스 토큰을 발급받습니다. 그러나 요청 횟수 초과와 같은 사유로 발급 실패시
+  별도의 조치없이 초기화가 끝나는 것이 원인
+- 액세스 토큰 발급 실패시 `retryWhen` operator를 이용하여 특정 시간 간격으로 다시 시도하여 발급받을 수 있도록 하여 문제 해결
+
+- [issue#110](https://github.com/fine-ants/FineAnts-was/issues/110)
+
+</div>
+</details>
+
+<details>
+<summary>종가 갱신 스케줄링 메소드 실행전 액세스 토큰 발급 문제</summary>
+<div markdown="1">
+
+- 한국투자증권 API 서버의 액세스 토큰이 만료되었는지 체크하는 AOP에서 종가 갱신 스케줄링 메서드를 추가하지 않은 것이 원인
+- 종가 갱신 스케줄링 메서드를 AOP에 추가하여 문제 해결
+
+- [issue#120](https://github.com/fine-ants/FineAnts-was/issues/120)
+
+</div>
+</details>
+
+<details>
+<summary>Hikari Connection Pool 고갈 문제</summary>
+<div markdown="1">
+
+- SSE 연결로 인하여 HTTP가 연결을 유지하는 동안 서비스 레이어의 트랜잭션이 종료되었음에도 불구하고 OSIV(Open Session In View)가 활성화되어 있어
+  30초 동안 Hikari Connection Pool의 연결 쓰레드를 점유한 것이 원인
+- OSIV 비활성화하여 문제 해결
+
+- [issue#123](https://github.com/fine-ants/FineAnts-was/issues/123)
+
+</div>
+</details>
+
+<details>
+<summary>포트폴리오 상세 조회 SSE 데이터 응답 문제</summary>
+<div markdown="1">
+
+- SSE 데이터 응답 생성을 별도의 쓰레드에서 수행하던 과정 중에서 종목의 종가가 존재하지 않아서 예외가 발생했을때 별도의 예외 처리를 하지 않은 것이 원인
+- Exception 타입으로 캐치하도록 변경하여 모든 예외를 대상으로 캐치하여 SseEmitter 객체를 대상으로 completeWithError 호출하여 해결
+
+- [issue#57](https://github.com/fine-ants/FineAnts-was/issues/57)
+
+</div>
+</details>
+
+<details>
+<summary>종목 최신화시 데이터가 db에 반영되지 않는 문제</summary>
+<div markdown="1">
+
+- 이전 tsv 파일 기반 종목 최신화 스케줄링 메서드가 실행되어 예상과 다른 실행이 원인
+- 이전에 구현한 종목 최신화 스케줄링 메서드 제거하여 해결
+
+- [issue#287](https://github.com/fine-ants/FineAnts-was/issues/287)
+
+</div>
+</details>
 
 ## 6. 그 외 트러블 슈팅
 
