@@ -37,7 +37,7 @@
 
 ### 4.1 포트폴리오 생성
 
-![포트폴리오 생성](https://gist.github.com/assets/33227831/756a5032-5dcd-4952-a6de-70387b82bb79)
+![image](https://github.com/fine-ants/FineAnts-was/assets/33227831/19f0a177-f0c4-4c16-b859-145deeaa5fe3)
 
 - 포트폴리오 추가시 검증
     - 목표수익금액(targetGain)이 예산(budget)를 초과해야 한다
@@ -47,7 +47,7 @@
 
 ### 4.2 포트폴리오 종목 추가
 
-![포트폴리오 종목 추가](https://gist.github.com/assets/33227831/0ea466c0-293c-4d30-a94e-4719620673d7)
+![image](https://github.com/fine-ants/FineAnts-was/assets/33227831/a48472fb-42c6-4b87-8686-a648a1f2292c)
 
 - 포트폴리오 종목 추가시 검증
     - 포트폴리오에 종목 추가시 매입 이력도 같이 전달하는 경우(선택적) 데이터가 전달되었는지 검증
@@ -57,7 +57,7 @@
 
 ### 4.3 포트폴리오 매입 이력 추가
 
-![포트폴리오 매입 이력 추가](https://gist.github.com/assets/33227831/29a5c7bf-25dc-4ebd-9baa-7660fde5bf08)
+![image](https://github.com/fine-ants/FineAnts-was/assets/33227831/9902cd4e-48b3-4b79-b32f-99c797050a80)
 
 - 매입 이력 추가시 검증
     - 매입 이력 추가로 인한 현금이 부족하지 않아야 한다
@@ -66,7 +66,7 @@
 
 ### 4.4 포트폴리오 상세 정보 실시간 조회
 
-![포트폴리오 상세 정보 실시간 조회](https://gist.github.com/assets/33227831/a67b9fca-1780-4a0c-8212-4bfd27359e4e)
+![image](https://github.com/fine-ants/FineAnts-was/assets/33227831/aee6d18b-6d3e-4965-b193-b8eb99860f43)
 
 - 서비스는 PortfolioObservable 객체에게 포트폴리오의 등록번호를 전달하며 Observable 객체 생성 요청
 - Observable 객체는 일반적으로 30초 동안 5초 간격으로 포트폴리오의 상세 정보를 조회한 결과를 SseEmitter를 통해서 전달
@@ -75,7 +75,7 @@
 
 ### 4.5 포트폴리오 목표 수익률/최대 손실율 알림
 
-![목표수익률_최대손실율 알림](https://gist.github.com/assets/33227831/959a738d-83a2-4cc0-900e-5c14cd5d1833)
+![image](https://github.com/fine-ants/FineAnts-was/assets/33227831/78ded5ef-caf3-4701-a731-6eaa2ed02869)
 
 - 장시간 동안 종목 가격 갱신시 포트폴리오의 목표 수익률/최대 손실율 도달 조건을 만족하는 사용자에게 알림 전송
 - 목표 수익률 도달 조건
@@ -90,7 +90,7 @@
 
 ### 4.6 종목의 현재가 및 종가 조회
 
-![종목의 현재가 및 종가 조회](https://gist.github.com/assets/33227831/e7c8360d-a94b-4b3c-b281-0906027cd71e)
+![image](https://github.com/fine-ants/FineAnts-was/assets/33227831/d74f36e2-13c4-45f6-b540-dc6f9995e786)
 
 - 스케줄링을 통하여 장시간 동안 5초 간격으로 종목의 현재가를 갱신
 - 종가의 경우에는 스케줄링을 통하여 3시 30분에 하루 한번만 실행
