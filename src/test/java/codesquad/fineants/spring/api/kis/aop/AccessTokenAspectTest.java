@@ -34,7 +34,7 @@ class AccessTokenAspectTest extends AbstractContainerBaseTest {
 
 	@DisplayName("액세스 토큰을 새로 발급하여 redis에 저장한다")
 	@Test
-	void checkAccessTokenExpiration() {
+	void checkAccessTokenExpiration() throws InterruptedException {
 		// given
 		AccessTokenAspect accessTokenAspect = new AccessTokenAspect(new KisAccessTokenManager(null), client,
 			kisAccessTokenRedisService);
