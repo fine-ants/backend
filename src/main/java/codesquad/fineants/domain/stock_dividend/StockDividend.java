@@ -20,6 +20,9 @@ import codesquad.fineants.domain.common.count.Count;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.common.money.MoneyConverter;
 import codesquad.fineants.domain.stock.Stock;
+import codesquad.fineants.spring.api.kis.manager.HolidayManager;
+import codesquad.fineants.spring.api.kis.response.KisDividend;
+import codesquad.fineants.spring.api.stock_dividend.HolidayFileReader;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -30,7 +33,7 @@ import lombok.ToString;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "stock_dividend", uniqueConstraints = {
-	@UniqueConstraint(columnNames = {"ticker_symbol", "recordDate"})
+	@UniqueConstraint(columnNames = {"ticker_symbol", "record_date"})
 })
 @Entity
 public class StockDividend extends BaseEntity {
@@ -41,15 +44,18 @@ public class StockDividend extends BaseEntity {
 	@Column(precision = 19, nullable = false)
 	private Money dividend;
 
-	@Column(nullable = false)
-	private LocalDate exDividendDate;
-	@Column(nullable = false)
+	@Column(name = "record_date", nullable = false)
 	private LocalDate recordDate;
-	@Column
+	@Column(name = "ex_dividend_date", nullable = false)
+	private LocalDate exDividendDate;
+	@Column(name = "payment_date")
 	private LocalDate paymentDate;
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "ticker_symbol", referencedColumnName = "tickerSymbol")
 	private Stock stock;
+
+	private static final ExDividendDateCalculator EX_DIVIDEND_DATE_CALCULATOR = new ExDividendDateCalculator(
+		new HolidayManager(new HolidayFileReader()));
 
 	@Builder
 	public StockDividend(Long id, LocalDate exDividendDate, LocalDate recordDate,
@@ -60,6 +66,19 @@ public class StockDividend extends BaseEntity {
 		this.paymentDate = paymentDate;
 		this.dividend = dividend;
 		this.stock = stock;
+	}
+
+	public static StockDividend create(Money dividend, LocalDate recordDate,
+		LocalDate paymentDate, Stock stock) {
+		LocalDate exDividendDate = EX_DIVIDEND_DATE_CALCULATOR.calculate(recordDate);
+
+		return StockDividend.builder()
+			.dividend(dividend)
+			.recordDate(recordDate)
+			.exDividendDate(exDividendDate)
+			.paymentDate(paymentDate)
+			.stock(stock)
+			.build();
 	}
 
 	// 주식 개수에 따른 배당금 합계 계산
@@ -101,6 +120,25 @@ public class StockDividend extends BaseEntity {
 	// 현금지급일자를 기준으로 현재년도인지 검사
 	public boolean isCurrentYearPaymentDate(LocalDate today) {
 		return paymentDate != null && paymentDate.getYear() == today.getYear();
+	}
+
+	// tickerSymbol과 recordDate를 비교하여 동일한지 확인
+	public boolean equalTickerSymbolAndRecordDate(KisDividend kisDividend) {
+		return kisDividend.equalTickerSymbolAndRecordDate(stock.getTickerSymbol(), recordDate);
+	}
+
+	public void change(StockDividend stockDividend) {
+		this.dividend = stockDividend.getDividend();
+		this.recordDate = stockDividend.getRecordDate();
+		this.exDividendDate = stockDividend.getExDividendDate();
+		this.paymentDate = stockDividend.getPaymentDate();
+	}
+
+	// parse format : tickerSymbol:dividend:recordDate:exDividendDate:paymentDate
+	// ex) 005930:361:2022-08-01:2022-08-01:2022-08-01, 005930:361:2022-08-01:2022-08-01:null
+	public String parse() {
+		return String.format("%s:%s:%s:%s:%s", stock.getTickerSymbol(), dividend, recordDate, exDividendDate,
+			paymentDate);
 	}
 
 	public boolean isSatisfiedPaymentDateEqualYearBy(LocalDate now) {

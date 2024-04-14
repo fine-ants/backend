@@ -2,8 +2,12 @@ package codesquad.fineants.spring.api.kis.service;
 
 import java.time.Duration;
 import java.time.LocalDate;
+import java.time.temporal.TemporalAdjusters;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
@@ -14,8 +18,13 @@ import java.util.stream.Collectors;
 
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import codesquad.fineants.domain.portfolio_holding.PortfolioHoldingRepository;
+import codesquad.fineants.domain.stock.Stock;
+import codesquad.fineants.domain.stock.StockRepository;
+import codesquad.fineants.domain.stock_dividend.StockDividend;
+import codesquad.fineants.domain.stock_dividend.StockDividendRepository;
 import codesquad.fineants.spring.api.common.errors.exception.KisException;
 import codesquad.fineants.spring.api.kis.client.KisClient;
 import codesquad.fineants.spring.api.kis.client.KisCurrentPrice;
@@ -24,6 +33,7 @@ import codesquad.fineants.spring.api.kis.manager.HolidayManager;
 import codesquad.fineants.spring.api.kis.manager.KisAccessTokenManager;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
 import codesquad.fineants.spring.api.kis.response.KisClosingPrice;
+import codesquad.fineants.spring.api.kis.response.KisDividend;
 import codesquad.fineants.spring.api.notification.event.PortfolioPublisher;
 import codesquad.fineants.spring.api.stock_target_price.event.StockTargetPricePublisher;
 import lombok.RequiredArgsConstructor;
@@ -45,6 +55,8 @@ public class KisService {
 	private final HolidayManager holidayManager;
 	private final StockTargetPricePublisher stockTargetPricePublisher;
 	private final PortfolioPublisher portfolioPublisher;
+	private final StockRepository stockRepository;
+	private final StockDividendRepository stockDividendRepository;
 
 	// 평일 9am ~ 15:59pm 5초마다 현재가 갱신 수행
 	@Scheduled(cron = "0/5 * 9-15 ? * MON,TUE,WED,THU,FRI")
@@ -179,5 +191,96 @@ public class KisService {
 
 	public Mono<KisClosingPrice> fetchClosingPrice(String tickerSymbol) {
 		return kisClient.fetchClosingPrice(tickerSymbol, manager.createAuthorization());
+	}
+
+	public String fetchDividend(String tickerSymbol) {
+		return kisClient.fetchDividend(tickerSymbol, manager.createAuthorization());
+	}
+
+	@Transactional
+	public void refreshDividendSchedule(LocalDate now) {
+		// 1. 한국투자증권 서버로부터 배당 일정을 조회
+		LocalDate from = now.minusYears(1L).with(TemporalAdjusters.firstDayOfYear());
+		LocalDate to = now.with(TemporalAdjusters.lastDayOfYear());
+		Map<String, List<KisDividend>> kisDividendMap = kisClient.fetchDividend(from, to, manager.createAuthorization())
+			.stream()
+			.collect(Collectors.groupingBy(KisDividend::getTickerSymbol));
+		log.debug("kisDividendMap : {}", kisDividendMap);
+
+		// 2. 기존 DB에서 모든 배당 일정 로드
+		Map<String, List<StockDividend>> stockDividendMap = stockRepository.findAllWithDividends().stream()
+			.collect(Collectors.toMap(Stock::getTickerSymbol, Stock::getStockDividends));
+		log.debug("stockDividendMap : {}", stockDividendMap);
+
+		// 3. 최신화 작업 수행
+		List<StockDividend> updateStockDividend = new ArrayList<>();
+		List<StockDividend> deleteStockDividend = new ArrayList<>();
+		for (Map.Entry<String, List<KisDividend>> entry : kisDividendMap.entrySet()) {
+			String tickerSymbol = entry.getKey();
+			List<KisDividend> newDividends = entry.getValue();
+
+			List<StockDividend> existingDividends = stockDividendMap.getOrDefault(tickerSymbol,
+				new ArrayList<>());
+
+			for (KisDividend newDividend : newDividends) {
+				// 4. 새로운 일정이 기존에 없는 경우 추가
+				Optional<StockDividend> optionalStockDividend = findDividend(existingDividends, newDividend);
+
+				Optional<Stock> optionalStock = stockRepository.findByTickerSymbol(newDividend.getTickerSymbol());
+				if (optionalStock.isEmpty()) {
+					break;
+				}
+				Stock stock = optionalStock.get();
+				StockDividend newStockDividend = newDividend.toEntity(stock);
+				if (optionalStockDividend.isEmpty()) {
+					existingDividends.add(newStockDividend);
+				} else {
+					// 새로운 일정이 기존에 있는 경우 업데이트 수행 (현금 배당 지급일 등)
+					updateStockDividendFrom(optionalStockDividend.get(), newStockDividend);
+				}
+			}
+
+			// 5. 업데이트하거나 새로 추가된 배당 일정들 필터링
+			updateStockDividend.addAll(existingDividends.stream()
+				.filter(stockDividend -> containsDividend(newDividends, stockDividend))
+				.collect(Collectors.toList())
+			);
+
+			// 7. 기존의 일정이 새로운 일정에 없는 배당금들 필터링
+			deleteStockDividend.addAll(existingDividends.stream()
+				.filter(stockDividend -> !containsDividend(newDividends, stockDividend))
+				.collect(Collectors.toList())
+			);
+		}
+
+		// 6. 업데이트된 최신화 배당 일정을 데이터베이스에 반영
+		log.debug("updateStockDividend : {}", updateStockDividend);
+		stockDividendRepository.saveAll(updateStockDividend);
+
+		// 8. 최신 배당 일정에 없는 배당일정들 제거
+		log.debug("deleteStockDividend : {}", deleteStockDividend);
+		stockDividendRepository.deleteAll(deleteStockDividend);
+	}
+
+	// stockDividends 리스트에서 KisDividend 객체가 가진 동일한 티커심볼과 배당기준일이 동일한 StockDividend를 탐색
+	private Optional<StockDividend> findDividend(List<StockDividend> stockDividends, KisDividend kisDividend) {
+		return stockDividends.stream()
+			.filter(stockDividend -> stockDividend.equalTickerSymbolAndRecordDate(kisDividend))
+			.findAny();
+	}
+
+	// from 정보를 to 정보로 업데이트
+	private void updateStockDividendFrom(StockDividend from, StockDividend to) {
+		from.change(to);
+	}
+
+	// KisDividend 리스트에 stockDividend 정보가 포함되어 있는지 검사
+	private boolean containsDividend(List<KisDividend> kisDividends, StockDividend stockDividend) {
+		for (KisDividend kisDividend : kisDividends) {
+			if (stockDividend.equalTickerSymbolAndRecordDate(kisDividend)) {
+				return true;
+			}
+		}
+		return false;
 	}
 }

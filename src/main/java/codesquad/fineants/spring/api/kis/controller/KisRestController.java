@@ -1,5 +1,6 @@
 package codesquad.fineants.spring.api.kis.controller;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.web.bind.annotation.GetMapping;
@@ -7,6 +8,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import codesquad.fineants.spring.api.common.response.ApiResponse;
@@ -64,5 +66,19 @@ public class KisRestController {
 	) {
 		List<KisClosingPrice> responses = service.refreshLastDayClosingPrice(request.getTickerSymbols());
 		return ApiResponse.success(KisSuccessCode.OK_REFRESH_LAST_DAY_CLOSING_PRICE, responses);
+	}
+
+	// 특정 종목의 배당 일정 조회
+	@GetMapping("/dividend")
+	public ApiResponse<String> fetchDividend(@RequestParam String tickerSymbol) {
+		String result = service.fetchDividend(tickerSymbol);
+		return ApiResponse.success(KisSuccessCode.OK_FETCH_DIVIDEND, result);
+	}
+
+	// 배당금 최신화
+	@PostMapping("/dividend/refresh")
+	public ApiResponse<Void> refreshDividend() {
+		service.refreshDividendSchedule(LocalDate.now());
+		return ApiResponse.success(KisSuccessCode.OK_REFRESH_DIVIDEND);
 	}
 }

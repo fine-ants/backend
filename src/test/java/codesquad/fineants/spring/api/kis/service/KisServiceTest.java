@@ -5,11 +5,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.AfterEach;
@@ -29,6 +25,8 @@ import codesquad.fineants.domain.portfolio_holding.PortfolioHoldingRepository;
 import codesquad.fineants.domain.stock.Market;
 import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.domain.stock.StockRepository;
+import codesquad.fineants.domain.stock_dividend.StockDividend;
+import codesquad.fineants.domain.stock_dividend.StockDividendRepository;
 import codesquad.fineants.spring.AbstractContainerBaseTest;
 import codesquad.fineants.spring.api.common.errors.exception.KisException;
 import codesquad.fineants.spring.api.kis.client.KisClient;
@@ -37,8 +35,11 @@ import codesquad.fineants.spring.api.kis.manager.HolidayManager;
 import codesquad.fineants.spring.api.kis.manager.KisAccessTokenManager;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
 import codesquad.fineants.spring.api.kis.response.KisClosingPrice;
+import codesquad.fineants.spring.api.kis.response.KisDividend;
+import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
+@Slf4j
 class KisServiceTest extends AbstractContainerBaseTest {
 
 	@Autowired
@@ -55,6 +56,9 @@ class KisServiceTest extends AbstractContainerBaseTest {
 
 	@Autowired
 	private StockRepository stockRepository;
+
+	@Autowired
+	private StockDividendRepository stockDividendRepository;
 
 	@MockBean
 	private KisClient client;
@@ -73,6 +77,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		portfolioHoldingRepository.deleteAllInBatch();
 		portfolioRepository.deleteAllInBatch();
 		memberRepository.deleteAllInBatch();
+		stockDividendRepository.deleteAllInBatch();
 		stockRepository.deleteAllInBatch();
 		Mockito.clearInvocations(client);
 	}
@@ -100,17 +105,19 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		// given
 		Member member = memberRepository.save(createMember());
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
-		List<String> tickerSymbols = List.of("000270");
-		List<Stock> stocks = stockRepository.saveAll(tickerSymbols.stream()
-			.map(this::createStock)
-			.collect(Collectors.toList()));
+		List<Stock> stocks = stockRepository.saveAll(List.of(
+			createSamsungStock()
+		));
 		stocks.forEach(stock -> portfolioHoldingRepository.save(createPortfolioHolding(portfolio, stock)));
 
 		given(kisAccessTokenManager.createAuthorization()).willReturn(createAuthorization());
 		given(client.fetchCurrentPrice(anyString(), anyString()))
 			.willThrow(new KisException("요청건수가 초과되었습니다"))
-			.willReturn(Mono.just(KisCurrentPrice.create("000270", 10000L)));
+			.willReturn(Mono.just(KisCurrentPrice.create("005930", 10000L)));
 
+		List<String> tickerSymbols = stocks.stream()
+			.map(Stock::getTickerSymbol)
+			.collect(Collectors.toList());
 		// when
 		kisService.refreshStockCurrentPrice(tickerSymbols);
 
@@ -124,16 +131,18 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		// given
 		Member member = memberRepository.save(createMember());
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
-		List<String> tickerSymbols = List.of("000270");
-		List<Stock> stocks = stockRepository.saveAll(tickerSymbols.stream()
-			.map(this::createStock)
-			.collect(Collectors.toList()));
+		List<Stock> stocks = stockRepository.saveAll(List.of(
+			createSamsungStock()
+		));
 		stocks.forEach(stock -> portfolioHoldingRepository.save(createPortfolioHolding(portfolio, stock)));
 
 		given(kisAccessTokenManager.createAuthorization()).willReturn(createAuthorization());
 		given(client.fetchCurrentPrice(anyString(), anyString()))
 			.willThrow(new KisException("요청건수가 초과되었습니다"));
 
+		List<String> tickerSymbols = stocks.stream()
+			.map(Stock::getTickerSymbol)
+			.collect(Collectors.toList());
 		// when
 		List<KisCurrentPrice> prices = kisService.refreshStockCurrentPrice(tickerSymbols);
 
@@ -147,18 +156,20 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		// given
 		Member member = memberRepository.save(createMember());
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
-		List<String> tickerSymbols = List.of("000270");
-		List<Stock> stocks = stockRepository.saveAll(tickerSymbols.stream()
-			.map(this::createStock)
-			.collect(Collectors.toList()));
+		List<Stock> stocks = stockRepository.saveAll(List.of(
+			createSamsungStock()
+		));
 		stocks.forEach(stock -> portfolioHoldingRepository.save(createPortfolioHolding(portfolio, stock)));
 
 		given(kisAccessTokenManager.createAuthorization()).willReturn(createAuthorization());
 		given(client.fetchClosingPrice(anyString(), anyString()))
 			.willThrow(new KisException("요청건수가 초과되었습니다"))
 			.willThrow(new KisException("요청건수가 초과되었습니다"))
-			.willReturn(Mono.just(KisClosingPrice.create("000270", 10000L)));
+			.willReturn(Mono.just(KisClosingPrice.create("005930", 10000L)));
 
+		List<String> tickerSymbols = stocks.stream()
+			.map(Stock::getTickerSymbol)
+			.collect(Collectors.toList());
 		// when
 		kisService.refreshLastDayClosingPrice(tickerSymbols);
 
@@ -177,19 +188,92 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		verify(holidayManager, times(1)).isHoliday(any(LocalDate.class));
 	}
 
-	private String createAuthorization() {
-		return "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0b2tlbiIsImF1ZCI6Ijg5MjBlNjM2LTNkYmItNGU5MS04ZGJmLWJmZDU5ZmI2YjAwYiIsImlzcyI6InVub2d3IiwiZXhwIjoxNzAzNTcwOTA0LCJpYXQiOjE3MDM0ODQ1MDQsImp0aSI6IlBTRGc4WlVJd041eVl5ZkR6bnA0TDM2Z2xhRUpic2RJNGd6biJ9.z8dh9rlOyPq_ukm9KeCz0tkKI2QaHEe07LhXTcKQBrcP1-uiW3dwAwdknpAojJZ7aUWLUaQQn0HmjTCttjSJaA";
+	@DisplayName("배당일정을 최신화한다")
+	@Test
+	void refreshDividend() {
+		// given
+		Stock samsung = createSamsungStock();
+		Stock kakao = createKakaoStock();
+		stockRepository.saveAll(List.of(samsung, kakao));
+		stockDividendRepository.saveAll(createSamsungDividends(samsung));
+		stockDividendRepository.saveAll(createKakaoDividends(kakao));
+
+		// 새로운 배정 기준일이 생김
+		// 기존 데이터에 현금 배당 지급일이 새로 할당됨
+		String samsungTickerSymbol = "005930";
+		int samsungDividend = 361;
+
+		String kakaoTickerSymbol = "035720";
+		int kakaoDividend = 61;
+
+		given(kisAccessTokenManager.createAuthorization()).willReturn(createAuthorization());
+		given(client.fetchDividend(any(LocalDate.class), any(LocalDate.class), anyString()))
+			.willReturn(List.of(
+				KisDividend.create(
+					samsungTickerSymbol,
+					Money.from(samsungDividend),
+					LocalDate.of(2023, 3, 31),
+					LocalDate.of(2023, 5, 17)
+				),
+				KisDividend.create(
+					samsungTickerSymbol,
+					Money.from(samsungDividend),
+					LocalDate.of(2023, 6, 30),
+					LocalDate.of(2023, 8, 16)
+				),
+				KisDividend.create(
+					samsungTickerSymbol,
+					Money.from(samsungDividend),
+					LocalDate.of(2023, 9, 30),
+					LocalDate.of(2023, 11, 20)
+				),
+				KisDividend.create(
+					samsungTickerSymbol,
+					Money.from(samsungDividend),
+					LocalDate.of(2023, 12, 31),
+					LocalDate.of(2024, 4, 19)
+				),
+				KisDividend.create(
+					samsungTickerSymbol,
+					Money.from(samsungDividend),
+					LocalDate.of(2024, 3, 31),
+					LocalDate.of(2024, 5, 17) // 기존 데이터에서 새로운 현금 배당 지급일이 할당된 경우
+				),
+				KisDividend.create(
+					samsungTickerSymbol,
+					Money.from(samsungDividend),
+					LocalDate.of(2024, 6, 30), // 새로운 배당 기준일이 생긴 경우
+					null
+				),
+				KisDividend.create(
+					kakaoTickerSymbol,
+					Money.from(kakaoDividend),
+					LocalDate.of(2024, 2, 29),
+					null
+				)
+			));
+		// when
+		kisService.refreshDividendSchedule(LocalDate.of(2024, 4, 10));
+
+		// then
+		List<StockDividend> stockDividends = stockDividendRepository.findAllStockDividends();
+		log.debug("stockDividends: {}", stockDividends);
+		assertThat(stockDividends)
+			.hasSize(7)
+			.map(StockDividend::parse)
+			.containsExactlyInAnyOrder(
+				"005930:361:2023-03-31:2023-03-30:2023-05-17",
+				"005930:361:2023-06-30:2023-06-29:2023-08-16",
+				"005930:361:2023-09-30:2023-09-27:2023-11-20",
+				"005930:361:2023-12-31:2023-12-28:2024-04-19",
+				"005930:361:2024-03-31:2024-03-29:2024-05-17",
+				"005930:361:2024-06-30:2024-06-28:null",
+				"035720:61:2024-02-29:2024-02-28:null"
+			);
 	}
 
-	private Map<String, Object> createAccessTokenMap(LocalDateTime now) {
-		Map<String, Object> map = new HashMap<>();
-		map.put("access_token",
-			"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0b2tlbiIsImF1ZCI6IjBiYWFlYzg1LWU0YjctNDFlOS05ODk1LTUyNDE2ODRjNDhkOSIsImlzcyI6InVub2d3IiwiZXhwIjoxNzAzNDcxMzg2LCJpYXQiOjE3MDMzODQ5ODYsImp0aSI6IlBTRGc4WlVJd041eVl5ZkR6bnA0TDM2Z2xhRUpic2RJNGd6biJ9.mrJht_O2aRrhSPN1DSmHKarwAfgDpr4GECvF30Is2EI0W6ypbe7DXwXmluhQXT0h1g7OHhGhyBhDNtya4LcctQ");
-		map.put("access_token_token_expired",
-			now.plusDays(1L).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-		map.put("token_type", "Bearer");
-		map.put("expires_in", 86400);
-		return map;
+	private String createAuthorization() {
+		return "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0b2tlbiIsImF1ZCI6Ijg5MjBlNjM2LTNkYmItNGU5MS04ZGJmLWJmZDU5ZmI2YjAwYiIsImlzcyI6InVub2d3IiwiZXhwIjoxNzAzNTcwOTA0LCJpYXQiOjE3MDM0ODQ1MDQsImp0aSI6IlBTRGc4WlVJd041eVl5ZkR6bnA0TDM2Z2xhRUpic2RJNGd6biJ9.z8dh9rlOyPq_ukm9KeCz0tkKI2QaHEe07LhXTcKQBrcP1-uiW3dwAwdknpAojJZ7aUWLUaQQn0HmjTCttjSJaA";
 	}
 
 	private Member createMember() {
@@ -214,14 +298,37 @@ class KisServiceTest extends AbstractContainerBaseTest {
 			.build();
 	}
 
-	private Stock createStock(String tickerSymbol) {
+	private Stock createSamsungStock() {
+		return createStock(
+			"삼성전자보통주",
+			"005930",
+			"SamsungElectronics",
+			"KR7005930003",
+			"전기전자",
+			Market.KOSPI
+		);
+	}
+
+	private Stock createKakaoStock() {
+		return createStock(
+			"카카오보통주",
+			"035720",
+			"Kakao",
+			"KR7035720002",
+			"서비스업",
+			Market.KOSPI
+		);
+	}
+
+	private Stock createStock(String companyName, String tickerSymbol, String companyNameEng, String stockCode,
+		String sector, Market market) {
 		return Stock.builder()
-			.companyName("임시 종목")
+			.companyName(companyName)
 			.tickerSymbol(tickerSymbol)
-			.companyNameEng("temp stock")
-			.stockCode("1234")
-			.sector("임시섹터")
-			.market(Market.KOSPI)
+			.companyNameEng(companyNameEng)
+			.stockCode(stockCode)
+			.sector(sector)
+			.market(market)
 			.build();
 	}
 
@@ -232,4 +339,96 @@ class KisServiceTest extends AbstractContainerBaseTest {
 			.build();
 	}
 
+	private List<StockDividend> createSamsungDividends(Stock stock) {
+		return List.of(
+			createStockDividend(
+				Money.from(361L),
+				LocalDate.of(2022, 3, 31),
+				LocalDate.of(2022, 3, 30),
+				LocalDate.of(2022, 5, 17),
+				stock
+			),
+			createStockDividend(
+				Money.from(361L),
+				LocalDate.of(2022, 6, 30),
+				LocalDate.of(2022, 6, 29),
+				LocalDate.of(2022, 8, 16),
+				stock
+			),
+			createStockDividend(
+				Money.from(361L),
+				LocalDate.of(2022, 9, 30),
+				LocalDate.of(2022, 9, 29),
+				LocalDate.of(2022, 11, 15),
+				stock
+			),
+			createStockDividend(
+				Money.from(361L),
+				LocalDate.of(2022, 12, 31),
+				LocalDate.of(2022, 12, 30),
+				LocalDate.of(2023, 4, 14),
+				stock),
+			createStockDividend(
+				Money.from(361L),
+				LocalDate.of(2023, 3, 31),
+				LocalDate.of(2023, 3, 30),
+				LocalDate.of(2023, 5, 17),
+				stock),
+			createStockDividend(
+				Money.from(361L),
+				LocalDate.of(2023, 6, 30),
+				LocalDate.of(2023, 6, 29),
+				LocalDate.of(2023, 8, 16),
+				stock),
+			createStockDividend(
+				Money.from(361L),
+				LocalDate.of(2023, 9, 30),
+				LocalDate.of(2023, 9, 27),
+				LocalDate.of(2023, 11, 20),
+				stock),
+			createStockDividend(
+				Money.from(361L),
+				LocalDate.of(2023, 12, 31),
+				LocalDate.of(2023, 12, 29),
+				LocalDate.of(2024, 4, 19),
+				stock),
+			createStockDividend(
+				Money.from(361L),
+				LocalDate.of(2024, 3, 31),
+				LocalDate.of(2024, 3, 29),
+				null,
+				stock)
+		);
+	}
+
+	private List<StockDividend> createKakaoDividends(Stock stock) {
+		return List.of(
+			createStockDividend(
+				Money.from(61L),
+				LocalDate.of(2022, 12, 31),
+				LocalDate.of(2022, 12, 30),
+				LocalDate.of(2023, 4, 25),
+				stock
+			),
+			createStockDividend(
+				Money.from(61L),
+				LocalDate.of(2024, 2, 29),
+				LocalDate.of(2024, 2, 28),
+				null,
+				stock
+			)
+		);
+	}
+
+	private StockDividend createStockDividend(Money dividend, LocalDate recordDate, LocalDate exDividendDate,
+		LocalDate paymentDate,
+		Stock stock) {
+		return StockDividend.builder()
+			.dividend(dividend)
+			.exDividendDate(exDividendDate)
+			.recordDate(recordDate)
+			.paymentDate(paymentDate)
+			.stock(stock)
+			.build();
+	}
 }

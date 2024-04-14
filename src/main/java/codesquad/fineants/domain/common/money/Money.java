@@ -39,6 +39,10 @@ public class Money implements Comparable<Money> {
 		return new Money(new BigDecimal(amount));
 	}
 
+	public static Money from(int amount) {
+		return new Money(amount);
+	}
+
 	public static Money from(long amount) {
 		return new Money(BigDecimal.valueOf(amount));
 	}
