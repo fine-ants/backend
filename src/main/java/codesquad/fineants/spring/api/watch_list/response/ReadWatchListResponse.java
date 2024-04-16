@@ -46,6 +46,8 @@ public class ReadWatchListResponse {
 				.getDailyChange(currentPriceManager, lastDayClosingPriceManager)
 				.getAmount()
 				.longValue())
+			.dailyChangeRate(watchStock.getStock()
+				.getDailyChangeRate(currentPriceManager, lastDayClosingPriceManager))
 			.annualDividendYield(watchStock.getStock().getAnnualDividendYield(currentPriceManager))
 			.sector(watchStock.getStock().getSector())
 			.dateAdded(watchStock.getCreateAt())
