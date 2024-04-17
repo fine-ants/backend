@@ -13,10 +13,6 @@ public interface StockDividendRepository extends JpaRepository<StockDividend, Lo
 	List<StockDividend> findAllStockDividends();
 
 	@Modifying
-	@Query("DELETE FROM StockDividend sd WHERE sd.stock.tickerSymbol = :tickerSymbol")
-	void deleteByTickerSymbol(@Param("tickerSymbol") String tickerSymbol);
-
-	@Modifying
 	@Query("delete from StockDividend sd where sd.stock.tickerSymbol in :tickerSymbols")
 	int deleteByTickerSymbols(@Param("tickerSymbols") List<String> tickerSymbols);
 }

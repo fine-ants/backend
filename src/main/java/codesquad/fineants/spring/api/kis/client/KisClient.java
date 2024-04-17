@@ -132,7 +132,7 @@ public class KisClient {
 		).block();
 	}
 
-	public List<KisDividend> fetchDividend(LocalDate from, LocalDate to, String authorization) {
+	public List<KisDividend> fetchDividendAll(LocalDate from, LocalDate to, String authorization) {
 		MultiValueMap<String, String> headerMap = new LinkedMultiValueMap<>();
 		headerMap.add("content-type", "application/json; charset=utf-8");
 		headerMap.add("authorization", authorization);

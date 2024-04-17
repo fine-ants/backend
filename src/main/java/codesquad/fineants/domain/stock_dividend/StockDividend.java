@@ -21,7 +21,6 @@ import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.common.money.MoneyConverter;
 import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.spring.api.kis.manager.HolidayManager;
-import codesquad.fineants.spring.api.kis.response.KisDividend;
 import codesquad.fineants.spring.api.stock_dividend.HolidayFileReader;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -89,7 +88,7 @@ public class StockDividend extends BaseEntity {
 
 	// 배당금을 받을 수 있는지 검사
 	public boolean isSatisfied(LocalDate purchaseDate) {
-		return purchaseDate.isBefore(exDividendDate);
+		return purchaseDate.isBefore(exDividendDate) && paymentDate != null;
 	}
 
 	// 현금 배당 지급일의 월을 반환
@@ -104,6 +103,9 @@ public class StockDividend extends BaseEntity {
 
 	// 현금지급일자가 작년도인지 검사
 	public boolean isLastYearPaymentDate(LocalDate lastYearLocalDate) {
+		if (paymentDate == null) {
+			return false;
+		}
 		return lastYearLocalDate.getYear() == paymentDate.getYear();
 	}
 
@@ -122,9 +124,16 @@ public class StockDividend extends BaseEntity {
 		return paymentDate != null && paymentDate.getYear() == today.getYear();
 	}
 
-	// tickerSymbol과 recordDate를 비교하여 동일한지 확인
-	public boolean equalTickerSymbolAndRecordDate(KisDividend kisDividend) {
-		return kisDividend.equalTickerSymbolAndRecordDate(stock.getTickerSymbol(), recordDate);
+	public boolean equalRecordDate(LocalDate recordDate) {
+		return this.recordDate.equals(recordDate);
+	}
+
+	/**
+	 * paymentDate를 가지고 있는지 확인
+	 * @return 소유 여부
+	 */
+	public boolean hasPaymentDate() {
+		return paymentDate != null;
 	}
 
 	public void change(StockDividend stockDividend) {
@@ -146,5 +155,9 @@ public class StockDividend extends BaseEntity {
 			return false;
 		}
 		return paymentDate.getYear() == now.getYear();
+	}
+
+	public boolean hasInRange(LocalDate from, LocalDate to) {
+		return recordDate.isAfter(from) && recordDate.isBefore(to);
 	}
 }

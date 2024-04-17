@@ -35,7 +35,6 @@ import codesquad.fineants.spring.api.kis.manager.HolidayManager;
 import codesquad.fineants.spring.api.kis.manager.KisAccessTokenManager;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
 import codesquad.fineants.spring.api.kis.response.KisClosingPrice;
-import codesquad.fineants.spring.api.kis.response.KisDividend;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
@@ -188,90 +187,6 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		verify(holidayManager, times(1)).isHoliday(any(LocalDate.class));
 	}
 
-	@DisplayName("배당일정을 최신화한다")
-	@Test
-	void refreshDividend() {
-		// given
-		Stock samsung = createSamsungStock();
-		Stock kakao = createKakaoStock();
-		stockRepository.saveAll(List.of(samsung, kakao));
-		stockDividendRepository.saveAll(createSamsungDividends(samsung));
-		stockDividendRepository.saveAll(createKakaoDividends(kakao));
-
-		// 새로운 배정 기준일이 생김
-		// 기존 데이터에 현금 배당 지급일이 새로 할당됨
-		String samsungTickerSymbol = "005930";
-		int samsungDividend = 361;
-
-		String kakaoTickerSymbol = "035720";
-		int kakaoDividend = 61;
-
-		given(kisAccessTokenManager.createAuthorization()).willReturn(createAuthorization());
-		given(client.fetchDividend(any(LocalDate.class), any(LocalDate.class), anyString()))
-			.willReturn(List.of(
-				KisDividend.create(
-					samsungTickerSymbol,
-					Money.from(samsungDividend),
-					LocalDate.of(2023, 3, 31),
-					LocalDate.of(2023, 5, 17)
-				),
-				KisDividend.create(
-					samsungTickerSymbol,
-					Money.from(samsungDividend),
-					LocalDate.of(2023, 6, 30),
-					LocalDate.of(2023, 8, 16)
-				),
-				KisDividend.create(
-					samsungTickerSymbol,
-					Money.from(samsungDividend),
-					LocalDate.of(2023, 9, 30),
-					LocalDate.of(2023, 11, 20)
-				),
-				KisDividend.create(
-					samsungTickerSymbol,
-					Money.from(samsungDividend),
-					LocalDate.of(2023, 12, 31),
-					LocalDate.of(2024, 4, 19)
-				),
-				KisDividend.create(
-					samsungTickerSymbol,
-					Money.from(samsungDividend),
-					LocalDate.of(2024, 3, 31),
-					LocalDate.of(2024, 5, 17) // 기존 데이터에서 새로운 현금 배당 지급일이 할당된 경우
-				),
-				KisDividend.create(
-					samsungTickerSymbol,
-					Money.from(samsungDividend),
-					LocalDate.of(2024, 6, 30), // 새로운 배당 기준일이 생긴 경우
-					null
-				),
-				KisDividend.create(
-					kakaoTickerSymbol,
-					Money.from(kakaoDividend),
-					LocalDate.of(2024, 2, 29),
-					null
-				)
-			));
-		// when
-		kisService.refreshDividendSchedule(LocalDate.of(2024, 4, 10));
-
-		// then
-		List<StockDividend> stockDividends = stockDividendRepository.findAllStockDividends();
-		log.debug("stockDividends: {}", stockDividends);
-		assertThat(stockDividends)
-			.hasSize(7)
-			.map(StockDividend::parse)
-			.containsExactlyInAnyOrder(
-				"005930:361:2023-03-31:2023-03-30:2023-05-17",
-				"005930:361:2023-06-30:2023-06-29:2023-08-16",
-				"005930:361:2023-09-30:2023-09-27:2023-11-20",
-				"005930:361:2023-12-31:2023-12-28:2024-04-19",
-				"005930:361:2024-03-31:2024-03-29:2024-05-17",
-				"005930:361:2024-06-30:2024-06-28:null",
-				"035720:61:2024-02-29:2024-02-28:null"
-			);
-	}
-
 	private String createAuthorization() {
 		return "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0b2tlbiIsImF1ZCI6Ijg5MjBlNjM2LTNkYmItNGU5MS04ZGJmLWJmZDU5ZmI2YjAwYiIsImlzcyI6InVub2d3IiwiZXhwIjoxNzAzNTcwOTA0LCJpYXQiOjE3MDM0ODQ1MDQsImp0aSI6IlBTRGc4WlVJd041eVl5ZkR6bnA0TDM2Z2xhRUpic2RJNGd6biJ9.z8dh9rlOyPq_ukm9KeCz0tkKI2QaHEe07LhXTcKQBrcP1-uiW3dwAwdknpAojJZ7aUWLUaQQn0HmjTCttjSJaA";
 	}
@@ -337,87 +252,6 @@ class KisServiceTest extends AbstractContainerBaseTest {
 			.portfolio(portfolio)
 			.stock(stock)
 			.build();
-	}
-
-	private List<StockDividend> createSamsungDividends(Stock stock) {
-		return List.of(
-			createStockDividend(
-				Money.from(361L),
-				LocalDate.of(2022, 3, 31),
-				LocalDate.of(2022, 3, 30),
-				LocalDate.of(2022, 5, 17),
-				stock
-			),
-			createStockDividend(
-				Money.from(361L),
-				LocalDate.of(2022, 6, 30),
-				LocalDate.of(2022, 6, 29),
-				LocalDate.of(2022, 8, 16),
-				stock
-			),
-			createStockDividend(
-				Money.from(361L),
-				LocalDate.of(2022, 9, 30),
-				LocalDate.of(2022, 9, 29),
-				LocalDate.of(2022, 11, 15),
-				stock
-			),
-			createStockDividend(
-				Money.from(361L),
-				LocalDate.of(2022, 12, 31),
-				LocalDate.of(2022, 12, 30),
-				LocalDate.of(2023, 4, 14),
-				stock),
-			createStockDividend(
-				Money.from(361L),
-				LocalDate.of(2023, 3, 31),
-				LocalDate.of(2023, 3, 30),
-				LocalDate.of(2023, 5, 17),
-				stock),
-			createStockDividend(
-				Money.from(361L),
-				LocalDate.of(2023, 6, 30),
-				LocalDate.of(2023, 6, 29),
-				LocalDate.of(2023, 8, 16),
-				stock),
-			createStockDividend(
-				Money.from(361L),
-				LocalDate.of(2023, 9, 30),
-				LocalDate.of(2023, 9, 27),
-				LocalDate.of(2023, 11, 20),
-				stock),
-			createStockDividend(
-				Money.from(361L),
-				LocalDate.of(2023, 12, 31),
-				LocalDate.of(2023, 12, 29),
-				LocalDate.of(2024, 4, 19),
-				stock),
-			createStockDividend(
-				Money.from(361L),
-				LocalDate.of(2024, 3, 31),
-				LocalDate.of(2024, 3, 29),
-				null,
-				stock)
-		);
-	}
-
-	private List<StockDividend> createKakaoDividends(Stock stock) {
-		return List.of(
-			createStockDividend(
-				Money.from(61L),
-				LocalDate.of(2022, 12, 31),
-				LocalDate.of(2022, 12, 30),
-				LocalDate.of(2023, 4, 25),
-				stock
-			),
-			createStockDividend(
-				Money.from(61L),
-				LocalDate.of(2024, 2, 29),
-				LocalDate.of(2024, 2, 28),
-				null,
-				stock
-			)
-		);
 	}
 
 	private StockDividend createStockDividend(Money dividend, LocalDate recordDate, LocalDate exDividendDate,

@@ -43,6 +43,7 @@ cloud:
       auto: false
     s3:
       bucket: ${aws.s3.bucket}
+      dividend-bucket: ${aws.s3.dividend-bucket}
 logging:
   level:
     com.zaxxer.hikari.HikariConfig: DEBUG

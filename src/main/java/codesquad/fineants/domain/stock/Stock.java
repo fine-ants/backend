@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.persistence.Convert;
@@ -178,6 +179,30 @@ public class Stock extends BaseEntity {
 		return stockDividends.stream()
 			.filter(dividend -> dividend.isCurrentYearPaymentDate(LocalDate.now()))
 			.map(dividend -> dividend.getPaymentDate().getMonthValue())
+			.collect(Collectors.toList());
+	}
+
+	// ticker 및 recordDate 기준으로 KisDividend가 매치되어 있는지 확인
+	public boolean matchByTickerSymbolAndRecordDate(String tickerSymbol, LocalDate recordDate) {
+		if (!this.tickerSymbol.equals(tickerSymbol)) {
+			return false;
+		}
+		return stockDividends.stream()
+			.anyMatch(s -> s.equalRecordDate(recordDate));
+	}
+
+	public Optional<StockDividend> getStockDividendBy(String tickerSymbol, LocalDate recordDate) {
+		if (!this.tickerSymbol.equals(tickerSymbol)) {
+			return Optional.empty();
+		}
+		return stockDividends.stream()
+			.filter(s -> s.equalRecordDate(recordDate))
+			.findAny();
+	}
+
+	public List<StockDividend> getStockDividendNotInRange(LocalDate from, LocalDate to) {
+		return stockDividends.stream()
+			.filter(stockDividend -> !stockDividend.hasInRange(from, to))
 			.collect(Collectors.toList());
 	}
 }
