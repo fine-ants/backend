@@ -20,6 +20,8 @@ import codesquad.fineants.domain.stock.StockRepository;
 import codesquad.fineants.domain.stock_dividend.StockDividend;
 import codesquad.fineants.domain.stock_dividend.StockDividendRepository;
 import codesquad.fineants.spring.AbstractContainerBaseTest;
+import codesquad.fineants.spring.api.S3.dto.Dividend;
+import codesquad.fineants.spring.api.S3.service.AmazonS3DividendService;
 import codesquad.fineants.spring.api.kis.manager.KisAccessTokenManager;
 import codesquad.fineants.spring.api.kis.response.KisDividend;
 import codesquad.fineants.spring.api.kis.service.KisService;
@@ -43,10 +45,28 @@ class StockDividendServiceTest extends AbstractContainerBaseTest {
 	@MockBean
 	private KisAccessTokenManager kisAccessTokenManager;
 
+	@MockBean
+	private AmazonS3DividendService amazonS3DividendService;
+
 	@AfterEach
 	void tearDown() {
 		stockDividendRepository.deleteAllInBatch();
 		stockRepository.deleteAllInBatch();
+	}
+
+	@DisplayName("배당일정을 초기화한다")
+	@Test
+	void initStockDividend() {
+		// given
+		stockRepository.save(createStock());
+		given(amazonS3DividendService.fetchDividend())
+			.willReturn(List.of(
+				Dividend.from(new String[] {"20230331", "20230517", "005930", "삼성전자보통주", "361"})
+			));
+		// when
+		stockDividendService.initStockDividend();
+		// then
+		assertThat(stockDividendRepository.count()).isEqualTo(1);
 	}
 
 	@DisplayName("배당 일정을 최신화한다")
@@ -155,6 +175,17 @@ class StockDividendServiceTest extends AbstractContainerBaseTest {
 			"서비스업",
 			Market.KOSPI
 		);
+	}
+
+	private Stock createStock() {
+		return Stock.builder()
+			.companyName("삼성전자보통주")
+			.tickerSymbol("005930")
+			.companyNameEng("SamsungElectronics")
+			.stockCode("KR7005930003")
+			.sector("전기전자")
+			.market(Market.KOSPI)
+			.build();
 	}
 
 	private Stock createStock(String companyName, String tickerSymbol, String companyNameEng, String stockCode,
