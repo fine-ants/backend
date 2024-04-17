@@ -21,6 +21,7 @@ public class ProfileResponse {
 			.nickname(member.getNickname())
 			.email(member.getEmail())
 			.profileUrl(member.getProfileUrl())
+			.provider(member.getProvider())
 			.notificationPreferences(preference)
 			.build();
 		return ProfileResponse.builder()
@@ -37,6 +38,7 @@ public class ProfileResponse {
 		private String nickname;
 		private String email;
 		private String profileUrl;
+		private String provider;
 		private NotificationPreference notificationPreferences;
 	}
 

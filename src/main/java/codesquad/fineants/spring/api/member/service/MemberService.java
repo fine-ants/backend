@@ -63,10 +63,8 @@ import codesquad.fineants.spring.api.member.request.OauthMemberRefreshRequest;
 import codesquad.fineants.spring.api.member.request.VerifyCodeRequest;
 import codesquad.fineants.spring.api.member.request.VerifyEmailRequest;
 import codesquad.fineants.spring.api.member.response.LoginResponse;
-import codesquad.fineants.spring.api.member.response.MemberNotificationPreferenceResponse;
 import codesquad.fineants.spring.api.member.response.OauthMemberLoginResponse;
 import codesquad.fineants.spring.api.member.response.OauthMemberRefreshResponse;
-import codesquad.fineants.spring.api.member.response.OauthMemberResponse;
 import codesquad.fineants.spring.api.member.response.OauthSaveUrlResponse;
 import codesquad.fineants.spring.api.member.response.OauthUserProfile;
 import codesquad.fineants.spring.api.member.response.ProfileChangeResponse;
@@ -180,11 +178,7 @@ public class MemberService {
 		LocalDateTime requestTime) {
 		return member -> {
 			Jwt jwt = createToken(member, requestTime);
-			NotificationPreference preference = notificationPreferenceRepository.findByMemberId(member.getId())
-				.orElseThrow(() ->
-					new FineAntsException(NotificationPreferenceErrorCode.NOT_FOUND_NOTIFICATION_PREFERENCE));
-			MemberNotificationPreferenceResponse response = MemberNotificationPreferenceResponse.from(preference);
-			return OauthMemberLoginResponse.of(jwt, OauthMemberResponse.from(member, response));
+			return OauthMemberLoginResponse.of(jwt);
 		};
 	}
 
@@ -336,9 +330,7 @@ public class MemberService {
 			throw new BadRequestException(MemberErrorCode.LOGIN_FAIL);
 		}
 		Jwt jwt = jwtProvider.createJwtBasedOnMember(member, LocalDateTime.now());
-		NotificationPreference preference = member.getNotificationPreference();
-		MemberNotificationPreferenceResponse response = MemberNotificationPreferenceResponse.from(preference);
-		return LoginResponse.from(jwt, OauthMemberResponse.from(member, response));
+		return LoginResponse.from(jwt);
 	}
 
 	@Transactional

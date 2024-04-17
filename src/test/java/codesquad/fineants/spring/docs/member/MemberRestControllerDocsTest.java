@@ -37,7 +37,6 @@ import codesquad.fineants.spring.api.member.request.OauthMemberRefreshRequest;
 import codesquad.fineants.spring.api.member.response.LoginResponse;
 import codesquad.fineants.spring.api.member.response.OauthMemberLoginResponse;
 import codesquad.fineants.spring.api.member.response.OauthMemberRefreshResponse;
-import codesquad.fineants.spring.api.member.response.OauthMemberResponse;
 import codesquad.fineants.spring.api.member.response.OauthSaveUrlResponse;
 import codesquad.fineants.spring.api.member.response.ProfileChangeResponse;
 import codesquad.fineants.spring.api.member.response.ProfileResponse;
@@ -72,7 +71,6 @@ public class MemberRestControllerDocsTest extends RestDocsSupport {
 				.accessToken("accessToken")
 				.refreshToken("refreshToken")
 				.build())
-			.user(OauthMemberResponse.from(member))
 			.build();
 		given(memberService.login(ArgumentMatchers.any(OauthMemberLoginRequest.class)))
 			.willReturn(mockResponse);
@@ -87,11 +85,6 @@ public class MemberRestControllerDocsTest extends RestDocsSupport {
 			.andExpect(jsonPath("message").value(equalTo("로그인에 성공하였습니다")))
 			.andExpect(jsonPath("data.jwt.accessToken").value(equalTo("accessToken")))
 			.andExpect(jsonPath("data.jwt.refreshToken").value(equalTo("refreshToken")))
-			.andExpect(jsonPath("data.user.id").value(equalTo(member.getId().intValue())))
-			.andExpect(jsonPath("data.user.nickname").value(equalTo(member.getNickname())))
-			.andExpect(jsonPath("data.user.email").value(equalTo(member.getEmail())))
-			.andExpect(jsonPath("data.user.profileUrl").value(equalTo(member.getProfileUrl())))
-			.andExpect(jsonPath("data.user.provider").value(equalTo(member.getProvider())))
 			.andDo(
 				document(
 					"member_oauth-login",
@@ -127,19 +120,7 @@ public class MemberRestControllerDocsTest extends RestDocsSupport {
 						fieldWithPath("data.jwt.accessToken").type(JsonFieldType.STRING)
 							.description("액세스 토큰"),
 						fieldWithPath("data.jwt.refreshToken").type(JsonFieldType.STRING)
-							.description("리프레시 토큰"),
-						fieldWithPath("data.user").type(JsonFieldType.OBJECT)
-							.description("회원 정보"),
-						fieldWithPath("data.user.id").type(JsonFieldType.NUMBER)
-							.description("회원 등록번호"),
-						fieldWithPath("data.user.nickname").type(JsonFieldType.STRING)
-							.description("닉네임"),
-						fieldWithPath("data.user.email").type(JsonFieldType.STRING)
-							.description("이메일"),
-						fieldWithPath("data.user.profileUrl").type(JsonFieldType.STRING)
-							.description("프로필 URL"),
-						fieldWithPath("data.user.provider").type(JsonFieldType.STRING)
-							.description("회원 가입 플랫폼")
+							.description("리프레시 토큰")
 					)
 				)
 			);
@@ -161,7 +142,6 @@ public class MemberRestControllerDocsTest extends RestDocsSupport {
 				.accessToken("accessToken")
 				.refreshToken("refreshToken")
 				.build())
-			.user(OauthMemberResponse.from(member))
 			.build();
 		given(memberService.login(ArgumentMatchers.any(LoginRequest.class)))
 			.willReturn(mockResponse);
@@ -176,11 +156,6 @@ public class MemberRestControllerDocsTest extends RestDocsSupport {
 			.andExpect(jsonPath("message").value(equalTo("로그인에 성공하였습니다.")))
 			.andExpect(jsonPath("data.jwt.accessToken").value(equalTo("accessToken")))
 			.andExpect(jsonPath("data.jwt.refreshToken").value(equalTo("refreshToken")))
-			.andExpect(jsonPath("data.user.id").value(equalTo(member.getId().intValue())))
-			.andExpect(jsonPath("data.user.nickname").value(equalTo(member.getNickname())))
-			.andExpect(jsonPath("data.user.email").value(equalTo(member.getEmail())))
-			.andExpect(jsonPath("data.user.profileUrl").value(equalTo(member.getProfileUrl())))
-			.andExpect(jsonPath("data.user.provider").value(equalTo(member.getProvider())))
 			.andDo(
 				document(
 					"member-login",
@@ -204,19 +179,7 @@ public class MemberRestControllerDocsTest extends RestDocsSupport {
 						fieldWithPath("data.jwt.accessToken").type(JsonFieldType.STRING)
 							.description("액세스 토큰"),
 						fieldWithPath("data.jwt.refreshToken").type(JsonFieldType.STRING)
-							.description("리프레시 토큰"),
-						fieldWithPath("data.user").type(JsonFieldType.OBJECT)
-							.description("회원 정보"),
-						fieldWithPath("data.user.id").type(JsonFieldType.NUMBER)
-							.description("회원 등록번호"),
-						fieldWithPath("data.user.nickname").type(JsonFieldType.STRING)
-							.description("닉네임"),
-						fieldWithPath("data.user.email").type(JsonFieldType.STRING)
-							.description("이메일"),
-						fieldWithPath("data.user.profileUrl").type(JsonFieldType.STRING)
-							.description("프로필 URL"),
-						fieldWithPath("data.user.provider").type(JsonFieldType.STRING)
-							.description("회원 가입 플랫폼")
+							.description("리프레시 토큰")
 					)
 				)
 			);
@@ -378,6 +341,7 @@ public class MemberRestControllerDocsTest extends RestDocsSupport {
 						.nickname("일개미1234")
 						.email("dragonbead95@naver.com")
 						.profileUrl("profileUrl")
+						.provider("local")
 						.notificationPreferences(ProfileResponse.NotificationPreference.builder()
 							.browserNotify(false)
 							.targetGainNotify(true)
@@ -399,6 +363,7 @@ public class MemberRestControllerDocsTest extends RestDocsSupport {
 			.andExpect(jsonPath("data.user.nickname").value(equalTo("일개미1234")))
 			.andExpect(jsonPath("data.user.email").value(equalTo("dragonbead95@naver.com")))
 			.andExpect(jsonPath("data.user.profileUrl").value(equalTo("profileUrl")))
+			.andExpect(jsonPath("data.user.provider").value(equalTo("local")))
 			.andExpect(jsonPath("data.user.notificationPreferences.browserNotify").value(equalTo(false)))
 			.andExpect(jsonPath("data.user.notificationPreferences.targetGainNotify").value(equalTo(true)))
 			.andExpect(jsonPath("data.user.notificationPreferences.maxLossNotify").value(equalTo(true)))
@@ -430,6 +395,8 @@ public class MemberRestControllerDocsTest extends RestDocsSupport {
 							.description("회원 이메일"),
 						fieldWithPath("data.user.profileUrl").type(JsonFieldType.STRING)
 							.description("회원 프로필 URL"),
+						fieldWithPath("data.user.provider").type(JsonFieldType.STRING)
+							.description("회원 가입 플랫폼"),
 						fieldWithPath("data.user.notificationPreferences").type(JsonFieldType.OBJECT)
 							.description("알림 설정"),
 						fieldWithPath("data.user.notificationPreferences.browserNotify").type(JsonFieldType.BOOLEAN)
