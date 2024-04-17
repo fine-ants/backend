@@ -1,5 +1,7 @@
 package codesquad.fineants.spring.api.member.response;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import codesquad.fineants.domain.member.Member;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -18,9 +20,22 @@ public class OauthMemberResponse {
 	private String nickname;
 	private String email;
 	private String profileUrl;
+	private String provider;
+	@JsonInclude(JsonInclude.Include.NON_NULL)
+	private MemberNotificationPreferenceResponse notificationPreferences;
 
 	public static OauthMemberResponse from(Member member) {
-		return new OauthMemberResponse(member.getId(), member.getNickname(), member.getEmail(), member.getProfileUrl());
+		return from(member, null);
+	}
+
+	public static OauthMemberResponse from(Member member, MemberNotificationPreferenceResponse response) {
+		return new OauthMemberResponse(
+			member.getId(),
+			member.getNickname(),
+			member.getEmail(),
+			member.getProfileUrl(),
+			member.getProvider(),
+			response);
 	}
 
 	@Override

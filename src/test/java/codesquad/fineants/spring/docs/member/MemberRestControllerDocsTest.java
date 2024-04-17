@@ -91,6 +91,7 @@ public class MemberRestControllerDocsTest extends RestDocsSupport {
 			.andExpect(jsonPath("data.user.nickname").value(equalTo(member.getNickname())))
 			.andExpect(jsonPath("data.user.email").value(equalTo(member.getEmail())))
 			.andExpect(jsonPath("data.user.profileUrl").value(equalTo(member.getProfileUrl())))
+			.andExpect(jsonPath("data.user.provider").value(equalTo(member.getProvider())))
 			.andDo(
 				document(
 					"member_oauth-login",
@@ -136,7 +137,9 @@ public class MemberRestControllerDocsTest extends RestDocsSupport {
 						fieldWithPath("data.user.email").type(JsonFieldType.STRING)
 							.description("이메일"),
 						fieldWithPath("data.user.profileUrl").type(JsonFieldType.STRING)
-							.description("프로필 URL")
+							.description("프로필 URL"),
+						fieldWithPath("data.user.provider").type(JsonFieldType.STRING)
+							.description("회원 가입 플랫폼")
 					)
 				)
 			);
@@ -177,6 +180,7 @@ public class MemberRestControllerDocsTest extends RestDocsSupport {
 			.andExpect(jsonPath("data.user.nickname").value(equalTo(member.getNickname())))
 			.andExpect(jsonPath("data.user.email").value(equalTo(member.getEmail())))
 			.andExpect(jsonPath("data.user.profileUrl").value(equalTo(member.getProfileUrl())))
+			.andExpect(jsonPath("data.user.provider").value(equalTo(member.getProvider())))
 			.andDo(
 				document(
 					"member-login",
@@ -210,7 +214,9 @@ public class MemberRestControllerDocsTest extends RestDocsSupport {
 						fieldWithPath("data.user.email").type(JsonFieldType.STRING)
 							.description("이메일"),
 						fieldWithPath("data.user.profileUrl").type(JsonFieldType.STRING)
-							.description("프로필 URL")
+							.description("프로필 URL"),
+						fieldWithPath("data.user.provider").type(JsonFieldType.STRING)
+							.description("회원 가입 플랫폼")
 					)
 				)
 			);
@@ -622,6 +628,7 @@ public class MemberRestControllerDocsTest extends RestDocsSupport {
 			.andExpect(jsonPath("data.user.nickname").value(equalTo("일개미12345")))
 			.andExpect(jsonPath("data.user.email").value(equalTo("kim1234@gmail.com")))
 			.andExpect(jsonPath("data.user.profileUrl").value(equalTo("profileUrl")))
+			.andExpect(jsonPath("data.user.provider").value(equalTo("local")))
 			.andDo(
 				document(
 					"member-update",
@@ -656,7 +663,9 @@ public class MemberRestControllerDocsTest extends RestDocsSupport {
 						fieldWithPath("data.user.email").type(JsonFieldType.STRING)
 							.description("회원 이메일"),
 						fieldWithPath("data.user.profileUrl").type(JsonFieldType.STRING)
-							.description("회원 프로필 URL")
+							.description("회원 프로필 URL"),
+						fieldWithPath("data.user.provider").type(JsonFieldType.STRING)
+							.description("회원 가입 플랫폼")
 					)
 				)
 			);
