@@ -53,7 +53,6 @@ import codesquad.fineants.spring.api.common.errors.handler.GlobalExceptionHandle
 import codesquad.fineants.spring.api.member.request.AuthorizationRequest;
 import codesquad.fineants.spring.api.member.request.OauthMemberLoginRequest;
 import codesquad.fineants.spring.api.member.response.OauthMemberLoginResponse;
-import codesquad.fineants.spring.api.member.response.OauthMemberResponse;
 import codesquad.fineants.spring.api.member.response.OauthSaveUrlResponse;
 import codesquad.fineants.spring.api.member.response.ProfileChangeResponse;
 import codesquad.fineants.spring.api.member.response.ProfileResponse;
@@ -155,7 +154,7 @@ class MemberRestControllerTest {
 		String url = "/api/auth/kakao/login";
 
 		Jwt jwt = jwtProvider.createJwtBasedOnMember(member, LocalDateTime.now());
-		OauthMemberLoginResponse mockResponse = OauthMemberLoginResponse.of(jwt, OauthMemberResponse.from(member));
+		OauthMemberLoginResponse mockResponse = OauthMemberLoginResponse.of(jwt);
 		given(memberService.login(ArgumentMatchers.any(OauthMemberLoginRequest.class))).willReturn(mockResponse);
 		// when
 		mockMvc.perform(post(url)
@@ -167,11 +166,7 @@ class MemberRestControllerTest {
 			.andExpect(jsonPath("status").value(equalTo("OK")))
 			.andExpect(jsonPath("message").value(equalTo("로그인에 성공하였습니다")))
 			.andExpect(jsonPath("data.jwt.accessToken").value(equalTo(jwt.getAccessToken())))
-			.andExpect(jsonPath("data.jwt.refreshToken").value(equalTo(jwt.getRefreshToken())))
-			.andExpect(jsonPath("data.user.id").value(equalTo(member.getId().intValue())))
-			.andExpect(jsonPath("data.user.nickname").value(equalTo(member.getNickname())))
-			.andExpect(jsonPath("data.user.email").value(equalTo(member.getEmail())))
-			.andExpect(jsonPath("data.user.profileUrl").value(equalTo(member.getProfileUrl())));
+			.andExpect(jsonPath("data.jwt.refreshToken").value(equalTo(jwt.getRefreshToken())));
 	}
 
 	@DisplayName("사용자는 회원의 프로필에서 새 프로필 및 닉네임을 수정한다")

@@ -78,7 +78,6 @@ import codesquad.fineants.spring.api.member.request.ProfileChangeRequest;
 import codesquad.fineants.spring.api.member.request.SignUpRequest;
 import codesquad.fineants.spring.api.member.request.VerifyCodeRequest;
 import codesquad.fineants.spring.api.member.request.VerifyEmailRequest;
-import codesquad.fineants.spring.api.member.response.OauthMemberLoginResponse;
 import codesquad.fineants.spring.api.member.response.OauthUserProfile;
 import codesquad.fineants.spring.api.member.response.ProfileChangeResponse;
 import codesquad.fineants.spring.api.member.response.ProfileResponse;
@@ -289,14 +288,10 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 		OauthMemberLoginRequest loginRequest = createOauthMemberLoginServiceRequest(provider);
 
 		// when
-		OauthMemberLoginResponse response = memberService.login(loginRequest);
+		memberService.login(loginRequest);
 
 		// then
 		assertAll(
-			() -> assertThat(response)
-				.extracting("user")
-				.extracting("email")
-				.isEqualTo(email),
 			() -> assertThat(memberRepository.findMemberByEmailAndProvider(email, provider).orElseThrow())
 				.isNotNull()
 		);

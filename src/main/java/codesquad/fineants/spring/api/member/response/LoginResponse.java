@@ -15,9 +15,8 @@ import lombok.ToString;
 @ToString
 public class LoginResponse {
 	private Jwt jwt;
-	private OauthMemberResponse user;
 
-	public static LoginResponse from(Jwt jwt, OauthMemberResponse user) {
-		return new LoginResponse(jwt, user);
+	public static LoginResponse from(Jwt jwt) {
+		return new LoginResponse(jwt);
 	}
 }

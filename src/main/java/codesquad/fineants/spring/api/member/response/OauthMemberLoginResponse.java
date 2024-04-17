@@ -14,14 +14,13 @@ import lombok.NoArgsConstructor;
 public class OauthMemberLoginResponse {
 
 	private Jwt jwt;
-	private OauthMemberResponse user;
 
-	public static OauthMemberLoginResponse of(Jwt jwt, OauthMemberResponse oauthMemberResponse) {
-		return new OauthMemberLoginResponse(jwt, oauthMemberResponse);
+	public static OauthMemberLoginResponse of(Jwt jwt) {
+		return new OauthMemberLoginResponse(jwt);
 	}
 
 	@Override
 	public String toString() {
-		return String.format("%s, %s(member=%s)", "소셜 로그인 응답", this.getClass().getSimpleName(), user);
+		return String.format("%s, %s", "소셜 로그인 응답", this.getClass().getSimpleName());
 	}
 }
