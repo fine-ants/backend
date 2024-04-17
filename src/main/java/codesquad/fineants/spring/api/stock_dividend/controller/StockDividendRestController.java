@@ -21,4 +21,10 @@ public class StockDividendRestController {
 		service.initStockDividend();
 		return ApiResponse.success(StockDividendSuccessCode.OK_INIT_DIVIDENDS);
 	}
+
+	@PostMapping("/write/csv")
+	public ApiResponse<Void> writeDividendCsvToS3() {
+		service.writeDividendCsvToS3();
+		return ApiResponse.success(StockDividendSuccessCode.OK_WRITE_DIVIDENDS_CSV);
+	}
 }

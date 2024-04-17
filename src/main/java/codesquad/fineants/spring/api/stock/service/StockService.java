@@ -1,5 +1,6 @@
 package codesquad.fineants.spring.api.stock.service;
 
+import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -27,6 +28,7 @@ import codesquad.fineants.spring.api.stock.response.StockRefreshResponse;
 import codesquad.fineants.spring.api.stock.response.StockResponse;
 import codesquad.fineants.spring.api.stock.response.StockSearchItem;
 import codesquad.fineants.spring.api.stock.response.StockSectorResponse;
+import codesquad.fineants.spring.api.stock_dividend.service.StockDividendService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -41,6 +43,7 @@ public class StockService {
 	private final CurrentPriceManager currentPriceManager;
 	private final LastDayClosingPriceManager lastDayClosingPriceManager;
 	private final KRXService krxService;
+	private final StockDividendService stockDividendService;
 
 	public List<StockSearchItem> search(StockSearchRequest request) {
 		return stockRepository.search(request.getSearchTerm())
@@ -61,6 +64,8 @@ public class StockService {
 	public void scheduledRefreshStocks() {
 		StockRefreshResponse response = refreshStocks();
 		log.info("refreshStocks response : {}", response);
+		stockDividendService.refreshStockDividend(LocalDate.now());
+		stockDividendService.writeDividendCsvToS3();
 	}
 
 	// 최신 종목을 조회하고 데이터베이스의 종목 데이터들을 최신화한다

@@ -24,7 +24,7 @@ public class Dividend {
 	private String name;
 	private Money dividend;
 
-	public static Dividend from(String[] data) {
+	public static Dividend parse(String[] data) {
 		String recordDate = data[0];
 		if (Strings.isNullOrEmpty(recordDate)) {
 			throw new IllegalArgumentException("recordDate is empty");
@@ -32,7 +32,7 @@ public class Dividend {
 
 		LocalDate paymentDate =
 			Strings.isNullOrEmpty(data[1]) ? null : LocalDate.parse(data[1], DateTimeFormatter.BASIC_ISO_DATE);
-		String tickerSymbol = data[2];
+		String tickerSymbol = formatTickerSymbol(data[2]);
 		String name = data[3];
 		Money dividend = Money.from(data[4]);
 		return new Dividend(
@@ -42,6 +42,19 @@ public class Dividend {
 			name,
 			dividend
 		);
+	}
+
+	private static String formatTickerSymbol(String tickerSymbol) {
+		StringBuilder sb = new StringBuilder(tickerSymbol);
+		while (sb.length() < 6) {
+			sb.insert(0, "0");
+		}
+		return sb.toString();
+	}
+
+	public static Dividend create(LocalDate recordDate, LocalDate paymentDate, String tickerSymbol, String name,
+		Money dividend) {
+		return new Dividend(recordDate, paymentDate, tickerSymbol, name, dividend);
 	}
 
 	public boolean containsBy(Map<String, Stock> stockMap) {
@@ -59,5 +72,14 @@ public class Dividend {
 			paymentDate,
 			stock
 		);
+	}
+
+	public String toCsv() {
+		return String.join(",",
+			recordDate.format(DateTimeFormatter.BASIC_ISO_DATE),
+			paymentDate.format(DateTimeFormatter.BASIC_ISO_DATE),
+			tickerSymbol,
+			name,
+			dividend.toString());
 	}
 }

@@ -20,6 +20,7 @@ import codesquad.fineants.domain.common.count.Count;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.common.money.MoneyConverter;
 import codesquad.fineants.domain.stock.Stock;
+import codesquad.fineants.spring.api.S3.dto.Dividend;
 import codesquad.fineants.spring.api.kis.manager.HolidayManager;
 import codesquad.fineants.spring.api.stock_dividend.HolidayFileReader;
 import lombok.AccessLevel;
@@ -159,5 +160,9 @@ public class StockDividend extends BaseEntity {
 
 	public boolean hasInRange(LocalDate from, LocalDate to) {
 		return recordDate.isAfter(from) && recordDate.isBefore(to);
+	}
+
+	public Dividend toDividend() {
+		return Dividend.create(recordDate, paymentDate, stock.getTickerSymbol(), stock.getCompanyName(), dividend);
 	}
 }

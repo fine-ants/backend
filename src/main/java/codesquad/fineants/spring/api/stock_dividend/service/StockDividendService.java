@@ -59,6 +59,7 @@ public class StockDividendService {
 	 * - 새로운 배당 일정 추가
 	 * - 현금 지급일 수정
 	 * - 범위를 벗어난 배당 일정 삭제
+	 *   - ex) now=202404-17 => 범위를 벗어난 배당 일정은 2023-01-01 이전 or 2024-12-31 이후
 	 */
 	@Transactional
 	public void refreshStockDividend(LocalDate now) {
@@ -122,4 +123,11 @@ public class StockDividendService {
 		stockDividendRepository.deleteAllInBatch(deleteStockDividends);
 	}
 
+	@Transactional(readOnly = true)
+	public void writeDividendCsvToS3() {
+		List<Dividend> dividends = stockDividendRepository.findAllStockDividends().stream()
+			.map(StockDividend::toDividend)
+			.collect(Collectors.toList());
+		amazonS3DividendService.writeDividend(dividends);
+	}
 }

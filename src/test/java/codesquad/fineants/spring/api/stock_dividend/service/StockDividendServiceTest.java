@@ -61,7 +61,7 @@ class StockDividendServiceTest extends AbstractContainerBaseTest {
 		stockRepository.save(createStock());
 		given(amazonS3DividendService.fetchDividend())
 			.willReturn(List.of(
-				Dividend.from(new String[] {"20230331", "20230517", "005930", "삼성전자보통주", "361"})
+				Dividend.parse(new String[] {"20230331", "20230517", "005930", "삼성전자보통주", "361"})
 			));
 		// when
 		stockDividendService.initStockDividend();
