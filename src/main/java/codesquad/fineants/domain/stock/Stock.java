@@ -139,7 +139,7 @@ public class Stock extends BaseEntity {
 
 	public double getAnnualDividendYield(CurrentPriceManager manager) {
 		Money dividends = stockDividends.stream()
-			.filter(dividend -> dividend.getPaymentDate().getYear() == LocalDate.now().getYear())
+			.filter(dividend -> dividend.isSatisfiedPaymentDateEqualYearBy(LocalDate.now()))
 			.map(StockDividend::getDividend)
 			.reduce(Money.zero(), Money::add);
 		Money currentPrice = getCurrentPrice(manager);
