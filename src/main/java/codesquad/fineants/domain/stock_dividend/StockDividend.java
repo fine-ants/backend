@@ -144,8 +144,12 @@ public class StockDividend extends BaseEntity {
 		this.paymentDate = stockDividend.getPaymentDate();
 	}
 
-	// parse format : tickerSymbol:dividend:recordDate:exDividendDate:paymentDate
-	// ex) 005930:361:2022-08-01:2022-08-01:2022-08-01, 005930:361:2022-08-01:2022-08-01:null
+	/**
+	 * 배당 일정 정보들을 파싱하여 반환
+	 * format :  tickerSymbol:dividend:recordDate:exDividendDate:paymentDate
+	 *   - ex) 005930:361:2022-08-01:2022-08-01:2022-08-01, 005930:361:2022-08-01:2022-08-01:null
+	 * @return
+	 */
 	public String parse() {
 		return String.format("%s:%s:%s:%s:%s", stock.getTickerSymbol(), dividend, recordDate, exDividendDate,
 			paymentDate);
