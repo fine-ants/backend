@@ -12,6 +12,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -103,9 +105,9 @@ public class WatchListRestControllerDocsTest extends RestDocsSupport {
 		Member member = createMember();
 
 		given(service.readWatchLists(ArgumentMatchers.any(AuthMember.class)))
-			.willReturn(ReadWatchListsResponse.from(List.of(
-				createWatchList(member)
-			)));
+			.willReturn(Stream.of(createWatchList(member))
+				.map(ReadWatchListsResponse::from)
+				.collect(Collectors.toList()));
 
 		// when & then
 		mockMvc.perform(RestDocumentationRequestBuilders.get("/api/watchlists")

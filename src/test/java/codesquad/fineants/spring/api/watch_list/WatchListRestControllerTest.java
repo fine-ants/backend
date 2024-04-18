@@ -135,8 +135,8 @@ class WatchListRestControllerTest {
 		given(authPrincipalArgumentResolver.resolveArgument(any(), any(), any(), any())).willReturn(authMember);
 
 		List<ReadWatchListsResponse> response = Arrays.asList(
-			new ReadWatchListsResponse(1L, "My WatchList 1"),
-			new ReadWatchListsResponse(2L, "My WatchList 2")
+			ReadWatchListsResponse.create(1L, "My WatchList 1"),
+			ReadWatchListsResponse.create(2L, "My WatchList 2")
 		);
 		given(watchListService.readWatchLists(any(AuthMember.class))).willReturn(response);
 
