@@ -84,7 +84,7 @@ public class StockDividendService {
 			.collect(Collectors.toList());
 
 		// 탐색된 데이터들 배당 일정 추가
-		log.debug("addStockDividends : {}", addStockDividends);
+		log.info("addStockDividends : {}", addStockDividends);
 		stockDividendRepository.saveAll(addStockDividends);
 
 		// 2. 현금 지급일 수정
@@ -110,7 +110,7 @@ public class StockDividendService {
 			})
 			.filter(Objects::nonNull)
 			.collect(Collectors.toList());
-		log.debug("changedStockDividends : {}", changedStockDividends);
+		log.info("changedStockDividends : {}", changedStockDividends);
 		stockDividendRepository.saveAll(changedStockDividends);
 
 		// 범위를 벗어난 배당 일정을 삭제
@@ -119,7 +119,7 @@ public class StockDividendService {
 			.map(stock -> stock.getStockDividendNotInRange(from, to))
 			.flatMap(Collection::stream)
 			.collect(Collectors.toList());
-		log.debug("deleteStockDividends : {}", deleteStockDividends);
+		log.info("deleteStockDividends : {}", deleteStockDividends);
 		stockDividendRepository.deleteAllInBatch(deleteStockDividends);
 	}
 

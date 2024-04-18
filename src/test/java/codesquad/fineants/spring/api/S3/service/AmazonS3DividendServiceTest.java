@@ -25,5 +25,4 @@ class AmazonS3DividendServiceTest extends AbstractContainerBaseTest {
 		// then
 		Assertions.assertThat(dividends).isNotEmpty();
 	}
-
 }
