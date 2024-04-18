@@ -37,10 +37,13 @@ public class StockDividendService {
 		// 기존 종목 배당금 데이터 삭제
 		stockDividendRepository.deleteAllInBatch();
 
+		// S3에 저장된 종목 배당금으로 초기화
+		saveStockDividendWithInitDividend();
+	}
+
+	private void saveStockDividendWithInitDividend() {
 		Map<String, Stock> stockMap = stockRepository.findAll().stream()
 			.collect(Collectors.toMap(Stock::getTickerSymbol, stock -> stock));
-
-		// S3에 저장된 종목 배당금으로 초기화
 		List<StockDividend> stockDividends = amazonS3DividendService.fetchDividend().stream()
 			.filter(dividend -> dividend.containsBy(stockMap))
 			.map(dividend -> {
@@ -120,8 +123,8 @@ public class StockDividendService {
 			.collect(Collectors.toList());
 
 		// 탐색된 데이터들 배당 일정 추가
-		log.info("addStockDividends : {}", addStockDividends);
 		stockDividendRepository.saveAll(addStockDividends);
+		log.info("addStockDividends : {}", addStockDividends);
 	}
 
 	/**
@@ -137,15 +140,19 @@ public class StockDividendService {
 			.map(stock -> stock.getStockDividendNotInRange(from, to))
 			.flatMap(Collection::stream)
 			.collect(Collectors.toList());
-		log.info("deleteStockDividends : {}", deleteStockDividends);
 		stockDividendRepository.deleteAllInBatch(deleteStockDividends);
+		log.info("deleteStockDividends : {}", deleteStockDividends);
 	}
 
+	/**
+	 * S3 저장소에 db에 저장되어있는 배당 일정을 csv 파일 형식으로 저장
+	 */
 	@Transactional(readOnly = true)
 	public void writeDividendCsvToS3() {
 		List<Dividend> dividends = stockDividendRepository.findAllStockDividends().stream()
 			.map(StockDividend::toDividend)
 			.collect(Collectors.toList());
 		amazonS3DividendService.writeDividend(dividends);
+		log.info("write dividend to s3, size={}", dividends.size());
 	}
 }
