@@ -47,7 +47,6 @@ public class StockDividend extends BaseEntity {
 	private LocalDate recordDate;
 	@Column
 	private LocalDate paymentDate;
-
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "ticker_symbol", referencedColumnName = "tickerSymbol")
 	private Stock stock;
@@ -102,5 +101,12 @@ public class StockDividend extends BaseEntity {
 	// 현금지급일자를 기준으로 현재년도인지 검사
 	public boolean isCurrentYearPaymentDate(LocalDate today) {
 		return paymentDate != null && paymentDate.getYear() == today.getYear();
+	}
+
+	public boolean isSatisfiedPaymentDateEqualYearBy(LocalDate now) {
+		if (paymentDate == null) {
+			return false;
+		}
+		return paymentDate.getYear() == now.getYear();
 	}
 }
