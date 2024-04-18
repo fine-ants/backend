@@ -143,11 +143,7 @@ public class Stock extends BaseEntity {
 			.filter(dividend -> dividend.isSatisfiedPaymentDateEqualYearBy(LocalDate.now()))
 			.map(StockDividend::getDividend)
 			.reduce(Money.zero(), Money::add);
-		Money currentPrice = getCurrentPrice(manager);
-		if (currentPrice == null) {
-			return 0;
-		}
-		return dividends.divide(currentPrice).toPercentage();
+		return dividends.divide(getCurrentPrice(manager)).toPercentage();
 	}
 
 	public Money getDailyChange(CurrentPriceManager currentPriceManager,

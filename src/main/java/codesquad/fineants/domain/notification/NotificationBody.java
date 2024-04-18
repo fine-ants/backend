@@ -28,7 +28,7 @@ public class NotificationBody {
 	public static NotificationBody stock(String tickerSymbol, Money price) {
 		return NotificationBody.builder()
 			.name(tickerSymbol)
-			.target(String.valueOf(price.getAmount().longValue()))
+			.target(price.toInteger().toString())
 			.build();
 	}
 }

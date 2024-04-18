@@ -22,12 +22,14 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.oauth.support.AuthPrincipalArgumentResolver;
@@ -43,12 +45,13 @@ import codesquad.fineants.spring.api.watch_list.response.ReadWatchListResponse;
 import codesquad.fineants.spring.api.watch_list.response.ReadWatchListsResponse;
 import codesquad.fineants.spring.api.watch_list.response.WatchListHasStockResponse;
 import codesquad.fineants.spring.api.watch_list.service.WatchListService;
+import codesquad.fineants.spring.config.JacksonConfig;
 import codesquad.fineants.spring.config.JpaAuditingConfiguration;
 import codesquad.fineants.spring.config.SpringConfig;
 
 @ActiveProfiles("test")
 @WebMvcTest(controllers = WatchListRestController.class)
-@Import(value = {SpringConfig.class})
+@Import(value = {SpringConfig.class, JacksonConfig.class})
 @MockBean(JpaAuditingConfiguration.class)
 class WatchListRestControllerTest {
 
@@ -74,6 +77,7 @@ class WatchListRestControllerTest {
 		mockMvc = MockMvcBuilders.standaloneSetup(watchListRestController)
 			.setControllerAdvice(globalExceptionHandler)
 			.setCustomArgumentResolvers(authPrincipalArgumentResolver)
+			.setMessageConverters(new MappingJackson2HttpMessageConverter(objectMapper))
 			.alwaysDo(print())
 			.build();
 	}
@@ -169,8 +173,8 @@ class WatchListRestControllerTest {
 			.id(1L)
 			.companyName("삼성전자")
 			.tickerSymbol("005930")
-			.currentPrice(68000)
-			.dailyChange(1200)
+			.currentPrice(Money.from(68000))
+			.dailyChange(Money.from(1200))
 			.dailyChangeRate(1.85)
 			.annualDividendYield(2.12)
 			.sector("제조업")

@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
+import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.watch_stock.WatchStock;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
@@ -25,8 +26,8 @@ public class ReadWatchListResponse {
 		private long id;
 		private String companyName;
 		private String tickerSymbol;
-		private long currentPrice;
-		private long dailyChange;
+		private Money currentPrice;
+		private Money dailyChange;
 		private Double dailyChangeRate;
 		private Double annualDividendYield;
 		private String sector;
@@ -41,11 +42,9 @@ public class ReadWatchListResponse {
 			.id(watchStock.getId())
 			.companyName(watchStock.getStock().getCompanyName())
 			.tickerSymbol(watchStock.getStock().getTickerSymbol())
-			.currentPrice(watchStock.getStock().getCurrentPrice(currentPriceManager).getAmount().longValue())
+			.currentPrice(watchStock.getStock().getCurrentPrice(currentPriceManager))
 			.dailyChange(watchStock.getStock()
-				.getDailyChange(currentPriceManager, lastDayClosingPriceManager)
-				.getAmount()
-				.longValue())
+				.getDailyChange(currentPriceManager, lastDayClosingPriceManager))
 			.dailyChangeRate(watchStock.getStock()
 				.getDailyChangeRate(currentPriceManager, lastDayClosingPriceManager))
 			.annualDividendYield(watchStock.getStock().getAnnualDividendYield(currentPriceManager))

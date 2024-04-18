@@ -22,6 +22,7 @@ import org.springframework.http.MediaType;
 import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
 import org.springframework.restdocs.payload.JsonFieldType;
 
+import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.spring.api.watch_list.controller.WatchListRestController;
@@ -199,8 +200,8 @@ public class WatchListRestControllerDocsTest extends RestDocsSupport {
 						.id(1L)
 						.companyName("삼성전자")
 						.tickerSymbol("005930")
-						.currentPrice(63800L)
-						.dailyChange(1200L)
+						.currentPrice(Money.from(63800L))
+						.dailyChange(Money.from(1200L))
 						.dailyChangeRate(1.85)
 						.annualDividendYield(2.12)
 						.sector("제조업")

@@ -8,10 +8,8 @@ import java.util.Objects;
 
 import codesquad.fineants.domain.common.count.Count;
 import lombok.AccessLevel;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-@Getter
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class Money implements Comparable<Money> {
 	private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("#,###");
@@ -101,6 +99,14 @@ public class Money implements Comparable<Money> {
 
 	public String toDecimalFormat() {
 		return DECIMAL_FORMAT.format(amount);
+	}
+
+	public BigDecimal toInteger() {
+		return amount.setScale(0, RoundingMode.HALF_UP);
+	}
+
+	public BigDecimal toDouble() {
+		return amount.setScale(2, RoundingMode.HALF_UP);
 	}
 
 	@Override

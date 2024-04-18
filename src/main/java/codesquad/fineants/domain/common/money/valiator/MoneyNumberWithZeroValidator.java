@@ -1,7 +1,5 @@
 package codesquad.fineants.domain.common.money.valiator;
 
-import java.math.BigDecimal;
-
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 
@@ -13,6 +11,6 @@ public class MoneyNumberWithZeroValidator implements ConstraintValidator<MoneyNu
 		if (value == null) {
 			return false;
 		}
-		return value.getAmount().compareTo(BigDecimal.ZERO) >= 0;
+		return value.compareTo(Money.zero()) >= 0;
 	}
 }
