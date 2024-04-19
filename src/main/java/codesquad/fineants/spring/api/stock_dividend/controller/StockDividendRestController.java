@@ -18,7 +18,7 @@ public class StockDividendRestController {
 
 	@PostMapping("/init")
 	public ApiResponse<Void> initStockDividend() {
-		service.initStockDividend();
+		service.initializeStockDividend();
 		return ApiResponse.success(StockDividendSuccessCode.OK_INIT_DIVIDENDS);
 	}
 

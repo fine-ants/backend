@@ -75,10 +75,10 @@ public class Dividend {
 	}
 
 	public String toCsv() {
-		String formattedPaymentDate = paymentDate == null ? "" : paymentDate.format(DateTimeFormatter.BASIC_ISO_DATE);
+		String formatPaymentDate = paymentDate == null ? "" : paymentDate.format(DateTimeFormatter.BASIC_ISO_DATE);
 		return String.join(",",
 			recordDate.format(DateTimeFormatter.BASIC_ISO_DATE),
-			formattedPaymentDate,
+			formatPaymentDate,
 			tickerSymbol,
 			name,
 			dividend.toString());

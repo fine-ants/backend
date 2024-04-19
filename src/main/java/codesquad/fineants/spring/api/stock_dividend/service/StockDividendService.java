@@ -32,18 +32,27 @@ public class StockDividendService {
 	private final StockDividendRepository stockDividendRepository;
 	private final KisService kisService;
 
+	/**
+	 * 배당일정(StockDividend) 엔티티 데이터를 초기화합니다.
+	 * - 기존 배당 일정은 제거
+	 * - S3로부터 배당 일정 파일(csv)을 기반으로 초기화 수행
+	 * - 이 메서드는 서버 시작시 수행됨
+	 */
 	@Transactional
-	public void initStockDividend() {
+	public void initializeStockDividend() {
 		// 기존 종목 배당금 데이터 삭제
 		stockDividendRepository.deleteAllInBatch();
 
 		// S3에 저장된 종목 배당금으로 초기화
-		saveStockDividendWithInitDividend();
+		initializeStockDividendFromS3();
 	}
 
-	private void saveStockDividendWithInitDividend() {
+	private void initializeStockDividendFromS3() {
+		// 종목 조회
 		Map<String, Stock> stockMap = stockRepository.findAll().stream()
 			.collect(Collectors.toMap(Stock::getTickerSymbol, stock -> stock));
+
+		// 종목에 해당하는 배당 일정 엔티티 생성
 		List<StockDividend> stockDividends = amazonS3DividendService.fetchDividend().stream()
 			.filter(dividend -> dividend.containsBy(stockMap))
 			.map(dividend -> {
@@ -51,6 +60,8 @@ public class StockDividendService {
 				return dividend.toEntity(stock);
 			})
 			.collect(Collectors.toList());
+
+		// 배당 일정 저장
 		List<StockDividend> saveStockDividends = stockDividendRepository.saveAll(stockDividends);
 		log.info("save StockDividends size : {}", saveStockDividends.size());
 	}
@@ -145,7 +156,7 @@ public class StockDividendService {
 	}
 
 	/**
-	 * S3 저장소에 db에 저장되어있는 배당 일정을 csv 파일 형식으로 저장
+	 * 데이터베이스의 배당 일정을 S3에 CSV 파일로 저장
 	 */
 	@Transactional(readOnly = true)
 	public void writeDividendCsvToS3() {
@@ -153,6 +164,6 @@ public class StockDividendService {
 			.map(StockDividend::toDividend)
 			.collect(Collectors.toList());
 		amazonS3DividendService.writeDividend(dividends);
-		log.info("write dividend to s3, size={}", dividends.size());
+		log.info("write dividend csv to s3, size={}", dividends.size());
 	}
 }

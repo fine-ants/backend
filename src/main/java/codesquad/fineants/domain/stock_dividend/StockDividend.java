@@ -1,6 +1,7 @@
 package codesquad.fineants.domain.stock_dividend;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import javax.persistence.Column;
@@ -58,13 +59,14 @@ public class StockDividend extends BaseEntity {
 		new HolidayManager(new HolidayFileReader()));
 
 	@Builder
-	public StockDividend(Long id, LocalDate exDividendDate, LocalDate recordDate,
-		LocalDate paymentDate, Money dividend, Stock stock) {
+	protected StockDividend(LocalDateTime createAt, LocalDateTime modifiedAt, Long id, Money dividend,
+		LocalDate recordDate, LocalDate exDividendDate, LocalDate paymentDate, Stock stock) {
+		super(createAt, modifiedAt);
 		this.id = id;
-		this.exDividendDate = exDividendDate;
-		this.recordDate = recordDate;
-		this.paymentDate = paymentDate;
 		this.dividend = dividend;
+		this.recordDate = recordDate;
+		this.exDividendDate = exDividendDate;
+		this.paymentDate = paymentDate;
 		this.stock = stock;
 	}
 

@@ -39,14 +39,14 @@ class StockDividendServiceTest extends AbstractContainerBaseTest {
 	@Autowired
 	private StockDividendRepository stockDividendRepository;
 
+	@Autowired
+	private AmazonS3DividendService amazonS3DividendService;
+
 	@MockBean
 	private KisService kisService;
 
 	@MockBean
 	private KisAccessTokenManager kisAccessTokenManager;
-
-	@MockBean
-	private AmazonS3DividendService amazonS3DividendService;
 
 	@AfterEach
 	void tearDown() {
@@ -54,19 +54,18 @@ class StockDividendServiceTest extends AbstractContainerBaseTest {
 		stockRepository.deleteAllInBatch();
 	}
 
+	/**
+	 * 해당 테스트 수행시 localStack에 저장된 dividends.csv 파일을 이용하여 배당 일정을 초기화합니다.
+	 */
 	@DisplayName("배당일정을 초기화한다")
 	@Test
-	void initStockDividend() {
+	void initializeStockDividend() {
 		// given
 		stockRepository.save(createStock());
-		given(amazonS3DividendService.fetchDividend())
-			.willReturn(List.of(
-				Dividend.parse(new String[] {"20230331", "20230517", "005930", "삼성전자보통주", "361"})
-			));
 		// when
-		stockDividendService.initStockDividend();
+		stockDividendService.initializeStockDividend();
 		// then
-		assertThat(stockDividendRepository.count()).isEqualTo(1);
+		assertThat(stockDividendRepository.count()).isEqualTo(5);
 	}
 
 	@DisplayName("배당 일정을 최신화한다")
@@ -153,6 +152,21 @@ class StockDividendServiceTest extends AbstractContainerBaseTest {
 				"005930:361:2024-06-30:2024-06-28:null",
 				"035720:61:2024-02-29:2024-02-28:null"
 			);
+	}
+
+	@DisplayName("S3 저장소에 배당 일정 csv 파일을 작성한다")
+	@Test
+	void writeDividendCsvToS3() {
+		// given
+		stockRepository.save(createSamsungStock());
+		stockRepository.save(createKakaoStock());
+		stockDividendService.initializeStockDividend();
+		// when
+		stockDividendService.writeDividendCsvToS3();
+		// then
+		List<Dividend> dividends = amazonS3DividendService.fetchDividend();
+		assertThat(dividends)
+			.hasSize(6);
 	}
 
 	private Stock createSamsungStock() {

@@ -28,6 +28,6 @@ public class StartupApplicationListener implements ApplicationListener<ContextRe
 		kisService.scheduleRefreshingAllLastDayClosingPrice();
 		log.info("애플리케이션 시작시 종목 현재가 및 종가 초기화 종료");
 		stockService.refreshStocks();
-		stockDividendService.initStockDividend();
+		stockDividendService.initializeStockDividend();
 	}
 }

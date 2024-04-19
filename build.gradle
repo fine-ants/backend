@@ -87,6 +87,7 @@ dependencies {
     // test container
     testImplementation "org.testcontainers:junit-jupiter:1.16.3"
     testImplementation 'org.testcontainers:mysql:1.16.3'
+    implementation 'org.testcontainers:localstack:1.19.7'
 
     // Rest Docs
     asciidoctorExt 'org.springframework.restdocs:spring-restdocs-asciidoctor'
@@ -94,6 +95,7 @@ dependencies {
 
     // RxJava
     implementation 'io.reactivex.rxjava3:rxjava:3.1.8'
+
 }
 
 tasks.named('test') {

@@ -29,7 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class AmazonS3DividendService {
 	private static final String CSV_FILE_PATH = "dividend/dividends.csv";
-	private static final String CSV_SEPARATOR = ",";
+	public static final String CSV_SEPARATOR = ",";
 	private final AmazonS3 amazonS3;
 	@Value("${aws.s3.dividend-bucket}")
 	private String bucketName;
@@ -40,9 +40,8 @@ public class AmazonS3DividendService {
 		try (BufferedReader br = new BufferedReader(
 			new InputStreamReader(s3Object.getObjectContent(), StandardCharsets.UTF_8))) {
 			return br.lines()
-				.skip(1) // 표 제목 스킵
+				.skip(1) // skip title
 				.map(line -> line.split(CSV_SEPARATOR))
-				.filter(data -> data.length == 5)
 				.map(Dividend::parse)
 				.distinct()
 				.collect(Collectors.toList());
