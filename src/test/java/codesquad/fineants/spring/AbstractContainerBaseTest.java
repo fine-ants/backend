@@ -9,7 +9,6 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
 
 import codesquad.fineants.spring.init.S3BucketInitializer;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +26,7 @@ public class AbstractContainerBaseTest {
 	private static final String REDIS_IMAGE = "redis:7-alpine";
 	private static final int REDIS_PORT = 6379;
 
-	private static final GenericContainer MYSQL_CONTAINER = new GenericContainer(DockerImageName.parse(MYSQL_IMAGE))
+	private static final GenericContainer MYSQL_CONTAINER = new GenericContainer(MYSQL_IMAGE)
 		.withExposedPorts(MYSQL_PORT)
 		.withReuse(true);
 
