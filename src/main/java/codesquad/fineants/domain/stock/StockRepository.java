@@ -15,6 +15,9 @@ public interface StockRepository extends JpaRepository<Stock, Long> {
 	@Query("select s from Stock s where s.tickerSymbol in :tickerSymbols")
 	List<Stock> findAllByTickerSymbols(@Param("tickerSymbols") List<String> tickerSymbols);
 
+	@Query("select distinct s from Stock s join fetch s.stockDividends sd where s.tickerSymbol in (:tickerSymbols)")
+	List<Stock> findAllWithDividends(@Param("tickerSymbols") List<String> tickerSymbols);
+
 	@Query("select s from Stock s where s.stockCode like %:keyword% or s.tickerSymbol like %:keyword% or s.companyName like %:keyword% or s.companyNameEng like %:keyword%")
 	List<Stock> search(@Param("keyword") String keyword);
 
@@ -23,4 +26,5 @@ public interface StockRepository extends JpaRepository<Stock, Long> {
 	@Modifying
 	@Query("delete from Stock s where s.tickerSymbol in :tickerSymbols")
 	int deleteByTickerSymbols(@Param("tickerSymbols") List<String> tickerSymbols);
+
 }

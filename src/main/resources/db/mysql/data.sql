@@ -1,54 +1,15 @@
-LOAD DATA LOCAL INFILE 'src/main/resources/stocks.tsv'
+LOAD DATA LOCAL INFILE 'src/main/resources/stocks.csv'
     INTO TABLE stock
-    FIELDS TERMINATED BY '\t'
+    FIELDS TERMINATED BY ','
     IGNORE 1 ROWS
-    (@stockCode, @tickerSymbol, @companyName, @companyNameEng, @market)
+    (@stockCode, @tickerSymbol, @companyName, @companyNameEng, @market, @sector)
     set stock_code = @stockCode,
         ticker_symbol = @tickerSymbol,
         company_name = @companyName,
         company_name_eng = @companyNameEng,
         market = @market,
+        sector = @sector,
         create_at = now();
-
-LOAD DATA LOCAL INFILE 'src/main/resources/ex-dividend-date.tsv'
-    INTO TABLE stock_dividend
-    FIELDS TERMINATED BY '\t'
-    IGNORE 1 ROWS
-    (@ex_dividend_date, @record_date, @payment_date, @ticker_symbol, @dividend_per_share)
-    set stock_dividend.ex_dividend_date = @ex_dividend_date,
-        stock_dividend.record_date = @record_date,
-        stock_dividend.payment_date = @payment_date,
-        stock_dividend.ticker_symbol = @ticker_symbol,
-        stock_dividend.dividend = @dividend_per_share,
-        stock_dividend.create_at = now();
-
-CREATE TEMPORARY TABLE temp_update_table
-select ticker_symbol, sector
-from stock
-limit 0;
-
-LOAD DATA LOCAL INFILE 'src/main/resources/sectors_kospi.tsv'
-    INTO TABLE temp_update_table
-    FIELDS TERMINATED BY '\t'
-    IGNORE 1 ROWS
-    (@종목코드, @종목명, @시장구분, @업종명, @종가, @대비, @등락률, @시가총액)
-    set ticker_symbol = @종목코드,
-        sector = @업종명;
-
-LOAD DATA LOCAL INFILE 'src/main/resources/sectors_kosdaq.tsv'
-    INTO TABLE temp_update_table
-    FIELDS TERMINATED BY '\t'
-    IGNORE 1 ROWS
-    (@종목코드, @종목명, @시장구분, @업종명, @종가, @대비, @등락률, @시가총액)
-    set ticker_symbol = @종목코드,
-        sector = @업종명;
-
-UPDATE stock
-    INNER JOIN temp_update_table on temp_update_table.ticker_symbol = stock.ticker_symbol
-SET stock.sector = temp_update_table.sector;
-
-DROP TEMPORARY TABLE temp_update_table;
-
 
 INSERT INTO member(create_at, email, nickname, profile_url, password, provider)
 VALUES (now(), 'dragonbead95@naver.com', '네모네모',

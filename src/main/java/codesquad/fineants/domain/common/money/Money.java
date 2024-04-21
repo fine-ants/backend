@@ -3,16 +3,16 @@ package codesquad.fineants.domain.common.money;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
+import java.text.DecimalFormat;
 import java.util.Objects;
 
 import codesquad.fineants.domain.common.count.Count;
 import lombok.AccessLevel;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-@Getter
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class Money implements Comparable<Money> {
+	private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("#,###");
 	private final BigDecimal amount;
 
 	private Money() {
@@ -37,6 +37,10 @@ public class Money implements Comparable<Money> {
 
 	public static Money from(String amount) {
 		return new Money(new BigDecimal(amount));
+	}
+
+	public static Money from(int amount) {
+		return new Money(amount);
 	}
 
 	public static Money from(long amount) {
@@ -91,6 +95,18 @@ public class Money implements Comparable<Money> {
 
 	public boolean isZero() {
 		return amount.compareTo(BigDecimal.ZERO) == 0;
+	}
+
+	public String toDecimalFormat() {
+		return DECIMAL_FORMAT.format(amount);
+	}
+
+	public BigDecimal toInteger() {
+		return amount.setScale(0, RoundingMode.HALF_UP);
+	}
+
+	public BigDecimal toDouble() {
+		return amount.setScale(2, RoundingMode.HALF_UP);
 	}
 
 	@Override

@@ -5,11 +5,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.AfterEach;
@@ -29,6 +25,8 @@ import codesquad.fineants.domain.portfolio_holding.PortfolioHoldingRepository;
 import codesquad.fineants.domain.stock.Market;
 import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.domain.stock.StockRepository;
+import codesquad.fineants.domain.stock_dividend.StockDividend;
+import codesquad.fineants.domain.stock_dividend.StockDividendRepository;
 import codesquad.fineants.spring.AbstractContainerBaseTest;
 import codesquad.fineants.spring.api.common.errors.exception.KisException;
 import codesquad.fineants.spring.api.kis.client.KisClient;
@@ -37,8 +35,10 @@ import codesquad.fineants.spring.api.kis.manager.HolidayManager;
 import codesquad.fineants.spring.api.kis.manager.KisAccessTokenManager;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
 import codesquad.fineants.spring.api.kis.response.KisClosingPrice;
+import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
+@Slf4j
 class KisServiceTest extends AbstractContainerBaseTest {
 
 	@Autowired
@@ -55,6 +55,9 @@ class KisServiceTest extends AbstractContainerBaseTest {
 
 	@Autowired
 	private StockRepository stockRepository;
+
+	@Autowired
+	private StockDividendRepository stockDividendRepository;
 
 	@MockBean
 	private KisClient client;
@@ -73,6 +76,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		portfolioHoldingRepository.deleteAllInBatch();
 		portfolioRepository.deleteAllInBatch();
 		memberRepository.deleteAllInBatch();
+		stockDividendRepository.deleteAllInBatch();
 		stockRepository.deleteAllInBatch();
 		Mockito.clearInvocations(client);
 	}
@@ -100,17 +104,19 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		// given
 		Member member = memberRepository.save(createMember());
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
-		List<String> tickerSymbols = List.of("000270");
-		List<Stock> stocks = stockRepository.saveAll(tickerSymbols.stream()
-			.map(this::createStock)
-			.collect(Collectors.toList()));
+		List<Stock> stocks = stockRepository.saveAll(List.of(
+			createSamsungStock()
+		));
 		stocks.forEach(stock -> portfolioHoldingRepository.save(createPortfolioHolding(portfolio, stock)));
 
 		given(kisAccessTokenManager.createAuthorization()).willReturn(createAuthorization());
 		given(client.fetchCurrentPrice(anyString(), anyString()))
 			.willThrow(new KisException("요청건수가 초과되었습니다"))
-			.willReturn(Mono.just(KisCurrentPrice.create("000270", 10000L)));
+			.willReturn(Mono.just(KisCurrentPrice.create("005930", 10000L)));
 
+		List<String> tickerSymbols = stocks.stream()
+			.map(Stock::getTickerSymbol)
+			.collect(Collectors.toList());
 		// when
 		kisService.refreshStockCurrentPrice(tickerSymbols);
 
@@ -124,16 +130,18 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		// given
 		Member member = memberRepository.save(createMember());
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
-		List<String> tickerSymbols = List.of("000270");
-		List<Stock> stocks = stockRepository.saveAll(tickerSymbols.stream()
-			.map(this::createStock)
-			.collect(Collectors.toList()));
+		List<Stock> stocks = stockRepository.saveAll(List.of(
+			createSamsungStock()
+		));
 		stocks.forEach(stock -> portfolioHoldingRepository.save(createPortfolioHolding(portfolio, stock)));
 
 		given(kisAccessTokenManager.createAuthorization()).willReturn(createAuthorization());
 		given(client.fetchCurrentPrice(anyString(), anyString()))
 			.willThrow(new KisException("요청건수가 초과되었습니다"));
 
+		List<String> tickerSymbols = stocks.stream()
+			.map(Stock::getTickerSymbol)
+			.collect(Collectors.toList());
 		// when
 		List<KisCurrentPrice> prices = kisService.refreshStockCurrentPrice(tickerSymbols);
 
@@ -147,18 +155,20 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		// given
 		Member member = memberRepository.save(createMember());
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
-		List<String> tickerSymbols = List.of("000270");
-		List<Stock> stocks = stockRepository.saveAll(tickerSymbols.stream()
-			.map(this::createStock)
-			.collect(Collectors.toList()));
+		List<Stock> stocks = stockRepository.saveAll(List.of(
+			createSamsungStock()
+		));
 		stocks.forEach(stock -> portfolioHoldingRepository.save(createPortfolioHolding(portfolio, stock)));
 
 		given(kisAccessTokenManager.createAuthorization()).willReturn(createAuthorization());
 		given(client.fetchClosingPrice(anyString(), anyString()))
 			.willThrow(new KisException("요청건수가 초과되었습니다"))
 			.willThrow(new KisException("요청건수가 초과되었습니다"))
-			.willReturn(Mono.just(KisClosingPrice.create("000270", 10000L)));
+			.willReturn(Mono.just(KisClosingPrice.create("005930", 10000L)));
 
+		List<String> tickerSymbols = stocks.stream()
+			.map(Stock::getTickerSymbol)
+			.collect(Collectors.toList());
 		// when
 		kisService.refreshLastDayClosingPrice(tickerSymbols);
 
@@ -179,17 +189,6 @@ class KisServiceTest extends AbstractContainerBaseTest {
 
 	private String createAuthorization() {
 		return "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0b2tlbiIsImF1ZCI6Ijg5MjBlNjM2LTNkYmItNGU5MS04ZGJmLWJmZDU5ZmI2YjAwYiIsImlzcyI6InVub2d3IiwiZXhwIjoxNzAzNTcwOTA0LCJpYXQiOjE3MDM0ODQ1MDQsImp0aSI6IlBTRGc4WlVJd041eVl5ZkR6bnA0TDM2Z2xhRUpic2RJNGd6biJ9.z8dh9rlOyPq_ukm9KeCz0tkKI2QaHEe07LhXTcKQBrcP1-uiW3dwAwdknpAojJZ7aUWLUaQQn0HmjTCttjSJaA";
-	}
-
-	private Map<String, Object> createAccessTokenMap(LocalDateTime now) {
-		Map<String, Object> map = new HashMap<>();
-		map.put("access_token",
-			"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0b2tlbiIsImF1ZCI6IjBiYWFlYzg1LWU0YjctNDFlOS05ODk1LTUyNDE2ODRjNDhkOSIsImlzcyI6InVub2d3IiwiZXhwIjoxNzAzNDcxMzg2LCJpYXQiOjE3MDMzODQ5ODYsImp0aSI6IlBTRGc4WlVJd041eVl5ZkR6bnA0TDM2Z2xhRUpic2RJNGd6biJ9.mrJht_O2aRrhSPN1DSmHKarwAfgDpr4GECvF30Is2EI0W6ypbe7DXwXmluhQXT0h1g7OHhGhyBhDNtya4LcctQ");
-		map.put("access_token_token_expired",
-			now.plusDays(1L).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-		map.put("token_type", "Bearer");
-		map.put("expires_in", 86400);
-		return map;
 	}
 
 	private Member createMember() {
@@ -214,14 +213,37 @@ class KisServiceTest extends AbstractContainerBaseTest {
 			.build();
 	}
 
-	private Stock createStock(String tickerSymbol) {
+	private Stock createSamsungStock() {
+		return createStock(
+			"삼성전자보통주",
+			"005930",
+			"SamsungElectronics",
+			"KR7005930003",
+			"전기전자",
+			Market.KOSPI
+		);
+	}
+
+	private Stock createKakaoStock() {
+		return createStock(
+			"카카오보통주",
+			"035720",
+			"Kakao",
+			"KR7035720002",
+			"서비스업",
+			Market.KOSPI
+		);
+	}
+
+	private Stock createStock(String companyName, String tickerSymbol, String companyNameEng, String stockCode,
+		String sector, Market market) {
 		return Stock.builder()
-			.companyName("임시 종목")
+			.companyName(companyName)
 			.tickerSymbol(tickerSymbol)
-			.companyNameEng("temp stock")
-			.stockCode("1234")
-			.sector("임시섹터")
-			.market(Market.KOSPI)
+			.companyNameEng(companyNameEng)
+			.stockCode(stockCode)
+			.sector(sector)
+			.market(market)
 			.build();
 	}
 
@@ -232,4 +254,15 @@ class KisServiceTest extends AbstractContainerBaseTest {
 			.build();
 	}
 
+	private StockDividend createStockDividend(Money dividend, LocalDate recordDate, LocalDate exDividendDate,
+		LocalDate paymentDate,
+		Stock stock) {
+		return StockDividend.builder()
+			.dividend(dividend)
+			.exDividendDate(exDividendDate)
+			.recordDate(recordDate)
+			.paymentDate(paymentDate)
+			.stock(stock)
+			.build();
+	}
 }

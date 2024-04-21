@@ -14,14 +14,16 @@ public class OauthKisProperties {
 	private final String tokenURI;
 	private final String currentPriceURI;
 	private final String lastDayClosingPriceURI;
+	private final String dividendURI;
 
 	@ConstructorBinding
 	public OauthKisProperties(String appkey, String secretkey, String tokenURI, String currentPriceURI,
-		String lastDayClosingPriceURI) {
+		String lastDayClosingPriceURI, String dividendURI) {
 		this.appkey = appkey;
 		this.secretkey = secretkey;
 		this.tokenURI = tokenURI;
 		this.currentPriceURI = currentPriceURI;
 		this.lastDayClosingPriceURI = lastDayClosingPriceURI;
+		this.dividendURI = dividendURI;
 	}
 }

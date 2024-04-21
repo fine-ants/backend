@@ -1,7 +1,6 @@
 package codesquad.fineants.spring.config;
 
 import java.io.IOException;
-import java.math.RoundingMode;
 import java.text.DecimalFormat;
 
 import org.springframework.context.annotation.Bean;
@@ -52,7 +51,7 @@ public class JacksonConfig {
 		objectMapper.registerModule(new SimpleModule().addSerializer(Money.class, new JsonSerializer<>() {
 			@Override
 			public void serialize(Money value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
-				gen.writeNumber(value.getAmount().setScale(0, RoundingMode.HALF_UP));
+				gen.writeNumber(value.toInteger());
 			}
 		}));
 		objectMapper.registerModule(new SimpleModule().addDeserializer(Money.class, new JsonDeserializer<>() {

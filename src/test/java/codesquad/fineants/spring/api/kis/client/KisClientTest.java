@@ -47,10 +47,12 @@ class KisClientTest extends AbstractContainerBaseTest {
 			"otkenURI",
 			"currentPriceURI",
 			"lastDayClosingPriceURI"
+			, "dividendURI"
 		);
 		String baseUrl = String.format("http://localhost:%s", mockWebServer.getPort());
 		this.kisClient = new KisClient(
 			oauthKisProperties,
+			WebClient.builder().baseUrl(baseUrl).build(),
 			WebClient.builder().baseUrl(baseUrl).build());
 	}
 

@@ -9,7 +9,7 @@ import javax.persistence.Converter;
 public class MoneyConverter implements AttributeConverter<Money, BigDecimal> {
 	@Override
 	public BigDecimal convertToDatabaseColumn(Money attribute) {
-		return attribute.getAmount();
+		return attribute.toDouble();
 	}
 
 	@Override

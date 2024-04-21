@@ -9,9 +9,8 @@ import org.springframework.data.repository.query.Param;
 
 public interface StockDividendRepository extends JpaRepository<StockDividend, Long> {
 
-	@Modifying
-	@Query("DELETE FROM StockDividend sd WHERE sd.stock.tickerSymbol = :tickerSymbol")
-	void deleteByTickerSymbol(@Param("tickerSymbol") String tickerSymbol);
+	@Query("select sd from StockDividend sd join fetch sd.stock s order by s.tickerSymbol, sd.recordDate")
+	List<StockDividend> findAllStockDividends();
 
 	@Modifying
 	@Query("delete from StockDividend sd where sd.stock.tickerSymbol in :tickerSymbols")

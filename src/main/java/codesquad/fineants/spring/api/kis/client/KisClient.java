@@ -1,10 +1,15 @@
 package codesquad.fineants.spring.api.kis.client;
 
+import static codesquad.fineants.spring.api.kis.service.KisService.*;
+
 import java.time.Duration;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -16,6 +21,9 @@ import org.springframework.web.reactive.function.client.WebClient;
 import codesquad.fineants.spring.api.common.errors.exception.KisException;
 import codesquad.fineants.spring.api.kis.properties.OauthKisProperties;
 import codesquad.fineants.spring.api.kis.response.KisClosingPrice;
+import codesquad.fineants.spring.api.kis.response.KisDividend;
+import codesquad.fineants.spring.api.kis.response.KisDividendWrapper;
+import codesquad.fineants.spring.util.ObjectMapperUtil;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
@@ -25,12 +33,15 @@ import reactor.util.retry.Retry;
 public class KisClient {
 
 	private final WebClient webClient;
+	private final WebClient realWebClient;
 	private final OauthKisProperties oauthKisProperties;
 
 	public KisClient(OauthKisProperties properties,
-		@Qualifier(value = "kisWebClient") WebClient webClient) {
+		@Qualifier(value = "kisWebClient") WebClient webClient,
+		@Qualifier(value = "realKisWebClient") WebClient realWebClient) {
 		this.webClient = webClient;
 		this.oauthKisProperties = properties;
+		this.realWebClient = realWebClient;
 	}
 
 	// 액세스 토큰 발급
@@ -94,8 +105,71 @@ public class KisClient {
 		);
 	}
 
+	// 배당금 조회
+	public String fetchDividend(String tickerSymbol, String authorization) {
+		MultiValueMap<String, String> headerMap = new LinkedMultiValueMap<>();
+		headerMap.add("content-type", "application/json; charset=utf-8");
+		headerMap.add("authorization", authorization);
+		headerMap.add("appkey", oauthKisProperties.getAppkey());
+		headerMap.add("appsecret", oauthKisProperties.getSecretkey());
+		headerMap.add("tr_id", "HHKDB669102C0");
+		headerMap.add("custtype", "P");
+
+		MultiValueMap<String, String> queryParamMap = new LinkedMultiValueMap<>();
+		queryParamMap.add("HIGH_GB", Strings.EMPTY);
+		queryParamMap.add("CTS", Strings.EMPTY);
+		queryParamMap.add("GB1", "0");
+		queryParamMap.add("F_DT", "20230101");
+		queryParamMap.add("T_DT", "20231231");
+		queryParamMap.add("SHT_CD", tickerSymbol);
+
+		return performGet(
+			oauthKisProperties.getDividendURI(),
+			headerMap,
+			queryParamMap,
+			String.class,
+			realWebClient
+		).block();
+	}
+
+	public List<KisDividend> fetchDividendAll(LocalDate from, LocalDate to, String authorization) {
+		MultiValueMap<String, String> headerMap = new LinkedMultiValueMap<>();
+		headerMap.add("content-type", "application/json; charset=utf-8");
+		headerMap.add("authorization", authorization);
+		headerMap.add("appkey", oauthKisProperties.getAppkey());
+		headerMap.add("appsecret", oauthKisProperties.getSecretkey());
+		headerMap.add("tr_id", "HHKDB669102C0");
+		headerMap.add("custtype", "P");
+
+		MultiValueMap<String, String> queryParamMap = new LinkedMultiValueMap<>();
+		queryParamMap.add("HIGH_GB", Strings.EMPTY);
+		queryParamMap.add("CTS", Strings.EMPTY);
+		queryParamMap.add("GB1", "0");
+		queryParamMap.add("F_DT", from.format(DateTimeFormatter.BASIC_ISO_DATE));
+		queryParamMap.add("T_DT", to.format(DateTimeFormatter.BASIC_ISO_DATE));
+		queryParamMap.add("SHT_CD", Strings.EMPTY);
+
+		Mono<String> jsonMono = performGet(
+			oauthKisProperties.getDividendURI(),
+			headerMap,
+			queryParamMap,
+			String.class,
+			realWebClient
+		);
+
+		return jsonMono.map(json -> {
+			KisDividendWrapper wrapper = ObjectMapperUtil.deserialize(json, KisDividendWrapper.class);
+			return wrapper.getKisDividends();
+		}).block(TIMEOUT);
+	}
+
 	private <T> Mono<T> performGet(String uri, MultiValueMap<String, String> headerMap,
 		MultiValueMap<String, String> queryParamMap, Class<T> responseType) {
+		return performGet(uri, headerMap, queryParamMap, responseType, webClient);
+	}
+
+	private <T> Mono<T> performGet(String uri, MultiValueMap<String, String> headerMap,
+		MultiValueMap<String, String> queryParamMap, Class<T> responseType, WebClient webClient) {
 		return webClient
 			.get()
 			.uri(uriBuilder -> uriBuilder

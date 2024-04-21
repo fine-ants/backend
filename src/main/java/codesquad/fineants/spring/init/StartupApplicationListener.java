@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 
 import codesquad.fineants.spring.api.kis.service.KisService;
 import codesquad.fineants.spring.api.stock.service.StockService;
+import codesquad.fineants.spring.api.stock_dividend.service.StockDividendService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -18,6 +19,7 @@ public class StartupApplicationListener implements ApplicationListener<ContextRe
 
 	private final KisService kisService;
 	private final StockService stockService;
+	private final StockDividendService stockDividendService;
 
 	@Override
 	public void onApplicationEvent(ContextRefreshedEvent event) {
@@ -25,6 +27,7 @@ public class StartupApplicationListener implements ApplicationListener<ContextRe
 		kisService.scheduleRefreshingAllStockCurrentPrice();
 		kisService.scheduleRefreshingAllLastDayClosingPrice();
 		log.info("애플리케이션 시작시 종목 현재가 및 종가 초기화 종료");
-		stockService.scheduledRefreshStocks();
+		stockService.refreshStocks();
+		stockDividendService.initializeStockDividend();
 	}
 }

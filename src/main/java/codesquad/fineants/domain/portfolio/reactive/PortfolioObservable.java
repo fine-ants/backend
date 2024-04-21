@@ -2,6 +2,8 @@ package codesquad.fineants.domain.portfolio.reactive;
 
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.stereotype.Component;
+
 import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioHoldingsRealTimeResponse;
 import codesquad.fineants.spring.api.portfolio_stock.service.PortfolioHoldingService;
 import io.reactivex.rxjava3.core.Observable;
@@ -10,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RequiredArgsConstructor
+@Component
 public class PortfolioObservable {
 
 	private final PortfolioHoldingService service;

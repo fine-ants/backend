@@ -16,6 +16,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import codesquad.fineants.domain.portfolio_holding.PortfolioHoldingRepository;
+import codesquad.fineants.domain.stock.StockRepository;
+import codesquad.fineants.domain.stock_dividend.StockDividendRepository;
 import codesquad.fineants.spring.api.common.errors.exception.KisException;
 import codesquad.fineants.spring.api.kis.client.KisClient;
 import codesquad.fineants.spring.api.kis.client.KisCurrentPrice;
@@ -24,6 +26,7 @@ import codesquad.fineants.spring.api.kis.manager.HolidayManager;
 import codesquad.fineants.spring.api.kis.manager.KisAccessTokenManager;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
 import codesquad.fineants.spring.api.kis.response.KisClosingPrice;
+import codesquad.fineants.spring.api.kis.response.KisDividend;
 import codesquad.fineants.spring.api.notification.event.PortfolioPublisher;
 import codesquad.fineants.spring.api.stock_target_price.event.StockTargetPricePublisher;
 import lombok.RequiredArgsConstructor;
@@ -45,6 +48,8 @@ public class KisService {
 	private final HolidayManager holidayManager;
 	private final StockTargetPricePublisher stockTargetPricePublisher;
 	private final PortfolioPublisher portfolioPublisher;
+	private final StockRepository stockRepository;
+	private final StockDividendRepository stockDividendRepository;
 
 	// 평일 9am ~ 15:59pm 5초마다 현재가 갱신 수행
 	@Scheduled(cron = "0/5 * 9-15 ? * MON,TUE,WED,THU,FRI")
@@ -179,5 +184,15 @@ public class KisService {
 
 	public Mono<KisClosingPrice> fetchClosingPrice(String tickerSymbol) {
 		return kisClient.fetchClosingPrice(tickerSymbol, manager.createAuthorization());
+	}
+
+	public String fetchDividend(String tickerSymbol) {
+		return kisClient.fetchDividend(tickerSymbol, manager.createAuthorization());
+	}
+
+	public List<KisDividend> fetchDividendAll(LocalDate from, LocalDate to) {
+		return kisClient.fetchDividendAll(from, to, manager.createAuthorization()).stream()
+			.sorted()
+			.collect(Collectors.toList());
 	}
 }

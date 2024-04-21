@@ -43,6 +43,7 @@ import codesquad.fineants.domain.purchase_history.PurchaseHistoryRepository;
 import codesquad.fineants.domain.stock.Market;
 import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.domain.stock.StockRepository;
+import codesquad.fineants.domain.stock_dividend.StockDividendRepository;
 import codesquad.fineants.domain.stock_target_price.StockTargetPrice;
 import codesquad.fineants.domain.stock_target_price.StockTargetPriceRepository;
 import codesquad.fineants.domain.target_price_notification.TargetPriceNotification;
@@ -92,6 +93,9 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 	@Autowired
 	private NotificationPreferenceRepository notificationPreferenceRepository;
 
+	@Autowired
+	private StockDividendRepository stockDividendRepository;
+
 	@MockBean
 	private NotificationSentManager sentManager;
 
@@ -118,6 +122,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		portfolioRepository.deleteAllInBatch();
 		notificationPreferenceRepository.deleteAllInBatch();
 		memberRepository.deleteAllInBatch();
+		stockDividendRepository.deleteAllInBatch();
 		stockRepository.deleteAllInBatch();
 	}
 

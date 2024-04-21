@@ -142,18 +142,18 @@ public class PortfolioRestControllerDocsTest extends RestDocsSupport {
 			.andExpect(jsonPath("data.portfolios[0].securitiesFirm").value(equalTo(portFolioItem.getSecuritiesFirm())))
 			.andExpect(jsonPath("data.portfolios[0].name").value(equalTo(portFolioItem.getName())))
 			.andExpect(
-				jsonPath("data.portfolios[0].budget").value(equalTo(portFolioItem.getBudget().getAmount().intValue())))
+				jsonPath("data.portfolios[0].budget").value(equalTo(portFolioItem.getBudget().toInteger().intValue())))
 			.andExpect(jsonPath("data.portfolios[0].totalGain").value(
-				equalTo(portFolioItem.getTotalGain().getAmount().intValue())))
+				equalTo(portFolioItem.getTotalGain().toInteger().intValue())))
 			.andExpect(jsonPath("data.portfolios[0].totalGainRate").value(equalTo(portFolioItem.getTotalGainRate())))
 			.andExpect(jsonPath("data.portfolios[0].dailyGain").value(
-				equalTo(portFolioItem.getDailyGain().getAmount().intValue())))
+				equalTo(portFolioItem.getDailyGain().toInteger().intValue())))
 			.andExpect(jsonPath("data.portfolios[0].dailyGainRate").value(equalTo(portFolioItem.getDailyGainRate())))
 			.andExpect(
 				jsonPath("data.portfolios[0].currentValuation").value(
-					equalTo(portFolioItem.getCurrentValuation().getAmount().intValue())))
+					equalTo(portFolioItem.getCurrentValuation().toInteger().intValue())))
 			.andExpect(jsonPath("data.portfolios[0].expectedMonthlyDividend").value(
-				equalTo(portFolioItem.getExpectedMonthlyDividend().getAmount().intValue())))
+				equalTo(portFolioItem.getExpectedMonthlyDividend().toInteger().intValue())))
 			.andExpect(jsonPath("data.portfolios[0].numShares").value(
 				equalTo(portFolioItem.getNumShares().getValue().intValue())))
 			.andExpect(jsonPath("data.portfolios[0].dateCreated").isNotEmpty())

@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.function.Function;
@@ -103,11 +101,10 @@ public class NotificationService {
 		List<Portfolio> portfolios = portfolioRepository.findAllWithAll().stream()
 			.peek(portfolio -> portfolio.applyCurrentPriceAllHoldingsBy(currentPriceManager))
 			.collect(Collectors.toList());
-		Function<PortfolioNotifyMessageItem, CompletionStage<PortfolioNotifyMessageItem>> sentFunction = item -> CompletableFuture.supplyAsync(
-			() -> {
-				sentManager.addTargetGainSendHistory(Long.valueOf(item.getReferenceId()));
-				return item;
-			}, executor);
+		Function<PortfolioNotifyMessageItem, PortfolioNotifyMessageItem> sentFunction = item -> {
+			sentManager.addTargetGainSendHistory(Long.valueOf(item.getReferenceId()));
+			return item;
+		};
 		return notifyMessage(portfolios, targetGainNotificationPolicy, sentFunction);
 	}
 
@@ -118,11 +115,10 @@ public class NotificationService {
 			.peek(p -> p.applyCurrentPriceAllHoldingsBy(currentPriceManager))
 			.findFirst()
 			.orElseThrow(() -> new FineAntsException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
-		Function<PortfolioNotifyMessageItem, CompletionStage<PortfolioNotifyMessageItem>> sentFunction = item -> CompletableFuture.supplyAsync(
-			() -> {
-				sentManager.addTargetGainSendHistory(Long.valueOf(item.getReferenceId()));
-				return item;
-			}, executor);
+		Function<PortfolioNotifyMessageItem, PortfolioNotifyMessageItem> sentFunction = item -> {
+			sentManager.addTargetGainSendHistory(Long.valueOf(item.getReferenceId()));
+			return item;
+		};
 		return notifyMessage(List.of(portfolio), targetGainNotificationPolicy, sentFunction);
 	}
 
@@ -132,11 +128,10 @@ public class NotificationService {
 		List<Portfolio> portfolios = portfolioRepository.findAllWithAll().stream()
 			.peek(portfolio -> portfolio.applyCurrentPriceAllHoldingsBy(currentPriceManager))
 			.collect(Collectors.toList());
-		Function<PortfolioNotifyMessageItem, CompletionStage<PortfolioNotifyMessageItem>> sentFunction = item -> CompletableFuture.supplyAsync(
-			() -> {
-				sentManager.addMaxLossSendHistory(Long.valueOf(item.getReferenceId()));
-				return item;
-			}, executor);
+		Function<PortfolioNotifyMessageItem, PortfolioNotifyMessageItem> sentFunction = item -> {
+			sentManager.addMaxLossSendHistory(Long.valueOf(item.getReferenceId()));
+			return item;
+		};
 		return notifyMessage(portfolios, maximumLossNotificationPolicy, sentFunction);
 	}
 
@@ -147,18 +142,17 @@ public class NotificationService {
 			.stream().peek(p -> p.applyCurrentPriceAllHoldingsBy(currentPriceManager))
 			.findAny()
 			.orElseThrow(() -> new FineAntsException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
-		Function<PortfolioNotifyMessageItem, CompletionStage<PortfolioNotifyMessageItem>> sentFunction = item -> CompletableFuture.supplyAsync(
-			() -> {
-				sentManager.addMaxLossSendHistory(Long.valueOf(item.getReferenceId()));
-				return item;
-			}, executor);
+		Function<PortfolioNotifyMessageItem, PortfolioNotifyMessageItem> sentFunction = item -> {
+			sentManager.addMaxLossSendHistory(Long.valueOf(item.getReferenceId()));
+			return item;
+		};
 		return notifyMessage(List.of(portfolio), maximumLossNotificationPolicy, sentFunction);
 	}
 
 	private PortfolioNotifyMessagesResponse notifyMessage(
 		List<Portfolio> portfolios,
 		NotificationPolicy<Portfolio> policy,
-		Function<PortfolioNotifyMessageItem, CompletionStage<PortfolioNotifyMessageItem>> sentFunction) {
+		Function<PortfolioNotifyMessageItem, PortfolioNotifyMessageItem> sentFunction) {
 		// 포트폴리오별 FCM 토큰 리스트맵 생성
 		Map<Portfolio, List<String>> fcmTokenMap = portfolios.stream()
 			.collect(Collectors.toMap(
@@ -184,22 +178,19 @@ public class NotificationService {
 					() -> fcmService.deleteToken(notifyMessage.getToken()));
 		}
 
-		List<CompletableFuture<PortfolioNotifyMessageItem>> futures = sentNotifyMessages.stream()
+		List<PortfolioNotifyMessageItem> items = sentNotifyMessages.stream()
 			.distinct()
 			// 알림 저장
-			.map(message -> CompletableFuture.supplyAsync(() ->
-						this.saveNotification(PortfolioNotificationRequest.from(message.getNotifyMessage())),
-					executor
-				).thenCombine(CompletableFuture.supplyAsync(message::getMessageId, executor),
-					PortfolioNotifyMessageItem::from)
-			)
+			.map(message -> {
+				PortfolioNotificationResponse response = this.saveNotification(
+					PortfolioNotificationRequest.from(message.getNotifyMessage()));
+				String messageId = message.getMessageId();
+				return PortfolioNotifyMessageItem.from(response, messageId);
+			})
 			// 발송 이력 저장
-			.map(future -> future.thenCompose(sentFunction))
+			.map(sentFunction)
 			.collect(Collectors.toList());
-
-		List<PortfolioNotifyMessageItem> items = futures.stream()
-			.map(CompletableFuture::join)
-			.collect(Collectors.toList());
+		log.debug("notifyMessage : {}", items);
 		return PortfolioNotifyMessagesResponse.create(items);
 	}
 
@@ -211,11 +202,10 @@ public class NotificationService {
 			.map(StockTargetPrice::getTargetPriceNotifications)
 			.flatMap(Collection::stream)
 			.collect(Collectors.toList());
-		Function<TargetPriceNotifyMessageItem, CompletionStage<TargetPriceNotifyMessageItem>> sentFunction = item -> CompletableFuture.supplyAsync(
-			() -> {
-				sentManager.addTargetPriceSendHistory(item.getTargetPriceNotificationId());
-				return item;
-			}, executor);
+		Function<TargetPriceNotifyMessageItem, TargetPriceNotifyMessageItem> sentFunction = item -> {
+			sentManager.addTargetPriceSendHistory(item.getTargetPriceNotificationId());
+			return item;
+		};
 		return notifyTargetPrice(
 			targetPrices,
 			targetPriceNotificationPolicy,
@@ -232,11 +222,10 @@ public class NotificationService {
 			.flatMap(Collection::stream)
 			.collect(Collectors.toList());
 
-		Function<TargetPriceNotifyMessageItem, CompletionStage<TargetPriceNotifyMessageItem>> sentFunction = item -> CompletableFuture.supplyAsync(
-			() -> {
-				sentManager.addTargetPriceSendHistory(item.getTargetPriceNotificationId());
-				return item;
-			}, executor);
+		Function<TargetPriceNotifyMessageItem, TargetPriceNotifyMessageItem> sentFunction = item -> {
+			sentManager.addTargetPriceSendHistory(item.getTargetPriceNotificationId());
+			return item;
+		};
 		return notifyTargetPrice(
 			targetPrices,
 			targetPriceNotificationPolicy,
@@ -247,7 +236,7 @@ public class NotificationService {
 	private TargetPriceNotifyMessageResponse notifyTargetPrice(
 		List<TargetPriceNotification> targetPrices,
 		NotificationPolicy<TargetPriceNotification> policy,
-		Function<TargetPriceNotifyMessageItem, CompletionStage<TargetPriceNotifyMessageItem>> sentFunction) {
+		Function<TargetPriceNotifyMessageItem, TargetPriceNotifyMessageItem> sentFunction) {
 		log.debug("종목 지정가 알림 발송 서비스 시작, targetPrices={}", targetPrices);
 
 		// 지정가 알림별 FCM 토큰 리스트맵 생성
@@ -277,21 +266,17 @@ public class NotificationService {
 		}
 
 		// 알림 저장
-		List<CompletableFuture<TargetPriceNotifyMessageItem>> futures = sentNotifyMessages.stream()
+		List<TargetPriceNotifyMessageItem> items = sentNotifyMessages.stream()
 			.distinct()
 			// 알림 저장
-			.map(message -> CompletableFuture.supplyAsync(() ->
-						this.saveNotification(StockNotificationRequest.from(message.getNotifyMessage())),
-					executor
-				).thenCombine(CompletableFuture.supplyAsync(message::getMessageId, executor),
-					TargetPriceNotifyMessageItem::from)
-			)
+			.map(message -> {
+				TargetPriceNotificationResponse response = this.saveNotification(
+					StockNotificationRequest.from(message.getNotifyMessage()));
+				String messageId = message.getMessageId();
+				return TargetPriceNotifyMessageItem.from(response, messageId);
+			})
 			// 발송 이력 저장
-			.map(future -> future.thenCompose(sentFunction))
-			.collect(Collectors.toList());
-
-		List<TargetPriceNotifyMessageItem> items = futures.stream()
-			.map(CompletableFuture::join)
+			.map(sentFunction)
 			.collect(Collectors.toList());
 		log.debug("종목 지정가 알림 발송 서비스 결과, items={}", items);
 		return TargetPriceNotifyMessageResponse.from(items);
