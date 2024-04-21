@@ -17,16 +17,16 @@ import lombok.RequiredArgsConstructor;
 @Component
 @RequiredArgsConstructor
 public class S3BucketInitializer {
+	private static final String BUCKET_NAME = "fineants-secret";
 	private final AmazonS3 amazonS3;
 
 	@PostConstruct
 	public void init() {
-		String bucketName = "fineants-secret";
-		amazonS3.createBucket(bucketName);
+		amazonS3.createBucket(BUCKET_NAME);
 		// dividends.csv 파일 저장
 		try {
 			amazonS3.putObject(new PutObjectRequest(
-					bucketName,
+				BUCKET_NAME,
 					"dividend/dividends.csv",
 					new ClassPathResource("dividends.csv").getFile()
 				)

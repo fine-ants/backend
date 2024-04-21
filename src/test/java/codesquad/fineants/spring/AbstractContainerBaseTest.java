@@ -1,6 +1,5 @@
 package codesquad.fineants.spring;
 
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
@@ -19,7 +18,6 @@ import lombok.extern.slf4j.Slf4j;
 @Import(value = {S3BucketInitializer.class})
 @AutoConfigureWebTestClient
 @Testcontainers
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 public class AbstractContainerBaseTest {
 	private static final String MYSQL_IMAGE = "mysql:8.0.32";
 	private static final int MYSQL_PORT = 3306;
