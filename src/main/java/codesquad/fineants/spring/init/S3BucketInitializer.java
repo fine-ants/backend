@@ -26,7 +26,7 @@ public class S3BucketInitializer {
 		// dividends.csv 파일 저장
 		try {
 			amazonS3.putObject(new PutObjectRequest(
-				BUCKET_NAME,
+					BUCKET_NAME,
 					"dividend/dividends.csv",
 					new ClassPathResource("dividends.csv").getFile()
 				)
