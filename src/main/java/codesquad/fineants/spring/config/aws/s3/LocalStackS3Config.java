@@ -13,12 +13,13 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 
 @Profile(value = {"local", "test"})
-@Configuration
+@Configuration(proxyBeanMethods = false)
 public class LocalStackS3Config {
 	@Bean(initMethod = "start", destroyMethod = "stop")
 	public LocalStackContainer localStackContainer() {
 		try (LocalStackContainer container = new LocalStackContainer(DockerImageName.parse("localstack/localstack"))
-			.withServices(LocalStackContainer.Service.S3)) {
+			.withServices(LocalStackContainer.Service.S3)
+			.withReuse(true)) {
 			return container;
 		}
 	}
