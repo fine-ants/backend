@@ -1,4 +1,4 @@
-package codesquad.fineants.spring.api.portfolio;
+package codesquad.fineants.spring.api.portfolio_notification_setting.service;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -16,7 +16,6 @@ import codesquad.fineants.domain.portfolio.Portfolio;
 import codesquad.fineants.domain.portfolio.PortfolioRepository;
 import codesquad.fineants.spring.AbstractContainerBaseTest;
 import codesquad.fineants.spring.api.portfolio_notification_setting.response.PortfolioNotificationSettingSearchResponse;
-import codesquad.fineants.spring.api.portfolio_notification_setting.service.PortfolioNotificationSettingService;
 
 class PortfolioNotificationSettingServiceTest extends AbstractContainerBaseTest {
 	@Autowired

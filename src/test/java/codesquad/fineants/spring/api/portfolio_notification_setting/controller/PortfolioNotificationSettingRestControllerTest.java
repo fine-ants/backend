@@ -1,4 +1,4 @@
-package codesquad.fineants.spring.api.portfolio;
+package codesquad.fineants.spring.api.portfolio_notification_setting.controller;
 
 import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -27,7 +27,6 @@ import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.oauth.support.AuthPrincipalArgumentResolver;
 import codesquad.fineants.spring.api.common.errors.handler.GlobalExceptionHandler;
-import codesquad.fineants.spring.api.portfolio_notification_setting.controller.PortfolioNotificationSettingRestController;
 import codesquad.fineants.spring.api.portfolio_notification_setting.response.PortfolioNotificationSettingSearchItem;
 import codesquad.fineants.spring.api.portfolio_notification_setting.response.PortfolioNotificationSettingSearchResponse;
 import codesquad.fineants.spring.api.portfolio_notification_setting.service.PortfolioNotificationSettingService;
@@ -79,7 +78,7 @@ class PortfolioNotificationSettingRestControllerTest {
 						.name("포트폴리오 1")
 						.targetGainNotify(true)
 						.maxLossNotify(false)
-						.lastUpdated(now)
+						.createdAt(now)
 						.build(),
 					PortfolioNotificationSettingSearchItem.builder()
 						.portfolioId(2L)
@@ -87,7 +86,7 @@ class PortfolioNotificationSettingRestControllerTest {
 						.name("포트폴리오 2")
 						.targetGainNotify(true)
 						.maxLossNotify(false)
-						.lastUpdated(now)
+						.createdAt(now)
 						.build()))
 				.build());
 
@@ -102,13 +101,13 @@ class PortfolioNotificationSettingRestControllerTest {
 			.andExpect(jsonPath("data.portfolios[0].name").value(equalTo("포트폴리오 1")))
 			.andExpect(jsonPath("data.portfolios[0].targetGainNotify").value(equalTo(true)))
 			.andExpect(jsonPath("data.portfolios[0].maxLossNotify").value(equalTo(false)))
-			.andExpect(jsonPath("data.portfolios[0].lastUpdated").isNotEmpty())
+			.andExpect(jsonPath("data.portfolios[0].createdAt").isNotEmpty())
 			.andExpect(jsonPath("data.portfolios[1].portfolioId").value(equalTo(2)))
 			.andExpect(jsonPath("data.portfolios[1].securitiesFirm").value(equalTo("토스증권")))
 			.andExpect(jsonPath("data.portfolios[1].name").value(equalTo("포트폴리오 2")))
 			.andExpect(jsonPath("data.portfolios[1].targetGainNotify").value(equalTo(true)))
 			.andExpect(jsonPath("data.portfolios[1].maxLossNotify").value(equalTo(false)))
-			.andExpect(jsonPath("data.portfolios[1].lastUpdated").isNotEmpty());
+			.andExpect(jsonPath("data.portfolios[1].createdAt").isNotEmpty());
 	}
 
 	private Member createMember() {
