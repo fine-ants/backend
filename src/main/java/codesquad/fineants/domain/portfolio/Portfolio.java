@@ -119,12 +119,12 @@ public class Portfolio extends BaseEntity {
 		if (budget.isZero()) {
 			return;
 		}
-		// 목표 수익 금액이 예산 보다 큰지 검증
-		if (budget.compareTo(targetGain) >= 0) {
+		// 목표 수익 금액이 0원이 아닌 상태에서 예산 보다 큰지 검증
+		if (!targetGain.isZero() && budget.compareTo(targetGain) >= 0) {
 			throw new FineAntsException(PortfolioErrorCode.TARGET_GAIN_LOSS_IS_EQUAL_LESS_THAN_BUDGET);
 		}
 		// 최대 손실 금액이 예산 보다 작은지 검증
-		if (budget.compareTo(maximumLoss) <= 0) {
+		if (!maximumLoss.isZero() && budget.compareTo(maximumLoss) <= 0) {
 			throw new BadRequestException(PortfolioErrorCode.MAXIMUM_LOSS_IS_EQUAL_GREATER_THAN_BUDGET);
 		}
 	}
