@@ -94,7 +94,13 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 	}
 
 	@DisplayName("회원이 포트폴리오를 추가한다")
-	@CsvSource(value = {"토스증권,1000000,1500000,900000", "토스증권,0,0,0", "토스증권,0,1500000,900000"})
+	@CsvSource(value = {
+		"토스증권,1000000,1500000,900000",
+		"토스증권,0,0,0",
+		"토스증권,0,1500000,900000",
+		"토스증권,1000000,0,0",
+		"토스증권,1000000,1500000,0",
+		"토스증권,1000000,0,900000"})
 	@ParameterizedTest
 	void addPortfolio(String securitiesFirm, Long budget, Long targetGain, Long maximumLoss) {
 		// given
@@ -206,8 +212,13 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 	}
 
 	@DisplayName("회원이 포트폴리오를 수정한다")
-	@CsvSource(value = {"내꿈은 워렌버핏2,미래에셋증권,1000000,1500000,900000", "내꿈은 워렌버핏2,미래에셋증권,0,0,0",
-		"내꿈은 워렌버핏2,미래에셋증권,0,1500000,900000"})
+	@CsvSource(value = {
+		"내꿈은 워렌버핏2,미래에셋증권,1000000,1500000,900000",
+		"내꿈은 워렌버핏2,미래에셋증권,0,0,0",
+		"내꿈은 워렌버핏2,미래에셋증권,0,1500000,900000",
+		"내꿈은 워렌버핏2,미래에셋증권,1000000,0,0",
+		"내꿈은 워렌버핏2,미래에셋증권,1000000,1500000,0",
+		"내꿈은 워렌버핏2,미래에셋증권,1000000,0,900000"})
 	@ParameterizedTest
 	void updatePortfolio(String name, String securitiesFirm, Long budget, Long targetGain, Long maximumLoss) {
 		// given
