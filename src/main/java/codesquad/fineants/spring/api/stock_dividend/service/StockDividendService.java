@@ -78,7 +78,7 @@ public class StockDividendService {
 		// 0. 올해 말까지의 배당 일정을 조회
 		LocalDate to = now.with(TemporalAdjusters.lastDayOfYear());
 		List<KisDividend> kisDividends = kisService.fetchDividendAll(now, to);
-
+		
 		// 1. 새로운 배당 일정 탐색
 		Map<String, Stock> stockMap = getStockMapBy(kisDividends);
 

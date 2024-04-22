@@ -8,6 +8,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -23,7 +24,6 @@ import codesquad.fineants.spring.api.kis.properties.OauthKisProperties;
 import codesquad.fineants.spring.api.kis.response.KisClosingPrice;
 import codesquad.fineants.spring.api.kis.response.KisDividend;
 import codesquad.fineants.spring.api.kis.response.KisDividendWrapper;
-import codesquad.fineants.spring.util.ObjectMapperUtil;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
@@ -149,18 +149,14 @@ public class KisClient {
 		queryParamMap.add("T_DT", to.format(DateTimeFormatter.BASIC_ISO_DATE));
 		queryParamMap.add("SHT_CD", Strings.EMPTY);
 
-		Mono<String> jsonMono = performGet(
+		KisDividendWrapper result = performGet(
 			oauthKisProperties.getDividendURI(),
 			headerMap,
 			queryParamMap,
-			String.class,
+			KisDividendWrapper.class,
 			realWebClient
-		);
-
-		return jsonMono.map(json -> {
-			KisDividendWrapper wrapper = ObjectMapperUtil.deserialize(json, KisDividendWrapper.class);
-			return wrapper.getKisDividends();
-		}).block(TIMEOUT);
+		).block(TIMEOUT);
+		return Objects.requireNonNull(result).getKisDividends();
 	}
 
 	private <T> Mono<T> performGet(String uri, MultiValueMap<String, String> headerMap,
@@ -185,7 +181,7 @@ public class KisClient {
 
 	private Mono<? extends Throwable> handleError(ClientResponse clientResponse) {
 		return clientResponse.bodyToMono(String.class)
-			.doOnNext(log::info)
+			.doOnNext(log::error)
 			.flatMap(body -> Mono.error(() -> new KisException(body)));
 	}
 }
