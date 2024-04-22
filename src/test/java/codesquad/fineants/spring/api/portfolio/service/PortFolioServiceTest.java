@@ -1,4 +1,4 @@
-package codesquad.fineants.spring.api.portfolio;
+package codesquad.fineants.spring.api.portfolio.service;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -47,6 +47,7 @@ import codesquad.fineants.domain.stock_dividend.StockDividend;
 import codesquad.fineants.spring.AbstractContainerBaseTest;
 import codesquad.fineants.spring.api.common.errors.exception.BadRequestException;
 import codesquad.fineants.spring.api.common.errors.exception.ConflictException;
+import codesquad.fineants.spring.api.common.errors.exception.FineAntsException;
 import codesquad.fineants.spring.api.common.errors.exception.ForBiddenException;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.portfolio.request.PortfolioCreateRequest;
@@ -54,7 +55,6 @@ import codesquad.fineants.spring.api.portfolio.request.PortfolioModifyRequest;
 import codesquad.fineants.spring.api.portfolio.request.PortfoliosDeleteRequest;
 import codesquad.fineants.spring.api.portfolio.response.PortFolioCreateResponse;
 import codesquad.fineants.spring.api.portfolio.response.PortfoliosResponse;
-import codesquad.fineants.spring.api.portfolio.service.PortFolioService;
 import codesquad.fineants.spring.util.ObjectMapperUtil;
 
 class PortFolioServiceTest extends AbstractContainerBaseTest {
@@ -135,9 +135,8 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 
 		// then
 		assertThat(throwable)
-			.isInstanceOf(BadRequestException.class)
-			.extracting("message")
-			.isEqualTo("목표 수익금액은 예산보다 커야 합니다");
+			.isInstanceOf(FineAntsException.class)
+			.hasMessage("목표 수익금액은 예산보다 커야 합니다");
 	}
 
 	@DisplayName("회원은 포트폴리오를 추가할때 최대손실율이 예산보다 같거나 크면 안된다")
@@ -334,7 +333,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 
 		// then
 		assertThat(throwable)
-			.isInstanceOf(BadRequestException.class)
+			.isInstanceOf(FineAntsException.class)
 			.hasMessage("목표 수익금액은 예산보다 커야 합니다");
 	}
 
