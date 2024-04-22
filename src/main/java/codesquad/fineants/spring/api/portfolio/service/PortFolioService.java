@@ -8,7 +8,6 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.member.MemberRepository;
 import codesquad.fineants.domain.oauth.support.AuthMember;
@@ -52,8 +51,6 @@ public class PortFolioService {
 
 	@Transactional
 	public PortFolioCreateResponse createPortfolio(PortfolioCreateRequest request, AuthMember authMember) {
-		validateTargetGainIsEqualLessThanBudget(request.getTargetGain(), request.getBudget());
-		validateMaximumLossIsEqualGraterThanBudget(request.getMaximumLoss(), request.getBudget());
 		validateSecuritiesFirm(request.getSecuritiesFirm());
 
 		Member member = findMember(authMember.getMemberId());
@@ -66,18 +63,6 @@ public class PortFolioService {
 	private Member findMember(Long memberId) {
 		return memberRepository.findById(memberId)
 			.orElseThrow(() -> new NotFoundResourceException(MemberErrorCode.NOT_FOUND_MEMBER));
-	}
-
-	private void validateTargetGainIsEqualLessThanBudget(Money targetGain, Money budget) {
-		if (budget.compareTo(Money.zero()) > 0 && targetGain.compareTo(budget) <= 0) {
-			throw new BadRequestException(PortfolioErrorCode.TARGET_GAIN_LOSS_IS_EQUAL_LESS_THAN_BUDGET);
-		}
-	}
-
-	private void validateMaximumLossIsEqualGraterThanBudget(Money maximumLoss, Money budget) {
-		if (budget.compareTo(Money.zero()) > 0 && maximumLoss.compareTo(budget) >= 0) {
-			throw new BadRequestException(PortfolioErrorCode.MAXIMUM_LOSS_IS_EQUAL_GREATER_THAN_BUDGET);
-		}
 	}
 
 	private void validateSecuritiesFirm(String securitiesFirm) {
@@ -96,10 +81,6 @@ public class PortFolioService {
 	public PortfolioModifyResponse updatePortfolio(PortfolioModifyRequest request, Long portfolioId,
 		AuthMember authMember) {
 		log.info("포트폴리오 수정 서비스 요청 : request={}, portfolioId={}, authMember={}", request, portfolioId, authMember);
-
-		validateTargetGainIsEqualLessThanBudget(request.getTargetGain(), request.getBudget());
-		validateMaximumLossIsEqualGraterThanBudget(request.getMaximumLoss(), request.getBudget());
-
 		Member member = findMember(authMember.getMemberId());
 		Portfolio originalPortfolio = findPortfolio(portfolioId);
 		Portfolio changePortfolio = request.toEntity(member);

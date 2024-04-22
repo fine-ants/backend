@@ -35,6 +35,9 @@ import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.notification.type.NotificationType;
 import codesquad.fineants.domain.portfolio_gain_history.PortfolioGainHistory;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
+import codesquad.fineants.spring.api.common.errors.errorcode.PortfolioErrorCode;
+import codesquad.fineants.spring.api.common.errors.exception.BadRequestException;
+import codesquad.fineants.spring.api.common.errors.exception.FineAntsException;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.notification.manager.NotificationSentManager;
 import codesquad.fineants.spring.api.notification.response.NotifyMessage;
@@ -91,9 +94,16 @@ public class Portfolio extends BaseEntity {
 	@OneToMany(mappedBy = "portfolio")
 	private final List<PortfolioHolding> portfolioHoldings = new ArrayList<>();
 
+	private Portfolio(String name, String securitiesFirm, Money budget, Money targetGain, Money maximumLoss,
+		Boolean targetGainIsActive, Boolean maximumLossIsActive, Member member) {
+		this(null, name, securitiesFirm, budget, targetGain, maximumLoss, targetGainIsActive, maximumLossIsActive,
+			member);
+	}
+
 	@Builder
 	public Portfolio(Long id, String name, String securitiesFirm, Money budget, Money targetGain, Money maximumLoss,
 		Boolean targetGainIsActive, Boolean maximumLossIsActive, Member member) {
+		validateBudget(budget, targetGain, maximumLoss);
 		this.id = id;
 		this.name = name;
 		this.securitiesFirm = securitiesFirm;
@@ -103,6 +113,25 @@ public class Portfolio extends BaseEntity {
 		this.targetGainIsActive = targetGainIsActive;
 		this.maximumLossIsActive = maximumLossIsActive;
 		this.member = member;
+	}
+
+	private void validateBudget(Money budget, Money targetGain, Money maximumLoss) {
+		if (budget.isZero()) {
+			return;
+		}
+		// 목표 수익 금액이 예산 보다 큰지 검증
+		if (budget.compareTo(targetGain) >= 0) {
+			throw new FineAntsException(PortfolioErrorCode.TARGET_GAIN_LOSS_IS_EQUAL_LESS_THAN_BUDGET);
+		}
+		// 최대 손실 금액이 예산 보다 작은지 검증
+		if (budget.compareTo(maximumLoss) <= 0) {
+			throw new BadRequestException(PortfolioErrorCode.MAXIMUM_LOSS_IS_EQUAL_GREATER_THAN_BUDGET);
+		}
+	}
+
+	public static Portfolio noActive(String name, String securitiesFirm, Money budget, Money targetGain,
+		Money maximumLoss, Member member) {
+		return new Portfolio(name, securitiesFirm, budget, targetGain, maximumLoss, false, false, member);
 	}
 
 	//== 연관관계 메소드 ==//

@@ -6,7 +6,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import org.assertj.core.groups.Tuple;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
@@ -23,43 +22,12 @@ import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioSectorCha
 @ActiveProfiles("test")
 class PortfolioTest {
 
-	private Portfolio portfolio;
-
-	private Stock stock;
-
-	private Stock stock2;
-
-	@BeforeEach
-	void init() {
-		portfolio = Portfolio.builder()
-			.budget(Money.from(1000000L))
-			.targetGain(Money.from(1500000L))
-			.maximumLoss(Money.from(900000L))
-			.build();
-
-		stock = Stock.builder()
-			.stockCode("KR7005930003")
-			.tickerSymbol("005930")
-			.companyName("삼성전자보통주")
-			.companyNameEng("SamsungElectronics")
-			.market(Market.KOSPI)
-			.sector("전기전자")
-			.build();
-
-		stock2 = Stock.builder()
-			.stockCode("KR7000020008")
-			.tickerSymbol("000020")
-			.companyName("동화약품보통주")
-			.companyNameEng("DongwhaPharm")
-			.market(Market.KOSPI)
-			.sector("의약품")
-			.build();
-	}
-
 	@DisplayName("포트폴리오의 총 손익을 계산한다")
 	@Test
 	void calculateTotalGain() {
 		// given
+		Portfolio portfolio = createPortfolio();
+		Stock stock = createSamsungStock();
 		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock, Money.from(20000L));
 
 		PurchaseHistory purchaseHistory1 = PurchaseHistory.builder()
@@ -92,6 +60,8 @@ class PortfolioTest {
 	@Test
 	void calculateTotalReturnRate() {
 		// given
+		Portfolio portfolio = createPortfolio();
+		Stock stock = createSamsungStock();
 		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock, Money.from(20000L));
 
 		PurchaseHistory purchaseHistory1 = PurchaseHistory.builder()
@@ -122,6 +92,9 @@ class PortfolioTest {
 	@Test
 	void createPieChart() {
 		// given
+		Portfolio portfolio = createPortfolio();
+		Stock stock = createSamsungStock();
+		Stock stock2 = createDongHwa();
 		PortfolioHolding holding1 = PortfolioHolding.of(portfolio, stock, Money.from(20000L));
 		PortfolioHolding holding2 = PortfolioHolding.of(portfolio, stock2, Money.from(20000L));
 
@@ -164,6 +137,9 @@ class PortfolioTest {
 	@Test
 	void createSectorChart() {
 		// given
+		Portfolio portfolio = createPortfolio();
+		Stock stock = createSamsungStock();
+		Stock stock2 = createDongHwa();
 		PortfolioHolding holding1 = PortfolioHolding.of(portfolio, stock, Money.from(20000L));
 		PortfolioHolding holding2 = PortfolioHolding.of(portfolio, stock2, Money.from(20000L));
 
@@ -196,5 +172,35 @@ class PortfolioTest {
 			.hasSize(3)
 			.extracting("sector")
 			.containsExactlyInAnyOrder("현금", "의약품", "전기전자");
+	}
+
+	private Portfolio createPortfolio() {
+		return Portfolio.builder()
+			.budget(Money.from(1000000L))
+			.targetGain(Money.from(1500000L))
+			.maximumLoss(Money.from(900000L))
+			.build();
+	}
+
+	private Stock createSamsungStock() {
+		return Stock.builder()
+			.stockCode("KR7005930003")
+			.tickerSymbol("005930")
+			.companyName("삼성전자보통주")
+			.companyNameEng("SamsungElectronics")
+			.market(Market.KOSPI)
+			.sector("전기전자")
+			.build();
+	}
+
+	private Stock createDongHwa() {
+		return Stock.builder()
+			.stockCode("KR7000020008")
+			.tickerSymbol("000020")
+			.companyName("동화약품보통주")
+			.companyNameEng("DongwhaPharm")
+			.market(Market.KOSPI)
+			.sector("의약품")
+			.build();
 	}
 }

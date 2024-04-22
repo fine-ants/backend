@@ -19,7 +19,6 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.firebase.messaging.Message;
 
 import codesquad.fineants.domain.common.count.Count;
@@ -70,9 +69,6 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 
 	@Autowired
 	private StockRepository stockRepository;
-
-	@Autowired
-	private ObjectMapper objectMapper;
 
 	@Autowired
 	private PurchaseHistoryRepository purchaseHistoryRepository;
@@ -479,7 +475,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 			.name("내꿈은 워렌버핏")
 			.securitiesFirm("토스")
 			.budget(Money.from(budget))
-			.targetGain(Money.from(1500000L))
+			.targetGain(Money.from(budget).add(Money.from(100000L)))
 			.maximumLoss(Money.from(900000L))
 			.member(member)
 			.targetGainIsActive(true)

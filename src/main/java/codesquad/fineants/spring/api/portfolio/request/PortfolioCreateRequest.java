@@ -29,15 +29,6 @@ public class PortfolioCreateRequest {
 	private Money maximumLoss;
 
 	public Portfolio toEntity(Member member) {
-		return Portfolio.builder()
-			.name(name)
-			.securitiesFirm(securitiesFirm)
-			.budget(budget)
-			.targetGain(targetGain)
-			.maximumLoss(maximumLoss)
-			.targetGainIsActive(false)
-			.maximumLossIsActive(false)
-			.member(member)
-			.build();
+		return Portfolio.noActive(name, securitiesFirm, budget, targetGain, maximumLoss, member);
 	}
 }
