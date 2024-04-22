@@ -80,7 +80,7 @@ class KisClientTest extends AbstractContainerBaseTest {
 			.expectComplete()
 			.verify();
 	}
-
+	
 	private Map<String, String> createError() {
 		Map<String, String> responseBody = new HashMap<>();
 		responseBody.put("error_description", "접근토큰 발급 잠시 후 다시 시도하세요(1분당 1회)");
