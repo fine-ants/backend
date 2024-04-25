@@ -159,9 +159,9 @@ public class StockRestControllerDocsTest extends RestDocsSupport {
 		LastDayClosingPriceManager lastDayClosingPriceManager = Mockito.mock(LastDayClosingPriceManager.class);
 
 		given(currentPriceManager.getCurrentPrice(stock.getTickerSymbol()))
-			.willReturn(Optional.of(Money.from(68000L)));
+			.willReturn(Optional.of(Money.won(68000L)));
 		given(lastDayClosingPriceManager.getClosingPrice(stock.getTickerSymbol()))
-			.willReturn(Optional.of(Money.from(80000L)));
+			.willReturn(Optional.of(Money.won(80000L)));
 		given(service.getStock(stock.getTickerSymbol()))
 			.willReturn(StockResponse.create(
 				stock.getStockCode(),
@@ -169,11 +169,11 @@ public class StockRestControllerDocsTest extends RestDocsSupport {
 				stock.getCompanyName(),
 				stock.getCompanyNameEng(),
 				stock.getMarket(),
-				Money.from(68000L),
-				Money.from(12000L),
+				Money.won(68000L),
+				Money.won(12000L),
 				20.45,
 				stock.getSector(),
-				Money.from(6000L),
+				Money.won(6000L),
 				10.00,
 				List.of(1, 4)
 			));

@@ -85,7 +85,7 @@ class MemberNotificationServiceTest extends AbstractContainerBaseTest {
 				MemberNotification.builder()
 					.notificationId(notifications.get(0).getId())
 					.title("지정가")
-					.body(NotificationBody.stock("삼성전자", Money.from(60000L)))
+					.body(NotificationBody.stock("삼성전자", Money.won(60000L)))
 					.timestamp(LocalDateTime.of(2024, 1, 22, 10, 10, 10))
 					.isRead(true)
 					.type(STOCK_TARGET_PRICE.getCategory())
@@ -196,7 +196,7 @@ class MemberNotificationServiceTest extends AbstractContainerBaseTest {
 		return List.of(
 			Notification.stock(
 				"삼성전자일반주",
-				Money.from(60000L),
+				Money.won(60000L),
 				"종목 지정가",
 				"005930",
 				"messageId",

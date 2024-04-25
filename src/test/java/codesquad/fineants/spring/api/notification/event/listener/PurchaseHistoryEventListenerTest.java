@@ -83,7 +83,7 @@ class PurchaseHistoryEventListenerTest extends AbstractContainerBaseTest {
 		given(firebaseMessaging.send(any(Message.class)))
 			.willReturn("projects/fineants-404407/messages/4754d355-5d5d-4f14-a642-75fecdb91fa5");
 		given(currentPriceManager.getCurrentPrice(anyString()))
-			.willReturn(Optional.of(Money.from(50000L)));
+			.willReturn(Optional.of(Money.won(50000L)));
 
 		Member member = memberRepository.save(createMember());
 		notificationPreferenceRepository.save(NotificationPreference.builder()
@@ -121,9 +121,9 @@ class PurchaseHistoryEventListenerTest extends AbstractContainerBaseTest {
 		return Portfolio.builder()
 			.name("내꿈은 워렌버핏")
 			.securitiesFirm("토스")
-			.budget(Money.from(1000000L))
-			.targetGain(Money.from(1500000L))
-			.maximumLoss(Money.from(900000L))
+			.budget(Money.won(1000000L))
+			.targetGain(Money.won(1500000L))
+			.maximumLoss(Money.won(900000L))
 			.member(member)
 			.targetGainIsActive(false)
 			.maximumLossIsActive(false)
@@ -161,7 +161,7 @@ class PurchaseHistoryEventListenerTest extends AbstractContainerBaseTest {
 		return PurchaseHistory.builder()
 			.purchaseDate(LocalDateTime.of(2023, 9, 26, 9, 30, 0))
 			.numShares(Count.from(numShares))
-			.purchasePricePerShare(Money.from(purchasePricePerShare))
+			.purchasePricePerShare(Money.won(purchasePricePerShare))
 			.memo("첫구매")
 			.portfolioHolding(portfolioHolding)
 			.build();

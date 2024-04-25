@@ -24,7 +24,7 @@ class PurchaseHistoryItemTest {
 			.id(1L)
 			.purchaseDate(now)
 			.numShares(Count.from(3L))
-			.purchasePricePerShare(Money.from(30000.0))
+			.purchasePricePerShare(Money.won(30000.0))
 			.memo("첫구매")
 			.build();
 		// when
@@ -44,7 +44,7 @@ class PurchaseHistoryItemTest {
 				1L,
 				now,
 				Count.from(3L),
-				Money.from(30000L),
+				Money.won(30000L),
 				"첫구매"
 			);
 	}

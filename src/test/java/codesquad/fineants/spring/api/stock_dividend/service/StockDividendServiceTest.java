@@ -93,43 +93,43 @@ class StockDividendServiceTest extends AbstractContainerBaseTest {
 		)).willReturn(List.of(
 			KisDividend.create(
 				samsungTickerSymbol,
-				Money.from(samsungDividend),
+				Money.won(samsungDividend),
 				LocalDate.of(2023, 3, 31),
 				LocalDate.of(2023, 5, 17)
 			),
 			KisDividend.create(
 				samsungTickerSymbol,
-				Money.from(samsungDividend),
+				Money.won(samsungDividend),
 				LocalDate.of(2023, 6, 30),
 				LocalDate.of(2023, 8, 16)
 			),
 			KisDividend.create(
 				samsungTickerSymbol,
-				Money.from(samsungDividend),
+				Money.won(samsungDividend),
 				LocalDate.of(2023, 9, 30),
 				LocalDate.of(2023, 11, 20)
 			),
 			KisDividend.create(
 				samsungTickerSymbol,
-				Money.from(samsungDividend),
+				Money.won(samsungDividend),
 				LocalDate.of(2023, 12, 31),
 				LocalDate.of(2024, 4, 19)
 			),
 			KisDividend.create(
 				samsungTickerSymbol,
-				Money.from(samsungDividend),
+				Money.won(samsungDividend),
 				LocalDate.of(2024, 3, 31),
 				LocalDate.of(2024, 5, 17) // 기존 데이터에서 새로운 현금 배당 지급일이 할당된 경우
 			),
 			KisDividend.create(
 				samsungTickerSymbol,
-				Money.from(samsungDividend),
+				Money.won(samsungDividend),
 				LocalDate.of(2024, 6, 30), // 새로운 배당 기준일이 생긴 경우
 				null
 			),
 			KisDividend.create(
 				kakaoTickerSymbol,
-				Money.from(kakaoDividend),
+				Money.won(kakaoDividend),
 				LocalDate.of(2024, 2, 29),
 				null
 			)
@@ -217,58 +217,58 @@ class StockDividendServiceTest extends AbstractContainerBaseTest {
 	private List<StockDividend> createSamsungDividends(Stock stock) {
 		return List.of(
 			createStockDividend(
-				Money.from(361L),
+				Money.won(361L),
 				LocalDate.of(2022, 3, 31),
 				LocalDate.of(2022, 3, 30),
 				LocalDate.of(2022, 5, 17),
 				stock
 			),
 			createStockDividend(
-				Money.from(361L),
+				Money.won(361L),
 				LocalDate.of(2022, 6, 30),
 				LocalDate.of(2022, 6, 29),
 				LocalDate.of(2022, 8, 16),
 				stock
 			),
 			createStockDividend(
-				Money.from(361L),
+				Money.won(361L),
 				LocalDate.of(2022, 9, 30),
 				LocalDate.of(2022, 9, 29),
 				LocalDate.of(2022, 11, 15),
 				stock
 			),
 			createStockDividend(
-				Money.from(361L),
+				Money.won(361L),
 				LocalDate.of(2022, 12, 31),
 				LocalDate.of(2022, 12, 30),
 				LocalDate.of(2023, 4, 14),
 				stock),
 			createStockDividend(
-				Money.from(361L),
+				Money.won(361L),
 				LocalDate.of(2023, 3, 31),
 				LocalDate.of(2023, 3, 30),
 				LocalDate.of(2023, 5, 17),
 				stock),
 			createStockDividend(
-				Money.from(361L),
+				Money.won(361L),
 				LocalDate.of(2023, 6, 30),
 				LocalDate.of(2023, 6, 29),
 				LocalDate.of(2023, 8, 16),
 				stock),
 			createStockDividend(
-				Money.from(361L),
+				Money.won(361L),
 				LocalDate.of(2023, 9, 30),
 				LocalDate.of(2023, 9, 27),
 				LocalDate.of(2023, 11, 20),
 				stock),
 			createStockDividend(
-				Money.from(361L),
+				Money.won(361L),
 				LocalDate.of(2023, 12, 31),
 				LocalDate.of(2023, 12, 28),
 				LocalDate.of(2024, 4, 19),
 				stock),
 			createStockDividend(
-				Money.from(361L),
+				Money.won(361L),
 				LocalDate.of(2024, 3, 31),
 				LocalDate.of(2024, 3, 29),
 				null,
@@ -279,14 +279,14 @@ class StockDividendServiceTest extends AbstractContainerBaseTest {
 	private List<StockDividend> createKakaoDividends(Stock stock) {
 		return List.of(
 			createStockDividend(
-				Money.from(61L),
+				Money.won(61L),
 				LocalDate.of(2022, 12, 31),
 				LocalDate.of(2022, 12, 30),
 				LocalDate.of(2023, 4, 25),
 				stock
 			),
 			createStockDividend(
-				Money.from(61L),
+				Money.won(61L),
 				LocalDate.of(2024, 2, 29),
 				LocalDate.of(2024, 2, 28),
 				null,

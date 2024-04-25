@@ -295,7 +295,7 @@ class MemberNotificationRestControllerTest {
 			MemberNotification.builder()
 				.notificationId(1L)
 				.title("지정가")
-				.body(NotificationBody.stock("삼성전자", Money.from(60000L)))
+				.body(NotificationBody.stock("삼성전자", Money.won(60000L)))
 				.timestamp(LocalDateTime.of(2024, 1, 22, 10, 10, 10))
 				.isRead(true)
 				.type(STOCK_TARGET_PRICE.getCategory())

@@ -99,9 +99,9 @@ public abstract class RestDocsSupport {
 			.id(1L)
 			.name("내꿈은 워렌버핏")
 			.securitiesFirm("토스")
-			.budget(Money.from(1000000L))
-			.targetGain(Money.from(1500000L))
-			.maximumLoss(Money.from(900000L))
+			.budget(Money.won(1000000L))
+			.targetGain(Money.won(1500000L))
+			.maximumLoss(Money.won(900000L))
 			.targetGainIsActive(true)
 			.maximumLossIsActive(true)
 			.member(member)
@@ -113,7 +113,7 @@ public abstract class RestDocsSupport {
 			.id(1L)
 			.portfolio(portfolio)
 			.stock(stock)
-			.currentPrice(Money.from(60000L))
+			.currentPrice(Money.won(60000L))
 			.build();
 	}
 
@@ -122,7 +122,7 @@ public abstract class RestDocsSupport {
 			.id(1L)
 			.purchaseDate(purchaseDate)
 			.numShares(Count.from(3L))
-			.purchasePricePerShare(Money.from(50000.0))
+			.purchasePricePerShare(Money.won(50000.0))
 			.memo("첫구매")
 			.portfolioHolding(portfolioHolding)
 			.build();
@@ -135,7 +135,7 @@ public abstract class RestDocsSupport {
 	protected StockDividend createStockDividend(LocalDate exDividendDate, LocalDate recordDate, LocalDate paymentDate,
 		Stock stock) {
 		return StockDividend.builder()
-			.dividend(Money.from(361L))
+			.dividend(Money.won(361L))
 			.exDividendDate(exDividendDate)
 			.recordDate(recordDate)
 			.paymentDate(paymentDate)
@@ -231,7 +231,7 @@ public abstract class RestDocsSupport {
 	protected TargetPriceNotification createTargetPriceNotification(StockTargetPrice stockTargetPrice) {
 		return TargetPriceNotification.builder()
 			.id(1L)
-			.targetPrice(Money.from(60000L))
+			.targetPrice(Money.won(60000L))
 			.stockTargetPrice(stockTargetPrice)
 			.build();
 	}

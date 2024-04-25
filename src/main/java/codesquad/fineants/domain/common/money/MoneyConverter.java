@@ -14,6 +14,6 @@ public class MoneyConverter implements AttributeConverter<Money, BigDecimal> {
 
 	@Override
 	public Money convertToEntityAttribute(BigDecimal dbData) {
-		return Money.from(dbData);
+		return Money.won(dbData);
 	}
 }

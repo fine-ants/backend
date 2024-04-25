@@ -109,9 +109,9 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 		Portfolio portfolio = portfolioRepository.save(Portfolio.builder()
 			.name("내꿈은 워렌버핏")
 			.securitiesFirm("토스")
-			.budget(Money.from(1000000L))
-			.targetGain(Money.from(1500000L))
-			.maximumLoss(Money.from(900000L))
+			.budget(Money.won(1000000L))
+			.targetGain(Money.won(1500000L))
+			.maximumLoss(Money.won(900000L))
 			.member(member)
 			.build());
 		Stock stock = stockRepository.save(Stock.builder()
@@ -124,13 +124,13 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 		stockDividendRepository.saveAll(createStockDividendWith(stock));
 
 		PortfolioHolding portfolioHolding = portfolioHoldingRepository.save(
-			PortfolioHolding.of(portfolio, stock, Money.from(72900L)));
+			PortfolioHolding.of(portfolio, stock, Money.won(72900L)));
 
 		PurchaseHistory purchaseHistory = purchaseHistoryRepository.save(
 			PurchaseHistory.builder()
 				.portfolioHolding(portfolioHolding)
 				.purchaseDate(LocalDateTime.now())
-				.purchasePricePerShare(Money.from(50000.0))
+				.purchasePricePerShare(Money.won(50000.0))
 				.numShares(Count.from(3L))
 				.build()
 		);
@@ -138,7 +138,7 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 		given(currentPriceManager.hasCurrentPrice(anyString()))
 			.willReturn(true);
 		given(currentPriceManager.getCurrentPrice(anyString()))
-			.willReturn(Optional.of(Money.from(72900L)));
+			.willReturn(Optional.of(Money.won(72900L)));
 		// when
 		OverviewResponse response = dashboardService.getOverview(authMember);
 
@@ -156,11 +156,11 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 				).usingComparatorForType(Money::compareTo, Money.class)
 				.containsExactlyInAnyOrder(
 					member.getNickname(),
-					Money.from(1068700L),
-					Money.from(150000L),
-					Money.from(68700L),
+					Money.won(1068700L),
+					Money.won(150000L),
+					Money.won(68700L),
 					45.8,
-					Money.from(3249L),
+					Money.won(3249L),
 					1.49
 				)
 		);
@@ -178,7 +178,7 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 		given(currentPriceManager.hasCurrentPrice(anyString()))
 			.willReturn(true);
 		given(currentPriceManager.getCurrentPrice(anyString()))
-			.willReturn(Optional.of(Money.from(50000L)));
+			.willReturn(Optional.of(Money.won(50000L)));
 
 		// when
 		OverviewResponse response = dashboardService.getOverview(AuthMember.from(member));
@@ -196,7 +196,7 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 			).usingComparatorForType(Money::compareTo, Money.class)
 			.containsExactlyInAnyOrder(
 				member.getNickname(),
-				Money.from(1000000L),
+				Money.won(1000000L),
 				Money.zero(),
 				Money.zero(),
 				0.00,
@@ -214,17 +214,17 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 		Portfolio portfolio = portfolioRepository.save(Portfolio.builder()
 			.name("내꿈은 워렌버핏")
 			.securitiesFirm("토스")
-			.budget(Money.from(1000000L))
-			.targetGain(Money.from(1500000L))
-			.maximumLoss(Money.from(900000L))
+			.budget(Money.won(1000000L))
+			.targetGain(Money.won(1500000L))
+			.maximumLoss(Money.won(900000L))
 			.member(member)
 			.build());
 		Portfolio portfolio1 = portfolioRepository.save(Portfolio.builder()
 			.name("내꿈은 워렌버핏1")
 			.securitiesFirm("토스")
-			.budget(Money.from(1000000L))
-			.targetGain(Money.from(1500000L))
-			.maximumLoss(Money.from(900000L))
+			.budget(Money.won(1000000L))
+			.targetGain(Money.won(1500000L))
+			.maximumLoss(Money.won(900000L))
 			.member(member)
 			.build());
 		Stock stock = stockRepository.save(Stock.builder()
@@ -236,15 +236,15 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 			.build());
 
 		PortfolioHolding holding1 = portfolioHoldingRepository.save(
-			PortfolioHolding.of(portfolio, stock, Money.from(100L)));
+			PortfolioHolding.of(portfolio, stock, Money.won(100L)));
 		PortfolioHolding holding2 = portfolioHoldingRepository.save(
-			PortfolioHolding.of(portfolio1, stock, Money.from(100L)));
+			PortfolioHolding.of(portfolio1, stock, Money.won(100L)));
 
 		purchaseHistoryRepository.save(PurchaseHistory.of(holding1,
 			PurchaseHistoryCreateRequest.create(
 				LocalDateTime.now(),
 				Count.from(3L),
-				Money.from(70000.0),
+				Money.won(70000.0),
 				"첫구매"
 			)
 		));
@@ -252,7 +252,7 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 			PurchaseHistoryCreateRequest.create(
 				LocalDateTime.now(),
 				Count.from(3L),
-				Money.from(60000.0),
+				Money.won(60000.0),
 				"첫구매"
 			)
 		));
@@ -260,7 +260,7 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 		given(currentPriceManager.hasCurrentPrice(anyString()))
 			.willReturn(true);
 		given(currentPriceManager.getCurrentPrice(anyString()))
-			.willReturn(Optional.of(Money.from(60000L)));
+			.willReturn(Optional.of(Money.won(60000L)));
 		// when
 		List<DashboardPieChartResponse> responses = dashboardService.getPieChart(authMember);
 
@@ -285,23 +285,23 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 		Portfolio portfolio = portfolioRepository.save(Portfolio.builder()
 			.name("내꿈은 워렌버핏")
 			.securitiesFirm("토스")
-			.budget(Money.from(1000000L))
-			.targetGain(Money.from(1500000L))
-			.maximumLoss(Money.from(900000L))
+			.budget(Money.won(1000000L))
+			.targetGain(Money.won(1500000L))
+			.maximumLoss(Money.won(900000L))
 			.member(member)
 			.build());
 		PortfolioGainHistory portfolioGainHistory = portfolioGainHistoryRepository.save(PortfolioGainHistory.builder()
-			.totalGain(Money.from(100L))
-			.dailyGain(Money.from(50L))
-			.currentValuation(Money.from(60L))
-			.cash(Money.from(20L))
+			.totalGain(Money.won(100L))
+			.dailyGain(Money.won(50L))
+			.currentValuation(Money.won(60L))
+			.cash(Money.won(20L))
 			.portfolio(portfolio)
 			.build());
 		PortfolioGainHistory portfolioGainHistory1 = portfolioGainHistoryRepository.save(PortfolioGainHistory.builder()
-			.totalGain(Money.from(100L))
-			.dailyGain(Money.from(50L))
-			.currentValuation(Money.from(60L))
-			.cash(Money.from(20L))
+			.totalGain(Money.won(100L))
+			.dailyGain(Money.won(50L))
+			.currentValuation(Money.won(60L))
+			.cash(Money.won(20L))
 			.portfolio(portfolio)
 			.build());
 
@@ -315,7 +315,7 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 				.usingComparatorForType(Money::compareTo, Money.class)
 				.containsExactly(
 					LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
-					Money.from(160L)
+					Money.won(160L)
 				),
 			() -> assertThat(responses.size()).isEqualTo(1)
 		);
@@ -338,9 +338,9 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 		return Portfolio.builder()
 			.name("내꿈은 워렌버핏")
 			.securitiesFirm("토스")
-			.budget(Money.from(1000000L))
-			.targetGain(Money.from(1500000L))
-			.maximumLoss(Money.from(900000L))
+			.budget(Money.won(1000000L))
+			.targetGain(Money.won(1500000L))
+			.maximumLoss(Money.won(900000L))
 			.member(member)
 			.targetGainIsActive(false)
 			.maximumLossIsActive(false)
@@ -361,7 +361,7 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 	private StockDividend createStockDividend(LocalDate exDividendDate, LocalDate recordDate, LocalDate paymentDate,
 		Stock stock) {
 		return StockDividend.builder()
-			.dividend(Money.from(361L))
+			.dividend(Money.won(361L))
 			.exDividendDate(exDividendDate)
 			.recordDate(recordDate)
 			.paymentDate(paymentDate)

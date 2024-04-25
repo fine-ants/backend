@@ -34,7 +34,7 @@ public class Dividend {
 			Strings.isNullOrEmpty(data[1]) ? null : LocalDate.parse(data[1], DateTimeFormatter.BASIC_ISO_DATE);
 		String tickerSymbol = formatTickerSymbol(data[2]);
 		String name = data[3];
-		Money dividend = Money.from(data[4]);
+		Money dividend = Money.won(data[4]);
 		return new Dividend(
 			LocalDate.parse(data[0], DateTimeFormatter.BASIC_ISO_DATE),
 			paymentDate,

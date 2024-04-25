@@ -121,9 +121,9 @@ class PurchaseHistoryRestControllerTest {
 			.id(1L)
 			.name("내꿈은 워렌버핏")
 			.securitiesFirm("토스")
-			.budget(Money.from(1000000L))
-			.targetGain(Money.from(1500000L))
-			.maximumLoss(Money.from(900000L))
+			.budget(Money.won(1000000L))
+			.targetGain(Money.won(1500000L))
+			.maximumLoss(Money.won(900000L))
 			.member(member)
 			.build();
 
@@ -144,7 +144,7 @@ class PurchaseHistoryRestControllerTest {
 		purchaseHistory = PurchaseHistory.builder()
 			.id(1L)
 			.purchaseDate(LocalDateTime.now())
-			.purchasePricePerShare(Money.from(50000.0))
+			.purchasePricePerShare(Money.won(50000.0))
 			.numShares(Count.from(3L))
 			.memo("첫구매")
 			.build();

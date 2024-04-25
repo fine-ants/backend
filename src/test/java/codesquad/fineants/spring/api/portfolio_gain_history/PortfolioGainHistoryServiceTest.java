@@ -84,9 +84,9 @@ class PortfolioGainHistoryServiceTest extends AbstractContainerBaseTest {
 		Portfolio portfolio = Portfolio.builder()
 			.name("내꿈은 워렌버핏")
 			.securitiesFirm("토스")
-			.budget(Money.from(1000000L))
-			.targetGain(Money.from(1500000L))
-			.maximumLoss(Money.from(900000L))
+			.budget(Money.won(1000000L))
+			.targetGain(Money.won(1500000L))
+			.maximumLoss(Money.won(900000L))
 			.member(member)
 			.build();
 		this.portfolio = portfolio;
@@ -117,11 +117,11 @@ class PortfolioGainHistoryServiceTest extends AbstractContainerBaseTest {
 	void addPortfolioGainHistory() {
 		// given
 		Portfolio savePortfolio = portfolioRepository.save(portfolio);
-		PortfolioHolding portfolioHolding = PortfolioHolding.of(savePortfolio, stock, Money.from(60000L));
+		PortfolioHolding portfolioHolding = PortfolioHolding.of(savePortfolio, stock, Money.won(60000L));
 		PurchaseHistory purchaseHistory = PurchaseHistory.builder()
 			.purchaseDate(LocalDateTime.now())
 			.numShares(Count.from(3L))
-			.purchasePricePerShare(Money.from(50000.0))
+			.purchasePricePerShare(Money.won(50000.0))
 			.memo("첫구매")
 			.portfolioHolding(portfolioHolding)
 			.build();
@@ -130,7 +130,7 @@ class PortfolioGainHistoryServiceTest extends AbstractContainerBaseTest {
 		purchaseHistoryRepository.save(purchaseHistory);
 
 		given(currentPriceManager.hasCurrentPrice("005930")).willReturn(true);
-		given(currentPriceManager.getCurrentPrice("005930")).willReturn(Optional.of(Money.from(60000L)));
+		given(currentPriceManager.getCurrentPrice("005930")).willReturn(Optional.of(Money.won(60000L)));
 
 		// when
 		PortfolioGainHistoryCreateResponse response = service.addPortfolioGainHistory();
@@ -144,7 +144,7 @@ class PortfolioGainHistoryServiceTest extends AbstractContainerBaseTest {
 				.extracting(PortfolioGainHistory::getTotalGain, PortfolioGainHistory::getDailyGain,
 					PortfolioGainHistory::getCurrentValuation)
 				.usingComparatorForType(Money::compareTo, Money.class)
-				.containsExactlyInAnyOrder(Tuple.tuple(Money.from(30000L), Money.from(30000L), Money.from(180000L)))
+				.containsExactlyInAnyOrder(Tuple.tuple(Money.won(30000L), Money.won(30000L), Money.won(180000L)))
 		);
 	}
 }
