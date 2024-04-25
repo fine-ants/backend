@@ -44,7 +44,7 @@ public class DashboardRestControllerDocsTest extends RestDocsSupport {
 		given(service.getOverview(ArgumentMatchers.any(AuthMember.class)))
 			.willReturn(OverviewResponse.builder()
 				.username("일개미1234")
-				.totalValuation(Money.from(1000000L))
+				.totalValuation(Money.won(1000000L))
 				.totalInvestment(Money.zero())
 				.totalGain(Money.zero())
 				.totalGainRate(0.0)
@@ -112,9 +112,9 @@ public class DashboardRestControllerDocsTest extends RestDocsSupport {
 				DashboardPieChartResponse.create(
 					1L,
 					"포트폴리오1",
-					Money.from(610888L),
+					Money.won(610888L),
 					6.68,
-					Money.from(30022L),
+					Money.won(30022L),
 					6.41
 				)
 			));
@@ -173,8 +173,8 @@ public class DashboardRestControllerDocsTest extends RestDocsSupport {
 		// given
 		given(service.getLineChart(ArgumentMatchers.any(AuthMember.class)))
 			.willReturn(List.of(
-				DashboardLineChartResponse.of("2018-10-19", Money.from(5012346L)),
-				DashboardLineChartResponse.of("2018-10-22", Money.from(4678901L))
+				DashboardLineChartResponse.of("2018-10-19", Money.won(5012346L)),
+				DashboardLineChartResponse.of("2018-10-22", Money.won(4678901L))
 			));
 
 		// when & then

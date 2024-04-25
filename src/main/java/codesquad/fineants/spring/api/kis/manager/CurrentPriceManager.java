@@ -35,7 +35,7 @@ public class CurrentPriceManager {
 			handleCurrentPrice(tickerSymbol);
 			return getCurrentPrice(tickerSymbol);
 		}
-		return Optional.of(Money.from(currentPrice));
+		return Optional.of(Money.won(currentPrice));
 	}
 
 	private void handleCurrentPrice(String tickerSymbol) {

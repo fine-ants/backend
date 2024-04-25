@@ -151,7 +151,7 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 				.exDividendDate(LocalDate.now())
 				.recordDate(LocalDate.now())
 				.paymentDate(LocalDate.now())
-				.dividend(Money.from(362L))
+				.dividend(Money.won(362L))
 				.stock(stock)
 				.build()
 		);
@@ -169,9 +169,9 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 				.build()
 		);
 
-		given(currentPriceManager.getCurrentPrice(any(String.class))).willReturn(Optional.of(Money.from(77000L)));
+		given(currentPriceManager.getCurrentPrice(any(String.class))).willReturn(Optional.of(Money.won(77000L)));
 		given(lastDayClosingPriceManager.getClosingPrice(any(String.class))).willReturn(
-			Optional.of(Money.from(77000L)));
+			Optional.of(Money.won(77000L)));
 
 		// when
 		ReadWatchListResponse response = watchListService.readWatchList(authMember, watchList.getId());
@@ -180,7 +180,7 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 		assertThat(response.getName()).isEqualTo(watchList.getName());
 		assertThat(response.getWatchStocks().get(0).getCompanyName()).isEqualTo(stock.getCompanyName());
 		assertThat(response.getWatchStocks().get(0).getTickerSymbol()).isEqualTo(stock.getTickerSymbol());
-		assertThat(response.getWatchStocks().get(0).getCurrentPrice()).isEqualByComparingTo(Money.from(77000L));
+		assertThat(response.getWatchStocks().get(0).getCurrentPrice()).isEqualByComparingTo(Money.won(77000L));
 		assertThat(response.getWatchStocks().get(0).getDailyChange()).isEqualByComparingTo(Money.zero());
 		assertThat(response.getWatchStocks().get(0).getAnnualDividendYield()).isCloseTo(0.47, Offset.offset(0.1));
 		assertThat(response.getWatchStocks().get(0).getSector()).isEqualTo("전기전자");

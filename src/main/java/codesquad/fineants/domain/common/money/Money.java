@@ -7,60 +7,88 @@ import java.text.DecimalFormat;
 import java.util.Objects;
 
 import codesquad.fineants.domain.common.count.Count;
-import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
 
-@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-public class Money implements Comparable<Money> {
+public class Money implements Comparable<Money>, Expression {
 	private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("#,###");
-	private final BigDecimal amount;
+	protected final BigDecimal amount;
 
-	private Money() {
-		this.amount = BigDecimal.ZERO;
+	protected final String currency;
+
+	public Money(int amount, String currency) {
+		this(new BigDecimal(amount), currency);
 	}
 
-	private Money(int amount) {
-		this.amount = BigDecimal.valueOf(amount);
+	public Money(BigDecimal amount, String currency) {
+		this.amount = amount;
+		this.currency = currency;
 	}
 
-	private Money(double amount) {
-		this.amount = BigDecimal.valueOf(amount);
+	public static Money dollar(int amount) {
+		return dollar(new BigDecimal(amount));
 	}
 
-	private Money(long amount) {
-		this.amount = BigDecimal.valueOf(amount);
+	public static Money dollar(BigDecimal amount) {
+		return new Money(amount, "USD");
 	}
 
-	public static Money from(BigDecimal amount) {
-		return new Money(amount);
+	public static Money franc(int amount) {
+		return franc(new BigDecimal(amount));
 	}
 
-	public static Money from(String amount) {
-		return new Money(new BigDecimal(amount));
+	public static Money franc(BigDecimal amount) {
+		return new Money(amount, "CHF");
 	}
 
-	public static Money from(int amount) {
-		return new Money(amount);
+	public static Money won(String amount) {
+		return won(new BigDecimal(amount));
 	}
 
-	public static Money from(long amount) {
-		return new Money(BigDecimal.valueOf(amount));
+	public static Money won(int amount) {
+		return won(new BigDecimal(amount));
 	}
 
-	public static Money from(double amount) {
-		return new Money(BigDecimal.valueOf(amount));
+	public static Money won(BigDecimal amount) {
+		return new Money(amount, "KRW");
+	}
+
+	public static Money won(long amount) {
+		return won(new BigDecimal(amount));
+	}
+
+	public static Money won(double amount) {
+		return won(new BigDecimal(amount));
 	}
 
 	public static Money zero() {
-		return new Money(BigDecimal.ZERO);
+		return won(BigDecimal.ZERO);
+	}
+
+	@Override
+	public Expression times(int multiplier) {
+		return new Money(amount.multiply(new BigDecimal(multiplier)), currency);
+	}
+
+	@Override
+	public Expression plus(Expression addend) {
+		return new Sum(this, addend);
+	}
+
+	@Override
+	public Money reduce(Bank bank, String to) {
+		int rate = bank.rate(currency, to);
+		return new Money(amount.divide(new BigDecimal(rate)), to);
+	}
+
+	String currency() {
+		return currency;
 	}
 
 	public Money add(Money money) {
-		return Money.from(amount.add(money.amount));
+		return Money.won(amount.add(money.amount));
 	}
 
 	public Money subtract(Money money) {
-		return Money.from(amount.subtract(money.amount));
+		return Money.won(amount.subtract(money.amount));
 	}
 
 	public Money multiply(Count count) {
@@ -68,14 +96,14 @@ public class Money implements Comparable<Money> {
 	}
 
 	public Money multiply(BigInteger value) {
-		return Money.from(amount.multiply(new BigDecimal(value)).setScale(4, RoundingMode.HALF_UP));
+		return Money.won(amount.multiply(new BigDecimal(value)).setScale(4, RoundingMode.HALF_UP));
 	}
 
 	public Money divide(Money money) {
 		if (money.isZero()) {
 			return Money.zero();
 		}
-		return Money.from(amount.divide(money.amount, 4, RoundingMode.HALF_UP));
+		return Money.won(amount.divide(money.amount, 4, RoundingMode.HALF_UP));
 	}
 
 	public Money divide(Count divisor) {
@@ -86,7 +114,7 @@ public class Money implements Comparable<Money> {
 	}
 
 	public Money divide(BigInteger divisor) {
-		return Money.from(amount.divide(new BigDecimal(divisor), 4, RoundingMode.HALF_UP));
+		return Money.won(amount.divide(new BigDecimal(divisor), 4, RoundingMode.HALF_UP));
 	}
 
 	public double toPercentage() {
@@ -111,12 +139,8 @@ public class Money implements Comparable<Money> {
 
 	@Override
 	public boolean equals(Object object) {
-		if (this == object)
-			return true;
-		if (object == null || getClass() != object.getClass())
-			return false;
 		Money money = (Money)object;
-		return amount.compareTo(money.amount) == 0;
+		return compareTo(money) == 0 && currency().equals(money.currency);
 	}
 
 	@Override

@@ -158,11 +158,11 @@ class StockServiceTest extends AbstractContainerBaseTest {
 					stock.getCompanyName(),
 					stock.getCompanyNameEng(),
 					stock.getMarket(),
-					Money.from(50000),
-					Money.from(1000),
+					Money.won(50000),
+					Money.won(1000),
 					2.04,
 					stock.getSector(),
-					Money.from(1083),
+					Money.won(1083),
 					2.17
 				)
 		);
@@ -217,11 +217,11 @@ class StockServiceTest extends AbstractContainerBaseTest {
 					stock.getCompanyName(),
 					stock.getCompanyNameEng(),
 					stock.getMarket(),
-					Money.from(50000),
-					Money.from(1000),
+					Money.won(50000),
+					Money.won(1000),
 					2.04,
 					stock.getSector(),
-					Money.from(1083),
+					Money.won(1083),
 					2.17
 				)
 		);
@@ -242,7 +242,7 @@ class StockServiceTest extends AbstractContainerBaseTest {
 	private StockDividend createStockDividend(LocalDate exDividendDate, LocalDate recordDate, LocalDate paymentDate,
 		Stock stock) {
 		return StockDividend.builder()
-			.dividend(Money.from(361L))
+			.dividend(Money.won(361L))
 			.exDividendDate(exDividendDate)
 			.recordDate(recordDate)
 			.paymentDate(paymentDate)

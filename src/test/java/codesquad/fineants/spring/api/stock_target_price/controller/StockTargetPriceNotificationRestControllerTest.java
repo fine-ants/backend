@@ -106,7 +106,7 @@ class StockTargetPriceNotificationRestControllerTest {
 			.willReturn(TargetPriceNotificationCreateResponse.builder()
 				.targetPriceNotificationId(1L)
 				.tickerSymbol("005930")
-				.targetPrice(Money.from(60000L))
+				.targetPrice(Money.won(60000L))
 				.build());
 
 		String tickerSymbol = "005930";
@@ -159,16 +159,16 @@ class StockTargetPriceNotificationRestControllerTest {
 				.stocks(List.of(TargetPriceNotificationSearchItem.builder()
 					.companyName(stock.getCompanyName())
 					.tickerSymbol(stock.getTickerSymbol())
-					.lastPrice(Money.from(50000L))
+					.lastPrice(Money.won(50000L))
 					.targetPrices(List.of(
 						TargetPriceItem.builder()
 							.notificationId(1L)
-							.targetPrice(Money.from(60000L))
+							.targetPrice(Money.won(60000L))
 							.dateAdded(now)
 							.build(),
 						TargetPriceItem.builder()
 							.notificationId(2L)
-							.targetPrice(Money.from(70000L))
+							.targetPrice(Money.won(70000L))
 							.dateAdded(now)
 							.build()
 					))
@@ -207,12 +207,12 @@ class StockTargetPriceNotificationRestControllerTest {
 				.targetPrices(List.of(
 					TargetPriceNotificationSpecificItem.builder()
 						.notificationId(1L)
-						.targetPrice(Money.from(60000L))
+						.targetPrice(Money.won(60000L))
 						.dateAdded(now)
 						.build(),
 					TargetPriceNotificationSpecificItem.builder()
 						.notificationId(2L)
-						.targetPrice(Money.from(70000L))
+						.targetPrice(Money.won(70000L))
 						.dateAdded(now)
 						.build()
 				))

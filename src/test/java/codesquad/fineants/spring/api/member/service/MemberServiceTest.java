@@ -822,9 +822,9 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 		return Portfolio.builder()
 			.name("내꿈은 워렌버핏")
 			.securitiesFirm("토스")
-			.budget(Money.from(1000000L))
-			.targetGain(Money.from(1500000L))
-			.maximumLoss(Money.from(900000L))
+			.budget(Money.won(1000000L))
+			.targetGain(Money.won(1500000L))
+			.maximumLoss(Money.won(900000L))
 			.member(member)
 			.targetGainIsActive(false)
 			.maximumLossIsActive(false)
@@ -857,7 +857,7 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 	private StockDividend createStockDividend(LocalDate exDividendDate, LocalDate recordDate, LocalDate paymentDate,
 		Stock stock) {
 		return StockDividend.builder()
-			.dividend(Money.from(361L))
+			.dividend(Money.won(361L))
 			.exDividendDate(exDividendDate)
 			.recordDate(recordDate)
 			.paymentDate(paymentDate)
@@ -876,7 +876,7 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 		return PurchaseHistory.builder()
 			.purchaseDate(LocalDateTime.of(2023, 9, 26, 9, 30, 0))
 			.numShares(Count.from(3L))
-			.purchasePricePerShare(Money.from(50000.0))
+			.purchasePricePerShare(Money.won(50000.0))
 			.memo("첫구매")
 			.portfolioHolding(portfolioHolding)
 			.build();
@@ -942,7 +942,7 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 
 	private TargetPriceNotification createTargetPriceNotification(StockTargetPrice stockTargetPrice) {
 		return TargetPriceNotification.builder()
-			.targetPrice(Money.from(60000L))
+			.targetPrice(Money.won(60000L))
 			.stockTargetPrice(stockTargetPrice)
 			.build();
 	}

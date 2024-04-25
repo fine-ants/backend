@@ -21,14 +21,14 @@ class PurchaseHistoryTest {
 		PurchaseHistory purchaseHistory = PurchaseHistory.builder()
 			.purchaseDate(LocalDateTime.now())
 			.numShares(Count.from(5L))
-			.purchasePricePerShare(Money.from(10000.0))
+			.purchasePricePerShare(Money.won(10000.0))
 			.build();
 
 		// when
 		Money result = purchaseHistory.calculateInvestmentAmount();
 
 		// then
-		assertThat(result).isEqualByComparingTo(Money.from(50000L));
+		assertThat(result).isEqualByComparingTo(Money.won(50000L));
 	}
 
 }

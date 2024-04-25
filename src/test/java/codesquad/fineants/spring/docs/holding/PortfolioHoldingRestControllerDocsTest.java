@@ -139,7 +139,7 @@ public class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 		portfolio.addPortfolioStock(portfolioHolding);
 		PortfolioGainHistory history = createEmptyPortfolioGainHistory();
 
-		Map<String, Money> lastDayClosingPriceMap = Map.of("005930", Money.from(50000L));
+		Map<String, Money> lastDayClosingPriceMap = Map.of("005930", Money.won(50000L));
 		PortfolioHoldingsResponse mockResponse = PortfolioHoldingsResponse.of(portfolio, history,
 			List.of(portfolioHolding),
 			lastDayClosingPriceMap);
@@ -341,21 +341,21 @@ public class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 		// given
 		Portfolio portfolio = createPortfolio(createMember());
 		List<PortfolioPieChartItem> pieChartItems = List.of(
-			PortfolioPieChartItem.stock("삼성전자보통주", Money.from(600000L), 54.55, Money.from(100000L), 10.00),
-			PortfolioPieChartItem.cash(45.45, Money.from(500000L))
+			PortfolioPieChartItem.stock("삼성전자보통주", Money.won(600000L), 54.55, Money.won(100000L), 10.00),
+			PortfolioPieChartItem.cash(45.45, Money.won(500000L))
 		);
 		List<PortfolioDividendChartItem> dividendChartItems = List.of(
 			PortfolioDividendChartItem.empty(1),
 			PortfolioDividendChartItem.empty(2),
 			PortfolioDividendChartItem.empty(3),
-			PortfolioDividendChartItem.create(4, Money.from(3610L)),
-			PortfolioDividendChartItem.create(5, Money.from(3610L)),
+			PortfolioDividendChartItem.create(4, Money.won(3610L)),
+			PortfolioDividendChartItem.create(5, Money.won(3610L)),
 			PortfolioDividendChartItem.empty(6),
 			PortfolioDividendChartItem.empty(7),
-			PortfolioDividendChartItem.create(8, Money.from(3610L)),
+			PortfolioDividendChartItem.create(8, Money.won(3610L)),
 			PortfolioDividendChartItem.empty(9),
 			PortfolioDividendChartItem.empty(10),
-			PortfolioDividendChartItem.create(11, Money.from(3610L)),
+			PortfolioDividendChartItem.create(11, Money.won(3610L)),
 			PortfolioDividendChartItem.empty(12)
 		);
 		List<PortfolioSectorChartItem> sectorChartItems = List.of(
