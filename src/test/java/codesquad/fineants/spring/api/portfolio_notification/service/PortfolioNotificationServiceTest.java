@@ -192,9 +192,9 @@ class PortfolioNotificationServiceTest extends AbstractContainerBaseTest {
 			null,
 			"내꿈은 워렌버핏",
 			"토스증권",
-			Money.from(budget),
-			Money.from(targetGain),
-			Money.from(maximumLoss),
+			Money.won(budget),
+			Money.won(targetGain),
+			Money.won(maximumLoss),
 			true,
 			true,
 			member
@@ -219,7 +219,7 @@ class PortfolioNotificationServiceTest extends AbstractContainerBaseTest {
 		return PurchaseHistory.builder()
 			.purchaseDate(LocalDateTime.now())
 			.numShares(Count.from(3L))
-			.purchasePricePerShare(Money.from(50000.0))
+			.purchasePricePerShare(Money.won(50000.0))
 			.memo("첫구매")
 			.portfolioHolding(portfolioHolding)
 			.build();

@@ -1,10 +1,10 @@
 package codesquad.fineants.domain.common.money;
 
 public class Pair {
-	private final String from;
-	private final String to;
+	private final Currency from;
+	private final Currency to;
 
-	public Pair(String from, String to) {
+	public Pair(Currency from, Currency to) {
 		this.from = from;
 		this.to = to;
 	}

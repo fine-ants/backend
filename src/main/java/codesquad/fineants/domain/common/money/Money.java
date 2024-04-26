@@ -1,5 +1,7 @@
 package codesquad.fineants.domain.common.money;
 
+import static codesquad.fineants.domain.common.money.Currency.*;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
@@ -12,13 +14,13 @@ public class Money implements Comparable<Money>, Expression {
 	private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("#,###");
 	protected final BigDecimal amount;
 
-	protected final String currency;
+	protected final Currency currency;
 
-	public Money(int amount, String currency) {
+	public Money(int amount, Currency currency) {
 		this(new BigDecimal(amount), currency);
 	}
 
-	public Money(BigDecimal amount, String currency) {
+	public Money(BigDecimal amount, Currency currency) {
 		this.amount = amount;
 		this.currency = currency;
 	}
@@ -28,7 +30,7 @@ public class Money implements Comparable<Money>, Expression {
 	}
 
 	public static Money dollar(BigDecimal amount) {
-		return new Money(amount, "USD");
+		return new Money(amount, USD);
 	}
 
 	public static Money franc(int amount) {
@@ -36,7 +38,7 @@ public class Money implements Comparable<Money>, Expression {
 	}
 
 	public static Money franc(BigDecimal amount) {
-		return new Money(amount, "CHF");
+		return new Money(amount, CHF);
 	}
 
 	public static Money won(String amount) {
@@ -48,7 +50,7 @@ public class Money implements Comparable<Money>, Expression {
 	}
 
 	public static Money won(BigDecimal amount) {
-		return new Money(amount, "KRW");
+		return new Money(amount, KRW);
 	}
 
 	public static Money won(long amount) {
@@ -63,6 +65,16 @@ public class Money implements Comparable<Money>, Expression {
 		return won(BigDecimal.ZERO);
 	}
 
+	public static Expression wonZero() {
+		return won(BigDecimal.ZERO);
+	}
+
+	@Override
+	public Money reduce(Bank bank, Currency to) {
+		int rate = bank.rate(currency, to);
+		return new Money(amount.divide(new BigDecimal(rate)), to);
+	}
+
 	@Override
 	public Expression times(int multiplier) {
 		return new Money(amount.multiply(new BigDecimal(multiplier)), currency);
@@ -73,13 +85,7 @@ public class Money implements Comparable<Money>, Expression {
 		return new Sum(this, addend);
 	}
 
-	@Override
-	public Money reduce(Bank bank, String to) {
-		int rate = bank.rate(currency, to);
-		return new Money(amount.divide(new BigDecimal(rate)), to);
-	}
-
-	String currency() {
+	public Currency currency() {
 		return currency;
 	}
 

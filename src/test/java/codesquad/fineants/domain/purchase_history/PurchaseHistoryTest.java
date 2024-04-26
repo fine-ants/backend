@@ -1,34 +1,36 @@
 package codesquad.fineants.domain.purchase_history;
 
+import static codesquad.fineants.domain.common.money.Currency.*;
 import static org.assertj.core.api.Assertions.*;
 
-import java.time.LocalDateTime;
-
+import org.apache.logging.log4j.util.Strings;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.test.context.ActiveProfiles;
 
 import codesquad.fineants.domain.common.count.Count;
+import codesquad.fineants.domain.common.money.Bank;
+import codesquad.fineants.domain.common.money.Expression;
 import codesquad.fineants.domain.common.money.Money;
 
-@ActiveProfiles("test")
 class PurchaseHistoryTest {
 
 	@DisplayName("매입 내역의 투자 금액을 구한다")
 	@Test
 	void calculateInvestmentAmount() {
 		// given
-		PurchaseHistory purchaseHistory = PurchaseHistory.builder()
-			.purchaseDate(LocalDateTime.now())
-			.numShares(Count.from(5L))
-			.purchasePricePerShare(Money.won(10000.0))
-			.build();
-
+		PurchaseHistory purchaseHistory = PurchaseHistory.now(
+			Money.won(10000),
+			Count.from(5),
+			Strings.EMPTY,
+			null
+		);
+		Bank bank = Bank.getInstance();
 		// when
-		Money result = purchaseHistory.calculateInvestmentAmount();
+		Expression result = purchaseHistory.calculateInvestmentAmount();
 
 		// then
-		assertThat(result).isEqualByComparingTo(Money.won(50000L));
+		Money actual = bank.reduce(result, KRW);
+		assertThat(actual).isEqualByComparingTo(Money.won(50000L));
 	}
 
 }
