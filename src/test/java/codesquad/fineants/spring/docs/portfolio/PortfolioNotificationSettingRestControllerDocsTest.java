@@ -47,6 +47,8 @@ public class PortfolioNotificationSettingRestControllerDocsTest extends RestDocs
 						.name("포트폴리오 1")
 						.targetGainNotify(true)
 						.maxLossNotify(false)
+						.isTargetGainSet(true)
+						.isMaxLossSet(true)
 						.createdAt(now)
 						.build(),
 					PortfolioNotificationSettingSearchItem.builder()
@@ -55,6 +57,8 @@ public class PortfolioNotificationSettingRestControllerDocsTest extends RestDocs
 						.name("포트폴리오 2")
 						.targetGainNotify(true)
 						.maxLossNotify(false)
+						.isTargetGainSet(true)
+						.isMaxLossSet(true)
 						.createdAt(now)
 						.build()))
 				.build());
@@ -71,12 +75,16 @@ public class PortfolioNotificationSettingRestControllerDocsTest extends RestDocs
 			.andExpect(jsonPath("data.portfolios[0].name").value(equalTo("포트폴리오 1")))
 			.andExpect(jsonPath("data.portfolios[0].targetGainNotify").value(equalTo(true)))
 			.andExpect(jsonPath("data.portfolios[0].maxLossNotify").value(equalTo(false)))
+			.andExpect(jsonPath("data.portfolios[0].isTargetGainSet").value(equalTo(true)))
+			.andExpect(jsonPath("data.portfolios[0].isMaxLossSet").value(equalTo(true)))
 			.andExpect(jsonPath("data.portfolios[0].createdAt").isNotEmpty())
 			.andExpect(jsonPath("data.portfolios[1].portfolioId").value(equalTo(2)))
 			.andExpect(jsonPath("data.portfolios[1].securitiesFirm").value(equalTo("토스증권")))
 			.andExpect(jsonPath("data.portfolios[1].name").value(equalTo("포트폴리오 2")))
 			.andExpect(jsonPath("data.portfolios[1].targetGainNotify").value(equalTo(true)))
 			.andExpect(jsonPath("data.portfolios[1].maxLossNotify").value(equalTo(false)))
+			.andExpect(jsonPath("data.portfolios[1].isTargetGainSet").value(equalTo(true)))
+			.andExpect(jsonPath("data.portfolios[1].isMaxLossSet").value(equalTo(true)))
 			.andExpect(jsonPath("data.portfolios[1].createdAt").isNotEmpty())
 			.andDo(
 				document(
@@ -105,6 +113,10 @@ public class PortfolioNotificationSettingRestControllerDocsTest extends RestDocs
 							.description("목표 수익률 알림 여부"),
 						fieldWithPath("data.portfolios[].maxLossNotify").type(JsonFieldType.BOOLEAN)
 							.description("최대 손실율 알림 여부"),
+						fieldWithPath("data.portfolios[].isTargetGainSet").type(JsonFieldType.BOOLEAN)
+							.description("목표 수익률 알림 설정 가능 여부"),
+						fieldWithPath("data.portfolios[].isMaxLossSet").type(JsonFieldType.BOOLEAN)
+							.description("최대 손실율 알림 설정 가능 여부"),
 						fieldWithPath("data.portfolios[].createdAt").type(JsonFieldType.STRING)
 							.description("생성 일자")
 					)
