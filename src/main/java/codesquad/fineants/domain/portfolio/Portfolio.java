@@ -287,12 +287,34 @@ public class Portfolio extends BaseEntity {
 
 	// 목표수익금액 알림 변경
 	public void changeTargetGainNotification(Boolean isActive) {
+		validateTargetGainNotification();
 		this.targetGainIsActive = isActive;
+	}
+
+	/**
+	 * 목표 수익 금액에 따른 변경이 가능한 상태인지 검증
+	 * - 목표 수익 금액이 0원인 경우 변경 불가능
+	 */
+	private void validateTargetGainNotification() {
+		if (targetGain.isZero()) {
+			throw new FineAntsException(PortfolioErrorCode.TARGET_GAIN_IS_ZERO_WITH_NOTIFY_UPDATE);
+		}
 	}
 
 	// 최대손실금액의 알림 변경
 	public void changeMaximumLossNotification(Boolean isActive) {
+		validateMaxLossNotification();
 		this.maximumLossIsActive = isActive;
+	}
+
+	/**
+	 * 최대 손실 금액에 따른 변경이 가능한 상태인지 검증
+	 * - 최대 손실 금액이 0원인 경우 변경 불가능
+	 */
+	private void validateMaxLossNotification() {
+		if (maximumLoss.isZero()) {
+			throw new FineAntsException(PortfolioErrorCode.MAX_LOSS_IS_ZERO_WITH_NOTIFY_UPDATE);
+		}
 	}
 
 	// 포트폴리오가 목표수익금액에 도달했는지 검사 (평가금액이 목표수익금액보다 같거나 큰 경우)
@@ -447,5 +469,13 @@ public class Portfolio extends BaseEntity {
 			link,
 			name
 		);
+	}
+
+	public Boolean isTargetGainSet() {
+		return !targetGain.isZero();
+	}
+
+	public Boolean isMaximumLossSet() {
+		return !maximumLoss.isZero();
 	}
 }

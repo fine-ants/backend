@@ -15,8 +15,10 @@ public enum PortfolioErrorCode implements ErrorCode {
 	DUPLICATE_NAME(HttpStatus.CONFLICT, "포트폴리오 이름이 중복되었습니다"),
 	NOT_FOUND_PORTFOLIO(HttpStatus.NOT_FOUND, "포트폴리오를 찾을 수 없습니다"),
 	NOT_HAVE_AUTHORIZATION(HttpStatus.FORBIDDEN, "포트폴리오에 대한 권한이 없습니다"),
-	TOTAL_INVESTMENT_PRICE_EXCEEDS_BUDGET(HttpStatus.BAD_REQUEST, "매입 실패, 현금이 부족합니다");
-
+	TOTAL_INVESTMENT_PRICE_EXCEEDS_BUDGET(HttpStatus.BAD_REQUEST, "매입 실패, 현금이 부족합니다"),
+	TARGET_GAIN_IS_ZERO_WITH_NOTIFY_UPDATE(HttpStatus.BAD_REQUEST, "목표 수익금액이 0원이어서 알림을 수정할 수 없습니다"),
+	MAX_LOSS_IS_ZERO_WITH_NOTIFY_UPDATE(HttpStatus.BAD_REQUEST, "최대 손실금액이 0원이어서 알림을 수정할 수 없습니다");
+	
 	private final HttpStatus httpStatus;
 	private final String message;
 
