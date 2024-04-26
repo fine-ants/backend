@@ -21,6 +21,8 @@ public class PortfolioNotificationSettingSearchItem {
 	private String name;
 	private Boolean targetGainNotify;
 	private Boolean maxLossNotify;
+	private Boolean isTargetGainSet;
+	private Boolean isMaxLossSet;
 	private LocalDateTime createdAt;
 
 	public static PortfolioNotificationSettingSearchItem from(Portfolio portfolio) {
@@ -30,6 +32,8 @@ public class PortfolioNotificationSettingSearchItem {
 			.name(portfolio.getName())
 			.targetGainNotify(portfolio.getTargetGainIsActive())
 			.maxLossNotify(portfolio.getMaximumLossIsActive())
+			.isTargetGainSet(portfolio.isTargetGainSet())
+			.isMaxLossSet(portfolio.isMaximumLossSet())
 			.createdAt(portfolio.getCreateAt())
 			.build();
 	}

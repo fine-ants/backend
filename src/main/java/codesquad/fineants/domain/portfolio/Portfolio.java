@@ -448,4 +448,12 @@ public class Portfolio extends BaseEntity {
 			name
 		);
 	}
+
+	public Boolean isTargetGainSet() {
+		return !targetGain.isZero();
+	}
+
+	public Boolean isMaximumLossSet() {
+		return !maximumLoss.isZero();
+	}
 }
