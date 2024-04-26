@@ -1,5 +1,6 @@
 package codesquad.fineants.domain.common.money;
 
+import static codesquad.fineants.domain.common.money.Currency.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.DisplayName;
@@ -37,8 +38,8 @@ class MoneyTest {
 	@DisplayName("화폐 통화 확인")
 	@Test
 	void testCurrency() {
-		assertEquals("USD", Money.dollar(1).currency());
-		assertEquals("CHF", Money.franc(1).currency());
+		assertEquals(USD, Money.dollar(1).currency());
+		assertEquals(CHF, Money.franc(1).currency());
 	}
 
 	@DisplayName("달러로 전환")
@@ -46,7 +47,7 @@ class MoneyTest {
 	void testReduceSum() {
 		Expression sum = new Sum(Money.dollar(3), Money.dollar(4));
 		Bank bank = new Bank();
-		Money result = bank.reduce(sum, "USD");
+		Money result = bank.reduce(sum, USD);
 		assertEquals(Money.dollar(7), result);
 	}
 
@@ -56,7 +57,7 @@ class MoneyTest {
 		Money five = Money.dollar(5);
 		Expression sum = five.plus(five);
 		Bank bank = new Bank();
-		Money reduced = bank.reduce(sum, "USD");
+		Money reduced = bank.reduce(sum, USD);
 		assertEquals(Money.dollar(10), reduced);
 	}
 
@@ -64,7 +65,7 @@ class MoneyTest {
 	@Test
 	void testReduceMoney() {
 		Bank bank = new Bank();
-		Money result = bank.reduce(Money.dollar(1), "USD");
+		Money result = bank.reduce(Money.dollar(1), USD);
 		assertEquals(Money.dollar(1), result);
 	}
 
@@ -72,8 +73,8 @@ class MoneyTest {
 	@Test
 	void testReduceMoneyDifferentCurrency() {
 		Bank bank = new Bank();
-		bank.addRate("CHF", "USD", 2);
-		Money result = bank.reduce(Money.franc(2), "USD");
+		bank.addRate(CHF, USD, 2);
+		Money result = bank.reduce(Money.franc(2), USD);
 		assertEquals(Money.dollar(1), result);
 	}
 
@@ -81,7 +82,7 @@ class MoneyTest {
 	@Test
 	void testIdentityRate() {
 		Bank bank = new Bank();
-		int rate = bank.rate("USD", "USD");
+		int rate = bank.rate(USD, USD);
 		assertEquals(1, rate);
 	}
 
@@ -91,8 +92,8 @@ class MoneyTest {
 		Expression fiveBucks = Money.dollar(5);
 		Expression tenFrancs = Money.franc(10);
 		Bank bank = new Bank();
-		bank.addRate("CHF", "USD", 2);
-		Money result = bank.reduce(fiveBucks.plus(tenFrancs), "USD");
+		bank.addRate(CHF, USD, 2);
+		Money result = bank.reduce(fiveBucks.plus(tenFrancs), USD);
 
 		assertEquals(Money.dollar(10), result);
 	}
@@ -103,9 +104,9 @@ class MoneyTest {
 		Money fiveBucks = Money.dollar(5);
 		Money tenFrancs = Money.franc(10);
 		Bank bank = new Bank();
-		bank.addRate("CHF", "USD", 2);
+		bank.addRate(CHF, USD, 2);
 		Expression sum = new Sum(fiveBucks, tenFrancs).plus(fiveBucks);
-		Money result = bank.reduce(sum, "USD");
+		Money result = bank.reduce(sum, USD);
 
 		assertEquals(Money.dollar(15), result);
 	}
@@ -116,12 +117,39 @@ class MoneyTest {
 		Expression fiveBucks = Money.dollar(5);
 		Expression tenFrancs = Money.franc(10);
 		Bank bank = new Bank();
-		bank.addRate("CHF", "USD", 2);
+		bank.addRate(CHF, USD, 2);
 
 		Expression sum = new Sum(fiveBucks, tenFrancs).times(2);
-		Money result = bank.reduce(sum, "USD");
+		Money result = bank.reduce(sum, USD);
 
 		assertEquals(Money.dollar(20), result);
 	}
-	
+
+	@DisplayName("뺄셈에서 곱셉을 수행한다")
+	@Test
+	void testSubtractionTimes() {
+		Money fiveBucks = Money.dollar(5);
+		Expression tenFrancs = Money.franc(10);
+		Bank bank = new Bank();
+		bank.addRate(CHF, USD, 2);
+
+		Expression subtraction = new Subtraction(fiveBucks, tenFrancs).times(2);
+		Money result = bank.reduce(subtraction, USD);
+
+		assertEquals(Money.dollar(0), result);
+	}
+
+	@DisplayName("뺄셈합에서 덧셈을 수행한다")
+	@Test
+	void testSubtractionPlus() {
+		Money fiveBucks = Money.dollar(5);
+		Expression tenFrancs = Money.franc(10);
+		Bank bank = new Bank();
+		bank.addRate(CHF, USD, 2);
+
+		Expression subtraction = new Subtraction(fiveBucks, tenFrancs).plus(fiveBucks);
+		Money result = bank.reduce(subtraction, USD);
+
+		assertEquals(Money.dollar(-5), result);
+	}
 }

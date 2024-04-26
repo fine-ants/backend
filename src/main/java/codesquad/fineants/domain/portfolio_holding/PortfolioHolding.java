@@ -21,6 +21,8 @@ import org.hibernate.annotations.BatchSize;
 
 import codesquad.fineants.domain.BaseEntity;
 import codesquad.fineants.domain.common.count.Count;
+import codesquad.fineants.domain.common.money.Bank;
+import codesquad.fineants.domain.common.money.Expression;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.portfolio.Portfolio;
 import codesquad.fineants.domain.purchase_history.PurchaseHistory;
@@ -93,7 +95,9 @@ public class PortfolioHolding extends BaseEntity {
 
 	// 종목 총 손익 = (종목 현재가 - 종목 평균 매입가) * 개수
 	public Money calculateTotalGain() {
-		return currentPrice.subtract(calculateAverageCostPerShare()).multiply(calculateNumShares());
+		Money averageCostPerShare = calculateAverageCostPerShare();
+		Money amount = currentPrice.subtract(averageCostPerShare).multiply(calculateNumShares());
+		return Bank.getInstance().toWon(amount);
 	}
 
 	// 종목 평균 매입가 = 총 투자 금액 / 개수
@@ -110,9 +114,10 @@ public class PortfolioHolding extends BaseEntity {
 
 	// 총 투자 금액 = 투자 금액들의 합계
 	public Money calculateTotalInvestmentAmount() {
-		return purchaseHistory.stream()
+		Expression amount = purchaseHistory.stream()
 			.map(PurchaseHistory::calculateInvestmentAmount)
-			.reduce(Money.zero(), Money::add);
+			.reduce(Money.wonZero(), Expression::plus);
+		return Bank.getInstance().toWon(amount);
 	}
 
 	// 종목 총 손익율 = 총 손익 / 총 투자 금액

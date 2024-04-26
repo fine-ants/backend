@@ -2,22 +2,37 @@ package codesquad.fineants.domain.common.money;
 
 import java.util.Hashtable;
 
-public class Bank {
+public final class Bank {
 
+	private static Bank instance;
 	private final Hashtable<Pair, Integer> rates = new Hashtable<>();
 
-	public Money reduce(Expression source, String to) {
+	Bank() {
+	}
+
+	public static Bank getInstance() {
+		if (instance == null) {
+			instance = new Bank();
+		}
+		return instance;
+	}
+
+	public Money reduce(Expression source, Currency to) {
 		return source.reduce(this, to);
 	}
 
-	public void addRate(String from, String to, int rate) {
+	public void addRate(Currency from, Currency to, int rate) {
 		rates.put(new Pair(from, to), rate);
 	}
 
-	int rate(String from, String to) {
+	int rate(Currency from, Currency to) {
 		if (from.equals(to)) {
 			return 1;
 		}
 		return rates.get(new Pair(from, to));
+	}
+
+	public Money toWon(Expression amount) {
+		return reduce(amount, Currency.KRW);
 	}
 }
