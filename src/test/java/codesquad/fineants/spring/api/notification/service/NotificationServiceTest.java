@@ -478,10 +478,42 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		assertThat(response.getNotifications())
 			.asList()
 			.hasSize(2)
-			.extracting("title", "type", "referenceId", "messageId")
+			.extracting(
+				"isRead",
+				"title",
+				"content",
+				"type",
+				"referenceId",
+				"memberId",
+				"link",
+				"messageId",
+				"stockName",
+				"targetPrice")
+			.usingComparatorForType(Money::compareTo, Money.class)
 			.containsExactlyInAnyOrder(
-				Tuple.tuple(type.getName(), type, "005930", "messageId"),
-				Tuple.tuple(type.getName(), type, "000020", "messageId"));
+				Tuple.tuple(
+					false,
+					"종목 지정가",
+					"동화약품보통주이(가) ₩10,000에 도달했습니다",
+					type,
+					"000020",
+					member.getId(),
+					"/stock/000020",
+					"messageId",
+					"동화약품보통주",
+					Money.won(10000)),
+				Tuple.tuple(
+					false,
+					"종목 지정가",
+					"삼성전자보통주이(가) ₩60,000에 도달했습니다",
+					type,
+					"005930",
+					member.getId(),
+					"/stock/005930",
+					"messageId",
+					"삼성전자보통주",
+					Money.won(60000))
+			);
 		assertThat(notificationRepository.findAllByMemberId(member.getId()))
 			.asList()
 			.hasSize(2);

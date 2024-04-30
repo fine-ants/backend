@@ -57,7 +57,8 @@ public class StockTargetPriceNotification extends Notification {
 
 	@Override
 	public String getContent() {
-		return String.format("%s(이)가 지정가 KRW%s에 도달했습니다", stockName, targetPrice);
+		return String.format("%s이(가) %s%s에 도달했습니다", stockName, targetPrice.getCurrencySymbol(),
+			targetPrice.toDecimalFormat());
 	}
 
 	@Override
