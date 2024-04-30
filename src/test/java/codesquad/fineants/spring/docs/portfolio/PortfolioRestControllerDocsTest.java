@@ -26,7 +26,12 @@ import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
 import org.springframework.restdocs.payload.JsonFieldType;
 
 import codesquad.fineants.domain.common.count.Count;
+import codesquad.fineants.domain.common.money.Bank;
+import codesquad.fineants.domain.common.money.Currency;
+import codesquad.fineants.domain.common.money.Expression;
 import codesquad.fineants.domain.common.money.Money;
+import codesquad.fineants.domain.common.money.Percentage;
+import codesquad.fineants.domain.common.money.RateDivision;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.portfolio.Portfolio;
@@ -112,15 +117,26 @@ public class PortfolioRestControllerDocsTest extends RestDocsSupport {
 	@Test
 	void searchMyAllPortfolios() throws Exception {
 		// given
+		Expression totalGain = Money.won(100000);
+		Expression totalInvestmentAmount = Money.won(1000000);
+		Percentage totalGainRate = RateDivision.of(totalGain, totalInvestmentAmount)
+			.toPercentage(Bank.getInstance(), Currency.KRW);
+
+		Expression dailyGain = Money.won(100000L);
+		Percentage dailyGainRate = RateDivision.of(dailyGain, totalInvestmentAmount)
+			.toPercentage(Bank.getInstance(), Currency.KRW);
+
+		Bank bank = Bank.getInstance();
+		Currency to = Currency.KRW;
 		PortFolioItem portFolioItem = PortFolioItem.builder()
 			.id(1L)
 			.securitiesFirm("토스증권")
 			.name("내꿈은 워렌버핏")
 			.budget(Money.won(1000000L))
-			.totalGain(Money.won(100000L))
-			.totalGainRate(10.00)
-			.dailyGain(Money.won(100000L))
-			.dailyGainRate(10.00)
+			.totalGain(totalGain.reduce(bank, to))
+			.totalGainRate(totalGainRate)
+			.dailyGain(dailyGain.reduce(bank, to))
+			.dailyGainRate(dailyGainRate)
 			.currentValuation(Money.won(100000L))
 			.expectedMonthlyDividend(Money.won(20000L))
 			.numShares(Count.from(9))
@@ -139,23 +155,19 @@ public class PortfolioRestControllerDocsTest extends RestDocsSupport {
 			.andExpect(jsonPath("status").value(equalTo("OK")))
 			.andExpect(jsonPath("message").value(equalTo("포트폴리오 목록 조회가 완료되었습니다")))
 			.andExpect(jsonPath("data.portfolios[0].id").value(equalTo(portFolioItem.getId().intValue())))
-			.andExpect(jsonPath("data.portfolios[0].securitiesFirm").value(equalTo(portFolioItem.getSecuritiesFirm())))
-			.andExpect(jsonPath("data.portfolios[0].name").value(equalTo(portFolioItem.getName())))
-			.andExpect(
-				jsonPath("data.portfolios[0].budget").value(equalTo(portFolioItem.getBudget().toInteger().intValue())))
-			.andExpect(jsonPath("data.portfolios[0].totalGain").value(
-				equalTo(portFolioItem.getTotalGain().toInteger().intValue())))
-			.andExpect(jsonPath("data.portfolios[0].totalGainRate").value(equalTo(portFolioItem.getTotalGainRate())))
-			.andExpect(jsonPath("data.portfolios[0].dailyGain").value(
-				equalTo(portFolioItem.getDailyGain().toInteger().intValue())))
-			.andExpect(jsonPath("data.portfolios[0].dailyGainRate").value(equalTo(portFolioItem.getDailyGainRate())))
-			.andExpect(
-				jsonPath("data.portfolios[0].currentValuation").value(
-					equalTo(portFolioItem.getCurrentValuation().toInteger().intValue())))
-			.andExpect(jsonPath("data.portfolios[0].expectedMonthlyDividend").value(
-				equalTo(portFolioItem.getExpectedMonthlyDividend().toInteger().intValue())))
-			.andExpect(jsonPath("data.portfolios[0].numShares").value(
-				equalTo(portFolioItem.getNumShares().getValue().intValue())))
+			.andExpect(jsonPath("data.portfolios[0].securitiesFirm").value(equalTo("토스증권")))
+			.andExpect(jsonPath("data.portfolios[0].name").value(equalTo("내꿈은 워렌버핏")))
+			.andExpect(jsonPath("data.portfolios[0].budget").value(equalTo(1000000)))
+			.andExpect(jsonPath("data.portfolios[0].totalGain").value(equalTo(100000)))
+			.andExpect(jsonPath("data.portfolios[0].totalGainRate").value(equalTo(10.0)))
+			.andExpect(jsonPath("data.portfolios[0].dailyGain").value(equalTo(100000)))
+			.andExpect(jsonPath("data.portfolios[0].dailyGainRate").value(equalTo(10.0)))
+			.andExpect(jsonPath("data.portfolios[0].currentValuation")
+				.value(equalTo(100000)))
+			.andExpect(jsonPath("data.portfolios[0].expectedMonthlyDividend")
+				.value(equalTo(20000)))
+			.andExpect(jsonPath("data.portfolios[0].numShares")
+				.value(equalTo(9)))
 			.andExpect(jsonPath("data.portfolios[0].dateCreated").isNotEmpty())
 			.andDo(
 				document(

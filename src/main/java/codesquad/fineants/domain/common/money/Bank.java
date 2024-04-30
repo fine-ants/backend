@@ -5,7 +5,7 @@ import java.util.Hashtable;
 public final class Bank {
 
 	private static Bank instance;
-	private final Hashtable<Pair, Integer> rates = new Hashtable<>();
+	private final Hashtable<Pair, Double> rates = new Hashtable<>();
 
 	Bank() {
 	}
@@ -21,11 +21,11 @@ public final class Bank {
 		return source.reduce(this, to);
 	}
 
-	public void addRate(Currency from, Currency to, int rate) {
+	public void addRate(Currency from, Currency to, double rate) {
 		rates.put(new Pair(from, to), rate);
 	}
 
-	int rate(Currency from, Currency to) {
+	double rate(Currency from, Currency to) {
 		if (from.equals(to)) {
 			return 1;
 		}

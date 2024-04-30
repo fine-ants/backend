@@ -1,6 +1,9 @@
 package codesquad.fineants.spring.api.portfolio_stock.response;
 
+import codesquad.fineants.domain.common.money.Bank;
+import codesquad.fineants.domain.common.money.Currency;
 import codesquad.fineants.domain.common.money.Money;
+import codesquad.fineants.domain.common.money.Percentage;
 import codesquad.fineants.domain.portfolio.Portfolio;
 import codesquad.fineants.domain.portfolio_gain_history.PortfolioGainHistory;
 import lombok.AccessLevel;
@@ -16,18 +19,19 @@ import lombok.ToString;
 public class PortfolioDetailRealTimeItem {
 	private Money currentValuation;
 	private Money totalGain;
-	private Double totalGainRate;
+	private Percentage totalGainRate;
 	private Money dailyGain;
-	private Double dailyGainRate;
+	private Percentage dailyGainRate;
 	private Money provisionalLossBalance;
 
 	public static PortfolioDetailRealTimeItem of(Portfolio portfolio, PortfolioGainHistory history) {
+		Bank bank = Bank.getInstance();
 		return new PortfolioDetailRealTimeItem(
-			portfolio.calculateTotalCurrentValuation(),
-			portfolio.calculateTotalGain(),
-			portfolio.calculateTotalGainRate(),
-			portfolio.calculateDailyGain(history),
-			portfolio.calculateDailyGainRate(history),
+			portfolio.calculateTotalCurrentValuation().reduce(bank, Currency.KRW),
+			portfolio.calculateTotalGain().reduce(bank, Currency.KRW),
+			portfolio.calculateTotalGainRate().toPercentage(Bank.getInstance(), Currency.KRW),
+			portfolio.calculateDailyGain(history).reduce(bank, Currency.KRW),
+			portfolio.calculateDailyGainRate(history).toPercentage(Bank.getInstance(), Currency.KRW),
 			Money.zero()
 		);
 	}

@@ -44,4 +44,8 @@ public class WatchStock extends BaseEntity {
 		this.watchList = watchList;
 		this.stock = stock;
 	}
+
+	public static WatchStock create(WatchList watchList, Stock stock) {
+		return new WatchStock(LocalDateTime.now(), LocalDateTime.now(), null, watchList, stock);
+	}
 }

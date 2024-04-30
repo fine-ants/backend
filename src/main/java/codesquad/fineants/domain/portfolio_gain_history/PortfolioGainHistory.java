@@ -43,9 +43,14 @@ public class PortfolioGainHistory extends BaseEntity {
 	@JoinColumn(name = "portfolio_id")
 	private Portfolio portfolio;
 
+	public PortfolioGainHistory(Money totalGain, Money dailyGain, Money cash, Money currentValuation,
+		Portfolio portfolio) {
+		this(null, totalGain, dailyGain, cash, currentValuation, portfolio);
+	}
+
 	@Builder
-	public PortfolioGainHistory(Long id, Money totalGain, Money dailyGain, Money currentValuation, Portfolio portfolio,
-		Money cash) {
+	public PortfolioGainHistory(Long id, Money totalGain, Money dailyGain, Money cash,
+		Money currentValuation, Portfolio portfolio) {
 		this.id = id;
 		this.totalGain = totalGain;
 		this.dailyGain = dailyGain;

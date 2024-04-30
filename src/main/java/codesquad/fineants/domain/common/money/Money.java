@@ -8,9 +8,11 @@ import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.Objects;
 
+import org.jetbrains.annotations.NotNull;
+
 import codesquad.fineants.domain.common.count.Count;
 
-public class Money implements Comparable<Money>, Expression {
+public class Money implements Expression {
 	private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("#,###");
 	protected final BigDecimal amount;
 
@@ -71,8 +73,18 @@ public class Money implements Comparable<Money>, Expression {
 
 	@Override
 	public Money reduce(Bank bank, Currency to) {
-		int rate = bank.rate(currency, to);
-		return new Money(amount.divide(new BigDecimal(rate)), to);
+		double rate = bank.rate(currency, to);
+		return new Money(amount.divide(new BigDecimal(rate), 4, RoundingMode.HALF_UP), to);
+	}
+
+	@Override
+	public Expression plus(Expression addend) {
+		return new Sum(this, addend);
+	}
+
+	@Override
+	public Expression minus(Expression subtrahend) {
+		return new Subtraction(this, subtrahend);
 	}
 
 	@Override
@@ -81,8 +93,23 @@ public class Money implements Comparable<Money>, Expression {
 	}
 
 	@Override
-	public Expression plus(Expression addend) {
-		return new Sum(this, addend);
+	public Expression divide(Count divisor) {
+		return new AverageDivision(this, divisor);
+	}
+
+	@Override
+	public RateDivision divide(Expression divisor) {
+		return new RateDivision(this, divisor);
+	}
+
+	public Expression divide(BigInteger divisor) {
+		try {
+			BigDecimal result = amount.divide(new BigDecimal(divisor), 4, RoundingMode.HALF_UP);
+			return new Money(result, currency);
+		} catch (ArithmeticException e) {
+			return new Money(BigDecimal.ZERO, currency);
+		}
+
 	}
 
 	public Currency currency() {
@@ -103,24 +130,6 @@ public class Money implements Comparable<Money>, Expression {
 
 	public Money multiply(BigInteger value) {
 		return Money.won(amount.multiply(new BigDecimal(value)).setScale(4, RoundingMode.HALF_UP));
-	}
-
-	public Money divide(Money money) {
-		if (money.isZero()) {
-			return Money.zero();
-		}
-		return Money.won(amount.divide(money.amount, 4, RoundingMode.HALF_UP));
-	}
-
-	public Money divide(Count divisor) {
-		if (divisor.isZero()) {
-			return Money.zero();
-		}
-		return divisor.division(this);
-	}
-
-	public Money divide(BigInteger divisor) {
-		return Money.won(amount.divide(new BigDecimal(divisor), 4, RoundingMode.HALF_UP));
 	}
 
 	public double toPercentage() {
@@ -155,12 +164,18 @@ public class Money implements Comparable<Money>, Expression {
 	}
 
 	@Override
-	public int compareTo(Money m) {
-		return this.amount.compareTo(m.amount);
+	public String toString() {
+		return amount.toString();
 	}
 
 	@Override
-	public String toString() {
-		return amount.toString();
+	public int compareTo(@NotNull Expression o) {
+		Money won = Bank.getInstance().toWon(this);
+		Money won2 = Bank.getInstance().toWon(o);
+		return won.compareTo(won2);
+	}
+
+	public int compareTo(Money m) {
+		return this.amount.compareTo(m.amount);
 	}
 }

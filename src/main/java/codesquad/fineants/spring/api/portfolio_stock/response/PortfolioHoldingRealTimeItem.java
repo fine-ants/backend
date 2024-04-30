@@ -1,6 +1,9 @@
 package codesquad.fineants.spring.api.portfolio_stock.response;
 
+import codesquad.fineants.domain.common.money.Bank;
+import codesquad.fineants.domain.common.money.Currency;
 import codesquad.fineants.domain.common.money.Money;
+import codesquad.fineants.domain.common.money.Percentage;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -16,17 +19,18 @@ public class PortfolioHoldingRealTimeItem {
 	private Money currentValuation;
 	private Money currentPrice;
 	private Money dailyChange;
-	private Double dailyChangeRate;
+	private Percentage dailyChangeRate;
 	private Money totalGain;
-	private Double totalReturnRate;
+	private Percentage totalReturnRate;
 
 	public static PortfolioHoldingRealTimeItem of(PortfolioHolding portfolioHolding, Money lastDayClosingPrice) {
+		Bank bank = Bank.getInstance();
 		return new PortfolioHoldingRealTimeItem(
-			portfolioHolding.calculateCurrentValuation(),
+			portfolioHolding.calculateCurrentValuation().reduce(bank, Currency.KRW),
 			portfolioHolding.getCurrentPrice(),
-			portfolioHolding.calculateDailyChange(lastDayClosingPrice),
-			portfolioHolding.calculateDailyChangeRate(lastDayClosingPrice),
-			portfolioHolding.calculateTotalGain(),
-			portfolioHolding.calculateTotalReturnRate());
+			portfolioHolding.calculateDailyChange(lastDayClosingPrice).reduce(bank, Currency.KRW),
+			portfolioHolding.calculateDailyChangeRate(lastDayClosingPrice).toPercentage(bank, Currency.KRW),
+			portfolioHolding.calculateTotalGain().reduce(bank, Currency.KRW),
+			portfolioHolding.calculateTotalReturnRate().toPercentage(bank, Currency.KRW));
 	}
 }

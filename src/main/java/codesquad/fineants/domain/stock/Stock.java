@@ -16,6 +16,7 @@ import javax.persistence.OneToMany;
 
 import codesquad.fineants.domain.BaseEntity;
 import codesquad.fineants.domain.common.money.Money;
+import codesquad.fineants.domain.common.money.RateDivision;
 import codesquad.fineants.domain.purchase_history.PurchaseHistory;
 import codesquad.fineants.domain.stock.converter.MarketConverter;
 import codesquad.fineants.domain.stock_dividend.StockDividend;
@@ -138,12 +139,12 @@ public class Stock extends BaseEntity {
 			.reduce(Money.zero(), Money::add);
 	}
 
-	public double getAnnualDividendYield(CurrentPriceManager manager) {
+	public RateDivision getAnnualDividendYield(CurrentPriceManager manager) {
 		Money dividends = stockDividends.stream()
 			.filter(dividend -> dividend.isSatisfiedPaymentDateEqualYearBy(LocalDate.now()))
 			.map(StockDividend::getDividend)
 			.reduce(Money.zero(), Money::add);
-		return dividends.divide(getCurrentPrice(manager)).toPercentage();
+		return dividends.divide(getCurrentPrice(manager));
 	}
 
 	public Money getDailyChange(CurrentPriceManager currentPriceManager,
@@ -153,14 +154,14 @@ public class Stock extends BaseEntity {
 		return currentPrice.subtract(closingPrice);
 	}
 
-	public Double getDailyChangeRate(CurrentPriceManager currentPriceManager,
+	public RateDivision getDailyChangeRate(CurrentPriceManager currentPriceManager,
 		LastDayClosingPriceManager lastDayClosingPriceManager) {
 		Money currentPrice = currentPriceManager.getCurrentPrice(tickerSymbol).orElse(null);
 		Money lastDayClosingPrice = lastDayClosingPriceManager.getClosingPrice(tickerSymbol).orElse(null);
 		if (currentPrice == null || lastDayClosingPrice == null) {
 			return null;
 		}
-		return currentPrice.subtract(lastDayClosingPrice).divide(lastDayClosingPrice).toPercentage();
+		return currentPrice.minus(lastDayClosingPrice).divide(lastDayClosingPrice);
 	}
 
 	public Money getCurrentPrice(CurrentPriceManager manager) {

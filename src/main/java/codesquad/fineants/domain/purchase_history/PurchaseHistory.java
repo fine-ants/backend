@@ -16,7 +16,6 @@ import javax.persistence.ManyToOne;
 import codesquad.fineants.domain.BaseEntity;
 import codesquad.fineants.domain.common.count.Count;
 import codesquad.fineants.domain.common.count.CountConverter;
-import codesquad.fineants.domain.common.money.Bank;
 import codesquad.fineants.domain.common.money.Expression;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.common.money.MoneyConverter;
@@ -80,8 +79,7 @@ public class PurchaseHistory extends BaseEntity {
 
 	// 투자 금액 = 주당 매입가 * 개수
 	public Expression calculateInvestmentAmount() {
-		Money money = purchasePricePerShare.multiply(numShares);
-		return Bank.getInstance().reduce(money, money.currency());
+		return purchasePricePerShare.times(numShares.getValue().intValue());
 	}
 
 	public PurchaseHistory change(PurchaseHistory history) {

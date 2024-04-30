@@ -16,7 +16,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
 
-import org.assertj.core.data.Offset;
+import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -28,7 +28,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
 import codesquad.fineants.domain.common.count.Count;
+import codesquad.fineants.domain.common.money.Bank;
 import codesquad.fineants.domain.common.money.Money;
+import codesquad.fineants.domain.common.money.Percentage;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.member.MemberRepository;
 import codesquad.fineants.domain.oauth.support.AuthMember;
@@ -446,11 +448,15 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 		PortfoliosResponse response = service.readMyAllPortfolio(AuthMember.from(member));
 
 		// then
-		assertThat(response.getPortfolios().get(0).getDailyGain()).isEqualByComparingTo(Money.won(-30000));
-		assertThat(response.getPortfolios().get(0).getDailyGainRate()).isEqualTo(-20);
-		assertThat(response.getPortfolios().get(0).getTotalGain()).isEqualByComparingTo(Money.won(-150000));
-		assertThat(response.getPortfolios().get(0).getTotalGainRate()).isCloseTo(-55.56,
-			Offset.offset(0.1));
+		assertThat(response.getPortfolios())
+			.asList()
+			.extracting("dailyGain", "dailyGainRate", "totalGain", "totalGainRate")
+			.containsExactlyInAnyOrder(Tuple.tuple(
+				Money.won(-30000),
+				Percentage.from(-0.2),
+				Money.won(-150000),
+				Percentage.from(-0.5556)
+			));
 	}
 
 	@DisplayName("회원이 포트폴리오들을 삭제한다")
@@ -526,11 +532,12 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 	}
 
 	private PortfolioGainHistory createPortfolioGainHistory(Portfolio portfolio) {
+		Bank bank = Bank.getInstance();
 		return PortfolioGainHistory.builder()
-			.totalGain(portfolio.calculateTotalGain())
-			.dailyGain(portfolio.calculateDailyGain(PortfolioGainHistory.empty()))
-			.cash(portfolio.calculateBalance())
-			.currentValuation(portfolio.calculateTotalCurrentValuation())
+			.totalGain(bank.toWon(portfolio.calculateTotalGain()))
+			.dailyGain(bank.toWon(portfolio.calculateDailyGain(PortfolioGainHistory.empty())))
+			.cash(bank.toWon(portfolio.calculateBalance()))
+			.currentValuation(bank.toWon(portfolio.calculateTotalCurrentValuation()))
 			.portfolio(portfolio)
 			.build();
 	}

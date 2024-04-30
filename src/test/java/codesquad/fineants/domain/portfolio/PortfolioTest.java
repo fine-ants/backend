@@ -11,7 +11,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
 
 import codesquad.fineants.domain.common.count.Count;
+import codesquad.fineants.domain.common.money.Bank;
+import codesquad.fineants.domain.common.money.Expression;
 import codesquad.fineants.domain.common.money.Money;
+import codesquad.fineants.domain.common.money.RateDivision;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
 import codesquad.fineants.domain.purchase_history.PurchaseHistory;
 import codesquad.fineants.domain.stock.Market;
@@ -50,10 +53,11 @@ class PortfolioTest {
 		portfolio.addPortfolioStock(portFolioHolding);
 
 		// when
-		Money result = portfolio.calculateTotalGain();
+		Expression result = portfolio.calculateTotalGain();
 
 		// then
-		assertThat(result).isEqualByComparingTo(Money.won(100000L));
+		Money amount = Bank.getInstance().toWon(result);
+		assertThat(amount).isEqualByComparingTo(Money.won(100000L));
 	}
 
 	@DisplayName("포트폴리오의 총 손익율 계산한다")
@@ -82,10 +86,13 @@ class PortfolioTest {
 		portfolio.addPortfolioStock(portFolioHolding);
 
 		// when
-		Double result = portfolio.calculateTotalGainRate();
+		RateDivision result = portfolio.calculateTotalGainRate();
 
 		// then
-		assertThat(result).isEqualTo(100.00);
+		Money totalGainAmount = Money.won(100000);
+		Money totalInvestmentAmount = Money.won(100000);
+		RateDivision expected = totalGainAmount.divide(totalInvestmentAmount);
+		assertThat(result).isEqualByComparingTo(expected);
 	}
 
 	@DisplayName("사용자는 포트폴리오의 파이 차트를 요청한다")
