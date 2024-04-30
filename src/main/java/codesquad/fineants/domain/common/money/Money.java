@@ -152,6 +152,10 @@ public class Money implements Expression {
 		return amount.setScale(2, RoundingMode.HALF_UP);
 	}
 
+	public String getCurrencySymbol() {
+		return currency.getSymbol();
+	}
+
 	@Override
 	public boolean equals(Object object) {
 		Money money = (Money)object;

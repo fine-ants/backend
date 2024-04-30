@@ -68,7 +68,9 @@ public class TargetPriceNotification extends BaseEntity {
 	public NotifyMessage getTargetPriceMessage(String token) {
 		NotificationType type = NotificationType.STOCK_TARGET_PRICE;
 		String title = type.getName();
-		String content = String.format("%s이(가) %s 금액에 도달했습니다", stockTargetPrice.getStock().getCompanyName(),
+		String content = String.format("%s이(가) %s%s에 도달했습니다",
+			stockTargetPrice.getStock().getCompanyName(),
+			targetPrice.getCurrencySymbol(),
 			targetPrice.toDecimalFormat());
 		String referenceId = stockTargetPrice.getStock().getTickerSymbol();
 		Long memberId = stockTargetPrice.getMember().getId();
