@@ -24,6 +24,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import codesquad.fineants.domain.common.money.Money;
+import codesquad.fineants.domain.common.money.Percentage;
 import codesquad.fineants.domain.oauth.support.AuthPrincipalArgumentResolver;
 import codesquad.fineants.domain.stock.Market;
 import codesquad.fineants.spring.api.common.errors.handler.GlobalExceptionHandler;
@@ -79,10 +80,10 @@ public class StockRestControllerTest {
 			.market(Market.KOSPI)
 			.currentPrice(Money.won(68000L))
 			.dailyChange(Money.won(12000L))
-			.dailyChangeRate(20.45)
+			.dailyChangeRate(Percentage.from(0.2045))
 			.sector("전기전자")
 			.annualDividend(Money.won(6000L))
-			.annualDividendYield(10.00)
+			.annualDividendYield(Percentage.from(0.1))
 			.dividendMonths(List.of(1, 4))
 			.build();
 		given(stockService.getStock(anyString())).willReturn(response);

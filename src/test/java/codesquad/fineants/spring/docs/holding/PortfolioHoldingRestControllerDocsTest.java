@@ -25,7 +25,9 @@ import org.springframework.http.MediaType;
 import org.springframework.restdocs.payload.JsonFieldType;
 import org.springframework.test.web.servlet.ResultActions;
 
+import codesquad.fineants.domain.common.money.Expression;
 import codesquad.fineants.domain.common.money.Money;
+import codesquad.fineants.domain.common.money.Percentage;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.portfolio.Portfolio;
@@ -340,9 +342,20 @@ public class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 	void readPortfolioCharts() throws Exception {
 		// given
 		Portfolio portfolio = createPortfolio(createMember());
+		Expression totalAsset = portfolio.calculateTotalAsset();
+		int samsungValuation = 600000;
+		int samsungTotalGain = 100000;
+		int cash = 500000;
 		List<PortfolioPieChartItem> pieChartItems = List.of(
-			PortfolioPieChartItem.stock("삼성전자보통주", Money.won(600000L), 54.55, Money.won(100000L), 10.00),
-			PortfolioPieChartItem.cash(45.45, Money.won(500000L))
+			PortfolioPieChartItem.stock(
+				"삼성전자보통주",
+				Money.won(samsungValuation),
+				Percentage.from(0.5455),
+				Money.won(samsungTotalGain),
+				Percentage.from(0.10)),
+			PortfolioPieChartItem.cash(
+				Percentage.from(0.4545),
+				Money.won(cash))
 		);
 		List<PortfolioDividendChartItem> dividendChartItems = List.of(
 			PortfolioDividendChartItem.empty(1),
@@ -359,8 +372,9 @@ public class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 			PortfolioDividendChartItem.empty(12)
 		);
 		List<PortfolioSectorChartItem> sectorChartItems = List.of(
-			PortfolioSectorChartItem.create("전기전자", 54.55),
-			PortfolioSectorChartItem.create("현금", 45.45)
+			PortfolioSectorChartItem.create("전기전자", Percentage.from(0.5455)),
+			PortfolioSectorChartItem.create("현금",
+				Percentage.from(0.4545))
 		);
 
 		given(service.readPortfolioCharts(anyLong(), ArgumentMatchers.any(LocalDate.class)))

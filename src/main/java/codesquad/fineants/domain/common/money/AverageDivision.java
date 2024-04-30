@@ -1,24 +1,23 @@
 package codesquad.fineants.domain.common.money;
 
-import java.math.BigDecimal;
-
 import org.jetbrains.annotations.NotNull;
 
 import codesquad.fineants.domain.common.count.Count;
 
-public class Sum implements Expression {
-	private final Expression augend;
-	private final Expression addend;
+public class AverageDivision implements Expression {
 
-	public Sum(Expression augend, Expression addend) {
-		this.augend = augend;
-		this.addend = addend;
+	private final Expression division;
+	private final Count divisor;
+
+	public AverageDivision(Expression division, Count divisor) {
+		this.division = division;
+		this.divisor = divisor;
 	}
 
 	@Override
 	public Money reduce(Bank bank, Currency to) {
-		BigDecimal amount = bank.reduce(augend, to).amount.add(bank.reduce(addend, to).amount);
-		return new Money(amount, to);
+		Expression result = divisor.division(bank.reduce(division, to));
+		return bank.reduce(result, to);
 	}
 
 	@Override
@@ -33,7 +32,7 @@ public class Sum implements Expression {
 
 	@Override
 	public Expression times(int multiplier) {
-		return new Sum(augend.times(multiplier), addend.times(multiplier));
+		return new AverageDivision(division.times(multiplier), divisor);
 	}
 
 	@Override
@@ -48,8 +47,7 @@ public class Sum implements Expression {
 
 	@Override
 	public int compareTo(@NotNull Expression o) {
-		Money won1 = Bank.getInstance().toWon(this);
-		Money won2 = Bank.getInstance().toWon(o);
-		return won1.compareTo(won2);
+		// TODO: impl
+		return 0;
 	}
 }

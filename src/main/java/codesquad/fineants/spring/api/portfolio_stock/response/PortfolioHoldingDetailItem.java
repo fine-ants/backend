@@ -1,7 +1,10 @@
 package codesquad.fineants.spring.api.portfolio_stock.response;
 
 import codesquad.fineants.domain.common.count.Count;
+import codesquad.fineants.domain.common.money.Bank;
+import codesquad.fineants.domain.common.money.Currency;
 import codesquad.fineants.domain.common.money.Money;
+import codesquad.fineants.domain.common.money.Percentage;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -22,25 +25,29 @@ public class PortfolioHoldingDetailItem {
 	private Money averageCostPerShare;
 	private Count numShares;
 	private Money dailyChange;
-	private Double dailyChangeRate;
+	private Percentage dailyChangeRate;
 	private Money totalGain;
-	private Double totalReturnRate;
+	private Percentage totalReturnRate;
 	private Money annualDividend;
-	private Double annualDividendYield;
+	private Percentage annualDividendYield;
 
 	public static PortfolioHoldingDetailItem from(PortfolioHolding portfolioHolding, Money lastDayClosingPrice) {
+		Bank bank = Bank.getInstance();
+		Currency to = Currency.KRW;
 		return PortfolioHoldingDetailItem.builder()
 			.portfolioHoldingId(portfolioHolding.getId())
-			.currentValuation(portfolioHolding.calculateCurrentValuation())
+			.currentValuation(portfolioHolding.calculateCurrentValuation().reduce(bank, to))
 			.currentPrice(portfolioHolding.getCurrentPrice())
-			.averageCostPerShare(portfolioHolding.calculateAverageCostPerShare())
+			.averageCostPerShare(portfolioHolding.calculateAverageCostPerShare().reduce(bank, to))
 			.numShares(portfolioHolding.calculateNumShares())
-			.dailyChange(portfolioHolding.calculateDailyChange(lastDayClosingPrice))
-			.dailyChangeRate(portfolioHolding.calculateDailyChangeRate(lastDayClosingPrice))
-			.totalGain(portfolioHolding.calculateTotalGain())
-			.totalReturnRate(portfolioHolding.calculateTotalReturnRate())
+			.dailyChange(portfolioHolding.calculateDailyChange(lastDayClosingPrice).reduce(bank, to))
+			.dailyChangeRate(portfolioHolding.calculateDailyChangeRate(lastDayClosingPrice)
+				.toPercentage(bank, to))
+			.totalGain(portfolioHolding.calculateTotalGain().reduce(bank, to))
+			.totalReturnRate(portfolioHolding.calculateTotalReturnRate().toPercentage(Bank.getInstance(), to))
 			.annualDividend(portfolioHolding.calculateAnnualExpectedDividend())
-			.annualDividendYield(portfolioHolding.calculateAnnualExpectedDividendYield())
+			.annualDividendYield(
+				portfolioHolding.calculateAnnualExpectedDividendYield().toPercentage(Bank.getInstance(), to))
 			.build();
 	}
 }

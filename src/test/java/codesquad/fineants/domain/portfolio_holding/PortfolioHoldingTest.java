@@ -13,7 +13,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
 
 import codesquad.fineants.domain.common.count.Count;
+import codesquad.fineants.domain.common.money.Bank;
+import codesquad.fineants.domain.common.money.Currency;
+import codesquad.fineants.domain.common.money.Expression;
 import codesquad.fineants.domain.common.money.Money;
+import codesquad.fineants.domain.common.money.RateDivision;
 import codesquad.fineants.domain.portfolio.Portfolio;
 import codesquad.fineants.domain.purchase_history.PurchaseHistory;
 import codesquad.fineants.domain.stock.Market;
@@ -41,18 +45,21 @@ class PortfolioHoldingTest {
 		PurchaseHistory purchaseHistory2 = PurchaseHistory.builder()
 			.purchaseDate(LocalDateTime.now())
 			.numShares(Count.from(5L))
-			.purchasePricePerShare(Money.won(10000.0))
+			.purchasePricePerShare(Money.dollar(10))
 			.portfolioHolding(portFolioHolding)
 			.build();
 
 		portFolioHolding.addPurchaseHistory(purchaseHistory1);
 		portFolioHolding.addPurchaseHistory(purchaseHistory2);
 
+		Bank.getInstance().addRate(Currency.KRW, Currency.USD, 1000);
+		Bank.getInstance().addRate(Currency.USD, Currency.KRW, (double)1 / 1000);
 		// when
-		Money result = portFolioHolding.calculateTotalInvestmentAmount();
+		Expression result = portFolioHolding.calculateTotalInvestmentAmount();
 
 		// then
-		assertThat(result).isEqualByComparingTo(Money.won(100000L));
+		Money totalInvestmentAmount = Bank.getInstance().reduce(result, Currency.KRW);
+		assertThat(totalInvestmentAmount).isEqualByComparingTo(Money.won(100000L));
 	}
 
 	@DisplayName("한 종목의 평균 매입가를 계산한다")
@@ -81,7 +88,7 @@ class PortfolioHoldingTest {
 		portFolioHolding.addPurchaseHistory(purchaseHistory2);
 
 		// when
-		Money money = portFolioHolding.calculateAverageCostPerShare();
+		Expression money = portFolioHolding.calculateAverageCostPerShare();
 
 		// then
 		assertThat(money).isEqualByComparingTo(Money.won(10000.0));
@@ -113,10 +120,11 @@ class PortfolioHoldingTest {
 		portFolioHolding.addPurchaseHistory(purchaseHistory2);
 
 		// when
-		Money result = portFolioHolding.calculateTotalGain();
+		Expression result = portFolioHolding.calculateTotalGain();
 
 		// then
-		assertThat(result).isEqualByComparingTo(Money.won(100000L));
+		Money won = Bank.getInstance().toWon(result);
+		assertThat(won).isEqualByComparingTo(Money.won(100000L));
 	}
 
 	@DisplayName("한 종목의 총 손익율 계산한다")
@@ -145,10 +153,13 @@ class PortfolioHoldingTest {
 		portFolioHolding.addPurchaseHistory(purchaseHistory2);
 
 		// when
-		double result = portFolioHolding.calculateTotalReturnRate();
+		RateDivision result = portFolioHolding.calculateTotalReturnRate();
 
 		// then
-		assertThat(result).isEqualTo(100.0);
+		Expression totalGain = Money.won(100000);
+		Expression totalInvestmentAmount = Money.won(100000);
+		RateDivision expected = totalGain.divide(totalInvestmentAmount);
+		assertThat(result).isEqualByComparingTo(expected);
 	}
 
 	@DisplayName("포트폴리오 종목의 월별 배당금을 계산한다")

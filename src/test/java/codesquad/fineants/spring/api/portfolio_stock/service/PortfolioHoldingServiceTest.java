@@ -17,7 +17,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
 import codesquad.fineants.domain.common.count.Count;
+import codesquad.fineants.domain.common.money.Bank;
+import codesquad.fineants.domain.common.money.Currency;
+import codesquad.fineants.domain.common.money.Expression;
 import codesquad.fineants.domain.common.money.Money;
+import codesquad.fineants.domain.common.money.Percentage;
+import codesquad.fineants.domain.common.money.RateDivision;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.member.MemberRepository;
 import codesquad.fineants.domain.oauth.support.AuthMember;
@@ -116,22 +121,45 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 
 		// then
 		PortfolioDetailResponse details = response.getPortfolioDetails();
+		Expression pureTargetGain = Money.won(500000);
+		Expression budget = Money.won(1000000);
+		Percentage targetReturnRate = RateDivision.of(pureTargetGain, budget)
+			.toPercentage(Bank.getInstance(), Currency.KRW);
+
+		Expression pureMaximumLoss = Money.won(100000);
+		Percentage maximumLossRate = RateDivision.of(pureMaximumLoss, budget)
+			.toPercentage(Bank.getInstance(), Currency.KRW);
+
+		Expression totalGain = Money.won(30000);
+		Expression totalInvestmentAmount = Money.won(150000);
+		Percentage totalGainRate = RateDivision.of(totalGain, totalInvestmentAmount)
+			.toPercentage(Bank.getInstance(), Currency.KRW);
+
+		Expression dailyGain = Money.won(30000);
+		Percentage dailyGainRate = RateDivision.of(dailyGain, totalInvestmentAmount)
+			.toPercentage(Bank.getInstance(), Currency.KRW);
+
+		Expression totalAnnualDividend = Money.won(361 * 3 * 4);
+		Expression currentValuation = Money.won(180000);
+		Percentage annualDividendYield = RateDivision.of(totalAnnualDividend, currentValuation)
+			.toPercentage(Bank.getInstance(), Currency.KRW);
+
 		assertAll(
 			() -> assertThat(details.getSecuritiesFirm()).isEqualTo("토스"),
 			() -> assertThat(details.getName()).isEqualTo("내꿈은 워렌버핏"),
 			() -> assertThat(details.getBudget()).isEqualByComparingTo(Money.won(1000000L)),
 			() -> assertThat(details.getTargetGain()).isEqualByComparingTo(Money.won(1500000L)),
-			() -> assertThat(details.getTargetReturnRate()).isEqualByComparingTo(50.0),
+			() -> assertThat(details.getTargetReturnRate()).isEqualByComparingTo(targetReturnRate),
 			() -> assertThat(details.getMaximumLoss()).isEqualByComparingTo(Money.won(900000L)),
-			() -> assertThat(details.getMaximumLossRate()).isEqualByComparingTo(10.0),
+			() -> assertThat(details.getMaximumLossRate()).isEqualByComparingTo(maximumLossRate),
 			() -> assertThat(details.getInvestedAmount()).isEqualByComparingTo(Money.won(150000L)),
 			() -> assertThat(details.getTotalGain()).isEqualByComparingTo(Money.won(30000L)),
-			() -> assertThat(details.getTotalGainRate()).isEqualByComparingTo(20.0),
+			() -> assertThat(details.getTotalGainRate()).isEqualByComparingTo(totalGainRate),
 			() -> assertThat(details.getDailyGain()).isEqualByComparingTo(Money.won(30000L)),
-			() -> assertThat(details.getDailyGainRate()).isEqualByComparingTo(20.0),
+			() -> assertThat(details.getDailyGainRate()).isEqualByComparingTo(dailyGainRate),
 			() -> assertThat(details.getBalance()).isEqualByComparingTo(Money.won(850000L)),
 			() -> assertThat(details.getAnnualDividend()).isEqualByComparingTo(Money.won(4332L)),
-			() -> assertThat(details.getAnnualDividendYield()).isEqualByComparingTo(2.41),
+			() -> assertThat(details.getAnnualDividendYield()).isEqualByComparingTo(annualDividendYield),
 			() -> assertThat(details.getProvisionalLossBalance()).isEqualByComparingTo(Money.won(0L)),
 			() -> assertThat(details.getTargetGainNotify()).isFalse(),
 			() -> assertThat(details.getMaxLossNotify()).isFalse(),
@@ -149,18 +177,19 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 					"numShares", "dailyChange", "dailyChangeRate", "totalGain", "totalReturnRate", "annualDividend")
 				.usingComparatorForType(Money::compareTo, Money.class)
 				.usingComparatorForType(Count::compareTo, Count.class)
+				.usingComparatorForType(Percentage::compareTo, Percentage.class)
 				.containsExactlyInAnyOrder(
 					Tuple.tuple(
 						portfolioHolding.getId(),
-						Money.won(180000L),
-						Money.won(60000L),
-						Money.won(50000L),
+						Money.won(180000),
+						Money.won(60000),
+						Money.won(50000),
 						Count.from(3L),
-						Money.won(10000L),
-						20.00,
-						Money.won(30000L),
-						20.00,
-						Money.won(4332L)
+						Money.won(10000),
+						Percentage.from(0.2),
+						Money.won(30000),
+						Percentage.from(0.2),
+						Money.won(4332)
 					)
 				),
 			() -> assertThat(response.getPortfolioHoldings())
@@ -207,9 +236,11 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 				.hasSize(2)
 				.extracting("name", "valuation", "weight", "totalGain", "totalGainRate")
 				.usingComparatorForType(Money::compareTo, Money.class)
+				.usingComparatorForType(Percentage::compareTo, Percentage.class)
 				.containsExactlyInAnyOrder(
-					Tuple.tuple("현금", Money.won(850000L), 82.52, Money.zero(), 0.00),
-					Tuple.tuple("삼성전자보통주", Money.won(180000L), 17.48, Money.won(30000L), 20.00)
+					Tuple.tuple("현금", Money.won(850000L), Percentage.from(0.8252), Money.zero(), Percentage.zero()),
+					Tuple.tuple("삼성전자보통주", Money.won(180000L), Percentage.from(0.1748), Money.won(30000L),
+						Percentage.from(0.2))
 				),
 			() -> assertThat(response)
 				.extracting("dividendChart")
@@ -237,8 +268,8 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 				.hasSize(2)
 				.extracting("sector", "sectorWeight")
 				.containsExactlyInAnyOrder(
-					Tuple.tuple("현금", 82.52),
-					Tuple.tuple("전기전자", 17.48)
+					Tuple.tuple("현금", Percentage.from(0.8252)),
+					Tuple.tuple("전기전자", Percentage.from(0.1748))
 				)
 		);
 	}
@@ -259,25 +290,23 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 
 		// then
 		assertAll(
-			() -> assertThat(response)
-				.extracting("pieChart")
+			() -> assertThat(response.getPieChart())
 				.asList()
 				.hasSize(1)
 				.extracting("name", "valuation", "weight", "totalGain", "totalGainRate")
 				.usingComparatorForType(Money::compareTo, Money.class)
+				.usingComparatorForType(Percentage::compareTo, Percentage.class)
 				.containsExactlyInAnyOrder(
-					Tuple.tuple("현금", Money.zero(), 0.0, Money.zero(), 0.00)
+					Tuple.tuple("현금", Money.zero(), Percentage.zero(), Money.zero(), Percentage.zero())
 				),
-			() -> assertThat(response)
-				.extracting("dividendChart")
+			() -> assertThat(response.getDividendChart())
 				.asList()
 				.isEmpty(),
-			() -> assertThat(response)
-				.extracting("sectorChart")
+			() -> assertThat(response.getSectorChart())
 				.asList()
 				.hasSize(1)
 				.extracting("sector", "sectorWeight")
-				.containsExactlyInAnyOrder(Tuple.tuple("현금", 0.0))
+				.containsExactlyInAnyOrder(Tuple.tuple("현금", Percentage.zero()))
 		);
 	}
 
@@ -313,20 +342,24 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 				.extracting("currentValuation", "totalGain", "totalGainRate", "dailyGain", "dailyGainRate",
 					"provisionalLossBalance")
 				.usingComparatorForType(Money::compareTo, Money.class)
-				.containsExactlyInAnyOrder(Money.won(720000L), Money.won(120000L), 20.0, Money.won(120000L), 20.0,
-					Money.zero()),
+				.usingComparatorForType(Percentage::compareTo, Percentage.class)
+				.containsExactlyInAnyOrder(Money.won(720000L), Money.won(120000L), Percentage.from(0.2),
+					Money.won(120000L), Percentage.from(0.2), Money.zero()),
 
-			() -> assertThat(response).extracting("portfolioHoldings")
+			() -> assertThat(response).extracting(PortfolioHoldingsRealTimeResponse::getPortfolioHoldings)
 				.asList()
 				.hasSize(2)
 				.extracting("currentValuation", "currentPrice", "dailyChange", "dailyChangeRate", "totalGain",
 					"totalReturnRate")
 				.usingComparatorForType(Money::compareTo, Money.class)
+				.usingComparatorForType(Percentage::compareTo, Percentage.class)
 				.containsExactlyInAnyOrder(
-					Tuple.tuple(Money.won(360000L), Money.won(60000L), Money.won(10000L), 20.0, Money.won(60000L),
-						20.0),
-					Tuple.tuple(Money.won(360000L), Money.won(60000L), Money.won(10000L), 20.0, Money.won(60000L),
-						20.0))
+					Tuple.tuple(Money.won(360000L), Money.won(60000L), Money.won(10000L), Percentage.from(0.2),
+						Money.won(60000L),
+						Percentage.from(0.2)),
+					Tuple.tuple(Money.won(360000L), Money.won(60000L), Money.won(10000L), Percentage.from(0.2),
+						Money.won(60000L),
+						Percentage.from(0.2)))
 		);
 	}
 

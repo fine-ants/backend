@@ -96,10 +96,15 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 					OverviewResponse::getTotalAnnualDividendYield
 				)
 				.usingComparatorForType(Money::compareTo, Money.class)
-				.containsExactly(member.getNickname(), Money.zero(), Money.zero(), Money.zero(), 0.0, Money.zero(), 0.0)
+				.usingComparatorForType(codesquad.fineants.domain.common.money.Percentage::compareTo,
+					codesquad.fineants.domain.common.money.Percentage.class)
+				.containsExactly(member.getNickname(), Money.zero(), Money.zero(), Money.zero(),
+					codesquad.fineants.domain.common.money.Percentage.zero(), Money.zero(),
+					codesquad.fineants.domain.common.money.Percentage.zero())
 		);
 	}
 
+	@DisplayName("사용자는 포트폴리오의 오버뷰를 조회한다")
 	@Test
 	void getOverviewWithPortfolio() {
 		// given
@@ -126,7 +131,7 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 		PortfolioHolding portfolioHolding = portfolioHoldingRepository.save(
 			PortfolioHolding.of(portfolio, stock, Money.won(72900L)));
 
-		PurchaseHistory purchaseHistory = purchaseHistoryRepository.save(
+		purchaseHistoryRepository.save(
 			PurchaseHistory.builder()
 				.portfolioHolding(portfolioHolding)
 				.purchaseDate(LocalDateTime.now())
@@ -154,14 +159,16 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 					OverviewResponse::getTotalAnnualDividend,
 					OverviewResponse::getTotalAnnualDividendYield
 				).usingComparatorForType(Money::compareTo, Money.class)
+				.usingComparatorForType(codesquad.fineants.domain.common.money.Percentage::compareTo,
+					codesquad.fineants.domain.common.money.Percentage.class)
 				.containsExactlyInAnyOrder(
 					member.getNickname(),
 					Money.won(1068700L),
 					Money.won(150000L),
 					Money.won(68700L),
-					45.8,
+					codesquad.fineants.domain.common.money.Percentage.from(0.458),
 					Money.won(3249L),
-					1.49
+					codesquad.fineants.domain.common.money.Percentage.from(0.0149)
 				)
 		);
 	}
@@ -199,9 +206,9 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 				Money.won(1000000L),
 				Money.zero(),
 				Money.zero(),
-				0.00,
+				codesquad.fineants.domain.common.money.Percentage.zero(),
 				Money.zero(),
-				0.00
+				codesquad.fineants.domain.common.money.Percentage.zero()
 			);
 	}
 
@@ -266,8 +273,10 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 
 		// then
 		Assertions.assertAll(
-			() -> assertThat(responses.get(0).getWeight()).isCloseTo(50.76, Percentage.withPercentage(0.1)),
-			() -> assertThat(responses.get(1).getWeight()).isCloseTo(49.24, Percentage.withPercentage(0.1)),
+			() -> assertThat(responses.get(0).getWeight().toPercentage()).isCloseTo(50.76,
+				Percentage.withPercentage(0.1)),
+			() -> assertThat(responses.get(1).getWeight().toPercentage()).isCloseTo(49.24,
+				Percentage.withPercentage(0.1)),
 			() -> assertThat(responses)
 				.asList()
 				.hasSize(2)

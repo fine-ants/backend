@@ -22,8 +22,11 @@ import org.hibernate.annotations.BatchSize;
 import codesquad.fineants.domain.BaseEntity;
 import codesquad.fineants.domain.common.count.Count;
 import codesquad.fineants.domain.common.money.Bank;
+import codesquad.fineants.domain.common.money.Currency;
 import codesquad.fineants.domain.common.money.Expression;
 import codesquad.fineants.domain.common.money.Money;
+import codesquad.fineants.domain.common.money.Percentage;
+import codesquad.fineants.domain.common.money.RateDivision;
 import codesquad.fineants.domain.portfolio.Portfolio;
 import codesquad.fineants.domain.purchase_history.PurchaseHistory;
 import codesquad.fineants.domain.stock.Stock;
@@ -94,14 +97,13 @@ public class PortfolioHolding extends BaseEntity {
 	}
 
 	// 종목 총 손익 = (종목 현재가 - 종목 평균 매입가) * 개수
-	public Money calculateTotalGain() {
-		Money averageCostPerShare = calculateAverageCostPerShare();
-		Money amount = currentPrice.subtract(averageCostPerShare).multiply(calculateNumShares());
-		return Bank.getInstance().toWon(amount);
+	public Expression calculateTotalGain() {
+		Expression averageCostPerShare = calculateAverageCostPerShare();
+		return currentPrice.minus(averageCostPerShare).times(calculateNumShares().getValue().intValue());
 	}
 
 	// 종목 평균 매입가 = 총 투자 금액 / 개수
-	public Money calculateAverageCostPerShare() {
+	public Expression calculateAverageCostPerShare() {
 		return calculateTotalInvestmentAmount().divide(calculateNumShares());
 	}
 
@@ -113,40 +115,39 @@ public class PortfolioHolding extends BaseEntity {
 	}
 
 	// 총 투자 금액 = 투자 금액들의 합계
-	public Money calculateTotalInvestmentAmount() {
-		Expression amount = purchaseHistory.stream()
+	public Expression calculateTotalInvestmentAmount() {
+		return purchaseHistory.stream()
 			.map(PurchaseHistory::calculateInvestmentAmount)
 			.reduce(Money.wonZero(), Expression::plus);
-		return Bank.getInstance().toWon(amount);
 	}
 
 	// 종목 총 손익율 = 총 손익 / 총 투자 금액
-	public double calculateTotalReturnRate() {
-		Money totalGain = calculateTotalGain();
-		Money totalInvestmentAmount = calculateTotalInvestmentAmount();
-		return totalGain.divide(totalInvestmentAmount).toPercentage();
+	public RateDivision calculateTotalReturnRate() {
+		Expression totalGain = calculateTotalGain();
+		Expression totalInvestmentAmount = calculateTotalInvestmentAmount();
+		return totalGain.divide(totalInvestmentAmount);
 	}
 
 	// 평가 금액(현재 가치) = 현재가 * 개수
-	public Money calculateCurrentValuation() {
+	public Expression calculateCurrentValuation() {
 		return currentPrice.multiply(calculateNumShares());
 	}
 
 	// 당일 변동 금액 = 종목 현재가 - 직전 거래일의 종가
-	public Money calculateDailyChange(Money lastDayClosingPrice) {
-		return currentPrice.subtract(lastDayClosingPrice);
+	public Expression calculateDailyChange(Money lastDayClosingPrice) {
+		return currentPrice.minus(lastDayClosingPrice);
 	}
 
 	// 당일 변동율 = ((종목 현재가 - 직전 거래일 종가) / 직전 거래일 종가) * 100%
-	public double calculateDailyChangeRate(Money lastDayClosingPrice) {
-		return currentPrice.subtract(lastDayClosingPrice).divide(lastDayClosingPrice).toPercentage();
+	public RateDivision calculateDailyChangeRate(Money lastDayClosingPrice) {
+		return currentPrice.subtract(lastDayClosingPrice).divide(lastDayClosingPrice);
 	}
 
 	// 예상 연간 배당율 = (예상 연간 배당금 / 현재 가치) * 100
-	public double calculateAnnualExpectedDividendYield() {
-		Money annualDividend = calculateAnnualExpectedDividend();
-		Money currentValuation = calculateCurrentValuation();
-		return annualDividend.divide(currentValuation).toPercentage();
+	public RateDivision calculateAnnualExpectedDividendYield() {
+		Expression annualDividend = calculateAnnualExpectedDividend();
+		Expression currentValuation = calculateCurrentValuation();
+		return annualDividend.divide(currentValuation);
 	}
 
 	// 연간 배당금 = 종목의 배당금 합계
@@ -204,17 +205,21 @@ public class PortfolioHolding extends BaseEntity {
 		this.currentPrice = stock.getCurrentPrice(manager);
 	}
 
-	public double calculateWeightBy(Money portfolioAsset) {
-		Money currentValuation = calculateCurrentValuation();
-		return currentValuation.divide(portfolioAsset).toPercentage();
+	public RateDivision calculateWeightBy(Expression portfolioAsset) {
+		Expression currentValuation = calculateCurrentValuation();
+		return currentValuation.divide(portfolioAsset);
 	}
 
-	public PortfolioPieChartItem createPieChartItem(Double weight) {
+	public PortfolioPieChartItem createPieChartItem(RateDivision weight) {
 		String name = stock.getCompanyName();
-		Money currentValuation = calculateCurrentValuation();
-		Money totalGain = calculateTotalGain();
-		Double totalReturnRate = calculateTotalReturnRate();
-		return PortfolioPieChartItem.stock(name, currentValuation, weight, totalGain, totalReturnRate);
+		Expression currentValuation = calculateCurrentValuation();
+		Expression totalGain = calculateTotalGain();
+		RateDivision totalReturnRate = calculateTotalReturnRate();
+
+		Bank bank = Bank.getInstance();
+		Percentage weightPercentage = weight.toPercentage(bank, Currency.KRW);
+		Percentage totalReturnPercentage = totalReturnRate.toPercentage(bank, Currency.KRW);
+		return PortfolioPieChartItem.stock(name, currentValuation, weightPercentage, totalGain, totalReturnPercentage);
 	}
 
 	public Money getLastDayClosingPrice(LastDayClosingPriceManager manager) {

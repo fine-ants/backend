@@ -2,7 +2,11 @@ package codesquad.fineants.spring.api.stock.response;
 
 import java.util.List;
 
+import codesquad.fineants.domain.common.money.Bank;
+import codesquad.fineants.domain.common.money.Currency;
+import codesquad.fineants.domain.common.money.Expression;
 import codesquad.fineants.domain.common.money.Money;
+import codesquad.fineants.domain.common.money.Percentage;
 import codesquad.fineants.domain.stock.Market;
 import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
@@ -27,26 +31,29 @@ public class StockResponse {
 	private Market market;
 	private Money currentPrice;
 	private Money dailyChange;
-	private Double dailyChangeRate;
+	private Percentage dailyChangeRate;
 	private String sector;
 	private Money annualDividend;
-	private Double annualDividendYield;
+	private Percentage annualDividendYield;
 	private List<Integer> dividendMonths;
 
 	public static StockResponse create(String stockCode, String tickerSymbol, String companyName,
-		String companyNameEng, Market market, Money currentPrice, Money dailyChange, Double dailyChangeRate,
-		String sector, Money annualDividend, Double annualDividendYield, List<Integer> dividendMonths) {
+		String companyNameEng, Market market, Expression currentPrice, Expression dailyChange,
+		Percentage dailyChangeRate, String sector, Expression annualDividend, Percentage annualDividendYield,
+		List<Integer> dividendMonths) {
+		Bank bank = Bank.getInstance();
+		Currency to = Currency.KRW;
 		return StockResponse.builder()
 			.stockCode(stockCode)
 			.tickerSymbol(tickerSymbol)
 			.companyName(companyName)
 			.companyNameEng(companyNameEng)
 			.market(market)
-			.currentPrice(currentPrice)
-			.dailyChange(dailyChange)
+			.currentPrice(currentPrice.reduce(bank, to))
+			.dailyChange(dailyChange.reduce(bank, to))
 			.dailyChangeRate(dailyChangeRate)
 			.sector(sector)
-			.annualDividend(annualDividend)
+			.annualDividend(annualDividend.reduce(bank, to))
 			.annualDividendYield(annualDividendYield)
 			.dividendMonths(dividendMonths)
 			.build();
@@ -62,10 +69,12 @@ public class StockResponse {
 			.market(stock.getMarket())
 			.currentPrice(stock.getCurrentPrice(currentPriceManager))
 			.dailyChange(stock.getDailyChange(currentPriceManager, lastDayClosingPriceManager))
-			.dailyChangeRate(stock.getDailyChangeRate(currentPriceManager, lastDayClosingPriceManager))
+			.dailyChangeRate(stock.getDailyChangeRate(currentPriceManager, lastDayClosingPriceManager).toPercentage(
+				Bank.getInstance(), Currency.KRW))
 			.sector(stock.getSector())
 			.annualDividend(stock.getAnnualDividend())
-			.annualDividendYield(stock.getAnnualDividendYield(currentPriceManager))
+			.annualDividendYield(
+				stock.getAnnualDividendYield(currentPriceManager).toPercentage(Bank.getInstance(), Currency.KRW))
 			.dividendMonths(stock.getDividendMonths())
 			.build();
 	}

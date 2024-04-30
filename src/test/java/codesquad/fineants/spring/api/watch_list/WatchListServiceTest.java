@@ -8,7 +8,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-import org.assertj.core.data.Offset;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -17,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
 import codesquad.fineants.domain.common.money.Money;
+import codesquad.fineants.domain.common.money.Percentage;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.member.MemberRepository;
 import codesquad.fineants.domain.oauth.support.AuthMember;
@@ -146,7 +146,7 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 				.market(Market.KOSPI)
 				.build()
 		);
-		StockDividend stockDividend = stockDividendRepository.save(
+		stockDividendRepository.save(
 			StockDividend.builder()
 				.exDividendDate(LocalDate.now())
 				.recordDate(LocalDate.now())
@@ -162,28 +162,41 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 				.member(member)
 				.build()
 		);
-		WatchStock watchStock = watchStockRepository.save(
+		watchStockRepository.save(
 			WatchStock.builder()
 				.stock(stock)
 				.watchList(watchList)
 				.build()
 		);
 
-		given(currentPriceManager.getCurrentPrice(any(String.class))).willReturn(Optional.of(Money.won(77000L)));
+		Money currentPrice = Money.won(77000);
+		given(currentPriceManager.getCurrentPrice(any(String.class))).willReturn(Optional.of(currentPrice));
 		given(lastDayClosingPriceManager.getClosingPrice(any(String.class))).willReturn(
-			Optional.of(Money.won(77000L)));
+			Optional.of(Money.won(77000)));
 
 		// when
 		ReadWatchListResponse response = watchListService.readWatchList(authMember, watchList.getId());
 
 		// then
 		assertThat(response.getName()).isEqualTo(watchList.getName());
-		assertThat(response.getWatchStocks().get(0).getCompanyName()).isEqualTo(stock.getCompanyName());
-		assertThat(response.getWatchStocks().get(0).getTickerSymbol()).isEqualTo(stock.getTickerSymbol());
-		assertThat(response.getWatchStocks().get(0).getCurrentPrice()).isEqualByComparingTo(Money.won(77000L));
-		assertThat(response.getWatchStocks().get(0).getDailyChange()).isEqualByComparingTo(Money.zero());
-		assertThat(response.getWatchStocks().get(0).getAnnualDividendYield()).isCloseTo(0.47, Offset.offset(0.1));
-		assertThat(response.getWatchStocks().get(0).getSector()).isEqualTo("전기전자");
+		assertThat(response)
+			.extracting(ReadWatchListResponse::getWatchStocks)
+			.asList()
+			.extracting("companyName", "tickerSymbol", "currentPrice", "dailyChange", "dailyChangeRate",
+				"annualDividendYield", "sector")
+			.usingComparatorForType(Money::compareTo, Money.class)
+			.usingComparatorForType(Percentage::compareTo, Percentage.class)
+			.containsExactlyInAnyOrder(
+				tuple(
+					"삼성전자보통주",
+					"005930",
+					Money.won(77000),
+					Money.zero(),
+					Percentage.zero(),
+					Percentage.from(0.0047),
+					"전기전자"
+				)
+			);
 	}
 
 	@DisplayName("회원이 watchlist에 종목을 추가한다.")

@@ -1,5 +1,8 @@
 package codesquad.fineants.spring.api.portfolio_stock.response;
 
+import org.jetbrains.annotations.NotNull;
+
+import codesquad.fineants.domain.common.money.Percentage;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -10,11 +13,20 @@ import lombok.ToString;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @ToString
-public class PortfolioSectorChartItem {
+public class PortfolioSectorChartItem implements Comparable<PortfolioSectorChartItem> {
 	private String sector;
-	private Double sectorWeight;
+	private Percentage sectorWeight;
 
-	public static PortfolioSectorChartItem create(String sector, Double sectorWeight) {
+	public static PortfolioSectorChartItem create(String sector, Percentage sectorWeight) {
 		return new PortfolioSectorChartItem(sector, sectorWeight);
+	}
+
+	@Override
+	public int compareTo(@NotNull PortfolioSectorChartItem item) {
+		int result = item.getSectorWeight().compareTo(sectorWeight);
+		if (result == 0) {
+			return sector.compareTo(item.getSector());
+		}
+		return result;
 	}
 }

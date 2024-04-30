@@ -21,6 +21,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 
 import codesquad.fineants.domain.common.money.Money;
+import codesquad.fineants.domain.common.money.Percentage;
 import codesquad.fineants.domain.stock.Market;
 import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.domain.stock.StockRepository;
@@ -132,6 +133,9 @@ class StockServiceTest extends AbstractContainerBaseTest {
 			.willReturn("50000");
 		given(valueOperationMock.get("lastDayClosingPrice:005930"))
 			.willReturn("49000");
+		given(kisClient.fetchAccessToken())
+			.willReturn(
+				Mono.just(new KisAccessToken("accessToken", "Bearer", LocalDateTime.now().plusSeconds(86400), 86400)));
 
 		String tickerSymbol = "005930";
 		// when
@@ -152,6 +156,7 @@ class StockServiceTest extends AbstractContainerBaseTest {
 					StockResponse::getAnnualDividend,
 					StockResponse::getAnnualDividendYield)
 				.usingComparatorForType(Money::compareTo, Money.class)
+				.usingComparatorForType(Percentage::compareTo, Percentage.class)
 				.containsExactlyInAnyOrder(
 					stock.getStockCode(),
 					stock.getTickerSymbol(),
@@ -160,10 +165,10 @@ class StockServiceTest extends AbstractContainerBaseTest {
 					stock.getMarket(),
 					Money.won(50000),
 					Money.won(1000),
-					2.04,
+					Percentage.from(0.0204),
 					stock.getSector(),
 					Money.won(1083),
-					2.17
+					Percentage.from(0.0217)
 				)
 		);
 	}
@@ -211,6 +216,7 @@ class StockServiceTest extends AbstractContainerBaseTest {
 					StockResponse::getAnnualDividend,
 					StockResponse::getAnnualDividendYield)
 				.usingComparatorForType(Money::compareTo, Money.class)
+				.usingComparatorForType(Percentage::compareTo, Percentage.class)
 				.containsExactlyInAnyOrder(
 					stock.getStockCode(),
 					stock.getTickerSymbol(),
@@ -219,10 +225,10 @@ class StockServiceTest extends AbstractContainerBaseTest {
 					stock.getMarket(),
 					Money.won(50000),
 					Money.won(1000),
-					2.04,
+					Percentage.from(0.0204),
 					stock.getSector(),
 					Money.won(1083),
-					2.17
+					Percentage.from(0.0217)
 				)
 		);
 

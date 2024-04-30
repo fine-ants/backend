@@ -10,6 +10,7 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.*;
 import static org.springframework.restdocs.request.RequestDocumentation.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -23,6 +24,9 @@ import org.springframework.http.MediaType;
 import org.springframework.restdocs.payload.JsonFieldType;
 
 import codesquad.fineants.domain.common.money.Money;
+import codesquad.fineants.domain.common.money.Percentage;
+import codesquad.fineants.domain.portfolio.Portfolio;
+import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
 import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
@@ -154,14 +158,21 @@ public class StockRestControllerDocsTest extends RestDocsSupport {
 	@Test
 	void getStock() throws Exception {
 		// given
+		Portfolio portfolio = createPortfolio(createMember());
 		Stock stock = createStock();
+		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
+		holding.addPurchaseHistory(createPurchaseHistory(holding, LocalDateTime.now()));
+		portfolio.addPortfolioStock(holding);
+
 		CurrentPriceManager currentPriceManager = Mockito.mock(CurrentPriceManager.class);
 		LastDayClosingPriceManager lastDayClosingPriceManager = Mockito.mock(LastDayClosingPriceManager.class);
 
+		Money currentPrice = Money.won(68000L);
+		Money closingPrice = Money.won(80000L);
 		given(currentPriceManager.getCurrentPrice(stock.getTickerSymbol()))
-			.willReturn(Optional.of(Money.won(68000L)));
+			.willReturn(Optional.of(currentPrice));
 		given(lastDayClosingPriceManager.getClosingPrice(stock.getTickerSymbol()))
-			.willReturn(Optional.of(Money.won(80000L)));
+			.willReturn(Optional.of(closingPrice));
 		given(service.getStock(stock.getTickerSymbol()))
 			.willReturn(StockResponse.create(
 				stock.getStockCode(),
@@ -169,12 +180,12 @@ public class StockRestControllerDocsTest extends RestDocsSupport {
 				stock.getCompanyName(),
 				stock.getCompanyNameEng(),
 				stock.getMarket(),
-				Money.won(68000L),
-				Money.won(12000L),
-				20.45,
+				currentPrice,
+				Money.won(12000),
+				Percentage.from(0.2045),
 				stock.getSector(),
-				Money.won(6000L),
-				10.00,
+				Money.won(6000),
+				Percentage.from(0.10),
 				List.of(1, 4)
 			));
 
