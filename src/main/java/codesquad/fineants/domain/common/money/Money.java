@@ -174,9 +174,11 @@ public class Money implements Expression {
 
 	@Override
 	public int compareTo(@NotNull Expression o) {
-		Money won = Bank.getInstance().toWon(this);
-		Money won2 = Bank.getInstance().toWon(o);
-		return won.compareTo(won2);
+		Bank bank = Bank.getInstance();
+		Currency to = KRW;
+		Money won = this.reduce(bank, to);
+		Money won2 = o.reduce(bank, to);
+		return won.amount.compareTo(won2.amount);
 	}
 
 	public int compareTo(Money m) {
