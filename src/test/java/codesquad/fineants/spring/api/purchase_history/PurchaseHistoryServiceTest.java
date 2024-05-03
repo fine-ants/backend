@@ -475,7 +475,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 			.name("내꿈은 워렌버핏")
 			.securitiesFirm("토스")
 			.budget(Money.won(budget))
-			.targetGain(Money.won(budget).add(Money.won(100000L)))
+			.targetGain(Money.won(budget.add(new BigDecimal(100000))))
 			.maximumLoss(Money.won(900000L))
 			.member(member)
 			.targetGainIsActive(true)

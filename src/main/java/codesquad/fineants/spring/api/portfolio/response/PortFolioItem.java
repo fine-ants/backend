@@ -48,7 +48,7 @@ public class PortFolioItem {
 			.dailyGain(portfolio.calculateDailyGain(prevHistory).reduce(bank, to))
 			.dailyGainRate(portfolio.calculateDailyGainRate(prevHistory).toPercentage(Bank.getInstance(), Currency.KRW))
 			.currentValuation(portfolio.calculateTotalCurrentValuation().reduce(bank, to))
-			.expectedMonthlyDividend(portfolio.calculateCurrentMonthDividend())
+			.expectedMonthlyDividend(portfolio.calculateCurrentMonthDividend().reduce(bank, to))
 			.numShares(portfolio.getNumberOfShares())
 			.dateCreated(portfolio.getCreateAt())
 			.build();

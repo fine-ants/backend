@@ -119,12 +119,12 @@ public class DashboardService {
 		for (Portfolio portfolio : portfolios) {
 			portfolioGainHistories.addAll(portfolioGainHistoryRepository.findAllByPortfolioId(portfolio.getId()));
 		}
-		Map<String, Money> timeValueMap = new HashMap<>();
+		Map<String, Expression> timeValueMap = new HashMap<>();
 		for (PortfolioGainHistory portfolioGainHistory : portfolioGainHistories) {
 			String time = portfolioGainHistory.getCreateAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 			timeValueMap.put(time, timeValueMap.getOrDefault(time, Money.zero())
-				.add(portfolioGainHistory.getCash())
-				.add(portfolioGainHistory.getCurrentValuation()));
+				.plus(portfolioGainHistory.getCash())
+				.plus(portfolioGainHistory.getCurrentValuation()));
 		}
 		return timeValueMap.keySet()
 			.stream()

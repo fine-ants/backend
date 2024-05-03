@@ -45,7 +45,7 @@ public class PortfolioHoldingDetailItem {
 				.toPercentage(bank, to))
 			.totalGain(portfolioHolding.calculateTotalGain().reduce(bank, to))
 			.totalReturnRate(portfolioHolding.calculateTotalReturnRate().toPercentage(Bank.getInstance(), to))
-			.annualDividend(portfolioHolding.calculateAnnualExpectedDividend())
+			.annualDividend(portfolioHolding.calculateAnnualExpectedDividend().reduce(bank, to))
 			.annualDividendYield(
 				portfolioHolding.calculateAnnualExpectedDividendYield().toPercentage(Bank.getInstance(), to))
 			.build();

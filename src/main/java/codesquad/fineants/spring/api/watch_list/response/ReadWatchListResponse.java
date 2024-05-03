@@ -9,6 +9,7 @@ import codesquad.fineants.domain.common.money.Bank;
 import codesquad.fineants.domain.common.money.Currency;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.common.money.Percentage;
+import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.domain.watch_stock.WatchStock;
 import codesquad.fineants.spring.api.kis.manager.CurrentPriceManager;
 import codesquad.fineants.spring.api.kis.manager.LastDayClosingPriceManager;
@@ -40,20 +41,24 @@ public class ReadWatchListResponse {
 
 	public static ReadWatchListResponse.WatchStockResponse from(WatchStock watchStock,
 		CurrentPriceManager currentPriceManager, LastDayClosingPriceManager lastDayClosingPriceManager) {
+		Bank bank = Bank.getInstance();
+		Currency to = Currency.KRW;
+		Stock stock = watchStock.getStock();
 		return ReadWatchListResponse.WatchStockResponse.builder()
 			.id(watchStock.getId())
-			.companyName(watchStock.getStock().getCompanyName())
-			.tickerSymbol(watchStock.getStock().getTickerSymbol())
-			.currentPrice(watchStock.getStock().getCurrentPrice(currentPriceManager))
-			.dailyChange(watchStock.getStock()
-				.getDailyChange(currentPriceManager, lastDayClosingPriceManager))
-			.dailyChangeRate(
-				watchStock.getStock().getDailyChangeRate(currentPriceManager, lastDayClosingPriceManager).toPercentage(
-					Bank.getInstance(), Currency.KRW))
-			.annualDividendYield(watchStock.getStock()
+			.companyName(stock.getCompanyName())
+			.tickerSymbol(stock.getTickerSymbol())
+			.currentPrice(stock.getCurrentPrice(currentPriceManager))
+			.dailyChange(stock
+				.getDailyChange(currentPriceManager, lastDayClosingPriceManager)
+				.reduce(bank, to))
+			.dailyChangeRate(stock
+				.getDailyChangeRate(currentPriceManager, lastDayClosingPriceManager)
+				.toPercentage(bank, to))
+			.annualDividendYield(stock
 				.getAnnualDividendYield(currentPriceManager)
-				.toPercentage(Bank.getInstance(), Currency.KRW))
-			.sector(watchStock.getStock().getSector())
+				.toPercentage(bank, to))
+			.sector(stock.getSector())
 			.dateAdded(watchStock.getCreateAt())
 			.build();
 	}

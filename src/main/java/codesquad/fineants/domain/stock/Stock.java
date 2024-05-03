@@ -15,6 +15,7 @@ import javax.persistence.Id;
 import javax.persistence.OneToMany;
 
 import codesquad.fineants.domain.BaseEntity;
+import codesquad.fineants.domain.common.money.Expression;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.common.money.RateDivision;
 import codesquad.fineants.domain.purchase_history.PurchaseHistory;
@@ -79,9 +80,9 @@ public class Stock extends BaseEntity {
 			.collect(Collectors.toList());
 	}
 
-	public Map<Integer, Money> createMonthlyDividends(List<PurchaseHistory> purchaseHistories,
+	public Map<Integer, Expression> createMonthlyDividends(List<PurchaseHistory> purchaseHistories,
 		LocalDate currentLocalDate) {
-		Map<Integer, Money> result = new HashMap<>();
+		Map<Integer, Expression> result = new HashMap<>();
 		for (int month = 1; month <= 12; month++) {
 			result.put(month, Money.zero());
 		}
@@ -94,8 +95,8 @@ public class Stock extends BaseEntity {
 			for (PurchaseHistory purchaseHistory : purchaseHistories) {
 				if (stockDividend.isSatisfied(purchaseHistory.getPurchaseLocalDate())) {
 					int paymentMonth = stockDividend.getMonthValueByPaymentDate();
-					Money dividendSum = stockDividend.calculateDividendSum(purchaseHistory.getNumShares());
-					result.put(paymentMonth, result.getOrDefault(paymentMonth, Money.zero()).add(dividendSum));
+					Expression dividendSum = stockDividend.calculateDividendSum(purchaseHistory.getNumShares());
+					result.put(paymentMonth, result.getOrDefault(paymentMonth, Money.zero()).plus(dividendSum));
 				}
 			}
 		}
@@ -103,9 +104,9 @@ public class Stock extends BaseEntity {
 		return result;
 	}
 
-	public Map<Integer, Money> createMonthlyExpectedDividends(List<PurchaseHistory> purchaseHistories,
+	public Map<Integer, Expression> createMonthlyExpectedDividends(List<PurchaseHistory> purchaseHistories,
 		LocalDate currentLocalDate) {
-		Map<Integer, Money> result = new HashMap<>();
+		Map<Integer, Expression> result = new HashMap<>();
 		for (int month = 1; month <= 12; month++) {
 			result.put(month, Money.zero());
 		}
@@ -125,33 +126,35 @@ public class Stock extends BaseEntity {
 				// 3. 필터링한 배당금 정보들을 이용하여 배당금을 계산합니다.
 				for (PurchaseHistory purchaseHistory : purchaseHistories) {
 					int paymentMonth = stockDividend.getMonthValueByPaymentDate();
-					Money dividendSum = stockDividend.calculateDividendSum(purchaseHistory.getNumShares());
-					result.put(paymentMonth, result.getOrDefault(paymentMonth, Money.zero()).add(dividendSum));
+					Expression dividendSum = stockDividend.calculateDividendSum(purchaseHistory.getNumShares());
+					result.put(paymentMonth, result.getOrDefault(paymentMonth, Money.zero()).plus(dividendSum));
 				}
 			});
 		return result;
 	}
 
-	public Money getAnnualDividend() {
+	public Expression getAnnualDividend() {
 		return stockDividends.stream()
 			.filter(dividend -> dividend.isCurrentYearPaymentDate(LocalDate.now()))
 			.map(StockDividend::getDividend)
-			.reduce(Money.zero(), Money::add);
+			.map(money -> (Expression)money)
+			.reduce(Money.zero(), Expression::plus);
 	}
 
 	public RateDivision getAnnualDividendYield(CurrentPriceManager manager) {
-		Money dividends = stockDividends.stream()
+		Expression dividends = stockDividends.stream()
 			.filter(dividend -> dividend.isSatisfiedPaymentDateEqualYearBy(LocalDate.now()))
 			.map(StockDividend::getDividend)
-			.reduce(Money.zero(), Money::add);
+			.map(money -> (Expression)money)
+			.reduce(Money.zero(), Expression::plus);
 		return dividends.divide(getCurrentPrice(manager));
 	}
 
-	public Money getDailyChange(CurrentPriceManager currentPriceManager,
+	public Expression getDailyChange(CurrentPriceManager currentPriceManager,
 		LastDayClosingPriceManager lastDayClosingPriceManager) {
 		Money currentPrice = getCurrentPrice(currentPriceManager);
 		Money closingPrice = getClosingPrice(lastDayClosingPriceManager);
-		return currentPrice.subtract(closingPrice);
+		return currentPrice.minus(closingPrice);
 	}
 
 	public RateDivision getDailyChangeRate(CurrentPriceManager currentPriceManager,

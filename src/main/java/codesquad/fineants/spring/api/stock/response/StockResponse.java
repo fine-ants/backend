@@ -61,6 +61,8 @@ public class StockResponse {
 
 	public static StockResponse of(Stock stock, CurrentPriceManager currentPriceManager,
 		LastDayClosingPriceManager lastDayClosingPriceManager) {
+		Bank bank = Bank.getInstance();
+		Currency to = Currency.KRW;
 		return StockResponse.builder()
 			.stockCode(stock.getStockCode())
 			.tickerSymbol(stock.getTickerSymbol())
@@ -68,13 +70,13 @@ public class StockResponse {
 			.companyNameEng(stock.getCompanyNameEng())
 			.market(stock.getMarket())
 			.currentPrice(stock.getCurrentPrice(currentPriceManager))
-			.dailyChange(stock.getDailyChange(currentPriceManager, lastDayClosingPriceManager))
+			.dailyChange(stock.getDailyChange(currentPriceManager, lastDayClosingPriceManager).reduce(bank, to))
 			.dailyChangeRate(stock.getDailyChangeRate(currentPriceManager, lastDayClosingPriceManager).toPercentage(
-				Bank.getInstance(), Currency.KRW))
+				bank, to))
 			.sector(stock.getSector())
-			.annualDividend(stock.getAnnualDividend())
+			.annualDividend(stock.getAnnualDividend().reduce(bank, to))
 			.annualDividendYield(
-				stock.getAnnualDividendYield(currentPriceManager).toPercentage(Bank.getInstance(), Currency.KRW))
+				stock.getAnnualDividendYield(currentPriceManager).toPercentage(bank, to))
 			.dividendMonths(stock.getDividendMonths())
 			.build();
 	}

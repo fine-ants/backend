@@ -42,8 +42,8 @@ public class Count implements Comparable<Count> {
 		return new Count(value.add(count.value));
 	}
 
-	public Money multiply(Money money) {
-		return money.multiply(value);
+	public Expression multiply(Money money) {
+		return money.times(value.intValue());
 	}
 
 	public boolean isZero() {

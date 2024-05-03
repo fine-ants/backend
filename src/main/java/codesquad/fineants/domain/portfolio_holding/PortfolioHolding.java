@@ -130,7 +130,7 @@ public class PortfolioHolding extends BaseEntity {
 
 	// 평가 금액(현재 가치) = 현재가 * 개수
 	public Expression calculateCurrentValuation() {
-		return currentPrice.multiply(calculateNumShares());
+		return currentPrice.times(calculateNumShares().getValue().intValue());
 	}
 
 	// 당일 변동 금액 = 종목 현재가 - 직전 거래일의 종가
@@ -140,7 +140,7 @@ public class PortfolioHolding extends BaseEntity {
 
 	// 당일 변동율 = ((종목 현재가 - 직전 거래일 종가) / 직전 거래일 종가) * 100%
 	public RateDivision calculateDailyChangeRate(Money lastDayClosingPrice) {
-		return currentPrice.subtract(lastDayClosingPrice).divide(lastDayClosingPrice);
+		return currentPrice.minus(lastDayClosingPrice).divide(lastDayClosingPrice);
 	}
 
 	// 예상 연간 배당율 = (예상 연간 배당금 / 현재 가치) * 100
@@ -151,14 +151,14 @@ public class PortfolioHolding extends BaseEntity {
 	}
 
 	// 연간 배당금 = 종목의 배당금 합계
-	public Money calculateAnnualDividend() {
+	public Expression calculateAnnualDividend() {
 		List<StockDividend> stockDividends = stock.getCurrentYearDividends();
 
-		Money totalDividend = Money.zero();
+		Expression totalDividend = Money.zero();
 		for (PurchaseHistory history : purchaseHistory) {
 			for (StockDividend stockDividend : stockDividends) {
 				if (history.isSatisfiedDividend(stockDividend.getExDividendDate())) {
-					totalDividend = totalDividend.add(stockDividend.calculateDividendSum(history.getNumShares()));
+					totalDividend = totalDividend.plus(stockDividend.calculateDividendSum(history.getNumShares()));
 				}
 			}
 		}
@@ -166,16 +166,16 @@ public class PortfolioHolding extends BaseEntity {
 	}
 
 	// 예상 연간 배당금 계산
-	public Money calculateAnnualExpectedDividend() {
-		Money annualDividend = calculateAnnualDividend();
-		Money annualExpectedDividend = stock.createMonthlyExpectedDividends(purchaseHistory, LocalDate.now())
+	public Expression calculateAnnualExpectedDividend() {
+		Expression annualDividend = calculateAnnualDividend();
+		Expression annualExpectedDividend = stock.createMonthlyExpectedDividends(purchaseHistory, LocalDate.now())
 			.values()
 			.stream()
-			.reduce(Money.zero(), Money::add);
-		return annualDividend.add(annualExpectedDividend);
+			.reduce(Money.zero(), Expression::plus);
+		return annualDividend.plus(annualExpectedDividend);
 	}
 
-	public Money calculateCurrentMonthDividend() {
+	public Expression calculateCurrentMonthDividend() {
 		List<StockDividend> stockDividends = stock.getCurrentMonthDividends();
 		return stockDividends.stream()
 			.flatMap(stockDividend ->
@@ -188,16 +188,17 @@ public class PortfolioHolding extends BaseEntity {
 						.multiply(stockDividend.getDividend())
 				)
 			)
-			.reduce(Money.zero(), Money::add);
+			.reduce(Money.zero(), Expression::plus);
 	}
 
 	// 월별 배당금 계산, key=월, value=배당금 합계
-	public Map<Integer, Money> createMonthlyDividendMap(LocalDate currentLocalDate) {
+	public Map<Integer, Expression> createMonthlyDividendMap(LocalDate currentLocalDate) {
 		log.debug("currentLocalDate : {}", currentLocalDate);
-		Map<Integer, Money> monthlyDividends = stock.createMonthlyDividends(purchaseHistory, currentLocalDate);
-		Map<Integer, Money> monthlyExpectedDividends = stock.createMonthlyExpectedDividends(purchaseHistory,
+		Map<Integer, Expression> monthlyDividends = stock.createMonthlyDividends(purchaseHistory, currentLocalDate);
+		Map<Integer, Expression> monthlyExpectedDividends = stock.createMonthlyExpectedDividends(purchaseHistory,
 			currentLocalDate);
-		monthlyExpectedDividends.forEach((month, dividend) -> monthlyDividends.merge(month, dividend, Money::add));
+		monthlyExpectedDividends.forEach(
+			(month, dividend) -> monthlyDividends.merge(month, dividend, Expression::plus));
 		return monthlyDividends;
 	}
 

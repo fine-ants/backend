@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -178,10 +179,10 @@ class PortfolioHoldingTest {
 		);
 		portfolioHolding.addPurchaseHistory(purchaseHistory);
 		// when
-		Map<Integer, Money> result = portfolioHolding.createMonthlyDividendMap(LocalDate.of(2023, 12, 15));
+		Map<Integer, Expression> result = portfolioHolding.createMonthlyDividendMap(LocalDate.of(2023, 12, 15));
 
 		// then
-		Map<Integer, Money> expected = new HashMap<>();
+		Map<Integer, Expression> expected = new HashMap<>();
 		expected.put(1, Money.zero());
 		expected.put(2, Money.zero());
 		expected.put(3, Money.zero());
@@ -196,8 +197,14 @@ class PortfolioHoldingTest {
 		expected.put(12, Money.zero());
 		assertThat(result.keySet())
 			.isEqualTo(expected.keySet());
-		assertThat(result.values())
-			.usingComparatorForType(Money::compareTo, Money.class)
+
+		Bank bank = Bank.getInstance();
+		Currency to = Currency.KRW;
+		List<Money> moneys = result.values().stream()
+			.map(expression -> expression.reduce(bank, to))
+			.collect(Collectors.toList());
+		assertThat(moneys)
+			.usingComparatorForType(Expression::compareTo, Expression.class)
 			.isEqualTo(expected.values());
 	}
 

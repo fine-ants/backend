@@ -102,42 +102,22 @@ public class Money implements Expression {
 		return new RateDivision(this, divisor);
 	}
 
-	@Override
-	public Percentage toPercentage(Bank bank, Currency to) {
-		return Percentage.from(reduce(bank, to).amount);
-	}
-
 	public Expression divide(BigInteger divisor) {
 		try {
-			BigDecimal result = amount.divide(new BigDecimal(divisor), 2, RoundingMode.HALF_UP);
+			BigDecimal result = amount.divide(new BigDecimal(divisor), 4, RoundingMode.HALF_UP);
 			return new Money(result, currency);
 		} catch (ArithmeticException e) {
 			return new Money(BigDecimal.ZERO, currency);
 		}
 	}
 
+	@Override
+	public Percentage toPercentage(Bank bank, Currency to) {
+		return Percentage.from(reduce(bank, to).amount);
+	}
+
 	public Currency currency() {
 		return currency;
-	}
-
-	public Money add(Money money) {
-		return Money.won(amount.add(money.amount));
-	}
-
-	public Money subtract(Money money) {
-		return Money.won(amount.subtract(money.amount));
-	}
-
-	public Money multiply(Count count) {
-		return count.multiply(this);
-	}
-
-	public Money multiply(BigInteger value) {
-		return Money.won(amount.multiply(new BigDecimal(value)).setScale(4, RoundingMode.HALF_UP));
-	}
-
-	public double toPercentage() {
-		return amount.multiply(BigDecimal.valueOf(100)).setScale(4, RoundingMode.HALF_UP).doubleValue();
 	}
 
 	public boolean isZero() {
@@ -158,17 +138,6 @@ public class Money implements Expression {
 
 	public String getCurrencySymbol() {
 		return currency.getSymbol();
-	}
-
-	@Override
-	public boolean equals(Object object) {
-		Money money = (Money)object;
-		return compareTo(money) == 0 && currency().equals(money.currency);
-	}
-
-	@Override
-	public int hashCode() {
-		return Objects.hash(amount);
 	}
 
 	@Override
@@ -196,5 +165,22 @@ public class Money implements Expression {
 			return this.amount.compareTo(money.amount);
 		}
 		return compareTo((Expression)money);
+	}
+
+	@Override
+	public boolean equals(Object object) {
+		if (this == object) {
+			return true;
+		}
+		if (object == null || getClass() != object.getClass()) {
+			return false;
+		}
+		Money money = (Money)object;
+		return compareTo(money) == 0 && currency().equals(money.currency);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(amount);
 	}
 }

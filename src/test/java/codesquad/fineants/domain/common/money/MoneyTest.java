@@ -30,6 +30,14 @@ class MoneyTest {
 		assertNotEquals(Money.franc(5), Money.franc(6));
 	}
 
+	@DisplayName("Sum과 Money의 동치성 테스트")
+	@Test
+	void testEqualityForOtherType() {
+		Money won = Money.won(1000);
+		Sum sum = new Sum(Money.won(1000), Money.wonZero());
+		assertNotEquals(won, sum);
+	}
+
 	@DisplayName("프랑 곱셉")
 	@Test
 	void testFrancMultiplication() {

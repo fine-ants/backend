@@ -228,10 +228,10 @@ public class Portfolio extends BaseEntity {
 	}
 
 	// 포트폴리오 당월 예상 배당금 = 각 종목들에 해당월의 배당금 합계
-	public Money calculateCurrentMonthDividend() {
+	public Expression calculateCurrentMonthDividend() {
 		return portfolioHoldings.stream()
 			.map(PortfolioHolding::calculateCurrentMonthDividend)
-			.reduce(Money.zero(), Money::add);
+			.reduce(Money.zero(), Expression::plus);
 	}
 
 	public Count getNumberOfShares() {
@@ -244,12 +244,12 @@ public class Portfolio extends BaseEntity {
 	}
 
 	// 총 연간 배당금 = 각 종목들의 연배당금의 합계
-	public Money calculateAnnualDividend() {
+	public Expression calculateAnnualDividend() {
 		return portfolioHoldings.stream()
 			.map(portfolioHolding -> portfolioHolding.createMonthlyDividendMap(LocalDate.now()))
 			.map(map -> map.values().stream()
-				.reduce(Money.zero(), Money::add))
-			.reduce(Money.zero(), Money::add);
+				.reduce(Money.zero(), Expression::plus))
+			.reduce(Money.zero(), Expression::plus);
 	}
 
 	// 총 연간배당율 = 모든 종목들의 연 배당금 합계 / 모든 종목들의 총 가치의 합계) * 100
@@ -395,15 +395,17 @@ public class Portfolio extends BaseEntity {
 
 	// 배당금 차트 생성
 	public List<PortfolioDividendChartItem> createDividendChart(LocalDate currentLocalDate) {
-		Map<Integer, Money> totalDividendMap = portfolioHoldings.stream()
+		Map<Integer, Expression> totalDividendMap = portfolioHoldings.stream()
 			.flatMap(holding ->
 				holding.createMonthlyDividendMap(currentLocalDate).entrySet().stream()
 			)
 			.collect(Collectors.groupingBy(Map.Entry::getKey,
-				Collectors.reducing(Money.zero(), Map.Entry::getValue, Money::add))
+				Collectors.reducing(Money.zero(), Map.Entry::getValue, Expression::plus))
 			);
+		Bank bank = Bank.getInstance();
+		Currency to = Currency.KRW;
 		return totalDividendMap.entrySet().stream()
-			.map(entry -> PortfolioDividendChartItem.create(entry.getKey(), entry.getValue()))
+			.map(entry -> PortfolioDividendChartItem.create(entry.getKey(), entry.getValue().reduce(bank, to)))
 			.collect(Collectors.toList());
 	}
 
