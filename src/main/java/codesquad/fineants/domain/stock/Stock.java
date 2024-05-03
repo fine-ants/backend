@@ -152,8 +152,8 @@ public class Stock extends BaseEntity {
 
 	public Expression getDailyChange(CurrentPriceManager currentPriceManager,
 		LastDayClosingPriceManager lastDayClosingPriceManager) {
-		Money currentPrice = getCurrentPrice(currentPriceManager);
-		Money closingPrice = getClosingPrice(lastDayClosingPriceManager);
+		Expression currentPrice = getCurrentPrice(currentPriceManager);
+		Expression closingPrice = getClosingPrice(lastDayClosingPriceManager);
 		return currentPrice.minus(closingPrice);
 	}
 
@@ -167,11 +167,11 @@ public class Stock extends BaseEntity {
 		return currentPrice.minus(lastDayClosingPrice).divide(lastDayClosingPrice);
 	}
 
-	public Money getCurrentPrice(CurrentPriceManager manager) {
+	public Expression getCurrentPrice(CurrentPriceManager manager) {
 		return manager.getCurrentPrice(tickerSymbol).orElseGet(Money::zero);
 	}
 
-	public Money getClosingPrice(LastDayClosingPriceManager manager) {
+	public Expression getClosingPrice(LastDayClosingPriceManager manager) {
 		return manager.getClosingPrice(tickerSymbol).orElseGet(Money::zero);
 	}
 

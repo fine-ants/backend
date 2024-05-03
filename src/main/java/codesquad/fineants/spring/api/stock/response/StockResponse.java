@@ -69,7 +69,7 @@ public class StockResponse {
 			.companyName(stock.getCompanyName())
 			.companyNameEng(stock.getCompanyNameEng())
 			.market(stock.getMarket())
-			.currentPrice(stock.getCurrentPrice(currentPriceManager))
+			.currentPrice(stock.getCurrentPrice(currentPriceManager).reduce(bank, to))
 			.dailyChange(stock.getDailyChange(currentPriceManager, lastDayClosingPriceManager).reduce(bank, to))
 			.dailyChangeRate(stock.getDailyChangeRate(currentPriceManager, lastDayClosingPriceManager).toPercentage(
 				bank, to))

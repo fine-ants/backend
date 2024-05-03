@@ -15,7 +15,7 @@ import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 
 import codesquad.fineants.domain.BaseEntity;
-import codesquad.fineants.domain.common.money.Money;
+import codesquad.fineants.domain.common.money.Expression;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.domain.target_price_notification.TargetPriceNotification;
@@ -67,7 +67,7 @@ public class StockTargetPrice extends BaseEntity {
 		this.isActive = isActive;
 	}
 
-	public Money getCurrentPrice(CurrentPriceManager manager) {
+	public Expression getCurrentPrice(CurrentPriceManager manager) {
 		return stock.getCurrentPrice(manager);
 	}
 }

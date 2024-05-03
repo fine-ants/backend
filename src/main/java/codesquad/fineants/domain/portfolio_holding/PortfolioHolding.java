@@ -134,12 +134,12 @@ public class PortfolioHolding extends BaseEntity {
 	}
 
 	// 당일 변동 금액 = 종목 현재가 - 직전 거래일의 종가
-	public Expression calculateDailyChange(Money lastDayClosingPrice) {
+	public Expression calculateDailyChange(Expression lastDayClosingPrice) {
 		return currentPrice.minus(lastDayClosingPrice);
 	}
 
 	// 당일 변동율 = ((종목 현재가 - 직전 거래일 종가) / 직전 거래일 종가) * 100%
-	public RateDivision calculateDailyChangeRate(Money lastDayClosingPrice) {
+	public RateDivision calculateDailyChangeRate(Expression lastDayClosingPrice) {
 		return currentPrice.minus(lastDayClosingPrice).divide(lastDayClosingPrice);
 	}
 
@@ -203,7 +203,9 @@ public class PortfolioHolding extends BaseEntity {
 	}
 
 	public void applyCurrentPrice(CurrentPriceManager manager) {
-		this.currentPrice = stock.getCurrentPrice(manager);
+		Bank bank = Bank.getInstance();
+		Currency to = Currency.KRW;
+		this.currentPrice = stock.getCurrentPrice(manager).reduce(bank, to);
 	}
 
 	public RateDivision calculateWeightBy(Expression portfolioAsset) {
@@ -223,7 +225,7 @@ public class PortfolioHolding extends BaseEntity {
 		return PortfolioPieChartItem.stock(name, currentValuation, weightPercentage, totalGain, totalReturnPercentage);
 	}
 
-	public Money getLastDayClosingPrice(LastDayClosingPriceManager manager) {
+	public Expression getLastDayClosingPrice(LastDayClosingPriceManager manager) {
 		return stock.getClosingPrice(manager);
 	}
 }

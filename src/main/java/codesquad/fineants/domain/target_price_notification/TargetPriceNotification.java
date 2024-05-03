@@ -14,6 +14,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 import codesquad.fineants.domain.BaseEntity;
+import codesquad.fineants.domain.common.money.Expression;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.common.money.MoneyConverter;
 import codesquad.fineants.domain.notification.type.NotificationType;
@@ -91,7 +92,7 @@ public class TargetPriceNotification extends BaseEntity {
 	}
 
 	public boolean isSameTargetPrice(CurrentPriceManager manager) {
-		Money currentPrice = stockTargetPrice.getCurrentPrice(manager);
+		Expression currentPrice = stockTargetPrice.getCurrentPrice(manager);
 		return targetPrice.compareTo(currentPrice) == 0;
 	}
 }

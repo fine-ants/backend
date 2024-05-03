@@ -48,7 +48,7 @@ public class ReadWatchListResponse {
 			.id(watchStock.getId())
 			.companyName(stock.getCompanyName())
 			.tickerSymbol(stock.getTickerSymbol())
-			.currentPrice(stock.getCurrentPrice(currentPriceManager))
+			.currentPrice(stock.getCurrentPrice(currentPriceManager).reduce(bank, to))
 			.dailyChange(stock
 				.getDailyChange(currentPriceManager, lastDayClosingPriceManager)
 				.reduce(bank, to))

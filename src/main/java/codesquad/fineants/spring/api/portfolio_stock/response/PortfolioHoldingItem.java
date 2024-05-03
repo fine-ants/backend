@@ -5,7 +5,7 @@ import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
-import codesquad.fineants.domain.common.money.Money;
+import codesquad.fineants.domain.common.money.Expression;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -19,7 +19,7 @@ public class PortfolioHoldingItem {
 	private PortfolioHoldingDetailItem portfolioHolding;
 	private List<PurchaseHistoryItem> purchaseHistory;
 
-	public static PortfolioHoldingItem from(PortfolioHolding portfolioHolding, Money lastDayClosingPrice) {
+	public static PortfolioHoldingItem from(PortfolioHolding portfolioHolding, Expression lastDayClosingPrice) {
 		StockItem stockItem = StockItem.from(portfolioHolding.getStock());
 		PortfolioHoldingDetailItem holdingDetailItem = PortfolioHoldingDetailItem.from(portfolioHolding,
 			lastDayClosingPrice);

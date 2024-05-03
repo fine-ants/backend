@@ -3,6 +3,7 @@ package codesquad.fineants.spring.api.portfolio_stock.response;
 import codesquad.fineants.domain.common.count.Count;
 import codesquad.fineants.domain.common.money.Bank;
 import codesquad.fineants.domain.common.money.Currency;
+import codesquad.fineants.domain.common.money.Expression;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.common.money.Percentage;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
@@ -31,7 +32,7 @@ public class PortfolioHoldingDetailItem {
 	private Money annualDividend;
 	private Percentage annualDividendYield;
 
-	public static PortfolioHoldingDetailItem from(PortfolioHolding portfolioHolding, Money lastDayClosingPrice) {
+	public static PortfolioHoldingDetailItem from(PortfolioHolding portfolioHolding, Expression lastDayClosingPrice) {
 		Bank bank = Bank.getInstance();
 		Currency to = Currency.KRW;
 		return PortfolioHoldingDetailItem.builder()
