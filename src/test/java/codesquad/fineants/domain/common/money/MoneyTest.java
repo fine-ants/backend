@@ -30,6 +30,26 @@ class MoneyTest {
 		assertNotEquals(Money.franc(5), Money.franc(6));
 	}
 
+	@DisplayName("머니 equals")
+	@Test
+	void testEquals() {
+		Money fiveBucks = Money.dollar(5);
+
+		boolean actual = fiveBucks.equals(fiveBucks);
+
+		assertTrue(actual);
+	}
+
+	@DisplayName("머니 퍼센티지로 변환")
+	@Test
+	void testToPercentage() {
+		Expression fiveBucks = Money.dollar(5);
+
+		Percentage percentage = fiveBucks.toPercentage(Bank.getInstance(), USD);
+
+		assertEquals(Percentage.from(5.0), percentage);
+	}
+
 	@DisplayName("Sum과 Money의 동치성 테스트")
 	@Test
 	void testEqualityForOtherType() {
@@ -298,6 +318,18 @@ class MoneyTest {
 		assertEquals(0, actual2);
 		assertEquals(-1, actual3);
 		assertEquals(1, actual4);
+	}
+
+	@DisplayName("평균을 비율로 변환한다")
+	@Test
+	void testAvgDivisionToPercentage() {
+		Money tenBucks = Money.dollar(10);
+		Count count = Count.from(2);
+		Expression avgDivision = tenBucks.divide(count);
+
+		Percentage percentage = avgDivision.toPercentage(Bank.getInstance(), USD);
+
+		assertEquals(Percentage.from(5.0), percentage);
 	}
 
 	@DisplayName("비율의 대소여부를 비교한다")

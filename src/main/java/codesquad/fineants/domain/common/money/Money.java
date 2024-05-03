@@ -18,10 +18,6 @@ public class Money implements Expression {
 
 	protected final Currency currency;
 
-	public Money(int amount, Currency currency) {
-		this(new BigDecimal(amount), currency);
-	}
-
 	public Money(BigDecimal amount, Currency currency) {
 		this.amount = amount;
 		this.currency = currency;
@@ -164,7 +160,7 @@ public class Money implements Expression {
 		if (this.currency.equals(money.currency)) {
 			return this.amount.compareTo(money.amount);
 		}
-		return compareTo((Expression)money);
+		throw new IllegalArgumentException("Not match currency");
 	}
 
 	@Override
