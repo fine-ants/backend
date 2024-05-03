@@ -47,6 +47,11 @@ public class Sum implements Expression {
 	}
 
 	@Override
+	public Percentage toPercentage(Bank bank, Currency to) {
+		return Percentage.from(reduce(bank, to).amount);
+	}
+
+	@Override
 	public int compareTo(@NotNull Expression o) {
 		Money won1 = Bank.getInstance().toWon(this);
 		Money won2 = Bank.getInstance().toWon(o);

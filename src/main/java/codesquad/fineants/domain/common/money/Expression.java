@@ -14,4 +14,6 @@ public interface Expression extends Comparable<Expression> {
 	Expression divide(Count divisor);
 
 	RateDivision divide(Expression divisor);
+
+	Percentage toPercentage(Bank bank, Currency to);
 }

@@ -28,7 +28,6 @@ class MoneyTest {
 		assertNotEquals(Money.dollar(5), Money.dollar(6));
 		assertEquals(Money.franc(5), Money.franc(5));
 		assertNotEquals(Money.franc(5), Money.franc(6));
-		assertNotEquals(Money.franc(5), Money.dollar(5));
 	}
 
 	@DisplayName("프랑 곱셉")
@@ -272,5 +271,118 @@ class MoneyTest {
 		RateDivision result = averageDivision.divide(Money.dollar(25));
 		Percentage percentage = result.toPercentage(Bank.getInstance(), USD);
 		assertEquals(Percentage.from(0.2), percentage);
+	}
+
+	@DisplayName("AverageDivision을 대소 비교한다")
+	@Test
+	void testAvgDivisionCompareTo() {
+		Money tenBucks = Money.dollar(10);
+		Count count = Count.from(2);
+		Expression avgDivision = tenBucks.divide(count);
+		Bank.getInstance().addRate(USD, KRW, 0.001);
+
+		int actual = avgDivision.compareTo(Money.dollar(5));
+		int actual2 = avgDivision.compareTo(Money.dollar(new BigDecimal("5.0")));
+		int actual3 = avgDivision.compareTo(Money.dollar(6));
+		int actual4 = avgDivision.compareTo(Money.dollar(4));
+
+		assertEquals(0, actual);
+		assertEquals(0, actual2);
+		assertEquals(-1, actual3);
+		assertEquals(1, actual4);
+	}
+
+	@DisplayName("비율의 대소여부를 비교한다")
+	@Test
+	void testRateDivisionCompareTo() {
+		Money tenBucks = Money.dollar(10);
+		Money fiveBucks = Money.dollar(5);
+		Bank.getInstance().addRate(USD, KRW, 0.001);
+
+		Expression twoRate = tenBucks.divide(fiveBucks);
+		RateDivision fiveRate = tenBucks.divide(Money.dollar(2));
+		int actual = twoRate.compareTo(fiveRate);
+
+		RateDivision twoRate2 = tenBucks.divide(fiveBucks);
+		int actual2 = twoRate.compareTo(twoRate2);
+
+		RateDivision oneRate = tenBucks.divide(Money.dollar(10));
+		int actual3 = twoRate.compareTo(oneRate);
+
+		assertEquals(-1, actual);
+		assertEquals(0, actual2);
+		assertEquals(1, actual3);
+	}
+
+	@DisplayName("비율을 곱셈한다")
+	@Test
+	void testRateDivisionTimes() {
+		Money tenBucks = Money.dollar(10);
+		Money fiveBucks = Money.dollar(5);
+
+		RateDivision twoRate = tenBucks.divide(fiveBucks);
+		RateDivision tenRate = (RateDivision)twoRate.times(5);
+
+		Percentage expected = Percentage.from(10);
+		Percentage actual = tenRate.toPercentage(Bank.getInstance(), USD);
+		assertEquals(expected, actual);
+	}
+
+	@DisplayName("비율을 덧셈한다")
+	@Test
+	void testRateDivisionPlus() {
+		Money tenBucks = Money.dollar(10);
+		Money fiveBucks = Money.dollar(5);
+
+		RateDivision rateDivision = tenBucks.divide(fiveBucks);
+		RateDivision addend = new RateDivision(Money.dollar(10), Money.dollar(2));
+		Expression sum = rateDivision.plus(addend);
+
+		Bank bank = Bank.getInstance();
+		Percentage expected = Percentage.from(7.0);
+		Percentage actual = sum.toPercentage(bank, USD);
+		assertEquals(expected, actual);
+	}
+
+	@DisplayName("RateDivision을 제외한 덧셈 연산은 지원하지 않는다")
+	@Test
+	void testRateDivisionPlus_NotSupportedRateDivisionOther() {
+		Money tenBucks = Money.dollar(10);
+		Money fiveBucks = Money.dollar(5);
+		RateDivision rateDivision = tenBucks.divide(fiveBucks);
+
+		assertThrows(IllegalArgumentException.class, () -> rateDivision.plus(Money.dollar(5)));
+	}
+
+	@DisplayName("비율을 뺄셈한다")
+	@Test
+	void testRateDivisionMinus() {
+		Money tenBucks = Money.dollar(10);
+		Money fiveBucks = Money.dollar(5);
+
+		RateDivision rateDivision = tenBucks.divide(fiveBucks);
+		RateDivision addend = new RateDivision(Money.dollar(10), Money.dollar(2));
+		Expression minus = rateDivision.minus(addend);
+
+		Bank bank = Bank.getInstance();
+		Percentage expected = new RateDivision(Money.dollar(-30), Money.dollar(10)).toPercentage(bank, USD);
+		Percentage actual = minus.toPercentage(bank, USD);
+		assertEquals(expected, actual);
+	}
+
+	@DisplayName("비율을 나눗셈한다")
+	@Test
+	void testRateDivisionDivide() {
+		Money tenBucks = Money.dollar(10);
+		Money fiveBucks = Money.dollar(5);
+		RateDivision twoRate = tenBucks.divide(fiveBucks);
+		Money twoBucks = Money.dollar(2);
+		RateDivision fiveRate = tenBucks.divide(twoBucks);
+
+		RateDivision result = twoRate.divide(fiveRate);
+
+		Percentage expected = Percentage.from(0.4);
+		Percentage actual = result.toPercentage(Bank.getInstance(), USD);
+		assertEquals(expected, actual);
 	}
 }

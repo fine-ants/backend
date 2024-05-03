@@ -1,5 +1,7 @@
 package codesquad.fineants.domain.common.money;
 
+import static codesquad.fineants.domain.common.money.Currency.*;
+
 import org.jetbrains.annotations.NotNull;
 
 import codesquad.fineants.domain.common.count.Count;
@@ -46,8 +48,16 @@ public class AverageDivision implements Expression {
 	}
 
 	@Override
+	public Percentage toPercentage(Bank bank, Currency to) {
+		return Percentage.from(reduce(bank, to).amount);
+	}
+
+	@Override
 	public int compareTo(@NotNull Expression o) {
-		// TODO: impl
-		return 0;
+		Bank bank = Bank.getInstance();
+		Currency to = KRW;
+		Money won = this.reduce(bank, to);
+		Money won2 = o.reduce(bank, to);
+		return won.compareTo(won2);
 	}
 }
