@@ -102,14 +102,18 @@ public class Money implements Expression {
 		return new RateDivision(this, divisor);
 	}
 
+	@Override
+	public Percentage toPercentage(Bank bank, Currency to) {
+		return Percentage.from(reduce(bank, to).amount);
+	}
+
 	public Expression divide(BigInteger divisor) {
 		try {
-			BigDecimal result = amount.divide(new BigDecimal(divisor), 4, RoundingMode.HALF_UP);
+			BigDecimal result = amount.divide(new BigDecimal(divisor), 2, RoundingMode.HALF_UP);
 			return new Money(result, currency);
 		} catch (ArithmeticException e) {
 			return new Money(BigDecimal.ZERO, currency);
 		}
-
 	}
 
 	public Currency currency() {
@@ -172,16 +176,25 @@ public class Money implements Expression {
 		return amount.toString();
 	}
 
+	/**
+	 * 두 금액간에 대소 비교한다
+	 * 주의 : 화폐(currency)단위 통일은 호출하는 객체(this)의 화폐를 기준으로 한다
+	 * 만약 bank 객체에 두 화폐간에 환율(rate)이 존재하지 않으면 에러가 발생한다
+	 * @param o the object to be compared.
+	 * @return 대소 결과
+	 */
 	@Override
 	public int compareTo(@NotNull Expression o) {
 		Bank bank = Bank.getInstance();
-		Currency to = KRW;
-		Money won = this.reduce(bank, to);
-		Money won2 = o.reduce(bank, to);
-		return won.amount.compareTo(won2.amount);
+		Money m1 = bank.reduce(this, currency);
+		Money m2 = bank.reduce(o, currency);
+		return m1.amount.compareTo(m2.amount);
 	}
 
-	public int compareTo(Money m) {
-		return this.amount.compareTo(m.amount);
+	public int compareTo(Money money) {
+		if (this.currency.equals(money.currency)) {
+			return this.amount.compareTo(money.amount);
+		}
+		return compareTo((Expression)money);
 	}
 }

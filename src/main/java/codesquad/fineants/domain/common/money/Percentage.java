@@ -12,7 +12,10 @@ import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
+import lombok.ToString;
+
 @JsonSerialize(using = Percentage.PercentageSerializer.class)
+@ToString
 public class Percentage implements Comparable<Percentage> {
 	private static final BigDecimal HUNDRED = new BigDecimal(100);
 	private static final int PERCENTAGE_SCALE = 4;
