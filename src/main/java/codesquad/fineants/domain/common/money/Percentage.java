@@ -61,14 +61,14 @@ public class Percentage implements Comparable<Percentage> {
 
 	@Override
 	public int compareTo(@NotNull Percentage o) {
-		BigDecimal a = amount.setScale(4, RoundingMode.HALF_UP);
-		BigDecimal b = o.amount.setScale(4, RoundingMode.HALF_UP);
+		BigDecimal a = amount.setScale(PERCENTAGE_SCALE, RoundingMode.HALF_UP);
+		BigDecimal b = o.amount.setScale(PERCENTAGE_SCALE, RoundingMode.HALF_UP);
 		return a.compareTo(b);
 	}
 
 	static class PercentageSerializer extends JsonSerializer<Percentage> {
 
-		private final DecimalFormat decimalFormat = new DecimalFormat("#.####");
+		private final DecimalFormat decimalFormat = new DecimalFormat("0.00##");
 
 		@Override
 		public void serialize(Percentage value, JsonGenerator gen, SerializerProvider serializers) throws IOException {

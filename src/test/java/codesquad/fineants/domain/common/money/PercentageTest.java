@@ -4,23 +4,35 @@ import java.text.DecimalFormat;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 class PercentageTest {
 
-	@DisplayName("실수를 대상으로 십진수 포맷한다")
-	@Test
-	void format() {
+	@DisplayName("백분율로 변환한다")
+	@CsvSource(value = {"0.121234,12.1234", "0.1212345,12.1234", "0.1212356,12.1236", "0.001212345,0.1212",
+		"0.12,12.0"})
+	@ParameterizedTest
+	void toPercentage(String stringValue, String expected) {
 		// given
-		DecimalFormat format = new DecimalFormat("#.####");
+		double value = Double.parseDouble(stringValue);
+		Percentage percentage = Percentage.from(value);
 		// when
-		String actual = format.format(Double.valueOf(12.1234));
-		String actual2 = format.format(Double.valueOf(12.1200));
-		String actual3 = format.format(Double.valueOf(12.12345));
+		Double actual = percentage.toPercentage();
 		// then
-		Assertions.assertThat(actual).isEqualTo("12.1234");
-		Assertions.assertThat(actual2).isEqualTo("12.12");
-		Assertions.assertThat(actual3).isEqualTo("12.1235");
+		Assertions.assertThat(actual.toString()).isEqualTo(expected);
+	}
+
+	@DisplayName("실수를 대상으로 십진수 포맷한다")
+	@CsvSource(value = {"12.1234,12.1234", "12.1200,12.12", "12.12345,12.1235", "12.1235,12.1235", "12.10,12.10"})
+	@ParameterizedTest
+	void format(String value, String expected) {
+		// given
+		DecimalFormat format = new DecimalFormat("#.00##");
+		// when
+		String actual = format.format(Double.valueOf(value));
+		// then
+		Assertions.assertThat(actual).isEqualTo(expected);
 	}
 
 }
