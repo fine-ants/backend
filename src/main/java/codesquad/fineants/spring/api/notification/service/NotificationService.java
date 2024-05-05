@@ -2,6 +2,7 @@ package codesquad.fineants.spring.api.notification.service;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executor;
@@ -277,6 +278,7 @@ public class NotificationService {
 			})
 			// 발송 이력 저장
 			.map(sentFunction)
+			.sorted(Comparator.comparing(TargetPriceNotifyMessageItem::getReferenceId))
 			.collect(Collectors.toList());
 		log.debug("종목 지정가 알림 발송 서비스 결과, items={}", items);
 		return TargetPriceNotifyMessageResponse.from(items);

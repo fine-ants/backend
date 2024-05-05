@@ -35,13 +35,13 @@ public class LastDayClosingPriceManager {
 
 	public Optional<Money> getClosingPrice(String tickerSymbol) {
 		accessTokenAspect.checkAccessTokenExpiration();
-		
+
 		String closingPrice = redisTemplate.opsForValue().get(String.format(format, tickerSymbol));
 		if (closingPrice == null) {
 			handleClosingPrice(tickerSymbol);
 			return getClosingPrice(tickerSymbol);
 		}
-		return Optional.of(Money.from(closingPrice));
+		return Optional.of(Money.won(closingPrice));
 	}
 
 	private void handleClosingPrice(String tickerSymbol) {

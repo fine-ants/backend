@@ -48,24 +48,24 @@ class PortfolioGainHistoryServiceRepositoryTest extends AbstractContainerBaseTes
 		Portfolio portfolio = portfolioRepository.save(Portfolio.builder()
 			.name("내꿈은 워렌버핏")
 			.securitiesFirm("토스")
-			.budget(Money.from(1000000L))
-			.targetGain(Money.from(1500000L))
-			.maximumLoss(Money.from(900000L))
+			.budget(Money.won(1000000L))
+			.targetGain(Money.won(1500000L))
+			.maximumLoss(Money.won(900000L))
 			.member(member)
 			.build());
 
 		PortfolioGainHistory portfolioGainHistory1 = PortfolioGainHistory.builder()
-			.totalGain(Money.from(10000L))
-			.dailyGain(Money.from(10000L))
-			.cash(Money.from(1000000L))
-			.currentValuation(Money.from(110000L))
+			.totalGain(Money.won(10000L))
+			.dailyGain(Money.won(10000L))
+			.cash(Money.won(1000000L))
+			.currentValuation(Money.won(110000L))
 			.portfolio(portfolio)
 			.build();
 		PortfolioGainHistory portfolioGainHistory2 = PortfolioGainHistory.builder()
-			.totalGain(Money.from(20000L))
-			.dailyGain(Money.from(10000L))
-			.cash(Money.from(1000000L))
-			.currentValuation(Money.from(120000L))
+			.totalGain(Money.won(20000L))
+			.dailyGain(Money.won(10000L))
+			.cash(Money.won(1000000L))
+			.currentValuation(Money.won(120000L))
 			.portfolio(portfolio)
 			.build();
 		repository.save(portfolioGainHistory1);
@@ -76,7 +76,7 @@ class PortfolioGainHistoryServiceRepositoryTest extends AbstractContainerBaseTes
 			portfolio.getId(), LocalDateTime.now()).orElseThrow();
 
 		// then
-		assertThat(result.getCurrentValuation()).isEqualByComparingTo(Money.from(120000L));
+		assertThat(result.getCurrentValuation()).isEqualByComparingTo(Money.won(120000L));
 
 	}
 

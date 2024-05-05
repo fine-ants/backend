@@ -21,7 +21,12 @@ import org.hibernate.annotations.BatchSize;
 
 import codesquad.fineants.domain.BaseEntity;
 import codesquad.fineants.domain.common.count.Count;
+import codesquad.fineants.domain.common.money.Bank;
+import codesquad.fineants.domain.common.money.Currency;
+import codesquad.fineants.domain.common.money.Expression;
 import codesquad.fineants.domain.common.money.Money;
+import codesquad.fineants.domain.common.money.Percentage;
+import codesquad.fineants.domain.common.money.RateDivision;
 import codesquad.fineants.domain.portfolio.Portfolio;
 import codesquad.fineants.domain.purchase_history.PurchaseHistory;
 import codesquad.fineants.domain.stock.Stock;
@@ -92,12 +97,13 @@ public class PortfolioHolding extends BaseEntity {
 	}
 
 	// 종목 총 손익 = (종목 현재가 - 종목 평균 매입가) * 개수
-	public Money calculateTotalGain() {
-		return currentPrice.subtract(calculateAverageCostPerShare()).multiply(calculateNumShares());
+	public Expression calculateTotalGain() {
+		Expression averageCostPerShare = calculateAverageCostPerShare();
+		return currentPrice.minus(averageCostPerShare).times(calculateNumShares().getValue().intValue());
 	}
 
 	// 종목 평균 매입가 = 총 투자 금액 / 개수
-	public Money calculateAverageCostPerShare() {
+	public Expression calculateAverageCostPerShare() {
 		return calculateTotalInvestmentAmount().divide(calculateNumShares());
 	}
 
@@ -109,50 +115,50 @@ public class PortfolioHolding extends BaseEntity {
 	}
 
 	// 총 투자 금액 = 투자 금액들의 합계
-	public Money calculateTotalInvestmentAmount() {
+	public Expression calculateTotalInvestmentAmount() {
 		return purchaseHistory.stream()
 			.map(PurchaseHistory::calculateInvestmentAmount)
-			.reduce(Money.zero(), Money::add);
+			.reduce(Money.wonZero(), Expression::plus);
 	}
 
 	// 종목 총 손익율 = 총 손익 / 총 투자 금액
-	public double calculateTotalReturnRate() {
-		Money totalGain = calculateTotalGain();
-		Money totalInvestmentAmount = calculateTotalInvestmentAmount();
-		return totalGain.divide(totalInvestmentAmount).toPercentage();
+	public RateDivision calculateTotalReturnRate() {
+		Expression totalGain = calculateTotalGain();
+		Expression totalInvestmentAmount = calculateTotalInvestmentAmount();
+		return totalGain.divide(totalInvestmentAmount);
 	}
 
 	// 평가 금액(현재 가치) = 현재가 * 개수
-	public Money calculateCurrentValuation() {
-		return currentPrice.multiply(calculateNumShares());
+	public Expression calculateCurrentValuation() {
+		return currentPrice.times(calculateNumShares().getValue().intValue());
 	}
 
 	// 당일 변동 금액 = 종목 현재가 - 직전 거래일의 종가
-	public Money calculateDailyChange(Money lastDayClosingPrice) {
-		return currentPrice.subtract(lastDayClosingPrice);
+	public Expression calculateDailyChange(Expression lastDayClosingPrice) {
+		return currentPrice.minus(lastDayClosingPrice);
 	}
 
 	// 당일 변동율 = ((종목 현재가 - 직전 거래일 종가) / 직전 거래일 종가) * 100%
-	public double calculateDailyChangeRate(Money lastDayClosingPrice) {
-		return currentPrice.subtract(lastDayClosingPrice).divide(lastDayClosingPrice).toPercentage();
+	public RateDivision calculateDailyChangeRate(Expression lastDayClosingPrice) {
+		return currentPrice.minus(lastDayClosingPrice).divide(lastDayClosingPrice);
 	}
 
 	// 예상 연간 배당율 = (예상 연간 배당금 / 현재 가치) * 100
-	public double calculateAnnualExpectedDividendYield() {
-		Money annualDividend = calculateAnnualExpectedDividend();
-		Money currentValuation = calculateCurrentValuation();
-		return annualDividend.divide(currentValuation).toPercentage();
+	public RateDivision calculateAnnualExpectedDividendYield() {
+		Expression annualDividend = calculateAnnualExpectedDividend();
+		Expression currentValuation = calculateCurrentValuation();
+		return annualDividend.divide(currentValuation);
 	}
 
 	// 연간 배당금 = 종목의 배당금 합계
-	public Money calculateAnnualDividend() {
+	public Expression calculateAnnualDividend() {
 		List<StockDividend> stockDividends = stock.getCurrentYearDividends();
 
-		Money totalDividend = Money.zero();
+		Expression totalDividend = Money.zero();
 		for (PurchaseHistory history : purchaseHistory) {
 			for (StockDividend stockDividend : stockDividends) {
 				if (history.isSatisfiedDividend(stockDividend.getExDividendDate())) {
-					totalDividend = totalDividend.add(stockDividend.calculateDividendSum(history.getNumShares()));
+					totalDividend = totalDividend.plus(stockDividend.calculateDividendSum(history.getNumShares()));
 				}
 			}
 		}
@@ -160,16 +166,16 @@ public class PortfolioHolding extends BaseEntity {
 	}
 
 	// 예상 연간 배당금 계산
-	public Money calculateAnnualExpectedDividend() {
-		Money annualDividend = calculateAnnualDividend();
-		Money annualExpectedDividend = stock.createMonthlyExpectedDividends(purchaseHistory, LocalDate.now())
+	public Expression calculateAnnualExpectedDividend() {
+		Expression annualDividend = calculateAnnualDividend();
+		Expression annualExpectedDividend = stock.createMonthlyExpectedDividends(purchaseHistory, LocalDate.now())
 			.values()
 			.stream()
-			.reduce(Money.zero(), Money::add);
-		return annualDividend.add(annualExpectedDividend);
+			.reduce(Money.zero(), Expression::plus);
+		return annualDividend.plus(annualExpectedDividend);
 	}
 
-	public Money calculateCurrentMonthDividend() {
+	public Expression calculateCurrentMonthDividend() {
 		List<StockDividend> stockDividends = stock.getCurrentMonthDividends();
 		return stockDividends.stream()
 			.flatMap(stockDividend ->
@@ -182,37 +188,44 @@ public class PortfolioHolding extends BaseEntity {
 						.multiply(stockDividend.getDividend())
 				)
 			)
-			.reduce(Money.zero(), Money::add);
+			.reduce(Money.zero(), Expression::plus);
 	}
 
 	// 월별 배당금 계산, key=월, value=배당금 합계
-	public Map<Integer, Money> createMonthlyDividendMap(LocalDate currentLocalDate) {
+	public Map<Integer, Expression> createMonthlyDividendMap(LocalDate currentLocalDate) {
 		log.debug("currentLocalDate : {}", currentLocalDate);
-		Map<Integer, Money> monthlyDividends = stock.createMonthlyDividends(purchaseHistory, currentLocalDate);
-		Map<Integer, Money> monthlyExpectedDividends = stock.createMonthlyExpectedDividends(purchaseHistory,
+		Map<Integer, Expression> monthlyDividends = stock.createMonthlyDividends(purchaseHistory, currentLocalDate);
+		Map<Integer, Expression> monthlyExpectedDividends = stock.createMonthlyExpectedDividends(purchaseHistory,
 			currentLocalDate);
-		monthlyExpectedDividends.forEach((month, dividend) -> monthlyDividends.merge(month, dividend, Money::add));
+		monthlyExpectedDividends.forEach(
+			(month, dividend) -> monthlyDividends.merge(month, dividend, Expression::plus));
 		return monthlyDividends;
 	}
 
 	public void applyCurrentPrice(CurrentPriceManager manager) {
-		this.currentPrice = stock.getCurrentPrice(manager);
+		Bank bank = Bank.getInstance();
+		Currency to = Currency.KRW;
+		this.currentPrice = stock.getCurrentPrice(manager).reduce(bank, to);
 	}
 
-	public double calculateWeightBy(Money portfolioAsset) {
-		Money currentValuation = calculateCurrentValuation();
-		return currentValuation.divide(portfolioAsset).toPercentage();
+	public RateDivision calculateWeightBy(Expression portfolioAsset) {
+		Expression currentValuation = calculateCurrentValuation();
+		return currentValuation.divide(portfolioAsset);
 	}
 
-	public PortfolioPieChartItem createPieChartItem(Double weight) {
+	public PortfolioPieChartItem createPieChartItem(RateDivision weight) {
 		String name = stock.getCompanyName();
-		Money currentValuation = calculateCurrentValuation();
-		Money totalGain = calculateTotalGain();
-		Double totalReturnRate = calculateTotalReturnRate();
-		return PortfolioPieChartItem.stock(name, currentValuation, weight, totalGain, totalReturnRate);
+		Expression currentValuation = calculateCurrentValuation();
+		Expression totalGain = calculateTotalGain();
+		RateDivision totalReturnRate = calculateTotalReturnRate();
+
+		Bank bank = Bank.getInstance();
+		Percentage weightPercentage = weight.toPercentage(bank, Currency.KRW);
+		Percentage totalReturnPercentage = totalReturnRate.toPercentage(bank, Currency.KRW);
+		return PortfolioPieChartItem.stock(name, currentValuation, weightPercentage, totalGain, totalReturnPercentage);
 	}
 
-	public Money getLastDayClosingPrice(LastDayClosingPriceManager manager) {
+	public Expression getLastDayClosingPrice(LastDayClosingPriceManager manager) {
 		return stock.getClosingPrice(manager);
 	}
 }

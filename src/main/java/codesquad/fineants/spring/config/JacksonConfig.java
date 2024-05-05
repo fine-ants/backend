@@ -57,7 +57,7 @@ public class JacksonConfig {
 		objectMapper.registerModule(new SimpleModule().addDeserializer(Money.class, new JsonDeserializer<>() {
 			@Override
 			public Money deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JacksonException {
-				return Money.from(p.getValueAsString());
+				return Money.won(p.getValueAsString());
 			}
 		}));
 

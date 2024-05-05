@@ -18,6 +18,7 @@ import javax.persistence.UniqueConstraint;
 
 import codesquad.fineants.domain.BaseEntity;
 import codesquad.fineants.domain.common.count.Count;
+import codesquad.fineants.domain.common.money.Expression;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.common.money.MoneyConverter;
 import codesquad.fineants.domain.stock.Stock;
@@ -85,8 +86,8 @@ public class StockDividend extends BaseEntity {
 
 	// 주식 개수에 따른 배당금 합계 계산
 	// 배당금 합계 = 주당 배당금 * 주식 개수
-	public Money calculateDividendSum(Count numShares) {
-		return dividend.multiply(numShares);
+	public Expression calculateDividendSum(Count numShares) {
+		return dividend.times(numShares.getValue().intValue());
 	}
 
 	// 배당금을 받을 수 있는지 검사

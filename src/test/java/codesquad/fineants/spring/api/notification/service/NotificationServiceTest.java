@@ -146,7 +146,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		given(firebaseMessagingService.send(any(Message.class)))
 			.willReturn(Optional.of("projects/fineants-404407/messages/4754d355-5d5d-4f14-a642-75fecdb91fa5"));
 		given(manager.getCurrentPrice(anyString()))
-			.willReturn(Optional.of(Money.from(50000L)));
+			.willReturn(Optional.of(Money.won(50000L)));
 
 		// when
 		PortfolioNotifyMessagesResponse response = service.notifyTargetGainBy(portfolio.getId());
@@ -165,7 +165,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		Member member = memberRepository.save(createMember());
 		notificationPreferenceRepository.save(createNotificationPreference(member));
 		Portfolio portfolio = portfolioRepository.save(
-			createPortfolio(member, Money.from(1000000L), Money.from(1100000L), Money.from(900000L)));
+			createPortfolio(member, Money.won(1000000L), Money.won(1100000L), Money.won(900000L)));
 		Stock samsung = stockRepository.save(createStock());
 		Stock ccs = stockRepository.save(
 			createStack("씨씨에스충북방송", "066790", "KOREA CABLE T.V CHUNG-BUK SYSTEM CO.,LTD.", "KR7066790007", "방송서비스",
@@ -186,9 +186,9 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		given(firebaseMessagingService.send(any(Message.class)))
 			.willReturn(Optional.of("projects/fineants-404407/messages/4754d355-5d5d-4f14-a642-75fecdb91fa5"));
 		given(manager.getCurrentPrice(samsung.getTickerSymbol()))
-			.willReturn(Optional.of(Money.from(83300L)));
+			.willReturn(Optional.of(Money.won(83300L)));
 		given(manager.getCurrentPrice(ccs.getTickerSymbol()))
-			.willReturn(Optional.of(Money.from(3750L)));
+			.willReturn(Optional.of(Money.won(3750L)));
 
 		// when
 		PortfolioNotifyMessagesResponse response = service.notifyTargetGainBy(portfolio.getId());
@@ -227,7 +227,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		given(firebaseMessagingService.send(any(Message.class)))
 			.willReturn(Optional.empty());
 		given(manager.getCurrentPrice(anyString()))
-			.willReturn(Optional.of(Money.from(50000L)));
+			.willReturn(Optional.of(Money.won(50000L)));
 
 		// when
 		PortfolioNotifyMessagesResponse response = service.notifyTargetGainBy(portfolio.getId());
@@ -255,7 +255,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		fcmRepository.save(createFcmToken("token", member));
 
 		given(manager.getCurrentPrice(anyString()))
-			.willReturn(Optional.of(Money.from(50000L)));
+			.willReturn(Optional.of(Money.won(50000L)));
 
 		// when
 		PortfolioNotifyMessagesResponse response = service.notifyTargetGainBy(portfolio.getId());
@@ -281,7 +281,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		given(firebaseMessagingService.send(any(Message.class)))
 			.willReturn(Optional.of("messageId"));
 		given(manager.getCurrentPrice(anyString()))
-			.willReturn(Optional.of(Money.from(100L)));
+			.willReturn(Optional.of(Money.won(100L)));
 
 		// when
 		PortfolioNotifyMessagesResponse response = service.notifyMaxLoss(portfolio.getId());
@@ -309,7 +309,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		fcmRepository.save(createFcmToken("token", member));
 
 		given(manager.getCurrentPrice(anyString()))
-			.willReturn(Optional.of(Money.from(50000L)));
+			.willReturn(Optional.of(Money.won(50000L)));
 
 		// when
 		PortfolioNotifyMessagesResponse response = service.notifyMaxLoss(portfolio.getId());
@@ -347,7 +347,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		given(firebaseMessaging.send(any(Message.class)))
 			.willThrow(FirebaseMessagingException.class);
 		given(manager.getCurrentPrice(anyString()))
-			.willReturn(Optional.of(Money.from(50000L)));
+			.willReturn(Optional.of(Money.won(50000L)));
 
 		// when
 		PortfolioNotifyMessagesResponse response = service.notifyMaxLoss(portfolio.getId());
@@ -375,7 +375,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		purchaseHistoryRepository.save(createPurchaseHistory(holding2, 1L, 60000.0));
 
 		given(manager.getCurrentPrice(anyString()))
-			.willReturn(Optional.of(Money.from(60000L)));
+			.willReturn(Optional.of(Money.won(60000L)));
 		given(firebaseMessagingService.send(any(Message.class)))
 			.willReturn(Optional.of("messageId"));
 
@@ -420,9 +420,9 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 			createTargetPriceNotification(stockTargetPrice4, List.of(10000L, 20000L)));
 
 		given(manager.getCurrentPrice(stock.getTickerSymbol()))
-			.willReturn(Optional.of(Money.from(60000L)));
+			.willReturn(Optional.of(Money.won(60000L)));
 		given(manager.getCurrentPrice(stock2.getTickerSymbol()))
-			.willReturn(Optional.of(Money.from(10000L)));
+			.willReturn(Optional.of(Money.won(10000L)));
 		given(kisService.fetchCurrentPrice(stock2.getTickerSymbol()))
 			.willReturn(Mono.just(KisCurrentPrice.create(stock2.getTickerSymbol(), 10000L)));
 		given(firebaseMessagingService.send(any(Message.class)))
@@ -464,9 +464,9 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 			createTargetPriceNotification(stockTargetPrice2, List.of(10000L, 20000L)));
 
 		given(manager.getCurrentPrice(stock.getTickerSymbol()))
-			.willReturn(Optional.of(Money.from(60000L)));
+			.willReturn(Optional.of(Money.won(60000L)));
 		given(manager.getCurrentPrice(stock2.getTickerSymbol()))
-			.willReturn(Optional.of(Money.from(10000L)));
+			.willReturn(Optional.of(Money.won(10000L)));
 		given(firebaseMessagingService.send(any(Message.class)))
 			.willReturn(Optional.of("messageId"));
 		// when
@@ -478,10 +478,42 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		assertThat(response.getNotifications())
 			.asList()
 			.hasSize(2)
-			.extracting("title", "type", "referenceId", "messageId")
+			.extracting(
+				"isRead",
+				"title",
+				"content",
+				"type",
+				"referenceId",
+				"memberId",
+				"link",
+				"messageId",
+				"stockName",
+				"targetPrice")
+			.usingComparatorForType(Money::compareTo, Money.class)
 			.containsExactlyInAnyOrder(
-				Tuple.tuple(type.getName(), type, "005930", "messageId"),
-				Tuple.tuple(type.getName(), type, "000020", "messageId"));
+				Tuple.tuple(
+					false,
+					"종목 지정가",
+					"동화약품보통주이(가) ₩10,000에 도달했습니다",
+					type,
+					"000020",
+					member.getId(),
+					"/stock/000020",
+					"messageId",
+					"동화약품보통주",
+					Money.won(10000)),
+				Tuple.tuple(
+					false,
+					"종목 지정가",
+					"삼성전자보통주이(가) ₩60,000에 도달했습니다",
+					type,
+					"005930",
+					member.getId(),
+					"/stock/005930",
+					"messageId",
+					"삼성전자보통주",
+					Money.won(60000))
+			);
 		assertThat(notificationRepository.findAllByMemberId(member.getId()))
 			.asList()
 			.hasSize(2);
@@ -523,9 +555,9 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		));
 
 		given(manager.getCurrentPrice(stock.getTickerSymbol()))
-			.willReturn(Optional.of(Money.from(60000L)));
+			.willReturn(Optional.of(Money.won(60000L)));
 		given(manager.getCurrentPrice(stock2.getTickerSymbol()))
-			.willReturn(Optional.of(Money.from(10000L)));
+			.willReturn(Optional.of(Money.won(10000L)));
 		given(sentManager.hasTargetPriceSendHistory(sendTargetPriceNotification.getId()))
 			.willReturn(true);
 		given(firebaseMessagingService.send(any(Message.class)))
@@ -567,7 +599,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		targetPriceNotificationRepository.saveAll(targetPriceNotifications);
 
 		given(manager.getCurrentPrice(stock.getTickerSymbol()))
-			.willReturn(Optional.of(Money.from(60000L)));
+			.willReturn(Optional.of(Money.won(60000L)));
 		given(firebaseMessagingService.send(any(Message.class)))
 			.willReturn(Optional.empty());
 		// when
@@ -607,9 +639,9 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 			createTargetPriceNotification(stockTargetPrice2, List.of(10000L, 20000L)));
 
 		given(manager.getCurrentPrice(stock.getTickerSymbol()))
-			.willReturn(Optional.of(Money.from(60000L)));
+			.willReturn(Optional.of(Money.won(60000L)));
 		given(manager.getCurrentPrice(stock2.getTickerSymbol()))
-			.willReturn(Optional.of(Money.from(10000L)));
+			.willReturn(Optional.of(Money.won(10000L)));
 		given(sentManager.hasTargetPriceSendHistory(anyLong()))
 			.willReturn(false);
 		given(firebaseMessagingService.send(any(Message.class)))
@@ -654,7 +686,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 	}
 
 	private Portfolio createPortfolio(Member member) {
-		return createPortfolio(member, Money.from(1000000L), Money.from(1500000L), Money.from(900000L));
+		return createPortfolio(member, Money.won(1000000L), Money.won(1500000L), Money.won(900000L));
 	}
 
 	private Portfolio createPortfolio(Member member, Money budget, Money targetGain, Money maxLoss) {
@@ -698,7 +730,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		return PurchaseHistory.builder()
 			.purchaseDate(LocalDateTime.of(2023, 9, 26, 9, 30, 0))
 			.numShares(Count.from(numShares))
-			.purchasePricePerShare(Money.from(purchasePricePerShare))
+			.purchasePricePerShare(Money.won(purchasePricePerShare))
 			.memo("첫구매")
 			.portfolioHolding(portfolioHolding)
 			.build();
@@ -716,7 +748,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		List<Long> targetPrices) {
 		return targetPrices.stream()
 			.map(targetPrice -> TargetPriceNotification.builder()
-				.targetPrice(Money.from(targetPrice))
+				.targetPrice(Money.won(targetPrice))
 				.stockTargetPrice(stockTargetPrice)
 				.build())
 			.collect(Collectors.toList());

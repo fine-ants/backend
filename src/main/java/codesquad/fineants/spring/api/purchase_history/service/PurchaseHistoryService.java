@@ -48,7 +48,7 @@ public class PurchaseHistoryService {
 			.orElseThrow(() -> new FineAntsException(PortfolioHoldingErrorCode.NOT_FOUND_PORTFOLIO_HOLDING));
 		PurchaseHistory history = request.toEntity(findHolding);
 
-		verifyCashSufficientForPurchase(portfolio, history.calculateInvestmentAmount());
+		verifyCashSufficientForPurchase(portfolio, (Money)history.calculateInvestmentAmount());
 
 		PurchaseHistory newPurchaseHistory = repository.save(history);
 		// 매입 이력 알림 이벤트를 위한 매입 이력 데이터 추가

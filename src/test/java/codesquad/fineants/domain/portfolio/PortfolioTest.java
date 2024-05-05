@@ -11,7 +11,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
 
 import codesquad.fineants.domain.common.count.Count;
+import codesquad.fineants.domain.common.money.Bank;
+import codesquad.fineants.domain.common.money.Expression;
 import codesquad.fineants.domain.common.money.Money;
+import codesquad.fineants.domain.common.money.RateDivision;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
 import codesquad.fineants.domain.purchase_history.PurchaseHistory;
 import codesquad.fineants.domain.stock.Market;
@@ -28,19 +31,19 @@ class PortfolioTest {
 		// given
 		Portfolio portfolio = createPortfolio();
 		Stock stock = createSamsungStock();
-		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock, Money.from(20000L));
+		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock, Money.won(20000L));
 
 		PurchaseHistory purchaseHistory1 = PurchaseHistory.builder()
 			.purchaseDate(LocalDateTime.now())
 			.numShares(Count.from(5L))
-			.purchasePricePerShare(Money.from(10000.0))
+			.purchasePricePerShare(Money.won(10000.0))
 			.portfolioHolding(portFolioHolding)
 			.build();
 
 		PurchaseHistory purchaseHistory2 = PurchaseHistory.builder()
 			.purchaseDate(LocalDateTime.now())
 			.numShares(Count.from(5L))
-			.purchasePricePerShare(Money.from(10000.0))
+			.purchasePricePerShare(Money.won(10000.0))
 			.portfolioHolding(portFolioHolding)
 			.build();
 
@@ -50,10 +53,11 @@ class PortfolioTest {
 		portfolio.addPortfolioStock(portFolioHolding);
 
 		// when
-		Money result = portfolio.calculateTotalGain();
+		Expression result = portfolio.calculateTotalGain();
 
 		// then
-		assertThat(result).isEqualByComparingTo(Money.from(100000L));
+		Money amount = Bank.getInstance().toWon(result);
+		assertThat(amount).isEqualByComparingTo(Money.won(100000L));
 	}
 
 	@DisplayName("포트폴리오의 총 손익율 계산한다")
@@ -62,18 +66,18 @@ class PortfolioTest {
 		// given
 		Portfolio portfolio = createPortfolio();
 		Stock stock = createSamsungStock();
-		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock, Money.from(20000L));
+		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock, Money.won(20000L));
 
 		PurchaseHistory purchaseHistory1 = PurchaseHistory.builder()
 			.purchaseDate(LocalDateTime.now())
 			.numShares(Count.from(5L))
-			.purchasePricePerShare(Money.from(10000.0))
+			.purchasePricePerShare(Money.won(10000.0))
 			.build();
 
 		PurchaseHistory purchaseHistory2 = PurchaseHistory.builder()
 			.purchaseDate(LocalDateTime.now())
 			.numShares(Count.from(5L))
-			.purchasePricePerShare(Money.from(10000.0))
+			.purchasePricePerShare(Money.won(10000.0))
 			.build();
 
 		portFolioHolding.addPurchaseHistory(purchaseHistory1);
@@ -82,10 +86,13 @@ class PortfolioTest {
 		portfolio.addPortfolioStock(portFolioHolding);
 
 		// when
-		Double result = portfolio.calculateTotalGainRate();
+		RateDivision result = portfolio.calculateTotalGainRate();
 
 		// then
-		assertThat(result).isEqualTo(100.00);
+		Money totalGainAmount = Money.won(100000);
+		Money totalInvestmentAmount = Money.won(100000);
+		RateDivision expected = totalGainAmount.divide(totalInvestmentAmount);
+		assertThat(result).isEqualByComparingTo(expected);
 	}
 
 	@DisplayName("사용자는 포트폴리오의 파이 차트를 요청한다")
@@ -95,20 +102,20 @@ class PortfolioTest {
 		Portfolio portfolio = createPortfolio();
 		Stock stock = createSamsungStock();
 		Stock stock2 = createDongHwa();
-		PortfolioHolding holding1 = PortfolioHolding.of(portfolio, stock, Money.from(20000L));
-		PortfolioHolding holding2 = PortfolioHolding.of(portfolio, stock2, Money.from(20000L));
+		PortfolioHolding holding1 = PortfolioHolding.of(portfolio, stock, Money.won(20000L));
+		PortfolioHolding holding2 = PortfolioHolding.of(portfolio, stock2, Money.won(20000L));
 
 		PurchaseHistory purchaseHistory1 = PurchaseHistory.builder()
 			.purchaseDate(LocalDateTime.now())
 			.numShares(Count.from(5L))
-			.purchasePricePerShare(Money.from(10000.0))
+			.purchasePricePerShare(Money.won(10000.0))
 			.portfolioHolding(holding1)
 			.build();
 
 		PurchaseHistory purchaseHistory2 = PurchaseHistory.builder()
 			.purchaseDate(LocalDateTime.now())
 			.numShares(Count.from(5L))
-			.purchasePricePerShare(Money.from(20000.0))
+			.purchasePricePerShare(Money.won(20000.0))
 			.portfolioHolding(holding2)
 			.build();
 
@@ -128,9 +135,9 @@ class PortfolioTest {
 			.extracting("name", "valuation", "totalGain")
 			.usingComparatorForType(Money::compareTo, Money.class)
 			.containsExactlyInAnyOrder(
-				Tuple.tuple("현금", Money.from(850000L), Money.zero()),
-				Tuple.tuple("삼성전자보통주", Money.from(100000L), Money.from(50000L)),
-				Tuple.tuple("동화약품보통주", Money.from(100000L), Money.zero()));
+				Tuple.tuple("현금", Money.won(850000L), Money.zero()),
+				Tuple.tuple("삼성전자보통주", Money.won(100000L), Money.won(50000L)),
+				Tuple.tuple("동화약품보통주", Money.won(100000L), Money.zero()));
 	}
 
 	@DisplayName("사용자는 포트폴리오의 섹터 차트를 요청한다")
@@ -140,20 +147,20 @@ class PortfolioTest {
 		Portfolio portfolio = createPortfolio();
 		Stock stock = createSamsungStock();
 		Stock stock2 = createDongHwa();
-		PortfolioHolding holding1 = PortfolioHolding.of(portfolio, stock, Money.from(20000L));
-		PortfolioHolding holding2 = PortfolioHolding.of(portfolio, stock2, Money.from(20000L));
+		PortfolioHolding holding1 = PortfolioHolding.of(portfolio, stock, Money.won(20000L));
+		PortfolioHolding holding2 = PortfolioHolding.of(portfolio, stock2, Money.won(20000L));
 
 		PurchaseHistory purchaseHistory1 = PurchaseHistory.builder()
 			.purchaseDate(LocalDateTime.now())
 			.numShares(Count.from(5L))
-			.purchasePricePerShare(Money.from(10000.0))
+			.purchasePricePerShare(Money.won(10000.0))
 			.portfolioHolding(holding1)
 			.build();
 
 		PurchaseHistory purchaseHistory2 = PurchaseHistory.builder()
 			.purchaseDate(LocalDateTime.now())
 			.numShares(Count.from(5L))
-			.purchasePricePerShare(Money.from(20000.0))
+			.purchasePricePerShare(Money.won(20000.0))
 			.portfolioHolding(holding2)
 			.build();
 
@@ -176,9 +183,9 @@ class PortfolioTest {
 
 	private Portfolio createPortfolio() {
 		return Portfolio.builder()
-			.budget(Money.from(1000000L))
-			.targetGain(Money.from(1500000L))
-			.maximumLoss(Money.from(900000L))
+			.budget(Money.won(1000000L))
+			.targetGain(Money.won(1500000L))
+			.maximumLoss(Money.won(900000L))
 			.build();
 	}
 

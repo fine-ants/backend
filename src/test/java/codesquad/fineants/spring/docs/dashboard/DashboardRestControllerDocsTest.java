@@ -9,6 +9,7 @@ import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.junit.jupiter.api.DisplayName;
@@ -18,8 +19,15 @@ import org.mockito.Mockito;
 import org.springframework.http.HttpHeaders;
 import org.springframework.restdocs.payload.JsonFieldType;
 
+import codesquad.fineants.domain.common.money.Bank;
+import codesquad.fineants.domain.common.money.Currency;
+import codesquad.fineants.domain.common.money.Expression;
 import codesquad.fineants.domain.common.money.Money;
+import codesquad.fineants.domain.common.money.Percentage;
 import codesquad.fineants.domain.oauth.support.AuthMember;
+import codesquad.fineants.domain.portfolio.Portfolio;
+import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
+import codesquad.fineants.domain.stock.Stock;
 import codesquad.fineants.spring.api.dashboard.controller.DashboardRestController;
 import codesquad.fineants.spring.api.dashboard.response.DashboardLineChartResponse;
 import codesquad.fineants.spring.api.dashboard.response.DashboardPieChartResponse;
@@ -44,12 +52,12 @@ public class DashboardRestControllerDocsTest extends RestDocsSupport {
 		given(service.getOverview(ArgumentMatchers.any(AuthMember.class)))
 			.willReturn(OverviewResponse.builder()
 				.username("일개미1234")
-				.totalValuation(Money.from(1000000L))
+				.totalValuation(Money.won(1000000L))
 				.totalInvestment(Money.zero())
 				.totalGain(Money.zero())
-				.totalGainRate(0.0)
+				.totalGainRate(Percentage.zero())
 				.totalAnnualDividend(Money.zero())
-				.totalAnnualDividendYield(0.0)
+				.totalAnnualDividendYield(Percentage.zero())
 				.build());
 
 		// when & then
@@ -107,15 +115,24 @@ public class DashboardRestControllerDocsTest extends RestDocsSupport {
 	@Test
 	void readPieChart() throws Exception {
 		// given
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createStock();
+		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
+		holding.addPurchaseHistory(createPurchaseHistory(holding, LocalDateTime.now()));
+		portfolio.addPortfolioStock(holding);
+
+		Expression valuation = portfolio.calculateTotalAsset();
 		given(service.getPieChart(ArgumentMatchers.any(AuthMember.class)))
 			.willReturn(List.of(
 				DashboardPieChartResponse.create(
 					1L,
 					"포트폴리오1",
-					Money.from(610888L),
-					6.68,
-					Money.from(30022L),
-					6.41
+					valuation,
+					portfolio.calculateTotalAsset()
+						.divide(valuation)
+						.toPercentage(Bank.getInstance(), Currency.KRW),
+					portfolio.calculateTotalGain(),
+					portfolio.calculateTotalGainRate().toPercentage(Bank.getInstance(), Currency.KRW)
 				)
 			));
 
@@ -128,10 +145,10 @@ public class DashboardRestControllerDocsTest extends RestDocsSupport {
 			.andExpect(jsonPath("message").value(equalTo("포트폴리오 파이 차트 데이터 조회가 완료되었습니다")))
 			.andExpect(jsonPath("data[0].id").value(equalTo(1)))
 			.andExpect(jsonPath("data[0].name").value(equalTo("포트폴리오1")))
-			.andExpect(jsonPath("data[0].valuation").value(equalTo(610888)))
-			.andExpect(jsonPath("data[0].totalGain").value(equalTo(30022)))
-			.andExpect(jsonPath("data[0].totalGainRate").value(equalTo(6.41)))
-			.andExpect(jsonPath("data[0].weight").value(equalTo(6.68)))
+			.andExpect(jsonPath("data[0].valuation").value(equalTo(1030000)))
+			.andExpect(jsonPath("data[0].totalGain").value(equalTo(30000)))
+			.andExpect(jsonPath("data[0].totalGainRate").value(equalTo(20.0)))
+			.andExpect(jsonPath("data[0].weight").value(equalTo(100.0)))
 			.andDo(
 				document(
 					"dashboard_portfolio_pie_chart-search",
@@ -173,8 +190,8 @@ public class DashboardRestControllerDocsTest extends RestDocsSupport {
 		// given
 		given(service.getLineChart(ArgumentMatchers.any(AuthMember.class)))
 			.willReturn(List.of(
-				DashboardLineChartResponse.of("2018-10-19", Money.from(5012346L)),
-				DashboardLineChartResponse.of("2018-10-22", Money.from(4678901L))
+				DashboardLineChartResponse.of("2018-10-19", Money.won(5012346L)),
+				DashboardLineChartResponse.of("2018-10-22", Money.won(4678901L))
 			));
 
 		// when & then

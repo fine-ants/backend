@@ -30,6 +30,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import codesquad.fineants.domain.common.money.Money;
+import codesquad.fineants.domain.common.money.Percentage;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.oauth.support.AuthPrincipalArgumentResolver;
@@ -173,10 +174,10 @@ class WatchListRestControllerTest {
 			.id(1L)
 			.companyName("삼성전자")
 			.tickerSymbol("005930")
-			.currentPrice(Money.from(68000))
-			.dailyChange(Money.from(1200))
-			.dailyChangeRate(1.85)
-			.annualDividendYield(2.12)
+			.currentPrice(Money.won(68000))
+			.dailyChange(Money.won(1200))
+			.dailyChangeRate(Percentage.from(0.0185))
+			.annualDividendYield(Percentage.from(0.0212))
 			.sector("제조업")
 			.dateAdded(LocalDateTime.of(2023, 12, 2, 15, 0, 0))
 			.build();

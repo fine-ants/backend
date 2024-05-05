@@ -151,7 +151,7 @@ class PortfolioHoldingRestControllerTest {
 		portfolio.addPortfolioStock(portfolioHolding);
 		PortfolioGainHistory history = createEmptyPortfolioGainHistory();
 
-		Map<String, Money> lastDayClosingPriceMap = Map.of("005930", Money.from(50000L));
+		Map<String, Money> lastDayClosingPriceMap = Map.of("005930", Money.won(50000L));
 		PortfolioHoldingsResponse mockResponse = PortfolioHoldingsResponse.of(portfolio, history,
 			List.of(portfolioHolding),
 			lastDayClosingPriceMap);
@@ -490,9 +490,9 @@ class PortfolioHoldingRestControllerTest {
 			.id(1L)
 			.name("내꿈은 워렌버핏")
 			.securitiesFirm("토스")
-			.budget(Money.from(1000000L))
-			.targetGain(Money.from(1500000L))
-			.maximumLoss(Money.from(900000L))
+			.budget(Money.won(1000000L))
+			.targetGain(Money.won(1500000L))
+			.maximumLoss(Money.won(900000L))
 			.targetGainIsActive(false)
 			.maximumLossIsActive(false)
 			.member(member)
@@ -504,7 +504,7 @@ class PortfolioHoldingRestControllerTest {
 			.id(1L)
 			.portfolio(portfolio)
 			.stock(stock)
-			.currentPrice(Money.from(60000L))
+			.currentPrice(Money.won(60000L))
 			.build();
 	}
 
@@ -513,7 +513,7 @@ class PortfolioHoldingRestControllerTest {
 			.id(1L)
 			.purchaseDate(purchaseDate)
 			.numShares(Count.from(3L))
-			.purchasePricePerShare(Money.from(50000.0))
+			.purchasePricePerShare(Money.won(50000.0))
 			.memo("첫구매")
 			.portfolioHolding(portfolioHolding)
 			.build();
@@ -533,7 +533,7 @@ class PortfolioHoldingRestControllerTest {
 	private StockDividend createStockDividend(LocalDate exDividendDate, LocalDate recordDate, LocalDate paymentDate,
 		Stock stock) {
 		return StockDividend.builder()
-			.dividend(Money.from(361L))
+			.dividend(Money.won(361L))
 			.exDividendDate(exDividendDate)
 			.recordDate(recordDate)
 			.paymentDate(paymentDate)

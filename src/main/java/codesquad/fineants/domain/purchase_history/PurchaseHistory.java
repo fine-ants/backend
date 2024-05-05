@@ -16,6 +16,7 @@ import javax.persistence.ManyToOne;
 import codesquad.fineants.domain.BaseEntity;
 import codesquad.fineants.domain.common.count.Count;
 import codesquad.fineants.domain.common.count.CountConverter;
+import codesquad.fineants.domain.common.money.Expression;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.common.money.MoneyConverter;
 import codesquad.fineants.domain.portfolio_holding.PortfolioHolding;
@@ -37,36 +38,48 @@ public class PurchaseHistory extends BaseEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
+
 	private LocalDateTime purchaseDate;
+
 	@Convert(converter = MoneyConverter.class)
 	@Column(precision = 19, nullable = false)
 	private Money purchasePricePerShare;
+
 	@Convert(converter = CountConverter.class)
 	private Count numShares;
+
 	private String memo;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "portfolio_holding_id")
 	private PortfolioHolding portfolioHolding;
 
-	public static PurchaseHistory of(PortfolioHolding portFolioHolding, PurchaseHistoryCreateRequest purchaseHistory) {
-		return PurchaseHistory.builder()
-			.portfolioHolding(portFolioHolding)
-			.purchaseDate(purchaseHistory.getPurchaseDate())
-			.purchasePricePerShare(purchaseHistory.getPurchasePricePerShare())
-			.numShares(purchaseHistory.getNumShares())
-			.memo(purchaseHistory.getMemo())
-			.build();
+	public static PurchaseHistory of(PortfolioHolding portFolioHolding, PurchaseHistoryCreateRequest request) {
+		return new PurchaseHistory(
+			null,
+			request.getPurchaseDate(),
+			request.getPurchasePricePerShare(),
+			request.getNumShares(),
+			request.getMemo(),
+			portFolioHolding
+		);
+	}
+
+	public static PurchaseHistory now(Money purchasePricePerShare, Count numShares, String memo,
+		PortfolioHolding holding) {
+		return new PurchaseHistory(
+			null,
+			LocalDateTime.now(),
+			purchasePricePerShare,
+			numShares,
+			memo,
+			holding
+		);
 	}
 
 	// 투자 금액 = 주당 매입가 * 개수
-	public Money calculateInvestmentAmount() {
-		return purchasePricePerShare.multiply(numShares);
-	}
-
-	// 손익 = (현재가 - 평균 매입가) * 주식개수
-	public Money calculateGain() {
-		return portfolioHolding.getCurrentPrice().subtract(purchasePricePerShare).multiply(numShares);
+	public Expression calculateInvestmentAmount() {
+		return purchasePricePerShare.times(numShares.getValue().intValue());
 	}
 
 	public PurchaseHistory change(PurchaseHistory history) {

@@ -3,6 +3,7 @@ package codesquad.fineants.domain.common.count;
 import java.math.BigInteger;
 import java.util.Objects;
 
+import codesquad.fineants.domain.common.money.Expression;
 import codesquad.fineants.domain.common.money.Money;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -41,15 +42,15 @@ public class Count implements Comparable<Count> {
 		return new Count(value.add(count.value));
 	}
 
-	public Money multiply(Money money) {
-		return money.multiply(value);
+	public Expression multiply(Money money) {
+		return money.times(value.intValue());
 	}
 
 	public boolean isZero() {
 		return value.compareTo(BigInteger.ZERO) == 0;
 	}
 
-	public Money division(Money numerator) {
+	public Expression division(Money numerator) {
 		return numerator.divide(value);
 	}
 

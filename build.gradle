@@ -85,8 +85,8 @@ dependencies {
     testAnnotationProcessor 'org.projectlombok:lombok'
 
     // test container
-    testImplementation "org.testcontainers:junit-jupiter:1.16.3"
-    testImplementation 'org.testcontainers:mysql:1.16.3'
+    testImplementation 'org.testcontainers:junit-jupiter:1.19.7'
+    testImplementation 'org.testcontainers:mysql:1.19.7'
     implementation 'org.testcontainers:localstack:1.19.7'
 
     // Rest Docs

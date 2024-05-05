@@ -29,8 +29,13 @@ import org.hibernate.annotations.BatchSize;
 
 import codesquad.fineants.domain.BaseEntity;
 import codesquad.fineants.domain.common.count.Count;
+import codesquad.fineants.domain.common.money.Bank;
+import codesquad.fineants.domain.common.money.Currency;
+import codesquad.fineants.domain.common.money.Expression;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.common.money.MoneyConverter;
+import codesquad.fineants.domain.common.money.Percentage;
+import codesquad.fineants.domain.common.money.RateDivision;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.notification.type.NotificationType;
 import codesquad.fineants.domain.portfolio_gain_history.PortfolioGainHistory;
@@ -153,66 +158,80 @@ public class Portfolio extends BaseEntity {
 		return member.hasAuthorization(memberId);
 	}
 
-	// 포트폴리오 총 손익율 = (포트폴리오 총 손익 / 포트폴리오 총 투자 금액) * 100%
-	public double calculateTotalGainRate() {
-		Money totalInvestmentAmount = calculateTotalInvestmentAmount();
-		if (totalInvestmentAmount.isZero()) {
-			return 0;
-		}
-		return calculateTotalGain().divide(totalInvestmentAmount).toPercentage();
+	/**
+	 * 포트폴리오 총 손익율
+	 * 포트폴리오 총 손익 / 포트폴리오 총 투자 금액 * 100
+	 * @return 포트폴리오 총 손익율의 백분율
+	 */
+	public RateDivision calculateTotalGainRate() {
+		Expression amount = calculateTotalInvestmentAmount();
+		return calculateTotalGain().divide(amount);
 	}
 
-	// 포트폴리오 총 손익 = 모든 종목 총 손익의 합계
-	// 종목 총 손익 = (종목 현재가 - 종목 평균 매입가) * 개수
-	// 종목 평균 매입가 = 종목의 총 투자 금액 / 총 주식 개수
-	public Money calculateTotalGain() {
+	/**
+	 * 포트폴리오 총 손익
+	 * 모든 종목(PortfolioHolding)의 총 손익 합
+	 * @return 포트폴리오 총 손익
+	 */
+	public Expression calculateTotalGain() {
 		return portfolioHoldings.stream()
 			.map(PortfolioHolding::calculateTotalGain)
-			.reduce(Money.zero(), Money::add);
+			.reduce(Money.wonZero(), Expression::plus);
 	}
 
-	// 포트폴리오 총 투자 금액 = 각 종목들의 구입가들의 합계
-	public Money calculateTotalInvestmentAmount() {
+	/**
+	 * 포트폴리오 총 투자 금액
+	 * 각 종목들의 총 투자 금액 합계
+	 * @return 포트폴리오 총 투자 금액
+	 */
+	public Expression calculateTotalInvestmentAmount() {
 		return portfolioHoldings.stream()
 			.map(PortfolioHolding::calculateTotalInvestmentAmount)
-			.reduce(Money.zero(), Money::add);
+			.reduce(Money.wonZero(), Expression::plus);
 	}
 
-	// 포트폴리오 당일 손익 = 모든 종목들의 평가 금액 합계 - 이전일 포트폴리오의 모든 종목들의 평가 금액 합계
-	// 단, 이전일의 포트포릴오의 모든 종목들의 평가금액이 없는 경우 총 투자금액으로 뺀다
-	public Money calculateDailyGain(PortfolioGainHistory previousHistory) {
-		Money previousCurrentValuation = previousHistory.getCurrentValuation();
-		if (previousCurrentValuation.isZero()) {
-			return calculateTotalCurrentValuation().subtract(calculateTotalInvestmentAmount());
+	/**
+	 * 포트폴리오 당일 손익
+	 * 각 종목들의 평가 금액 합계 - 이전 포트폴리오 내역의 각 종목들의 평가 금액 합계
+	 * 단, 이전일의 포트포릴오 내역의 각 종목들의 평가 금액이 없는 경우 총 투자금액으로 뺀다
+	 * @param history 이전 포트폴리오 내역
+	 * @return 포트폴리오 당일 손익
+	 */
+	public Expression calculateDailyGain(PortfolioGainHistory history) {
+		Expression previousCurrentValuation = history.getCurrentValuation();
+		Money won = Bank.getInstance().toWon(previousCurrentValuation);
+		if (won.isZero()) {
+			return calculateTotalCurrentValuation().minus(calculateTotalInvestmentAmount());
 		}
-		return calculateTotalCurrentValuation().subtract(previousCurrentValuation);
+		return calculateTotalCurrentValuation().minus(previousCurrentValuation);
 	}
 
 	// 포트폴리오 평가 금액(현재 가치) = 모든 종목들의 평가금액 합계
-	public Money calculateTotalCurrentValuation() {
+	public Expression calculateTotalCurrentValuation() {
 		return portfolioHoldings.stream()
 			.map(PortfolioHolding::calculateCurrentValuation)
-			.reduce(Money.zero(), Money::add);
+			.reduce(Money.wonZero(), Expression::plus);
 	}
 
 	// 포트폴리오 당일 손익율 = (당일 포트폴리오 가치 총합 - 이전 포트폴리오 가치 총합) / 이전 포트폴리오 가치 총합
 	// 단, 이전 포트폴리오가 없는 경우 ((당일 포트폴리오 가치 총합 - 당일 포트폴리오 총 투자 금액) / 당일 포트폴리오 총 투자 금액) * 100%
-	public double calculateDailyGainRate(PortfolioGainHistory prevHistory) {
+	public RateDivision calculateDailyGainRate(PortfolioGainHistory prevHistory) {
 		Money prevCurrentValuation = prevHistory.getCurrentValuation();
-		Money currentValuation = calculateTotalCurrentValuation();
+		Expression currentValuation = calculateTotalCurrentValuation();
 		if (prevCurrentValuation.isZero()) {
-			Money totalInvestmentAmount = calculateTotalInvestmentAmount();
-
-			return currentValuation.subtract(totalInvestmentAmount).divide(totalInvestmentAmount).toPercentage();
+			Expression amount = calculateTotalInvestmentAmount();
+			return currentValuation.minus(amount)
+				.divide(amount);
 		}
-		return currentValuation.subtract(prevCurrentValuation).divide(prevCurrentValuation).toPercentage();
+		return currentValuation.minus(prevCurrentValuation)
+			.divide(prevCurrentValuation);
 	}
 
 	// 포트폴리오 당월 예상 배당금 = 각 종목들에 해당월의 배당금 합계
-	public Money calculateCurrentMonthDividend() {
+	public Expression calculateCurrentMonthDividend() {
 		return portfolioHoldings.stream()
 			.map(PortfolioHolding::calculateCurrentMonthDividend)
-			.reduce(Money.zero(), Money::add);
+			.reduce(Money.zero(), Expression::plus);
 	}
 
 	public Count getNumberOfShares() {
@@ -220,50 +239,52 @@ public class Portfolio extends BaseEntity {
 	}
 
 	// 잔고 = 예산 - 총 투자 금액
-	public Money calculateBalance() {
-		return budget.subtract(calculateTotalInvestmentAmount());
+	public Expression calculateBalance() {
+		return budget.minus(calculateTotalInvestmentAmount());
 	}
 
 	// 총 연간 배당금 = 각 종목들의 연배당금의 합계
-	public Money calculateAnnualDividend() {
+	public Expression calculateAnnualDividend() {
 		return portfolioHoldings.stream()
 			.map(portfolioHolding -> portfolioHolding.createMonthlyDividendMap(LocalDate.now()))
 			.map(map -> map.values().stream()
-				.reduce(Money.zero(), Money::add))
-			.reduce(Money.zero(), Money::add);
+				.reduce(Money.zero(), Expression::plus))
+			.reduce(Money.zero(), Expression::plus);
 	}
 
 	// 총 연간배당율 = 모든 종목들의 연 배당금 합계 / 모든 종목들의 총 가치의 합계) * 100
-	public double calculateAnnualDividendYield() {
-		Money currentValuation = calculateTotalCurrentValuation();
-		Money totalAnnualDividend = calculateAnnualDividend();
-		return totalAnnualDividend.divide(currentValuation).toPercentage();
+	public RateDivision calculateAnnualDividendYield() {
+		Expression currentValuation = calculateTotalCurrentValuation();
+		Expression totalAnnualDividend = calculateAnnualDividend();
+		return totalAnnualDividend.divide(currentValuation);
 	}
 
 	// 최대손실율 = ((예산 - 최대손실금액) / 예산) * 100
-	public double calculateMaximumLossRate() {
-		return budget.subtract(maximumLoss).divide(budget).toPercentage();
+	public RateDivision calculateMaximumLossRate() {
+		return budget.minus(maximumLoss)
+			.divide(budget);
 	}
 
 	// 투자대비 연간 배당율 = 포트폴리오 총 연배당금 / 포트폴리오 투자금액 * 100
-	public double calculateAnnualInvestmentDividendYield() {
-		Money investment = calculateTotalInvestmentAmount();
-		Money dividend = calculateAnnualDividend();
-		return dividend.divide(investment).toPercentage();
+	public RateDivision calculateAnnualInvestmentDividendYield() {
+		Expression amount = calculateTotalInvestmentAmount();
+		Expression dividend = calculateAnnualDividend();
+		return dividend.divide(amount);
 	}
 
 	public PortfolioGainHistory createPortfolioGainHistory(PortfolioGainHistory history) {
-		Money totalGain = calculateTotalGain();
-		Money dailyGain = calculateDailyGain(history);
-		Money currentValuation = calculateTotalCurrentValuation();
-		Money cash = calculateBalance();
-		return PortfolioGainHistory.builder()
-			.totalGain(totalGain)
-			.dailyGain(dailyGain)
-			.currentValuation(currentValuation)
-			.cash(cash)
-			.portfolio(this)
-			.build();
+		Bank bank = Bank.getInstance();
+		Money totalGain = bank.toWon(calculateTotalGain());
+		Money dailyGain = bank.toWon(calculateDailyGain(history));
+		Money cash = bank.toWon(calculateBalance());
+		Money currentValuation = bank.toWon(calculateTotalCurrentValuation());
+		return new PortfolioGainHistory(
+			totalGain,
+			dailyGain,
+			cash,
+			currentValuation,
+			this
+		);
 	}
 
 	// 포트폴리오 모든 종목들에 주식 현재가 적용
@@ -276,13 +297,14 @@ public class Portfolio extends BaseEntity {
 	}
 
 	// 목표 수익률 = ((목표 수익 금액 - 예산) / 예산) * 100
-	public double calculateTargetReturnRate() {
-		return targetGain.subtract(budget).divide(budget).toPercentage();
+	public RateDivision calculateTargetReturnRate() {
+		return targetGain.minus(budget)
+			.divide(budget);
 	}
 
 	// 총 자산 = 잔고 + 평가금액 합계
-	public Money calculateTotalAsset() {
-		return calculateBalance().add(calculateTotalCurrentValuation());
+	public Expression calculateTotalAsset() {
+		return calculateBalance().plus(calculateTotalCurrentValuation());
 	}
 
 	// 목표수익금액 알림 변경
@@ -319,16 +341,19 @@ public class Portfolio extends BaseEntity {
 
 	// 포트폴리오가 목표수익금액에 도달했는지 검사 (평가금액이 목표수익금액보다 같거나 큰 경우)
 	public boolean reachedTargetGain() {
-		Money currentValuation = calculateTotalCurrentValuation();
+		Bank bank = Bank.getInstance();
+		Money currentValuation = bank.toWon(calculateTotalCurrentValuation());
 		log.debug("reachedTargetGain currentValuation={}, targetGain={}", currentValuation, targetGain);
-		return currentValuation.compareTo(targetGain) >= 0;
+		return currentValuation.compareTo(bank.toWon(targetGain)) >= 0;
 	}
 
 	// 포트폴리오가 최대손실금액에 도달했는지 검사 (예산 + 총손익이 최대손실금액보다 작은 경우)
 	public boolean reachedMaximumLoss() {
-		Money totalGain = calculateTotalGain();
+		Bank bank = Bank.getInstance();
+		Expression totalGain = calculateTotalGain();
 		log.debug("reachedTargetGain totalGain={}", totalGain);
-		return budget.add(totalGain).compareTo(maximumLoss) <= 0;
+		Money amount = bank.toWon(budget.plus(totalGain));
+		return amount.compareTo(bank.toWon(maximumLoss)) <= 0;
 	}
 
 	// 파이 차트 생성
@@ -336,7 +361,9 @@ public class Portfolio extends BaseEntity {
 		List<PortfolioPieChartItem> stocks = portfolioHoldings.stream()
 			.map(portfolioHolding -> portfolioHolding.createPieChartItem(calculateWeightBy(portfolioHolding)))
 			.collect(Collectors.toList());
-		PortfolioPieChartItem cash = PortfolioPieChartItem.cash(calculateCashWeight(), calculateBalance());
+		Bank bank = Bank.getInstance();
+		Percentage weight = calculateCashWeight().toPercentage(bank, Currency.KRW);
+		PortfolioPieChartItem cash = PortfolioPieChartItem.cash(weight, bank.toWon(calculateBalance()));
 
 		List<PortfolioPieChartItem> result = new ArrayList<>(stocks);
 		result.add(cash);
@@ -350,48 +377,47 @@ public class Portfolio extends BaseEntity {
 	}
 
 	// 현금 비중 계산, 현금 비중 = 잔고 / 총자산
-	public double calculateCashWeight() {
-		Money balance = calculateBalance();
-		Money totalAsset = calculateTotalAsset();
-		return balance.divide(totalAsset).toPercentage();
+	public RateDivision calculateCashWeight() {
+		Expression balance = calculateBalance();
+		Expression totalAsset = calculateTotalAsset();
+		return balance.divide(totalAsset);
 	}
 
 	// 포트폴리오 종목 비중 계산, 종목 비중 = 종목 평가 금액 / 총자산
-	private Double calculateWeightBy(PortfolioHolding holding) {
+	private RateDivision calculateWeightBy(PortfolioHolding holding) {
 		return holding.calculateWeightBy(calculateTotalAsset());
 	}
 
-	private double calculateWeightBy(Money currentValuation) {
-		Money totalAsset = calculateTotalAsset();
-		return currentValuation.divide(totalAsset).toPercentage();
+	private RateDivision calculateWeightBy(Money currentValuation) {
+		Expression totalAsset = calculateTotalAsset();
+		return currentValuation.divide(totalAsset);
 	}
 
 	// 배당금 차트 생성
 	public List<PortfolioDividendChartItem> createDividendChart(LocalDate currentLocalDate) {
-		Map<Integer, Money> totalDividendMap = portfolioHoldings.stream()
+		Map<Integer, Expression> totalDividendMap = portfolioHoldings.stream()
 			.flatMap(holding ->
 				holding.createMonthlyDividendMap(currentLocalDate).entrySet().stream()
 			)
 			.collect(Collectors.groupingBy(Map.Entry::getKey,
-				Collectors.reducing(Money.zero(), Map.Entry::getValue, Money::add))
+				Collectors.reducing(Money.zero(), Map.Entry::getValue, Expression::plus))
 			);
+		Bank bank = Bank.getInstance();
+		Currency to = Currency.KRW;
 		return totalDividendMap.entrySet().stream()
-			.map(entry -> PortfolioDividendChartItem.create(entry.getKey(), entry.getValue()))
+			.map(entry -> PortfolioDividendChartItem.create(entry.getKey(), entry.getValue().reduce(bank, to)))
 			.collect(Collectors.toList());
 	}
 
 	public List<PortfolioSectorChartItem> createSectorChart() {
 		return calculateSectorCurrentValuationMap().entrySet().stream()
 			.map(mappingSectorChartItem())
-			.sorted(
-				((Comparator<PortfolioSectorChartItem>)(o1, o2) -> Double.compare(o2.getSectorWeight(),
-					o1.getSectorWeight()))
-					.thenComparing(PortfolioSectorChartItem::getSector))
+			.sorted(PortfolioSectorChartItem::compareTo)
 			.collect(Collectors.toList());
 	}
 
-	private Map<String, List<Money>> calculateSectorCurrentValuationMap() {
-		Map<String, List<Money>> sectorCurrentValuationMap = portfolioHoldings.stream()
+	private Map<String, List<Expression>> calculateSectorCurrentValuationMap() {
+		Map<String, List<Expression>> sectorCurrentValuationMap = portfolioHoldings.stream()
 			.collect(Collectors.groupingBy(portfolioHolding -> portfolioHolding.getStock().getSector(),
 				Collectors.mapping(PortfolioHolding::calculateCurrentValuation, Collectors.toList())));
 		// 섹션 차트에 현금 추가
@@ -399,12 +425,13 @@ public class Portfolio extends BaseEntity {
 		return sectorCurrentValuationMap;
 	}
 
-	private Function<Map.Entry<String, List<Money>>, PortfolioSectorChartItem> mappingSectorChartItem() {
+	private Function<Map.Entry<String, List<Expression>>, PortfolioSectorChartItem> mappingSectorChartItem() {
 		return entry -> {
-			Money currentValuation = entry.getValue().stream()
-				.reduce(Money.zero(), Money::add);
-			double weight = calculateWeightBy(currentValuation);
-			return PortfolioSectorChartItem.create(entry.getKey(), weight);
+			Expression currentValuation = entry.getValue().stream()
+				.reduce(Money.wonZero(), Expression::plus);
+			RateDivision weight = calculateWeightBy(Bank.getInstance().toWon(currentValuation));
+			Percentage weightPercentage = weight.toPercentage(Bank.getInstance(), Currency.KRW);
+			return PortfolioSectorChartItem.create(entry.getKey(), weightPercentage);
 		};
 	}
 
@@ -414,7 +441,8 @@ public class Portfolio extends BaseEntity {
 
 	// 매입 이력을 포트폴리오에 추가시 현금이 충분한지 판단
 	public boolean isCashSufficientForPurchase(Money money) {
-		return calculateTotalInvestmentAmount().add(money).compareTo(budget) > 0;
+		Expression amount = calculateTotalInvestmentAmount().plus(money);
+		return Bank.getInstance().toWon(amount).compareTo(budget) > 0;
 	}
 
 	public boolean isSameTargetGainActive(boolean active) {
@@ -477,5 +505,11 @@ public class Portfolio extends BaseEntity {
 
 	public Boolean isMaximumLossSet() {
 		return !maximumLoss.isZero();
+	}
+
+	public boolean isExceedBudgetByPurchasedAmount(Expression amount) {
+		Bank bank = Bank.getInstance();
+		Expression investAmount = calculateTotalInvestmentAmount().plus(amount);
+		return budget.compareTo(bank.toWon(investAmount)) < 0;
 	}
 }

@@ -25,6 +25,7 @@ import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
 import org.springframework.restdocs.payload.JsonFieldType;
 
 import codesquad.fineants.domain.common.money.Money;
+import codesquad.fineants.domain.common.money.Percentage;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.spring.api.watch_list.controller.WatchListRestController;
@@ -193,7 +194,6 @@ public class WatchListRestControllerDocsTest extends RestDocsSupport {
 	void readWatchList() throws Exception {
 		// given
 		Long watchlistId = 1L;
-
 		given(service.readWatchList(ArgumentMatchers.any(AuthMember.class), anyLong()))
 			.willReturn(ReadWatchListResponse.builder()
 				.name("My WatchList")
@@ -202,10 +202,10 @@ public class WatchListRestControllerDocsTest extends RestDocsSupport {
 						.id(1L)
 						.companyName("삼성전자")
 						.tickerSymbol("005930")
-						.currentPrice(Money.from(63800L))
-						.dailyChange(Money.from(1200L))
-						.dailyChangeRate(1.85)
-						.annualDividendYield(2.12)
+						.currentPrice(Money.won(63800L))
+						.dailyChange(Money.won(1200L))
+						.dailyChangeRate(Percentage.from(1.85))
+						.annualDividendYield(Percentage.from(2.12))
 						.sector("제조업")
 						.dateAdded(LocalDateTime.of(2023, 12, 2, 15, 0, 0))
 						.build()

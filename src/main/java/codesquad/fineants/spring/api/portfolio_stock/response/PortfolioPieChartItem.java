@@ -1,6 +1,9 @@
 package codesquad.fineants.spring.api.portfolio_stock.response;
 
+import codesquad.fineants.domain.common.money.Bank;
+import codesquad.fineants.domain.common.money.Expression;
 import codesquad.fineants.domain.common.money.Money;
+import codesquad.fineants.domain.common.money.Percentage;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -14,25 +17,25 @@ import lombok.ToString;
 public class PortfolioPieChartItem {
 	private String name;
 	private Money valuation;
-	private Double weight;
+	private Percentage weight;
 	private Money totalGain;
-	private Double totalGainRate;
+	private Percentage totalGainRate;
 
-	private PortfolioPieChartItem(String name, Money valuation, Double weight) {
-		this(name, valuation, weight, Money.zero(), 0.0);
+	private PortfolioPieChartItem(String name, Money valuation, Percentage weight) {
+		this(name, valuation, weight, Money.zero(), Percentage.zero());
 	}
 
-	public static PortfolioPieChartItem stock(String name, Money valuation, Double weight, Money totalGain,
-		Double totalGainRate) {
+	public static PortfolioPieChartItem stock(String name, Expression valuation, Percentage weight,
+		Expression totalGain, Percentage totalGainRate) {
 		return new PortfolioPieChartItem(
 			name,
-			valuation,
+			Bank.getInstance().toWon(valuation),
 			weight,
-			totalGain,
+			Bank.getInstance().toWon(totalGain),
 			totalGainRate);
 	}
 
-	public static PortfolioPieChartItem cash(Double weight, Money balance) {
+	public static PortfolioPieChartItem cash(Percentage weight, Money balance) {
 		return new PortfolioPieChartItem(
 			"현금",
 			balance,

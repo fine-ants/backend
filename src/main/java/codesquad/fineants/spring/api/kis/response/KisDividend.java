@@ -99,7 +99,7 @@ public class KisDividend implements Comparable<KisDividend> {
 
 			JsonNode dividend = outputNode.get("per_sto_divi_amt");// 배당금
 			if (dividend != null) {
-				kisDividend.dividend = Money.from(dividend.asLong());
+				kisDividend.dividend = Money.won(dividend.asLong());
 			}
 
 			JsonNode recordDate = outputNode.get("record_date"); // 배정기준일

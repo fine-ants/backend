@@ -1,6 +1,9 @@
 package codesquad.fineants.spring.api.portfolio_stock.response;
 
+import codesquad.fineants.domain.common.money.Bank;
+import codesquad.fineants.domain.common.money.Currency;
 import codesquad.fineants.domain.common.money.Money;
+import codesquad.fineants.domain.common.money.Percentage;
 import codesquad.fineants.domain.portfolio.Portfolio;
 import codesquad.fineants.domain.portfolio_gain_history.PortfolioGainHistory;
 import lombok.AccessLevel;
@@ -21,43 +24,47 @@ public class PortfolioDetailResponse {
 	private String name;
 	private Money budget;
 	private Money targetGain;
-	private Double targetReturnRate;
+	private Percentage targetReturnRate;
 	private Money maximumLoss;
-	private Double maximumLossRate;
+	private Percentage maximumLossRate;
 	private Money currentValuation;
 	private Money investedAmount;
 	private Money totalGain;
-	private Double totalGainRate;
+	private Percentage totalGainRate;
 	private Money dailyGain;
-	private Double dailyGainRate;
+	private Percentage dailyGainRate;
 	private Money balance;
 	private Money annualDividend;
-	private Double annualDividendYield;
-	private Double annualInvestmentDividendYield;
+	private Percentage annualDividendYield;
+	private Percentage annualInvestmentDividendYield;
 	private Money provisionalLossBalance;
 	private Boolean targetGainNotify;
 	private Boolean maxLossNotify;
 
 	public static PortfolioDetailResponse from(Portfolio portfolio, PortfolioGainHistory history) {
+		Bank bank = Bank.getInstance();
+		Currency to = Currency.KRW;
 		return PortfolioDetailResponse.builder()
 			.id(portfolio.getId())
 			.securitiesFirm(portfolio.getSecuritiesFirm())
 			.name(portfolio.getName())
 			.budget(portfolio.getBudget())
 			.targetGain(portfolio.getTargetGain())
-			.targetReturnRate(portfolio.calculateTargetReturnRate())
+			.targetReturnRate(portfolio.calculateTargetReturnRate().toPercentage(Bank.getInstance(), to))
 			.maximumLoss(portfolio.getMaximumLoss())
-			.maximumLossRate(portfolio.calculateMaximumLossRate())
-			.currentValuation(portfolio.calculateTotalCurrentValuation())
-			.investedAmount(portfolio.calculateTotalInvestmentAmount())
-			.totalGain(portfolio.calculateTotalGain())
-			.totalGainRate(portfolio.calculateTotalGainRate())
-			.dailyGain(portfolio.calculateDailyGain(history))
-			.dailyGainRate(portfolio.calculateDailyGainRate(history))
-			.balance(portfolio.calculateBalance())
-			.annualDividend(portfolio.calculateAnnualDividend())
-			.annualDividendYield(portfolio.calculateAnnualDividendYield())
-			.annualInvestmentDividendYield(portfolio.calculateAnnualInvestmentDividendYield())
+			.maximumLossRate(portfolio.calculateMaximumLossRate().toPercentage(Bank.getInstance(), to))
+			.currentValuation(portfolio.calculateTotalCurrentValuation().reduce(bank, to))
+			.investedAmount(portfolio.calculateTotalInvestmentAmount().reduce(bank, to))
+			.totalGain(portfolio.calculateTotalGain().reduce(bank, to))
+			.totalGainRate(portfolio.calculateTotalGainRate().toPercentage(Bank.getInstance(), to))
+			.dailyGain(portfolio.calculateDailyGain(history).reduce(bank, to))
+			.dailyGainRate(portfolio.calculateDailyGainRate(history).toPercentage(Bank.getInstance(), to))
+			.balance(portfolio.calculateBalance().reduce(bank, to))
+			.annualDividend(portfolio.calculateAnnualDividend().reduce(bank, to))
+			.annualDividendYield(
+				portfolio.calculateAnnualDividendYield().toPercentage(Bank.getInstance(), to))
+			.annualInvestmentDividendYield(
+				portfolio.calculateAnnualInvestmentDividendYield().toPercentage(Bank.getInstance(), to))
 			.provisionalLossBalance(Money.zero())
 			.targetGainNotify(portfolio.getTargetGainIsActive())
 			.maxLossNotify(portfolio.getMaximumLossIsActive())

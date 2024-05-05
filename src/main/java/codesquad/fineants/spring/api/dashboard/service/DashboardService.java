@@ -11,7 +11,11 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import codesquad.fineants.domain.common.money.Bank;
+import codesquad.fineants.domain.common.money.Currency;
+import codesquad.fineants.domain.common.money.Expression;
 import codesquad.fineants.domain.common.money.Money;
+import codesquad.fineants.domain.common.money.RateDivision;
 import codesquad.fineants.domain.member.Member;
 import codesquad.fineants.domain.member.MemberRepository;
 import codesquad.fineants.domain.oauth.support.AuthMember;
@@ -42,33 +46,33 @@ public class DashboardService {
 		List<Portfolio> portfolios = portfolioRepository.findAllByMemberId(authMember.getMemberId());
 		Member member = memberRepository.findById(authMember.getMemberId())
 			.orElseThrow(() -> new BadRequestException(MemberErrorCode.NOT_FOUND_MEMBER));
-		Money totalValuation = Money.zero();
-		Money totalCurrentValuation = Money.zero();
-		Money totalInvestment = Money.zero();
-		Money totalGain = Money.zero();
-		Money totalAnnualDividend = Money.zero();
+		Expression totalValuation = Money.wonZero();
+		Expression totalCurrentValuation = Money.wonZero();
+		Expression totalInvestment = Money.wonZero();
+		Expression totalGain = Money.wonZero();
+		Expression totalAnnualDividend = Money.wonZero();
 		if (portfolios.isEmpty()) {
 			return OverviewResponse.empty(member.getNickname());
 		}
 		for (Portfolio portfolio : portfolios) {
 			portfolio.applyCurrentPriceAllHoldingsBy(currentPriceManager);
-			totalValuation = totalValuation.add(portfolio.calculateTotalAsset());
-			totalCurrentValuation = totalCurrentValuation.add(portfolio.calculateTotalCurrentValuation());
-			totalInvestment = totalInvestment.add(portfolio.calculateTotalInvestmentAmount());
-			totalGain = totalGain.add(portfolio.calculateTotalGain());
-			totalAnnualDividend = totalAnnualDividend.add(portfolio.calculateAnnualDividend());
+			totalValuation = totalValuation.plus(portfolio.calculateTotalAsset());
+			totalCurrentValuation = totalCurrentValuation.plus(portfolio.calculateTotalCurrentValuation());
+			totalInvestment = totalInvestment.plus(portfolio.calculateTotalInvestmentAmount());
+			totalGain = totalGain.plus(portfolio.calculateTotalGain());
+			totalAnnualDividend = totalAnnualDividend.plus(portfolio.calculateAnnualDividend());
 		}
-		double totalAnnualDividendYield = totalAnnualDividend.divide(totalCurrentValuation).toPercentage();
-		double totalGainRate = totalGain.divide(totalInvestment).toPercentage();
+		RateDivision totalAnnualDividendYield = totalAnnualDividend.divide(totalCurrentValuation);
+		RateDivision totalGainRate = totalGain.divide(totalInvestment);
 
 		return OverviewResponse.of(
 			member.getNickname(),
 			totalValuation,
 			totalInvestment,
 			totalGain,
-			totalGainRate,
+			totalGainRate.toPercentage(Bank.getInstance(), Currency.KRW),
 			totalAnnualDividend,
-			totalAnnualDividendYield
+			totalAnnualDividendYield.toPercentage(Bank.getInstance(), Currency.KRW)
 		);
 	}
 
@@ -78,10 +82,10 @@ public class DashboardService {
 		if (portfolios.isEmpty()) {
 			return new ArrayList<>();
 		}
-		Money totalValuation = Money.zero();// 평가 금액 + 현금
+		Expression totalValuation = Money.wonZero();// 평가 금액 + 현금
 		for (Portfolio portfolio : portfolios) {
 			portfolio.applyCurrentPriceAllHoldingsBy(currentPriceManager);
-			totalValuation = totalValuation.add(portfolio.calculateTotalAsset());
+			totalValuation = totalValuation.plus(portfolio.calculateTotalAsset());
 		}
 		List<DashboardPieChartResponse> pieChartResponses = new ArrayList<>();
 		for (Portfolio portfolio : portfolios) {
@@ -90,9 +94,18 @@ public class DashboardService {
 		// 정렬
 		// 1. 가치(평가금액+현금) 기준 내림차순
 		// 2. 총손익 기준 내림차순
+		Bank bank = Bank.getInstance();
 		pieChartResponses.sort(
-			((Comparator<DashboardPieChartResponse>)(o1, o2) -> o2.getValuation().compareTo(o1.getValuation()))
-				.thenComparing((o1, o2) -> o2.getTotalGain().compareTo(o1.getTotalGain())));
+			((Comparator<DashboardPieChartResponse>)(o1, o2) -> {
+				Money m1 = bank.toWon(o1.getValuation());
+				Money m2 = bank.toWon(o2.getValuation());
+				return m2.compareTo(m1);
+			})
+				.thenComparing((o1, o2) -> {
+					Money m1 = bank.toWon(o1.getTotalGain());
+					Money m2 = bank.toWon(o2.getTotalGain());
+					return m2.compareTo(m1);
+				}));
 		return pieChartResponses;
 	}
 
@@ -106,12 +119,12 @@ public class DashboardService {
 		for (Portfolio portfolio : portfolios) {
 			portfolioGainHistories.addAll(portfolioGainHistoryRepository.findAllByPortfolioId(portfolio.getId()));
 		}
-		Map<String, Money> timeValueMap = new HashMap<>();
+		Map<String, Expression> timeValueMap = new HashMap<>();
 		for (PortfolioGainHistory portfolioGainHistory : portfolioGainHistories) {
 			String time = portfolioGainHistory.getCreateAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 			timeValueMap.put(time, timeValueMap.getOrDefault(time, Money.zero())
-				.add(portfolioGainHistory.getCash())
-				.add(portfolioGainHistory.getCurrentValuation()));
+				.plus(portfolioGainHistory.getCash())
+				.plus(portfolioGainHistory.getCurrentValuation()));
 		}
 		return timeValueMap.keySet()
 			.stream()

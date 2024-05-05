@@ -14,6 +14,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 import codesquad.fineants.domain.BaseEntity;
+import codesquad.fineants.domain.common.money.Expression;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.common.money.MoneyConverter;
 import codesquad.fineants.domain.notification.type.NotificationType;
@@ -68,7 +69,9 @@ public class TargetPriceNotification extends BaseEntity {
 	public NotifyMessage getTargetPriceMessage(String token) {
 		NotificationType type = NotificationType.STOCK_TARGET_PRICE;
 		String title = type.getName();
-		String content = String.format("%s이(가) %s 금액에 도달했습니다", stockTargetPrice.getStock().getCompanyName(),
+		String content = String.format("%s이(가) %s%s에 도달했습니다",
+			stockTargetPrice.getStock().getCompanyName(),
+			targetPrice.getCurrencySymbol(),
 			targetPrice.toDecimalFormat());
 		String referenceId = stockTargetPrice.getStock().getTickerSymbol();
 		Long memberId = stockTargetPrice.getMember().getId();
@@ -89,7 +92,7 @@ public class TargetPriceNotification extends BaseEntity {
 	}
 
 	public boolean isSameTargetPrice(CurrentPriceManager manager) {
-		Money currentPrice = stockTargetPrice.getCurrentPrice(manager);
+		Expression currentPrice = stockTargetPrice.getCurrentPrice(manager);
 		return targetPrice.compareTo(currentPrice) == 0;
 	}
 }

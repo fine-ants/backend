@@ -1,96 +1,119 @@
 package codesquad.fineants.domain.common.money;
 
+import static codesquad.fineants.domain.common.money.Currency.*;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.Objects;
 
+import org.jetbrains.annotations.NotNull;
+
 import codesquad.fineants.domain.common.count.Count;
-import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
 
-@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-public class Money implements Comparable<Money> {
+public class Money implements Expression {
 	private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("#,###");
-	private final BigDecimal amount;
+	protected final BigDecimal amount;
 
-	private Money() {
-		this.amount = BigDecimal.ZERO;
+	protected final Currency currency;
+
+	public Money(BigDecimal amount, Currency currency) {
+		this.amount = amount;
+		this.currency = currency;
 	}
 
-	private Money(int amount) {
-		this.amount = BigDecimal.valueOf(amount);
+	public static Money dollar(int amount) {
+		return dollar(new BigDecimal(amount));
 	}
 
-	private Money(double amount) {
-		this.amount = BigDecimal.valueOf(amount);
+	public static Money dollar(BigDecimal amount) {
+		return new Money(amount, USD);
 	}
 
-	private Money(long amount) {
-		this.amount = BigDecimal.valueOf(amount);
+	public static Money franc(int amount) {
+		return franc(new BigDecimal(amount));
 	}
 
-	public static Money from(BigDecimal amount) {
-		return new Money(amount);
+	public static Money franc(BigDecimal amount) {
+		return new Money(amount, CHF);
 	}
 
-	public static Money from(String amount) {
-		return new Money(new BigDecimal(amount));
+	public static Money won(String amount) {
+		return won(new BigDecimal(amount));
 	}
 
-	public static Money from(int amount) {
-		return new Money(amount);
+	public static Money won(int amount) {
+		return won(new BigDecimal(amount));
 	}
 
-	public static Money from(long amount) {
-		return new Money(BigDecimal.valueOf(amount));
+	public static Money won(BigDecimal amount) {
+		return new Money(amount, KRW);
 	}
 
-	public static Money from(double amount) {
-		return new Money(BigDecimal.valueOf(amount));
+	public static Money won(long amount) {
+		return won(new BigDecimal(amount));
+	}
+
+	public static Money won(double amount) {
+		return won(new BigDecimal(amount));
 	}
 
 	public static Money zero() {
-		return new Money(BigDecimal.ZERO);
+		return won(BigDecimal.ZERO);
 	}
 
-	public Money add(Money money) {
-		return Money.from(amount.add(money.amount));
+	public static Expression wonZero() {
+		return won(BigDecimal.ZERO);
 	}
 
-	public Money subtract(Money money) {
-		return Money.from(amount.subtract(money.amount));
+	@Override
+	public Money reduce(Bank bank, Currency to) {
+		double rate = bank.rate(currency, to);
+		return new Money(amount.divide(new BigDecimal(rate), 4, RoundingMode.HALF_UP), to);
 	}
 
-	public Money multiply(Count count) {
-		return count.multiply(this);
+	@Override
+	public Expression plus(Expression addend) {
+		return new Sum(this, addend);
 	}
 
-	public Money multiply(BigInteger value) {
-		return Money.from(amount.multiply(new BigDecimal(value)).setScale(4, RoundingMode.HALF_UP));
+	@Override
+	public Expression minus(Expression subtrahend) {
+		return new Subtraction(this, subtrahend);
 	}
 
-	public Money divide(Money money) {
-		if (money.isZero()) {
-			return Money.zero();
+	@Override
+	public Expression times(int multiplier) {
+		return new Money(amount.multiply(new BigDecimal(multiplier)), currency);
+	}
+
+	@Override
+	public Expression divide(Count divisor) {
+		return new AverageDivision(this, divisor);
+	}
+
+	@Override
+	public RateDivision divide(Expression divisor) {
+		return new RateDivision(this, divisor);
+	}
+
+	public Expression divide(BigInteger divisor) {
+		try {
+			BigDecimal result = amount.divide(new BigDecimal(divisor), 4, RoundingMode.HALF_UP);
+			return new Money(result, currency);
+		} catch (ArithmeticException e) {
+			return new Money(BigDecimal.ZERO, currency);
 		}
-		return Money.from(amount.divide(money.amount, 4, RoundingMode.HALF_UP));
 	}
 
-	public Money divide(Count divisor) {
-		if (divisor.isZero()) {
-			return Money.zero();
-		}
-		return divisor.division(this);
+	@Override
+	public Percentage toPercentage(Bank bank, Currency to) {
+		return Percentage.from(reduce(bank, to).amount);
 	}
 
-	public Money divide(BigInteger divisor) {
-		return Money.from(amount.divide(new BigDecimal(divisor), 4, RoundingMode.HALF_UP));
-	}
-
-	public double toPercentage() {
-		return amount.multiply(BigDecimal.valueOf(100)).setScale(4, RoundingMode.HALF_UP).doubleValue();
+	public Currency currency() {
+		return currency;
 	}
 
 	public boolean isZero() {
@@ -109,28 +132,51 @@ public class Money implements Comparable<Money> {
 		return amount.setScale(2, RoundingMode.HALF_UP);
 	}
 
-	@Override
-	public boolean equals(Object object) {
-		if (this == object)
-			return true;
-		if (object == null || getClass() != object.getClass())
-			return false;
-		Money money = (Money)object;
-		return amount.compareTo(money.amount) == 0;
-	}
-
-	@Override
-	public int hashCode() {
-		return Objects.hash(amount);
-	}
-
-	@Override
-	public int compareTo(Money m) {
-		return this.amount.compareTo(m.amount);
+	public String getCurrencySymbol() {
+		return currency.getSymbol();
 	}
 
 	@Override
 	public String toString() {
 		return amount.toString();
+	}
+
+	/**
+	 * 두 금액간에 대소 비교한다
+	 * 주의 : 화폐(currency)단위 통일은 호출하는 객체(this)의 화폐를 기준으로 한다
+	 * 만약 bank 객체에 두 화폐간에 환율(rate)이 존재하지 않으면 에러가 발생한다
+	 * @param o the object to be compared.
+	 * @return 대소 결과
+	 */
+	@Override
+	public int compareTo(@NotNull Expression o) {
+		Bank bank = Bank.getInstance();
+		Money m1 = bank.reduce(this, currency);
+		Money m2 = bank.reduce(o, currency);
+		return m1.amount.compareTo(m2.amount);
+	}
+
+	public int compareTo(Money money) {
+		if (this.currency.equals(money.currency)) {
+			return this.amount.compareTo(money.amount);
+		}
+		throw new IllegalArgumentException("Not match currency");
+	}
+
+	@Override
+	public boolean equals(Object object) {
+		if (this == object) {
+			return true;
+		}
+		if (object == null || getClass() != object.getClass()) {
+			return false;
+		}
+		Money money = (Money)object;
+		return compareTo(money) == 0 && currency().equals(money.currency);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(amount);
 	}
 }
