@@ -1,7 +1,6 @@
 package codesquad.fineants.spring.config;
 
 import java.io.IOException;
-import java.text.DecimalFormat;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -42,11 +41,6 @@ public class JacksonConfig {
 		objectMapper.registerModule(new JavaTimeModule());
 		objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
 
-		// 소수점 2자리 무조건 표시
-		SimpleModule decimalFormatModule = new SimpleModule();
-		decimalFormatModule.addSerializer(Double.class, new DecimalFormatSerializer("0.00"));
-		objectMapper.registerModule(decimalFormatModule);
-
 		// Money 직렬화/역직렬화 설정
 		objectMapper.registerModule(new SimpleModule().addSerializer(Money.class, new JsonSerializer<>() {
 			@Override
@@ -77,18 +71,4 @@ public class JacksonConfig {
 
 		return objectMapper;
 	}
-
-	private static class DecimalFormatSerializer extends JsonSerializer<Double> {
-		private final DecimalFormat decimalFormat;
-
-		public DecimalFormatSerializer(String pattern) {
-			this.decimalFormat = new DecimalFormat(pattern);
-		}
-
-		@Override
-		public void serialize(Double value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
-			gen.writeNumber(decimalFormat.format(value));
-		}
-	}
-
 }

@@ -3,6 +3,7 @@ package codesquad.fineants.domain.common.money;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.text.DecimalFormat;
 import java.util.Objects;
 
 import org.jetbrains.annotations.NotNull;
@@ -37,7 +38,7 @@ public class Percentage implements Comparable<Percentage> {
 		return new Percentage(value);
 	}
 
-	public double toPercentage() {
+	public Double toPercentage() {
 		return amount.multiply(HUNDRED)
 			.setScale(PERCENTAGE_SCALE, RoundingMode.HALF_UP)
 			.doubleValue();
@@ -66,9 +67,13 @@ public class Percentage implements Comparable<Percentage> {
 	}
 
 	static class PercentageSerializer extends JsonSerializer<Percentage> {
+
+		private final DecimalFormat decimalFormat = new DecimalFormat("#.####");
+
 		@Override
 		public void serialize(Percentage value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
-			gen.writeNumber(value.toPercentage());
+			Double percentage = value.toPercentage();
+			gen.writeNumber(decimalFormat.format(percentage));
 		}
 	}
 }
