@@ -9,7 +9,7 @@ import java.util.Base64;
 
 import org.springframework.stereotype.Component;
 
-import codesquad.fineants.spring.api.member.request.AuthorizationRequest;
+import codesquad.fineants.domain.member.domain.dto.request.AuthorizationRequest;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

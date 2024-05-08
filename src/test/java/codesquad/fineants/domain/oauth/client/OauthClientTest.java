@@ -16,8 +16,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import codesquad.fineants.domain.oauth.client.kakao.KakaoDecodedIdTokenPayload;
 import codesquad.fineants.domain.oauth.repository.OauthClientRepository;
-import codesquad.fineants.spring.AbstractContainerBaseTest;
-import codesquad.fineants.spring.api.common.errors.exception.BadRequestException;
+import codesquad.fineants.AbstractContainerBaseTest;
+import codesquad.fineants.global.errors.exception.BadRequestException;
 
 class OauthClientTest extends AbstractContainerBaseTest {
 

@@ -2,7 +2,7 @@ package codesquad.fineants.domain.oauth.decoder;
 
 import codesquad.fineants.domain.oauth.client.DecodedIdTokenPayload;
 import codesquad.fineants.domain.oauth.client.google.GoogleDecodedIdTokenPayload;
-import codesquad.fineants.spring.util.ObjectMapperUtil;
+import codesquad.fineants.global.util.ObjectMapperUtil;
 
 public class GoogleIDTokenDecoder extends IDTokenDecoder {
 	@Override
