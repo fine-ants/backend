@@ -12,12 +12,14 @@ import codesquad.fineants.domain.common.money.PercentageConverter;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @EqualsAndHashCode(of = "code")
+@Getter
 public class ExchangeRate {
 
 	@Id
@@ -38,5 +40,9 @@ public class ExchangeRate {
 	public String parse() {
 		DecimalFormat decimalFormat = new DecimalFormat("0.##########");
 		return String.format("%s:%s", code, rate.toDoubleValue(decimalFormat));
+	}
+
+	public void changeRate(Double value) {
+		this.rate = Percentage.from(value);
 	}
 }

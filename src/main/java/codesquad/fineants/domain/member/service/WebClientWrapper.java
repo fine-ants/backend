@@ -24,12 +24,11 @@ public class WebClientWrapper {
 			.build();
 	}
 
-	public <T> T get(String uri, MultiValueMap<String, String> headerMap, Class<T> responseTYpe) {
+	public <T> Mono<T> get(String uri, MultiValueMap<String, String> headerMap, Class<T> responseTYpe) {
 		return webClient.get()
 			.uri(uri)
 			.headers(header -> header.addAll(headerMap))
-			.exchangeToMono(getClientResponseMonoFunction(responseTYpe))
-			.block();
+			.exchangeToMono(getClientResponseMonoFunction(responseTYpe));
 	}
 
 	public <T> T get(String uri, MultiValueMap<String, String> headerMap,
