@@ -3,8 +3,8 @@ package codesquad.fineants.domain.oauth.repository;
 import java.util.Map;
 
 import codesquad.fineants.domain.oauth.client.OauthClient;
-import codesquad.fineants.spring.api.common.errors.errorcode.OauthErrorCode;
-import codesquad.fineants.spring.api.common.errors.exception.NotFoundResourceException;
+import codesquad.fineants.global.errors.errorcode.OauthErrorCode;
+import codesquad.fineants.global.errors.exception.NotFoundResourceException;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor

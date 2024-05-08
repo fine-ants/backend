@@ -2,7 +2,7 @@ package codesquad.fineants.domain.oauth.support;
 
 import java.util.Optional;
 
-import codesquad.fineants.domain.member.Member;
+import codesquad.fineants.domain.member.domain.entity.Member;
 import io.jsonwebtoken.Claims;
 import lombok.Builder;
 import lombok.Getter;

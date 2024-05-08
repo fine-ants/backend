@@ -7,8 +7,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import codesquad.fineants.domain.oauth.repository.OauthClientRepository;
-import codesquad.fineants.spring.AbstractContainerBaseTest;
-import codesquad.fineants.spring.api.member.request.AuthorizationRequest;
+import codesquad.fineants.AbstractContainerBaseTest;
+import codesquad.fineants.domain.member.domain.dto.request.AuthorizationRequest;
 
 class KakaoOauthClientTest extends AbstractContainerBaseTest {
 

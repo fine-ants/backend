@@ -12,7 +12,7 @@ import codesquad.fineants.domain.oauth.client.kakao.KakaoOauthClient;
 import codesquad.fineants.domain.oauth.client.naver.NaverOauthClient;
 import codesquad.fineants.domain.oauth.decoder.GoogleIDTokenDecoder;
 import codesquad.fineants.domain.oauth.decoder.KakaoIDTokenDecoder;
-import codesquad.fineants.spring.api.member.service.WebClientWrapper;
+import codesquad.fineants.domain.member.service.WebClientWrapper;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 

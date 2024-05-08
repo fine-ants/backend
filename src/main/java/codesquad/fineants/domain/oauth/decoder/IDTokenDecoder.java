@@ -17,9 +17,9 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTDecodeException;
 
 import codesquad.fineants.domain.oauth.client.DecodedIdTokenPayload;
-import codesquad.fineants.spring.api.common.errors.errorcode.JwkErrorCode;
-import codesquad.fineants.spring.api.common.errors.exception.BadRequestException;
-import codesquad.fineants.spring.api.common.errors.exception.NotFoundResourceException;
+import codesquad.fineants.global.errors.errorcode.JwkErrorCode;
+import codesquad.fineants.global.errors.exception.BadRequestException;
+import codesquad.fineants.global.errors.exception.NotFoundResourceException;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

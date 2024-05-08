@@ -11,10 +11,10 @@ import org.springframework.util.MultiValueMap;
 import codesquad.fineants.domain.oauth.client.DecodedIdTokenPayload;
 import codesquad.fineants.domain.oauth.client.OauthClient;
 import codesquad.fineants.domain.oauth.properties.OauthProperties;
-import codesquad.fineants.spring.api.member.request.AuthorizationRequest;
-import codesquad.fineants.spring.api.member.response.OauthToken;
-import codesquad.fineants.spring.api.member.response.OauthUserProfile;
-import codesquad.fineants.spring.api.member.service.WebClientWrapper;
+import codesquad.fineants.domain.member.domain.dto.request.AuthorizationRequest;
+import codesquad.fineants.domain.member.domain.dto.response.OauthToken;
+import codesquad.fineants.domain.member.domain.dto.response.OauthUserProfile;
+import codesquad.fineants.domain.member.service.WebClientWrapper;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -53,7 +53,7 @@ public class NaverOauthClient extends OauthClient {
 			+ "redirect_uri=" + getRedirectUri() + "&"
 			+ "state=" + request.getState();
 	}
-	
+
 	@Override
 	protected void validatePayload(DecodedIdTokenPayload payload, LocalDateTime now, String nonce) {
 		throw new IllegalStateException("네이버는 지원하지 않는 기능입니다.");

@@ -4,7 +4,7 @@ import java.io.IOException;
 
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import codesquad.fineants.spring.api.portfolio_stock.response.PortfolioHoldingsRealTimeResponse;
+import codesquad.fineants.domain.portfolio_holding.domain.dto.response.PortfolioHoldingsRealTimeResponse;
 import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.Observer;
 import io.reactivex.rxjava3.disposables.Disposable;
