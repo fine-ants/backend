@@ -44,6 +44,14 @@ public class Percentage implements Comparable<Percentage> {
 			.doubleValue();
 	}
 
+	public double toDoubleValue() {
+		return amount.doubleValue();
+	}
+
+	public String toDoubleValue(DecimalFormat decimalFormat) {
+		return decimalFormat.format(amount);
+	}
+
 	@Override
 	public boolean equals(Object object) {
 		if (this == object)
