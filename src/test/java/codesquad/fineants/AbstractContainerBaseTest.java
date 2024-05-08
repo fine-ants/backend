@@ -43,5 +43,11 @@ public class AbstractContainerBaseTest {
 		// redis property config
 		registry.add("spring.redis.host", REDIS_CONTAINER::getHost);
 		registry.add("spring.redis.port", () -> REDIS_CONTAINER.getMappedPort(REDIS_PORT).toString());
+
+		// mysql property config
+		registry.add("spring.datasource.driver-class-name", () -> "org.testcontainers.jdbc.ContainerDatabaseDriver");
+		registry.add("spring.datasource.url", () -> "jdbc:tc:mysql:8.0.33://localhost/fineAnts");
+		registry.add("spring.datasource.username", () -> "admin");
+		registry.add("spring.datasource.password", () -> "password1234!");
 	}
 }
