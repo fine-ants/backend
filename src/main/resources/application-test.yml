@@ -1,9 +1,5 @@
 spring:
   datasource:
-    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
-    url: ${db.test.datasource.url}
-    username: ${db.test.datasource.username}
-    password: ${db.test.datasource.password}
     hikari:
       leak-detection-threshold: 2000
   jpa:
