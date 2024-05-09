@@ -45,9 +45,9 @@ public class ExchangeRateService {
 		}
 	}
 
-	private ExchangeRate findBaseExchangeRate(String code) {
+	private ExchangeRate findBaseExchangeRate(String defaultCode) {
 		return exchangeRateRepository.findBase()
-			.orElseGet(() -> ExchangeRate.base(code));
+			.orElseGet(() -> ExchangeRate.base(defaultCode));
 	}
 
 	@Transactional(readOnly = true)
@@ -77,6 +77,18 @@ public class ExchangeRateService {
 	}
 
 	@Transactional
+	public void patchBase(String code) {
+		// 기존 기준 통화의 base 값을 false로 변경
+		exchangeRateRepository.findBase()
+			.orElseThrow(() -> new FineAntsException(ExchangeRateErrorCode.NOT_EXIST_BASE))
+			.changeBase(false);
+		// code의 base 값을 true로 변경
+		exchangeRateRepository.findByCode(code)
+			.orElseThrow(() -> new FineAntsException(ExchangeRateErrorCode.NOT_EXIST_EXCHANGE_RATE))
+			.changeBase(true);
+	}
+
+	@Transactional
 	public void deleteExchangeRates(List<String> codes) {
 		exchangeRateRepository.deleteByCodeIn(codes);
 		ExchangeRate nextBaseExchangeRate = exchangeRateRepository.findBase().orElseGet(() ->
@@ -85,7 +97,7 @@ public class ExchangeRateService {
 				.orElse(null)
 		);
 		if (nextBaseExchangeRate != null) {
-			nextBaseExchangeRate.changeToBase();
+			nextBaseExchangeRate.changeBase(true);
 		}
 	}
 }

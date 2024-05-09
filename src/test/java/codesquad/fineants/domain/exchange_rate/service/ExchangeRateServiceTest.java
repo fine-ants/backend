@@ -203,6 +203,27 @@ class ExchangeRateServiceTest extends AbstractContainerBaseTest {
 			.hasMessage(ExchangeRateErrorCode.UNAVAILABLE_EXCHANGE_RATE.getMessage());
 	}
 
+	@DisplayName("기준 통화를 변경한다")
+	@Test
+	void patchBase() {
+		// given
+		repository.save(ExchangeRate.base(Currency.KRW.name()));
+		repository.save(ExchangeRate.none(Currency.USD.name(), 0.1));
+
+		// when
+		service.patchBase("USD");
+
+		// then
+		List<ExchangeRate> rates = repository.findAll();
+		assertThat(rates)
+			.hasSize(2)
+			.extracting("code", "base")
+			.containsExactlyInAnyOrder(
+				tuple(Currency.KRW.name(), false),
+				tuple(Currency.USD.name(), true)
+			);
+	}
+
 	@DisplayName("관리자가 환율을 삭제한다")
 	@Test
 	void deleteExchangeRates() {

@@ -6,6 +6,7 @@ import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.*;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.*;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
+import static org.springframework.restdocs.request.RequestDocumentation.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.util.List;
@@ -145,6 +146,45 @@ public class ExchangeRateRestControllerDocsTest extends RestDocsSupport {
 					preprocessResponse(prettyPrint()),
 					requestHeaders(
 						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
+					),
+					responseFields(
+						fieldWithPath("code").type(JsonFieldType.NUMBER)
+							.description("코드"),
+						fieldWithPath("status").type(JsonFieldType.STRING)
+							.description("상태"),
+						fieldWithPath("message").type(JsonFieldType.STRING)
+							.description("메시지"),
+						fieldWithPath("data").type(JsonFieldType.NULL)
+							.description("응답 데이터")
+					)
+				)
+			);
+	}
+
+	@DisplayName("환율 기준 통화 수정 API")
+	@Test
+	void patchBase() throws Exception {
+		// given
+
+		// when & then
+		mockMvc.perform(patch("/api/exchange-rates/base")
+				.param("code", "KRW")
+				.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("code").value(equalTo(200)))
+			.andExpect(jsonPath("status").value(equalTo("OK")))
+			.andExpect(jsonPath("message").value(equalTo(ExchangeRateSuccessCode.PATCH_EXCHANGE_RATE.getMessage())))
+			.andExpect(jsonPath("data").value(equalTo(null)))
+			.andDo(
+				document(
+					"exchange-rate-patch-base",
+					preprocessRequest(prettyPrint()),
+					preprocessResponse(prettyPrint()),
+					requestHeaders(
+						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
+					),
+					requestParameters(
+						parameterWithName("code").description("통화 코드")
 					),
 					responseFields(
 						fieldWithPath("code").type(JsonFieldType.NUMBER)

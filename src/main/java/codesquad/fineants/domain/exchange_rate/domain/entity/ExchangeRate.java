@@ -65,7 +65,7 @@ public class ExchangeRate extends BaseEntity {
 		return this.code.equals(code);
 	}
 
-	public void changeToBase() {
-		this.base = true;
+	public void changeBase(boolean base) {
+		this.base = base;
 	}
 }
