@@ -7,6 +7,7 @@ import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 
+import codesquad.fineants.domain.BaseEntity;
 import codesquad.fineants.domain.common.money.Percentage;
 import codesquad.fineants.domain.common.money.PercentageConverter;
 import lombok.AccessLevel;
@@ -18,9 +19,9 @@ import lombok.NoArgsConstructor;
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-@EqualsAndHashCode(of = "code")
+@EqualsAndHashCode(of = "code", callSuper = false)
 @Getter
-public class ExchangeRate {
+public class ExchangeRate extends BaseEntity {
 
 	@Id
 	private String code;
@@ -29,12 +30,22 @@ public class ExchangeRate {
 	@Convert(converter = PercentageConverter.class)
 	private Percentage rate;
 
-	public static ExchangeRate zero(String code) {
-		return of(code, 0.0);
+	private Boolean base;
+
+	public static ExchangeRate zero(String code, Boolean base) {
+		return of(code, 0.0, base);
 	}
 
-	public static ExchangeRate of(String code, Double rate) {
-		return new ExchangeRate(code, Percentage.from(rate));
+	public static ExchangeRate none(String code, Double rate) {
+		return of(code, rate, false);
+	}
+
+	public static ExchangeRate base(String code) {
+		return of(code, 1.0, true);
+	}
+
+	public static ExchangeRate of(String code, Double rate, Boolean base) {
+		return new ExchangeRate(code, Percentage.from(rate), base);
 	}
 
 	public String parse() {
@@ -44,5 +55,17 @@ public class ExchangeRate {
 
 	public void changeRate(Double value) {
 		this.rate = Percentage.from(value);
+	}
+
+	public Boolean isBase() {
+		return base;
+	}
+
+	public Boolean equalCode(String code) {
+		return this.code.equals(code);
+	}
+
+	public void changeToBase() {
+		this.base = true;
 	}
 }

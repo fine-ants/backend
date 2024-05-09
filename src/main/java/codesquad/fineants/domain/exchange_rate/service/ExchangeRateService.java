@@ -1,5 +1,6 @@
 package codesquad.fineants.domain.exchange_rate.service;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -25,19 +26,33 @@ public class ExchangeRateService {
 
 	@Transactional
 	public void createExchangeRate(String code) {
-		if (exchangeRateRepository.findByCode(code).isPresent()) {
+		List<ExchangeRate> rates = exchangeRateRepository.findAll();
+		validateDuplicateExchangeRate(rates, code);
+
+		ExchangeRate base = findBaseExchangeRate(code);
+
+		Double rate = webClient.fetchRateBy(code, base.getCode());
+		ExchangeRate exchangeRate = ExchangeRate.of(code, rate, base.equalCode(code));
+		exchangeRateRepository.save(exchangeRate);
+	}
+
+	private void validateDuplicateExchangeRate(List<ExchangeRate> rates, String code) {
+		boolean match = rates.stream()
+			.map(ExchangeRate::getCode)
+			.anyMatch(c -> c.equals(code));
+		if (match) {
 			throw new FineAntsException(ExchangeRateErrorCode.DUPLICATE_EXCHANGE_RATE);
 		}
+	}
 
-		Double rate = webClient.fetchRateBy(code);
-		ExchangeRate exchangeRate = ExchangeRate.of(code, rate);
-		exchangeRateRepository.save(exchangeRate);
+	private ExchangeRate findBaseExchangeRate(String code) {
+		return exchangeRateRepository.findBase()
+			.orElseGet(() -> ExchangeRate.base(code));
 	}
 
 	@Transactional(readOnly = true)
 	public ExchangeRateListResponse readExchangeRates() {
-		List<ExchangeRate> rates = exchangeRateRepository.findAll();
-		List<ExchangeRateItem> items = rates.stream()
+		List<ExchangeRateItem> items = exchangeRateRepository.findAll().stream()
 			.map(ExchangeRateItem::from)
 			.collect(Collectors.toList());
 		return ExchangeRateListResponse.from(items);
@@ -45,15 +60,32 @@ public class ExchangeRateService {
 
 	@Transactional
 	public void updateExchangeRates() {
-		Map<String, Double> rateMap = webClient.fetchRates();
 		List<ExchangeRate> originalRates = exchangeRateRepository.findAll();
+		validateExistBase(originalRates);
+		Map<String, Double> rateMap = webClient.fetchRates();
+
 		originalRates.stream()
 			.filter(rate -> rateMap.containsKey(rate.getCode()))
 			.forEach(rate -> rate.changeRate(rateMap.get(rate.getCode())));
 	}
 
+	private void validateExistBase(List<ExchangeRate> rates) {
+		if (rates.stream()
+			.noneMatch(ExchangeRate::isBase)) {
+			throw new FineAntsException(ExchangeRateErrorCode.UNAVAILABLE_EXCHANGE_RATE);
+		}
+	}
+
 	@Transactional
 	public void deleteExchangeRates(List<String> codes) {
 		exchangeRateRepository.deleteByCodeIn(codes);
+		ExchangeRate nextBaseExchangeRate = exchangeRateRepository.findBase().orElseGet(() ->
+			exchangeRateRepository.findAll().stream()
+				.min(Comparator.comparing(ExchangeRate::getCreateAt))
+				.orElse(null)
+		);
+		if (nextBaseExchangeRate != null) {
+			nextBaseExchangeRate.changeToBase();
+		}
 	}
 }

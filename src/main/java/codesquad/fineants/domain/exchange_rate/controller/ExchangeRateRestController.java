@@ -1,15 +1,17 @@
 package codesquad.fineants.domain.exchange_rate.controller;
 
-import java.util.List;
-
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import codesquad.fineants.domain.exchange_rate.domain.dto.request.ExchangeRateCreateRequest;
+import codesquad.fineants.domain.exchange_rate.domain.dto.response.ExchangeRateDeleteRequest;
 import codesquad.fineants.domain.exchange_rate.domain.dto.response.ExchangeRateListResponse;
 import codesquad.fineants.domain.exchange_rate.service.ExchangeRateService;
 import codesquad.fineants.global.api.ApiResponse;
@@ -23,9 +25,10 @@ public class ExchangeRateRestController {
 
 	private final ExchangeRateService service;
 
+	@ResponseStatus(HttpStatus.CREATED)
 	@PostMapping
-	public ApiResponse<Void> createExchangeRate(@RequestBody String code) {
-		service.createExchangeRate(code);
+	public ApiResponse<Void> createExchangeRate(@RequestBody ExchangeRateCreateRequest request) {
+		service.createExchangeRate(request.getCode());
 		return ApiResponse.success(ExchangeRateSuccessCode.CREATE_EXCHANGE_RATE);
 	}
 
@@ -42,8 +45,8 @@ public class ExchangeRateRestController {
 	}
 
 	@DeleteMapping
-	public ApiResponse<Void> deleteExchangeRates(@RequestBody List<String> codes) {
-		service.deleteExchangeRates(codes);
+	public ApiResponse<Void> deleteExchangeRates(@RequestBody ExchangeRateDeleteRequest codes) {
+		service.deleteExchangeRates(codes.getCodes());
 		return ApiResponse.success(ExchangeRateSuccessCode.DELETE_EXCHANGE_RATE);
 	}
 }

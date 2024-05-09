@@ -19,6 +19,10 @@ public class ExchangeRateFetchResponse {
 		return new ExchangeRateFetchResponse(Currency.KRW.name(), rates);
 	}
 
+	public boolean containsBy(String code) {
+		return rates.containsKey(code);
+	}
+
 	public Double getBy(String code) {
 		return rates.getOrDefault(code, 0.0);
 	}

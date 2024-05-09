@@ -84,4 +84,11 @@ public class Percentage implements Comparable<Percentage> {
 			gen.writeNumber(decimalFormat.format(percentage));
 		}
 	}
+
+	public static class PercentageDoubleSerializer extends JsonSerializer<Percentage> {
+		@Override
+		public void serialize(Percentage value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+			gen.writeNumber(value.amount.setScale(10, RoundingMode.HALF_UP));
+		}
+	}
 }

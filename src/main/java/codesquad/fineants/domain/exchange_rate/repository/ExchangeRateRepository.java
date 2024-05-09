@@ -18,4 +18,7 @@ public interface ExchangeRateRepository extends JpaRepository<ExchangeRate, Stri
 	@Query("delete from ExchangeRate e where e.code in (:codes)")
 	@Modifying
 	void deleteByCodeIn(@Param("codes") List<String> codes);
+
+	@Query("select e from ExchangeRate e where e.base = true")
+	Optional<ExchangeRate> findBase();
 }

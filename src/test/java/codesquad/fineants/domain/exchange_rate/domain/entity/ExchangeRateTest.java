@@ -10,7 +10,7 @@ class ExchangeRateTest {
 	@Test
 	void testParse() {
 		// given
-		ExchangeRate rate = ExchangeRate.of("USD", 0.0007322);
+		ExchangeRate rate = ExchangeRate.of("USD", 0.0007322, false);
 		// when
 		String actual = rate.parse();
 		// then

@@ -11,6 +11,8 @@ import org.springframework.util.MultiValueMap;
 
 import codesquad.fineants.domain.exchange_rate.domain.dto.response.ExchangeRateFetchResponse;
 import codesquad.fineants.domain.member.service.WebClientWrapper;
+import codesquad.fineants.global.errors.errorcode.ExchangeRateErrorCode;
+import codesquad.fineants.global.errors.exception.FineAntsException;
 
 @Component
 public class ExchangeRateWebClient {
@@ -25,15 +27,16 @@ public class ExchangeRateWebClient {
 		this.key = key;
 	}
 
-	public Double fetchRateBy(String code) {
-		String uri = "https://exchange-rate-api1.p.rapidapi.com/latest?base=KRW";
+	public Double fetchRateBy(String code, String base) {
+		String uri = "https://exchange-rate-api1.p.rapidapi.com/latest?base=" + base.toUpperCase();
 		MultiValueMap<String, String> header = new LinkedMultiValueMap<>();
 		header.add("X-RapidAPI-Key", key);
 		header.add("X-RapidAPI-Host", "exchange-rate-api1.p.rapidapi.com");
 		return webClient.get(uri, header, ExchangeRateFetchResponse.class)
+			.filter(response -> response.containsBy(code))
 			.map(response -> response.getBy(code))
 			.blockOptional(TIMEOUT)
-			.orElse(0.0);
+			.orElseThrow(() -> new FineAntsException(ExchangeRateErrorCode.NOT_EXIST_EXCHANGE_RATE));
 	}
 
 	public Map<String, Double> fetchRates() {

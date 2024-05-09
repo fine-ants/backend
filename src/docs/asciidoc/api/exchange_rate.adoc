@@ -1,0 +1,53 @@
+[[exchange-rate-create]]
+=== 환율 추가
+
+==== HTTP Request
+
+include::{snippets}/exchange-rate-create/http-request.adoc[]
+include::{snippets}/exchange-rate-create/request-headers.adoc[]
+include::{snippets}/exchange-rate-create/request-fields.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/exchange-rate-create/http-response.adoc[]
+include::{snippets}/exchange-rate-create/response-fields.adoc[]
+
+[[exchange-rate-read]]
+=== 환율 목록 조회
+
+==== HTTP Request
+
+include::{snippets}/exchange-rate-read/http-request.adoc[]
+include::{snippets}/exchange-rate-read/request-headers.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/exchange-rate-read/http-response.adoc[]
+include::{snippets}/exchange-rate-read/response-fields.adoc[]
+
+[[exchange-rate-update]]
+=== 환율 업데이트
+
+==== HTTP Request
+
+include::{snippets}/exchange-rate-update/http-request.adoc[]
+include::{snippets}/exchange-rate-update/request-headers.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/exchange-rate-update/http-response.adoc[]
+include::{snippets}/exchange-rate-update/response-fields.adoc[]
+
+[[exchange-rate-delete]]
+=== 환율 삭제
+
+==== HTTP Request
+
+include::{snippets}/exchange-rate-delete/http-request.adoc[]
+include::{snippets}/exchange-rate-delete/request-headers.adoc[]
+include::{snippets}/exchange-rate-delete/request-fields.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/exchange-rate-delete/http-response.adoc[]
+include::{snippets}/exchange-rate-delete/response-fields.adoc[]
