@@ -230,3 +230,12 @@ create table if not exists fineAnts.notification_preference
         foreign key (member_id) references fineAnts.member (id)
 );
 
+create table if not exists fineAnts.exchange_rate
+(
+    code        varchar(255) not null
+        primary key,
+    create_at   datetime(6)  null,
+    modified_at datetime(6)  null,
+    base        bit          not null,
+    rate        double       not null
+);
