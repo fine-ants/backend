@@ -61,7 +61,8 @@ public class ExchangeRateService {
 	public void updateExchangeRates() {
 		List<ExchangeRate> originalRates = exchangeRateRepository.findAll();
 		validateExistBase(originalRates);
-		Map<String, Double> rateMap = webClient.fetchRates();
+		ExchangeRate baseRate = findBaseExchangeRate(originalRates);
+		Map<String, Double> rateMap = webClient.fetchRates(baseRate.getCode());
 
 		originalRates.stream()
 			.filter(rate -> rateMap.containsKey(rate.getCode()))
@@ -75,12 +76,21 @@ public class ExchangeRateService {
 		}
 	}
 
+	private ExchangeRate findBaseExchangeRate(List<ExchangeRate> rates) {
+		return rates.stream()
+			.filter(ExchangeRate::isBase)
+			.findFirst()
+			.orElseThrow(() -> new FineAntsException(ExchangeRateErrorCode.NOT_EXIST_BASE));
+	}
+
 	@Transactional
 	public void patchBase(String code) {
 		// 기존 기준 통화의 base 값을 false로 변경
 		findBaseExchangeRate().changeBase(false);
 		// code의 base 값을 true로 변경
 		findExchangeRateBy(code).changeBase(true);
+		// TODO: rate 변경 반영이 안됨
+		updateExchangeRates();
 	}
 
 	private ExchangeRate findExchangeRateBy(String code) {

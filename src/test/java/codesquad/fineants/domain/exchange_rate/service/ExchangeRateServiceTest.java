@@ -180,7 +180,7 @@ class ExchangeRateServiceTest extends AbstractContainerBaseTest {
 		repository.save(ExchangeRate.of(usd, rate, false));
 
 		double usdRate = 0.2;
-		given(webClient.fetchRates()).willReturn(Map.of(usd, usdRate));
+		given(webClient.fetchRates(krw)).willReturn(Map.of(usd, usdRate));
 		// when
 		service.updateExchangeRates();
 		// then
@@ -196,7 +196,8 @@ class ExchangeRateServiceTest extends AbstractContainerBaseTest {
 	@Test
 	void updateExchangeRates_whenNoBase_thenError() {
 		// given
-		given(webClient.fetchRates()).willReturn(Map.of("KRW", 1.0));
+		String baseCode = "KRW";
+		given(webClient.fetchRates(baseCode)).willReturn(Map.of(baseCode, 1.0));
 		// when
 		Throwable throwable = catchThrowable(() -> service.updateExchangeRates());
 		// then
@@ -212,6 +213,8 @@ class ExchangeRateServiceTest extends AbstractContainerBaseTest {
 		repository.save(ExchangeRate.base(Currency.KRW.name()));
 		repository.save(ExchangeRate.noneBase(Currency.USD.name(), 0.1));
 
+		given(webClient.fetchRates(Currency.USD.name()))
+			.willReturn(Map.of("USD", 1.0, "KRW", 1300.0));
 		// when
 		service.patchBase("USD");
 
@@ -219,10 +222,11 @@ class ExchangeRateServiceTest extends AbstractContainerBaseTest {
 		List<ExchangeRate> rates = repository.findAll();
 		assertThat(rates)
 			.hasSize(2)
-			.extracting("code", "base")
+			.extracting("code", "rate", "base")
+			.usingComparatorForType(Percentage::compareTo, Percentage.class)
 			.containsExactlyInAnyOrder(
-				tuple(Currency.KRW.name(), false),
-				tuple(Currency.USD.name(), true)
+				tuple(Currency.KRW.name(), Percentage.from(1300.0), false),
+				tuple(Currency.USD.name(), Percentage.from(1.0), true)
 			);
 	}
 

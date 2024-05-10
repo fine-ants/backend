@@ -39,8 +39,8 @@ public class ExchangeRateWebClient {
 			.orElseThrow(() -> new FineAntsException(ExchangeRateErrorCode.NOT_EXIST_EXCHANGE_RATE));
 	}
 
-	public Map<String, Double> fetchRates() {
-		String uri = "https://exchange-rate-api1.p.rapidapi.com/latest?base=KRW";
+	public Map<String, Double> fetchRates(String base) {
+		String uri = "https://exchange-rate-api1.p.rapidapi.com/latest?base=" + base.toUpperCase();
 		MultiValueMap<String, String> header = new LinkedMultiValueMap<>();
 		header.add("X-RapidAPI-Key", key);
 		header.add("X-RapidAPI-Host", "exchange-rate-api1.p.rapidapi.com");
