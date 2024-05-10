@@ -36,7 +36,7 @@ public class ExchangeRate extends BaseEntity {
 		return of(code, 0.0, base);
 	}
 
-	public static ExchangeRate none(String code, Double rate) {
+	public static ExchangeRate noneBase(String code, Double rate) {
 		return of(code, rate, false);
 	}
 

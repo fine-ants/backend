@@ -1,6 +1,5 @@
 package codesquad.fineants.domain.exchange_rate.service;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -72,32 +71,44 @@ public class ExchangeRateService {
 	private void validateExistBase(List<ExchangeRate> rates) {
 		if (rates.stream()
 			.noneMatch(ExchangeRate::isBase)) {
-			throw new FineAntsException(ExchangeRateErrorCode.UNAVAILABLE_EXCHANGE_RATE);
+			throw new FineAntsException(ExchangeRateErrorCode.UNAVAILABLE_UPDATE_EXCHANGE_RATE);
 		}
 	}
 
 	@Transactional
 	public void patchBase(String code) {
 		// 기존 기준 통화의 base 값을 false로 변경
-		exchangeRateRepository.findBase()
-			.orElseThrow(() -> new FineAntsException(ExchangeRateErrorCode.NOT_EXIST_BASE))
-			.changeBase(false);
+		findBaseExchangeRate().changeBase(false);
 		// code의 base 값을 true로 변경
-		exchangeRateRepository.findByCode(code)
-			.orElseThrow(() -> new FineAntsException(ExchangeRateErrorCode.NOT_EXIST_EXCHANGE_RATE))
-			.changeBase(true);
+		findExchangeRateBy(code).changeBase(true);
+	}
+
+	private ExchangeRate findExchangeRateBy(String code) {
+		return exchangeRateRepository.findByCode(code)
+			.orElseThrow(() -> new FineAntsException(ExchangeRateErrorCode.NOT_EXIST_EXCHANGE_RATE));
 	}
 
 	@Transactional
 	public void deleteExchangeRates(List<String> codes) {
+		validateContainsBaseExchangeRateForDelete(codes);
 		exchangeRateRepository.deleteByCodeIn(codes);
-		ExchangeRate nextBaseExchangeRate = exchangeRateRepository.findBase().orElseGet(() ->
-			exchangeRateRepository.findAll().stream()
-				.min(Comparator.comparing(ExchangeRate::getCreateAt))
-				.orElse(null)
-		);
-		if (nextBaseExchangeRate != null) {
-			nextBaseExchangeRate.changeBase(true);
+	}
+
+	/**
+	 * 입력으로 받은 통화 코드들중 기준 통화가 있는지 확인합니다.
+	 * @param codes 삭제하고자 하는 통화 코드 리스트
+	 */
+	private void validateContainsBaseExchangeRateForDelete(List<String> codes) {
+		ExchangeRate base = findBaseExchangeRate();
+		boolean match = codes.stream()
+			.anyMatch(base::equalCode);
+		if (match) {
+			throw new FineAntsException(ExchangeRateErrorCode.UNAVAILABLE_DELETE_BASE_EXCHANGE_RATE);
 		}
+	}
+
+	private ExchangeRate findBaseExchangeRate() {
+		return exchangeRateRepository.findBase()
+			.orElseThrow(() -> new FineAntsException(ExchangeRateErrorCode.NOT_EXIST_BASE));
 	}
 }

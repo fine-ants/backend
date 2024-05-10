@@ -173,8 +173,10 @@ class ExchangeRateServiceTest extends AbstractContainerBaseTest {
 	@Test
 	void updateExchangeRates() {
 		// given
+		String krw = "KRW";
 		String usd = "USD";
 		double rate = 0.1;
+		repository.save(ExchangeRate.base(krw));
 		repository.save(ExchangeRate.of(usd, rate, false));
 
 		double usdRate = 0.2;
@@ -200,7 +202,7 @@ class ExchangeRateServiceTest extends AbstractContainerBaseTest {
 		// then
 		assertThat(throwable)
 			.isInstanceOf(FineAntsException.class)
-			.hasMessage(ExchangeRateErrorCode.UNAVAILABLE_EXCHANGE_RATE.getMessage());
+			.hasMessage(ExchangeRateErrorCode.UNAVAILABLE_UPDATE_EXCHANGE_RATE.getMessage());
 	}
 
 	@DisplayName("기준 통화를 변경한다")
@@ -208,7 +210,7 @@ class ExchangeRateServiceTest extends AbstractContainerBaseTest {
 	void patchBase() {
 		// given
 		repository.save(ExchangeRate.base(Currency.KRW.name()));
-		repository.save(ExchangeRate.none(Currency.USD.name(), 0.1));
+		repository.save(ExchangeRate.noneBase(Currency.USD.name(), 0.1));
 
 		// when
 		service.patchBase("USD");
@@ -228,7 +230,9 @@ class ExchangeRateServiceTest extends AbstractContainerBaseTest {
 	@Test
 	void deleteExchangeRates() {
 		// given
+		String krw = "KRW";
 		String usd = "USD";
+		repository.save(ExchangeRate.base(krw));
 		repository.save(ExchangeRate.zero(usd, false));
 
 		// when
@@ -239,37 +243,32 @@ class ExchangeRateServiceTest extends AbstractContainerBaseTest {
 		assertThat(actual).isTrue();
 	}
 
-	@DisplayName("관리자가 기준 통화를 제거하면 가장 먼저 생성된 통화가 기준 통화가 된다")
+	@DisplayName("관리자는 기준 통화를 제거할 수 없다")
 	@Test
 	void deleteExchangeRates_whenDeletedBaseCode_thenChangeBase() {
 		// given
 		repository.save(ExchangeRate.base(Currency.KRW.name()));
-		repository.save(ExchangeRate.none(Currency.USD.name(), 0.1));
-		repository.save(ExchangeRate.none(Currency.CHF.name(), 0.2));
+		repository.save(ExchangeRate.noneBase(Currency.USD.name(), 0.1));
+		repository.save(ExchangeRate.noneBase(Currency.CHF.name(), 0.2));
 		// when
-		service.deleteExchangeRates(List.of(Currency.KRW.name()));
+		Throwable throwable = catchThrowable(() -> service.deleteExchangeRates(List.of(Currency.KRW.name())));
 		// then
-		List<ExchangeRate> rates = repository.findAll();
-		assertThat(rates)
-			.hasSize(2)
-			.extracting("code", "base")
-			.containsExactlyInAnyOrder(
-				tuple(Currency.USD.name(), true),
-				tuple(Currency.CHF.name(), false)
-			);
+		assertThat(throwable)
+			.isInstanceOf(FineAntsException.class)
+			.hasMessage(ExchangeRateErrorCode.UNAVAILABLE_DELETE_BASE_EXCHANGE_RATE.getMessage());
 	}
 
-	@DisplayName("관리자가 모든 통화를 제거한다")
+	@DisplayName("관리자가 기준 통화를 제외한 모든 통화를 제거한다")
 	@Test
 	void deleteExchangeRates_whenAllDeleted() {
 		// given
 		repository.save(ExchangeRate.base(Currency.KRW.name()));
-		repository.save(ExchangeRate.none(Currency.USD.name(), 0.1));
-		repository.save(ExchangeRate.none(Currency.CHF.name(), 0.2));
+		repository.save(ExchangeRate.noneBase(Currency.USD.name(), 0.1));
+		repository.save(ExchangeRate.noneBase(Currency.CHF.name(), 0.2));
 		// when
-		service.deleteExchangeRates(List.of(Currency.KRW.name(), Currency.USD.name(), Currency.CHF.name()));
+		service.deleteExchangeRates(List.of(Currency.USD.name(), Currency.CHF.name()));
 		// then
 		List<ExchangeRate> rates = repository.findAll();
-		assertThat(rates).isEmpty();
+		assertThat(rates).hasSize(1);
 	}
 }
