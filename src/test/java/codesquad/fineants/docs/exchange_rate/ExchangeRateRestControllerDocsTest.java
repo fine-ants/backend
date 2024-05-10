@@ -184,7 +184,7 @@ public class ExchangeRateRestControllerDocsTest extends RestDocsSupport {
 						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
 					),
 					requestParameters(
-						parameterWithName("code").description("통화 코드")
+						parameterWithName("code").description("기준 통화로 변경할 통화 코드")
 					),
 					responseFields(
 						fieldWithPath("code").type(JsonFieldType.NUMBER)

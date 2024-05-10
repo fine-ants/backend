@@ -4,13 +4,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -66,7 +59,6 @@ import codesquad.fineants.domain.watch_list.repository.WatchListRepository;
 import codesquad.fineants.domain.watch_list.repository.WatchStockRepository;
 import codesquad.fineants.global.errors.errorcode.MemberErrorCode;
 import codesquad.fineants.global.errors.errorcode.NotificationPreferenceErrorCode;
-import codesquad.fineants.global.errors.errorcode.OauthErrorCode;
 import codesquad.fineants.global.errors.exception.BadRequestException;
 import codesquad.fineants.global.errors.exception.FineAntsException;
 import codesquad.fineants.global.errors.exception.NotFoundResourceException;
@@ -108,57 +100,28 @@ public class MemberService {
 	private final StockTargetPriceRepository stockTargetPriceRepository;
 	private final TargetPriceNotificationRepository targetPriceNotificationRepository;
 
+	@Transactional
 	public OauthMemberLoginResponse login(OauthMemberLoginRequest request) {
 		log.info("로그인 서비스 요청 : loginRequest={}", request);
 		String provider = request.getProvider();
 
-		try {
-			CompletableFuture<OauthMemberLoginResponse> future = CompletableFuture
-				.supplyAsync(supplyOauthClient(provider))
-				.thenApply(fetchProfile(request))
-				.thenCompose(saveMember(provider))
-				.thenCompose(registerNotificationPreference())
-				.thenApply(createLoginResponse(request.getRequestTime()));
-			return future.get(5, TimeUnit.SECONDS);
-		} catch (ExecutionException | InterruptedException | TimeoutException e) {
-			throw new FineAntsException(OauthErrorCode.FAIL_LOGIN, e.getMessage());
-		}
-	}
-
-	private Supplier<OauthClient> supplyOauthClient(String provider) {
-		return () -> findOauthClient(provider);
+		OauthClient oauthClient = findOauthClient(provider);
+		OauthUserProfile profile = oauthClient.fetchProfile(request,
+			popAuthorizationRequest(request.getState()));
+		Member member = findMember(profile.getEmail(), provider)
+			.orElseGet(() -> memberFactory.createMember(profile));
+		Member saveMember = saveMember(member);
+		saveDefaultNotificationPreference(saveMember);
+		Jwt jwt = createToken(member, request.getRequestTime());
+		return OauthMemberLoginResponse.of(jwt);
 	}
 
 	private OauthClient findOauthClient(String provider) {
 		return oauthClientRepository.findOneBy(provider);
 	}
 
-	private Function<OauthClient, OauthUserProfile> fetchProfile(
-		OauthMemberLoginRequest request) {
-		return oauthClient -> oauthClient.fetchProfile(request, popAuthorizationRequest(request.getState()));
-	}
-
 	private AuthorizationRequest popAuthorizationRequest(String state) {
 		return authorizationRequestRepository.pop(state);
-	}
-
-	private Function<OauthUserProfile, CompletionStage<Member>> saveMember(
-		String provider) {
-		return profile -> CompletableFuture
-			.supplyAsync(supplyMember(provider, profile))
-			.thenApplyAsync(this::saveMember);
-	}
-
-	private Supplier<Member> supplyMember(String provider, OauthUserProfile profile) {
-		return () -> findMember(profile.getEmail(), provider)
-			.orElseGet(() -> memberFactory.createMember(profile));
-	}
-
-	private Function<Member, CompletionStage<Member>> registerNotificationPreference() {
-		return member -> {
-			saveDefaultNotificationPreference(member);
-			return CompletableFuture.supplyAsync(() -> member);
-		};
 	}
 
 	private void saveDefaultNotificationPreference(Member member) {
@@ -169,17 +132,8 @@ public class MemberService {
 		return memberRepository.findMemberByEmailAndProvider(email, provider);
 	}
 
-	@Transactional
-	public Member saveMember(Member member) {
+	private Member saveMember(Member member) {
 		return memberRepository.save(member);
-	}
-
-	private Function<Member, OauthMemberLoginResponse> createLoginResponse(
-		LocalDateTime requestTime) {
-		return member -> {
-			Jwt jwt = createToken(member, requestTime);
-			return OauthMemberLoginResponse.of(jwt);
-		};
 	}
 
 	private Jwt createToken(Member member, LocalDateTime requestTime) {

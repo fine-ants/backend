@@ -30,6 +30,7 @@ public class ExchangeRate extends BaseEntity {
 	@Convert(converter = PercentageConverter.class)
 	private Percentage rate;
 
+	@Column(name = "base", nullable = false)
 	private Boolean base;
 
 	public static ExchangeRate zero(String code, Boolean base) {
