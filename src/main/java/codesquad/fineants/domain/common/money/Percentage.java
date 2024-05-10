@@ -44,6 +44,14 @@ public class Percentage implements Comparable<Percentage> {
 			.doubleValue();
 	}
 
+	public double toDoubleValue() {
+		return amount.doubleValue();
+	}
+
+	public String toDoubleValue(DecimalFormat decimalFormat) {
+		return decimalFormat.format(amount);
+	}
+
 	@Override
 	public boolean equals(Object object) {
 		if (this == object)
@@ -74,6 +82,13 @@ public class Percentage implements Comparable<Percentage> {
 		public void serialize(Percentage value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
 			Double percentage = value.toPercentage();
 			gen.writeNumber(decimalFormat.format(percentage));
+		}
+	}
+
+	public static class PercentageDoubleSerializer extends JsonSerializer<Percentage> {
+		@Override
+		public void serialize(Percentage value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+			gen.writeNumber(value.amount.setScale(10, RoundingMode.HALF_UP));
 		}
 	}
 }

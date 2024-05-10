@@ -192,13 +192,7 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 				.extracting("errorCode")
 				.isInstanceOf(OauthErrorCode.class)
 				.extracting("httpStatus", "message")
-				.containsExactlyInAnyOrder(HttpStatus.UNAUTHORIZED, "로그인 정보가 일치하지 않습니다"),
-
-			() -> assertThat(throwable)
-				.isInstanceOf(FineAntsException.class)
-				.extracting("message")
-				.isEqualTo(
-					"FineAnts 예외, NotFoundResourceException(errorCode=Oauth 에러 코드, OauthErrorCode(name=NOT_FOUND_PROVIDER, httpStatus=404 NOT_FOUND, message=provider를 찾을 수 없습니다), message=provider를 찾을 수 없습니다)")
+				.containsExactlyInAnyOrder(HttpStatus.NOT_FOUND, OauthErrorCode.NOT_FOUND_PROVIDER.getMessage())
 		);
 	}
 
@@ -219,6 +213,7 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 		errorBody.put("error", "invalid_grant");
 		errorBody.put("error_description", "authorization code not found for code=1234");
 		errorBody.put("error_code", "KOE320");
+
 		given(oauthClient.fetchProfile(any(OauthMemberLoginRequest.class), any(AuthorizationRequest.class)))
 			.willThrow(new BadRequestException(OauthErrorCode.FAIL_REQUEST, ObjectMapperUtil.serialize(errorBody)));
 		memberService.saveAuthorizationCodeURL(provider);
@@ -231,17 +226,11 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 		// then
 		assertAll(
 			() -> assertThat(throwable)
-				.isInstanceOf(FineAntsException.class)
+				.isInstanceOf(BadRequestException.class)
 				.extracting("errorCode")
 				.isInstanceOf(OauthErrorCode.class)
 				.extracting("httpStatus", "message")
-				.containsExactlyInAnyOrder(HttpStatus.UNAUTHORIZED, "로그인 정보가 일치하지 않습니다"),
-
-			() -> assertThat(throwable)
-				.isInstanceOf(FineAntsException.class)
-				.extracting("message")
-				.isEqualTo(
-					"FineAnts 예외, BadRequestException(errorCode=Oauth 에러 코드, OauthErrorCode(name=FAIL_REQUEST, httpStatus=400 BAD_REQUEST, message=요청에 실패하였습니다), message={\"error_description\":\"authorization code not found for code=1234\",\"error_code\":\"KOE320\",\"error\":\"invalid_grant\"})")
+				.containsExactlyInAnyOrder(HttpStatus.BAD_REQUEST, OauthErrorCode.FAIL_REQUEST.getMessage())
 		);
 	}
 
@@ -262,13 +251,7 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 				.extracting("errorCode")
 				.isInstanceOf(OauthErrorCode.class)
 				.extracting("httpStatus", "message")
-				.containsExactlyInAnyOrder(HttpStatus.UNAUTHORIZED, "로그인 정보가 일치하지 않습니다"),
-
-			() -> assertThat(throwable)
-				.isInstanceOf(FineAntsException.class)
-				.extracting("message")
-				.isEqualTo(
-					"FineAnts 예외, FineAntsException(errorCode=Oauth 에러 코드, OauthErrorCode(name=WRONG_STATE, httpStatus=400 BAD_REQUEST, message=잘못된 State입니다), message=잘못된 State입니다)")
+				.containsExactlyInAnyOrder(HttpStatus.BAD_REQUEST, OauthErrorCode.WRONG_STATE.getMessage())
 		);
 	}
 

@@ -57,3 +57,7 @@ include::api/dashboard.adoc[]
 == 한국투자증권(KIS)
 
 include::api/kis.adoc[]
+
+== 환율
+
+include::api/exchange_rate.adoc[]
