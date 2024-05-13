@@ -1,7 +1,7 @@
 package codesquad.fineants.domain.common.money;
 
-import javax.persistence.AttributeConverter;
-import javax.persistence.Converter;
+import jakarta.persistence.AttributeConverter;
+import jakarta.persistence.Converter;
 
 @Converter
 public class PercentageConverter implements AttributeConverter<Percentage, Double> {

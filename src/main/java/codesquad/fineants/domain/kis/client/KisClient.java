@@ -12,7 +12,7 @@ import java.util.Objects;
 
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -55,7 +55,7 @@ public class KisClient {
 			.uri(oauthKisProperties.getTokenUrl())
 			.bodyValue(requestBodyMap)
 			.retrieve()
-			.onStatus(HttpStatus::isError, this::handleError)
+			.onStatus(HttpStatusCode::isError, this::handleError)
 			.bodyToMono(KisAccessToken.class)
 			.retryWhen(Retry.fixedDelay(Long.MAX_VALUE, Duration.ofSeconds(5)))
 			.log();
@@ -174,7 +174,7 @@ public class KisClient {
 				.build())
 			.headers(httpHeaders -> httpHeaders.addAll(headerMap))
 			.retrieve()
-			.onStatus(HttpStatus::isError, this::handleError)
+			.onStatus(HttpStatusCode::isError, this::handleError)
 			.bodyToMono(responseType)
 			.retryWhen(Retry.fixedDelay(Long.MAX_VALUE, Duration.ofSeconds(5)));
 	}

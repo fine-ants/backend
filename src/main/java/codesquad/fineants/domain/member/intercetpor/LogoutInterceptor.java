@@ -4,14 +4,13 @@ import static codesquad.fineants.global.filter.JwtAuthorizationFilter.*;
 
 import java.util.Optional;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 import codesquad.fineants.global.errors.errorcode.JwtErrorCode;
 import codesquad.fineants.global.errors.exception.UnAuthorizationException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

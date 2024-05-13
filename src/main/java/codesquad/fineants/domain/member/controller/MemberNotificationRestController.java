@@ -2,8 +2,6 @@ package codesquad.fineants.domain.member.controller;
 
 import java.util.List;
 
-import javax.validation.Valid;
-
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -23,6 +21,7 @@ import codesquad.fineants.domain.member.service.MemberNotificationPreferenceServ
 import codesquad.fineants.domain.member.service.MemberNotificationService;
 import codesquad.fineants.global.api.ApiResponse;
 import codesquad.fineants.global.success.MemberSuccessCode;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 

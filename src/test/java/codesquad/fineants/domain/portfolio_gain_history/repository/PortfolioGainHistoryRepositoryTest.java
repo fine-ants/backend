@@ -4,20 +4,19 @@ import static org.assertj.core.api.Assertions.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import codesquad.fineants.AbstractContainerBaseTest;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.repository.PortfolioRepository;
 import codesquad.fineants.domain.portfolio_gain_history.domain.entity.PortfolioGainHistory;
-import codesquad.fineants.AbstractContainerBaseTest;
 
 class PortfolioGainHistoryRepositoryTest extends AbstractContainerBaseTest {
 
@@ -81,10 +80,12 @@ class PortfolioGainHistoryRepositoryTest extends AbstractContainerBaseTest {
 			.build());
 
 		// when
-		Optional<PortfolioGainHistory> optional = portfolioGainHistoryRepository.findFirstByPortfolioAndCreateAtIsLessThanEqualOrderByCreateAtDesc(
-			portfolio.getId(),
-			LocalDateTime.now());
-		PortfolioGainHistory history = optional.orElseThrow();
+		PortfolioGainHistory history = portfolioGainHistoryRepository.findFirstByPortfolioAndCreateAtIsLessThanEqualOrderByCreateAtDesc(
+				portfolio.getId(),
+				LocalDateTime.now())
+			.stream()
+			.findFirst()
+			.orElseThrow();
 
 		// then
 		assertThat(history.getId()).isEqualTo(saveHistory.getId());
@@ -151,7 +152,10 @@ class PortfolioGainHistoryRepositoryTest extends AbstractContainerBaseTest {
 
 		// when
 		PortfolioGainHistory result = portfolioGainHistoryRepository.findFirstByPortfolioAndCreateAtIsLessThanEqualOrderByCreateAtDesc(
-			portfolio.getId(), LocalDateTime.now()).orElseThrow();
+				portfolio.getId(), LocalDateTime.now())
+			.stream()
+			.findFirst()
+			.orElseThrow();
 
 		// then
 		assertThat(result.getCurrentValuation()).isEqualByComparingTo(Money.won(120000L));

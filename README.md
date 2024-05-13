@@ -18,8 +18,8 @@
 
 ## 2. 사용 기술
 
-- Java 11
-- Spring Boot 2.7
+- Java 17
+- Spring Boot 3.1
 - Gradle
 - Spring Data JPA
 - QueryDSL

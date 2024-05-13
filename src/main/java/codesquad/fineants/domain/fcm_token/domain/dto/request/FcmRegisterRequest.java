@@ -2,10 +2,9 @@ package codesquad.fineants.domain.fcm_token.domain.dto.request;
 
 import java.time.LocalDateTime;
 
-import javax.validation.constraints.NotBlank;
-
 import codesquad.fineants.domain.fcm_token.domain.entity.FcmToken;
 import codesquad.fineants.domain.member.domain.entity.Member;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

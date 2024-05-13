@@ -8,23 +8,6 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import javax.persistence.Column;
-import javax.persistence.Convert;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.NamedAttributeNode;
-import javax.persistence.NamedEntityGraph;
-import javax.persistence.NamedEntityGraphs;
-import javax.persistence.NamedSubgraph;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
-
 import org.hibernate.annotations.BatchSize;
 
 import codesquad.fineants.domain.BaseEntity;
@@ -36,19 +19,35 @@ import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.common.money.MoneyConverter;
 import codesquad.fineants.domain.common.money.Percentage;
 import codesquad.fineants.domain.common.money.RateDivision;
+import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
 import codesquad.fineants.domain.member.domain.entity.Member;
+import codesquad.fineants.domain.notification.domain.dto.response.NotifyMessage;
 import codesquad.fineants.domain.notification.domain.entity.type.NotificationType;
+import codesquad.fineants.domain.notification.repository.NotificationSentRepository;
 import codesquad.fineants.domain.portfolio_gain_history.domain.entity.PortfolioGainHistory;
+import codesquad.fineants.domain.portfolio_holding.domain.dto.response.PortfolioDividendChartItem;
+import codesquad.fineants.domain.portfolio_holding.domain.dto.response.PortfolioPieChartItem;
+import codesquad.fineants.domain.portfolio_holding.domain.dto.response.PortfolioSectorChartItem;
 import codesquad.fineants.domain.portfolio_holding.domain.entity.PortfolioHolding;
 import codesquad.fineants.global.errors.errorcode.PortfolioErrorCode;
 import codesquad.fineants.global.errors.exception.BadRequestException;
 import codesquad.fineants.global.errors.exception.FineAntsException;
-import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
-import codesquad.fineants.domain.notification.repository.NotificationSentRepository;
-import codesquad.fineants.domain.notification.domain.dto.response.NotifyMessage;
-import codesquad.fineants.domain.portfolio_holding.domain.dto.response.PortfolioDividendChartItem;
-import codesquad.fineants.domain.portfolio_holding.domain.dto.response.PortfolioPieChartItem;
-import codesquad.fineants.domain.portfolio_holding.domain.dto.response.PortfolioSectorChartItem;
+import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.NamedAttributeNode;
+import jakarta.persistence.NamedEntityGraph;
+import jakarta.persistence.NamedEntityGraphs;
+import jakarta.persistence.NamedSubgraph;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -76,6 +75,7 @@ import lombok.extern.slf4j.Slf4j;
 public class Portfolio extends BaseEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "id")
 	private Long id;
 	private String name;
 	private String securitiesFirm;

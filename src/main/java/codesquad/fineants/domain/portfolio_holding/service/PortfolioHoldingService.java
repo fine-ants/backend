@@ -14,10 +14,7 @@ import codesquad.fineants.domain.portfolio.repository.PortfolioRepository;
 import codesquad.fineants.domain.portfolio_holding.domain.chart.DividendChart;
 import codesquad.fineants.domain.portfolio_holding.domain.chart.PieChart;
 import codesquad.fineants.domain.portfolio_holding.domain.chart.SectorChart;
-import codesquad.fineants.domain.portfolio_holding.domain.entity.PortfolioHolding;
-import codesquad.fineants.domain.portfolio_holding.domain.factory.PortfolioDetailFactory;
-import codesquad.fineants.domain.portfolio_holding.domain.factory.PortfolioHoldingDetailFactory;
-import codesquad.fineants.domain.portfolio_holding.repository.PortfolioHoldingRepository;
+import codesquad.fineants.domain.portfolio_holding.domain.dto.request.PortfolioHoldingCreateRequest;
 import codesquad.fineants.domain.portfolio_holding.domain.dto.request.PortfolioStocksDeleteRequest;
 import codesquad.fineants.domain.portfolio_holding.domain.dto.response.PortfolioChartResponse;
 import codesquad.fineants.domain.portfolio_holding.domain.dto.response.PortfolioDetailRealTimeItem;
@@ -32,6 +29,11 @@ import codesquad.fineants.domain.portfolio_holding.domain.dto.response.Portfolio
 import codesquad.fineants.domain.portfolio_holding.domain.dto.response.PortfolioStockCreateResponse;
 import codesquad.fineants.domain.portfolio_holding.domain.dto.response.PortfolioStockDeleteResponse;
 import codesquad.fineants.domain.portfolio_holding.domain.dto.response.PortfolioStockDeletesResponse;
+import codesquad.fineants.domain.portfolio_holding.domain.entity.PortfolioHolding;
+import codesquad.fineants.domain.portfolio_holding.domain.factory.PortfolioDetailFactory;
+import codesquad.fineants.domain.portfolio_holding.domain.factory.PortfolioHoldingDetailFactory;
+import codesquad.fineants.domain.portfolio_holding.event.publisher.PortfolioHoldingEventPublisher;
+import codesquad.fineants.domain.portfolio_holding.repository.PortfolioHoldingRepository;
 import codesquad.fineants.domain.purchase_history.domain.entity.PurchaseHistory;
 import codesquad.fineants.domain.purchase_history.repository.PurchaseHistoryRepository;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
@@ -43,8 +45,6 @@ import codesquad.fineants.global.errors.errorcode.StockErrorCode;
 import codesquad.fineants.global.errors.exception.FineAntsException;
 import codesquad.fineants.global.errors.exception.ForBiddenException;
 import codesquad.fineants.global.errors.exception.NotFoundResourceException;
-import codesquad.fineants.domain.portfolio_holding.event.publisher.PortfolioHoldingEventPublisher;
-import codesquad.fineants.domain.portfolio_holding.domain.dto.request.PortfolioHoldingCreateRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -96,9 +96,9 @@ public class PortfolioHoldingService {
 		log.info("포트폴리오 종목 삭제 서비스 : portfolioHoldingId={}, authMember={}", portfolioHoldingId, authMember);
 
 		purchaseHistoryRepository.deleteAllByPortfolioHoldingIdIn(List.of(portfolioHoldingId));
-		try {
-			portfolioHoldingRepository.deleteById(portfolioHoldingId);
-		} catch (EmptyResultDataAccessException e) {
+
+		int deleted = portfolioHoldingRepository.deleteAllByIdIn(List.of(portfolioHoldingId));
+		if (deleted == 0) {
 			throw new NotFoundResourceException(PortfolioHoldingErrorCode.NOT_FOUND_PORTFOLIO_HOLDING);
 		}
 		return new PortfolioStockDeleteResponse(portfolioHoldingId);

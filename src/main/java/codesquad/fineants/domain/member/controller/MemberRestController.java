@@ -4,8 +4,6 @@ import static org.springframework.http.HttpStatus.*;
 
 import java.time.LocalDateTime;
 
-import javax.validation.Valid;
-
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -45,6 +43,7 @@ import codesquad.fineants.domain.oauth.support.AuthPrincipalMember;
 import codesquad.fineants.global.api.ApiResponse;
 import codesquad.fineants.global.success.MemberSuccessCode;
 import codesquad.fineants.global.success.OauthSuccessCode;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 

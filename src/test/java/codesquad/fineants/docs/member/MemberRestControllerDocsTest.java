@@ -60,7 +60,6 @@ public class MemberRestControllerDocsTest extends RestDocsSupport {
 	@Test
 	void login() throws Exception {
 		// given
-		Member member = createMember();
 		String code = "1234";
 		String redirectUrl = "http://localhost:5173/signin?provider=kakao";
 		String state = "1234";
@@ -76,9 +75,10 @@ public class MemberRestControllerDocsTest extends RestDocsSupport {
 			.willReturn(mockResponse);
 		// when
 		mockMvc.perform(RestDocumentationRequestBuilders.post(url, "kakao")
-				.param("code", code)
-				.param("redirectUrl", redirectUrl)
-				.param("state", state))
+				.queryParam("code", code)
+				.queryParam("redirectUrl", redirectUrl)
+				.queryParam("state", state)
+			)
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
@@ -101,7 +101,7 @@ public class MemberRestControllerDocsTest extends RestDocsSupport {
 									)
 								))
 					),
-					requestParameters(
+					queryParameters(
 						parameterWithName("code").description("인가 코드"),
 						parameterWithName("redirectUrl").description("리다이렉트 URL"),
 						parameterWithName("state").description("state")

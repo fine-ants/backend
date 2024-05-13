@@ -2,8 +2,6 @@ package codesquad.fineants.domain.portfolio_holding.controller;
 
 import java.time.LocalDate;
 
-import javax.validation.Valid;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -18,15 +16,16 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.oauth.support.AuthPrincipalMember;
+import codesquad.fineants.domain.portfolio.aop.HasPortfolioAuthorization;
+import codesquad.fineants.domain.portfolio_holding.domain.dto.request.PortfolioHoldingCreateRequest;
 import codesquad.fineants.domain.portfolio_holding.domain.dto.request.PortfolioStocksDeleteRequest;
 import codesquad.fineants.domain.portfolio_holding.domain.dto.response.PortfolioChartResponse;
 import codesquad.fineants.domain.portfolio_holding.domain.dto.response.PortfolioHoldingsResponse;
+import codesquad.fineants.domain.portfolio_holding.service.PortfolioHoldingService;
 import codesquad.fineants.domain.portfolio_holding.service.PortfolioObservableService;
 import codesquad.fineants.global.api.ApiResponse;
 import codesquad.fineants.global.success.PortfolioStockSuccessCode;
-import codesquad.fineants.domain.portfolio.aop.HasPortfolioAuthorization;
-import codesquad.fineants.domain.portfolio_holding.domain.dto.request.PortfolioHoldingCreateRequest;
-import codesquad.fineants.domain.portfolio_holding.service.PortfolioHoldingService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 

@@ -1,8 +1,7 @@
 package codesquad.fineants.domain.stock.converter;
 
-import javax.persistence.AttributeConverter;
-
 import codesquad.fineants.domain.stock.domain.entity.Market;
+import jakarta.persistence.AttributeConverter;
 
 public class MarketConverter implements AttributeConverter<Market, String> {
 

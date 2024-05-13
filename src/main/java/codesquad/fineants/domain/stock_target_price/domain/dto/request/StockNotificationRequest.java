@@ -1,14 +1,13 @@
 package codesquad.fineants.domain.stock_target_price.domain.dto.request;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.PositiveOrZero;
-
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.member.domain.entity.Member;
-import codesquad.fineants.domain.notification.domain.entity.Notification;
-import codesquad.fineants.domain.notification.domain.entity.type.NotificationType;
 import codesquad.fineants.domain.notification.domain.dto.response.NotifyMessage;
 import codesquad.fineants.domain.notification.domain.dto.response.StockNotifyMessage;
+import codesquad.fineants.domain.notification.domain.entity.Notification;
+import codesquad.fineants.domain.notification.domain.entity.type.NotificationType;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

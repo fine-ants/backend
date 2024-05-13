@@ -2,14 +2,13 @@ package codesquad.fineants.domain.purchase_history.domain.dto.request;
 
 import java.time.LocalDateTime;
 
-import javax.validation.constraints.NotNull;
-
 import codesquad.fineants.domain.common.count.Count;
 import codesquad.fineants.domain.common.count.valiator.CountNumber;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.common.money.valiator.MoneyNumber;
 import codesquad.fineants.domain.portfolio_holding.domain.entity.PortfolioHolding;
 import codesquad.fineants.domain.purchase_history.domain.entity.PurchaseHistory;
+import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

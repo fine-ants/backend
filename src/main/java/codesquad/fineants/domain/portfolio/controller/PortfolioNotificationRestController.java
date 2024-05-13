@@ -1,7 +1,5 @@
 package codesquad.fineants.domain.portfolio.controller;
 
-import javax.validation.Valid;
-
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -10,12 +8,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.oauth.support.AuthPrincipalMember;
-import codesquad.fineants.global.api.ApiResponse;
-import codesquad.fineants.global.success.PortfolioSuccessCode;
 import codesquad.fineants.domain.portfolio.aop.HasPortfolioAuthorization;
 import codesquad.fineants.domain.portfolio.domain.dto.request.PortfolioNotificationUpdateRequest;
 import codesquad.fineants.domain.portfolio.domain.dto.response.PortfolioNotificationUpdateResponse;
 import codesquad.fineants.domain.portfolio.service.PortfolioNotificationService;
+import codesquad.fineants.global.api.ApiResponse;
+import codesquad.fineants.global.success.PortfolioSuccessCode;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 

@@ -2,8 +2,8 @@ package codesquad.fineants.domain.common.money;
 
 import java.math.BigDecimal;
 
-import javax.persistence.AttributeConverter;
-import javax.persistence.Converter;
+import jakarta.persistence.AttributeConverter;
+import jakarta.persistence.Converter;
 
 @Converter
 public class MoneyConverter implements AttributeConverter<Money, BigDecimal> {

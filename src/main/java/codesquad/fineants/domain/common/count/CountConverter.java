@@ -2,8 +2,8 @@ package codesquad.fineants.domain.common.count;
 
 import java.math.BigInteger;
 
-import javax.persistence.AttributeConverter;
-import javax.persistence.Converter;
+import jakarta.persistence.AttributeConverter;
+import jakarta.persistence.Converter;
 
 @Converter
 public class CountConverter implements AttributeConverter<Count, BigInteger> {

@@ -168,7 +168,7 @@ public class ExchangeRateRestControllerDocsTest extends RestDocsSupport {
 
 		// when & then
 		mockMvc.perform(patch("/api/exchange-rates/base")
-				.param("code", "KRW")
+				.queryParam("code", "KRW")
 				.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("code").value(equalTo(200)))
@@ -183,7 +183,7 @@ public class ExchangeRateRestControllerDocsTest extends RestDocsSupport {
 					requestHeaders(
 						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
 					),
-					requestParameters(
+					queryParameters(
 						parameterWithName("code").description("기준 통화로 변경할 통화 코드")
 					),
 					responseFields(

@@ -8,18 +8,19 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
 import codesquad.fineants.domain.oauth.support.AuthMember;
-import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
-import codesquad.fineants.domain.portfolio.repository.PortfolioRepository;
-import codesquad.fineants.domain.portfolio.repository.PortfolioPropertiesRepository;
 import codesquad.fineants.domain.portfolio.domain.dto.request.PortfolioCreateRequest;
 import codesquad.fineants.domain.portfolio.domain.dto.request.PortfolioModifyRequest;
 import codesquad.fineants.domain.portfolio.domain.dto.request.PortfoliosDeleteRequest;
 import codesquad.fineants.domain.portfolio.domain.dto.response.PortFolioCreateResponse;
 import codesquad.fineants.domain.portfolio.domain.dto.response.PortfolioModifyResponse;
 import codesquad.fineants.domain.portfolio.domain.dto.response.PortfoliosResponse;
+import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
+import codesquad.fineants.domain.portfolio.repository.PortfolioPropertiesRepository;
+import codesquad.fineants.domain.portfolio.repository.PortfolioRepository;
 import codesquad.fineants.domain.portfolio_gain_history.domain.entity.PortfolioGainHistory;
 import codesquad.fineants.domain.portfolio_gain_history.repository.PortfolioGainHistoryRepository;
 import codesquad.fineants.domain.portfolio_holding.domain.entity.PortfolioHolding;
@@ -31,7 +32,6 @@ import codesquad.fineants.global.errors.exception.BadRequestException;
 import codesquad.fineants.global.errors.exception.ConflictException;
 import codesquad.fineants.global.errors.exception.ForBiddenException;
 import codesquad.fineants.global.errors.exception.NotFoundResourceException;
-import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -156,7 +156,10 @@ public class PortFolioService {
 			.collect(Collectors.toMap(
 				portfolio -> portfolio,
 				portfolio -> portfolioGainHistoryRepository.findFirstByPortfolioAndCreateAtIsLessThanEqualOrderByCreateAtDesc(
-					portfolio.getId(), LocalDateTime.now()).orElseGet(PortfolioGainHistory::empty)
+						portfolio.getId(), LocalDateTime.now())
+					.stream()
+					.findFirst()
+					.orElseGet(PortfolioGainHistory::empty)
 			));
 
 		return PortfoliosResponse.of(portfolios, portfolioGainHistoryMap, currentPriceRepository);

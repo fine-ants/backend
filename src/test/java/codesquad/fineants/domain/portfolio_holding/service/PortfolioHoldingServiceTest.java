@@ -547,7 +547,7 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 	void deletePortfolioStockWithNotExistPortfolioStockId() {
 		// given
 		Member member = memberRepository.save(createMember());
-		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
+		portfolioRepository.save(createPortfolio(member));
 		Long portfolioStockId = 9999L;
 
 		// when

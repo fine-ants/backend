@@ -1,7 +1,5 @@
 package codesquad.fineants.domain.portfolio.controller;
 
-import javax.validation.Valid;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,6 +22,7 @@ import codesquad.fineants.domain.portfolio.domain.dto.response.PortfoliosRespons
 import codesquad.fineants.domain.portfolio.service.PortFolioService;
 import codesquad.fineants.global.api.ApiResponse;
 import codesquad.fineants.global.success.PortfolioSuccessCode;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 

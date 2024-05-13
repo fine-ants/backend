@@ -1,9 +1,8 @@
 package codesquad.fineants.domain.common.money.valiator;
 
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
-
 import codesquad.fineants.domain.common.money.Money;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
 
 public class MoneyValidator implements ConstraintValidator<MoneyNumber, Money> {
 	@Override

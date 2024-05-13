@@ -1,8 +1,7 @@
 package codesquad.fineants.domain.portfolio_holding.domain.dto.request;
 
-import javax.validation.constraints.NotBlank;
-
 import codesquad.fineants.domain.purchase_history.domain.dto.request.PurchaseHistoryCreateRequest;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.ToString;
 

@@ -42,7 +42,6 @@ import org.springframework.web.multipart.MultipartFile;
 import codesquad.fineants.domain.jwt.domain.Jwt;
 import codesquad.fineants.domain.jwt.domain.JwtProvider;
 import codesquad.fineants.domain.jwt.properties.JwtProperties;
-import codesquad.fineants.domain.member.controller.MemberRestController;
 import codesquad.fineants.domain.member.domain.dto.request.AuthorizationRequest;
 import codesquad.fineants.domain.member.domain.dto.request.OauthMemberLoginRequest;
 import codesquad.fineants.domain.member.domain.dto.request.ProfileChangeServiceRequest;
@@ -479,7 +478,7 @@ class MemberRestControllerTest {
 			.andExpect(status().isBadRequest())
 			.andExpect(jsonPath("code").value(equalTo(400)))
 			.andExpect(jsonPath("status").value(equalTo("Bad Request")))
-			.andExpect(jsonPath("message").value(equalTo("Required request part 'signupData' is not present")));
+			.andExpect(jsonPath("message").value(equalTo("Required part 'signupData' is not present.")));
 	}
 
 	@DisplayName("사용자는 회원가입 과정중 닉네임이 중복되었는지 검사할 수 있다")

@@ -2,14 +2,13 @@ package codesquad.fineants.domain.exchange_rate.domain.entity;
 
 import java.text.DecimalFormat;
 
-import javax.persistence.Column;
-import javax.persistence.Convert;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-
 import codesquad.fineants.domain.BaseEntity;
 import codesquad.fineants.domain.common.money.Percentage;
 import codesquad.fineants.domain.common.money.PercentageConverter;
+import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
@@ -26,7 +25,7 @@ public class ExchangeRate extends BaseEntity {
 	@Id
 	private String code;
 
-	@Column(name = "rate", nullable = false, precision = 19)
+	@Column(name = "rate", nullable = false, precision = 19, columnDefinition = "DOUBLE")
 	@Convert(converter = PercentageConverter.class)
 	private Percentage rate;
 

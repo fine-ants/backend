@@ -45,5 +45,4 @@ public interface PortfolioHoldingRepository extends JpaRepository<PortfolioHoldi
 	@Modifying
 	@Query("delete from PortfolioHolding p where p.id in :holdingIds")
 	int deleteAllByIdIn(@Param("holdingIds") List<Long> holdingIds);
-
 }
