@@ -2,12 +2,8 @@ package codesquad.fineants.domain.stock_target_price.service;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.BDDMockito.*;
 
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.assertj.core.groups.Tuple;
@@ -15,11 +11,12 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 
+import codesquad.fineants.AbstractContainerBaseTest;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.fcm_token.repository.FcmRepository;
-import codesquad.fineants.domain.fcm_token.domain.entity.FcmToken;
+import codesquad.fineants.domain.kis.domain.dto.response.KisClosingPrice;
+import codesquad.fineants.domain.kis.repository.ClosingPriceRepository;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
 import codesquad.fineants.domain.notification.repository.NotificationRepository;
@@ -28,16 +25,6 @@ import codesquad.fineants.domain.notification_preference.repository.Notification
 import codesquad.fineants.domain.stock.domain.entity.Market;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
-import codesquad.fineants.domain.stock_target_price.domain.entity.StockTargetPrice;
-import codesquad.fineants.domain.stock_target_price.repository.StockTargetPriceRepository;
-import codesquad.fineants.domain.stock_target_price.domain.entity.TargetPriceNotification;
-import codesquad.fineants.domain.stock_target_price.repository.TargetPriceNotificationRepository;
-import codesquad.fineants.AbstractContainerBaseTest;
-import codesquad.fineants.global.errors.errorcode.StockErrorCode;
-import codesquad.fineants.global.errors.exception.BadRequestException;
-import codesquad.fineants.global.errors.exception.ForBiddenException;
-import codesquad.fineants.global.errors.exception.NotFoundResourceException;
-import codesquad.fineants.domain.kis.repository.ClosingPriceRepository;
 import codesquad.fineants.domain.stock_target_price.domain.dto.request.TargetPriceNotificationCreateRequest;
 import codesquad.fineants.domain.stock_target_price.domain.dto.request.TargetPriceNotificationUpdateRequest;
 import codesquad.fineants.domain.stock_target_price.domain.dto.response.TargetPriceNotificationCreateResponse;
@@ -45,6 +32,14 @@ import codesquad.fineants.domain.stock_target_price.domain.dto.response.TargetPr
 import codesquad.fineants.domain.stock_target_price.domain.dto.response.TargetPriceNotificationSearchResponse;
 import codesquad.fineants.domain.stock_target_price.domain.dto.response.TargetPriceNotificationSpecifiedSearchResponse;
 import codesquad.fineants.domain.stock_target_price.domain.dto.response.TargetPriceNotificationUpdateResponse;
+import codesquad.fineants.domain.stock_target_price.domain.entity.StockTargetPrice;
+import codesquad.fineants.domain.stock_target_price.domain.entity.TargetPriceNotification;
+import codesquad.fineants.domain.stock_target_price.repository.StockTargetPriceRepository;
+import codesquad.fineants.domain.stock_target_price.repository.TargetPriceNotificationRepository;
+import codesquad.fineants.global.errors.errorcode.StockErrorCode;
+import codesquad.fineants.global.errors.exception.BadRequestException;
+import codesquad.fineants.global.errors.exception.ForBiddenException;
+import codesquad.fineants.global.errors.exception.NotFoundResourceException;
 
 class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest {
 
@@ -72,7 +67,7 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 	@Autowired
 	private NotificationPreferenceRepository notificationPreferenceRepository;
 
-	@MockBean
+	@Autowired
 	private ClosingPriceRepository manager;
 
 	@AfterEach
@@ -178,9 +173,8 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 		List<TargetPriceNotification> targetPriceNotifications2 = targetPriceNotificationRepository.saveAll(
 			createTargetPriceNotification(stockTargetPrice2, List.of(60000L, 70000L)));
 
-		given(manager.getClosingPrice(anyString()))
-			.willReturn(Optional.of(Money.won(50000L)));
-
+		manager.addPrice(KisClosingPrice.create(stock.getTickerSymbol(), 50000L));
+		manager.addPrice(KisClosingPrice.create(stock2.getTickerSymbol(), 50000L));
 		// when
 		TargetPriceNotificationSearchResponse response = service.searchStockTargetPriceNotification(member.getId());
 
@@ -225,8 +219,7 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 		List<TargetPriceNotification> targetPriceNotifications = targetPriceNotificationRepository.saveAll(
 			createTargetPriceNotification(stockTargetPrice, List.of(60000L, 70000L)));
 
-		given(manager.getClosingPrice(anyString()))
-			.willReturn(Optional.of(Money.won(50000L)));
+		manager.addPrice(KisClosingPrice.create(stock.getTickerSymbol(), 50000L));
 
 		// when
 		TargetPriceNotificationSpecifiedSearchResponse response = service.searchTargetPriceNotifications(
@@ -330,7 +323,7 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 		Stock stock = stockRepository.save(createStock());
 		StockTargetPrice stockTargetPrice = repository.save(createStockTargetPrice(member, stock));
 		TargetPriceNotification targetPriceNotification = targetPriceNotificationRepository.save(
-			createTargetPriceNotification(stockTargetPrice, 60000L));
+			createTargetPriceNotification(stockTargetPrice));
 
 		Long id = targetPriceNotification.getId();
 		// when
@@ -357,7 +350,7 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 		Member member = memberRepository.save(createMember());
 		Stock stock = stockRepository.save(createStock());
 		StockTargetPrice stockTargetPrice = repository.save(createStockTargetPrice(member, stock));
-		targetPriceNotificationRepository.save(createTargetPriceNotification(stockTargetPrice, 60000L));
+		targetPriceNotificationRepository.save(createTargetPriceNotification(stockTargetPrice));
 
 		Long id = 9999L;
 
@@ -382,7 +375,7 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 		Stock stock = stockRepository.save(createStock());
 		StockTargetPrice stockTargetPrice = repository.save(createStockTargetPrice(member, stock));
 		TargetPriceNotification targetPriceNotification = targetPriceNotificationRepository.save(
-			createTargetPriceNotification(stockTargetPrice, 60000L));
+			createTargetPriceNotification(stockTargetPrice));
 
 		Member hacker = memberRepository.save(createMember("일개미4567", "kim2@gmail.com"));
 
@@ -519,18 +512,9 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 			.build();
 	}
 
-	private StockTargetPrice createStockTargetPrice(Member member, Stock stock, LocalDateTime createAt) {
-		return StockTargetPrice.builder()
-			.member(member)
-			.stock(stock)
-			.isActive(true)
-			.createAt(createAt)
-			.build();
-	}
-
-	private TargetPriceNotification createTargetPriceNotification(StockTargetPrice stockTargetPrice, Long targetPrice) {
+	private TargetPriceNotification createTargetPriceNotification(StockTargetPrice stockTargetPrice) {
 		return TargetPriceNotification.builder()
-			.targetPrice(Money.won(targetPrice))
+			.targetPrice(Money.won(60000L))
 			.stockTargetPrice(stockTargetPrice)
 			.build();
 	}
@@ -577,14 +561,6 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 			.stockCode("KR7000020008")
 			.sector("의약품")
 			.market(Market.KOSPI)
-			.build();
-	}
-
-	private FcmToken createFcmToken(Member member, String token) {
-		return FcmToken.builder()
-			.token(token)
-			.latestActivationTime(LocalDateTime.now())
-			.member(member)
 			.build();
 	}
 

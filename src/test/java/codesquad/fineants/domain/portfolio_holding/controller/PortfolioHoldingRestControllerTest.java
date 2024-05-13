@@ -39,23 +39,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import codesquad.fineants.domain.common.count.Count;
 import codesquad.fineants.domain.common.money.Money;
+import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.oauth.support.AuthPrincipalArgumentResolver;
-import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
-import codesquad.fineants.domain.portfolio_gain_history.domain.entity.PortfolioGainHistory;
-import codesquad.fineants.domain.portfolio_holding.controller.PortfolioHoldingRestController;
-import codesquad.fineants.domain.portfolio_holding.domain.entity.PortfolioHolding;
-import codesquad.fineants.domain.purchase_history.domain.entity.PurchaseHistory;
-import codesquad.fineants.domain.stock.domain.entity.Market;
-import codesquad.fineants.domain.stock.domain.entity.Stock;
-import codesquad.fineants.domain.stock_dividend.domain.entity.StockDividend;
-import codesquad.fineants.global.errors.errorcode.PortfolioErrorCode;
-import codesquad.fineants.global.errors.exception.NotFoundResourceException;
-import codesquad.fineants.global.errors.handler.GlobalExceptionHandler;
-import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
 import codesquad.fineants.domain.portfolio.aop.HasPortfolioAuthorizationAspect;
+import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.service.PortFolioService;
+import codesquad.fineants.domain.portfolio_gain_history.domain.entity.PortfolioGainHistory;
 import codesquad.fineants.domain.portfolio_holding.domain.chart.DividendChart;
 import codesquad.fineants.domain.portfolio_holding.domain.chart.PieChart;
 import codesquad.fineants.domain.portfolio_holding.domain.chart.SectorChart;
@@ -68,12 +59,20 @@ import codesquad.fineants.domain.portfolio_holding.domain.dto.response.Portfolio
 import codesquad.fineants.domain.portfolio_holding.domain.dto.response.PortfolioSectorChartItem;
 import codesquad.fineants.domain.portfolio_holding.domain.dto.response.PortfolioStockCreateResponse;
 import codesquad.fineants.domain.portfolio_holding.domain.dto.response.PortfolioStockDeletesResponse;
+import codesquad.fineants.domain.portfolio_holding.domain.entity.PortfolioHolding;
 import codesquad.fineants.domain.portfolio_holding.service.PortfolioHoldingService;
 import codesquad.fineants.domain.portfolio_holding.service.PortfolioObservableService;
 import codesquad.fineants.domain.portfolio_holding.service.StockMarketChecker;
+import codesquad.fineants.domain.purchase_history.domain.entity.PurchaseHistory;
+import codesquad.fineants.domain.stock.domain.entity.Market;
+import codesquad.fineants.domain.stock.domain.entity.Stock;
+import codesquad.fineants.domain.stock_dividend.domain.entity.StockDividend;
 import codesquad.fineants.global.config.JacksonConfig;
 import codesquad.fineants.global.config.JpaAuditingConfiguration;
 import codesquad.fineants.global.config.SpringConfig;
+import codesquad.fineants.global.errors.errorcode.PortfolioErrorCode;
+import codesquad.fineants.global.errors.exception.NotFoundResourceException;
+import codesquad.fineants.global.errors.handler.GlobalExceptionHandler;
 import codesquad.fineants.global.util.ObjectMapperUtil;
 
 @ActiveProfiles("test")
@@ -105,10 +104,10 @@ class PortfolioHoldingRestControllerTest {
 	private PortFolioService portFolioService;
 
 	@MockBean
-	private CurrentPriceRepository currentPriceRepository;
+	private PortfolioObservableService portfolioObservableService;
 
 	@MockBean
-	private PortfolioObservableService portfolioObservableService;
+	private CurrentPriceRepository currentPriceRepository;
 
 	private PieChart pieChart;
 

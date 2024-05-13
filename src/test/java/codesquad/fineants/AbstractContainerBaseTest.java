@@ -1,5 +1,7 @@
 package codesquad.fineants;
 
+import java.time.LocalDateTime;
+
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
@@ -11,6 +13,7 @@ import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
+import codesquad.fineants.domain.kis.client.KisAccessToken;
 import codesquad.fineants.global.init.S3BucketInitializer;
 import lombok.extern.slf4j.Slf4j;
 
@@ -49,5 +52,9 @@ public class AbstractContainerBaseTest {
 		registry.add("spring.datasource.url", () -> "jdbc:tc:mysql:8.0.33://localhost/fineAnts");
 		registry.add("spring.datasource.username", () -> "admin");
 		registry.add("spring.datasource.password", () -> "password1234!");
+	}
+
+	public KisAccessToken createKisAccessToken() {
+		return KisAccessToken.bearerType("accessToken", LocalDateTime.now().plusSeconds(86400), 86400);
 	}
 }

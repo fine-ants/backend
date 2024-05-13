@@ -23,15 +23,22 @@ import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
 
+import codesquad.fineants.AbstractContainerBaseTest;
 import codesquad.fineants.domain.common.count.Count;
 import codesquad.fineants.domain.common.money.Money;
-import codesquad.fineants.domain.fcm_token.repository.FcmRepository;
 import codesquad.fineants.domain.fcm_token.domain.entity.FcmToken;
+import codesquad.fineants.domain.fcm_token.repository.FcmRepository;
+import codesquad.fineants.domain.fcm_token.service.FirebaseMessagingService;
+import codesquad.fineants.domain.kis.client.KisCurrentPrice;
+import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
+import codesquad.fineants.domain.kis.service.KisService;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
+import codesquad.fineants.domain.notification.domain.dto.response.PortfolioNotifyMessagesResponse;
 import codesquad.fineants.domain.notification.domain.entity.Notification;
-import codesquad.fineants.domain.notification.repository.NotificationRepository;
 import codesquad.fineants.domain.notification.domain.entity.type.NotificationType;
+import codesquad.fineants.domain.notification.repository.NotificationRepository;
+import codesquad.fineants.domain.notification.repository.NotificationSentRepository;
 import codesquad.fineants.domain.notification_preference.domain.entity.NotificationPreference;
 import codesquad.fineants.domain.notification_preference.repository.NotificationPreferenceRepository;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
@@ -44,18 +51,11 @@ import codesquad.fineants.domain.stock.domain.entity.Market;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
 import codesquad.fineants.domain.stock_dividend.repository.StockDividendRepository;
-import codesquad.fineants.domain.stock_target_price.domain.entity.StockTargetPrice;
-import codesquad.fineants.domain.stock_target_price.repository.StockTargetPriceRepository;
-import codesquad.fineants.domain.stock_target_price.domain.entity.TargetPriceNotification;
-import codesquad.fineants.domain.stock_target_price.repository.TargetPriceNotificationRepository;
-import codesquad.fineants.AbstractContainerBaseTest;
-import codesquad.fineants.domain.fcm_token.service.FirebaseMessagingService;
-import codesquad.fineants.domain.kis.client.KisCurrentPrice;
-import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
-import codesquad.fineants.domain.kis.service.KisService;
-import codesquad.fineants.domain.notification.repository.NotificationSentRepository;
-import codesquad.fineants.domain.notification.domain.dto.response.PortfolioNotifyMessagesResponse;
 import codesquad.fineants.domain.stock_target_price.domain.dto.response.TargetPriceNotifyMessageResponse;
+import codesquad.fineants.domain.stock_target_price.domain.entity.StockTargetPrice;
+import codesquad.fineants.domain.stock_target_price.domain.entity.TargetPriceNotification;
+import codesquad.fineants.domain.stock_target_price.repository.StockTargetPriceRepository;
+import codesquad.fineants.domain.stock_target_price.repository.TargetPriceNotificationRepository;
 import reactor.core.publisher.Mono;
 
 class NotificationServiceTest extends AbstractContainerBaseTest {
@@ -102,7 +102,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 	@MockBean
 	private FirebaseMessaging firebaseMessaging;
 
-	@MockBean
+	@Autowired
 	private CurrentPriceRepository manager;
 
 	@MockBean
@@ -145,8 +145,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 
 		given(firebaseMessagingService.send(any(Message.class)))
 			.willReturn(Optional.of("projects/fineants-404407/messages/4754d355-5d5d-4f14-a642-75fecdb91fa5"));
-		given(manager.getCurrentPrice(anyString()))
-			.willReturn(Optional.of(Money.won(50000L)));
+		manager.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L));
 
 		// when
 		PortfolioNotifyMessagesResponse response = service.notifyTargetGainBy(portfolio.getId());
@@ -185,10 +184,8 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 
 		given(firebaseMessagingService.send(any(Message.class)))
 			.willReturn(Optional.of("projects/fineants-404407/messages/4754d355-5d5d-4f14-a642-75fecdb91fa5"));
-		given(manager.getCurrentPrice(samsung.getTickerSymbol()))
-			.willReturn(Optional.of(Money.won(83300L)));
-		given(manager.getCurrentPrice(ccs.getTickerSymbol()))
-			.willReturn(Optional.of(Money.won(3750L)));
+		manager.addCurrentPrice(KisCurrentPrice.create(samsung.getTickerSymbol(), 83300L));
+		manager.addCurrentPrice(KisCurrentPrice.create(ccs.getTickerSymbol(), 3750L));
 
 		// when
 		PortfolioNotifyMessagesResponse response = service.notifyTargetGainBy(portfolio.getId());
@@ -226,8 +223,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 
 		given(firebaseMessagingService.send(any(Message.class)))
 			.willReturn(Optional.empty());
-		given(manager.getCurrentPrice(anyString()))
-			.willReturn(Optional.of(Money.won(50000L)));
+		manager.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L));
 
 		// when
 		PortfolioNotifyMessagesResponse response = service.notifyTargetGainBy(portfolio.getId());
@@ -254,8 +250,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding, 100L, 10000.0));
 		fcmRepository.save(createFcmToken("token", member));
 
-		given(manager.getCurrentPrice(anyString()))
-			.willReturn(Optional.of(Money.won(50000L)));
+		manager.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L));
 
 		// when
 		PortfolioNotifyMessagesResponse response = service.notifyTargetGainBy(portfolio.getId());
@@ -280,8 +275,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 
 		given(firebaseMessagingService.send(any(Message.class)))
 			.willReturn(Optional.of("messageId"));
-		given(manager.getCurrentPrice(anyString()))
-			.willReturn(Optional.of(Money.won(100L)));
+		manager.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 100L));
 
 		// when
 		PortfolioNotifyMessagesResponse response = service.notifyMaxLoss(portfolio.getId());
@@ -308,8 +302,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding, 50L, 60000.0));
 		fcmRepository.save(createFcmToken("token", member));
 
-		given(manager.getCurrentPrice(anyString()))
-			.willReturn(Optional.of(Money.won(50000L)));
+		manager.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L));
 
 		// when
 		PortfolioNotifyMessagesResponse response = service.notifyMaxLoss(portfolio.getId());
@@ -346,8 +339,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 
 		given(firebaseMessaging.send(any(Message.class)))
 			.willThrow(FirebaseMessagingException.class);
-		given(manager.getCurrentPrice(anyString()))
-			.willReturn(Optional.of(Money.won(50000L)));
+		manager.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L));
 
 		// when
 		PortfolioNotifyMessagesResponse response = service.notifyMaxLoss(portfolio.getId());
@@ -374,8 +366,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		purchaseHistoryRepository.save(createPurchaseHistory(holding, 100L, 100.0));
 		purchaseHistoryRepository.save(createPurchaseHistory(holding2, 1L, 60000.0));
 
-		given(manager.getCurrentPrice(anyString()))
-			.willReturn(Optional.of(Money.won(60000L)));
+		manager.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 60000L));
 		given(firebaseMessagingService.send(any(Message.class)))
 			.willReturn(Optional.of("messageId"));
 
@@ -419,10 +410,8 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		targetPriceNotificationRepository.saveAll(
 			createTargetPriceNotification(stockTargetPrice4, List.of(10000L, 20000L)));
 
-		given(manager.getCurrentPrice(stock.getTickerSymbol()))
-			.willReturn(Optional.of(Money.won(60000L)));
-		given(manager.getCurrentPrice(stock2.getTickerSymbol()))
-			.willReturn(Optional.of(Money.won(10000L)));
+		manager.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 60000L));
+		manager.addCurrentPrice(KisCurrentPrice.create(stock2.getTickerSymbol(), 10000L));
 		given(kisService.fetchCurrentPrice(stock2.getTickerSymbol()))
 			.willReturn(Mono.just(KisCurrentPrice.create(stock2.getTickerSymbol(), 10000L)));
 		given(firebaseMessagingService.send(any(Message.class)))
@@ -463,10 +452,8 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		targetPriceNotificationRepository.saveAll(
 			createTargetPriceNotification(stockTargetPrice2, List.of(10000L, 20000L)));
 
-		given(manager.getCurrentPrice(stock.getTickerSymbol()))
-			.willReturn(Optional.of(Money.won(60000L)));
-		given(manager.getCurrentPrice(stock2.getTickerSymbol()))
-			.willReturn(Optional.of(Money.won(10000L)));
+		manager.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 60000L));
+		manager.addCurrentPrice(KisCurrentPrice.create(stock2.getTickerSymbol(), 10000L));
 		given(firebaseMessagingService.send(any(Message.class)))
 			.willReturn(Optional.of("messageId"));
 		// when
@@ -554,10 +541,8 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 			member
 		));
 
-		given(manager.getCurrentPrice(stock.getTickerSymbol()))
-			.willReturn(Optional.of(Money.won(60000L)));
-		given(manager.getCurrentPrice(stock2.getTickerSymbol()))
-			.willReturn(Optional.of(Money.won(10000L)));
+		manager.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 60000L));
+		manager.addCurrentPrice(KisCurrentPrice.create(stock2.getTickerSymbol(), 10000L));
 		given(sentManager.hasTargetPriceSendHistory(sendTargetPriceNotification.getId()))
 			.willReturn(true);
 		given(firebaseMessagingService.send(any(Message.class)))
@@ -598,8 +583,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 			List.of(60000L, 70000L));
 		targetPriceNotificationRepository.saveAll(targetPriceNotifications);
 
-		given(manager.getCurrentPrice(stock.getTickerSymbol()))
-			.willReturn(Optional.of(Money.won(60000L)));
+		manager.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 60000L));
 		given(firebaseMessagingService.send(any(Message.class)))
 			.willReturn(Optional.empty());
 		// when
@@ -638,10 +622,8 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		targetPriceNotificationRepository.saveAll(
 			createTargetPriceNotification(stockTargetPrice2, List.of(10000L, 20000L)));
 
-		given(manager.getCurrentPrice(stock.getTickerSymbol()))
-			.willReturn(Optional.of(Money.won(60000L)));
-		given(manager.getCurrentPrice(stock2.getTickerSymbol()))
-			.willReturn(Optional.of(Money.won(10000L)));
+		manager.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 60000L));
+		manager.addCurrentPrice(KisCurrentPrice.create(stock2.getTickerSymbol(), 10000L));
 		given(sentManager.hasTargetPriceSendHistory(anyLong()))
 			.willReturn(false);
 		given(firebaseMessagingService.send(any(Message.class)))

@@ -2,10 +2,8 @@ package codesquad.fineants.domain.portfolio_gain_history.service;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.BDDMockito.*;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.AfterEach;
@@ -13,14 +11,17 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 
+import codesquad.fineants.AbstractContainerBaseTest;
 import codesquad.fineants.domain.common.count.Count;
 import codesquad.fineants.domain.common.money.Money;
+import codesquad.fineants.domain.kis.client.KisCurrentPrice;
+import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.repository.PortfolioRepository;
+import codesquad.fineants.domain.portfolio_gain_history.domain.dto.response.PortfolioGainHistoryCreateResponse;
 import codesquad.fineants.domain.portfolio_gain_history.domain.entity.PortfolioGainHistory;
 import codesquad.fineants.domain.portfolio_gain_history.repository.PortfolioGainHistoryRepository;
 import codesquad.fineants.domain.portfolio_holding.domain.entity.PortfolioHolding;
@@ -31,9 +32,6 @@ import codesquad.fineants.domain.stock.domain.entity.Market;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
 import codesquad.fineants.domain.stock_dividend.repository.StockDividendRepository;
-import codesquad.fineants.AbstractContainerBaseTest;
-import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
-import codesquad.fineants.domain.portfolio_gain_history.domain.dto.response.PortfolioGainHistoryCreateResponse;
 
 class PortfolioGainHistoryServiceTest extends AbstractContainerBaseTest {
 
@@ -61,10 +59,8 @@ class PortfolioGainHistoryServiceTest extends AbstractContainerBaseTest {
 	@Autowired
 	private StockDividendRepository stockDividendRepository;
 
-	@MockBean
+	@Autowired
 	private CurrentPriceRepository currentPriceRepository;
-
-	private Member member;
 
 	private Stock stock;
 
@@ -78,9 +74,9 @@ class PortfolioGainHistoryServiceTest extends AbstractContainerBaseTest {
 			.password("kim1234@")
 			.provider("local")
 			.build();
-		this.member = memberRepository.save(member);
+		memberRepository.save(member);
 
-		Portfolio portfolio = Portfolio.builder()
+		this.portfolio = Portfolio.builder()
 			.name("내꿈은 워렌버핏")
 			.securitiesFirm("토스")
 			.budget(Money.won(1000000L))
@@ -88,7 +84,6 @@ class PortfolioGainHistoryServiceTest extends AbstractContainerBaseTest {
 			.maximumLoss(Money.won(900000L))
 			.member(member)
 			.build();
-		this.portfolio = portfolio;
 
 		Stock stock = Stock.builder()
 			.companyName("삼성전자보통주")
@@ -128,9 +123,7 @@ class PortfolioGainHistoryServiceTest extends AbstractContainerBaseTest {
 		portFolioHoldingRepository.save(portfolioHolding);
 		purchaseHistoryRepository.save(purchaseHistory);
 
-		given(currentPriceRepository.hasCurrentPrice("005930")).willReturn(true);
-		given(currentPriceRepository.getCurrentPrice("005930")).willReturn(Optional.of(Money.won(60000L)));
-
+		currentPriceRepository.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 60000L));
 		// when
 		PortfolioGainHistoryCreateResponse response = service.addPortfolioGainHistory();
 

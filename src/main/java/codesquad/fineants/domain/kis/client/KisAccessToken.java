@@ -40,6 +40,10 @@ public class KisAccessToken {
 		this.expiresIn = expiresIn;
 	}
 
+	public static KisAccessToken bearerType(String accessToken, LocalDateTime accessTokenExpired, Integer expiresIn) {
+		return new KisAccessToken(accessToken, "Bearer", accessTokenExpired, expiresIn);
+	}
+
 	public Duration betweenSecondFrom(LocalDateTime localDateTime) {
 		return Duration.ofSeconds(Duration.between(localDateTime, accessTokenExpired).toSeconds());
 	}
