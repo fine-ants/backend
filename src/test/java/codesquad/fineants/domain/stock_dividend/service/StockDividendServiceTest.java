@@ -13,7 +13,11 @@ import org.mockito.ArgumentMatchers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
+import codesquad.fineants.AbstractContainerBaseTest;
 import codesquad.fineants.domain.common.money.Money;
+import codesquad.fineants.domain.kis.domain.dto.response.KisDividend;
+import codesquad.fineants.domain.kis.repository.KisAccessTokenRepository;
+import codesquad.fineants.domain.kis.service.KisService;
 import codesquad.fineants.domain.stock.domain.entity.Market;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
@@ -21,10 +25,6 @@ import codesquad.fineants.domain.stock_dividend.domain.entity.StockDividend;
 import codesquad.fineants.domain.stock_dividend.repository.StockDividendRepository;
 import codesquad.fineants.infra.s3.dto.Dividend;
 import codesquad.fineants.infra.s3.service.AmazonS3DividendService;
-import codesquad.fineants.AbstractContainerBaseTest;
-import codesquad.fineants.domain.kis.repository.KisAccessTokenRepository;
-import codesquad.fineants.domain.kis.domain.dto.response.KisDividend;
-import codesquad.fineants.domain.kis.service.KisService;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -45,7 +45,7 @@ class StockDividendServiceTest extends AbstractContainerBaseTest {
 	@MockBean
 	private KisService kisService;
 
-	@MockBean
+	@Autowired
 	private KisAccessTokenRepository kisAccessTokenRepository;
 
 	@AfterEach
@@ -86,7 +86,7 @@ class StockDividendServiceTest extends AbstractContainerBaseTest {
 		String kakaoTickerSymbol = "035720";
 		int kakaoDividend = 61;
 
-		given(kisAccessTokenRepository.createAuthorization()).willReturn(createAuthorization());
+		kisAccessTokenRepository.refreshAccessToken(createKisAccessToken());
 		given(kisService.fetchDividendAll(
 			ArgumentMatchers.any(LocalDate.class),
 			ArgumentMatchers.any(LocalDate.class)
@@ -305,9 +305,5 @@ class StockDividendServiceTest extends AbstractContainerBaseTest {
 			.paymentDate(paymentDate)
 			.stock(stock)
 			.build();
-	}
-
-	private String createAuthorization() {
-		return "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0b2tlbiIsImF1ZCI6Ijg5MjBlNjM2LTNkYmItNGU5MS04ZGJmLWJmZDU5ZmI2YjAwYiIsImlzcyI6InVub2d3IiwiZXhwIjoxNzAzNTcwOTA0LCJpYXQiOjE3MDM0ODQ1MDQsImp0aSI6IlBTRGc4WlVJd041eVl5ZkR6bnA0TDM2Z2xhRUpic2RJNGd6biJ9.z8dh9rlOyPq_ukm9KeCz0tkKI2QaHEe07LhXTcKQBrcP1-uiW3dwAwdknpAojJZ7aUWLUaQQn0HmjTCttjSJaA";
 	}
 }

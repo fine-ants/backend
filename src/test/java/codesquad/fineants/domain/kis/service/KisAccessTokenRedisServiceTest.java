@@ -41,6 +41,7 @@ class KisAccessTokenRedisServiceTest extends AbstractContainerBaseTest {
 	void setAccessTokenMapWithExpiredAccessToken() {
 		// given
 		KisAccessToken accessToken = createKisAccessToken();
+
 		// when
 		Throwable throwable = catchThrowable(
 			() -> service.setAccessTokenMap(accessToken, LocalDateTime.of(2023, 12, 8, 15, 0, 0)));
@@ -75,8 +76,10 @@ class KisAccessTokenRedisServiceTest extends AbstractContainerBaseTest {
 	void getAccessTokenMap_whenEmptyAccessToken_thenReturnEmptyOptional() {
 		// given
 		service.deleteAccessTokenMap();
+
 		// when
 		Optional<KisAccessToken> optionalKisAccessToken = service.getAccessTokenMap();
+
 		// then
 		assertThat(optionalKisAccessToken.isEmpty()).isTrue();
 	}
@@ -85,7 +88,7 @@ class KisAccessTokenRedisServiceTest extends AbstractContainerBaseTest {
 		return LocalDateTime.of(2023, 12, 6, 14, 0, 0);
 	}
 
-	private KisAccessToken createKisAccessToken() {
+	public KisAccessToken createKisAccessToken() {
 		return new KisAccessToken(
 			"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0b2tlbiIsImF1ZCI6ImE1OGY4YzAyLWMzMzYtNGY3ZC04OGE0LWZkZDRhZTA3NmQ5YyIsImlzcyI6InVub2d3IiwiZXhwIjoxNzAxOTE2ODg3LCJpYXQiOjE3MDE4MzA0ODcsImp0aSI6IlBTRGc4WlVJd041eVl5ZkR6bnA0TDM2Z2xhRUpic2RJNGd6biJ9.uLZAu9_ompf8ycwiRJ5jrdoB-MiUG9a8quoQ3OeVOrUDGxyEhHmzZTPnCdLRWOEHowFlmyNOf3v-lPZGZqi9Kw",
 			"Bearer",
@@ -93,5 +96,4 @@ class KisAccessTokenRedisServiceTest extends AbstractContainerBaseTest {
 			86400
 		);
 	}
-
 }

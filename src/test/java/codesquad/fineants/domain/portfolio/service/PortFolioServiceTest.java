@@ -2,8 +2,6 @@ package codesquad.fineants.domain.portfolio.service;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.BDDMockito.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -12,7 +10,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -25,15 +22,22 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 
+import codesquad.fineants.AbstractContainerBaseTest;
 import codesquad.fineants.domain.common.count.Count;
 import codesquad.fineants.domain.common.money.Bank;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.common.money.Percentage;
+import codesquad.fineants.domain.kis.client.KisCurrentPrice;
+import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
 import codesquad.fineants.domain.oauth.support.AuthMember;
+import codesquad.fineants.domain.portfolio.domain.dto.request.PortfolioCreateRequest;
+import codesquad.fineants.domain.portfolio.domain.dto.request.PortfolioModifyRequest;
+import codesquad.fineants.domain.portfolio.domain.dto.request.PortfoliosDeleteRequest;
+import codesquad.fineants.domain.portfolio.domain.dto.response.PortFolioCreateResponse;
+import codesquad.fineants.domain.portfolio.domain.dto.response.PortfoliosResponse;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.repository.PortfolioRepository;
 import codesquad.fineants.domain.portfolio_gain_history.domain.entity.PortfolioGainHistory;
@@ -46,17 +50,10 @@ import codesquad.fineants.domain.stock.domain.entity.Market;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
 import codesquad.fineants.domain.stock_dividend.domain.entity.StockDividend;
-import codesquad.fineants.AbstractContainerBaseTest;
 import codesquad.fineants.global.errors.exception.BadRequestException;
 import codesquad.fineants.global.errors.exception.ConflictException;
 import codesquad.fineants.global.errors.exception.FineAntsException;
 import codesquad.fineants.global.errors.exception.ForBiddenException;
-import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
-import codesquad.fineants.domain.portfolio.domain.dto.request.PortfolioCreateRequest;
-import codesquad.fineants.domain.portfolio.domain.dto.request.PortfolioModifyRequest;
-import codesquad.fineants.domain.portfolio.domain.dto.request.PortfoliosDeleteRequest;
-import codesquad.fineants.domain.portfolio.domain.dto.response.PortFolioCreateResponse;
-import codesquad.fineants.domain.portfolio.domain.dto.response.PortfoliosResponse;
 import codesquad.fineants.global.util.ObjectMapperUtil;
 
 class PortFolioServiceTest extends AbstractContainerBaseTest {
@@ -82,7 +79,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 	@Autowired
 	private StockRepository stockRepository;
 
-	@MockBean
+	@Autowired
 	private CurrentPriceRepository currentPriceRepository;
 
 	@AfterEach
@@ -441,9 +438,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 			.portfolio(portfolio)
 			.build());
 
-		given(currentPriceRepository.hasCurrentPrice(anyString())).willReturn(true);
-		given(currentPriceRepository.getCurrentPrice(anyString())).willReturn(Optional.of(Money.won(40000L)));
-
+		currentPriceRepository.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 40000L));
 		// when
 		PortfoliosResponse response = service.readMyAllPortfolio(AuthMember.from(member));
 

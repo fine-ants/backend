@@ -6,9 +6,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.AfterEach;
@@ -21,13 +19,18 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 
 import com.google.firebase.messaging.Message;
 
+import codesquad.fineants.AbstractContainerBaseTest;
 import codesquad.fineants.domain.common.count.Count;
 import codesquad.fineants.domain.common.money.Money;
-import codesquad.fineants.domain.fcm_token.repository.FcmRepository;
 import codesquad.fineants.domain.fcm_token.domain.entity.FcmToken;
+import codesquad.fineants.domain.fcm_token.repository.FcmRepository;
+import codesquad.fineants.domain.fcm_token.service.FirebaseMessagingService;
+import codesquad.fineants.domain.kis.client.KisCurrentPrice;
+import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
 import codesquad.fineants.domain.notification.repository.NotificationRepository;
+import codesquad.fineants.domain.notification.repository.NotificationSentRepository;
 import codesquad.fineants.domain.notification_preference.domain.entity.NotificationPreference;
 import codesquad.fineants.domain.notification_preference.repository.NotificationPreferenceRepository;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
@@ -35,25 +38,20 @@ import codesquad.fineants.domain.portfolio.repository.PortfolioRepository;
 import codesquad.fineants.domain.portfolio_gain_history.repository.PortfolioGainHistoryRepository;
 import codesquad.fineants.domain.portfolio_holding.domain.entity.PortfolioHolding;
 import codesquad.fineants.domain.portfolio_holding.repository.PortfolioHoldingRepository;
-import codesquad.fineants.domain.purchase_history.domain.entity.PurchaseHistory;
-import codesquad.fineants.domain.purchase_history.repository.PurchaseHistoryRepository;
-import codesquad.fineants.domain.stock.domain.entity.Market;
-import codesquad.fineants.domain.stock.domain.entity.Stock;
-import codesquad.fineants.domain.stock.repository.StockRepository;
-import codesquad.fineants.domain.stock_dividend.domain.entity.StockDividend;
-import codesquad.fineants.domain.stock_dividend.repository.StockDividendRepository;
-import codesquad.fineants.AbstractContainerBaseTest;
-import codesquad.fineants.global.errors.errorcode.PortfolioErrorCode;
-import codesquad.fineants.global.errors.errorcode.PurchaseHistoryErrorCode;
-import codesquad.fineants.global.errors.exception.FineAntsException;
-import codesquad.fineants.domain.fcm_token.service.FirebaseMessagingService;
-import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
-import codesquad.fineants.domain.notification.repository.NotificationSentRepository;
 import codesquad.fineants.domain.purchase_history.domain.dto.request.PurchaseHistoryCreateRequest;
 import codesquad.fineants.domain.purchase_history.domain.dto.request.PurchaseHistoryUpdateRequest;
 import codesquad.fineants.domain.purchase_history.domain.dto.response.PurchaseHistoryCreateResponse;
 import codesquad.fineants.domain.purchase_history.domain.dto.response.PurchaseHistoryDeleteResponse;
 import codesquad.fineants.domain.purchase_history.domain.dto.response.PurchaseHistoryUpdateResponse;
+import codesquad.fineants.domain.purchase_history.domain.entity.PurchaseHistory;
+import codesquad.fineants.domain.purchase_history.repository.PurchaseHistoryRepository;
+import codesquad.fineants.domain.stock.domain.entity.Market;
+import codesquad.fineants.domain.stock.domain.entity.Stock;
+import codesquad.fineants.domain.stock.repository.StockRepository;
+import codesquad.fineants.domain.stock_dividend.repository.StockDividendRepository;
+import codesquad.fineants.global.errors.errorcode.PortfolioErrorCode;
+import codesquad.fineants.global.errors.errorcode.PurchaseHistoryErrorCode;
+import codesquad.fineants.global.errors.exception.FineAntsException;
 
 class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 
@@ -90,7 +88,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 	@Autowired
 	private FcmRepository fcmRepository;
 
-	@MockBean
+	@Autowired
 	private CurrentPriceRepository currentPriceRepository;
 
 	@MockBean
@@ -133,8 +131,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 			.purchasePricePerShare(money)
 			.memo("첫구매")
 			.build();
-		given(currentPriceRepository.getCurrentPrice(anyString()))
-			.willReturn(Optional.of(Money.won(50000L)));
+		currentPriceRepository.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L));
 		// when
 		PurchaseHistoryCreateResponse response = service.createPurchaseHistory(
 			request,
@@ -178,8 +175,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 			.memo("첫구매")
 			.build();
 
-		given(currentPriceRepository.getCurrentPrice(anyString()))
-			.willReturn(Optional.of(Money.won(50000L)));
+		currentPriceRepository.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L));
 		given(sentManager.hasTargetGainSendHistory(anyLong()))
 			.willReturn(false);
 		given(firebaseMessagingService.send(any(Message.class)))
@@ -226,8 +222,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 			.memo("첫구매")
 			.build();
 
-		given(currentPriceRepository.getCurrentPrice(anyString()))
-			.willReturn(Optional.of(Money.won(50000L)));
+		currentPriceRepository.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L));
 		given(sentManager.hasTargetGainSendHistory(anyLong()))
 			.willReturn(false);
 		given(firebaseMessagingService.send(any(Message.class)))
@@ -293,8 +288,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 			.memo("첫구매")
 			.build();
 
-		given(currentPriceRepository.getCurrentPrice(anyString()))
-			.willReturn(Optional.of(Money.won(50000L)));
+		currentPriceRepository.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L));
 		// when
 		PurchaseHistoryUpdateResponse response = service.updatePurchaseHistory(
 			request,
@@ -332,8 +326,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 			.memo("첫구매")
 			.build();
 
-		given(currentPriceRepository.getCurrentPrice(anyString()))
-			.willReturn(Optional.of(Money.won(50000L)));
+		currentPriceRepository.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L));
 		given(sentManager.hasTargetGainSendHistory(anyLong()))
 			.willReturn(false);
 		given(firebaseMessagingService.send(any(Message.class)))
@@ -393,11 +386,10 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 		Stock stock = stockRepository.save(createStock());
 		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
 		PurchaseHistory history = purchaseHistoryRepository.save(createPurchaseHistory(holding));
-		purchaseHistoryRepository.save(createPurchaseHistory(holding, 100L, 100.0));
+		purchaseHistoryRepository.save(createPurchaseHistory(holding, 100.0));
 		fcmRepository.save(createFcmToken("token", member));
 
-		given(currentPriceRepository.getCurrentPrice(anyString()))
-			.willReturn(Optional.of(Money.won(50000L)));
+		currentPriceRepository.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L));
 		given(sentManager.hasTargetGainSendHistory(anyLong()))
 			.willReturn(false);
 		given(firebaseMessagingService.send(any(Message.class)))
@@ -428,7 +420,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Stock stock = stockRepository.save(createStock());
 		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
-		PurchaseHistory history = purchaseHistoryRepository.save(createPurchaseHistory(holding));
+		purchaseHistoryRepository.save(createPurchaseHistory(holding));
 
 		Long purchaseHistoryId = 9999L;
 
@@ -504,36 +496,6 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 			.build();
 	}
 
-	private Stock createStock(String companyName, String tickerSymbol, String companyNameEng, String stockCode,
-		String sector, Market market) {
-		return Stock.builder()
-			.companyName(companyName)
-			.tickerSymbol(tickerSymbol)
-			.companyNameEng(companyNameEng)
-			.stockCode(stockCode)
-			.sector(sector)
-			.market(market)
-			.build();
-	}
-
-	private StockDividend createStockDividend(LocalDate exDividendDate, LocalDate recordDate, LocalDate paymentDate,
-		Stock stock) {
-		return StockDividend.builder()
-			.dividend(Money.won(361L))
-			.exDividendDate(exDividendDate)
-			.recordDate(recordDate)
-			.paymentDate(paymentDate)
-			.stock(stock)
-			.build();
-	}
-
-	private PortfolioHolding createPortfolioHolding(Portfolio portfolio, Stock stock) {
-		return PortfolioHolding.builder()
-			.portfolio(portfolio)
-			.stock(stock)
-			.build();
-	}
-
 	private PurchaseHistory createPurchaseHistory(PortfolioHolding portfolioHolding) {
 		return PurchaseHistory.builder()
 			.purchaseDate(LocalDateTime.of(2023, 9, 26, 9, 30, 0))
@@ -544,64 +506,18 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 			.build();
 	}
 
-	private PurchaseHistory createPurchaseHistory(PortfolioHolding portfolioHolding, Long numShares,
+	private PurchaseHistory createPurchaseHistory(PortfolioHolding portfolioHolding,
 		Double purchasePricePerShare) {
 		return PurchaseHistory.builder()
 			.purchaseDate(LocalDateTime.of(2023, 9, 26, 9, 30, 0))
-			.numShares(Count.from(numShares))
+			.numShares(Count.from(100L))
 			.purchasePricePerShare(Money.won(purchasePricePerShare))
 			.memo("첫구매")
 			.portfolioHolding(portfolioHolding)
 			.build();
 	}
 
-	private List<StockDividend> createStockDividendWith(Stock stock) {
-		return List.of(
-			createStockDividend(
-				LocalDate.of(2022, 12, 30),
-				LocalDate.of(2022, 12, 31),
-				LocalDate.of(2023, 4, 14),
-				stock),
-			createStockDividend(
-				LocalDate.of(2023, 3, 30),
-				LocalDate.of(2023, 3, 31),
-				LocalDate.of(2023, 5, 17),
-				stock),
-			createStockDividend(
-				LocalDate.of(2023, 6, 29),
-				LocalDate.of(2023, 6, 30),
-				LocalDate.of(2023, 8, 16),
-				stock),
-			createStockDividend(
-				LocalDate.of(2023, 9, 27),
-				LocalDate.of(2023, 9, 30),
-				LocalDate.of(2023, 11, 20),
-				stock),
-			createStockDividend(
-				LocalDate.of(2024, 3, 29),
-				LocalDate.of(2024, 3, 31),
-				LocalDate.of(2024, 5, 17),
-				stock),
-			createStockDividend(
-				LocalDate.of(2024, 6, 28),
-				LocalDate.of(2024, 6, 30),
-				LocalDate.of(2024, 8, 16),
-				stock),
-			createStockDividend(
-				LocalDate.of(2024, 9, 27),
-				LocalDate.of(2024, 9, 30),
-				LocalDate.of(2024, 11, 20),
-				stock)
-		);
-	}
-
 	private NotificationPreference createNotificationPreference(Member member) {
-		return NotificationPreference.builder()
-			.browserNotify(true)
-			.targetGainNotify(true)
-			.maxLossNotify(true)
-			.targetPriceNotify(true)
-			.member(member)
-			.build();
+		return NotificationPreference.allActive(member);
 	}
 }

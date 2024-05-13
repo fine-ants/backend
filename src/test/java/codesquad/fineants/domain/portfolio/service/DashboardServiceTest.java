@@ -1,13 +1,11 @@
 package codesquad.fineants.domain.portfolio.service;
 
 import static org.assertj.core.api.AssertionsForClassTypes.*;
-import static org.mockito.BDDMockito.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Optional;
 
 import org.assertj.core.data.Percentage;
 import org.junit.jupiter.api.AfterEach;
@@ -15,19 +13,25 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 
+import codesquad.fineants.AbstractContainerBaseTest;
 import codesquad.fineants.domain.common.count.Count;
 import codesquad.fineants.domain.common.money.Money;
+import codesquad.fineants.domain.kis.client.KisCurrentPrice;
+import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
 import codesquad.fineants.domain.oauth.support.AuthMember;
+import codesquad.fineants.domain.portfolio.domain.dto.response.DashboardLineChartResponse;
+import codesquad.fineants.domain.portfolio.domain.dto.response.DashboardPieChartResponse;
+import codesquad.fineants.domain.portfolio.domain.dto.response.OverviewResponse;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.repository.PortfolioRepository;
 import codesquad.fineants.domain.portfolio_gain_history.domain.entity.PortfolioGainHistory;
 import codesquad.fineants.domain.portfolio_gain_history.repository.PortfolioGainHistoryRepository;
 import codesquad.fineants.domain.portfolio_holding.domain.entity.PortfolioHolding;
 import codesquad.fineants.domain.portfolio_holding.repository.PortfolioHoldingRepository;
+import codesquad.fineants.domain.purchase_history.domain.dto.request.PurchaseHistoryCreateRequest;
 import codesquad.fineants.domain.purchase_history.domain.entity.PurchaseHistory;
 import codesquad.fineants.domain.purchase_history.repository.PurchaseHistoryRepository;
 import codesquad.fineants.domain.stock.domain.entity.Market;
@@ -35,12 +39,6 @@ import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
 import codesquad.fineants.domain.stock_dividend.domain.entity.StockDividend;
 import codesquad.fineants.domain.stock_dividend.repository.StockDividendRepository;
-import codesquad.fineants.AbstractContainerBaseTest;
-import codesquad.fineants.domain.portfolio.domain.dto.response.DashboardLineChartResponse;
-import codesquad.fineants.domain.portfolio.domain.dto.response.DashboardPieChartResponse;
-import codesquad.fineants.domain.portfolio.domain.dto.response.OverviewResponse;
-import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
-import codesquad.fineants.domain.purchase_history.domain.dto.request.PurchaseHistoryCreateRequest;
 
 public class DashboardServiceTest extends AbstractContainerBaseTest {
 	@Autowired
@@ -59,7 +57,7 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 	private StockRepository stockRepository;
 	@Autowired
 	private StockDividendRepository stockDividendRepository;
-	@MockBean
+	@Autowired
 	private CurrentPriceRepository currentPriceRepository;
 
 	@AfterEach
@@ -140,10 +138,7 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 				.build()
 		);
 
-		given(currentPriceRepository.hasCurrentPrice(anyString()))
-			.willReturn(true);
-		given(currentPriceRepository.getCurrentPrice(anyString()))
-			.willReturn(Optional.of(Money.won(72900L)));
+		currentPriceRepository.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 72900L));
 		// when
 		OverviewResponse response = dashboardService.getOverview(authMember);
 
@@ -182,11 +177,7 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 		Stock stock = stockRepository.save(createStock());
 		portfolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
 
-		given(currentPriceRepository.hasCurrentPrice(anyString()))
-			.willReturn(true);
-		given(currentPriceRepository.getCurrentPrice(anyString()))
-			.willReturn(Optional.of(Money.won(50000L)));
-
+		currentPriceRepository.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L));
 		// when
 		OverviewResponse response = dashboardService.getOverview(AuthMember.from(member));
 
@@ -263,11 +254,7 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 				"첫구매"
 			)
 		));
-
-		given(currentPriceRepository.hasCurrentPrice(anyString()))
-			.willReturn(true);
-		given(currentPriceRepository.getCurrentPrice(anyString()))
-			.willReturn(Optional.of(Money.won(60000L)));
+		currentPriceRepository.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 60000L));
 		// when
 		List<DashboardPieChartResponse> responses = dashboardService.getPieChart(authMember);
 
@@ -299,14 +286,14 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 			.maximumLoss(Money.won(900000L))
 			.member(member)
 			.build());
-		PortfolioGainHistory portfolioGainHistory = portfolioGainHistoryRepository.save(PortfolioGainHistory.builder()
+		portfolioGainHistoryRepository.save(PortfolioGainHistory.builder()
 			.totalGain(Money.won(100L))
 			.dailyGain(Money.won(50L))
 			.currentValuation(Money.won(60L))
 			.cash(Money.won(20L))
 			.portfolio(portfolio)
 			.build());
-		PortfolioGainHistory portfolioGainHistory1 = portfolioGainHistoryRepository.save(PortfolioGainHistory.builder()
+		portfolioGainHistoryRepository.save(PortfolioGainHistory.builder()
 			.totalGain(Money.won(100L))
 			.dailyGain(Money.won(50L))
 			.currentValuation(Money.won(60L))
@@ -331,13 +318,9 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 	}
 
 	private Member createMember() {
-		return createMember("일개미1234", "kim1234@gmail.com");
-	}
-
-	private Member createMember(String nickname, String email) {
 		return Member.builder()
-			.nickname(nickname)
-			.email(email)
+			.nickname("일개미1234")
+			.email("kim1234@gmail.com")
 			.password("kim1234@")
 			.provider("local")
 			.build();

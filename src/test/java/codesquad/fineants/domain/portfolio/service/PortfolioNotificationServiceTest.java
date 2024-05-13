@@ -11,15 +11,17 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import codesquad.fineants.AbstractContainerBaseTest;
 import codesquad.fineants.domain.common.count.Count;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
+import codesquad.fineants.domain.portfolio.domain.dto.request.PortfolioNotificationUpdateRequest;
+import codesquad.fineants.domain.portfolio.domain.dto.response.PortfolioNotificationUpdateResponse;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.repository.PortfolioRepository;
 import codesquad.fineants.domain.portfolio_gain_history.repository.PortfolioGainHistoryRepository;
@@ -30,14 +32,9 @@ import codesquad.fineants.domain.purchase_history.repository.PurchaseHistoryRepo
 import codesquad.fineants.domain.stock.domain.entity.Market;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
-import codesquad.fineants.AbstractContainerBaseTest;
 import codesquad.fineants.global.errors.errorcode.PortfolioErrorCode;
 import codesquad.fineants.global.errors.exception.FineAntsException;
-import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
 import codesquad.fineants.infra.mail.service.MailService;
-import codesquad.fineants.domain.portfolio.repository.MailRedisRepository;
-import codesquad.fineants.domain.portfolio.domain.dto.request.PortfolioNotificationUpdateRequest;
-import codesquad.fineants.domain.portfolio.domain.dto.response.PortfolioNotificationUpdateResponse;
 
 class PortfolioNotificationServiceTest extends AbstractContainerBaseTest {
 
@@ -65,14 +62,7 @@ class PortfolioNotificationServiceTest extends AbstractContainerBaseTest {
 	@Autowired
 	private PortfolioGainHistoryRepository portfolioGainHistoryRepository;
 
-	@MockBean
-	private CurrentPriceRepository currentPriceRepository;
-
-	@MockBean
 	private MailService mailService;
-
-	@MockBean
-	private MailRedisRepository manager;
 
 	@AfterEach
 	void tearDown() {

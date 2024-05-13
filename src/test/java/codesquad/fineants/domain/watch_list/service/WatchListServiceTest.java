@@ -1,12 +1,9 @@
 package codesquad.fineants.domain.watch_list.service;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.BDDMockito.*;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,8 +12,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
+import codesquad.fineants.AbstractContainerBaseTest;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.common.money.Percentage;
+import codesquad.fineants.domain.kis.client.KisCurrentPrice;
+import codesquad.fineants.domain.kis.domain.dto.response.KisClosingPrice;
+import codesquad.fineants.domain.kis.repository.ClosingPriceRepository;
+import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
+import codesquad.fineants.domain.kis.service.KisService;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
 import codesquad.fineants.domain.oauth.support.AuthMember;
@@ -25,14 +28,6 @@ import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
 import codesquad.fineants.domain.stock_dividend.domain.entity.StockDividend;
 import codesquad.fineants.domain.stock_dividend.repository.StockDividendRepository;
-import codesquad.fineants.domain.watch_list.domain.entity.WatchList;
-import codesquad.fineants.domain.watch_list.repository.WatchListRepository;
-import codesquad.fineants.domain.watch_list.domain.entity.WatchStock;
-import codesquad.fineants.domain.watch_list.repository.WatchStockRepository;
-import codesquad.fineants.AbstractContainerBaseTest;
-import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
-import codesquad.fineants.domain.kis.repository.ClosingPriceRepository;
-import codesquad.fineants.domain.kis.service.KisService;
 import codesquad.fineants.domain.watch_list.domain.dto.request.ChangeWatchListNameRequest;
 import codesquad.fineants.domain.watch_list.domain.dto.request.CreateWatchListRequest;
 import codesquad.fineants.domain.watch_list.domain.dto.request.CreateWatchStockRequest;
@@ -42,6 +37,10 @@ import codesquad.fineants.domain.watch_list.domain.dto.response.CreateWatchListR
 import codesquad.fineants.domain.watch_list.domain.dto.response.ReadWatchListResponse;
 import codesquad.fineants.domain.watch_list.domain.dto.response.ReadWatchListsResponse;
 import codesquad.fineants.domain.watch_list.domain.dto.response.WatchListHasStockResponse;
+import codesquad.fineants.domain.watch_list.domain.entity.WatchList;
+import codesquad.fineants.domain.watch_list.domain.entity.WatchStock;
+import codesquad.fineants.domain.watch_list.repository.WatchListRepository;
+import codesquad.fineants.domain.watch_list.repository.WatchStockRepository;
 
 class WatchListServiceTest extends AbstractContainerBaseTest {
 
@@ -54,16 +53,12 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 	@Autowired
 	private WatchListRepository watchListRepository;
 
-	@MockBean
+	@Autowired
 	private CurrentPriceRepository currentPriceRepository;
 
-	@MockBean
+	@Autowired
 	private ClosingPriceRepository closingPriceRepository;
 
-	@MockBean
-	private KisService kisService;
-
-	private Member member;
 	@Autowired
 	private WatchStockRepository watchStockRepository;
 
@@ -72,6 +67,11 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 
 	@Autowired
 	private StockDividendRepository stockDividendRepository;
+
+	@MockBean
+	private KisService kisService;
+
+	private Member member;
 
 	@BeforeEach
 	void init() {
@@ -110,13 +110,13 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 	void readWatchLists() {
 		//given
 		AuthMember authMember = AuthMember.from(member);
-		WatchList watchList1 = watchListRepository.save(
+		watchListRepository.save(
 			WatchList.builder()
 				.name("My WatchList 1")
 				.member(member)
 				.build()
 		);
-		WatchList watchList2 = watchListRepository.save(
+		watchListRepository.save(
 			WatchList.builder()
 				.name("My WatchList 2")
 				.member(member)
@@ -168,10 +168,8 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 				.build()
 		);
 
-		Money currentPrice = Money.won(77000);
-		given(currentPriceRepository.getCurrentPrice(any(String.class))).willReturn(Optional.of(currentPrice));
-		given(closingPriceRepository.getClosingPrice(any(String.class))).willReturn(
-			Optional.of(Money.won(77000)));
+		currentPriceRepository.addCurrentPrice(KisCurrentPrice.create("005930", 77000L));
+		closingPriceRepository.addPrice(KisClosingPrice.create("005930", 77000L));
 
 		// when
 		ReadWatchListResponse response = watchListService.readWatchList(authMember, watchList.getId());
@@ -248,7 +246,7 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 			.build());
 		Long watchListId = watchList.getId();
 
-		WatchStock watchStock = watchStockRepository.save(
+		watchStockRepository.save(
 			WatchStock.builder()
 				.watchList(watchList)
 				.stock(stock)
@@ -348,13 +346,15 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 			.build());
 		Long watchListId = watchList.getId();
 
-		ChangeWatchListNameRequest request = new ChangeWatchListNameRequest("New Name");
+		String name = "New Name";
+		ChangeWatchListNameRequest request = new ChangeWatchListNameRequest(name);
 
 		// when
 		watchListService.changeWatchListName(authMember, watchListId, request);
 
 		// then
-		assertThat(watchListRepository.findById(watchListId).get().getName()).isEqualTo(request.getName());
+		WatchList findWatchList = watchListRepository.findById(watchListId).orElseThrow();
+		assertThat(findWatchList.getName()).isEqualTo(name);
 	}
 
 	@DisplayName("회원이 watchlist들이 주식을 포함하고 있는지 조회한다.")
@@ -377,7 +377,7 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 			.member(member)
 			.build());
 
-		WatchStock watchStock = watchStockRepository.save(
+		watchStockRepository.save(
 			WatchStock.builder()
 				.watchList(watchList1)
 				.stock(stock)

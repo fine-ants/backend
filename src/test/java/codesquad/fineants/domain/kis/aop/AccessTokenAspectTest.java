@@ -3,7 +3,6 @@ package codesquad.fineants.domain.kis.aop;
 import static org.mockito.BDDMockito.*;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
@@ -13,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
 import codesquad.fineants.AbstractContainerBaseTest;
-import codesquad.fineants.domain.kis.client.KisAccessToken;
 import codesquad.fineants.domain.kis.client.KisClient;
 import codesquad.fineants.domain.kis.repository.KisAccessTokenRepository;
 import codesquad.fineants.domain.kis.service.KisAccessTokenRedisService;
@@ -51,12 +49,12 @@ class AccessTokenAspectTest extends AbstractContainerBaseTest {
 		Assertions.assertThat(kisAccessTokenRedisService.getAccessTokenMap().isPresent()).isTrue();
 	}
 
-	private KisAccessToken createKisAccessToken() {
-		return new KisAccessToken(
-			"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0b2tlbiIsImF1ZCI6ImE1OGY4YzAyLWMzMzYtNGY3ZC04OGE0LWZkZDRhZTA3NmQ5YyIsImlzcyI6InVub2d3IiwiZXhwIjoxNzAxOTE2ODg3LCJpYXQiOjE3MDE4MzA0ODcsImp0aSI6IlBTRGc4WlVJd041eVl5ZkR6bnA0TDM2Z2xhRUpic2RJNGd6biJ9.uLZAu9_ompf8ycwiRJ5jrdoB-MiUG9a8quoQ3OeVOrUDGxyEhHmzZTPnCdLRWOEHowFlmyNOf3v-lPZGZqi9Kw",
-			"Bearer",
-			LocalDateTime.now().plusDays(1),
-			86400
-		);
-	}
+	// private KisAccessToken createKisAccessToken() {
+	// 	return new KisAccessToken(
+	// 		"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0b2tlbiIsImF1ZCI6ImE1OGY4YzAyLWMzMzYtNGY3ZC04OGE0LWZkZDRhZTA3NmQ5YyIsImlzcyI6InVub2d3IiwiZXhwIjoxNzAxOTE2ODg3LCJpYXQiOjE3MDE4MzA0ODcsImp0aSI6IlBTRGc4WlVJd041eVl5ZkR6bnA0TDM2Z2xhRUpic2RJNGd6biJ9.uLZAu9_ompf8ycwiRJ5jrdoB-MiUG9a8quoQ3OeVOrUDGxyEhHmzZTPnCdLRWOEHowFlmyNOf3v-lPZGZqi9Kw",
+	// 		"Bearer",
+	// 		LocalDateTime.now().plusDays(1),
+	// 		86400
+	// 	);
+	// }
 }

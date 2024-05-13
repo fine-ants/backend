@@ -15,7 +15,13 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
+import codesquad.fineants.AbstractContainerBaseTest;
 import codesquad.fineants.domain.common.money.Money;
+import codesquad.fineants.domain.kis.client.KisClient;
+import codesquad.fineants.domain.kis.client.KisCurrentPrice;
+import codesquad.fineants.domain.kis.domain.dto.response.KisClosingPrice;
+import codesquad.fineants.domain.kis.repository.HolidayRepository;
+import codesquad.fineants.domain.kis.repository.KisAccessTokenRepository;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
@@ -25,16 +31,8 @@ import codesquad.fineants.domain.portfolio_holding.repository.PortfolioHoldingRe
 import codesquad.fineants.domain.stock.domain.entity.Market;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
-import codesquad.fineants.domain.stock_dividend.domain.entity.StockDividend;
 import codesquad.fineants.domain.stock_dividend.repository.StockDividendRepository;
-import codesquad.fineants.AbstractContainerBaseTest;
 import codesquad.fineants.global.errors.exception.KisException;
-import codesquad.fineants.domain.kis.client.KisClient;
-import codesquad.fineants.domain.kis.client.KisCurrentPrice;
-import codesquad.fineants.domain.kis.repository.HolidayRepository;
-import codesquad.fineants.domain.kis.repository.KisAccessTokenRepository;
-import codesquad.fineants.domain.kis.repository.ClosingPriceRepository;
-import codesquad.fineants.domain.kis.domain.dto.response.KisClosingPrice;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
@@ -62,11 +60,8 @@ class KisServiceTest extends AbstractContainerBaseTest {
 	@MockBean
 	private KisClient client;
 
-	@MockBean
+	@Autowired
 	private KisAccessTokenRepository kisAccessTokenRepository;
-
-	@MockBean
-	private ClosingPriceRepository closingPriceRepository;
 
 	@MockBean
 	private HolidayRepository holidayRepository;
@@ -86,7 +81,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 	void readRealTimeCurrentPrice() {
 		// given
 		String tickerSymbol = "005930";
-		given(kisAccessTokenRepository.createAuthorization()).willReturn(createAuthorization());
+		kisAccessTokenRepository.refreshAccessToken(createKisAccessToken());
 		given(client.fetchCurrentPrice(anyString(), anyString()))
 			.willReturn(Mono.just(KisCurrentPrice.create(tickerSymbol, 60000L)));
 		// when
@@ -109,7 +104,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		));
 		stocks.forEach(stock -> portfolioHoldingRepository.save(createPortfolioHolding(portfolio, stock)));
 
-		given(kisAccessTokenRepository.createAuthorization()).willReturn(createAuthorization());
+		kisAccessTokenRepository.refreshAccessToken(createKisAccessToken());
 		given(client.fetchCurrentPrice(anyString(), anyString()))
 			.willThrow(new KisException("요청건수가 초과되었습니다"))
 			.willReturn(Mono.just(KisCurrentPrice.create("005930", 10000L)));
@@ -135,7 +130,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		));
 		stocks.forEach(stock -> portfolioHoldingRepository.save(createPortfolioHolding(portfolio, stock)));
 
-		given(kisAccessTokenRepository.createAuthorization()).willReturn(createAuthorization());
+		kisAccessTokenRepository.refreshAccessToken(createKisAccessToken());
 		given(client.fetchCurrentPrice(anyString(), anyString()))
 			.willThrow(new KisException("요청건수가 초과되었습니다"));
 
@@ -160,7 +155,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		));
 		stocks.forEach(stock -> portfolioHoldingRepository.save(createPortfolioHolding(portfolio, stock)));
 
-		given(kisAccessTokenRepository.createAuthorization()).willReturn(createAuthorization());
+		kisAccessTokenRepository.refreshAccessToken(createKisAccessToken());
 		given(client.fetchClosingPrice(anyString(), anyString()))
 			.willThrow(new KisException("요청건수가 초과되었습니다"))
 			.willThrow(new KisException("요청건수가 초과되었습니다"))
@@ -185,10 +180,6 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		kisService.scheduleRefreshingAllStockCurrentPrice();
 		// then
 		verify(holidayRepository, times(1)).isHoliday(any(LocalDate.class));
-	}
-
-	private String createAuthorization() {
-		return "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0b2tlbiIsImF1ZCI6Ijg5MjBlNjM2LTNkYmItNGU5MS04ZGJmLWJmZDU5ZmI2YjAwYiIsImlzcyI6InVub2d3IiwiZXhwIjoxNzAzNTcwOTA0LCJpYXQiOjE3MDM0ODQ1MDQsImp0aSI6IlBTRGc4WlVJd041eVl5ZkR6bnA0TDM2Z2xhRUpic2RJNGd6biJ9.z8dh9rlOyPq_ukm9KeCz0tkKI2QaHEe07LhXTcKQBrcP1-uiW3dwAwdknpAojJZ7aUWLUaQQn0HmjTCttjSJaA";
 	}
 
 	private Member createMember() {
@@ -224,17 +215,6 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		);
 	}
 
-	private Stock createKakaoStock() {
-		return createStock(
-			"카카오보통주",
-			"035720",
-			"Kakao",
-			"KR7035720002",
-			"서비스업",
-			Market.KOSPI
-		);
-	}
-
 	private Stock createStock(String companyName, String tickerSymbol, String companyNameEng, String stockCode,
 		String sector, Market market) {
 		return Stock.builder()
@@ -250,18 +230,6 @@ class KisServiceTest extends AbstractContainerBaseTest {
 	private PortfolioHolding createPortfolioHolding(Portfolio portfolio, Stock stock) {
 		return PortfolioHolding.builder()
 			.portfolio(portfolio)
-			.stock(stock)
-			.build();
-	}
-
-	private StockDividend createStockDividend(Money dividend, LocalDate recordDate, LocalDate exDividendDate,
-		LocalDate paymentDate,
-		Stock stock) {
-		return StockDividend.builder()
-			.dividend(dividend)
-			.exDividendDate(exDividendDate)
-			.recordDate(recordDate)
-			.paymentDate(paymentDate)
 			.stock(stock)
 			.build();
 	}
