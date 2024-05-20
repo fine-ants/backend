@@ -1,15 +1,7 @@
-buildscript {
-    ext {
-        queryDslVersion = "5.0.0"
-    }
-}
-
 plugins {
     id 'java'
     id 'org.springframework.boot' version '3.1.11'
     id 'io.spring.dependency-management' version '1.0.15.RELEASE'
-    // QueryDSL
-    id 'com.ewerk.gradle.plugins.querydsl' version '1.0.10'
     // asciidoctor
     id 'org.asciidoctor.jvm.convert' version '3.3.2'
 }
@@ -43,6 +35,9 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-devtools'
     implementation 'org.springframework.boot:spring-boot-starter-aop'
     implementation 'org.springframework.boot:spring-boot-starter-mail'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    testImplementation 'org.springframework.security:spring-security-test'
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
 
     // websocket
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
@@ -55,10 +50,6 @@ dependencies {
     // JWT 서명 검증 라이브러리
     implementation 'com.auth0:java-jwt:3.19.0'
     implementation 'com.auth0:jwks-rsa:0.21.1'
-
-    // QueryDSL
-    implementation "com.querydsl:querydsl-jpa:${queryDslVersion}"
-    implementation "com.querydsl:querydsl-apt:${queryDslVersion}"
 
     // AWS S3
     implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
@@ -102,27 +93,6 @@ dependencies {
 tasks.named('test') {
     useJUnitPlatform()
 }
-
-/** QueryDSL start **/
-def querydslDir = "build/generated/querydsl"
-
-querydsl {
-    jpa = true
-    querydslSourcesDir = querydslDir
-}
-sourceSets {
-    main.java.srcDir querydslDir
-}
-compileQuerydsl {
-    options.annotationProcessorPath = configurations.querydsl
-}
-configurations {
-    compileOnly {
-        extendsFrom annotationProcessor
-    }
-    querydsl.extendsFrom compileClasspath
-}
-/** QueryDSL end **/
 
 task copyPrivate(type: Copy) {
     copy {

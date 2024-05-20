@@ -1,4 +1,4 @@
-FROM eclipse-temurin:11-alpine
+FROM eclipse-temurin:17-alpine
 WORKDIR /app
 COPY src/main/resources/*.tsv /app/src/main/resources/
 ARG JAR_FILE=./build/libs/*.jar

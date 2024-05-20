@@ -1,17 +1,25 @@
 package codesquad.fineants.domain.member.domain.entity;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.springframework.security.core.GrantedAuthority;
 
 import codesquad.fineants.domain.BaseEntity;
 import codesquad.fineants.domain.notification_preference.domain.entity.NotificationPreference;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -35,10 +43,14 @@ public class Member extends BaseEntity {
 	@OneToOne(fetch = FetchType.LAZY, mappedBy = "member")
 	private NotificationPreference notificationPreference;
 
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "member", orphanRemoval = true, cascade = CascadeType.ALL)
+	private Set<MemberRole> roles;
+
 	@Builder
 	public Member(LocalDateTime createAt, LocalDateTime modifiedAt, Long id, String email,
 		String nickname, String provider, String password, String profileUrl,
-		NotificationPreference notificationPreference) {
+		NotificationPreference notificationPreference,
+		Set<MemberRole> roles) {
 		super(createAt, modifiedAt);
 		this.id = id;
 		this.email = email;
@@ -47,6 +59,25 @@ public class Member extends BaseEntity {
 		this.password = password;
 		this.profileUrl = profileUrl;
 		this.notificationPreference = notificationPreference;
+		this.roles = roles;
+	}
+
+	public static Member oauthMember(String email, String nickname, String provider,
+		String profileUrl) {
+		return Member.builder()
+			.email(email)
+			.nickname(nickname)
+			.provider(provider)
+			.profileUrl(profileUrl)
+			.roles(new HashSet<>())
+			.build();
+	}
+
+	public void addMemberRole(MemberRole memberRole) {
+		if (!this.roles.contains(memberRole)) {
+			roles.add(memberRole);
+			memberRole.setMember(this);
+		}
 	}
 
 	public Map<String, Object> createClaims() {
@@ -60,8 +91,9 @@ public class Member extends BaseEntity {
 		return id.equals(memberId);
 	}
 
-	public void updateProfileUrl(String profileUrl) {
+	public Member updateProfileUrl(String profileUrl) {
 		this.profileUrl = profileUrl;
+		return this;
 	}
 
 	public void updatePassword(String newEncodedPassword) {
@@ -70,5 +102,21 @@ public class Member extends BaseEntity {
 
 	public void updateNickname(String nickname) {
 		this.nickname = nickname;
+	}
+
+	public Collection<? extends GrantedAuthority> getSimpleGrantedAuthorities() {
+		return roles.stream()
+			.map(MemberRole::toSimpleGrantedAuthority)
+			.collect(Collectors.toList());
+	}
+
+	public Map<String, Object> toConvertMap() {
+		Map<String, Object> result = new HashMap<>();
+		result.put("id", id);
+		result.put("email", email);
+		result.put("nickname", nickname);
+		result.put("provider", provider);
+		result.put("profileUrl", profileUrl);
+		return result;
 	}
 }

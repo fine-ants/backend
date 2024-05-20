@@ -10,14 +10,14 @@ import org.springframework.http.MediaType;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
-import codesquad.fineants.domain.oauth.decoder.IDTokenDecoder;
-import codesquad.fineants.global.errors.errorcode.OauthErrorCode;
-import codesquad.fineants.global.errors.exception.ServerInternalException;
 import codesquad.fineants.domain.member.domain.dto.request.AuthorizationRequest;
 import codesquad.fineants.domain.member.domain.dto.request.OauthMemberLoginRequest;
 import codesquad.fineants.domain.member.domain.dto.response.OauthToken;
 import codesquad.fineants.domain.member.domain.dto.response.OauthUserProfile;
 import codesquad.fineants.domain.member.service.WebClientWrapper;
+import codesquad.fineants.domain.oauth.decoder.IDTokenDecoder;
+import codesquad.fineants.global.errors.errorcode.OauthErrorCode;
+import codesquad.fineants.global.errors.exception.ServerInternalException;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,7 +42,7 @@ public abstract class OauthClient {
 
 	protected abstract MultiValueMap<String, String> createTokenBody(Map<String, String> bodyMap);
 
-	protected abstract boolean isSupportOICD();
+	protected abstract boolean isSupportOIDC();
 
 	protected abstract void validatePayload(DecodedIdTokenPayload payload, LocalDateTime now, String nonce);
 
@@ -57,7 +57,7 @@ public abstract class OauthClient {
 		OauthToken oauthToken = retrieveToken(tokenBodyMap);
 
 		// 프로필 정보 가져오기
-		if (isSupportOICD()) {
+		if (isSupportOIDC()) {
 			DecodedIdTokenPayload payload = idTokenDecoder.decode(oauthToken.getIdToken(), jwkUri);
 			validatePayload(payload, request.getRequestTime(), authRequest.getNonce());
 			return fetchUserProfile(payload);

@@ -6,14 +6,14 @@ import java.util.Map;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
-import codesquad.fineants.domain.oauth.client.DecodedIdTokenPayload;
-import codesquad.fineants.domain.oauth.client.OauthClient;
-import codesquad.fineants.domain.oauth.decoder.IDTokenDecoder;
-import codesquad.fineants.domain.oauth.properties.OauthProperties;
 import codesquad.fineants.domain.member.domain.dto.request.AuthorizationRequest;
 import codesquad.fineants.domain.member.domain.dto.response.OauthToken;
 import codesquad.fineants.domain.member.domain.dto.response.OauthUserProfile;
 import codesquad.fineants.domain.member.service.WebClientWrapper;
+import codesquad.fineants.domain.oauth.client.DecodedIdTokenPayload;
+import codesquad.fineants.domain.oauth.client.OauthClient;
+import codesquad.fineants.domain.oauth.decoder.IDTokenDecoder;
+import codesquad.fineants.domain.oauth.properties.OauthProperties;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -70,7 +70,7 @@ public class KakaoOauthClient extends OauthClient {
 	}
 
 	@Override
-	protected boolean isSupportOICD() {
+	protected boolean isSupportOIDC() {
 		return true;
 	}
 

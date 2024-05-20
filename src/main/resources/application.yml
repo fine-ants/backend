@@ -27,6 +27,7 @@ spring:
   config:
     import:
       - ./secret/application-secret.yml
+      - ./secret/application-oauth.yml
       - ./member.yml
 portfolio:
   securities-firm: BNK투자증권,부국증권,케이프투자증권,대신증권,다올투자증권,DB금융투자,이베스트투자증권,유진투자증권,하나증권,한화투자증권,하이투자증권
@@ -48,4 +49,3 @@ logging:
   level:
     com.zaxxer.hikari.HikariConfig: DEBUG
     com.zaxxer.hikari: TRACE
-
