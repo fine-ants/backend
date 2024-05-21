@@ -25,16 +25,13 @@ import org.springframework.http.MediaType;
 import org.springframework.restdocs.payload.JsonFieldType;
 import org.springframework.test.web.servlet.ResultActions;
 
-import codesquad.fineants.domain.common.money.Expression;
+import codesquad.fineants.docs.RestDocsSupport;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.common.money.Percentage;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio_gain_history.domain.entity.PortfolioGainHistory;
-import codesquad.fineants.domain.portfolio_holding.domain.entity.PortfolioHolding;
-import codesquad.fineants.domain.stock.domain.entity.Stock;
-import codesquad.fineants.domain.stock_dividend.domain.entity.StockDividend;
 import codesquad.fineants.domain.portfolio_holding.controller.PortfolioHoldingRestController;
 import codesquad.fineants.domain.portfolio_holding.domain.dto.request.PortfolioHoldingCreateRequest;
 import codesquad.fineants.domain.portfolio_holding.domain.dto.response.PortfolioChartResponse;
@@ -43,9 +40,11 @@ import codesquad.fineants.domain.portfolio_holding.domain.dto.response.Portfolio
 import codesquad.fineants.domain.portfolio_holding.domain.dto.response.PortfolioPieChartItem;
 import codesquad.fineants.domain.portfolio_holding.domain.dto.response.PortfolioSectorChartItem;
 import codesquad.fineants.domain.portfolio_holding.domain.dto.response.PortfolioStockCreateResponse;
+import codesquad.fineants.domain.portfolio_holding.domain.entity.PortfolioHolding;
 import codesquad.fineants.domain.portfolio_holding.service.PortfolioHoldingService;
 import codesquad.fineants.domain.portfolio_holding.service.PortfolioObservableService;
-import codesquad.fineants.docs.RestDocsSupport;
+import codesquad.fineants.domain.stock.domain.entity.Stock;
+import codesquad.fineants.domain.stock_dividend.domain.entity.StockDividend;
 import codesquad.fineants.global.util.ObjectMapperUtil;
 
 public class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
@@ -189,7 +188,8 @@ public class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 			.andExpect(jsonPath("data.portfolioHoldings[0].totalGain").value(equalTo(30000)))
 			.andExpect(jsonPath("data.portfolioHoldings[0].totalReturnRate").value(closeTo(20.0, 0.1)))
 			.andExpect(jsonPath("data.portfolioHoldings[0].annualDividend").value(equalTo(4332)))
-			.andExpect(jsonPath("data.portfolioHoldings[0].annualDividendYield").value(closeTo(2.41, 0.1)));
+			.andExpect(jsonPath("data.portfolioHoldings[0].annualDividendYield").value(closeTo(2.41, 0.1)))
+			.andExpect(jsonPath("data.portfolioHoldings[0].dateAdded").isNotEmpty());
 
 		resultActions
 			.andExpect(jsonPath("data.portfolioHoldings[0].purchaseHistory[0].purchaseHistoryId").value(equalTo(1)))
@@ -289,6 +289,8 @@ public class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 						.description("연배당금"),
 					fieldWithPath("data.portfolioHoldings[].annualDividendYield").type(JsonFieldType.NUMBER)
 						.description("연배당율"),
+					fieldWithPath("data.portfolioHoldings[].dateAdded").type(JsonFieldType.STRING)
+						.description("생성일자"),
 
 					fieldWithPath("data.portfolioHoldings[].purchaseHistory[].purchaseHistoryId")
 						.type(JsonFieldType.NUMBER)
@@ -342,7 +344,7 @@ public class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 	void readPortfolioCharts() throws Exception {
 		// given
 		Portfolio portfolio = createPortfolio(createMember());
-		Expression totalAsset = portfolio.calculateTotalAsset();
+		portfolio.calculateTotalAsset();
 		int samsungValuation = 600000;
 		int samsungTotalGain = 100000;
 		int cash = 500000;

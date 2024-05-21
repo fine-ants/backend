@@ -1,5 +1,7 @@
 package codesquad.fineants.domain.portfolio_holding.domain.dto.response;
 
+import java.time.LocalDateTime;
+
 import codesquad.fineants.domain.common.money.Bank;
 import codesquad.fineants.domain.common.money.Currency;
 import codesquad.fineants.domain.common.money.Expression;
@@ -23,6 +25,7 @@ public class PortfolioHoldingRealTimeItem {
 	private Percentage dailyChangeRate;
 	private Money totalGain;
 	private Percentage totalReturnRate;
+	private LocalDateTime dateAdded;
 
 	public static PortfolioHoldingRealTimeItem of(PortfolioHolding portfolioHolding, Expression lastDayClosingPrice) {
 		Bank bank = Bank.getInstance();
@@ -33,6 +36,7 @@ public class PortfolioHoldingRealTimeItem {
 			portfolioHolding.calculateDailyChange(lastDayClosingPrice).reduce(bank, to),
 			portfolioHolding.calculateDailyChangeRate(lastDayClosingPrice).toPercentage(bank, to),
 			portfolioHolding.calculateTotalGain().reduce(bank, to),
-			portfolioHolding.calculateTotalReturnRate().toPercentage(bank, to));
+			portfolioHolding.calculateTotalReturnRate().toPercentage(bank, to),
+			portfolioHolding.getCreateAt());
 	}
 }

@@ -1,5 +1,7 @@
 package codesquad.fineants.domain.portfolio_holding.domain.dto.response;
 
+import java.time.LocalDateTime;
+
 import codesquad.fineants.domain.common.count.Count;
 import codesquad.fineants.domain.common.money.Bank;
 import codesquad.fineants.domain.common.money.Currency;
@@ -31,6 +33,7 @@ public class PortfolioHoldingDetailItem {
 	private Percentage totalReturnRate;
 	private Money annualDividend;
 	private Percentage annualDividendYield;
+	private LocalDateTime dateAdded;
 
 	public static PortfolioHoldingDetailItem from(PortfolioHolding portfolioHolding, Expression lastDayClosingPrice) {
 		Bank bank = Bank.getInstance();
@@ -49,6 +52,7 @@ public class PortfolioHoldingDetailItem {
 			.annualDividend(portfolioHolding.calculateAnnualExpectedDividend().reduce(bank, to))
 			.annualDividendYield(
 				portfolioHolding.calculateAnnualExpectedDividendYield().toPercentage(Bank.getInstance(), to))
+			.dateAdded(portfolioHolding.getCreateAt())
 			.build();
 	}
 }

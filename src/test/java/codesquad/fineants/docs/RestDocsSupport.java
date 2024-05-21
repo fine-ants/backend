@@ -30,6 +30,9 @@ import codesquad.fineants.domain.common.count.Count;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.intercetpor.LogoutInterceptor;
+import codesquad.fineants.domain.notification.domain.dto.response.NotifyMessage;
+import codesquad.fineants.domain.notification.domain.dto.response.PortfolioNotifyMessage;
+import codesquad.fineants.domain.notification.domain.dto.response.StockNotifyMessage;
 import codesquad.fineants.domain.notification.domain.entity.Notification;
 import codesquad.fineants.domain.notification.domain.entity.PortfolioNotification;
 import codesquad.fineants.domain.notification.domain.entity.StockTargetPriceNotification;
@@ -45,9 +48,6 @@ import codesquad.fineants.domain.stock_dividend.domain.entity.StockDividend;
 import codesquad.fineants.domain.stock_target_price.domain.entity.StockTargetPrice;
 import codesquad.fineants.domain.stock_target_price.domain.entity.TargetPriceNotification;
 import codesquad.fineants.domain.watch_list.domain.entity.WatchList;
-import codesquad.fineants.domain.notification.domain.dto.response.NotifyMessage;
-import codesquad.fineants.domain.notification.domain.dto.response.PortfolioNotifyMessage;
-import codesquad.fineants.domain.notification.domain.dto.response.StockNotifyMessage;
 import codesquad.fineants.global.config.JacksonConfig;
 
 @ExtendWith(RestDocumentationExtension.class)
@@ -114,6 +114,7 @@ public abstract class RestDocsSupport {
 			.portfolio(portfolio)
 			.stock(stock)
 			.currentPrice(Money.won(60000L))
+			.createAt(LocalDateTime.now())
 			.build();
 	}
 

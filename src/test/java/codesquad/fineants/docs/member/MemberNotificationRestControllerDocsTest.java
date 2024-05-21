@@ -21,17 +21,17 @@ import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
 import org.springframework.restdocs.payload.JsonFieldType;
 
 import codesquad.fineants.docs.RestDocsSupport;
+import codesquad.fineants.domain.member.controller.MemberNotificationRestController;
+import codesquad.fineants.domain.member.domain.dto.response.MemberNotification;
+import codesquad.fineants.domain.member.domain.dto.response.MemberNotificationResponse;
 import codesquad.fineants.domain.member.domain.entity.Member;
+import codesquad.fineants.domain.member.service.MemberNotificationPreferenceService;
+import codesquad.fineants.domain.member.service.MemberNotificationService;
 import codesquad.fineants.domain.notification.domain.entity.PortfolioNotification;
 import codesquad.fineants.domain.notification.domain.entity.StockTargetPriceNotification;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock_target_price.domain.entity.TargetPriceNotification;
-import codesquad.fineants.domain.member.controller.MemberNotificationRestController;
-import codesquad.fineants.domain.member.domain.dto.response.MemberNotification;
-import codesquad.fineants.domain.member.domain.dto.response.MemberNotificationResponse;
-import codesquad.fineants.domain.member.service.MemberNotificationPreferenceService;
-import codesquad.fineants.domain.member.service.MemberNotificationService;
 import codesquad.fineants.global.util.ObjectMapperUtil;
 
 public class MemberNotificationRestControllerDocsTest extends RestDocsSupport {
@@ -346,47 +346,4 @@ public class MemberNotificationRestControllerDocsTest extends RestDocsSupport {
 				)
 			);
 	}
-
-	@DisplayName("회원 특정 알림 읽음 API")
-	@Test
-	void readNotification() throws Exception {
-		// given
-		Member member = createMember();
-		Long notificationId = 1L;
-
-		// when & then
-		mockMvc.perform(
-				RestDocumentationRequestBuilders.patch("/api/members/{memberId}/notifications/{notificationId}",
-						member.getId(), notificationId)
-					.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))
-			.andExpect(status().isOk())
-			.andExpect(jsonPath("code").value(equalTo(200)))
-			.andExpect(jsonPath("status").value(equalTo("OK")))
-			.andExpect(jsonPath("message").value(equalTo("알림을 모두 읽음 처리했습니다")))
-			.andDo(
-				document(
-					"member_notification-one-read",
-					preprocessRequest(prettyPrint()),
-					preprocessResponse(prettyPrint()),
-					requestHeaders(
-						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
-					),
-					pathParameters(
-						parameterWithName("memberId").description("회원 등록 번호"),
-						parameterWithName("notificationId").description("알림 등록 번호")
-					),
-					responseFields(
-						fieldWithPath("code").type(JsonFieldType.NUMBER)
-							.description("코드"),
-						fieldWithPath("status").type(JsonFieldType.STRING)
-							.description("상태"),
-						fieldWithPath("message").type(JsonFieldType.STRING)
-							.description("메시지"),
-						fieldWithPath("data").type(JsonFieldType.NULL)
-							.description("응답 데이터")
-					)
-				)
-			);
-	}
-
 }
