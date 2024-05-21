@@ -73,11 +73,26 @@ public class Member extends BaseEntity {
 			.build();
 	}
 
+	public static Member localMember(String nickname, String email, String password, Set<Role> roleSet) {
+		return Member.builder()
+			.email(email)
+			.nickname(nickname)
+			.provider("local")
+			.password(password)
+			.profileUrl(null)
+			.roles(roleSet)
+			.build();
+	}
+
 	public void addMemberRole(MemberRole memberRole) {
 		if (!this.roles.contains(memberRole)) {
 			roles.add(memberRole);
 			memberRole.setMember(this);
 		}
+	}
+
+	public void setMemberRoleSet(Set<MemberRole> memberRoleSet) {
+		this.roles = memberRoleSet;
 	}
 
 	public Map<String, Object> createClaims() {
@@ -119,4 +134,5 @@ public class Member extends BaseEntity {
 		result.put("profileUrl", profileUrl);
 		return result;
 	}
+
 }

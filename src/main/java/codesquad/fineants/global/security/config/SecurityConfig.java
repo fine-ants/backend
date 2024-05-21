@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
@@ -24,25 +25,23 @@ import codesquad.fineants.global.security.auth.service.CustomOidcUserService;
 import codesquad.fineants.global.security.auth.service.TokenService;
 import codesquad.fineants.global.security.filter.OAuth2AuthorizationRequestRedirectWithRedirectUrlParamFilter;
 import jakarta.servlet.Filter;
-import jakarta.servlet.http.HttpSession;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
 
 	private final MemberRepository memberRepository;
-	private final HttpSession httpSession;
 	private final TokenService tokenService;
 	private final NicknameGenerator nicknameGenerator;
 	private final RoleRepository roleRepository;
 	private final UserRequestMapper userRequestMapper;
 	private final String loginSuccessUri;
 
-	public SecurityConfig(MemberRepository memberRepository, HttpSession httpSession, TokenService tokenService,
+	public SecurityConfig(MemberRepository memberRepository, TokenService tokenService,
 		NicknameGenerator nicknameGenerator, RoleRepository roleRepository, UserRequestMapper userRequestMapper,
 		@Value("${oauth2.login-success-uri}") String loginSuccessUri) {
 		this.memberRepository = memberRepository;
-		this.httpSession = httpSession;
 		this.tokenService = tokenService;
 		this.nicknameGenerator = nicknameGenerator;
 		this.roleRepository = roleRepository;
@@ -55,11 +54,6 @@ public class SecurityConfig {
 		http
 			.sessionManagement(configurer -> configurer
 				.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-			);
-		http
-			.authorizeHttpRequests(authorize -> authorize
-				.requestMatchers("/oauth/redirect", "/home").permitAll()
-				.anyRequest().authenticated()
 			);
 		http.addFilterBefore(oAuth2AuthorizationRequestRedirectWithRedirectUrlParamFilter(),
 			OAuth2AuthorizationRequestRedirectFilter.class);
