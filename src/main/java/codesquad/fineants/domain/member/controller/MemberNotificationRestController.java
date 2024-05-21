@@ -43,6 +43,7 @@ public class MemberNotificationRestController {
 			notificationService.fetchNotifications(memberId));
 	}
 
+	// 회원 알림 설정 수정
 	@HasNotificationAuthorization
 	@PutMapping("/notification/settings")
 	public ApiResponse<Void> updateNotificationPreference(
@@ -54,6 +55,7 @@ public class MemberNotificationRestController {
 		return ApiResponse.success(MemberSuccessCode.OK_UPDATE_NOTIFICATION_PREFERENCE);
 	}
 
+	// 회원 전체 알림 제거
 	@HasNotificationAuthorization
 	@DeleteMapping("/notifications")
 	public ApiResponse<Void> deleteAllNotifications(
@@ -67,6 +69,7 @@ public class MemberNotificationRestController {
 		return ApiResponse.success(MemberSuccessCode.OK_DELETED_ALL_NOTIFICATIONS);
 	}
 
+	// 회원 특정 알림 제거
 	@HasNotificationAuthorization
 	@DeleteMapping("/notifications/{notificationId}")
 	public ApiResponse<Void> deleteNotification(
@@ -87,16 +90,6 @@ public class MemberNotificationRestController {
 		@PathVariable Long memberId,
 		@Valid @RequestBody MemberNotificationAllReadRequest request) {
 		List<Long> notificationIds = notificationService.readAllNotifications(memberId, request.getNotificationIds());
-		log.info("회원 알림 모두 읽기 처리 결과 : memberId={}, 읽은 알림 등록 번호={}", memberId, notificationIds);
-		return ApiResponse.success(MemberSuccessCode.OK_FETCH_ALL_NOTIFICATIONS);
-	}
-
-	@HasNotificationAuthorization
-	@PatchMapping("/notifications/{notificationId}")
-	public ApiResponse<Void> readNotification(
-		@PathVariable Long memberId,
-		@PathVariable Long notificationId) {
-		List<Long> notificationIds = notificationService.readAllNotifications(memberId, List.of(notificationId));
 		log.info("회원 알림 모두 읽기 처리 결과 : memberId={}, 읽은 알림 등록 번호={}", memberId, notificationIds);
 		return ApiResponse.success(MemberSuccessCode.OK_FETCH_ALL_NOTIFICATIONS);
 	}
