@@ -91,19 +91,6 @@ class PortfolioGainHistoryRepositoryTest extends AbstractContainerBaseTest {
 		assertThat(history.getId()).isEqualTo(saveHistory.getId());
 	}
 
-	private Portfolio createPortfolio(Member member) {
-		return Portfolio.builder()
-			.name("내꿈은 워렌버핏")
-			.securitiesFirm("토스")
-			.budget(Money.won(1000000L))
-			.targetGain(Money.won(1500000L))
-			.maximumLoss(Money.won(900000L))
-			.member(member)
-			.targetGainIsActive(false)
-			.maximumLossIsActive(false)
-			.build();
-	}
-
 	@DisplayName("주어진 날짜보다 같거나 작은 데이터들중 가장 최근의 데이터를 한개 조회한다")
 	@Test
 	void findFirstByCreateAtIsLessThanEqualOrderByCreateAtDesc() {

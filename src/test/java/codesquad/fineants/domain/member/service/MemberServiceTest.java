@@ -628,19 +628,6 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 		);
 	}
 
-	private Portfolio createPortfolio(Member member) {
-		return Portfolio.builder()
-			.name("내꿈은 워렌버핏")
-			.securitiesFirm("토스")
-			.budget(Money.won(1000000L))
-			.targetGain(Money.won(1500000L))
-			.maximumLoss(Money.won(900000L))
-			.member(member)
-			.targetGainIsActive(false)
-			.maximumLossIsActive(false)
-			.build();
-	}
-
 	private Stock createStock() {
 		return Stock.builder()
 			.companyName("삼성전자보통주")

@@ -165,8 +165,8 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 			() -> assertThat(details.getAnnualDividend()).isEqualByComparingTo(Money.won(4332L)),
 			() -> assertThat(details.getAnnualDividendYield()).isEqualByComparingTo(annualDividendYield),
 			() -> assertThat(details.getProvisionalLossBalance()).isEqualByComparingTo(Money.won(0L)),
-			() -> assertThat(details.getTargetGainNotify()).isFalse(),
-			() -> assertThat(details.getMaxLossNotify()).isFalse(),
+			() -> assertThat(details.getTargetGainNotify()).isTrue(),
+			() -> assertThat(details.getMaxLossNotify()).isTrue(),
 
 			() -> assertThat(response.getPortfolioHoldings())
 				.hasSize(1)
@@ -647,19 +647,6 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		assertThat(portFolioHoldingRepository.findById(portfolioHolding.getId()).isPresent()).isTrue();
 		assertThat(portFolioHoldingRepository.findById(portfolioHolding2.getId()).isPresent()).isTrue();
 		assertThat(purchaseHistoryRepository.findById(purchaseHistory.getId()).isPresent()).isTrue();
-	}
-	
-	private Portfolio createPortfolio(Member member) {
-		return Portfolio.builder()
-			.name("내꿈은 워렌버핏")
-			.securitiesFirm("토스")
-			.budget(Money.won(1000000L))
-			.targetGain(Money.won(1500000L))
-			.maximumLoss(Money.won(900000L))
-			.member(member)
-			.targetGainIsActive(false)
-			.maximumLossIsActive(false)
-			.build();
 	}
 
 	private Portfolio createPortfolioWithZero(Member member) {

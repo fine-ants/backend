@@ -107,7 +107,8 @@ class PortfolioNotificationServiceTest extends AbstractContainerBaseTest {
 	void updateNotificationTargetGain_whenTargetGainIsZero_thenNotUpdate() {
 		// given
 		Member member = memberRepository.save(createMember());
-		Portfolio portfolio = portfolioRepository.save(createPortfolio(member, 1000000L, 0L, 0L));
+		Portfolio portfolio = portfolioRepository.save(
+			createPortfolio(member, "내꿈은 워렌버핏", Money.won(1000000L), Money.zero(), Money.zero()));
 
 		PortfolioNotificationUpdateRequest request = PortfolioNotificationUpdateRequest.active();
 		// when
@@ -152,7 +153,8 @@ class PortfolioNotificationServiceTest extends AbstractContainerBaseTest {
 	void updateNotificationMaximumLoss() {
 		// given
 		Member member = memberRepository.save(createMember());
-		Portfolio portfolio = portfolioRepository.save(createPortfolio(member, 1000000L, 1500000L, 0L));
+		Portfolio portfolio = portfolioRepository.save(
+			createPortfolio(member, "내 꿈은 워렌버핏", Money.won(1000000L), Money.won(1500000L), Money.zero()));
 
 		PortfolioNotificationUpdateRequest request = PortfolioNotificationUpdateRequest.active();
 		// when
@@ -162,24 +164,6 @@ class PortfolioNotificationServiceTest extends AbstractContainerBaseTest {
 		assertThat(throwable)
 			.isInstanceOf(FineAntsException.class)
 			.hasMessage(PortfolioErrorCode.MAX_LOSS_IS_ZERO_WITH_NOTIFY_UPDATE.getMessage());
-	}
-
-	private Portfolio createPortfolio(Member member) {
-		return createPortfolio(member, 1000000L, 1500000L, 900000L);
-	}
-
-	private Portfolio createPortfolio(Member member, Long budget, Long targetGain, Long maximumLoss) {
-		return new Portfolio(
-			null,
-			"내꿈은 워렌버핏",
-			"토스증권",
-			Money.won(budget),
-			Money.won(targetGain),
-			Money.won(maximumLoss),
-			true,
-			true,
-			member
-		);
 	}
 
 	private Stock createStock() {

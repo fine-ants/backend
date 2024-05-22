@@ -438,20 +438,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 			.isInstanceOf(FineAntsException.class)
 			.hasMessage(PurchaseHistoryErrorCode.NOT_FOUND_PURCHASE_HISTORY.getMessage());
 	}
-
-	private Portfolio createPortfolio(Member member) {
-		return Portfolio.builder()
-			.name("내꿈은 워렌버핏")
-			.securitiesFirm("토스")
-			.budget(Money.won(1000000L))
-			.targetGain(Money.won(1500000L))
-			.maximumLoss(Money.won(900000L))
-			.member(member)
-			.targetGainIsActive(true)
-			.maximumLossIsActive(true)
-			.build();
-	}
-
+	
 	private Portfolio createPortfolio(Member member, BigDecimal budget) {
 		return Portfolio.builder()
 			.name("내꿈은 워렌버핏")

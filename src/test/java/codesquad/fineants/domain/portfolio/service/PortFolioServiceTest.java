@@ -482,23 +482,6 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 		assertThat(portfolioRepository.existsById(portfolio2.getId())).isFalse();
 	}
 
-	private Portfolio createPortfolio(Member member) {
-		return createPortfolio(member, "내꿈은 워렌버핏");
-	}
-
-	private Portfolio createPortfolio(Member member, String name) {
-		return Portfolio.builder()
-			.name(name)
-			.securitiesFirm("토스증권")
-			.budget(Money.won(1000000L))
-			.targetGain(Money.won(1500000L))
-			.maximumLoss(Money.won(900000L))
-			.member(member)
-			.targetGainIsActive(false)
-			.maximumLossIsActive(false)
-			.build();
-	}
-
 	private Portfolio createPortfolioWithRandomName(Member member) {
 		String randomPostfix = UUID.randomUUID().toString().substring(0, 10);
 		return Portfolio.builder()

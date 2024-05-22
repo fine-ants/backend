@@ -20,8 +20,10 @@ import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
+import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.kis.client.KisAccessToken;
 import codesquad.fineants.domain.member.domain.entity.Member;
+import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.global.init.S3BucketInitializer;
 import codesquad.fineants.global.security.auth.dto.MemberAuthentication;
 import lombok.extern.slf4j.Slf4j;
@@ -91,6 +93,27 @@ public class AbstractContainerBaseTest {
 			.provider("local")
 			.password("nemo1234@")
 			.profileUrl("profileUrl")
+			.build();
+	}
+
+	protected Portfolio createPortfolio(Member member) {
+		return createPortfolio(member, "내꿈은 워렌버핏");
+	}
+
+	protected Portfolio createPortfolio(Member member, String name) {
+		return createPortfolio(member, name, Money.won(1000000L), Money.won(1500000L), Money.won(900000L));
+	}
+
+	protected Portfolio createPortfolio(Member member, String name, Money budget, Money targetGain, Money maximumLoss) {
+		return Portfolio.builder()
+			.name(name)
+			.securitiesFirm("토스")
+			.budget(budget)
+			.targetGain(targetGain)
+			.maximumLoss(maximumLoss)
+			.member(member)
+			.targetGainIsActive(true)
+			.maximumLossIsActive(true)
 			.build();
 	}
 }

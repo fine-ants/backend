@@ -16,7 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
 import codesquad.fineants.AbstractContainerBaseTest;
-import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.kis.client.KisClient;
 import codesquad.fineants.domain.kis.client.KisCurrentPrice;
 import codesquad.fineants.domain.kis.domain.dto.response.KisClosingPrice;
@@ -180,19 +179,6 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		kisService.scheduleRefreshingAllStockCurrentPrice();
 		// then
 		verify(holidayRepository, times(1)).isHoliday(any(LocalDate.class));
-	}
-
-	private Portfolio createPortfolio(Member member) {
-		return Portfolio.builder()
-			.name("내꿈은 워렌버핏")
-			.securitiesFirm("토스")
-			.budget(Money.won(1000000L))
-			.targetGain(Money.won(1500000L))
-			.maximumLoss(Money.won(900000L))
-			.member(member)
-			.targetGainIsActive(false)
-			.maximumLossIsActive(false)
-			.build();
 	}
 
 	private Stock createSamsungStock() {

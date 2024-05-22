@@ -168,7 +168,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		Member member = memberRepository.save(createMember());
 		notificationPreferenceRepository.save(createNotificationPreference(member));
 		Portfolio portfolio = portfolioRepository.save(
-			createPortfolio(member, Money.won(1000000L), Money.won(1100000L), Money.won(900000L)));
+			createPortfolio(member, "내꿈은 워렌버핏", Money.won(1000000L), Money.won(1100000L), Money.won(900000L)));
 		Stock samsung = stockRepository.save(createStock());
 		Stock ccs = stockRepository.save(
 			createStack("씨씨에스충북방송", "066790", "KOREA CABLE T.V CHUNG-BUK SYSTEM CO.,LTD.", "KR7066790007", "방송서비스",
@@ -654,23 +654,6 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 			.token(token)
 			.latestActivationTime(LocalDateTime.now())
 			.member(member)
-			.build();
-	}
-
-	private Portfolio createPortfolio(Member member) {
-		return createPortfolio(member, Money.won(1000000L), Money.won(1500000L), Money.won(900000L));
-	}
-
-	private Portfolio createPortfolio(Member member, Money budget, Money targetGain, Money maxLoss) {
-		return Portfolio.builder()
-			.name("내꿈은 워렌버핏")
-			.securitiesFirm("토스")
-			.budget(budget)
-			.targetGain(targetGain)
-			.maximumLoss(maxLoss)
-			.member(member)
-			.targetGainIsActive(true)
-			.maximumLossIsActive(true)
 			.build();
 	}
 
