@@ -13,9 +13,9 @@ import codesquad.fineants.domain.fcm_token.domain.dto.request.FcmRegisterRequest
 import codesquad.fineants.domain.fcm_token.domain.dto.response.FcmDeleteResponse;
 import codesquad.fineants.domain.fcm_token.domain.dto.response.FcmRegisterResponse;
 import codesquad.fineants.domain.fcm_token.service.FcmService;
-import codesquad.fineants.domain.oauth.support.AuthMember;
-import codesquad.fineants.domain.oauth.support.AuthPrincipalMember;
 import codesquad.fineants.global.api.ApiResponse;
+import codesquad.fineants.global.security.auth.dto.MemberAuthentication;
+import codesquad.fineants.global.security.auth.resolver.MemberAuthenticationPrincipal;
 import codesquad.fineants.global.success.FcmSuccessCode;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -32,8 +32,8 @@ public class FcmRestController {
 	@PostMapping
 	public ApiResponse<FcmRegisterResponse> createToken(
 		@Valid @RequestBody FcmRegisterRequest request,
-		@AuthPrincipalMember AuthMember authMember) {
-		FcmRegisterResponse response = fcmService.createToken(request, authMember);
+		@MemberAuthenticationPrincipal MemberAuthentication authentication) {
+		FcmRegisterResponse response = fcmService.createToken(request, authentication.getId());
 		log.info("FCM 토큰 등록 결과 : response={}", response);
 		return ApiResponse.success(FcmSuccessCode.CREATED_FCM, response);
 	}
@@ -41,9 +41,9 @@ public class FcmRestController {
 	@DeleteMapping("/{fcmTokenId}")
 	public ApiResponse<Void> deleteToken(
 		@PathVariable Long fcmTokenId,
-		@AuthPrincipalMember AuthMember authMember
+		@MemberAuthenticationPrincipal MemberAuthentication authentication
 	) {
-		FcmDeleteResponse response = fcmService.deleteToken(fcmTokenId, authMember.getMemberId());
+		FcmDeleteResponse response = fcmService.deleteToken(fcmTokenId, authentication.getId());
 		log.info("FCM 토큰 삭제 결과 : response={}", response);
 		return ApiResponse.success(FcmSuccessCode.OK_DELETE_FCM);
 	}

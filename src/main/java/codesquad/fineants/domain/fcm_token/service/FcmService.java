@@ -12,18 +12,16 @@ import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
 import com.google.firebase.messaging.Notification;
 
-import codesquad.fineants.domain.fcm_token.repository.FcmRepository;
-import codesquad.fineants.domain.fcm_token.domain.entity.FcmToken;
 import codesquad.fineants.domain.fcm_token.domain.dto.request.FcmRegisterRequest;
+import codesquad.fineants.domain.fcm_token.domain.dto.response.FcmDeleteResponse;
+import codesquad.fineants.domain.fcm_token.domain.dto.response.FcmRegisterResponse;
+import codesquad.fineants.domain.fcm_token.domain.entity.FcmToken;
+import codesquad.fineants.domain.fcm_token.repository.FcmRepository;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
-import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.global.errors.errorcode.FcmErrorCode;
 import codesquad.fineants.global.errors.errorcode.MemberErrorCode;
 import codesquad.fineants.global.errors.exception.FineAntsException;
-import codesquad.fineants.global.errors.exception.NotFoundResourceException;
-import codesquad.fineants.domain.fcm_token.domain.dto.response.FcmDeleteResponse;
-import codesquad.fineants.domain.fcm_token.domain.dto.response.FcmRegisterResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -38,11 +36,11 @@ public class FcmService {
 	private final FirebaseMessaging firebaseMessaging;
 
 	@Transactional
-	public FcmRegisterResponse createToken(FcmRegisterRequest request, AuthMember authMember) {
-		Member member = findMember(authMember);
+	public FcmRegisterResponse createToken(FcmRegisterRequest request, Long memberId) {
+		Member member = findMember(memberId);
 		verifyFcmToken(request.getFcmToken());
 
-		FcmToken fcmToken = fcmRepository.findByTokenAndMemberId(request.getFcmToken(), authMember.getMemberId())
+		FcmToken fcmToken = fcmRepository.findByTokenAndMemberId(request.getFcmToken(), memberId)
 			.orElseGet(() -> request.toEntity(member));
 		fcmToken.refreshLatestActivationTime();
 		try {
@@ -69,9 +67,9 @@ public class FcmService {
 		}
 	}
 
-	private Member findMember(AuthMember authMember) {
-		return memberRepository.findById(authMember.getMemberId())
-			.orElseThrow(() -> new NotFoundResourceException(MemberErrorCode.NOT_FOUND_MEMBER));
+	private Member findMember(Long memberId) {
+		return memberRepository.findById(memberId)
+			.orElseThrow(() -> new FineAntsException(MemberErrorCode.NOT_FOUND_MEMBER));
 	}
 
 	@Transactional
@@ -82,10 +80,9 @@ public class FcmService {
 	}
 
 	@Transactional
-	public int deleteToken(String token) {
+	public void deleteToken(String token) {
 		int deleteCount = fcmRepository.deleteAllByToken(token);
 		log.info("FCM 토큰 삭제 개수 : deleteCount={}", deleteCount);
-		return deleteCount;
 	}
 
 	public List<String> findTokens(Long memberId) {

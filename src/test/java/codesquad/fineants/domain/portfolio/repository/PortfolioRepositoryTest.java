@@ -10,11 +10,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import codesquad.fineants.AbstractContainerBaseTest;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
-import codesquad.fineants.AbstractContainerBaseTest;
 
 class PortfolioRepositoryTest extends AbstractContainerBaseTest {
 
@@ -85,15 +85,6 @@ class PortfolioRepositoryTest extends AbstractContainerBaseTest {
 
 		// then
 		Assertions.assertThat(portfolio.getId()).isEqualTo(findPortfolio.getId());
-	}
-
-	private Member createMember() {
-		return Member.builder()
-			.nickname("kim1234")
-			.email("kim1234@naver.com")
-			.password("kim1234@")
-			.provider("local")
-			.build();
 	}
 
 	private Portfolio createPortfolio(Member member) {

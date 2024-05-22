@@ -25,26 +25,21 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
 import org.springframework.restdocs.payload.JsonFieldType;
-import org.springframework.restdocs.snippet.Attributes;
 
 import codesquad.fineants.docs.RestDocsSupport;
 import codesquad.fineants.domain.jwt.domain.Jwt;
 import codesquad.fineants.domain.member.controller.MemberRestController;
 import codesquad.fineants.domain.member.domain.dto.request.LoginRequest;
-import codesquad.fineants.domain.member.domain.dto.request.OauthMemberLoginRequest;
 import codesquad.fineants.domain.member.domain.dto.request.OauthMemberRefreshRequest;
 import codesquad.fineants.domain.member.domain.dto.request.ProfileChangeServiceRequest;
 import codesquad.fineants.domain.member.domain.dto.request.SignUpServiceRequest;
 import codesquad.fineants.domain.member.domain.dto.response.LoginResponse;
-import codesquad.fineants.domain.member.domain.dto.response.OauthMemberLoginResponse;
 import codesquad.fineants.domain.member.domain.dto.response.OauthMemberRefreshResponse;
-import codesquad.fineants.domain.member.domain.dto.response.OauthSaveUrlResponse;
 import codesquad.fineants.domain.member.domain.dto.response.ProfileChangeResponse;
 import codesquad.fineants.domain.member.domain.dto.response.ProfileResponse;
 import codesquad.fineants.domain.member.domain.dto.response.SignUpServiceResponse;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.service.MemberService;
-import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.global.util.ObjectMapperUtil;
 
 public class MemberRestControllerDocsTest extends RestDocsSupport {
@@ -54,76 +49,6 @@ public class MemberRestControllerDocsTest extends RestDocsSupport {
 	@Override
 	protected Object initController() {
 		return new MemberRestController(memberService);
-	}
-
-	@DisplayName("회원 OAuth 로그인 API")
-	@Test
-	void login() throws Exception {
-		// given
-		String code = "1234";
-		String redirectUrl = "http://localhost:5173/signin?provider=kakao";
-		String state = "1234";
-		String url = "/api/auth/{provider}/login";
-
-		OauthMemberLoginResponse mockResponse = OauthMemberLoginResponse.builder()
-			.jwt(Jwt.builder()
-				.accessToken("accessToken")
-				.refreshToken("refreshToken")
-				.build())
-			.build();
-		given(memberService.login(ArgumentMatchers.any(OauthMemberLoginRequest.class)))
-			.willReturn(mockResponse);
-		// when
-		mockMvc.perform(RestDocumentationRequestBuilders.post(url, "kakao")
-				.queryParam("code", code)
-				.queryParam("redirectUrl", redirectUrl)
-				.queryParam("state", state)
-			)
-			.andExpect(status().isOk())
-			.andExpect(jsonPath("code").value(equalTo(200)))
-			.andExpect(jsonPath("status").value(equalTo("OK")))
-			.andExpect(jsonPath("message").value(equalTo("로그인에 성공하였습니다")))
-			.andExpect(jsonPath("data.jwt.accessToken").value(equalTo("accessToken")))
-			.andExpect(jsonPath("data.jwt.refreshToken").value(equalTo("refreshToken")))
-			.andDo(
-				document(
-					"member_oauth-login",
-					preprocessRequest(prettyPrint()),
-					preprocessResponse(prettyPrint()),
-					pathParameters(
-						parameterWithName("provider").description("플랫폼 이름")
-							.attributes(
-								Attributes.key("constraints").value(
-									String.join(",",
-										"kakao",
-										"google",
-										"naver"
-									)
-								))
-					),
-					queryParameters(
-						parameterWithName("code").description("인가 코드"),
-						parameterWithName("redirectUrl").description("리다이렉트 URL"),
-						parameterWithName("state").description("state")
-					),
-					responseFields(
-						fieldWithPath("code").type(JsonFieldType.NUMBER)
-							.description("코드"),
-						fieldWithPath("status").type(JsonFieldType.STRING)
-							.description("상태"),
-						fieldWithPath("message").type(JsonFieldType.STRING)
-							.description("메시지"),
-						fieldWithPath("data").type(JsonFieldType.OBJECT)
-							.description("응답 데이터"),
-						fieldWithPath("data.jwt").type(JsonFieldType.OBJECT)
-							.description("Json Web Token"),
-						fieldWithPath("data.jwt.accessToken").type(JsonFieldType.STRING)
-							.description("액세스 토큰"),
-						fieldWithPath("data.jwt.refreshToken").type(JsonFieldType.STRING)
-							.description("리프레시 토큰")
-					)
-				)
-			);
 	}
 
 	@DisplayName("회원 일반 로그인 API")
@@ -190,14 +115,9 @@ public class MemberRestControllerDocsTest extends RestDocsSupport {
 	void logout() throws Exception {
 		// given
 		String url = "/api/auth/logout";
-		Map<String, Object> body = Map.of(
-			"refreshToken", "refreshToken"
-		);
 
 		// when & then
-		mockMvc.perform(post(url)
-				.contentType(MediaType.APPLICATION_JSON)
-				.content(ObjectMapperUtil.serialize(body))
+		mockMvc.perform(get(url)
 				.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("code").value(equalTo(200)))
@@ -211,9 +131,6 @@ public class MemberRestControllerDocsTest extends RestDocsSupport {
 					preprocessResponse(prettyPrint()),
 					requestHeaders(
 						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
-					),
-					requestFields(
-						fieldWithPath("refreshToken").type(JsonFieldType.STRING).description("리프레시 토큰")
 					),
 					responseFields(
 						fieldWithPath("code").type(JsonFieldType.NUMBER)
@@ -333,7 +250,7 @@ public class MemberRestControllerDocsTest extends RestDocsSupport {
 	@Test
 	void readProfile() throws Exception {
 		// given
-		given(memberService.readProfile(ArgumentMatchers.any(AuthMember.class)))
+		given(memberService.readProfile(anyLong()))
 			.willReturn(
 				ProfileResponse.builder()
 					.user(ProfileResponse.MemberProfile.builder()
@@ -723,53 +640,6 @@ public class MemberRestControllerDocsTest extends RestDocsSupport {
 							.description("메시지"),
 						fieldWithPath("data").type(JsonFieldType.NULL)
 							.description("응답 데이터")
-					)
-				)
-			);
-	}
-
-	@DisplayName("인가코드 요청 URL")
-	@Test
-	void saveAuthorizationCodeURL() throws Exception {
-		// give
-		given(memberService.saveAuthorizationCodeURL(anyString()))
-			.willReturn(OauthSaveUrlResponse.builder()
-				.authURL("authURL")
-				.build());
-		// when & then
-		mockMvc.perform(RestDocumentationRequestBuilders.post("/api/auth/{provider}/authUrl", "kakao"))
-			.andExpect(status().isOk())
-			.andExpect(jsonPath("code").value(equalTo(200)))
-			.andExpect(jsonPath("status").value(equalTo("OK")))
-			.andExpect(jsonPath("message").value(equalTo("인가 코드 URL 요청에 성공하였습니다")))
-			.andExpect(jsonPath("data.authURL").value(equalTo("authURL")))
-			.andDo(
-				document(
-					"member_authorization_code-create",
-					preprocessRequest(prettyPrint()),
-					preprocessResponse(prettyPrint()),
-					pathParameters(
-						parameterWithName("provider").description("플랫폼 이름")
-							.attributes(
-								Attributes.key("constraints").value(
-									String.join(",",
-										"kakao",
-										"google",
-										"naver"
-									)
-								))
-					),
-					responseFields(
-						fieldWithPath("code").type(JsonFieldType.NUMBER)
-							.description("코드"),
-						fieldWithPath("status").type(JsonFieldType.STRING)
-							.description("상태"),
-						fieldWithPath("message").type(JsonFieldType.STRING)
-							.description("메시지"),
-						fieldWithPath("data").type(JsonFieldType.OBJECT)
-							.description("응답 데이터"),
-						fieldWithPath("data.authURL").type(JsonFieldType.STRING)
-							.description("인가 코드 요청 URL")
 					)
 				)
 			);

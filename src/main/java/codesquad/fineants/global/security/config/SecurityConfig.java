@@ -17,40 +17,58 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import codesquad.fineants.domain.member.repository.MemberRepository;
 import codesquad.fineants.domain.member.repository.RoleRepository;
 import codesquad.fineants.domain.member.service.NicknameGenerator;
+import codesquad.fineants.domain.notification_preference.repository.NotificationPreferenceRepository;
 import codesquad.fineants.global.security.auth.filter.JwtAuthFilter;
 import codesquad.fineants.global.security.auth.handler.OAuth2SuccessHandler;
-import codesquad.fineants.global.security.auth.handler.UserRequestMapper;
+import codesquad.fineants.global.security.auth.handler.OAuth2UserMapper;
 import codesquad.fineants.global.security.auth.service.CustomOAuth2UserService;
 import codesquad.fineants.global.security.auth.service.CustomOidcUserService;
 import codesquad.fineants.global.security.auth.service.TokenService;
 import codesquad.fineants.global.security.filter.OAuth2AuthorizationRequestRedirectWithRedirectUrlParamFilter;
+import codesquad.fineants.global.security.handler.CustomAccessDeniedHandler;
 import jakarta.servlet.Filter;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity
+@EnableMethodSecurity(securedEnabled = true)
 public class SecurityConfig {
 
 	private final MemberRepository memberRepository;
+	private final NotificationPreferenceRepository notificationPreferenceRepository;
 	private final TokenService tokenService;
 	private final NicknameGenerator nicknameGenerator;
 	private final RoleRepository roleRepository;
-	private final UserRequestMapper userRequestMapper;
+	private final OAuth2UserMapper OAuth2UserMapper;
 	private final String loginSuccessUri;
 
-	public SecurityConfig(MemberRepository memberRepository, TokenService tokenService,
-		NicknameGenerator nicknameGenerator, RoleRepository roleRepository, UserRequestMapper userRequestMapper,
+	public SecurityConfig(MemberRepository memberRepository,
+		NotificationPreferenceRepository notificationPreferenceRepository, TokenService tokenService,
+		NicknameGenerator nicknameGenerator, RoleRepository roleRepository, OAuth2UserMapper OAuth2UserMapper,
 		@Value("${oauth2.login-success-uri}") String loginSuccessUri) {
 		this.memberRepository = memberRepository;
+		this.notificationPreferenceRepository = notificationPreferenceRepository;
 		this.tokenService = tokenService;
 		this.nicknameGenerator = nicknameGenerator;
 		this.roleRepository = roleRepository;
-		this.userRequestMapper = userRequestMapper;
+		this.OAuth2UserMapper = OAuth2UserMapper;
 		this.loginSuccessUri = loginSuccessUri;
 	}
 
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+		http
+			.authorizeHttpRequests(authorize ->
+				authorize.requestMatchers(
+						"/oauth2/authorization/**",
+						"/login/oauth2/code/**",
+						"/api/oauth/redirect",
+						"/api/auth/google/login",
+						"/api/auth/kakao/login",
+						"/api/auth/naver/login",
+						"/api/auth/login"
+					).permitAll()
+					.anyRequest().authenticated()
+			);
 		http
 			.sessionManagement(configurer -> configurer
 				.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
@@ -64,8 +82,11 @@ public class SecurityConfig {
 				.userInfoEndpoint(config -> config
 					.userService(customOAuth2UserService())
 					.oidcUserService(customOidcUserService())
-				).successHandler(oAuth2SuccessHandler())
+				)
+				.successHandler(oAuth2SuccessHandler())
 			);
+		http.exceptionHandling(configurer ->
+			configurer.accessDeniedHandler(customAccessDeniedHandler()));
 		http.csrf(AbstractHttpConfigurer::disable);
 		return http.build();
 	}
@@ -77,17 +98,19 @@ public class SecurityConfig {
 
 	@Bean
 	public CustomOAuth2UserService customOAuth2UserService() {
-		return new CustomOAuth2UserService(memberRepository, nicknameGenerator, roleRepository);
+		return new CustomOAuth2UserService(memberRepository, notificationPreferenceRepository, nicknameGenerator,
+			roleRepository);
 	}
 
 	@Bean
 	public CustomOidcUserService customOidcUserService() {
-		return new CustomOidcUserService(memberRepository, nicknameGenerator, roleRepository);
+		return new CustomOidcUserService(memberRepository, notificationPreferenceRepository, nicknameGenerator,
+			roleRepository);
 	}
 
 	@Bean
 	public OAuth2SuccessHandler oAuth2SuccessHandler() {
-		return new OAuth2SuccessHandler(tokenService, userRequestMapper, loginSuccessUri);
+		return new OAuth2SuccessHandler(tokenService, OAuth2UserMapper, loginSuccessUri);
 	}
 
 	@Bean
@@ -98,5 +121,10 @@ public class SecurityConfig {
 	@Bean
 	public OAuth2AuthorizationRequestRedirectWithRedirectUrlParamFilter oAuth2AuthorizationRequestRedirectWithRedirectUrlParamFilter() {
 		return new OAuth2AuthorizationRequestRedirectWithRedirectUrlParamFilter();
+	}
+
+	@Bean
+	public CustomAccessDeniedHandler customAccessDeniedHandler() {
+		return new CustomAccessDeniedHandler();
 	}
 }

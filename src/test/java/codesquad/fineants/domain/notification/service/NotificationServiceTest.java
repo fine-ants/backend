@@ -657,19 +657,6 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 			.build();
 	}
 
-	private Member createMember() {
-		return createMember("일개미1234", "dragonbead95@naver.com");
-	}
-
-	private Member createMember(String nickname, String email) {
-		return Member.builder()
-			.nickname(nickname)
-			.email(email)
-			.password("kim1234@")
-			.provider("local")
-			.build();
-	}
-
 	private Portfolio createPortfolio(Member member) {
 		return createPortfolio(member, Money.won(1000000L), Money.won(1500000L), Money.won(900000L));
 	}

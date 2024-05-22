@@ -5,10 +5,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -18,32 +16,21 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
+import codesquad.fineants.ControllerTestSupport;
 import codesquad.fineants.domain.common.count.Count;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
 import codesquad.fineants.domain.member.domain.entity.Member;
-import codesquad.fineants.domain.oauth.support.AuthMember;
-import codesquad.fineants.domain.oauth.support.AuthPrincipalArgumentResolver;
-import codesquad.fineants.domain.portfolio.aop.HasPortfolioAuthorizationAspect;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.service.PortFolioService;
 import codesquad.fineants.domain.portfolio_gain_history.domain.entity.PortfolioGainHistory;
@@ -62,78 +49,32 @@ import codesquad.fineants.domain.portfolio_holding.domain.dto.response.Portfolio
 import codesquad.fineants.domain.portfolio_holding.domain.entity.PortfolioHolding;
 import codesquad.fineants.domain.portfolio_holding.service.PortfolioHoldingService;
 import codesquad.fineants.domain.portfolio_holding.service.PortfolioObservableService;
-import codesquad.fineants.domain.portfolio_holding.service.StockMarketChecker;
 import codesquad.fineants.domain.purchase_history.domain.entity.PurchaseHistory;
 import codesquad.fineants.domain.stock.domain.entity.Market;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock_dividend.domain.entity.StockDividend;
-import codesquad.fineants.global.config.JacksonConfig;
-import codesquad.fineants.global.config.JpaAuditingConfiguration;
-import codesquad.fineants.global.config.SpringConfig;
 import codesquad.fineants.global.errors.errorcode.PortfolioErrorCode;
 import codesquad.fineants.global.errors.exception.NotFoundResourceException;
-import codesquad.fineants.global.errors.handler.GlobalExceptionHandler;
 import codesquad.fineants.global.util.ObjectMapperUtil;
 
-@ActiveProfiles("test")
 @WebMvcTest(controllers = PortfolioHoldingRestController.class)
-@Import(value = {SpringConfig.class, HasPortfolioAuthorizationAspect.class, JacksonConfig.class})
-@MockBean(JpaAuditingConfiguration.class)
-class PortfolioHoldingRestControllerTest {
-	private MockMvc mockMvc;
-
-	@Autowired
-	private PortfolioHoldingRestController portfolioHoldingRestController;
-
-	@Autowired
-	private GlobalExceptionHandler globalExceptionHandler;
-
-	@Autowired
-	private ObjectMapper objectMapper;
-
-	@MockBean
-	private AuthPrincipalArgumentResolver authPrincipalArgumentResolver;
+class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 
 	@MockBean
 	private PortfolioHoldingService portfolioHoldingService;
 
 	@MockBean
-	private StockMarketChecker stockMarketChecker;
+	private PortfolioObservableService portfolioObservableService;
 
 	@MockBean
 	private PortFolioService portFolioService;
 
 	@MockBean
-	private PortfolioObservableService portfolioObservableService;
-
-	@MockBean
 	private CurrentPriceRepository currentPriceRepository;
 
-	private PieChart pieChart;
-
-	private DividendChart dividendChart;
-
-	private SectorChart sectorChart;
-
-	@BeforeEach
-	void setup() {
-		mockMvc = MockMvcBuilders.standaloneSetup(portfolioHoldingRestController)
-			.setControllerAdvice(globalExceptionHandler)
-			.setCustomArgumentResolvers(authPrincipalArgumentResolver)
-			.setMessageConverters(new MappingJackson2HttpMessageConverter(objectMapper))
-			.defaultResponseCharacterEncoding(StandardCharsets.UTF_8)
-			.alwaysDo(print())
-			.build();
-
-		pieChart = new PieChart(currentPriceRepository);
-		dividendChart = new DividendChart(currentPriceRepository);
-		sectorChart = new SectorChart(currentPriceRepository);
-
-		AuthMember authMember = AuthMember.from(createMember());
-		given(authPrincipalArgumentResolver.resolveArgument(any(), any(), any(), any())).willReturn(authMember);
-		given(authPrincipalArgumentResolver.supportsParameter(any())).willReturn(true);
-		given(stockMarketChecker.isMarketOpen(any())).willReturn(false);
-		given(portFolioService.hasAuthorizationBy(anyLong(), anyLong())).willReturn(true);
+	@Override
+	protected Object initController() {
+		return new PortfolioHoldingRestController(portfolioHoldingService, portfolioObservableService);
 	}
 
 	@DisplayName("사용자의 포트폴리오 상세 정보를 가져온다")
@@ -224,21 +165,6 @@ class PortfolioHoldingRestControllerTest {
 			.andExpect(jsonPath("message").value(equalTo("포트폴리오를 찾을 수 없습니다")));
 	}
 
-	@DisplayName("존재하지 않은 포트폴리오 등록번호를 가지고 상세 데이터를 조회할 수 없다")
-	@Test
-	void readMyPortfolioStocksInRealTimeWithNotExistPortfolioId() throws Exception {
-		// given
-		long portfolioId = 9999L;
-		given(portfolioHoldingService.readMyPortfolioStocksInRealTime(anyLong()))
-			.willThrow(new NotFoundResourceException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
-		given(portFolioService.hasAuthorizationBy(anyLong(), anyLong()))
-			.willThrow(new NotFoundResourceException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
-		// when & then
-		mockMvc.perform(get("/api/portfolio/{portfolioId}/holdings/realtime", portfolioId))
-			.andExpect(status().isNotFound())
-			.andExpect(jsonPath("message").value(equalTo("포트폴리오를 찾을 수 없습니다")));
-	}
-
 	@DisplayName("사용자는 포트폴리오에 종목과 매입이력을 추가한다")
 	@Test
 	void addPortfolioStock() throws Exception {
@@ -248,8 +174,8 @@ class PortfolioHoldingRestControllerTest {
 
 		PortfolioStockCreateResponse response = PortfolioStockCreateResponse.from(
 			PortfolioHolding.empty(portfolio, stock));
-		given(portfolioHoldingService.createPortfolioHolding(anyLong(), any(PortfolioHoldingCreateRequest.class),
-			any(AuthMember.class))).willReturn(response);
+		given(portfolioHoldingService.createPortfolioHolding(anyLong(),
+			any(PortfolioHoldingCreateRequest.class))).willReturn(response);
 
 		Map<String, Object> purchaseHistoryMap = new HashMap<>();
 		purchaseHistoryMap.put("purchaseDate", LocalDateTime.now().toString());
@@ -283,8 +209,8 @@ class PortfolioHoldingRestControllerTest {
 
 		PortfolioStockCreateResponse response = PortfolioStockCreateResponse.from(
 			PortfolioHolding.empty(portfolio, stock));
-		given(portfolioHoldingService.createPortfolioHolding(anyLong(), any(PortfolioHoldingCreateRequest.class),
-			any(AuthMember.class))).willReturn(response);
+		given(portfolioHoldingService.createPortfolioHolding(anyLong(),
+			any(PortfolioHoldingCreateRequest.class))).willReturn(response);
 
 		Map<String, Object> requestBodyMap = new HashMap<>();
 		requestBodyMap.put("tickerSymbol", "005930");
@@ -360,8 +286,8 @@ class PortfolioHoldingRestControllerTest {
 		String body = ObjectMapperUtil.serialize(requestBodyMap);
 
 		PortfolioStockDeletesResponse mockResponse = new PortfolioStockDeletesResponse(delPortfolioHoldingIds);
-		given(portfolioHoldingService.deletePortfolioHoldings(anyLong(), any(AuthMember.class), any(
-			PortfolioStocksDeleteRequest.class))).willReturn(mockResponse);
+		given(portfolioHoldingService.deletePortfolioHoldings(anyLong(), anyLong(),
+			any(PortfolioStocksDeleteRequest.class))).willReturn(mockResponse);
 		// when & then
 		mockMvc.perform(delete("/api/portfolio/{portfolioId}/holdings", portfolio.getId())
 				.contentType(MediaType.APPLICATION_JSON)
@@ -414,10 +340,14 @@ class PortfolioHoldingRestControllerTest {
 		given(currentPriceRepository.getCurrentPrice(stock.getTickerSymbol()))
 			.willReturn(Optional.of(portfolioHolding.getCurrentPrice()));
 
-		List<PortfolioPieChartItem> pieChartItems = this.pieChart.createBy(portfolio);
-		List<PortfolioDividendChartItem> dividendChartItems = this.dividendChart.createBy(portfolio,
+		PieChart pieChart = new PieChart(currentPriceRepository);
+		DividendChart dividendChart = new DividendChart(currentPriceRepository);
+		SectorChart sectorChart = new SectorChart(currentPriceRepository);
+
+		List<PortfolioPieChartItem> pieChartItems = pieChart.createBy(portfolio);
+		List<PortfolioDividendChartItem> dividendChartItems = dividendChart.createBy(portfolio,
 			LocalDate.of(2024, 1, 16));
-		List<PortfolioSectorChartItem> sectorChartItems = this.sectorChart.createBy(portfolio);
+		List<PortfolioSectorChartItem> sectorChartItems = sectorChart.createBy(portfolio);
 		PortfolioChartResponse response = PortfolioChartResponse.create(pieChartItems, dividendChartItems,
 			sectorChartItems);
 		given(portfolioHoldingService.readPortfolioCharts(anyLong(), any(LocalDate.class)))

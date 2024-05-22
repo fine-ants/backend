@@ -6,22 +6,11 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import codesquad.fineants.domain.kis.repository.ClosingPriceRepository;
+import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
-import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.stock.repository.StockRepository;
-import codesquad.fineants.domain.watch_list.domain.entity.WatchList;
-import codesquad.fineants.domain.watch_list.repository.WatchListRepository;
-import codesquad.fineants.domain.watch_list.domain.entity.WatchStock;
-import codesquad.fineants.domain.watch_list.repository.WatchStockRepository;
-import codesquad.fineants.global.errors.errorcode.MemberErrorCode;
-import codesquad.fineants.global.errors.errorcode.StockErrorCode;
-import codesquad.fineants.global.errors.errorcode.WatchListErrorCode;
-import codesquad.fineants.global.errors.exception.ForBiddenException;
-import codesquad.fineants.global.errors.exception.NotFoundResourceException;
-import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
-import codesquad.fineants.domain.kis.repository.ClosingPriceRepository;
-import codesquad.fineants.domain.watch_list.event.publisher.WatchStockEventPublisher;
 import codesquad.fineants.domain.watch_list.domain.dto.request.ChangeWatchListNameRequest;
 import codesquad.fineants.domain.watch_list.domain.dto.request.CreateWatchListRequest;
 import codesquad.fineants.domain.watch_list.domain.dto.request.CreateWatchStockRequest;
@@ -31,6 +20,16 @@ import codesquad.fineants.domain.watch_list.domain.dto.response.CreateWatchListR
 import codesquad.fineants.domain.watch_list.domain.dto.response.ReadWatchListResponse;
 import codesquad.fineants.domain.watch_list.domain.dto.response.ReadWatchListsResponse;
 import codesquad.fineants.domain.watch_list.domain.dto.response.WatchListHasStockResponse;
+import codesquad.fineants.domain.watch_list.domain.entity.WatchList;
+import codesquad.fineants.domain.watch_list.domain.entity.WatchStock;
+import codesquad.fineants.domain.watch_list.event.publisher.WatchStockEventPublisher;
+import codesquad.fineants.domain.watch_list.repository.WatchListRepository;
+import codesquad.fineants.domain.watch_list.repository.WatchStockRepository;
+import codesquad.fineants.global.errors.errorcode.MemberErrorCode;
+import codesquad.fineants.global.errors.errorcode.StockErrorCode;
+import codesquad.fineants.global.errors.errorcode.WatchListErrorCode;
+import codesquad.fineants.global.errors.exception.ForBiddenException;
+import codesquad.fineants.global.errors.exception.NotFoundResourceException;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -46,8 +45,8 @@ public class WatchListService {
 	private final WatchStockEventPublisher watchStockEventPublisher;
 
 	@Transactional
-	public CreateWatchListResponse createWatchList(AuthMember authMember, CreateWatchListRequest request) {
-		Member member = findMember(authMember.getMemberId());
+	public CreateWatchListResponse createWatchList(Long memberId, CreateWatchListRequest request) {
+		Member member = findMember(memberId);
 		WatchList watchList = WatchList.builder()
 			.member(member)
 			.name(request.getName())
@@ -57,16 +56,16 @@ public class WatchListService {
 	}
 
 	@Transactional(readOnly = true)
-	public List<ReadWatchListsResponse> readWatchLists(AuthMember authMember) {
-		Member member = findMember(authMember.getMemberId());
+	public List<ReadWatchListsResponse> readWatchLists(Long memberId) {
+		Member member = findMember(memberId);
 		return watchListRepository.findByMember(member).stream()
 			.map(ReadWatchListsResponse::from)
 			.collect(Collectors.toList());
 	}
 
 	@Transactional(readOnly = true)
-	public ReadWatchListResponse readWatchList(AuthMember authMember, Long watchListId) {
-		Member member = findMember(authMember.getMemberId());
+	public ReadWatchListResponse readWatchList(Long memberId, Long watchListId) {
+		Member member = findMember(memberId);
 		WatchList watchList = watchListRepository.findById(watchListId)
 			.orElseThrow(() -> new NotFoundResourceException(WatchListErrorCode.NOT_FOUND_WATCH_LIST));
 
@@ -81,8 +80,8 @@ public class WatchListService {
 	}
 
 	@Transactional
-	public void deleteWatchLists(AuthMember authMember, DeleteWatchListsRequests deleteWatchListsRequests) {
-		Member member = findMember(authMember.getMemberId());
+	public void deleteWatchLists(Long memberId, DeleteWatchListsRequests deleteWatchListsRequests) {
+		Member member = findMember(memberId);
 		List<WatchList> watchLists = watchListRepository.findAllById(deleteWatchListsRequests.getWatchlistIds());
 
 		watchLists.forEach(watchList -> {
@@ -94,8 +93,8 @@ public class WatchListService {
 	}
 
 	@Transactional
-	public void createWatchStocks(AuthMember authMember, Long watchListId, CreateWatchStockRequest request) {
-		Member member = findMember(authMember.getMemberId());
+	public void createWatchStocks(Long memberId, Long watchListId, CreateWatchStockRequest request) {
+		Member member = findMember(memberId);
 		WatchList watchList = watchListRepository.findById(watchListId)
 			.orElseThrow(() -> new NotFoundResourceException(WatchListErrorCode.NOT_FOUND_WATCH_LIST));
 
@@ -115,8 +114,8 @@ public class WatchListService {
 	}
 
 	@Transactional
-	public void deleteWatchStocks(AuthMember authMember, Long watchListId, DeleteWatchStocksRequest request) {
-		Member member = findMember(authMember.getMemberId());
+	public void deleteWatchStocks(Long memberId, Long watchListId, DeleteWatchStocksRequest request) {
+		Member member = findMember(memberId);
 		WatchList watchList = watchListRepository.findById(watchListId)
 			.orElseThrow(() -> new NotFoundResourceException(WatchListErrorCode.NOT_FOUND_WATCH_LIST));
 		validateWatchListAuthorization(member.getId(), watchList.getMember().getId());
@@ -125,8 +124,8 @@ public class WatchListService {
 	}
 
 	@Transactional
-	public void deleteWatchStock(AuthMember authMember, Long watchListId, String tickerSymbol) {
-		Member member = findMember(authMember.getMemberId());
+	public void deleteWatchStock(Long memberId, Long watchListId, String tickerSymbol) {
+		Member member = findMember(memberId);
 		WatchList watchList = watchListRepository.findById(watchListId)
 			.orElseThrow(() -> new NotFoundResourceException(WatchListErrorCode.NOT_FOUND_WATCH_LIST));
 		validateWatchListAuthorization(member.getId(), watchList.getMember().getId());
@@ -135,8 +134,8 @@ public class WatchListService {
 	}
 
 	@Transactional
-	public void changeWatchListName(AuthMember authMember, Long watchListId, ChangeWatchListNameRequest request) {
-		Member member = findMember(authMember.getMemberId());
+	public void changeWatchListName(Long memberId, Long watchListId, ChangeWatchListNameRequest request) {
+		Member member = findMember(memberId);
 		WatchList watchList = watchListRepository.findById(watchListId)
 			.orElseThrow(() -> new NotFoundResourceException(WatchListErrorCode.NOT_FOUND_WATCH_LIST));
 		validateWatchListAuthorization(member.getId(), watchList.getMember().getId());
@@ -145,8 +144,8 @@ public class WatchListService {
 	}
 
 	@Transactional(readOnly = true)
-	public List<WatchListHasStockResponse> hasStock(AuthMember authMember, String tickerSymbol) {
-		Member member = findMember(authMember.getMemberId());
+	public List<WatchListHasStockResponse> hasStock(Long memberId, String tickerSymbol) {
+		Member member = findMember(memberId);
 		return watchListRepository.findWatchListsAndStockPresenceByMemberAndTickerSymbol(member, tickerSymbol);
 	}
 

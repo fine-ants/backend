@@ -9,6 +9,8 @@ import codesquad.fineants.domain.member.domain.entity.Role;
 import codesquad.fineants.domain.member.repository.MemberRepository;
 import codesquad.fineants.domain.member.repository.RoleRepository;
 import codesquad.fineants.domain.member.service.NicknameGenerator;
+import codesquad.fineants.domain.notification_preference.domain.entity.NotificationPreference;
+import codesquad.fineants.domain.notification_preference.repository.NotificationPreferenceRepository;
 import codesquad.fineants.global.errors.errorcode.RoleErrorCode;
 import codesquad.fineants.global.errors.exception.FineAntsException;
 import codesquad.fineants.global.security.auth.dto.OAuthAttribute;
@@ -20,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 public abstract class AbstractUserService {
 
 	private final MemberRepository memberRepository;
+	private final NotificationPreferenceRepository notificationPreferenceRepository;
 	private final NicknameGenerator nicknameGenerator;
 	private final RoleRepository roleRepository;
 
@@ -40,6 +43,11 @@ public abstract class AbstractUserService {
 			.orElseThrow(() -> new FineAntsException(RoleErrorCode.NOT_EXIST_ROLE));
 		MemberRole memberRole = MemberRole.create(member, userRole);
 		member.addMemberRole(memberRole);
+
+		if (member.getNotificationPreference() == null) {
+			NotificationPreference notificationPreference = NotificationPreference.defaultSetting(member);
+			notificationPreferenceRepository.save(notificationPreference);
+		}
 		return memberRepository.save(member);
 	}
 

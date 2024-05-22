@@ -28,7 +28,6 @@ import codesquad.fineants.docs.RestDocsSupport;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.common.money.Percentage;
 import codesquad.fineants.domain.member.domain.entity.Member;
-import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.watch_list.controller.WatchListRestController;
 import codesquad.fineants.domain.watch_list.domain.dto.request.CreateWatchListRequest;
 import codesquad.fineants.domain.watch_list.domain.dto.response.CreateWatchListResponse;
@@ -52,7 +51,7 @@ public class WatchListRestControllerDocsTest extends RestDocsSupport {
 	void createWatchList() throws Exception {
 		// given
 		given(service.createWatchList(
-			ArgumentMatchers.any(AuthMember.class),
+			anyLong(),
 			ArgumentMatchers.any(CreateWatchListRequest.class)))
 			.willReturn(CreateWatchListResponse.create(1L));
 
@@ -105,7 +104,7 @@ public class WatchListRestControllerDocsTest extends RestDocsSupport {
 		// given
 		Member member = createMember();
 
-		given(service.readWatchLists(ArgumentMatchers.any(AuthMember.class)))
+		given(service.readWatchLists(anyLong()))
 			.willReturn(Stream.of(createWatchList(member))
 				.map(ReadWatchListsResponse::from)
 				.collect(Collectors.toList()));
@@ -194,7 +193,7 @@ public class WatchListRestControllerDocsTest extends RestDocsSupport {
 	void readWatchList() throws Exception {
 		// given
 		Long watchlistId = 1L;
-		given(service.readWatchList(ArgumentMatchers.any(AuthMember.class), anyLong()))
+		given(service.readWatchList(anyLong(), anyLong()))
 			.willReturn(ReadWatchListResponse.builder()
 				.name("My WatchList")
 				.watchStocks(List.of(
@@ -460,7 +459,7 @@ public class WatchListRestControllerDocsTest extends RestDocsSupport {
 		// given
 		String tickerSymbol = "005930";
 
-		given(service.hasStock(ArgumentMatchers.any(AuthMember.class), anyString()))
+		given(service.hasStock(anyLong(), anyString()))
 			.willReturn(List.of(
 				WatchListHasStockResponse.create(1L, "My WatchList 1", true),
 				WatchListHasStockResponse.create(2L, "My WatchList 2", false)

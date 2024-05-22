@@ -4,12 +4,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import codesquad.fineants.domain.oauth.support.AuthMember;
-import codesquad.fineants.domain.oauth.support.AuthPrincipalMember;
-import codesquad.fineants.global.api.ApiResponse;
-import codesquad.fineants.global.success.PortfolioSuccessCode;
 import codesquad.fineants.domain.portfolio.domain.dto.response.PortfolioNotificationSettingSearchResponse;
 import codesquad.fineants.domain.portfolio.service.PortfolioNotificationSettingService;
+import codesquad.fineants.global.api.ApiResponse;
+import codesquad.fineants.global.security.auth.dto.MemberAuthentication;
+import codesquad.fineants.global.security.auth.resolver.MemberAuthenticationPrincipal;
+import codesquad.fineants.global.success.PortfolioSuccessCode;
 import lombok.RequiredArgsConstructor;
 
 @RequestMapping("/api/portfolios/notification/settings")
@@ -21,10 +21,10 @@ public class PortfolioNotificationSettingRestController {
 
 	@GetMapping
 	public ApiResponse<PortfolioNotificationSettingSearchResponse> searchPortfolioNotificationSetting(
-		@AuthPrincipalMember AuthMember authMember
+		@MemberAuthenticationPrincipal MemberAuthentication authentication
 	) {
 		PortfolioNotificationSettingSearchResponse response = service.searchPortfolioNotificationSetting(
-			authMember.getMemberId());
+			authentication.getId());
 		return ApiResponse.success(PortfolioSuccessCode.OK_SEARCH_PORTFOLIO_NOTIFICATION_SETTINGS, response);
 	}
 }

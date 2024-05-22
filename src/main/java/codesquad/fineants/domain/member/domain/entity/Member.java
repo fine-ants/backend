@@ -73,14 +73,13 @@ public class Member extends BaseEntity {
 			.build();
 	}
 
-	public static Member localMember(String nickname, String email, String password, Set<Role> roleSet) {
+	public static Member localMember(String email, String nickname, String password) {
 		return Member.builder()
 			.email(email)
 			.nickname(nickname)
 			.provider("local")
 			.password(password)
 			.profileUrl(null)
-			.roles(roleSet)
 			.build();
 	}
 

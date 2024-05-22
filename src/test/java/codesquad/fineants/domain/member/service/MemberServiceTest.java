@@ -11,24 +11,20 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -36,15 +32,12 @@ import codesquad.fineants.AbstractContainerBaseTest;
 import codesquad.fineants.domain.common.count.Count;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.fcm_token.repository.FcmRepository;
-import codesquad.fineants.domain.member.domain.dto.request.AuthorizationRequest;
-import codesquad.fineants.domain.member.domain.dto.request.OauthMemberLoginRequest;
 import codesquad.fineants.domain.member.domain.dto.request.ProfileChangeRequest;
 import codesquad.fineants.domain.member.domain.dto.request.ProfileChangeServiceRequest;
 import codesquad.fineants.domain.member.domain.dto.request.SignUpRequest;
 import codesquad.fineants.domain.member.domain.dto.request.SignUpServiceRequest;
 import codesquad.fineants.domain.member.domain.dto.request.VerifyCodeRequest;
 import codesquad.fineants.domain.member.domain.dto.request.VerifyEmailRequest;
-import codesquad.fineants.domain.member.domain.dto.response.OauthUserProfile;
 import codesquad.fineants.domain.member.domain.dto.response.ProfileChangeResponse;
 import codesquad.fineants.domain.member.domain.dto.response.ProfileResponse;
 import codesquad.fineants.domain.member.domain.dto.response.SignUpServiceResponse;
@@ -53,10 +46,6 @@ import codesquad.fineants.domain.member.repository.MemberRepository;
 import codesquad.fineants.domain.notification.repository.NotificationRepository;
 import codesquad.fineants.domain.notification_preference.domain.entity.NotificationPreference;
 import codesquad.fineants.domain.notification_preference.repository.NotificationPreferenceRepository;
-import codesquad.fineants.domain.oauth.client.AuthorizationCodeRandomGenerator;
-import codesquad.fineants.domain.oauth.client.OauthClient;
-import codesquad.fineants.domain.oauth.repository.OauthClientRepository;
-import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.repository.PortfolioRepository;
 import codesquad.fineants.domain.portfolio_gain_history.repository.PortfolioGainHistoryRepository;
@@ -78,10 +67,8 @@ import codesquad.fineants.domain.watch_list.domain.entity.WatchStock;
 import codesquad.fineants.domain.watch_list.repository.WatchListRepository;
 import codesquad.fineants.domain.watch_list.repository.WatchStockRepository;
 import codesquad.fineants.global.errors.errorcode.MemberErrorCode;
-import codesquad.fineants.global.errors.errorcode.OauthErrorCode;
 import codesquad.fineants.global.errors.exception.BadRequestException;
 import codesquad.fineants.global.errors.exception.FineAntsException;
-import codesquad.fineants.global.errors.exception.NotFoundResourceException;
 import codesquad.fineants.global.util.ObjectMapperUtil;
 import codesquad.fineants.infra.mail.service.MailService;
 import codesquad.fineants.infra.s3.service.AmazonS3Service;
@@ -134,15 +121,6 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 	private WatchStockRepository watchStockRepository;
 
 	@MockBean
-	private AuthorizationCodeRandomGenerator authorizationCodeRandomGenerator;
-
-	@MockBean
-	private OauthClientRepository oauthClientRepository;
-
-	@MockBean
-	private OauthClient oauthClient;
-
-	@MockBean
 	private AmazonS3Service amazonS3Service;
 
 	@MockBean
@@ -170,114 +148,6 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 		memberRepository.deleteAllInBatch();
 		stockDividendRepository.deleteAllInBatch();
 		stockRepository.deleteAllInBatch();
-	}
-
-	@DisplayName("존재하지 않은 provider를 제공하여 로그인 시도시 예외가 발생한다")
-	@Test
-	void loginWithNotExistProvider() {
-		// given
-		String provider = "invalidProvider";
-		given(oauthClientRepository.findOneBy(anyString())).willThrow(
-			new NotFoundResourceException(OauthErrorCode.NOT_FOUND_PROVIDER));
-
-		OauthMemberLoginRequest loginRequest = createOauthMemberLoginServiceRequest(provider);
-
-		// when
-		Throwable throwable = catchThrowable(() -> memberService.login(loginRequest));
-
-		// then
-		assertAll(
-			() -> assertThat(throwable)
-				.isInstanceOf(FineAntsException.class)
-				.extracting("errorCode")
-				.isInstanceOf(OauthErrorCode.class)
-				.extracting("httpStatus", "message")
-				.containsExactlyInAnyOrder(HttpStatus.NOT_FOUND, OauthErrorCode.NOT_FOUND_PROVIDER.getMessage())
-		);
-	}
-
-	@DisplayName("유효하지 않은 인가코드를 전달하여 예외가 발생한다")
-	@Test
-	void loginWithInvalidCode() {
-		// given
-		String provider = "kakao";
-		String state = "1234";
-		String codeVerifier = "1234";
-		String codeChallenge = "4321";
-		String nonce = "1234";
-		given(authorizationCodeRandomGenerator.generateAuthorizationRequest()).willReturn(
-			AuthorizationRequest.of(state, codeVerifier, codeChallenge, nonce));
-		given(oauthClientRepository.findOneBy(anyString())).willReturn(oauthClient);
-
-		Map<String, String> errorBody = new HashMap<>();
-		errorBody.put("error", "invalid_grant");
-		errorBody.put("error_description", "authorization code not found for code=1234");
-		errorBody.put("error_code", "KOE320");
-
-		given(oauthClient.fetchProfile(any(OauthMemberLoginRequest.class), any(AuthorizationRequest.class)))
-			.willThrow(new BadRequestException(OauthErrorCode.FAIL_REQUEST, ObjectMapperUtil.serialize(errorBody)));
-		memberService.saveAuthorizationCodeURL(provider);
-
-		OauthMemberLoginRequest loginRequest = createOauthMemberLoginServiceRequest(provider);
-
-		// when
-		Throwable throwable = catchThrowable(() -> memberService.login(loginRequest));
-
-		// then
-		assertAll(
-			() -> assertThat(throwable)
-				.isInstanceOf(BadRequestException.class)
-				.extracting("errorCode")
-				.isInstanceOf(OauthErrorCode.class)
-				.extracting("httpStatus", "message")
-				.containsExactlyInAnyOrder(HttpStatus.BAD_REQUEST, OauthErrorCode.FAIL_REQUEST.getMessage())
-		);
-	}
-
-	@DisplayName("잘못된 state를 전달하여 로그인을 할 수 없다")
-	@Test
-	void loginWithInvalidState() {
-		// given
-		String provider = "kakao";
-		OauthMemberLoginRequest loginRequest = createOauthMemberLoginServiceRequest(provider);
-
-		// when
-		Throwable throwable = catchThrowable(() -> memberService.login(loginRequest));
-
-		// then
-		assertAll(
-			() -> assertThat(throwable)
-				.isInstanceOf(FineAntsException.class)
-				.extracting("errorCode")
-				.isInstanceOf(OauthErrorCode.class)
-				.extracting("httpStatus", "message")
-				.containsExactlyInAnyOrder(HttpStatus.BAD_REQUEST, OauthErrorCode.WRONG_STATE.getMessage())
-		);
-	}
-
-	@DisplayName("사용자가 소셜 로그인을 합니다")
-	@CsvSource(value = {"naver,fineants.co@naver.com", "kakao,fineants.co@gmail.com", "google,fineants.co@gmail.com"})
-	@ParameterizedTest
-	void loginWithNaver(String provider, String email) {
-		// given
-		String state = "1234";
-		given(authorizationCodeRandomGenerator.generateAuthorizationRequest()).willReturn(
-			createAuthorizationRequest(state));
-		given(oauthClientRepository.findOneBy(anyString())).willReturn(oauthClient);
-		given(oauthClient.fetchProfile(any(OauthMemberLoginRequest.class), any(AuthorizationRequest.class)))
-			.willReturn(createOauthUserProfile(email, provider));
-		memberService.saveAuthorizationCodeURL(provider);
-
-		OauthMemberLoginRequest loginRequest = createOauthMemberLoginServiceRequest(provider);
-
-		// when
-		memberService.login(loginRequest);
-
-		// then
-		assertAll(
-			() -> assertThat(memberRepository.findMemberByEmailAndProvider(email, provider).orElseThrow())
-				.isNotNull()
-		);
 	}
 
 	@DisplayName("사용자는 회원의 프로필에서 새 프로필 사진과 닉네임을 변경한다")
@@ -692,7 +562,7 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 		preferenceRepository.save(NotificationPreference.defaultSetting(member));
 
 		// when
-		ProfileResponse response = memberService.readProfile(AuthMember.from(member));
+		ProfileResponse response = memberService.readProfile(member.getId());
 
 		// then
 		assertThat(response)
@@ -722,48 +592,10 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 		watchStockRepository.save(createWatchStock(watchList, stock));
 
 		// when
-		memberService.deleteMember(AuthMember.from(member));
+		memberService.deleteMember(member.getId());
 
 		// then
 		assertThat(memberRepository.findById(member.getId())).isEmpty();
-	}
-
-	private AuthorizationRequest createAuthorizationRequest(String state) {
-		String codeVerifier = "1234";
-		String codeChallenge = "1234";
-		String nonce = "f46e2977378ed6cdf2f03b5962101f7d";
-		return AuthorizationRequest.of(state, codeVerifier, codeChallenge, nonce);
-	}
-
-	private OauthUserProfile createOauthUserProfile(String email, String provider) {
-		String profileImage = "profileImage";
-		return new OauthUserProfile(email, profileImage, provider);
-	}
-
-	private OauthMemberLoginRequest createOauthMemberLoginServiceRequest(String provider) {
-		String code = "1234";
-		String redirectUrl = "http://localhost:5173/signin?provider=" + provider;
-		String state = "1234";
-		return OauthMemberLoginRequest.of(provider,
-			code, redirectUrl, state, LocalDate.of(2023, 11, 8).atStartOfDay());
-	}
-
-	private static Member createMember() {
-		return createMember("nemo1234");
-	}
-
-	private static Member createMember(String nickname) {
-		return createMember(nickname, "profileUrl");
-	}
-
-	private static Member createMember(String nickname, String profileUrl) {
-		return Member.builder()
-			.email("dragonbead95@naver.com")
-			.nickname(nickname)
-			.provider("local")
-			.password("nemo1234@")
-			.profileUrl(profileUrl)
-			.build();
 	}
 
 	public static MultipartFile createProfileFile() {
@@ -781,11 +613,6 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 
 	private static MultipartFile createEmptyProfileImageFile() {
 		return new MockMultipartFile("profileImageFile", new byte[] {});
-	}
-
-	@NotNull
-	private static ProfileChangeRequest createProfileChangeRequest(String nickname) {
-		return new ProfileChangeRequest(nickname);
 	}
 
 	public static Stream<Arguments> signupMethodSource() {
@@ -822,18 +649,6 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 			.stockCode("KR7005930003")
 			.sector("전기전자")
 			.market(Market.KOSPI)
-			.build();
-	}
-
-	private Stock createStock(String companyName, String tickerSymbol, String companyNameEng, String stockCode,
-		String sector, Market market) {
-		return Stock.builder()
-			.companyName(companyName)
-			.tickerSymbol(tickerSymbol)
-			.companyNameEng(companyNameEng)
-			.stockCode(stockCode)
-			.sector(sector)
-			.market(market)
 			.build();
 	}
 

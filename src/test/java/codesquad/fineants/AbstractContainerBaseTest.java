@@ -1,10 +1,17 @@
 package codesquad.fineants;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
+import org.apache.logging.log4j.util.Strings;
+import org.junit.jupiter.api.BeforeEach;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -14,7 +21,9 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
 import codesquad.fineants.domain.kis.client.KisAccessToken;
+import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.global.init.S3BucketInitializer;
+import codesquad.fineants.global.security.auth.dto.MemberAuthentication;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -56,5 +65,32 @@ public class AbstractContainerBaseTest {
 
 	public KisAccessToken createKisAccessToken() {
 		return KisAccessToken.bearerType("accessToken", LocalDateTime.now().plusSeconds(86400), 86400);
+	}
+
+	@BeforeEach
+	void setUp() {
+		MemberAuthentication memberAuthentication = MemberAuthentication.from(createMember());
+		Authentication authentication = new UsernamePasswordAuthenticationToken(memberAuthentication, Strings.EMPTY,
+			List.of(new SimpleGrantedAuthority("ROLE_USER")));
+		SecurityContextHolder.getContext().setAuthentication(authentication);
+	}
+
+	protected Member createMember() {
+		return createMember("nemo1234");
+	}
+
+	protected Member createMember(String nickname) {
+		return createMember(nickname, "dragonbead95@naver.com");
+	}
+
+	protected Member createMember(String nickname, String email) {
+		return Member.builder()
+			.id(1L)
+			.email(email)
+			.nickname(nickname)
+			.provider("local")
+			.password("nemo1234@")
+			.profileUrl("profileUrl")
+			.build();
 	}
 }

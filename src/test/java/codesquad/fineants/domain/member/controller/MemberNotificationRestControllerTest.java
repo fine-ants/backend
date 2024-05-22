@@ -2,12 +2,8 @@ package codesquad.fineants.domain.member.controller;
 
 import static codesquad.fineants.domain.notification.domain.entity.type.NotificationType.*;
 import static org.hamcrest.Matchers.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.anyList;
-import static org.mockito.BDDMockito.anyLong;
 import static org.mockito.BDDMockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.time.LocalDateTime;
@@ -17,19 +13,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentMatchers;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import codesquad.fineants.ControllerTestSupport;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.member.domain.dto.response.MemberNotification;
 import codesquad.fineants.domain.member.domain.dto.response.MemberNotificationResponse;
@@ -37,27 +27,10 @@ import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.service.MemberNotificationPreferenceService;
 import codesquad.fineants.domain.member.service.MemberNotificationService;
 import codesquad.fineants.domain.notification.domain.entity.NotificationBody;
-import codesquad.fineants.domain.oauth.support.AuthMember;
-import codesquad.fineants.domain.oauth.support.AuthPrincipalArgumentResolver;
-import codesquad.fineants.global.config.JpaAuditingConfiguration;
-import codesquad.fineants.global.errors.handler.GlobalExceptionHandler;
 import codesquad.fineants.global.util.ObjectMapperUtil;
 
-@ActiveProfiles("test")
 @WebMvcTest(controllers = MemberNotificationRestController.class)
-@MockBean(JpaAuditingConfiguration.class)
-class MemberNotificationRestControllerTest {
-
-	private MockMvc mockMvc;
-
-	@Autowired
-	private MemberNotificationRestController memberNotificationRestController;
-
-	@Autowired
-	private GlobalExceptionHandler globalExceptionHandler;
-
-	@MockBean
-	private AuthPrincipalArgumentResolver authPrincipalArgumentResolver;
+class MemberNotificationRestControllerTest extends ControllerTestSupport {
 
 	@MockBean
 	private MemberNotificationService notificationService;
@@ -65,18 +38,9 @@ class MemberNotificationRestControllerTest {
 	@MockBean
 	private MemberNotificationPreferenceService preferenceService;
 
-	@BeforeEach
-	void setup() {
-		mockMvc = MockMvcBuilders.standaloneSetup(memberNotificationRestController)
-			.setControllerAdvice(globalExceptionHandler)
-			.setCustomArgumentResolvers(authPrincipalArgumentResolver)
-			.alwaysDo(print())
-			.build();
-
-		given(authPrincipalArgumentResolver.supportsParameter(ArgumentMatchers.any(MethodParameter.class)))
-			.willReturn(true);
-		given(authPrincipalArgumentResolver.resolveArgument(any(), any(), any(), any()))
-			.willReturn(AuthMember.from(createMember()));
+	@Override
+	protected Object initController() {
+		return new MemberNotificationRestController(notificationService, preferenceService);
 	}
 
 	@DisplayName("사용자는 알림 목록 조회합니다")
@@ -118,7 +82,7 @@ class MemberNotificationRestControllerTest {
 
 		List<Long> notificationIds = mockNotifications.stream()
 			.map(MemberNotification::getNotificationId)
-			.collect(Collectors.toList());
+			.toList();
 		// when & then
 		mockMvc.perform(patch("/api/members/{memberId}/notifications", member.getId())
 				.contentType(MediaType.APPLICATION_JSON)

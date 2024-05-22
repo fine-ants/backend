@@ -8,8 +8,8 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import codesquad.fineants.global.security.auth.dto.MemberAuthentication;
 import codesquad.fineants.global.security.auth.dto.Token;
-import codesquad.fineants.global.security.auth.dto.UserDto;
 import codesquad.fineants.global.security.auth.service.TokenService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -21,7 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
 	private final TokenService tokenService;
-	private final UserRequestMapper userRequestMapper;
+	private final OAuth2UserMapper OAuth2UserMapper;
 	private final String loginSuccessUri;
 
 	@Override
@@ -34,11 +34,11 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 		} else {
 			oAuth2User = (OAuth2User)principal;
 		}
-		UserDto userDto = userRequestMapper.toDto(oAuth2User);
+		MemberAuthentication memberAuthentication = OAuth2UserMapper.toMemberContext(oAuth2User);
 		log.debug("oAuth2User : {}", oAuth2User);
-		log.debug("userDto : {}", userDto);
+		log.debug("userDto : {}", memberAuthentication);
 
-		Token token = tokenService.generateToken(userDto.getEmail(), "ROLE_USER");
+		Token token = tokenService.generateToken(memberAuthentication, "ROLE_USER");
 		log.debug("token : {}", token);
 
 		String redirectUrl = (String)request.getSession().getAttribute("redirect_url");
@@ -47,7 +47,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 		}
 
 		String targetUrl = UriComponentsBuilder.fromUriString(redirectUrl)
-			.queryParam("provider", userDto.getProvider())
+			.queryParam("provider", memberAuthentication.getProvider())
 			.queryParam("accessToken", token.getAccessToken())
 			.queryParam("refreshToken", token.getRefreshToken())
 			.build()

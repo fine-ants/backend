@@ -10,8 +10,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import codesquad.fineants.domain.oauth.support.AuthMember;
-import codesquad.fineants.domain.oauth.support.AuthPrincipalMember;
 import codesquad.fineants.domain.stock_target_price.domain.dto.request.TargetPriceNotificationCreateRequest;
 import codesquad.fineants.domain.stock_target_price.domain.dto.request.TargetPriceNotificationDeleteRequest;
 import codesquad.fineants.domain.stock_target_price.domain.dto.request.TargetPriceNotificationUpdateRequest;
@@ -22,6 +20,8 @@ import codesquad.fineants.domain.stock_target_price.domain.dto.response.TargetPr
 import codesquad.fineants.domain.stock_target_price.domain.dto.response.TargetPriceNotificationUpdateResponse;
 import codesquad.fineants.domain.stock_target_price.service.StockTargetPriceNotificationService;
 import codesquad.fineants.global.api.ApiResponse;
+import codesquad.fineants.global.security.auth.dto.MemberAuthentication;
+import codesquad.fineants.global.security.auth.resolver.MemberAuthenticationPrincipal;
 import codesquad.fineants.global.success.StockSuccessCode;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -39,11 +39,9 @@ public class StockTargetPriceNotificationRestController {
 	@PostMapping("/api/stocks/target-price/notifications")
 	public ApiResponse<TargetPriceNotificationCreateResponse> createStockTargetPriceNotification(
 		@Valid @RequestBody TargetPriceNotificationCreateRequest request,
-		@AuthPrincipalMember AuthMember authMember) {
-		TargetPriceNotificationCreateResponse response = service.createStockTargetPriceNotification(
-			request,
-			authMember.getMemberId()
-		);
+		@MemberAuthenticationPrincipal MemberAuthentication authentication) {
+		TargetPriceNotificationCreateResponse response = service.createStockTargetPriceNotification(request,
+			authentication.getId());
 		log.info("종목 지정가 알림 추가 결과 : {}", response);
 		return ApiResponse.success(StockSuccessCode.OK_CREATE_TARGET_PRICE_NOTIFICATION, response);
 	}
@@ -51,10 +49,10 @@ public class StockTargetPriceNotificationRestController {
 	// 종목 지정가 알림 조회
 	@GetMapping("/api/stocks/target-price/notifications")
 	public ApiResponse<TargetPriceNotificationSearchResponse> searchStockTargetPriceNotification(
-		@AuthPrincipalMember AuthMember authMember
+		@MemberAuthenticationPrincipal MemberAuthentication authentication
 	) {
 		TargetPriceNotificationSearchResponse response = service.searchStockTargetPriceNotification(
-			authMember.getMemberId());
+			authentication.getId());
 		log.info("종목 지정가 알림 검색 결과 : {}", response);
 		return ApiResponse.success(StockSuccessCode.OK_SEARCH_TARGET_PRICE_NOTIFICATIONS, response);
 	}
@@ -63,10 +61,10 @@ public class StockTargetPriceNotificationRestController {
 	@GetMapping("/api/stocks/{tickerSymbol}/target-price/notifications")
 	public ApiResponse<TargetPriceNotificationSpecifiedSearchResponse> searchTargetPriceNotifications(
 		@PathVariable String tickerSymbol,
-		@AuthPrincipalMember AuthMember authMember
+		@MemberAuthenticationPrincipal MemberAuthentication authentication
 	) {
 		TargetPriceNotificationSpecifiedSearchResponse response = service.searchTargetPriceNotifications(tickerSymbol,
-			authMember.getMemberId());
+			authentication.getId());
 		log.info("특정 종목 지정가 알림 리스트 조회 결과 : {}", response);
 		return ApiResponse.success(StockSuccessCode.OK_SEARCH_SPECIFIC_TARGET_PRICE_NOTIFICATIONS, response);
 	}
@@ -75,10 +73,10 @@ public class StockTargetPriceNotificationRestController {
 	@PutMapping("/api/stocks/target-price/notifications")
 	public ApiResponse<Void> updateStockTargetPriceNotification(
 		@Valid @RequestBody TargetPriceNotificationUpdateRequest request,
-		@AuthPrincipalMember AuthMember authMember
+		@MemberAuthenticationPrincipal MemberAuthentication authentication
 	) {
 		TargetPriceNotificationUpdateResponse response = service.updateStockTargetPriceNotification(request,
-			authMember.getMemberId());
+			authentication.getId());
 		log.info("종목 지정가 알림 수정 결과 : {}", response);
 		StockSuccessCode successCode =
 			response.getIsActive() ? StockSuccessCode.OK_UPDATE_TARGET_PRICE_NOTIFICATION_ACTIVE :
@@ -90,11 +88,11 @@ public class StockTargetPriceNotificationRestController {
 	@DeleteMapping("/api/stocks/target-price/notifications")
 	public ApiResponse<Void> deleteAllStockTargetPriceNotification(
 		@Valid @RequestBody TargetPriceNotificationDeleteRequest request,
-		@AuthPrincipalMember AuthMember authMember) {
+		@MemberAuthenticationPrincipal MemberAuthentication authentication) {
 		TargetPriceNotificationDeleteResponse response = service.deleteAllStockTargetPriceNotification(
 			request.getTargetPriceNotificationIds(),
 			request.getTickerSymbol(),
-			authMember.getMemberId());
+			authentication.getId());
 		log.info("종목 지정가 알림 제거 결과 : {}", response);
 		return ApiResponse.success(StockSuccessCode.OK_DELETE_TARGET_PRICE_NOTIFICATIONS);
 	}
@@ -103,11 +101,11 @@ public class StockTargetPriceNotificationRestController {
 	@DeleteMapping("/api/stocks/target-price/notifications/{targetPriceNotificationId}")
 	public ApiResponse<Void> deleteStockTargetPriceNotification(
 		@PathVariable Long targetPriceNotificationId,
-		@AuthPrincipalMember AuthMember authMember
+		@MemberAuthenticationPrincipal MemberAuthentication authentication
 	) {
 		TargetPriceNotificationDeleteResponse response = service.deleteStockTargetPriceNotification(
 			targetPriceNotificationId,
-			authMember.getMemberId());
+			authentication.getId());
 		log.info("종목 지정가 알림 제거 결과 : {}", response);
 		return ApiResponse.success(StockSuccessCode.OK_DELETE_TARGET_PRICE_NOTIFICATIONS);
 	}

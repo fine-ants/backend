@@ -17,6 +17,7 @@ import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
 import codesquad.fineants.domain.member.repository.RoleRepository;
 import codesquad.fineants.domain.member.service.NicknameGenerator;
+import codesquad.fineants.domain.notification_preference.repository.NotificationPreferenceRepository;
 import codesquad.fineants.global.security.auth.dto.OAuthAttribute;
 import lombok.extern.slf4j.Slf4j;
 
@@ -26,9 +27,9 @@ public class CustomOAuth2UserService extends AbstractUserService
 	implements OAuth2UserService<OAuth2UserRequest, OAuth2User> {
 
 	public CustomOAuth2UserService(MemberRepository memberRepository,
-		NicknameGenerator nicknameGenerator,
-		RoleRepository roleRepository) {
-		super(memberRepository, nicknameGenerator, roleRepository);
+		NotificationPreferenceRepository notificationPreferenceRepository,
+		NicknameGenerator nicknameGenerator, RoleRepository roleRepository) {
+		super(memberRepository, notificationPreferenceRepository, nicknameGenerator, roleRepository);
 	}
 
 	@Override

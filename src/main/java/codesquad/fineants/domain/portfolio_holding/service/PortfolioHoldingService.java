@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import codesquad.fineants.domain.common.money.Expression;
-import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.repository.PortfolioRepository;
 import codesquad.fineants.domain.portfolio_holding.domain.chart.DividendChart;
@@ -65,9 +64,9 @@ public class PortfolioHoldingService {
 	private final PortfolioHoldingEventPublisher publisher;
 
 	@Transactional
-	public PortfolioStockCreateResponse createPortfolioHolding(Long portfolioId, PortfolioHoldingCreateRequest request,
-		AuthMember authMember) {
-		log.info("포트폴리오 종목 추가 서비스 요청 : portfolioId={}, request={}, authMember={}", request, portfolioId, authMember);
+	public PortfolioStockCreateResponse createPortfolioHolding(Long portfolioId,
+		PortfolioHoldingCreateRequest request) {
+		log.info("포트폴리오 종목 추가 서비스 요청 : portfolioId={}, request={}, authMember={}", request, portfolioId);
 
 		Portfolio portfolio = findPortfolio(portfolioId);
 
@@ -92,8 +91,8 @@ public class PortfolioHoldingService {
 	}
 
 	@Transactional
-	public PortfolioStockDeleteResponse deletePortfolioStock(Long portfolioHoldingId, AuthMember authMember) {
-		log.info("포트폴리오 종목 삭제 서비스 : portfolioHoldingId={}, authMember={}", portfolioHoldingId, authMember);
+	public PortfolioStockDeleteResponse deletePortfolioStock(Long portfolioHoldingId) {
+		log.info("포트폴리오 종목 삭제 서비스 : portfolioHoldingId={}", portfolioHoldingId);
 
 		purchaseHistoryRepository.deleteAllByPortfolioHoldingIdIn(List.of(portfolioHoldingId));
 
@@ -105,13 +104,13 @@ public class PortfolioHoldingService {
 	}
 
 	@Transactional
-	public PortfolioStockDeletesResponse deletePortfolioHoldings(Long portfolioId, AuthMember authMember,
+	public PortfolioStockDeletesResponse deletePortfolioHoldings(Long portfolioId, Long memberId,
 		PortfolioStocksDeleteRequest request) {
-		log.info("포트폴리오 종목 다수 삭제 서비스 : portfolioId={}, authMember={}, request={}", portfolioId, authMember, request);
+		log.info("포트폴리오 종목 다수 삭제 서비스 : portfolioId={}, memberId={}, request={}", portfolioId, memberId, request);
 
 		List<Long> portfolioHoldingIds = request.getPortfolioHoldingIds();
 		validateExistPortfolioHolding(portfolioHoldingIds);
-		validateHasAuthorization(portfolioHoldingIds, authMember.getMemberId());
+		validateHasAuthorization(portfolioHoldingIds, memberId);
 
 		purchaseHistoryRepository.deleteAllByPortfolioHoldingIdIn(portfolioHoldingIds);
 		try {

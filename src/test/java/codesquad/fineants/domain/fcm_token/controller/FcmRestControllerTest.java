@@ -5,77 +5,40 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.anyLong;
 import static org.mockito.BDDMockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentMatchers;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import codesquad.fineants.domain.fcm_token.controller.FcmRestController;
-import codesquad.fineants.domain.member.domain.entity.Member;
-import codesquad.fineants.domain.oauth.support.AuthMember;
-import codesquad.fineants.domain.oauth.support.AuthPrincipalArgumentResolver;
-import codesquad.fineants.global.errors.handler.GlobalExceptionHandler;
+import codesquad.fineants.ControllerTestSupport;
 import codesquad.fineants.domain.fcm_token.domain.dto.request.FcmRegisterRequest;
 import codesquad.fineants.domain.fcm_token.domain.dto.response.FcmDeleteResponse;
 import codesquad.fineants.domain.fcm_token.domain.dto.response.FcmRegisterResponse;
 import codesquad.fineants.domain.fcm_token.service.FcmService;
-import codesquad.fineants.global.config.JpaAuditingConfiguration;
 import codesquad.fineants.global.util.ObjectMapperUtil;
 
-@ActiveProfiles("test")
 @WebMvcTest(controllers = FcmRestController.class)
-@MockBean(JpaAuditingConfiguration.class)
-class FcmRestControllerTest {
-
-	private MockMvc mockMvc;
-
-	@Autowired
-	private FcmRestController fcmRestController;
-
-	@Autowired
-	private GlobalExceptionHandler globalExceptionHandler;
-
-	@MockBean
-	private AuthPrincipalArgumentResolver authPrincipalArgumentResolver;
+class FcmRestControllerTest extends ControllerTestSupport {
 
 	@MockBean
 	private FcmService fcmService;
 
-	@BeforeEach
-	void setup() {
-		mockMvc = MockMvcBuilders.standaloneSetup(fcmRestController)
-			.setControllerAdvice(globalExceptionHandler)
-			.setCustomArgumentResolvers(authPrincipalArgumentResolver)
-			.alwaysDo(print())
-			.build();
-
-		given(authPrincipalArgumentResolver.supportsParameter(ArgumentMatchers.any(MethodParameter.class)))
-			.willReturn(true);
-		given(authPrincipalArgumentResolver.resolveArgument(any(), any(), any(), any()))
-			.willReturn(AuthMember.from(createMember()));
+	@Override
+	protected Object initController() {
+		return new FcmRestController(fcmService);
 	}
 
 	@DisplayName("사용자는 FCM 토큰을 등록한다")
 	@Test
 	void createToken() throws Exception {
 		// given
-		given(fcmService.createToken(
-			any(FcmRegisterRequest.class),
-			any(AuthMember.class)))
+		given(fcmService.createToken(any(FcmRegisterRequest.class), anyLong()))
 			.willReturn(FcmRegisterResponse.builder()
 				.fcmTokenId(1L)
 				.build());
@@ -126,14 +89,5 @@ class FcmRestControllerTest {
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
 			.andExpect(jsonPath("message").value(equalTo("FCM 토큰을 성공적으로 삭제하였습니다")));
-	}
-
-	private Member createMember() {
-		return Member.builder()
-			.nickname("nemo1234")
-			.email("dragonbead95@naver.com")
-			.password("nemo1234")
-			.provider("local")
-			.build();
 	}
 }

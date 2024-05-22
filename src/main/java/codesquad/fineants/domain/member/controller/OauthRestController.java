@@ -13,7 +13,7 @@ import codesquad.fineants.global.success.MemberSuccessCode;
 @RestController
 public class OauthRestController {
 
-	@GetMapping("/oauth/redirect")
+	@GetMapping("/api/oauth/redirect")
 	public ApiResponse<Map<String, String>> oauthRedirect(
 		@RequestParam String accessToken,
 		@RequestParam String refreshToken) {

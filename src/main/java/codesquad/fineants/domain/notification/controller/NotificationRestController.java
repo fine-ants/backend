@@ -8,12 +8,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import codesquad.fineants.domain.notification.domain.dto.response.PortfolioNotifyMessagesResponse;
 import codesquad.fineants.domain.notification.service.NotificationService;
-import codesquad.fineants.domain.oauth.support.AuthMember;
-import codesquad.fineants.domain.oauth.support.AuthPrincipalMember;
+import codesquad.fineants.domain.stock_target_price.domain.dto.response.TargetPriceNotifyMessageResponse;
 import codesquad.fineants.global.api.ApiResponse;
+import codesquad.fineants.global.security.auth.dto.MemberAuthentication;
+import codesquad.fineants.global.security.auth.resolver.MemberAuthenticationPrincipal;
 import codesquad.fineants.global.success.NotificationSuccessCode;
 import codesquad.fineants.global.success.StockSuccessCode;
-import codesquad.fineants.domain.stock_target_price.domain.dto.response.TargetPriceNotifyMessageResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -48,9 +48,8 @@ public class NotificationRestController {
 	@ResponseStatus(HttpStatus.CREATED)
 	@PostMapping("/api/stocks/target-price/notifications/send")
 	public ApiResponse<TargetPriceNotifyMessageResponse> sendStockTargetPriceNotification(
-		@AuthPrincipalMember AuthMember authMember) {
-		TargetPriceNotifyMessageResponse response = service.notifyTargetPriceBy(
-			authMember.getMemberId());
+		@MemberAuthenticationPrincipal MemberAuthentication authentication) {
+		TargetPriceNotifyMessageResponse response = service.notifyTargetPriceBy(authentication.getId());
 		log.info("종목 지정가 알림 전송 결과 : {}", response);
 		return ApiResponse.success(StockSuccessCode.OK_CREATE_TARGET_PRICE_SEND_NOTIFICATION, response);
 	}

@@ -6,7 +6,6 @@ import java.time.LocalDate;
 import java.util.List;
 
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +21,6 @@ import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
 import codesquad.fineants.domain.kis.service.KisService;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
-import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.stock.domain.entity.Market;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
@@ -71,19 +69,6 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 	@MockBean
 	private KisService kisService;
 
-	private Member member;
-
-	@BeforeEach
-	void init() {
-		Member member = Member.builder()
-			.nickname("일개미1234")
-			.email("kim1234@gmail.com")
-			.password("kim1234@")
-			.provider("local")
-			.build();
-		this.member = memberRepository.save(member);
-	}
-
 	@AfterEach
 	void tearDown() {
 		watchStockRepository.deleteAllInBatch();
@@ -95,11 +80,11 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 	@Test
 	void createWatchList() {
 		// given
-		AuthMember authMember = AuthMember.from(member);
+		Member member = memberRepository.save(createMember());
 		CreateWatchListRequest request = new CreateWatchListRequest("My WatchList");
 
 		// when
-		CreateWatchListResponse response = watchListService.createWatchList(authMember, request);
+		CreateWatchListResponse response = watchListService.createWatchList(member.getId(), request);
 
 		// then
 		assertThat(response.getWatchlistId()).isNotNull();
@@ -109,7 +94,7 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 	@Test
 	void readWatchLists() {
 		//given
-		AuthMember authMember = AuthMember.from(member);
+		Member member = memberRepository.save(createMember());
 		watchListRepository.save(
 			WatchList.builder()
 				.name("My WatchList 1")
@@ -124,7 +109,7 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 		);
 
 		//when
-		List<ReadWatchListsResponse> response = watchListService.readWatchLists(authMember);
+		List<ReadWatchListsResponse> response = watchListService.readWatchLists(member.getId());
 
 		//then
 		assertThat(response.size()).isEqualTo(2);
@@ -134,7 +119,7 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 	@Test
 	void readWatchList() {
 		// given
-		AuthMember authMember = AuthMember.from(member);
+		Member member = memberRepository.save(createMember());
 		Stock stock = stockRepository.save(
 			Stock.builder()
 				.companyName("삼성전자보통주")
@@ -172,7 +157,7 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 		closingPriceRepository.addPrice(KisClosingPrice.create("005930", 77000L));
 
 		// when
-		ReadWatchListResponse response = watchListService.readWatchList(authMember, watchList.getId());
+		ReadWatchListResponse response = watchListService.readWatchList(member.getId(), watchList.getId());
 
 		// then
 		assertThat(response.getName()).isEqualTo(watchList.getName());
@@ -208,7 +193,7 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 				.build()
 		);
 
-		AuthMember authMember = AuthMember.from(member);
+		Member member = memberRepository.save(createMember());
 		CreateWatchStockRequest request = new CreateWatchStockRequest(List.of(tickerSymbol));
 
 		WatchList watchList = watchListRepository.save(WatchList.builder()
@@ -218,7 +203,7 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 		Long watchListId = watchList.getId();
 
 		// when
-		watchListService.createWatchStocks(authMember, watchListId, request);
+		watchListService.createWatchStocks(member.getId(), watchListId, request);
 
 		// then
 		assertThat(watchStockRepository.findByWatchList(watchList)).hasSize(1);
@@ -238,7 +223,7 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 				.build()
 		);
 
-		AuthMember authMember = AuthMember.from(member);
+		Member member = memberRepository.save(createMember());
 
 		WatchList watchList = watchListRepository.save(WatchList.builder()
 			.name("My WatchList")
@@ -254,7 +239,7 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 		);
 
 		// when
-		watchListService.deleteWatchLists(authMember, new DeleteWatchListsRequests(List.of(watchListId)));
+		watchListService.deleteWatchLists(member.getId(), new DeleteWatchListsRequests(List.of(watchListId)));
 
 		// then
 		assertThat(watchListRepository.findById(watchListId).isPresent()).isFalse();
@@ -273,7 +258,7 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 				.build()
 		);
 
-		AuthMember authMember = AuthMember.from(member);
+		Member member = memberRepository.save(createMember());
 
 		WatchList watchList = watchListRepository.save(WatchList.builder()
 			.name("My WatchList")
@@ -293,7 +278,7 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 			List.of(watchStock.getStock().getTickerSymbol()));
 
 		// when
-		watchListService.deleteWatchStocks(authMember, watchListId, request);
+		watchListService.deleteWatchStocks(member.getId(), watchListId, request);
 
 		// then
 		assertThat(watchStockRepository.findById(watchStockId).isPresent()).isFalse();
@@ -311,7 +296,7 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 				.build()
 		);
 
-		AuthMember authMember = AuthMember.from(member);
+		Member member = memberRepository.save(createMember());
 
 		WatchList watchList = watchListRepository.save(WatchList.builder()
 			.name("My WatchList")
@@ -328,7 +313,7 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 		Long watchStockId = watchStock.getId();
 
 		// when
-		watchListService.deleteWatchStock(authMember, watchListId, stock.getTickerSymbol());
+		watchListService.deleteWatchStock(member.getId(), watchListId, stock.getTickerSymbol());
 
 		// then
 		assertThat(watchStockRepository.findById(watchStockId).isPresent()).isFalse();
@@ -338,7 +323,7 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 	@Test
 	void changeWatchListName() {
 		// given
-		AuthMember authMember = AuthMember.from(member);
+		Member member = memberRepository.save(createMember());
 
 		WatchList watchList = watchListRepository.save(WatchList.builder()
 			.name("My WatchList")
@@ -350,7 +335,7 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 		ChangeWatchListNameRequest request = new ChangeWatchListNameRequest(name);
 
 		// when
-		watchListService.changeWatchListName(authMember, watchListId, request);
+		watchListService.changeWatchListName(member.getId(), watchListId, request);
 
 		// then
 		WatchList findWatchList = watchListRepository.findById(watchListId).orElseThrow();
@@ -361,7 +346,7 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 	@Test
 	void hasStock() {
 		// given
-		AuthMember authMember = AuthMember.from(member);
+		Member member = memberRepository.save(createMember());
 		Stock stock = stockRepository.save(
 			Stock.builder()
 				.companyName("삼성전자보통주")
@@ -390,7 +375,8 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 			.build());
 
 		// when
-		List<WatchListHasStockResponse> responseList = watchListService.hasStock(authMember, stock.getTickerSymbol());
+		List<WatchListHasStockResponse> responseList = watchListService.hasStock(member.getId(),
+			stock.getTickerSymbol());
 
 		// then
 		assertThat(responseList.size()).isEqualTo(2);

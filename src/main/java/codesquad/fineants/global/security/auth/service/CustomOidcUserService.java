@@ -20,15 +20,17 @@ import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
 import codesquad.fineants.domain.member.repository.RoleRepository;
 import codesquad.fineants.domain.member.service.NicknameGenerator;
+import codesquad.fineants.domain.notification_preference.repository.NotificationPreferenceRepository;
 import codesquad.fineants.global.security.auth.dto.OAuthAttribute;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class CustomOidcUserService extends AbstractUserService implements OAuth2UserService<OidcUserRequest, OidcUser> {
 
-	public CustomOidcUserService(MemberRepository memberRepository, NicknameGenerator nicknameGenerator,
-		RoleRepository roleRepository) {
-		super(memberRepository, nicknameGenerator, roleRepository);
+	public CustomOidcUserService(MemberRepository memberRepository,
+		NotificationPreferenceRepository notificationPreferenceRepository,
+		NicknameGenerator nicknameGenerator, RoleRepository roleRepository) {
+		super(memberRepository, notificationPreferenceRepository, nicknameGenerator, roleRepository);
 	}
 
 	@Override

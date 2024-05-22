@@ -11,10 +11,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import codesquad.fineants.domain.oauth.support.AuthMember;
-import codesquad.fineants.domain.oauth.support.AuthPrincipalMember;
 import codesquad.fineants.domain.watch_list.domain.dto.request.ChangeWatchListNameRequest;
 import codesquad.fineants.domain.watch_list.domain.dto.request.CreateWatchListRequest;
+import codesquad.fineants.domain.watch_list.domain.dto.request.CreateWatchStockRequest;
 import codesquad.fineants.domain.watch_list.domain.dto.request.DeleteWatchListsRequests;
 import codesquad.fineants.domain.watch_list.domain.dto.request.DeleteWatchStocksRequest;
 import codesquad.fineants.domain.watch_list.domain.dto.response.CreateWatchListResponse;
@@ -23,8 +22,9 @@ import codesquad.fineants.domain.watch_list.domain.dto.response.ReadWatchListsRe
 import codesquad.fineants.domain.watch_list.domain.dto.response.WatchListHasStockResponse;
 import codesquad.fineants.domain.watch_list.service.WatchListService;
 import codesquad.fineants.global.api.ApiResponse;
+import codesquad.fineants.global.security.auth.dto.MemberAuthentication;
+import codesquad.fineants.global.security.auth.resolver.MemberAuthenticationPrincipal;
 import codesquad.fineants.global.success.WatchListSuccessCode;
-import codesquad.fineants.domain.watch_list.domain.dto.request.CreateWatchStockRequest;
 import lombok.RequiredArgsConstructor;
 
 @RequestMapping("/api/watchlists")
@@ -35,63 +35,68 @@ public class WatchListRestController {
 	private final WatchListService watchListService;
 
 	@PostMapping
-	public ApiResponse<CreateWatchListResponse> createWatchList(@AuthPrincipalMember AuthMember authMember,
+	public ApiResponse<CreateWatchListResponse> createWatchList(
+		@MemberAuthenticationPrincipal MemberAuthentication authentication,
 		@RequestBody CreateWatchListRequest request) {
 		return ApiResponse.success(WatchListSuccessCode.CREATED_WATCH_LIST,
-			watchListService.createWatchList(authMember, request));
+			watchListService.createWatchList(authentication.getId(), request));
 	}
 
 	@GetMapping
-	public ApiResponse<List<ReadWatchListsResponse>> readWatchLists(@AuthPrincipalMember AuthMember authMember) {
-		return ApiResponse.success(WatchListSuccessCode.READ_WATCH_LISTS, watchListService.readWatchLists(authMember));
+	public ApiResponse<List<ReadWatchListsResponse>> readWatchLists(
+		@MemberAuthenticationPrincipal MemberAuthentication authentication) {
+		return ApiResponse.success(WatchListSuccessCode.READ_WATCH_LISTS,
+			watchListService.readWatchLists(authentication.getId()));
 	}
 
 	@DeleteMapping
-	public ApiResponse<Void> deleteWatchLists(@AuthPrincipalMember AuthMember authMember,
+	public ApiResponse<Void> deleteWatchLists(@MemberAuthenticationPrincipal MemberAuthentication authentication,
 		@RequestBody DeleteWatchListsRequests deleteWatchListsRequests) {
-		watchListService.deleteWatchLists(authMember, deleteWatchListsRequests);
+		watchListService.deleteWatchLists(authentication.getId(), deleteWatchListsRequests);
 		return ApiResponse.success(WatchListSuccessCode.DELETED_WATCH_LIST);
 	}
 
 	@GetMapping("/{watchlistId}")
-	public ApiResponse<ReadWatchListResponse> readWatchList(@AuthPrincipalMember AuthMember authMember,
+	public ApiResponse<ReadWatchListResponse> readWatchList(
+		@MemberAuthenticationPrincipal MemberAuthentication authentication,
 		@PathVariable Long watchlistId) {
 		return ApiResponse.success(WatchListSuccessCode.READ_WATCH_LIST,
-			watchListService.readWatchList(authMember, watchlistId));
+			watchListService.readWatchList(authentication.getId(), watchlistId));
 	}
 
 	@PutMapping("/{watchlistId}")
-	public ApiResponse<Void> changeWatchListName(@AuthPrincipalMember AuthMember authMember,
+	public ApiResponse<Void> changeWatchListName(@MemberAuthenticationPrincipal MemberAuthentication authentication,
 		@PathVariable Long watchlistId, @RequestBody ChangeWatchListNameRequest request) {
-		watchListService.changeWatchListName(authMember, watchlistId, request);
+		watchListService.changeWatchListName(authentication.getId(), watchlistId, request);
 		return ApiResponse.success(WatchListSuccessCode.CHANGE_WATCH_LIST_NAME);
 	}
 
 	@PostMapping("/{watchlistId}/stock")
-	public ApiResponse<Void> createWatchStocks(@AuthPrincipalMember AuthMember authMember,
+	public ApiResponse<Void> createWatchStocks(@MemberAuthenticationPrincipal MemberAuthentication authentication,
 		@PathVariable Long watchlistId, @RequestBody CreateWatchStockRequest request) {
-		watchListService.createWatchStocks(authMember, watchlistId, request);
+		watchListService.createWatchStocks(authentication.getId(), watchlistId, request);
 		return ApiResponse.success(WatchListSuccessCode.CREATED_WATCH_STOCK);
 	}
 
 	@DeleteMapping("/{watchlistId}/stock")
-	public ApiResponse<Void> deleteWatchStocks(@AuthPrincipalMember AuthMember authMember,
+	public ApiResponse<Void> deleteWatchStocks(@MemberAuthenticationPrincipal MemberAuthentication authentication,
 		@PathVariable("watchlistId") Long watchListId, @RequestBody DeleteWatchStocksRequest deleteWatchStocksRequest) {
-		watchListService.deleteWatchStocks(authMember, watchListId, deleteWatchStocksRequest);
+		watchListService.deleteWatchStocks(authentication.getId(), watchListId, deleteWatchStocksRequest);
 		return ApiResponse.success(WatchListSuccessCode.DELETED_WATCH_STOCK);
 	}
 
 	@DeleteMapping("/{watchlistId}/stock/{tickerSymbol}")
-	public ApiResponse<Void> deleteWatchStock(@AuthPrincipalMember AuthMember authMember,
+	public ApiResponse<Void> deleteWatchStock(@MemberAuthenticationPrincipal MemberAuthentication authentication,
 		@PathVariable("watchlistId") Long watchListId, @PathVariable("tickerSymbol") String tickerSymbol) {
-		watchListService.deleteWatchStock(authMember, watchListId, tickerSymbol);
+		watchListService.deleteWatchStock(authentication.getId(), watchListId, tickerSymbol);
 		return ApiResponse.success(WatchListSuccessCode.DELETED_WATCH_STOCK);
 	}
 
 	@GetMapping("/stockExists/{tickerSymbol}")
-	public ApiResponse<List<WatchListHasStockResponse>> watchListHasStock(@AuthPrincipalMember AuthMember authMember,
+	public ApiResponse<List<WatchListHasStockResponse>> watchListHasStock(
+		@MemberAuthenticationPrincipal MemberAuthentication authentication,
 		@PathVariable("tickerSymbol") String tickerSymbol) {
 		return ApiResponse.success(WatchListSuccessCode.HAS_STOCK,
-			watchListService.hasStock(authMember, tickerSymbol));
+			watchListService.hasStock(authentication.getId(), tickerSymbol));
 	}
 }

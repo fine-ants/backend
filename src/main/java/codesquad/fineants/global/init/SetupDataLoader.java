@@ -3,6 +3,7 @@ package codesquad.fineants.global.init;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -40,7 +41,7 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
 
 	@Override
 	@Transactional
-	public void onApplicationEvent(ContextRefreshedEvent event) {
+	public void onApplicationEvent(@NotNull ContextRefreshedEvent event) {
 		if (alreadySetup) {
 			return;
 		}
@@ -64,7 +65,11 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
 		log.info("create the managerRole : {}", managerRole);
 		log.info("create the userRole : {}", userRole);
 
-		Member member = createMemberIfNotFound("일개미1111", "ant1111@gmail.com", "ant1111", Set.of(userRole));
+		Member userMember = createMemberIfNotFound("ant1111@gmail.com", "일개미1111", "ant1111", Set.of(userRole));
+		Member oauthMember = createOauthMemberIfNotFound("dragonbead95@naver.com", "일개미1112", "naver",
+			Set.of(userRole));
+		log.info("userMember : {}", userMember);
+		log.info("oauthMember : {}", oauthMember);
 	}
 
 	@Transactional
@@ -75,12 +80,32 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
 	}
 
 	@Transactional
-	public Member createMemberIfNotFound(String nickname, String email, String password, Set<Role> roleSet) {
+	public Member createMemberIfNotFound(String email, String nickname, String password,
+		Set<Role> roleSet) {
 		Member member = memberRepository.findMemberByEmailAndProvider(email, "local")
 			.orElse(null);
 
 		if (member == null) {
-			member = Member.localMember(nickname, email, passwordEncoder.encode(password), roleSet);
+			member = Member.localMember(nickname, email, passwordEncoder.encode(password));
+			Set<MemberRole> memberRoleSet = new HashSet<>();
+			for (Role r : roleSet) {
+				MemberRole memberRole = MemberRole.create(member, r);
+				memberRoleSet.add(memberRole);
+			}
+			member.setMemberRoleSet(memberRoleSet);
+		}
+		Member saveMember = memberRepository.save(member);
+		notificationPreferenceRepository.save(NotificationPreference.allActive(saveMember));
+		return saveMember;
+	}
+
+	@Transactional
+	public Member createOauthMemberIfNotFound(String email, String nickname, String provider, Set<Role> roleSet) {
+		Member member = memberRepository.findMemberByEmailAndProvider(email, provider)
+			.orElse(null);
+
+		if (member == null) {
+			member = Member.oauthMember(email, nickname, provider, null);
 			Set<MemberRole> memberRoleSet = new HashSet<>();
 			for (Role r : roleSet) {
 				MemberRole memberRole = MemberRole.create(member, r);

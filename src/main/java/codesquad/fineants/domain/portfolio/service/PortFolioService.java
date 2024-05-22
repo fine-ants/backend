@@ -11,7 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
-import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.portfolio.domain.dto.request.PortfolioCreateRequest;
 import codesquad.fineants.domain.portfolio.domain.dto.request.PortfolioModifyRequest;
 import codesquad.fineants.domain.portfolio.domain.dto.request.PortfoliosDeleteRequest;
@@ -50,10 +49,10 @@ public class PortFolioService {
 	private final PortfolioPropertiesRepository portfolioPropertiesRepository;
 
 	@Transactional
-	public PortFolioCreateResponse createPortfolio(PortfolioCreateRequest request, AuthMember authMember) {
+	public PortFolioCreateResponse createPortfolio(PortfolioCreateRequest request, Long memberId) {
 		validateSecuritiesFirm(request.getSecuritiesFirm());
 
-		Member member = findMember(authMember.getMemberId());
+		Member member = findMember(memberId);
 
 		validateUniquePortfolioName(request.getName(), member);
 		Portfolio portfolio = request.toEntity(member);
@@ -78,14 +77,13 @@ public class PortFolioService {
 	}
 
 	@Transactional
-	public PortfolioModifyResponse updatePortfolio(PortfolioModifyRequest request, Long portfolioId,
-		AuthMember authMember) {
-		log.info("포트폴리오 수정 서비스 요청 : request={}, portfolioId={}, authMember={}", request, portfolioId, authMember);
-		Member member = findMember(authMember.getMemberId());
+	public PortfolioModifyResponse updatePortfolio(PortfolioModifyRequest request, Long portfolioId, Long memberId) {
+		log.info("포트폴리오 수정 서비스 요청 : request={}, portfolioId={}, memberId={}", request, portfolioId, memberId);
+		Member member = findMember(memberId);
 		Portfolio originalPortfolio = findPortfolio(portfolioId);
 		Portfolio changePortfolio = request.toEntity(member);
 
-		validatePortfolioAuthorization(originalPortfolio, authMember.getMemberId());
+		validatePortfolioAuthorization(originalPortfolio, memberId);
 		if (!originalPortfolio.isSameName(changePortfolio)) {
 			validateUniquePortfolioName(changePortfolio.getName(), member);
 		}
@@ -102,11 +100,11 @@ public class PortFolioService {
 	}
 
 	@Transactional
-	public void deletePortfolio(Long portfolioId, AuthMember authMember) {
-		log.info("포트폴리오 삭제 서비스 요청 : portfolioId={}, authMember={}", portfolioId, authMember);
+	public void deletePortfolio(Long portfolioId, Long memberId) {
+		log.info("포트폴리오 삭제 서비스 요청 : portfolioId={}, memberId={}", portfolioId, memberId);
 
 		Portfolio findPortfolio = findPortfolio(portfolioId);
-		validatePortfolioAuthorization(findPortfolio, authMember.getMemberId());
+		validatePortfolioAuthorization(findPortfolio, memberId);
 
 		List<Long> portfolioHoldingIds = portfolioHoldingRepository.findAllByPortfolio(findPortfolio).stream()
 			.map(PortfolioHolding::getId)
@@ -126,10 +124,10 @@ public class PortFolioService {
 	}
 
 	@Transactional
-	public void deletePortfolios(PortfoliosDeleteRequest request, AuthMember authMember) {
+	public void deletePortfolios(PortfoliosDeleteRequest request, Long memberId) {
 		for (Long portfolioId : request.getPortfolioIds()) {
 			Portfolio portfolio = findPortfolio(portfolioId);
-			validatePortfolioAuthorization(portfolio, authMember.getMemberId());
+			validatePortfolioAuthorization(portfolio, memberId);
 		}
 
 		for (Long portfolioId : request.getPortfolioIds()) {
@@ -149,9 +147,8 @@ public class PortFolioService {
 			.orElseThrow(() -> new NotFoundResourceException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
 	}
 
-	public PortfoliosResponse readMyAllPortfolio(AuthMember authMember) {
-		List<Portfolio> portfolios = portfolioRepository.findAllByMemberIdOrderByIdDesc(
-			authMember.getMemberId());
+	public PortfoliosResponse readMyAllPortfolio(Long memberId) {
+		List<Portfolio> portfolios = portfolioRepository.findAllByMemberIdOrderByIdDesc(memberId);
 		Map<Portfolio, PortfolioGainHistory> portfolioGainHistoryMap = portfolios.stream()
 			.collect(Collectors.toMap(
 				portfolio -> portfolio,

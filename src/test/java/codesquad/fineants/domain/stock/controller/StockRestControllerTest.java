@@ -3,69 +3,32 @@ package codesquad.fineants.domain.stock.controller;
 import static org.hamcrest.Matchers.*;
 import static org.mockito.BDDMockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.util.List;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
+import codesquad.fineants.ControllerTestSupport;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.common.money.Percentage;
-import codesquad.fineants.domain.oauth.support.AuthPrincipalArgumentResolver;
-import codesquad.fineants.domain.stock.controller.StockRestController;
-import codesquad.fineants.domain.stock.domain.entity.Market;
-import codesquad.fineants.global.errors.handler.GlobalExceptionHandler;
 import codesquad.fineants.domain.stock.domain.dto.response.StockResponse;
+import codesquad.fineants.domain.stock.domain.entity.Market;
 import codesquad.fineants.domain.stock.service.StockService;
-import codesquad.fineants.global.config.JacksonConfig;
-import codesquad.fineants.global.config.JpaAuditingConfiguration;
-import codesquad.fineants.global.config.SpringConfig;
 
-@ActiveProfiles("test")
 @WebMvcTest(controllers = StockRestController.class)
-@Import(value = {SpringConfig.class, JacksonConfig.class})
-@MockBean(JpaAuditingConfiguration.class)
-public class StockRestControllerTest {
-
-	private MockMvc mockMvc;
-
-	@Autowired
-	private StockRestController stockRestController;
+public class StockRestControllerTest extends ControllerTestSupport {
 
 	@MockBean
 	private StockService stockService;
 
-	@Autowired
-	private GlobalExceptionHandler globalExceptionHandler;
-
-	@Autowired
-	private ObjectMapper objectMapper;
-
-	@MockBean
-	private AuthPrincipalArgumentResolver authPrincipalArgumentResolver;
-
-	@BeforeEach
-	void setUp() {
-		mockMvc = MockMvcBuilders.standaloneSetup(stockRestController)
-			.setControllerAdvice(globalExceptionHandler)
-			.setCustomArgumentResolvers(authPrincipalArgumentResolver)
-			.setMessageConverters(new MappingJackson2HttpMessageConverter(objectMapper))
-			.alwaysDo(print())
-			.build();
+	@Override
+	protected Object initController() {
+		return new StockRestController(stockService);
 	}
 
 	@DisplayName("주식 종목을 조회한다.")

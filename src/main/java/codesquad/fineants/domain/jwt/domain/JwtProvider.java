@@ -8,10 +8,8 @@ import org.springframework.stereotype.Component;
 
 import codesquad.fineants.domain.jwt.properties.JwtProperties;
 import codesquad.fineants.domain.member.domain.entity.Member;
-import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.global.errors.errorcode.JwtErrorCode;
 import codesquad.fineants.global.errors.exception.BadRequestException;
-import codesquad.fineants.global.errors.exception.ForBiddenException;
 import codesquad.fineants.global.errors.exception.UnAuthorizationException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -55,21 +53,6 @@ public class JwtProvider {
 			.compact();
 	}
 
-	public Claims getAccessTokenClaims(String token) {
-		// token을 비밀키로 복호화하여 Claims 추출
-		try {
-			return Jwts.parserBuilder()
-				.setSigningKey(jwtProperties.getKey())
-				.build()
-				.parseClaimsJws(token)
-				.getBody();
-		} catch (ExpiredJwtException e) {
-			throw new ForBiddenException(JwtErrorCode.ACCESS_TOKEN_EXPIRE_TOKEN);
-		} catch (JwtException e) {
-			throw new BadRequestException(JwtErrorCode.INVALID_TOKEN);
-		}
-	}
-
 	public Claims getRefreshTokenClaims(String token) {
 		// token을 비밀키로 복호화하여 Claims 추출
 		try {
@@ -83,27 +66,5 @@ public class JwtProvider {
 		} catch (JwtException e) {
 			throw new BadRequestException(JwtErrorCode.INVALID_TOKEN);
 		}
-	}
-
-	public void validateAccessToken(String token) {
-		try {
-			Jwts.parserBuilder()
-				.setSigningKey(jwtProperties.getKey())
-				.build()
-				.parseClaimsJws(token);
-		} catch (ExpiredJwtException e) {
-			throw new ForBiddenException(JwtErrorCode.ACCESS_TOKEN_EXPIRE_TOKEN);
-		} catch (JwtException e) {
-			throw new BadRequestException(JwtErrorCode.INVALID_TOKEN);
-		}
-	}
-
-	public AuthMember extractAuthMember(String token) {
-		Claims claims = Jwts.parserBuilder()
-			.setSigningKey(jwtProperties.getKey())
-			.build()
-			.parseClaimsJws(token)
-			.getBody();
-		return AuthMember.from(claims, token);
 	}
 }

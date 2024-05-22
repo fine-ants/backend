@@ -3,7 +3,6 @@ package codesquad.fineants.domain.portfolio.service;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -32,7 +31,6 @@ import codesquad.fineants.domain.kis.client.KisCurrentPrice;
 import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
-import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.portfolio.domain.dto.request.PortfolioCreateRequest;
 import codesquad.fineants.domain.portfolio.domain.dto.request.PortfolioModifyRequest;
 import codesquad.fineants.domain.portfolio.domain.dto.request.PortfoliosDeleteRequest;
@@ -49,7 +47,6 @@ import codesquad.fineants.domain.purchase_history.repository.PurchaseHistoryRepo
 import codesquad.fineants.domain.stock.domain.entity.Market;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
-import codesquad.fineants.domain.stock_dividend.domain.entity.StockDividend;
 import codesquad.fineants.global.errors.exception.BadRequestException;
 import codesquad.fineants.global.errors.exception.ConflictException;
 import codesquad.fineants.global.errors.exception.FineAntsException;
@@ -110,7 +107,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 			PortfolioCreateRequest.class);
 
 		// when
-		PortFolioCreateResponse response = service.createPortfolio(request, AuthMember.from(member));
+		PortFolioCreateResponse response = service.createPortfolio(request, member.getId());
 
 		// then
 		assertAll(
@@ -136,7 +133,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 			PortfolioCreateRequest.class);
 
 		// when
-		Throwable throwable = catchThrowable(() -> service.createPortfolio(request, AuthMember.from(member)));
+		Throwable throwable = catchThrowable(() -> service.createPortfolio(request, member.getId()));
 
 		// then
 		assertThat(throwable)
@@ -161,7 +158,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 			PortfolioCreateRequest.class);
 
 		// when
-		Throwable throwable = catchThrowable(() -> service.createPortfolio(request, AuthMember.from(member)));
+		Throwable throwable = catchThrowable(() -> service.createPortfolio(request, member.getId()));
 
 		// then
 		assertThat(throwable)
@@ -183,7 +180,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 			PortfolioCreateRequest.class);
 
 		// when
-		Throwable throwable = catchThrowable(() -> service.createPortfolio(request, AuthMember.from(member)));
+		Throwable throwable = catchThrowable(() -> service.createPortfolio(request, member.getId()));
 
 		// then
 		assertThat(throwable)
@@ -202,7 +199,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 			PortfolioCreateRequest.class);
 
 		// when
-		Throwable throwable = catchThrowable(() -> service.createPortfolio(request, AuthMember.from(member)));
+		Throwable throwable = catchThrowable(() -> service.createPortfolio(request, member.getId()));
 
 		// then
 		assertThat(throwable)
@@ -232,7 +229,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 		Long portfolioId = originPortfolio.getId();
 
 		// when
-		service.updatePortfolio(request, portfolioId, AuthMember.from(member));
+		service.updatePortfolio(request, portfolioId, member.getId());
 
 		// then
 		Portfolio changePortfolio = portfolioRepository.findById(portfolioId).orElseThrow();
@@ -258,7 +255,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 		Long portfolioId = originPortfolio.getId();
 
 		// when
-		service.updatePortfolio(request, portfolioId, AuthMember.from(member));
+		service.updatePortfolio(request, portfolioId, member.getId());
 
 		// then
 		Portfolio changePortfolio = portfolioRepository.findById(portfolioId).orElseThrow();
@@ -287,7 +284,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 
 		// when
 		Throwable throwable = catchThrowable(
-			() -> service.updatePortfolio(request, portfolioId, AuthMember.from(member)));
+			() -> service.updatePortfolio(request, portfolioId, member.getId()));
 
 		// then
 		assertThat(throwable)
@@ -311,7 +308,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 		Member hacker = memberRepository.save(createMember("hacker1234", "hack1234@naver.com"));
 		// when
 		Throwable throwable = catchThrowable(
-			() -> service.updatePortfolio(request, portfolioId, AuthMember.from(hacker)));
+			() -> service.updatePortfolio(request, portfolioId, hacker.getId()));
 
 		// then
 		assertThat(throwable)
@@ -339,7 +336,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 
 		// when
 		Throwable throwable = catchThrowable(
-			() -> service.updatePortfolio(request, portfolioId, AuthMember.from(member)));
+			() -> service.updatePortfolio(request, portfolioId, member.getId()));
 
 		// then
 		assertThat(throwable)
@@ -367,7 +364,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 
 		// when
 		Throwable throwable = catchThrowable(
-			() -> service.updatePortfolio(request, portfolioId, AuthMember.from(member)));
+			() -> service.updatePortfolio(request, portfolioId, member.getId()));
 
 		// then
 		assertThat(throwable)
@@ -385,10 +382,11 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 		PortfolioGainHistory portfolioGainHistory = portfolioGainHistoryRepository.save(
 			createPortfolioGainHistory(portfolio));
 		PortfolioHolding portfolioHolding = portFolioHoldingRepository.save(createPortfolioHolding(portfolio, stock));
-		PurchaseHistory purchaseHistory = purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding));
+		PurchaseHistory purchaseHistory = purchaseHistoryRepository.save(
+			createPurchaseHistory(portfolioHolding, Money.won(50000.0)));
 
 		// when
-		service.deletePortfolio(portfolio.getId(), AuthMember.from(member));
+		service.deletePortfolio(portfolio.getId(), member.getId());
 
 		// then
 		assertAll(
@@ -411,7 +409,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 		portfolioRepository.saveAll(portfolios);
 
 		// when
-		PortfoliosResponse response = service.readMyAllPortfolio(AuthMember.from(member));
+		PortfoliosResponse response = service.readMyAllPortfolio(member.getId());
 
 		// then
 		assertAll(
@@ -429,7 +427,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Stock stock = stockRepository.save(createStock());
 		PortfolioHolding portfolioHolding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
-		purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding, 3L, 90000.0));
+		purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding, Money.won(90000.0)));
 		portfolioGainHistoryRepository.save(PortfolioGainHistory.builder()
 			.totalGain(Money.won(-120000L))
 			.dailyGain(Money.won(-120000L))
@@ -440,7 +438,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 
 		currentPriceRepository.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 40000L));
 		// when
-		PortfoliosResponse response = service.readMyAllPortfolio(AuthMember.from(member));
+		PortfoliosResponse response = service.readMyAllPortfolio(member.getId());
 
 		// then
 		assertThat(response.getPortfolios())
@@ -462,8 +460,10 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Stock stock = stockRepository.save(createStock());
 		PortfolioHolding portfolioHolding = portFolioHoldingRepository.save(createPortfolioHolding(portfolio, stock));
-		PurchaseHistory purchaseHistory1 = purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding));
-		PurchaseHistory purchaseHistory2 = purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding));
+		PurchaseHistory purchaseHistory1 = purchaseHistoryRepository.save(
+			createPurchaseHistory(portfolioHolding, Money.won(50000.0)));
+		PurchaseHistory purchaseHistory2 = purchaseHistoryRepository.save(
+			createPurchaseHistory(portfolioHolding, Money.won(50000.0)));
 		PortfolioGainHistory portfolioGainHistory = portfolioGainHistoryRepository.save(
 			createPortfolioGainHistory(portfolio));
 		Portfolio portfolio2 = portfolioRepository.save(createPortfolioWithRandomName(member));
@@ -471,7 +471,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 		PortfoliosDeleteRequest request = new PortfoliosDeleteRequest(List.of(portfolio.getId(), portfolio2.getId()));
 
 		// when
-		service.deletePortfolios(request, AuthMember.from(member));
+		service.deletePortfolios(request, member.getId());
 
 		// then
 		assertThat(portfolioRepository.existsById(portfolio.getId())).isFalse();
@@ -480,19 +480,6 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 		assertThat(purchaseHistoryRepository.existsById(purchaseHistory2.getId())).isFalse();
 		assertThat(portfolioGainHistoryRepository.existsById(portfolioGainHistory.getId())).isFalse();
 		assertThat(portfolioRepository.existsById(portfolio2.getId())).isFalse();
-	}
-
-	private Member createMember() {
-		return createMember("일개미1234", "kim1234@gmail.com");
-	}
-
-	private Member createMember(String nickname, String email) {
-		return Member.builder()
-			.nickname(nickname)
-			.email(email)
-			.password("kim1234@")
-			.provider("local")
-			.build();
 	}
 
 	private Portfolio createPortfolio(Member member) {
@@ -548,17 +535,6 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 			.build();
 	}
 
-	private StockDividend createStockDividend(LocalDate exDividendDate, LocalDate recordDate, LocalDate paymentDate,
-		Stock stock) {
-		return StockDividend.builder()
-			.dividend(Money.won(361L))
-			.exDividendDate(exDividendDate)
-			.recordDate(recordDate)
-			.paymentDate(paymentDate)
-			.stock(stock)
-			.build();
-	}
-
 	private PortfolioHolding createPortfolioHolding(Portfolio portfolio, Stock stock) {
 		return PortfolioHolding.builder()
 			.portfolio(portfolio)
@@ -566,22 +542,11 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 			.build();
 	}
 
-	private PurchaseHistory createPurchaseHistory(PortfolioHolding portfolioHolding) {
+	private PurchaseHistory createPurchaseHistory(PortfolioHolding portfolioHolding, Money purchasePricePerShare) {
 		return PurchaseHistory.builder()
 			.purchaseDate(LocalDateTime.of(2023, 9, 26, 9, 30, 0))
 			.numShares(Count.from(3L))
-			.purchasePricePerShare(Money.won(50000.0))
-			.memo("첫구매")
-			.portfolioHolding(portfolioHolding)
-			.build();
-	}
-
-	private PurchaseHistory createPurchaseHistory(PortfolioHolding portfolioHolding, Long numShares,
-		Double purchasePricePerShare) {
-		return PurchaseHistory.builder()
-			.purchaseDate(LocalDateTime.of(2023, 9, 26, 9, 30, 0))
-			.numShares(Count.from(numShares))
-			.purchasePricePerShare(Money.won(purchasePricePerShare))
+			.purchasePricePerShare(purchasePricePerShare)
 			.memo("첫구매")
 			.portfolioHolding(portfolioHolding)
 			.build();

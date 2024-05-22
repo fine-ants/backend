@@ -164,15 +164,6 @@ class PortfolioNotificationServiceTest extends AbstractContainerBaseTest {
 			.hasMessage(PortfolioErrorCode.MAX_LOSS_IS_ZERO_WITH_NOTIFY_UPDATE.getMessage());
 	}
 
-	private Member createMember() {
-		return Member.builder()
-			.nickname("일개미1234")
-			.email("kim1234@gmail.com")
-			.password("kim1234@")
-			.provider("local")
-			.build();
-	}
-
 	private Portfolio createPortfolio(Member member) {
 		return createPortfolio(member, 1000000L, 1500000L, 900000L);
 	}

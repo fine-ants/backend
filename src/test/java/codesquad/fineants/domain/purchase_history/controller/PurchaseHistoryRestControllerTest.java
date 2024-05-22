@@ -5,7 +5,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.anyLong;
 import static org.mockito.BDDMockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.nio.charset.StandardCharsets;
@@ -14,66 +13,32 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
+import codesquad.fineants.ControllerTestSupport;
 import codesquad.fineants.domain.common.count.Count;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.member.domain.entity.Member;
-import codesquad.fineants.domain.oauth.support.AuthMember;
-import codesquad.fineants.domain.oauth.support.AuthPrincipalArgumentResolver;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.repository.PortfolioRepository;
 import codesquad.fineants.domain.portfolio_holding.domain.entity.PortfolioHolding;
+import codesquad.fineants.domain.purchase_history.domain.dto.request.PurchaseHistoryCreateRequest;
 import codesquad.fineants.domain.purchase_history.domain.entity.PurchaseHistory;
+import codesquad.fineants.domain.purchase_history.service.PurchaseHistoryService;
 import codesquad.fineants.domain.stock.domain.entity.Market;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.global.errors.errorcode.PortfolioErrorCode;
 import codesquad.fineants.global.errors.exception.FineAntsException;
-import codesquad.fineants.global.errors.handler.GlobalExceptionHandler;
-import codesquad.fineants.domain.portfolio.aop.HasPortfolioAuthorizationAspect;
-import codesquad.fineants.domain.portfolio.service.PortFolioService;
-import codesquad.fineants.domain.purchase_history.controller.PurchaseHistoryRestController;
-import codesquad.fineants.domain.purchase_history.domain.dto.request.PurchaseHistoryCreateRequest;
-import codesquad.fineants.domain.purchase_history.service.PurchaseHistoryService;
-import codesquad.fineants.global.config.JacksonConfig;
-import codesquad.fineants.global.config.JpaAuditingConfiguration;
-import codesquad.fineants.global.config.SpringConfig;
 import codesquad.fineants.global.util.ObjectMapperUtil;
 
-@ActiveProfiles("test")
 @WebMvcTest(controllers = PurchaseHistoryRestController.class)
-@Import(value = {SpringConfig.class, HasPortfolioAuthorizationAspect.class, JacksonConfig.class})
-@MockBean(JpaAuditingConfiguration.class)
-class PurchaseHistoryRestControllerTest {
-
-	private MockMvc mockMvc;
-
-	@Autowired
-	private PurchaseHistoryRestController purchaseHistoryRestController;
-
-	@Autowired
-	private GlobalExceptionHandler globalExceptionHandler;
-
-	@Autowired
-	private ObjectMapper objectMapper;
-
-	@MockBean
-	private AuthPrincipalArgumentResolver authPrincipalArgumentResolver;
+class PurchaseHistoryRestControllerTest extends ControllerTestSupport {
 
 	@MockBean
 	private PurchaseHistoryService purchaseHistoryService;
@@ -81,75 +46,9 @@ class PurchaseHistoryRestControllerTest {
 	@MockBean
 	private PortfolioRepository portfolioRepository;
 
-	@MockBean
-	private PortFolioService portFolioService;
-
-	private Member member;
-	private Portfolio portfolio;
-
-	private Stock stock;
-
-	private PortfolioHolding portfolioHolding;
-
-	private PurchaseHistory purchaseHistory;
-
-	@BeforeEach
-	void setup() {
-		mockMvc = MockMvcBuilders.standaloneSetup(purchaseHistoryRestController)
-			.setControllerAdvice(globalExceptionHandler)
-			.setCustomArgumentResolvers(authPrincipalArgumentResolver)
-			.setMessageConverters(new MappingJackson2HttpMessageConverter(objectMapper))
-			.alwaysDo(print())
-			.build();
-
-		given(authPrincipalArgumentResolver.supportsParameter(any())).willReturn(true);
-
-		member = Member.builder()
-			.id(1L)
-			.nickname("일개미1234")
-			.email("kim1234@gmail.com")
-			.provider("local")
-			.password("kim1234@")
-			.profileUrl("profileValue")
-			.build();
-
-		AuthMember authMember = AuthMember.from(member);
-
-		given(authPrincipalArgumentResolver.resolveArgument(any(), any(), any(), any())).willReturn(authMember);
-
-		portfolio = Portfolio.builder()
-			.id(1L)
-			.name("내꿈은 워렌버핏")
-			.securitiesFirm("토스")
-			.budget(Money.won(1000000L))
-			.targetGain(Money.won(1500000L))
-			.maximumLoss(Money.won(900000L))
-			.member(member)
-			.build();
-
-		stock = Stock.builder()
-			.tickerSymbol("005930")
-			.companyName("삼성전자보통주")
-			.companyNameEng("SamsungElectronics")
-			.stockCode("KR7005930003")
-			.market(Market.KOSPI)
-			.build();
-
-		portfolioHolding = PortfolioHolding.builder()
-			.id(1L)
-			.currentPrice(null)
-			.portfolio(portfolio)
-			.stock(stock)
-			.build();
-		purchaseHistory = PurchaseHistory.builder()
-			.id(1L)
-			.purchaseDate(LocalDateTime.now())
-			.purchasePricePerShare(Money.won(50000.0))
-			.numShares(Count.from(3L))
-			.memo("첫구매")
-			.build();
-
-		given(portFolioService.hasAuthorizationBy(anyLong(), anyLong())).willReturn(true);
+	@Override
+	protected Object initController() {
+		return new PurchaseHistoryRestController(purchaseHistoryService);
 	}
 
 	@DisplayName("사용자가 매입 이력을 추가한다")
@@ -157,6 +56,8 @@ class PurchaseHistoryRestControllerTest {
 	@ParameterizedTest
 	void addPurchaseHistory(Count numShares) throws Exception {
 		// given
+		Portfolio portfolio = createPortfolio(createMember());
+		PortfolioHolding portfolioHolding = createPortfolioHolding(portfolio, createStock());
 		String url = String.format("/api/portfolio/%d/holdings/%d/purchaseHistory", portfolio.getId(),
 			portfolioHolding.getId());
 		Map<String, Object> requestBody = new HashMap<>();
@@ -183,6 +84,8 @@ class PurchaseHistoryRestControllerTest {
 	@Test
 	void addPurchaseHistoryWithInvalidInput() throws Exception {
 		// given
+		Portfolio portfolio = createPortfolio(createMember());
+		PortfolioHolding portfolioHolding = createPortfolioHolding(portfolio, createStock());
 		String url = String.format("/api/portfolio/%d/holdings/%d/purchaseHistory", portfolio.getId(),
 			portfolioHolding.getId());
 		Map<String, Object> requestBody = new HashMap<>();
@@ -210,6 +113,8 @@ class PurchaseHistoryRestControllerTest {
 	@Test
 	void addPurchaseHistoryThrowsExceptionWhenTotalInvestmentExceedsBudget() throws Exception {
 		// given
+		Portfolio portfolio = createPortfolio(createMember());
+		PortfolioHolding portfolioHolding = createPortfolioHolding(portfolio, createStock());
 		String url = String.format("/api/portfolio/%d/holdings/%d/purchaseHistory", portfolio.getId(),
 			portfolioHolding.getId());
 		Map<String, Object> requestBody = new HashMap<>();
@@ -218,7 +123,7 @@ class PurchaseHistoryRestControllerTest {
 		requestBody.put("purchasePricePerShare", 50000);
 		requestBody.put("memo", "첫구매");
 
-		String body = objectMapper.writeValueAsString(requestBody);
+		String body = ObjectMapperUtil.serialize(requestBody);
 
 		given(portfolioRepository.findById(anyLong())).willReturn(Optional.of(portfolio));
 
@@ -244,6 +149,9 @@ class PurchaseHistoryRestControllerTest {
 	@Test
 	void modifyPurchaseHistory() throws Exception {
 		// given
+		Portfolio portfolio = createPortfolio(createMember());
+		PortfolioHolding portfolioHolding = createPortfolioHolding(portfolio, createStock());
+		PurchaseHistory purchaseHistory = createPurchaseHistory();
 		String url = String.format("/api/portfolio/%d/holdings/%d/purchaseHistory/%d", portfolio.getId(),
 			portfolioHolding.getId(), purchaseHistory.getId());
 		Map<String, Object> requestBody = new HashMap<>();
@@ -252,7 +160,7 @@ class PurchaseHistoryRestControllerTest {
 		requestBody.put("purchasePricePerShare", 50000);
 		requestBody.put("memo", "첫구매");
 
-		String body = objectMapper.writeValueAsString(requestBody);
+		String body = ObjectMapperUtil.serialize(requestBody);
 
 		given(portfolioRepository.findById(anyLong())).willReturn(Optional.of(portfolio));
 
@@ -272,6 +180,9 @@ class PurchaseHistoryRestControllerTest {
 	@Test
 	void deletePurchaseHistory() throws Exception {
 		// given
+		Portfolio portfolio = createPortfolio(createMember());
+		PortfolioHolding portfolioHolding = createPortfolioHolding(portfolio, createStock());
+		PurchaseHistory purchaseHistory = createPurchaseHistory();
 		String url = String.format("/api/portfolio/%d/holdings/%d/purchaseHistory/%d", portfolio.getId(),
 			portfolioHolding.getId(), purchaseHistory.getId());
 
@@ -284,5 +195,57 @@ class PurchaseHistoryRestControllerTest {
 			.andExpect(jsonPath("status").value(equalTo("OK")))
 			.andExpect(jsonPath("message").value(equalTo("매입 이력이 삭제되었습니다")))
 			.andExpect(jsonPath("data").value(equalTo(null)));
+	}
+
+	private static PurchaseHistory createPurchaseHistory() {
+		return PurchaseHistory.builder()
+			.id(1L)
+			.purchaseDate(LocalDateTime.now())
+			.purchasePricePerShare(Money.won(50000.0))
+			.numShares(Count.from(3L))
+			.memo("첫구매")
+			.build();
+	}
+
+	private PortfolioHolding createPortfolioHolding(Portfolio portfolio, Stock stock) {
+		return PortfolioHolding.builder()
+			.id(1L)
+			.currentPrice(null)
+			.portfolio(portfolio)
+			.stock(stock)
+			.build();
+	}
+
+	private static Stock createStock() {
+		return Stock.builder()
+			.tickerSymbol("005930")
+			.companyName("삼성전자보통주")
+			.companyNameEng("SamsungElectronics")
+			.stockCode("KR7005930003")
+			.market(Market.KOSPI)
+			.build();
+	}
+
+	private Portfolio createPortfolio(Member member) {
+		return Portfolio.builder()
+			.id(1L)
+			.name("내꿈은 워렌버핏")
+			.securitiesFirm("토스")
+			.budget(Money.won(1000000L))
+			.targetGain(Money.won(1500000L))
+			.maximumLoss(Money.won(900000L))
+			.member(member)
+			.build();
+	}
+
+	private static Member createMember() {
+		return Member.builder()
+			.id(1L)
+			.nickname("일개미1234")
+			.email("kim1234@gmail.com")
+			.provider("local")
+			.password("kim1234@")
+			.profileUrl("profileValue")
+			.build();
 	}
 }

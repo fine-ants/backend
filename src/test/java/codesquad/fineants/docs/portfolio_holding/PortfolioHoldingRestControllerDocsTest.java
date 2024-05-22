@@ -29,7 +29,6 @@ import codesquad.fineants.docs.RestDocsSupport;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.common.money.Percentage;
 import codesquad.fineants.domain.member.domain.entity.Member;
-import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio_gain_history.domain.entity.PortfolioGainHistory;
 import codesquad.fineants.domain.portfolio_holding.controller.PortfolioHoldingRestController;
@@ -67,8 +66,7 @@ public class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
 		given(service.createPortfolioHolding(
 			anyLong(),
-			ArgumentMatchers.any(PortfolioHoldingCreateRequest.class),
-			ArgumentMatchers.any(AuthMember.class)))
+			ArgumentMatchers.any(PortfolioHoldingCreateRequest.class)))
 			.willReturn(PortfolioStockCreateResponse.from(holding));
 
 		Map<String, Object> body = Map.of(

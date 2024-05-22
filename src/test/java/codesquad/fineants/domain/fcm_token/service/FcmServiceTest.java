@@ -22,17 +22,16 @@ import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
 
-import codesquad.fineants.domain.fcm_token.repository.FcmRepository;
-import codesquad.fineants.domain.fcm_token.domain.entity.FcmToken;
-import codesquad.fineants.domain.member.domain.entity.Member;
-import codesquad.fineants.domain.member.repository.MemberRepository;
-import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.AbstractContainerBaseTest;
-import codesquad.fineants.global.errors.errorcode.FcmErrorCode;
-import codesquad.fineants.global.errors.exception.FineAntsException;
 import codesquad.fineants.domain.fcm_token.domain.dto.request.FcmRegisterRequest;
 import codesquad.fineants.domain.fcm_token.domain.dto.response.FcmDeleteResponse;
 import codesquad.fineants.domain.fcm_token.domain.dto.response.FcmRegisterResponse;
+import codesquad.fineants.domain.fcm_token.domain.entity.FcmToken;
+import codesquad.fineants.domain.fcm_token.repository.FcmRepository;
+import codesquad.fineants.domain.member.domain.entity.Member;
+import codesquad.fineants.domain.member.repository.MemberRepository;
+import codesquad.fineants.global.errors.errorcode.FcmErrorCode;
+import codesquad.fineants.global.errors.exception.FineAntsException;
 
 class FcmServiceTest extends AbstractContainerBaseTest {
 
@@ -68,7 +67,7 @@ class FcmServiceTest extends AbstractContainerBaseTest {
 			.willReturn(messageId);
 
 		// when
-		FcmRegisterResponse response = fcmService.createToken(request, AuthMember.from(member));
+		FcmRegisterResponse response = fcmService.createToken(request, member.getId());
 
 		// then
 		assertThat(response.getFcmTokenId()).isGreaterThan(0);
@@ -86,7 +85,7 @@ class FcmServiceTest extends AbstractContainerBaseTest {
 		List<CompletableFuture<FcmRegisterResponse>> futures = new ArrayList<>();
 		for (int i = 0; i < 10; i++) {
 			CompletableFuture<FcmRegisterResponse> future = CompletableFuture.supplyAsync(() ->
-				fcmService.createToken(request, AuthMember.from(member)));
+				fcmService.createToken(request, member.getId()));
 			futures.add(future);
 		}
 
@@ -115,7 +114,7 @@ class FcmServiceTest extends AbstractContainerBaseTest {
 			.willThrow(FirebaseMessagingException.class);
 
 		// when
-		Throwable throwable = catchThrowable(() -> fcmService.createToken(request, AuthMember.from(member)));
+		Throwable throwable = catchThrowable(() -> fcmService.createToken(request, member.getId()));
 
 		// then
 		assertThat(throwable)
@@ -133,7 +132,7 @@ class FcmServiceTest extends AbstractContainerBaseTest {
 			.fcmToken("fcmToken")
 			.build();
 		// when
-		FcmRegisterResponse response = fcmService.createToken(request, AuthMember.from(member));
+		FcmRegisterResponse response = fcmService.createToken(request, member.getId());
 
 		// then
 		Assertions.assertAll(
@@ -164,15 +163,6 @@ class FcmServiceTest extends AbstractContainerBaseTest {
 				.isEqualTo(fcmToken.getId()),
 			() -> assertThat(fcmRepository.findById(fcmToken.getId()).isEmpty()).isTrue()
 		);
-	}
-
-	private Member createMember() {
-		return Member.builder()
-			.nickname("nemo1234")
-			.email("dragonbead95@naver.com")
-			.password("nemo1234")
-			.provider("local")
-			.build();
 	}
 
 	private FcmToken createFcmToken(Member member) {

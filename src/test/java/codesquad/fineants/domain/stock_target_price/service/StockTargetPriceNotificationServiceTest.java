@@ -529,19 +529,6 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 			.collect(Collectors.toList());
 	}
 
-	private Member createMember() {
-		return createMember("일개미1234", "kim1234@gmail.com");
-	}
-
-	private Member createMember(String nickname, String email) {
-		return Member.builder()
-			.nickname(nickname)
-			.email(email)
-			.password("kim1234@")
-			.provider("local")
-			.build();
-	}
-
 	private Stock createStock() {
 		return Stock.builder()
 			.companyName("삼성전자보통주")

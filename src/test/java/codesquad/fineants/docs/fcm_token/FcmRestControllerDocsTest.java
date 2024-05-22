@@ -22,7 +22,6 @@ import org.springframework.http.MediaType;
 import org.springframework.restdocs.payload.JsonFieldType;
 
 import codesquad.fineants.docs.RestDocsSupport;
-import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.fcm_token.controller.FcmRestController;
 import codesquad.fineants.domain.fcm_token.domain.dto.request.FcmRegisterRequest;
 import codesquad.fineants.domain.fcm_token.domain.dto.response.FcmDeleteResponse;
@@ -43,9 +42,7 @@ public class FcmRestControllerDocsTest extends RestDocsSupport {
 	@Test
 	void createToken() throws Exception {
 		// given
-		given(fcmService.createToken(
-			any(FcmRegisterRequest.class),
-			any(AuthMember.class)))
+		given(fcmService.createToken(any(FcmRegisterRequest.class), anyLong()))
 			.willReturn(FcmRegisterResponse.builder()
 				.fcmTokenId(1L)
 				.build());

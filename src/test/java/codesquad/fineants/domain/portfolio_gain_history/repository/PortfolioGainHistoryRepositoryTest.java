@@ -91,15 +91,6 @@ class PortfolioGainHistoryRepositoryTest extends AbstractContainerBaseTest {
 		assertThat(history.getId()).isEqualTo(saveHistory.getId());
 	}
 
-	private Member createMember() {
-		return Member.builder()
-			.nickname("kim1234")
-			.email("kim1234@naver.com")
-			.password("kim1234@")
-			.provider("local")
-			.build();
-	}
-
 	private Portfolio createPortfolio(Member member) {
 		return Portfolio.builder()
 			.name("내꿈은 워렌버핏")
