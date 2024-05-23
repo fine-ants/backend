@@ -23,6 +23,8 @@ import org.testcontainers.utility.DockerImageName;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.kis.client.KisAccessToken;
 import codesquad.fineants.domain.member.domain.entity.Member;
+import codesquad.fineants.domain.member.domain.entity.MemberRole;
+import codesquad.fineants.domain.member.domain.entity.Role;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.global.init.S3BucketInitializer;
 import codesquad.fineants.global.security.auth.dto.MemberAuthentication;
@@ -71,7 +73,10 @@ public class AbstractContainerBaseTest {
 
 	@BeforeEach
 	void setUp() {
-		MemberAuthentication memberAuthentication = MemberAuthentication.from(createMember());
+		Member member = createMember();
+		Role role = Role.create("ROLE_USER", "유저");
+		member.addMemberRole(createMemberRole(member, role));
+		MemberAuthentication memberAuthentication = MemberAuthentication.from(member);
 		Authentication authentication = new UsernamePasswordAuthenticationToken(memberAuthentication, Strings.EMPTY,
 			List.of(new SimpleGrantedAuthority("ROLE_USER")));
 		SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -94,6 +99,10 @@ public class AbstractContainerBaseTest {
 			.password("nemo1234@")
 			.profileUrl("profileUrl")
 			.build();
+	}
+
+	private MemberRole createMemberRole(Member member, Role role) {
+		return MemberRole.create(member, role);
 	}
 
 	protected Portfolio createPortfolio(Member member) {

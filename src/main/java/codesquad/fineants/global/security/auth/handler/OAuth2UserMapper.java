@@ -1,5 +1,7 @@
 package codesquad.fineants.global.security.auth.handler;
 
+import java.util.Set;
+
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Component;
 
@@ -14,6 +16,7 @@ public class OAuth2UserMapper {
 		String nickname = oAuth2User.getAttribute("nickname");
 		String provider = oAuth2User.getAttribute("provider");
 		String profileUrl = oAuth2User.getAttribute("profileUrl");
-		return MemberAuthentication.create(id, email, nickname, provider, profileUrl);
+		Set<String> roleSet = oAuth2User.getAttribute("roleSet");
+		return MemberAuthentication.create(id, email, nickname, provider, profileUrl, roleSet);
 	}
 }

@@ -65,7 +65,8 @@ public class SecurityConfig {
 						"/api/auth/google/login",
 						"/api/auth/kakao/login",
 						"/api/auth/naver/login",
-						"/api/auth/login"
+						"/api/auth/login",
+						"/api/auth/refresh/token"
 					).permitAll()
 					.anyRequest().authenticated()
 			);

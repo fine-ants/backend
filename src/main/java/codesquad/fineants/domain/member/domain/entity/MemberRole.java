@@ -49,4 +49,8 @@ public class MemberRole {
 	public SimpleGrantedAuthority toSimpleGrantedAuthority() {
 		return role.toSimpleGrantedAuthority();
 	}
+
+	public String getRoleName() {
+		return role.getRoleName();
+	}
 }

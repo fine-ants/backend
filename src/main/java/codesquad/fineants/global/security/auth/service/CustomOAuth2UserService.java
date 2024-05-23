@@ -45,7 +45,7 @@ public class CustomOAuth2UserService extends AbstractUserService
 	@Override
 	OAuth2User createOAuth2User(Member member, OAuth2UserRequest userRequest, String sub) {
 		Collection<? extends GrantedAuthority> authorities = member.getSimpleGrantedAuthorities();
-		Map<String, Object> memberAttribute = member.toConvertMap();
+		Map<String, Object> memberAttribute = member.toMemberAttributeMap();
 		String nameAttributeKey = userRequest.getClientRegistration()
 			.getProviderDetails()
 			.getUserInfoEndpoint()

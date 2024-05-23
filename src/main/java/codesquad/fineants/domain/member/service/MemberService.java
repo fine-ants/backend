@@ -55,9 +55,10 @@ import codesquad.fineants.global.errors.errorcode.NotificationPreferenceErrorCod
 import codesquad.fineants.global.errors.exception.BadRequestException;
 import codesquad.fineants.global.errors.exception.FineAntsException;
 import codesquad.fineants.global.errors.exception.NotFoundResourceException;
+import codesquad.fineants.global.security.auth.dto.Token;
+import codesquad.fineants.global.security.auth.service.TokenService;
 import codesquad.fineants.infra.mail.service.MailService;
 import codesquad.fineants.infra.s3.service.AmazonS3Service;
-import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -90,6 +91,7 @@ public class MemberService {
 	private final FcmRepository fcmRepository;
 	private final StockTargetPriceRepository stockTargetPriceRepository;
 	private final TargetPriceNotificationRepository targetPriceNotificationRepository;
+	private final TokenService tokenService;
 
 	public void logout(HttpServletRequest request, HttpServletResponse response) {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -101,9 +103,9 @@ public class MemberService {
 	@Transactional
 	public OauthMemberRefreshResponse refreshAccessToken(OauthMemberRefreshRequest request, LocalDateTime now) {
 		String refreshToken = request.getRefreshToken();
-		Claims claims = jwtProvider.getRefreshTokenClaims(refreshToken);
-		Jwt jwt = jwtProvider.createJwtWithRefreshToken(claims, refreshToken, now);
-		return OauthMemberRefreshResponse.from(jwt);
+
+		Token token = tokenService.refreshToken(refreshToken, now);
+		return OauthMemberRefreshResponse.from(token);
 	}
 
 	@Transactional

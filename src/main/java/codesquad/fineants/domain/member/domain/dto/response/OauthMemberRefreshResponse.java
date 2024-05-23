@@ -1,6 +1,6 @@
 package codesquad.fineants.domain.member.domain.dto.response;
 
-import codesquad.fineants.domain.jwt.domain.Jwt;
+import codesquad.fineants.global.security.auth.dto.Token;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,8 +14,8 @@ import lombok.NoArgsConstructor;
 public class OauthMemberRefreshResponse {
 	private String accessToken;
 
-	public static OauthMemberRefreshResponse from(Jwt jwt) {
-		return new OauthMemberRefreshResponse(jwt.getAccessToken());
+	public static OauthMemberRefreshResponse from(Token token) {
+		return new OauthMemberRefreshResponse(token.getAccessToken());
 	}
 
 	@Override

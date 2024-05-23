@@ -4,6 +4,8 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
 
+import java.util.Set;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.mockito.ArgumentMatchers;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,7 +63,8 @@ public abstract class ControllerTestSupport {
 			"dragonbead95@naver.com",
 			"일개미1234",
 			"local",
-			"profileUrl"
+			"profileUrl",
+			Set.of("ROLE_USER")
 		);
 	}
 

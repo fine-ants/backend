@@ -1,6 +1,7 @@
 package codesquad.fineants.global.security.auth.dto;
 
 import java.util.Map;
+import java.util.Optional;
 
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
@@ -59,13 +60,13 @@ public class OAuthAttribute {
 		return new OAuthAttribute(attributes, nameAttributeKey, email, profileUrl, "naver", sub);
 	}
 
-	public Member getMemberFrom(MemberRepository repository, NicknameGenerator nicknameGenerator) {
+	public Optional<Member> getMemberFrom(MemberRepository repository) {
 		return repository.findMemberByEmailAndProvider(email, provider)
 			.map(entity -> entity.updateProfileUrl(profileUrl))
-			.orElseGet(() -> toEntity(nicknameGenerator));
+			.stream().findAny();
 	}
 
-	private Member toEntity(NicknameGenerator generator) {
+	public Member toEntity(NicknameGenerator generator) {
 		String nickname = generator.generate();
 		return Member.oauthMember(
 			email,

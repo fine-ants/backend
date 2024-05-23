@@ -90,6 +90,12 @@ public class Member extends BaseEntity {
 		}
 	}
 
+	public void addMemberRole(Set<MemberRole> memberRoleSet) {
+		for (MemberRole memberRole : memberRoleSet) {
+			addMemberRole(memberRole);
+		}
+	}
+
 	public void setMemberRoleSet(Set<MemberRole> memberRoleSet) {
 		this.roles = memberRoleSet;
 	}
@@ -121,16 +127,19 @@ public class Member extends BaseEntity {
 	public Collection<? extends GrantedAuthority> getSimpleGrantedAuthorities() {
 		return roles.stream()
 			.map(MemberRole::toSimpleGrantedAuthority)
-			.collect(Collectors.toList());
+			.collect(Collectors.toSet());
 	}
 
-	public Map<String, Object> toConvertMap() {
+	public Map<String, Object> toMemberAttributeMap() {
 		Map<String, Object> result = new HashMap<>();
 		result.put("id", id);
 		result.put("email", email);
 		result.put("nickname", nickname);
 		result.put("provider", provider);
 		result.put("profileUrl", profileUrl);
+		result.put("roleSet", roles.stream()
+			.map(MemberRole::getRoleName)
+			.collect(Collectors.toSet()));
 		return result;
 	}
 

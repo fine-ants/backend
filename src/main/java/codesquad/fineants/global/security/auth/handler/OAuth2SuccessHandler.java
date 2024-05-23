@@ -38,7 +38,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 		log.debug("oAuth2User : {}", oAuth2User);
 		log.debug("userDto : {}", memberAuthentication);
 
-		Token token = tokenService.generateToken(memberAuthentication, "ROLE_USER");
+		Token token = tokenService.generateToken(memberAuthentication);
 		log.debug("token : {}", token);
 
 		String redirectUrl = (String)request.getSession().getAttribute("redirect_url");

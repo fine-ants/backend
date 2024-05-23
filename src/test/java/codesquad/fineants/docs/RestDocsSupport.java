@@ -10,6 +10,7 @@ import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -76,7 +77,8 @@ public abstract class RestDocsSupport {
 			"dragonbead95@naver.com",
 			"일개미1234",
 			"local",
-			"profileUrl"
+			"profileUrl",
+			Set.of("ROLE_USER")
 		);
 	}
 
