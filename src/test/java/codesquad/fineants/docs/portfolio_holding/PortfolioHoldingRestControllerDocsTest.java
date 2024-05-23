@@ -108,7 +108,7 @@ public class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 						fieldWithPath("purchaseHistory.numShares").type(JsonFieldType.NUMBER).description("매입 개수"),
 						fieldWithPath("purchaseHistory.purchasePricePerShare").type(JsonFieldType.NUMBER)
 							.description("평균 매입가"),
-						fieldWithPath("purchaseHistory.memo").type(JsonFieldType.STRING).description("메모")
+						fieldWithPath("purchaseHistory.memo").type(JsonFieldType.STRING).description("메모").isOptional(),
 					),
 					responseFields(
 						fieldWithPath("code").type(JsonFieldType.NUMBER)
@@ -306,7 +306,7 @@ public class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 						.description("매입가"),
 					fieldWithPath("data.portfolioHoldings[].purchaseHistory[].memo")
 						.type(JsonFieldType.STRING)
-						.description("메모")
+						.description("메모 (NULL 허용)")
 				)
 			)
 		);

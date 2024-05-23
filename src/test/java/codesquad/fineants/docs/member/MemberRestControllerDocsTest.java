@@ -29,7 +29,6 @@ import org.springframework.restdocs.snippet.Attributes;
 
 import codesquad.fineants.docs.RestDocsSupport;
 import codesquad.fineants.domain.jwt.domain.Jwt;
-import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.controller.MemberRestController;
 import codesquad.fineants.domain.member.domain.dto.request.LoginRequest;
 import codesquad.fineants.domain.member.domain.dto.request.OauthMemberLoginRequest;
@@ -43,6 +42,7 @@ import codesquad.fineants.domain.member.domain.dto.response.OauthSaveUrlResponse
 import codesquad.fineants.domain.member.domain.dto.response.ProfileChangeResponse;
 import codesquad.fineants.domain.member.domain.dto.response.ProfileResponse;
 import codesquad.fineants.domain.member.domain.dto.response.SignUpServiceResponse;
+import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.service.MemberService;
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.global.util.ObjectMapperUtil;
@@ -394,7 +394,7 @@ public class MemberRestControllerDocsTest extends RestDocsSupport {
 						fieldWithPath("data.user.email").type(JsonFieldType.STRING)
 							.description("회원 이메일"),
 						fieldWithPath("data.user.profileUrl").type(JsonFieldType.STRING)
-							.description("회원 프로필 URL"),
+							.description("회원 프로필 URL (NULL 허용)"),
 						fieldWithPath("data.user.provider").type(JsonFieldType.STRING)
 							.description("회원 가입 플랫폼"),
 						fieldWithPath("data.user.notificationPreferences").type(JsonFieldType.OBJECT)
@@ -630,7 +630,7 @@ public class MemberRestControllerDocsTest extends RestDocsSupport {
 						fieldWithPath("data.user.email").type(JsonFieldType.STRING)
 							.description("회원 이메일"),
 						fieldWithPath("data.user.profileUrl").type(JsonFieldType.STRING)
-							.description("회원 프로필 URL"),
+							.description("회원 프로필 URL (NULL 허용)"),
 						fieldWithPath("data.user.provider").type(JsonFieldType.STRING)
 							.description("회원 가입 플랫폼")
 					)
