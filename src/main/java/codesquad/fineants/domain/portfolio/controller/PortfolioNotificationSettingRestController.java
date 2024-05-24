@@ -7,8 +7,8 @@ import org.springframework.web.bind.annotation.RestController;
 import codesquad.fineants.domain.portfolio.domain.dto.response.PortfolioNotificationSettingSearchResponse;
 import codesquad.fineants.domain.portfolio.service.PortfolioNotificationSettingService;
 import codesquad.fineants.global.api.ApiResponse;
-import codesquad.fineants.global.security.auth.dto.MemberAuthentication;
-import codesquad.fineants.global.security.auth.resolver.MemberAuthenticationPrincipal;
+import codesquad.fineants.global.security.oauth.dto.MemberAuthentication;
+import codesquad.fineants.global.security.oauth.resolver.MemberAuthenticationPrincipal;
 import codesquad.fineants.global.success.PortfolioSuccessCode;
 import lombok.RequiredArgsConstructor;
 

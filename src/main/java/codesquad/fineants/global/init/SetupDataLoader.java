@@ -65,7 +65,7 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
 		log.info("create the managerRole : {}", managerRole);
 		log.info("create the userRole : {}", userRole);
 
-		Member userMember = createMemberIfNotFound("ant1111@gmail.com", "일개미1111", "ant1111", Set.of(userRole));
+		Member userMember = createMemberIfNotFound("dragonbead95@naver.com", "일개미1111", "nemo1234@", Set.of(userRole));
 		Member oauthMember = createOauthMemberIfNotFound("dragonbead95@naver.com", "일개미1112", "naver",
 			Set.of(userRole));
 		log.info("userMember : {}", userMember);
@@ -86,7 +86,7 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
 			.orElse(null);
 
 		if (member == null) {
-			member = Member.localMember(nickname, email, passwordEncoder.encode(password));
+			member = Member.localMember(email, nickname, passwordEncoder.encode(password));
 			Set<MemberRole> memberRoleSet = new HashSet<>();
 			for (Role r : roleSet) {
 				MemberRole memberRole = MemberRole.create(member, r);

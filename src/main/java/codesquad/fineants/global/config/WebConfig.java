@@ -13,7 +13,7 @@ import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import codesquad.fineants.global.converter.SseEventStreamMessageConverter;
-import codesquad.fineants.global.security.auth.resolver.MemberAuthenticationArgumentResolver;
+import codesquad.fineants.global.security.oauth.resolver.MemberAuthenticationArgumentResolver;
 import lombok.RequiredArgsConstructor;
 
 @Configuration

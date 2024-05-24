@@ -14,8 +14,8 @@ import codesquad.fineants.domain.fcm_token.domain.dto.response.FcmDeleteResponse
 import codesquad.fineants.domain.fcm_token.domain.dto.response.FcmRegisterResponse;
 import codesquad.fineants.domain.fcm_token.service.FcmService;
 import codesquad.fineants.global.api.ApiResponse;
-import codesquad.fineants.global.security.auth.dto.MemberAuthentication;
-import codesquad.fineants.global.security.auth.resolver.MemberAuthenticationPrincipal;
+import codesquad.fineants.global.security.oauth.dto.MemberAuthentication;
+import codesquad.fineants.global.security.oauth.resolver.MemberAuthenticationPrincipal;
 import codesquad.fineants.global.success.FcmSuccessCode;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

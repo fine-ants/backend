@@ -11,8 +11,8 @@ import codesquad.fineants.domain.portfolio.domain.dto.response.DashboardPieChart
 import codesquad.fineants.domain.portfolio.domain.dto.response.OverviewResponse;
 import codesquad.fineants.domain.portfolio.service.DashboardService;
 import codesquad.fineants.global.api.ApiResponse;
-import codesquad.fineants.global.security.auth.dto.MemberAuthentication;
-import codesquad.fineants.global.security.auth.resolver.MemberAuthenticationPrincipal;
+import codesquad.fineants.global.security.oauth.dto.MemberAuthentication;
+import codesquad.fineants.global.security.oauth.resolver.MemberAuthenticationPrincipal;
 import codesquad.fineants.global.success.DashboardSuccessCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

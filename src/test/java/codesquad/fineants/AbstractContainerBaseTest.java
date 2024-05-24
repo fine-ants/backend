@@ -1,17 +1,14 @@
 package codesquad.fineants;
 
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.HashSet;
 
-import org.apache.logging.log4j.util.Strings;
-import org.junit.jupiter.api.BeforeEach;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -27,7 +24,6 @@ import codesquad.fineants.domain.member.domain.entity.MemberRole;
 import codesquad.fineants.domain.member.domain.entity.Role;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.global.init.S3BucketInitializer;
-import codesquad.fineants.global.security.auth.dto.MemberAuthentication;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -36,6 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 @Import(value = {AmazonS3Config.class, S3BucketInitializer.class})
 @AutoConfigureWebTestClient
 @Testcontainers
+@WithMockUser(username = "dragonbead95@naver.com", roles = {"USER"})
 public class AbstractContainerBaseTest {
 	private static final String REDIS_IMAGE = "redis:7-alpine";
 	private static final int REDIS_PORT = 6379;
@@ -54,11 +51,14 @@ public class AbstractContainerBaseTest {
 		LOCAL_STACK_CONTAINER.start();
 	}
 
+	@Autowired
+	private PasswordEncoder passwordEncoder;
+
 	@DynamicPropertySource
 	public static void overrideProps(DynamicPropertyRegistry registry) {
 		// redis property config
-		registry.add("spring.redis.host", REDIS_CONTAINER::getHost);
-		registry.add("spring.redis.port", () -> REDIS_CONTAINER.getMappedPort(REDIS_PORT).toString());
+		registry.add("spring.data.redis.host", REDIS_CONTAINER::getHost);
+		registry.add("spring.data.redis.port", () -> REDIS_CONTAINER.getMappedPort(REDIS_PORT).toString());
 
 		// mysql property config
 		registry.add("spring.datasource.driver-class-name", () -> "org.testcontainers.jdbc.ContainerDatabaseDriver");
@@ -71,16 +71,16 @@ public class AbstractContainerBaseTest {
 		return KisAccessToken.bearerType("accessToken", LocalDateTime.now().plusSeconds(86400), 86400);
 	}
 
-	@BeforeEach
-	void setUp() {
-		Member member = createMember();
-		Role role = Role.create("ROLE_USER", "유저");
-		member.addMemberRole(createMemberRole(member, role));
-		MemberAuthentication memberAuthentication = MemberAuthentication.from(member);
-		Authentication authentication = new UsernamePasswordAuthenticationToken(memberAuthentication, Strings.EMPTY,
-			List.of(new SimpleGrantedAuthority("ROLE_USER")));
-		SecurityContextHolder.getContext().setAuthentication(authentication);
-	}
+	// @BeforeEach
+	// void setUp() {
+	// 	Member member = createMember();
+	// 	Role role = Role.create("ROLE_USER", "유저");
+	// 	member.addMemberRole(createMemberRole(member, role));
+	// 	MemberAuthentication memberAuthentication = MemberAuthentication.from(member);
+	// 	Authentication authentication = new UsernamePasswordAuthenticationToken(memberAuthentication, Strings.EMPTY,
+	// 		List.of(new SimpleGrantedAuthority("ROLE_USER")));
+	// 	SecurityContextHolder.getContext().setAuthentication(authentication);
+	// }
 
 	protected Member createMember() {
 		return createMember("nemo1234");
@@ -96,8 +96,9 @@ public class AbstractContainerBaseTest {
 			.email(email)
 			.nickname(nickname)
 			.provider("local")
-			.password("nemo1234@")
+			.password(passwordEncoder.encode("nemo1234@"))
 			.profileUrl("profileUrl")
+			.roles(new HashSet<>())
 			.build();
 	}
 

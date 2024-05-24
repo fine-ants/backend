@@ -18,8 +18,8 @@ import codesquad.fineants.domain.portfolio.domain.dto.response.PortFolioCreateRe
 import codesquad.fineants.domain.portfolio.domain.dto.response.PortfoliosResponse;
 import codesquad.fineants.domain.portfolio.service.PortFolioService;
 import codesquad.fineants.global.api.ApiResponse;
-import codesquad.fineants.global.security.auth.dto.MemberAuthentication;
-import codesquad.fineants.global.security.auth.resolver.MemberAuthenticationPrincipal;
+import codesquad.fineants.global.security.oauth.dto.MemberAuthentication;
+import codesquad.fineants.global.security.oauth.resolver.MemberAuthenticationPrincipal;
 import codesquad.fineants.global.success.PortfolioSuccessCode;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

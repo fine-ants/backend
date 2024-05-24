@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import codesquad.fineants.domain.member.domain.dto.request.LoginRequest;
 import codesquad.fineants.domain.member.domain.dto.request.ModifyPasswordRequest;
 import codesquad.fineants.domain.member.domain.dto.request.OauthMemberLogoutRequest;
 import codesquad.fineants.domain.member.domain.dto.request.OauthMemberRefreshRequest;
@@ -27,15 +26,14 @@ import codesquad.fineants.domain.member.domain.dto.request.SignUpRequest;
 import codesquad.fineants.domain.member.domain.dto.request.SignUpServiceRequest;
 import codesquad.fineants.domain.member.domain.dto.request.VerifyCodeRequest;
 import codesquad.fineants.domain.member.domain.dto.request.VerifyEmailRequest;
-import codesquad.fineants.domain.member.domain.dto.response.LoginResponse;
 import codesquad.fineants.domain.member.domain.dto.response.OauthMemberRefreshResponse;
 import codesquad.fineants.domain.member.domain.dto.response.ProfileChangeResponse;
 import codesquad.fineants.domain.member.domain.dto.response.ProfileResponse;
 import codesquad.fineants.domain.member.domain.dto.response.SignUpServiceResponse;
 import codesquad.fineants.domain.member.service.MemberService;
 import codesquad.fineants.global.api.ApiResponse;
-import codesquad.fineants.global.security.auth.dto.MemberAuthentication;
-import codesquad.fineants.global.security.auth.resolver.MemberAuthenticationPrincipal;
+import codesquad.fineants.global.security.oauth.dto.MemberAuthentication;
+import codesquad.fineants.global.security.oauth.resolver.MemberAuthenticationPrincipal;
 import codesquad.fineants.global.success.MemberSuccessCode;
 import codesquad.fineants.global.success.OauthSuccessCode;
 import jakarta.servlet.http.HttpServletRequest;
@@ -102,11 +100,6 @@ public class MemberRestController {
 	public ApiResponse<Void> emailDuplicationCheck(@PathVariable final String email) {
 		memberService.checkEmail(email);
 		return ApiResponse.success(MemberSuccessCode.OK_EMAIL_CHECK);
-	}
-
-	@PostMapping("/auth/login")
-	public ApiResponse<LoginResponse> login(@RequestBody final LoginRequest request) {
-		return ApiResponse.success(MemberSuccessCode.OK_LOGIN, memberService.login(request));
 	}
 
 	@PostMapping(value = "/profile", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE, MediaType.APPLICATION_JSON_VALUE})

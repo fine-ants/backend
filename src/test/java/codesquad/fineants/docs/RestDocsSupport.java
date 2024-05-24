@@ -47,8 +47,8 @@ import codesquad.fineants.domain.stock_target_price.domain.entity.StockTargetPri
 import codesquad.fineants.domain.stock_target_price.domain.entity.TargetPriceNotification;
 import codesquad.fineants.domain.watch_list.domain.entity.WatchList;
 import codesquad.fineants.global.config.JacksonConfig;
-import codesquad.fineants.global.security.auth.dto.MemberAuthentication;
-import codesquad.fineants.global.security.auth.resolver.MemberAuthenticationArgumentResolver;
+import codesquad.fineants.global.security.oauth.dto.MemberAuthentication;
+import codesquad.fineants.global.security.oauth.resolver.MemberAuthenticationArgumentResolver;
 
 @ExtendWith(RestDocumentationExtension.class)
 public abstract class RestDocsSupport {

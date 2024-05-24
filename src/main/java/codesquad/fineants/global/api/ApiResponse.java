@@ -2,8 +2,8 @@ package codesquad.fineants.global.api;
 
 import org.springframework.http.HttpStatus;
 
-import codesquad.fineants.global.success.SuccessCode;
 import codesquad.fineants.global.errors.errorcode.ErrorCode;
+import codesquad.fineants.global.success.SuccessCode;
 import lombok.Getter;
 
 @Getter
@@ -46,7 +46,11 @@ public class ApiResponse<T> {
 	}
 
 	public static <T> ApiResponse<T> error(ErrorCode errorCode) {
-		return new ApiResponse<>(errorCode.getHttpStatus(), errorCode.getMessage(), null);
+		return error(errorCode, null);
+	}
+
+	public static <T> ApiResponse<T> error(ErrorCode errorCode, T data) {
+		return new ApiResponse<>(errorCode.getHttpStatus(), errorCode.getMessage(), data);
 	}
 
 	@Override

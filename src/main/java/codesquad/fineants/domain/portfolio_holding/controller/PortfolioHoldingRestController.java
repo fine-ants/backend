@@ -21,8 +21,8 @@ import codesquad.fineants.domain.portfolio_holding.domain.dto.response.Portfolio
 import codesquad.fineants.domain.portfolio_holding.service.PortfolioHoldingService;
 import codesquad.fineants.domain.portfolio_holding.service.PortfolioObservableService;
 import codesquad.fineants.global.api.ApiResponse;
-import codesquad.fineants.global.security.auth.dto.MemberAuthentication;
-import codesquad.fineants.global.security.auth.resolver.MemberAuthenticationPrincipal;
+import codesquad.fineants.global.security.oauth.dto.MemberAuthentication;
+import codesquad.fineants.global.security.oauth.resolver.MemberAuthenticationPrincipal;
 import codesquad.fineants.global.success.PortfolioStockSuccessCode;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

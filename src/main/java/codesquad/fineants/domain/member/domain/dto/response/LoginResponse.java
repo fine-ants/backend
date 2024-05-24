@@ -1,9 +1,8 @@
 package codesquad.fineants.domain.member.domain.dto.response;
 
-import codesquad.fineants.domain.jwt.domain.Jwt;
+import codesquad.fineants.global.security.oauth.dto.Token;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
@@ -11,12 +10,11 @@ import lombok.ToString;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-@Builder
 @ToString
 public class LoginResponse {
-	private Jwt jwt;
+	private Token jwt;
 
-	public static LoginResponse from(Jwt jwt) {
+	public static LoginResponse from(Token jwt) {
 		return new LoginResponse(jwt);
 	}
 }

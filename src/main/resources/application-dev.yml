@@ -13,10 +13,10 @@ spring:
       hibernate:
         format_sql: true
         dialect: org.hibernate.dialect.MySQL8Dialect
-  redis:
-    host: redis
-    port: 6379
-
+  data:
+    redis:
+      host: redis
+      port: 6379
 logging:
   level:
     codesquad: info

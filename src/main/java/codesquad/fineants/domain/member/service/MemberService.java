@@ -17,16 +17,13 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import codesquad.fineants.domain.fcm_token.repository.FcmRepository;
-import codesquad.fineants.domain.jwt.domain.Jwt;
 import codesquad.fineants.domain.jwt.domain.JwtProvider;
-import codesquad.fineants.domain.member.domain.dto.request.LoginRequest;
 import codesquad.fineants.domain.member.domain.dto.request.ModifyPasswordRequest;
 import codesquad.fineants.domain.member.domain.dto.request.OauthMemberRefreshRequest;
 import codesquad.fineants.domain.member.domain.dto.request.ProfileChangeServiceRequest;
 import codesquad.fineants.domain.member.domain.dto.request.SignUpServiceRequest;
 import codesquad.fineants.domain.member.domain.dto.request.VerifyCodeRequest;
 import codesquad.fineants.domain.member.domain.dto.request.VerifyEmailRequest;
-import codesquad.fineants.domain.member.domain.dto.response.LoginResponse;
 import codesquad.fineants.domain.member.domain.dto.response.OauthMemberRefreshResponse;
 import codesquad.fineants.domain.member.domain.dto.response.ProfileChangeResponse;
 import codesquad.fineants.domain.member.domain.dto.response.ProfileResponse;
@@ -55,8 +52,8 @@ import codesquad.fineants.global.errors.errorcode.NotificationPreferenceErrorCod
 import codesquad.fineants.global.errors.exception.BadRequestException;
 import codesquad.fineants.global.errors.exception.FineAntsException;
 import codesquad.fineants.global.errors.exception.NotFoundResourceException;
-import codesquad.fineants.global.security.auth.dto.Token;
-import codesquad.fineants.global.security.auth.service.TokenService;
+import codesquad.fineants.global.security.oauth.dto.Token;
+import codesquad.fineants.global.security.oauth.service.TokenService;
 import codesquad.fineants.infra.mail.service.MailService;
 import codesquad.fineants.infra.s3.service.AmazonS3Service;
 import jakarta.servlet.http.HttpServletRequest;
@@ -199,21 +196,7 @@ public class MemberService {
 			throw new BadRequestException(MemberErrorCode.REDUNDANT_EMAIL);
 		}
 	}
-
-	@Transactional(readOnly = true)
-	public LoginResponse login(LoginRequest request) {
-		Member member = memberRepository.findMemberByEmailAndProvider(request.getEmail(), LOCAL_PROVIDER)
-			.orElseThrow(() -> new BadRequestException(MemberErrorCode.LOGIN_FAIL));
-		if (!passwordEncoder.matches(request.getPassword(), member.getPassword())) {
-			throw new BadRequestException(MemberErrorCode.LOGIN_FAIL);
-		}
-		if (request.getPassword().isBlank()) {
-			throw new BadRequestException(MemberErrorCode.LOGIN_FAIL);
-		}
-		Jwt jwt = jwtProvider.createJwtBasedOnMember(member, LocalDateTime.now());
-		return LoginResponse.from(jwt);
-	}
-
+	
 	@Transactional
 	@Secured("ROLE_USER")
 	public ProfileChangeResponse changeProfile(ProfileChangeServiceRequest request) {

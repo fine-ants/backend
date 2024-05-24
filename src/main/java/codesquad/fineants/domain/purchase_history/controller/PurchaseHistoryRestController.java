@@ -15,8 +15,8 @@ import codesquad.fineants.domain.purchase_history.domain.dto.request.PurchaseHis
 import codesquad.fineants.domain.purchase_history.domain.dto.response.PurchaseHistoryDeleteResponse;
 import codesquad.fineants.domain.purchase_history.service.PurchaseHistoryService;
 import codesquad.fineants.global.api.ApiResponse;
-import codesquad.fineants.global.security.auth.dto.MemberAuthentication;
-import codesquad.fineants.global.security.auth.resolver.MemberAuthenticationPrincipal;
+import codesquad.fineants.global.security.oauth.dto.MemberAuthentication;
+import codesquad.fineants.global.security.oauth.resolver.MemberAuthenticationPrincipal;
 import codesquad.fineants.global.success.PurchaseHistorySuccessCode;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

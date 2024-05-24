@@ -20,8 +20,8 @@ import codesquad.fineants.domain.stock_target_price.domain.dto.response.TargetPr
 import codesquad.fineants.domain.stock_target_price.domain.dto.response.TargetPriceNotificationUpdateResponse;
 import codesquad.fineants.domain.stock_target_price.service.StockTargetPriceNotificationService;
 import codesquad.fineants.global.api.ApiResponse;
-import codesquad.fineants.global.security.auth.dto.MemberAuthentication;
-import codesquad.fineants.global.security.auth.resolver.MemberAuthenticationPrincipal;
+import codesquad.fineants.global.security.oauth.dto.MemberAuthentication;
+import codesquad.fineants.global.security.oauth.resolver.MemberAuthenticationPrincipal;
 import codesquad.fineants.global.success.StockSuccessCode;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

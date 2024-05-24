@@ -22,8 +22,8 @@ import codesquad.fineants.domain.watch_list.domain.dto.response.ReadWatchListsRe
 import codesquad.fineants.domain.watch_list.domain.dto.response.WatchListHasStockResponse;
 import codesquad.fineants.domain.watch_list.service.WatchListService;
 import codesquad.fineants.global.api.ApiResponse;
-import codesquad.fineants.global.security.auth.dto.MemberAuthentication;
-import codesquad.fineants.global.security.auth.resolver.MemberAuthenticationPrincipal;
+import codesquad.fineants.global.security.oauth.dto.MemberAuthentication;
+import codesquad.fineants.global.security.oauth.resolver.MemberAuthenticationPrincipal;
 import codesquad.fineants.global.success.WatchListSuccessCode;
 import lombok.RequiredArgsConstructor;
 

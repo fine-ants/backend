@@ -23,8 +23,8 @@ import codesquad.fineants.global.config.JacksonConfig;
 import codesquad.fineants.global.config.JpaAuditingConfiguration;
 import codesquad.fineants.global.config.SpringConfig;
 import codesquad.fineants.global.errors.handler.GlobalExceptionHandler;
-import codesquad.fineants.global.security.auth.dto.MemberAuthentication;
-import codesquad.fineants.global.security.auth.resolver.MemberAuthenticationArgumentResolver;
+import codesquad.fineants.global.security.oauth.dto.MemberAuthentication;
+import codesquad.fineants.global.security.oauth.resolver.MemberAuthenticationArgumentResolver;
 
 @ActiveProfiles("test")
 @Import(value = {SpringConfig.class, JacksonConfig.class})

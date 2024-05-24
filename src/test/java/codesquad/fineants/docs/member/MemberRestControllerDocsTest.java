@@ -27,13 +27,10 @@ import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
 import org.springframework.restdocs.payload.JsonFieldType;
 
 import codesquad.fineants.docs.RestDocsSupport;
-import codesquad.fineants.domain.jwt.domain.Jwt;
 import codesquad.fineants.domain.member.controller.MemberRestController;
-import codesquad.fineants.domain.member.domain.dto.request.LoginRequest;
 import codesquad.fineants.domain.member.domain.dto.request.OauthMemberRefreshRequest;
 import codesquad.fineants.domain.member.domain.dto.request.ProfileChangeServiceRequest;
 import codesquad.fineants.domain.member.domain.dto.request.SignUpServiceRequest;
-import codesquad.fineants.domain.member.domain.dto.response.LoginResponse;
 import codesquad.fineants.domain.member.domain.dto.response.OauthMemberRefreshResponse;
 import codesquad.fineants.domain.member.domain.dto.response.ProfileChangeResponse;
 import codesquad.fineants.domain.member.domain.dto.response.ProfileResponse;
@@ -49,65 +46,6 @@ public class MemberRestControllerDocsTest extends RestDocsSupport {
 	@Override
 	protected Object initController() {
 		return new MemberRestController(memberService);
-	}
-
-	@DisplayName("회원 일반 로그인 API")
-	@Test
-	void loginByLocal() throws Exception {
-		// given
-		Member member = createMember();
-		String url = "/api/auth/login";
-		Map<String, Object> body = Map.of(
-			"email", "dragonbead95@naver.com",
-			"password", "nemo1234@"
-		);
-
-		LoginResponse mockResponse = LoginResponse.builder()
-			.jwt(Jwt.builder()
-				.accessToken("accessToken")
-				.refreshToken("refreshToken")
-				.build())
-			.build();
-		given(memberService.login(ArgumentMatchers.any(LoginRequest.class)))
-			.willReturn(mockResponse);
-
-		// when & then
-		mockMvc.perform(post(url)
-				.contentType(MediaType.APPLICATION_JSON)
-				.content(ObjectMapperUtil.serialize(body)))
-			.andExpect(status().isOk())
-			.andExpect(jsonPath("code").value(equalTo(200)))
-			.andExpect(jsonPath("status").value(equalTo("OK")))
-			.andExpect(jsonPath("message").value(equalTo("로그인에 성공하였습니다.")))
-			.andExpect(jsonPath("data.jwt.accessToken").value(equalTo("accessToken")))
-			.andExpect(jsonPath("data.jwt.refreshToken").value(equalTo("refreshToken")))
-			.andDo(
-				document(
-					"member-login",
-					preprocessRequest(prettyPrint()),
-					preprocessResponse(prettyPrint()),
-					requestFields(
-						fieldWithPath("email").type(JsonFieldType.STRING).description("이메일"),
-						fieldWithPath("password").type(JsonFieldType.STRING).description("비밀번호")
-					),
-					responseFields(
-						fieldWithPath("code").type(JsonFieldType.NUMBER)
-							.description("코드"),
-						fieldWithPath("status").type(JsonFieldType.STRING)
-							.description("상태"),
-						fieldWithPath("message").type(JsonFieldType.STRING)
-							.description("메시지"),
-						fieldWithPath("data").type(JsonFieldType.OBJECT)
-							.description("응답 데이터"),
-						fieldWithPath("data.jwt").type(JsonFieldType.OBJECT)
-							.description("Json Web Token"),
-						fieldWithPath("data.jwt.accessToken").type(JsonFieldType.STRING)
-							.description("액세스 토큰"),
-						fieldWithPath("data.jwt.refreshToken").type(JsonFieldType.STRING)
-							.description("리프레시 토큰")
-					)
-				)
-			);
 	}
 
 	@DisplayName("회원 로그아웃 API")

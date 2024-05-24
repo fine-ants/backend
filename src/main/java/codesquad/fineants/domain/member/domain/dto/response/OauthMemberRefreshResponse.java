@@ -1,6 +1,6 @@
 package codesquad.fineants.domain.member.domain.dto.response;
 
-import codesquad.fineants.global.security.auth.dto.Token;
+import codesquad.fineants.global.security.oauth.dto.Token;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

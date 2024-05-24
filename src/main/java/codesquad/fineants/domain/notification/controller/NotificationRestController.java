@@ -10,8 +10,8 @@ import codesquad.fineants.domain.notification.domain.dto.response.PortfolioNotif
 import codesquad.fineants.domain.notification.service.NotificationService;
 import codesquad.fineants.domain.stock_target_price.domain.dto.response.TargetPriceNotifyMessageResponse;
 import codesquad.fineants.global.api.ApiResponse;
-import codesquad.fineants.global.security.auth.dto.MemberAuthentication;
-import codesquad.fineants.global.security.auth.resolver.MemberAuthenticationPrincipal;
+import codesquad.fineants.global.security.oauth.dto.MemberAuthentication;
+import codesquad.fineants.global.security.oauth.resolver.MemberAuthenticationPrincipal;
 import codesquad.fineants.global.success.NotificationSuccessCode;
 import codesquad.fineants.global.success.StockSuccessCode;
 import lombok.RequiredArgsConstructor;
