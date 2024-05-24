@@ -2,7 +2,6 @@ package codesquad.fineants.domain.kis.controller;
 
 import java.util.List;
 
-import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -28,7 +27,6 @@ public class KisRestController {
 
 	// 종목 현재가 갱신
 	@PostMapping("/current-price/all/refresh")
-	@Secured("ADMIN")
 	public ApiResponse<List<KisCurrentPrice>> refreshAllStockCurrentPrice() {
 		List<KisCurrentPrice> responses = service.refreshAllStockCurrentPrice();
 		return ApiResponse.success(KisSuccessCode.OK_REFRESH_CURRENT_PRICE_STOCKS, responses);
@@ -36,7 +34,6 @@ public class KisRestController {
 
 	// 특정 종목 현재가 갱신
 	@PostMapping("/current-price/refresh")
-	@Secured("ADMIN")
 	public ApiResponse<List<KisCurrentPrice>> refreshStockCurrentPrice(
 		@RequestBody StockPriceRefreshRequest request
 	) {
@@ -46,7 +43,6 @@ public class KisRestController {
 
 	// 한 종목 현재가 조회
 	@GetMapping("/current-price/{tickerSymbol}")
-	@Secured("ADMIN")
 	public Mono<ApiResponse<KisCurrentPrice>> fetchCurrentPrice(
 		@PathVariable String tickerSymbol
 	) {
@@ -56,7 +52,6 @@ public class KisRestController {
 
 	// 모든 종목 종가 갱신
 	@PostMapping("/closing-price/all/refresh")
-	@Secured("ADMIN")
 	public ApiResponse<List<KisClosingPrice>> refreshAllLastDayClosingPrice() {
 		List<KisClosingPrice> responses = service.refreshAllLastDayClosingPrice();
 		return ApiResponse.success(KisSuccessCode.OK_REFRESH_LAST_DAY_CLOSING_PRICE, responses);
@@ -64,7 +59,6 @@ public class KisRestController {
 
 	// 특정 종목 종가 갱신
 	@PostMapping("/closing-price/refresh")
-	@Secured("ADMIN")
 	public ApiResponse<List<KisClosingPrice>> refreshLastDayClosingPrice(
 		@RequestBody StockPriceRefreshRequest request
 	) {

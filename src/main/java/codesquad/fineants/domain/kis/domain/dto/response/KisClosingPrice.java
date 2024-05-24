@@ -2,7 +2,6 @@ package codesquad.fineants.domain.kis.domain.dto.response;
 
 import java.io.IOException;
 
-import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.TreeNode;
 import com.fasterxml.jackson.databind.DeserializationContext;
@@ -41,8 +40,7 @@ public class KisClosingPrice {
 	static class KisClosingPriceDeserializer extends JsonDeserializer<KisClosingPrice> {
 		@Override
 		public KisClosingPrice deserialize(JsonParser p, DeserializationContext ctxt) throws
-			IOException,
-			JacksonException {
+			IOException {
 			TreeNode rootNode = p.readValueAsTree();
 			KisClosingPrice kisClosingPrice = new KisClosingPrice();
 

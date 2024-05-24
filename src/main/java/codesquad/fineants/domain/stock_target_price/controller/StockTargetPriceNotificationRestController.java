@@ -1,7 +1,6 @@
 package codesquad.fineants.domain.stock_target_price.controller;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -38,7 +37,6 @@ public class StockTargetPriceNotificationRestController {
 	// 종목 지정가 알림 데이터 생성
 	@ResponseStatus(HttpStatus.CREATED)
 	@PostMapping("/api/stocks/target-price/notifications")
-	@Secured("ROLE_USER")
 	public ApiResponse<TargetPriceNotificationCreateResponse> createStockTargetPriceNotification(
 		@Valid @RequestBody TargetPriceNotificationCreateRequest request,
 		@MemberAuthenticationPrincipal MemberAuthentication authentication) {
@@ -50,7 +48,6 @@ public class StockTargetPriceNotificationRestController {
 
 	// 종목 지정가 알림 조회
 	@GetMapping("/api/stocks/target-price/notifications")
-	@Secured("ROLE_USER")
 	public ApiResponse<TargetPriceNotificationSearchResponse> searchStockTargetPriceNotification(
 		@MemberAuthenticationPrincipal MemberAuthentication authentication
 	) {
@@ -62,7 +59,6 @@ public class StockTargetPriceNotificationRestController {
 
 	// 특정 종목 지정가 알림 목록 조회
 	@GetMapping("/api/stocks/{tickerSymbol}/target-price/notifications")
-	@Secured("ROLE_USER")
 	public ApiResponse<TargetPriceNotificationSpecifiedSearchResponse> searchTargetPriceNotifications(
 		@PathVariable String tickerSymbol,
 		@MemberAuthenticationPrincipal MemberAuthentication authentication
@@ -75,7 +71,6 @@ public class StockTargetPriceNotificationRestController {
 
 	// 종목 지정가 알림 수정
 	@PutMapping("/api/stocks/target-price/notifications")
-	@Secured("ROLE_USER")
 	public ApiResponse<Void> updateStockTargetPriceNotification(
 		@Valid @RequestBody TargetPriceNotificationUpdateRequest request,
 		@MemberAuthenticationPrincipal MemberAuthentication authentication
@@ -91,7 +86,6 @@ public class StockTargetPriceNotificationRestController {
 
 	// 종목 지정가 알림 전체 삭제
 	@DeleteMapping("/api/stocks/target-price/notifications")
-	@Secured("ROLE_USER")
 	public ApiResponse<Void> deleteAllStockTargetPriceNotification(
 		@Valid @RequestBody TargetPriceNotificationDeleteRequest request,
 		@MemberAuthenticationPrincipal MemberAuthentication authentication) {
@@ -105,7 +99,6 @@ public class StockTargetPriceNotificationRestController {
 
 	// 종목 지정가 알림 특정 삭제
 	@DeleteMapping("/api/stocks/target-price/notifications/{targetPriceNotificationId}")
-	@Secured("ROLE_USER")
 	public ApiResponse<Void> deleteStockTargetPriceNotification(
 		@PathVariable Long targetPriceNotificationId,
 		@MemberAuthenticationPrincipal MemberAuthentication authentication

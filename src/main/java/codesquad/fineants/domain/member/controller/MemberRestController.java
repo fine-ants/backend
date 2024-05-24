@@ -5,7 +5,6 @@ import static org.springframework.http.HttpStatus.*;
 import java.time.LocalDateTime;
 
 import org.springframework.http.MediaType;
-import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -112,7 +111,6 @@ public class MemberRestController {
 	}
 
 	@PostMapping(value = "/profile", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE, MediaType.APPLICATION_JSON_VALUE})
-	@Secured("ROLE_USER")
 	public ApiResponse<ProfileChangeResponse> changeProfile(
 		@RequestPart(value = "profileImageFile", required = false) MultipartFile profileImageFile,
 		@Valid @RequestPart(value = "profileInformation", required = false) ProfileChangeRequest request,
@@ -128,7 +126,6 @@ public class MemberRestController {
 	}
 
 	@GetMapping(value = "/profile")
-	@Secured("ROLE_USER")
 	public ApiResponse<ProfileResponse> readProfile(
 		@MemberAuthenticationPrincipal MemberAuthentication authentication) {
 		Long memberId = authentication.getId();
@@ -137,7 +134,6 @@ public class MemberRestController {
 	}
 
 	@PutMapping("/account/password")
-	@Secured("ROLE_USER")
 	public ApiResponse<Void> changePassword(
 		@RequestBody ModifyPasswordRequest request,
 		@MemberAuthenticationPrincipal MemberAuthentication authentication
@@ -147,7 +143,6 @@ public class MemberRestController {
 	}
 
 	@DeleteMapping("/account")
-	@Secured("ROLE_USER")
 	public ApiResponse<Void> deleteAccount(
 		@RequestBody OauthMemberLogoutRequest request,
 		@MemberAuthenticationPrincipal MemberAuthentication authentication

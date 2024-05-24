@@ -1,6 +1,5 @@
 package codesquad.fineants.domain.portfolio.controller;
 
-import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -21,7 +20,6 @@ public class PortfolioNotificationSettingRestController {
 	private final PortfolioNotificationSettingService service;
 
 	@GetMapping
-	@Secured("ROLE_USER")
 	public ApiResponse<PortfolioNotificationSettingSearchResponse> searchPortfolioNotificationSetting(
 		@MemberAuthenticationPrincipal MemberAuthentication authentication
 	) {

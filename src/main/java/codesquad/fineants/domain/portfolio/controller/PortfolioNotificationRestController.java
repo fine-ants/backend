@@ -1,6 +1,5 @@
 package codesquad.fineants.domain.portfolio.controller;
 
-import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -25,7 +24,6 @@ public class PortfolioNotificationRestController {
 	private final PortfolioNotificationService service;
 
 	@PutMapping("/targetGain")
-	@Secured("ROLE_USER")
 	public ApiResponse<Void> updateNotificationTargetGain(
 		@PathVariable Long portfolioId,
 		@Valid @RequestBody PortfolioNotificationUpdateRequest request) {
@@ -39,7 +37,6 @@ public class PortfolioNotificationRestController {
 	}
 
 	@PutMapping("/maxLoss")
-	@Secured("ROLE_USER")
 	public ApiResponse<Void> updateNotificationMaximumLoss(
 		@PathVariable Long portfolioId,
 		@Valid @RequestBody PortfolioNotificationUpdateRequest request) {

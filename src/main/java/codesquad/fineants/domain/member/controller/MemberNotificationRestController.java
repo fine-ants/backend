@@ -2,7 +2,6 @@ package codesquad.fineants.domain.member.controller;
 
 import java.util.List;
 
-import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -36,7 +35,6 @@ public class MemberNotificationRestController {
 
 	// 회원의 알림 목록 조회
 	@GetMapping("/notifications")
-	@Secured("ROLE_USER")
 	public ApiResponse<MemberNotificationResponse> fetchNotifications(@PathVariable Long memberId) {
 		return ApiResponse.success(MemberSuccessCode.OK_READ_NOTIFICATIONS,
 			notificationService.fetchNotifications(memberId));
@@ -44,7 +42,6 @@ public class MemberNotificationRestController {
 
 	// 회원 알림 설정 수정
 	@PutMapping("/notification/settings")
-	@Secured("ROLE_USER")
 	public ApiResponse<Void> updateNotificationPreference(
 		@PathVariable Long memberId,
 		@Valid @RequestBody MemberNotificationPreferenceRequest request) {
@@ -56,7 +53,6 @@ public class MemberNotificationRestController {
 
 	// 회원 전체 알림 제거
 	@DeleteMapping("/notifications")
-	@Secured("ROLE_USER")
 	public ApiResponse<Void> deleteAllNotifications(
 		@PathVariable Long memberId,
 		@Valid @RequestBody MemberNotificationAllDeleteRequest request) {
@@ -70,7 +66,6 @@ public class MemberNotificationRestController {
 
 	// 회원 특정 알림 제거
 	@DeleteMapping("/notifications/{notificationId}")
-	@Secured("ROLE_USER")
 	public ApiResponse<Void> deleteNotification(
 		@PathVariable Long memberId,
 		@PathVariable Long notificationId) {
@@ -84,7 +79,6 @@ public class MemberNotificationRestController {
 
 	// 회원의 알림 모두 읽기
 	@PatchMapping("/notifications")
-	@Secured("ROLE_USER")
 	public ApiResponse<Void> readAllNotifications(
 		@PathVariable Long memberId,
 		@Valid @RequestBody MemberNotificationAllReadRequest request) {

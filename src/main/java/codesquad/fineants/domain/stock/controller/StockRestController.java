@@ -2,7 +2,6 @@ package codesquad.fineants.domain.stock.controller;
 
 import java.util.List;
 
-import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -34,7 +33,6 @@ public class StockRestController {
 	}
 
 	@PostMapping("/refresh")
-	@Secured("ADMIN")
 	public ApiResponse<StockRefreshResponse> refreshStocks() {
 		return ApiResponse.success(StockSuccessCode.OK_REFRESH_STOCKS, stockService.refreshStocks());
 	}

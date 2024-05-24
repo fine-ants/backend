@@ -43,19 +43,15 @@ import jakarta.servlet.ServletException;
 
 @ExtendWith(RestDocumentationExtension.class)
 public class LoginDocsTest extends AbstractContainerBaseTest {
+	protected MockMvc mockMvc;
 	@Autowired
 	private WebApplicationContext webApplicationContext;
-
 	@Autowired
 	private MemberRepository memberRepository;
-
 	@Autowired
 	private RoleRepository roleRepository;
-
 	@Autowired
 	private MemberRoleRepository memberRoleRepository;
-
-	protected MockMvc mockMvc;
 
 	@BeforeEach
 	void setUp(RestDocumentationContextProvider provider) throws ServletException {

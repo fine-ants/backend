@@ -6,7 +6,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.Optional;
 
-import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.TreeNode;
 import com.fasterxml.jackson.databind.DeserializationContext;
@@ -86,8 +85,7 @@ public class KisDividend implements Comparable<KisDividend> {
 
 		@Override
 		public KisDividend deserialize(JsonParser p, DeserializationContext ctxt) throws
-			IOException,
-			JacksonException {
+			IOException {
 			TreeNode rootNode = p.readValueAsTree();
 			KisDividend kisDividend = new KisDividend();
 

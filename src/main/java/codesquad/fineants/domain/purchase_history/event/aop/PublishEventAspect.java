@@ -25,7 +25,7 @@ public class PublishEventAspect implements ApplicationEventPublisherAware {
 	private final Pattern spelPattern = Pattern.compile(spelRegex);
 
 	private ApplicationEventPublisher eventPublisher;
-	private ExpressionParser expressionParser = new SpelExpressionParser();
+	private final ExpressionParser expressionParser = new SpelExpressionParser();
 
 	@Pointcut("@annotation(publishEvent)")
 	public void pointcut(PublishEvent publishEvent) {
