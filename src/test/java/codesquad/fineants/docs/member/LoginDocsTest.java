@@ -87,7 +87,7 @@ public class LoginDocsTest extends AbstractContainerBaseTest {
 			"email", "dragonbead95@naver.com",
 			"password", "nemo1234@"
 		);
-		// when
+		// when & then
 		mockMvc.perform(post("/api/auth/login")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(ObjectMapperUtil.serialize(body)))
@@ -124,6 +124,5 @@ public class LoginDocsTest extends AbstractContainerBaseTest {
 					)
 				)
 			);
-		// then
 	}
 }

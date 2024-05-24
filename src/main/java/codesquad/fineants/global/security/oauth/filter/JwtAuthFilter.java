@@ -3,12 +3,10 @@ package codesquad.fineants.global.security.oauth.filter;
 import static org.springframework.http.HttpHeaders.*;
 
 import java.io.IOException;
-import java.util.Arrays;
 
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.GenericFilterBean;
 
@@ -52,7 +50,7 @@ public class JwtAuthFilter extends GenericFilterBean {
 		return new UsernamePasswordAuthenticationToken(
 			memberAuthentication,
 			Strings.EMPTY,
-			Arrays.asList(new SimpleGrantedAuthority("ROLE_USER"))
+			memberAuthentication.getSimpleGrantedAuthority()
 		);
 	}
 }

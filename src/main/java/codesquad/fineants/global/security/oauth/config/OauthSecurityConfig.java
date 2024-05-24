@@ -32,7 +32,7 @@ import jakarta.servlet.Filter;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(securedEnabled = true)
-@Order(value = 0)
+@Order(1)
 public class OauthSecurityConfig {
 
 	private final MemberRepository memberRepository;
@@ -63,13 +63,7 @@ public class OauthSecurityConfig {
 				authorize.requestMatchers(
 						"/oauth2/authorization/**",
 						"/login/oauth2/code/**",
-						"/api/oauth/redirect",
-						"/api/auth/google/login",
-						"/api/auth/kakao/login",
-						"/api/auth/naver/login",
-						"/api/auth/login",
-						"/api/auth/refresh/token"
-					).permitAll()
+						"/api/oauth/redirect").permitAll()
 					.anyRequest().authenticated()
 			);
 		http

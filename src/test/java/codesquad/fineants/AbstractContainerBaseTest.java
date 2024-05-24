@@ -20,8 +20,6 @@ import org.testcontainers.utility.DockerImageName;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.kis.client.KisAccessToken;
 import codesquad.fineants.domain.member.domain.entity.Member;
-import codesquad.fineants.domain.member.domain.entity.MemberRole;
-import codesquad.fineants.domain.member.domain.entity.Role;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.global.init.S3BucketInitializer;
 import lombok.extern.slf4j.Slf4j;
@@ -71,17 +69,6 @@ public class AbstractContainerBaseTest {
 		return KisAccessToken.bearerType("accessToken", LocalDateTime.now().plusSeconds(86400), 86400);
 	}
 
-	// @BeforeEach
-	// void setUp() {
-	// 	Member member = createMember();
-	// 	Role role = Role.create("ROLE_USER", "유저");
-	// 	member.addMemberRole(createMemberRole(member, role));
-	// 	MemberAuthentication memberAuthentication = MemberAuthentication.from(member);
-	// 	Authentication authentication = new UsernamePasswordAuthenticationToken(memberAuthentication, Strings.EMPTY,
-	// 		List.of(new SimpleGrantedAuthority("ROLE_USER")));
-	// 	SecurityContextHolder.getContext().setAuthentication(authentication);
-	// }
-
 	protected Member createMember() {
 		return createMember("nemo1234");
 	}
@@ -100,10 +87,6 @@ public class AbstractContainerBaseTest {
 			.profileUrl("profileUrl")
 			.roles(new HashSet<>())
 			.build();
-	}
-
-	private MemberRole createMemberRole(Member member, Role role) {
-		return MemberRole.create(member, role);
 	}
 
 	protected Portfolio createPortfolio(Member member) {

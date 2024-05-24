@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import codesquad.fineants.global.security.ajax.entry_point.AjaxLoginAuthenticationEntryPoint;
 import codesquad.fineants.global.security.ajax.filter.AjaxLoginProcessingFilter;
-import codesquad.fineants.global.security.ajax.handler.AjaxAuthenticationFailureHandler;
+import codesquad.fineants.global.security.ajax.handler.AjaxAuthenticationFailHandler;
 import codesquad.fineants.global.security.ajax.handler.AjaxAuthenticationSuccessHandler;
 import codesquad.fineants.global.security.ajax.provider.AjaxAuthenticationProvider;
 import codesquad.fineants.global.security.oauth.service.TokenService;
@@ -28,7 +28,7 @@ import lombok.RequiredArgsConstructor;
 
 @Configuration
 @RequiredArgsConstructor
-@Order(value = 1)
+@Order(0)
 public class AjaxSecurityConfig {
 	private final UserDetailsService userDetailsService;
 	private final PasswordEncoder passwordEncoder;
@@ -38,8 +38,12 @@ public class AjaxSecurityConfig {
 	@Bean
 	protected SecurityFilterChain ajaxSecurityFilterChain(HttpSecurity http) throws Exception {
 		http
+			.securityMatcher("/api/auth/**")
 			.authorizeHttpRequests(authorize -> authorize
 				.requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
+				.requestMatchers(
+					"/api/auth/logout",
+					"/api/auth/refresh/token").permitAll()
 				.anyRequest().authenticated()
 			);
 		http.authenticationProvider(authenticationProvider());
@@ -48,7 +52,7 @@ public class AjaxSecurityConfig {
 		AjaxLoginProcessingFilter ajaxLoginProcessingFilter = ajaxLoginProcessingFilter(authenticationManager(),
 			objectMapper);
 		ajaxLoginProcessingFilter.setAuthenticationSuccessHandler(ajaxAuthenticationSuccessHandler());
-		ajaxLoginProcessingFilter.setAuthenticationFailureHandler(ajaxAuthenticationFailureHandler());
+		ajaxLoginProcessingFilter.setAuthenticationFailureHandler(ajaxAuthenticationFailHandler());
 		http.addFilterBefore(ajaxLoginProcessingFilter, UsernamePasswordAuthenticationFilter.class);
 
 		http.exceptionHandling(configurer ->
@@ -85,8 +89,7 @@ public class AjaxSecurityConfig {
 	}
 
 	@Bean
-	protected AjaxAuthenticationFailureHandler ajaxAuthenticationFailureHandler() {
-		return new AjaxAuthenticationFailureHandler(objectMapper);
+	protected AjaxAuthenticationFailHandler ajaxAuthenticationFailHandler() {
+		return new AjaxAuthenticationFailHandler(objectMapper);
 	}
-
 }

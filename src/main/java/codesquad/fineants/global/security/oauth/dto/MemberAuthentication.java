@@ -3,6 +3,8 @@ package codesquad.fineants.global.security.oauth.dto;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.domain.entity.MemberRole;
 import codesquad.fineants.domain.member.domain.entity.Role;
@@ -39,5 +41,11 @@ public class MemberAuthentication {
 				.map(Role::getRoleName)
 				.collect(Collectors.toSet())
 		);
+	}
+
+	public Set<SimpleGrantedAuthority> getSimpleGrantedAuthority() {
+		return roleSet.stream()
+			.map(SimpleGrantedAuthority::new)
+			.collect(Collectors.toSet());
 	}
 }
