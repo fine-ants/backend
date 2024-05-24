@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
+import codesquad.fineants.AbstractContainerBaseTest;
 import codesquad.fineants.domain.common.count.Count;
 import codesquad.fineants.domain.common.money.Bank;
 import codesquad.fineants.domain.common.money.Currency;
@@ -23,29 +24,15 @@ import codesquad.fineants.domain.common.money.Expression;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.common.money.Percentage;
 import codesquad.fineants.domain.common.money.RateDivision;
+import codesquad.fineants.domain.kis.client.KisCurrentPrice;
+import codesquad.fineants.domain.kis.repository.ClosingPriceRepository;
+import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
 import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.repository.PortfolioRepository;
 import codesquad.fineants.domain.portfolio_gain_history.repository.PortfolioGainHistoryRepository;
-import codesquad.fineants.domain.portfolio_holding.domain.entity.PortfolioHolding;
-import codesquad.fineants.domain.portfolio_holding.repository.PortfolioHoldingRepository;
-import codesquad.fineants.domain.purchase_history.domain.entity.PurchaseHistory;
-import codesquad.fineants.domain.purchase_history.repository.PurchaseHistoryRepository;
-import codesquad.fineants.domain.stock.domain.entity.Market;
-import codesquad.fineants.domain.stock.domain.entity.Stock;
-import codesquad.fineants.domain.stock.repository.StockRepository;
-import codesquad.fineants.domain.stock_dividend.domain.entity.StockDividend;
-import codesquad.fineants.domain.stock_dividend.repository.StockDividendRepository;
-import codesquad.fineants.AbstractContainerBaseTest;
-import codesquad.fineants.global.errors.exception.FineAntsException;
-import codesquad.fineants.global.errors.exception.ForBiddenException;
-import codesquad.fineants.global.errors.exception.NotFoundResourceException;
-import codesquad.fineants.domain.kis.client.KisCurrentPrice;
-import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
-import codesquad.fineants.domain.kis.repository.ClosingPriceRepository;
-import codesquad.fineants.domain.portfolio_holding.event.publisher.PortfolioHoldingEventPublisher;
 import codesquad.fineants.domain.portfolio_holding.domain.dto.request.PortfolioHoldingCreateRequest;
 import codesquad.fineants.domain.portfolio_holding.domain.dto.request.PortfolioStocksDeleteRequest;
 import codesquad.fineants.domain.portfolio_holding.domain.dto.response.PortfolioChartResponse;
@@ -55,6 +42,19 @@ import codesquad.fineants.domain.portfolio_holding.domain.dto.response.Portfolio
 import codesquad.fineants.domain.portfolio_holding.domain.dto.response.PortfolioStockCreateResponse;
 import codesquad.fineants.domain.portfolio_holding.domain.dto.response.PortfolioStockDeleteResponse;
 import codesquad.fineants.domain.portfolio_holding.domain.dto.response.PortfolioStockDeletesResponse;
+import codesquad.fineants.domain.portfolio_holding.domain.entity.PortfolioHolding;
+import codesquad.fineants.domain.portfolio_holding.event.publisher.PortfolioHoldingEventPublisher;
+import codesquad.fineants.domain.portfolio_holding.repository.PortfolioHoldingRepository;
+import codesquad.fineants.domain.purchase_history.domain.entity.PurchaseHistory;
+import codesquad.fineants.domain.purchase_history.repository.PurchaseHistoryRepository;
+import codesquad.fineants.domain.stock.domain.entity.Market;
+import codesquad.fineants.domain.stock.domain.entity.Stock;
+import codesquad.fineants.domain.stock.repository.StockRepository;
+import codesquad.fineants.domain.stock_dividend.domain.entity.StockDividend;
+import codesquad.fineants.domain.stock_dividend.repository.StockDividendRepository;
+import codesquad.fineants.global.errors.exception.FineAntsException;
+import codesquad.fineants.global.errors.exception.ForBiddenException;
+import codesquad.fineants.global.errors.exception.NotFoundResourceException;
 import codesquad.fineants.global.util.ObjectMapperUtil;
 
 class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
@@ -173,7 +173,7 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 			() -> assertThat(response.getPortfolioHoldings())
 				.hasSize(1)
 				.extracting("portfolioHolding")
-				.extracting("portfolioHoldingId", "currentValuation", "currentPrice", "averageCostPerShare",
+				.extracting("id", "currentValuation", "currentPrice", "averageCostPerShare",
 					"numShares", "dailyChange", "dailyChangeRate", "totalGain", "totalReturnRate", "annualDividend")
 				.usingComparatorForType(Money::compareTo, Money.class)
 				.usingComparatorForType(Count::compareTo, Count.class)
