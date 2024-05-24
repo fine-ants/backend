@@ -26,7 +26,7 @@ public class DashboardRestController {
 	private final DashboardService dashboardService;
 
 	@GetMapping("/overview")
-	@Secured("USER")
+	@Secured("ROLE_USER")
 	public ApiResponse<OverviewResponse> readOverview(
 		@MemberAuthenticationPrincipal MemberAuthentication authentication) {
 		return ApiResponse.success(DashboardSuccessCode.OK_OVERVIEW,
@@ -34,7 +34,7 @@ public class DashboardRestController {
 	}
 
 	@GetMapping("/pieChart")
-	@Secured("USER")
+	@Secured("ROLE_USER")
 	public ApiResponse<List<DashboardPieChartResponse>> readPieChart(
 		@MemberAuthenticationPrincipal MemberAuthentication authentication) {
 		return ApiResponse.success(DashboardSuccessCode.OK_PORTFOLIO_PIE_CHART,
@@ -42,7 +42,7 @@ public class DashboardRestController {
 	}
 
 	@GetMapping("/lineChart")
-	@Secured("USER")
+	@Secured("ROLE_USER")
 	public ApiResponse<List<DashboardLineChartResponse>> readLineChart(
 		@MemberAuthenticationPrincipal MemberAuthentication authentication) {
 		return ApiResponse.success(DashboardSuccessCode.OK_LINE_CHART,

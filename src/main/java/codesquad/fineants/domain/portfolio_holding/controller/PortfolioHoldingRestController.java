@@ -41,7 +41,7 @@ public class PortfolioHoldingRestController {
 	// 포트폴리오 종목 생성
 	@ResponseStatus(HttpStatus.CREATED)
 	@PostMapping("/holdings")
-	@Secured("USER")
+	@Secured("ROLE_USER")
 	public ApiResponse<Void> createPortfolioHolding(@PathVariable Long portfolioId,
 		@Valid @RequestBody PortfolioHoldingCreateRequest request) {
 		portfolioHoldingService.createPortfolioHolding(portfolioId, request);
@@ -50,7 +50,7 @@ public class PortfolioHoldingRestController {
 
 	// 포트폴리오 종목 조회
 	@GetMapping("/holdings")
-	@Secured("USER")
+	@Secured("ROLE_USER")
 	public ApiResponse<PortfolioHoldingsResponse> readPortfolioHoldings(@PathVariable Long portfolioId) {
 		return ApiResponse.success(PortfolioStockSuccessCode.OK_READ_PORTFOLIO_STOCKS,
 			portfolioHoldingService.readPortfolioHoldings(portfolioId));
@@ -58,14 +58,14 @@ public class PortfolioHoldingRestController {
 
 	// 포트폴리오 종목 실시간 조회
 	@GetMapping(value = "/holdings/realtime", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-	@Secured("USER")
+	@Secured("ROLE_USER")
 	public SseEmitter observePortfolioHoldings(@PathVariable Long portfolioId) {
 		return portfolioObservableService.observePortfolioHoldings(portfolioId);
 	}
 
 	// 포트폴리오 차트 조회
 	@GetMapping("/charts")
-	@Secured("USER")
+	@Secured("ROLE_USER")
 	public ApiResponse<PortfolioChartResponse> readPortfolioCharts(@PathVariable Long portfolioId) {
 		PortfolioChartResponse response = portfolioHoldingService.readPortfolioCharts(portfolioId, LocalDate.now());
 		return ApiResponse.success(PortfolioStockSuccessCode.OK_READ_PORTFOLIO_CHARTS, response);
@@ -73,7 +73,7 @@ public class PortfolioHoldingRestController {
 
 	// 포트폴리오 종목 단일 삭제
 	@DeleteMapping("/holdings/{portfolioHoldingId}")
-	@Secured("USER")
+	@Secured("ROLE_USER")
 	public ApiResponse<Void> deletePortfolioHolding(@PathVariable Long portfolioId,
 		@PathVariable Long portfolioHoldingId) {
 		portfolioHoldingService.deletePortfolioStock(portfolioHoldingId);
@@ -82,7 +82,7 @@ public class PortfolioHoldingRestController {
 
 	// 포트폴리오 종목 다수 삭제
 	@DeleteMapping("/holdings")
-	@Secured("USER")
+	@Secured("ROLE_USER")
 	public ApiResponse<Void> deletePortfolioHoldings(@PathVariable Long portfolioId,
 		@MemberAuthenticationPrincipal MemberAuthentication authentication,
 		@Valid @RequestBody PortfolioStocksDeleteRequest request) {

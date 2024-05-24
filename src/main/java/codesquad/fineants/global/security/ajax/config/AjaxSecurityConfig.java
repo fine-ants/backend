@@ -14,6 +14,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.logout.LogoutHandler;
+import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -22,6 +24,8 @@ import codesquad.fineants.global.security.ajax.entry_point.AjaxLoginAuthenticati
 import codesquad.fineants.global.security.ajax.filter.AjaxLoginProcessingFilter;
 import codesquad.fineants.global.security.ajax.handler.AjaxAuthenticationFailHandler;
 import codesquad.fineants.global.security.ajax.handler.AjaxAuthenticationSuccessHandler;
+import codesquad.fineants.global.security.ajax.handler.AjaxLogoutHandler;
+import codesquad.fineants.global.security.ajax.handler.AjaxLogoutSuccessHandler;
 import codesquad.fineants.global.security.ajax.provider.AjaxAuthenticationProvider;
 import codesquad.fineants.global.security.oauth.service.TokenService;
 import lombok.RequiredArgsConstructor;
@@ -56,6 +60,13 @@ public class AjaxSecurityConfig {
 		ajaxLoginProcessingFilter.setAuthenticationFailureHandler(ajaxAuthenticationFailHandler());
 		http.addFilterBefore(ajaxLoginProcessingFilter, UsernamePasswordAuthenticationFilter.class);
 
+		http.logout(configurer -> configurer
+			.logoutUrl("/api/auth/logout")
+			.addLogoutHandler(logoutHandler())
+			.logoutSuccessHandler(logoutSuccessHandler())
+			.permitAll()
+		);
+
 		http.exceptionHandling(configurer ->
 			configurer.authenticationEntryPoint(ajaxLoginAuthenticationEntryPoint()));
 		http.csrf(AbstractHttpConfigurer::disable);
@@ -77,6 +88,16 @@ public class AjaxSecurityConfig {
 	@Bean
 	protected AuthenticationProvider authenticationProvider() {
 		return new AjaxAuthenticationProvider(userDetailsService, passwordEncoder);
+	}
+
+	@Bean
+	protected LogoutHandler logoutHandler() {
+		return new AjaxLogoutHandler();
+	}
+
+	@Bean
+	protected LogoutSuccessHandler logoutSuccessHandler() {
+		return new AjaxLogoutSuccessHandler(objectMapper);
 	}
 
 	@Bean

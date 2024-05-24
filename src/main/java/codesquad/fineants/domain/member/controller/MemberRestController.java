@@ -112,7 +112,7 @@ public class MemberRestController {
 	}
 
 	@PostMapping(value = "/profile", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE, MediaType.APPLICATION_JSON_VALUE})
-	@Secured("USER")
+	@Secured("ROLE_USER")
 	public ApiResponse<ProfileChangeResponse> changeProfile(
 		@RequestPart(value = "profileImageFile", required = false) MultipartFile profileImageFile,
 		@Valid @RequestPart(value = "profileInformation", required = false) ProfileChangeRequest request,
@@ -128,7 +128,7 @@ public class MemberRestController {
 	}
 
 	@GetMapping(value = "/profile")
-	@Secured("USER")
+	@Secured("ROLE_USER")
 	public ApiResponse<ProfileResponse> readProfile(
 		@MemberAuthenticationPrincipal MemberAuthentication authentication) {
 		Long memberId = authentication.getId();
@@ -137,7 +137,7 @@ public class MemberRestController {
 	}
 
 	@PutMapping("/account/password")
-	@Secured("USER")
+	@Secured("ROLE_USER")
 	public ApiResponse<Void> changePassword(
 		@RequestBody ModifyPasswordRequest request,
 		@MemberAuthenticationPrincipal MemberAuthentication authentication
@@ -147,7 +147,7 @@ public class MemberRestController {
 	}
 
 	@DeleteMapping("/account")
-	@Secured("USER")
+	@Secured("ROLE_USER")
 	public ApiResponse<Void> deleteAccount(
 		@RequestBody OauthMemberLogoutRequest request,
 		@MemberAuthenticationPrincipal MemberAuthentication authentication

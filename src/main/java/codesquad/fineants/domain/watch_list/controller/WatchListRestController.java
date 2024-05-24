@@ -36,7 +36,7 @@ public class WatchListRestController {
 	private final WatchListService watchListService;
 
 	@PostMapping
-	@Secured("USER")
+	@Secured("ROLE_USER")
 	public ApiResponse<CreateWatchListResponse> createWatchList(
 		@MemberAuthenticationPrincipal MemberAuthentication authentication,
 		@RequestBody CreateWatchListRequest request) {
@@ -45,7 +45,7 @@ public class WatchListRestController {
 	}
 
 	@GetMapping
-	@Secured("USER")
+	@Secured("ROLE_USER")
 	public ApiResponse<List<ReadWatchListsResponse>> readWatchLists(
 		@MemberAuthenticationPrincipal MemberAuthentication authentication) {
 		return ApiResponse.success(WatchListSuccessCode.READ_WATCH_LISTS,
@@ -53,7 +53,7 @@ public class WatchListRestController {
 	}
 
 	@DeleteMapping
-	@Secured("USER")
+	@Secured("ROLE_USER")
 	public ApiResponse<Void> deleteWatchLists(@MemberAuthenticationPrincipal MemberAuthentication authentication,
 		@RequestBody DeleteWatchListsRequests deleteWatchListsRequests) {
 		watchListService.deleteWatchLists(authentication.getId(), deleteWatchListsRequests);
@@ -61,7 +61,7 @@ public class WatchListRestController {
 	}
 
 	@GetMapping("/{watchlistId}")
-	@Secured("USER")
+	@Secured("ROLE_USER")
 	public ApiResponse<ReadWatchListResponse> readWatchList(
 		@MemberAuthenticationPrincipal MemberAuthentication authentication,
 		@PathVariable Long watchlistId) {
@@ -70,7 +70,7 @@ public class WatchListRestController {
 	}
 
 	@PutMapping("/{watchlistId}")
-	@Secured("USER")
+	@Secured("ROLE_USER")
 	public ApiResponse<Void> changeWatchListName(@MemberAuthenticationPrincipal MemberAuthentication authentication,
 		@PathVariable Long watchlistId, @RequestBody ChangeWatchListNameRequest request) {
 		watchListService.changeWatchListName(authentication.getId(), watchlistId, request);
@@ -78,7 +78,7 @@ public class WatchListRestController {
 	}
 
 	@PostMapping("/{watchlistId}/stock")
-	@Secured("USER")
+	@Secured("ROLE_USER")
 	public ApiResponse<Void> createWatchStocks(@MemberAuthenticationPrincipal MemberAuthentication authentication,
 		@PathVariable Long watchlistId, @RequestBody CreateWatchStockRequest request) {
 		watchListService.createWatchStocks(authentication.getId(), watchlistId, request);
@@ -86,7 +86,7 @@ public class WatchListRestController {
 	}
 
 	@DeleteMapping("/{watchlistId}/stock")
-	@Secured("USER")
+	@Secured("ROLE_USER")
 	public ApiResponse<Void> deleteWatchStocks(@MemberAuthenticationPrincipal MemberAuthentication authentication,
 		@PathVariable("watchlistId") Long watchListId, @RequestBody DeleteWatchStocksRequest deleteWatchStocksRequest) {
 		watchListService.deleteWatchStocks(authentication.getId(), watchListId, deleteWatchStocksRequest);
@@ -94,7 +94,7 @@ public class WatchListRestController {
 	}
 
 	@DeleteMapping("/{watchlistId}/stock/{tickerSymbol}")
-	@Secured("USER")
+	@Secured("ROLE_USER")
 	public ApiResponse<Void> deleteWatchStock(@MemberAuthenticationPrincipal MemberAuthentication authentication,
 		@PathVariable("watchlistId") Long watchListId, @PathVariable("tickerSymbol") String tickerSymbol) {
 		watchListService.deleteWatchStock(authentication.getId(), watchListId, tickerSymbol);
@@ -102,7 +102,7 @@ public class WatchListRestController {
 	}
 
 	@GetMapping("/stockExists/{tickerSymbol}")
-	@Secured("USER")
+	@Secured("ROLE_USER")
 	public ApiResponse<List<WatchListHasStockResponse>> watchListHasStock(
 		@MemberAuthenticationPrincipal MemberAuthentication authentication,
 		@PathVariable("tickerSymbol") String tickerSymbol) {

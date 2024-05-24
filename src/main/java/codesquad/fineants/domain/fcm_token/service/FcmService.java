@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,6 +37,7 @@ public class FcmService {
 	private final FirebaseMessaging firebaseMessaging;
 
 	@Transactional
+	@Secured("ROLE_USER")
 	public FcmRegisterResponse createToken(FcmRegisterRequest request, Long memberId) {
 		Member member = findMember(memberId);
 		verifyFcmToken(request.getFcmToken());
@@ -73,6 +75,7 @@ public class FcmService {
 	}
 
 	@Transactional
+	@Secured("ROLE_USER")
 	public FcmDeleteResponse deleteToken(Long fcmTokenId, Long memberId) {
 		int deleteCount = fcmRepository.deleteByFcmTokenId(fcmTokenId, memberId);
 		log.info("FCM 토큰 삭제 개수 : deleteCount={}", deleteCount);
@@ -80,11 +83,13 @@ public class FcmService {
 	}
 
 	@Transactional
+	@Secured("ROLE_USER")
 	public void deleteToken(String token) {
 		int deleteCount = fcmRepository.deleteAllByToken(token);
 		log.info("FCM 토큰 삭제 개수 : deleteCount={}", deleteCount);
 	}
 
+	@Secured("ROLE_USER")
 	public List<String> findTokens(Long memberId) {
 		return fcmRepository.findAllByMemberId(memberId).stream()
 			.map(FcmToken::getToken)

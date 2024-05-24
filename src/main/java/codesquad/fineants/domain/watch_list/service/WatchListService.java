@@ -3,6 +3,7 @@ package codesquad.fineants.domain.watch_list.service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -45,6 +46,7 @@ public class WatchListService {
 	private final WatchStockEventPublisher watchStockEventPublisher;
 
 	@Transactional
+	@Secured("ROLE_USER")
 	public CreateWatchListResponse createWatchList(Long memberId, CreateWatchListRequest request) {
 		Member member = findMember(memberId);
 		WatchList watchList = WatchList.builder()
@@ -56,6 +58,7 @@ public class WatchListService {
 	}
 
 	@Transactional(readOnly = true)
+	@Secured("ROLE_USER")
 	public List<ReadWatchListsResponse> readWatchLists(Long memberId) {
 		Member member = findMember(memberId);
 		return watchListRepository.findByMember(member).stream()
@@ -64,6 +67,7 @@ public class WatchListService {
 	}
 
 	@Transactional(readOnly = true)
+	@Secured("ROLE_USER")
 	public ReadWatchListResponse readWatchList(Long memberId, Long watchListId) {
 		Member member = findMember(memberId);
 		WatchList watchList = watchListRepository.findById(watchListId)
@@ -80,6 +84,7 @@ public class WatchListService {
 	}
 
 	@Transactional
+	@Secured("ROLE_USER")
 	public void deleteWatchLists(Long memberId, DeleteWatchListsRequests deleteWatchListsRequests) {
 		Member member = findMember(memberId);
 		List<WatchList> watchLists = watchListRepository.findAllById(deleteWatchListsRequests.getWatchlistIds());
@@ -93,6 +98,7 @@ public class WatchListService {
 	}
 
 	@Transactional
+	@Secured("ROLE_USER")
 	public void createWatchStocks(Long memberId, Long watchListId, CreateWatchStockRequest request) {
 		Member member = findMember(memberId);
 		WatchList watchList = watchListRepository.findById(watchListId)
@@ -114,6 +120,7 @@ public class WatchListService {
 	}
 
 	@Transactional
+	@Secured("ROLE_USER")
 	public void deleteWatchStocks(Long memberId, Long watchListId, DeleteWatchStocksRequest request) {
 		Member member = findMember(memberId);
 		WatchList watchList = watchListRepository.findById(watchListId)
@@ -124,6 +131,7 @@ public class WatchListService {
 	}
 
 	@Transactional
+	@Secured("ROLE_USER")
 	public void deleteWatchStock(Long memberId, Long watchListId, String tickerSymbol) {
 		Member member = findMember(memberId);
 		WatchList watchList = watchListRepository.findById(watchListId)
@@ -134,6 +142,7 @@ public class WatchListService {
 	}
 
 	@Transactional
+	@Secured("ROLE_USER")
 	public void changeWatchListName(Long memberId, Long watchListId, ChangeWatchListNameRequest request) {
 		Member member = findMember(memberId);
 		WatchList watchList = watchListRepository.findById(watchListId)
@@ -144,6 +153,7 @@ public class WatchListService {
 	}
 
 	@Transactional(readOnly = true)
+	@Secured("ROLE_USER")
 	public List<WatchListHasStockResponse> hasStock(Long memberId, String tickerSymbol) {
 		Member member = findMember(memberId);
 		return watchListRepository.findWatchListsAndStockPresenceByMemberAndTickerSymbol(member, tickerSymbol);

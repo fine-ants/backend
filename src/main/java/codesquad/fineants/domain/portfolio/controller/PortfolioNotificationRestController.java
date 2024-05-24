@@ -25,7 +25,7 @@ public class PortfolioNotificationRestController {
 	private final PortfolioNotificationService service;
 
 	@PutMapping("/targetGain")
-	@Secured("USER")
+	@Secured("ROLE_USER")
 	public ApiResponse<Void> updateNotificationTargetGain(
 		@PathVariable Long portfolioId,
 		@Valid @RequestBody PortfolioNotificationUpdateRequest request) {
@@ -39,7 +39,7 @@ public class PortfolioNotificationRestController {
 	}
 
 	@PutMapping("/maxLoss")
-	@Secured("USER")
+	@Secured("ROLE_USER")
 	public ApiResponse<Void> updateNotificationMaximumLoss(
 		@PathVariable Long portfolioId,
 		@Valid @RequestBody PortfolioNotificationUpdateRequest request) {

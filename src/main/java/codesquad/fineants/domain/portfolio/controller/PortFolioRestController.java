@@ -37,7 +37,7 @@ public class PortFolioRestController {
 	// 포트폴리오 생성
 	@ResponseStatus(HttpStatus.CREATED)
 	@PostMapping
-	@Secured("USER")
+	@Secured("ROLE_USER")
 	public ApiResponse<PortFolioCreateResponse> createPortfolio(@Valid @RequestBody PortfolioCreateRequest request,
 		@MemberAuthenticationPrincipal MemberAuthentication authentication) {
 		log.info("포트폴리오 추가 요청, request={}", request);
@@ -47,7 +47,7 @@ public class PortFolioRestController {
 
 	// 포트폴리오 목록 조회
 	@GetMapping
-	@Secured("USER")
+	@Secured("ROLE_USER")
 	public ApiResponse<PortfoliosResponse> searchMyAllPortfolios(
 		@MemberAuthenticationPrincipal MemberAuthentication authentication) {
 		return ApiResponse.success(PortfolioSuccessCode.OK_SEARCH_PORTFOLIOS,
@@ -56,7 +56,7 @@ public class PortFolioRestController {
 
 	// 포트폴리오 수정
 	@PutMapping("/{portfolioId}")
-	@Secured("USER")
+	@Secured("ROLE_USER")
 	public ApiResponse<Void> updatePortfolio(@PathVariable Long portfolioId,
 		@MemberAuthenticationPrincipal MemberAuthentication authentication,
 		@Valid @RequestBody PortfolioModifyRequest request) {
@@ -67,7 +67,7 @@ public class PortFolioRestController {
 
 	// 포트폴리오 단일 삭제
 	@DeleteMapping("/{portfolioId}")
-	@Secured("USER")
+	@Secured("ROLE_USER")
 	public ApiResponse<Void> deletePortfolio(@PathVariable Long portfolioId,
 		@MemberAuthenticationPrincipal MemberAuthentication authentication) {
 		log.info("포트폴리오 삭제 요청, portfolioId={}", portfolioId);
@@ -77,7 +77,7 @@ public class PortFolioRestController {
 
 	// 포트폴리오 다수 삭제
 	@DeleteMapping
-	@Secured("USER")
+	@Secured("ROLE_USER")
 	public ApiResponse<Void> deletePortfolios(@RequestBody PortfoliosDeleteRequest request,
 		@MemberAuthenticationPrincipal MemberAuthentication authentication) {
 		portFolioService.deletePortfolios(request, authentication.getId());

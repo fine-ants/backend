@@ -21,7 +21,7 @@ public class PortfolioNotificationSettingRestController {
 	private final PortfolioNotificationSettingService service;
 
 	@GetMapping
-	@Secured("USER")
+	@Secured("ROLE_USER")
 	public ApiResponse<PortfolioNotificationSettingSearchResponse> searchPortfolioNotificationSetting(
 		@MemberAuthenticationPrincipal MemberAuthentication authentication
 	) {

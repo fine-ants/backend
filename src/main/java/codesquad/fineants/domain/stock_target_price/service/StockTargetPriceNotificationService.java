@@ -5,33 +5,34 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import codesquad.fineants.domain.common.money.Money;
+import codesquad.fineants.domain.kis.repository.ClosingPriceRepository;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
-import codesquad.fineants.domain.stock_target_price.domain.entity.StockTargetPrice;
-import codesquad.fineants.domain.stock_target_price.repository.StockTargetPriceRepository;
 import codesquad.fineants.domain.stock_target_price.domain.dto.request.TargetPriceNotificationCreateRequest;
 import codesquad.fineants.domain.stock_target_price.domain.dto.request.TargetPriceNotificationUpdateRequest;
-import codesquad.fineants.domain.stock_target_price.domain.dto.response.TargetPriceNotificationUpdateResponse;
-import codesquad.fineants.domain.stock_target_price.domain.entity.TargetPriceNotification;
-import codesquad.fineants.domain.stock_target_price.repository.TargetPriceNotificationRepository;
-import codesquad.fineants.global.errors.errorcode.MemberErrorCode;
-import codesquad.fineants.global.errors.errorcode.StockErrorCode;
-import codesquad.fineants.global.errors.exception.BadRequestException;
-import codesquad.fineants.global.errors.exception.ForBiddenException;
-import codesquad.fineants.global.errors.exception.NotFoundResourceException;
-import codesquad.fineants.domain.kis.repository.ClosingPriceRepository;
 import codesquad.fineants.domain.stock_target_price.domain.dto.response.TargetPriceNotificationCreateResponse;
 import codesquad.fineants.domain.stock_target_price.domain.dto.response.TargetPriceNotificationDeleteResponse;
 import codesquad.fineants.domain.stock_target_price.domain.dto.response.TargetPriceNotificationSearchItem;
 import codesquad.fineants.domain.stock_target_price.domain.dto.response.TargetPriceNotificationSearchResponse;
 import codesquad.fineants.domain.stock_target_price.domain.dto.response.TargetPriceNotificationSpecificItem;
 import codesquad.fineants.domain.stock_target_price.domain.dto.response.TargetPriceNotificationSpecifiedSearchResponse;
+import codesquad.fineants.domain.stock_target_price.domain.dto.response.TargetPriceNotificationUpdateResponse;
+import codesquad.fineants.domain.stock_target_price.domain.entity.StockTargetPrice;
+import codesquad.fineants.domain.stock_target_price.domain.entity.TargetPriceNotification;
+import codesquad.fineants.domain.stock_target_price.repository.StockTargetPriceRepository;
+import codesquad.fineants.domain.stock_target_price.repository.TargetPriceNotificationRepository;
+import codesquad.fineants.global.errors.errorcode.MemberErrorCode;
+import codesquad.fineants.global.errors.errorcode.StockErrorCode;
+import codesquad.fineants.global.errors.exception.BadRequestException;
+import codesquad.fineants.global.errors.exception.ForBiddenException;
+import codesquad.fineants.global.errors.exception.NotFoundResourceException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -55,6 +56,7 @@ public class StockTargetPriceNotificationService {
 	private final ClosingPriceRepository manager;
 
 	@Transactional
+	@Secured("ROLE_USER")
 	public TargetPriceNotificationCreateResponse createStockTargetPriceNotification(
 		TargetPriceNotificationCreateRequest request,
 		Long memberId
@@ -123,6 +125,7 @@ public class StockTargetPriceNotificationService {
 
 	// 종목 지정가 알림 단일 제거
 	@Transactional
+	@Secured("ROLE_USER")
 	public TargetPriceNotificationDeleteResponse deleteStockTargetPriceNotification(
 		Long targetPriceNotificationId,
 		Long memberId
@@ -168,6 +171,7 @@ public class StockTargetPriceNotificationService {
 	}
 
 	@Transactional
+	@Secured("ROLE_USER")
 	public TargetPriceNotificationDeleteResponse deleteAllStockTargetPriceNotification(
 		List<Long> targetPriceNotificationIds,
 		String tickerSymbol,
@@ -201,6 +205,7 @@ public class StockTargetPriceNotificationService {
 		return repository.deleteByTickerSymbolAndMemberId(tickerSymbol, memberId);
 	}
 
+	@Secured("ROLE_USER")
 	public TargetPriceNotificationSearchResponse searchStockTargetPriceNotification(Long memberId) {
 		List<StockTargetPrice> stockTargetPrices = repository.findAllByMemberId(memberId);
 		List<TargetPriceNotificationSearchItem> stocks = stockTargetPrices.stream()
@@ -210,6 +215,7 @@ public class StockTargetPriceNotificationService {
 	}
 
 	@Transactional
+	@Secured("ROLE_USER")
 	public TargetPriceNotificationUpdateResponse updateStockTargetPriceNotification(
 		TargetPriceNotificationUpdateRequest request, Long memberId) {
 		StockTargetPrice stockTargetPrice = repository.findByTickerSymbolAndMemberId(request.getTickerSymbol(),
@@ -219,6 +225,7 @@ public class StockTargetPriceNotificationService {
 		return TargetPriceNotificationUpdateResponse.from(stockTargetPrice);
 	}
 
+	@Secured("ROLE_USER")
 	public TargetPriceNotificationSpecifiedSearchResponse searchTargetPriceNotifications(
 		String tickerSymbol,
 		Long memberId

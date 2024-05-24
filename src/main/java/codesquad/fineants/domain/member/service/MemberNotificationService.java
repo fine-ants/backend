@@ -3,15 +3,16 @@ package codesquad.fineants.domain.member.service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import codesquad.fineants.domain.member.domain.dto.response.MemberNotification;
+import codesquad.fineants.domain.member.domain.dto.response.MemberNotificationResponse;
 import codesquad.fineants.domain.notification.domain.entity.Notification;
 import codesquad.fineants.domain.notification.repository.NotificationRepository;
 import codesquad.fineants.global.errors.errorcode.NotificationErrorCode;
 import codesquad.fineants.global.errors.exception.NotFoundResourceException;
-import codesquad.fineants.domain.member.domain.dto.response.MemberNotificationResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -23,6 +24,7 @@ public class MemberNotificationService {
 
 	private final NotificationRepository notificationRepository;
 
+	@Secured("ROLE_USER")
 	public MemberNotificationResponse fetchNotifications(Long memberId) {
 		List<Notification> notifications = notificationRepository.findAllByMemberId(memberId);
 		return MemberNotificationResponse.create(
@@ -34,6 +36,7 @@ public class MemberNotificationService {
 
 	// 입력 받은 알림들 중에서 안 읽은 알람들을 읽음 처리하고 읽은 알림의 등록번호 리스트를 반환
 	@Transactional
+	@Secured("ROLE_USER")
 	public List<Long> readAllNotifications(Long memberId, List<Long> notificationIds) {
 		verifyExistNotifications(memberId, notificationIds);
 
@@ -62,6 +65,7 @@ public class MemberNotificationService {
 	}
 
 	@Transactional
+	@Secured("ROLE_USER")
 	public List<Long> deleteAllNotifications(Long memberId, List<Long> notificationIds) {
 		verifyExistNotifications(memberId, notificationIds);
 

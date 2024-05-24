@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,6 +42,7 @@ public class DashboardService {
 	private final PortfolioGainHistoryRepository portfolioGainHistoryRepository;
 
 	@Transactional(readOnly = true)
+	@Secured("ROLE_USER")
 	public OverviewResponse getOverview(Long memberId) {
 		List<Portfolio> portfolios = portfolioRepository.findAllByMemberId(memberId);
 		Member member = memberRepository.findById(memberId)
@@ -76,6 +78,7 @@ public class DashboardService {
 	}
 
 	@Transactional(readOnly = true)
+	@Secured("ROLE_USER")
 	public List<DashboardPieChartResponse> getPieChart(Long memberId) {
 		List<Portfolio> portfolios = portfolioRepository.findAllByMemberId(memberId);
 		if (portfolios.isEmpty()) {
@@ -109,6 +112,7 @@ public class DashboardService {
 	}
 
 	@Transactional(readOnly = true)
+	@Secured("ROLE_USER")
 	public List<DashboardLineChartResponse> getLineChart(Long memberId) {
 		List<Portfolio> portfolios = portfolioRepository.findAllByMemberId(memberId);
 		if (portfolios.isEmpty()) {

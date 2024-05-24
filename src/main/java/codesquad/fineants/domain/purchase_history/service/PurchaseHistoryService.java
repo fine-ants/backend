@@ -1,5 +1,6 @@
 package codesquad.fineants.domain.purchase_history.service;
 
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -8,6 +9,11 @@ import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.repository.PortfolioRepository;
 import codesquad.fineants.domain.portfolio_holding.domain.entity.PortfolioHolding;
 import codesquad.fineants.domain.portfolio_holding.repository.PortfolioHoldingRepository;
+import codesquad.fineants.domain.purchase_history.domain.dto.request.PurchaseHistoryCreateRequest;
+import codesquad.fineants.domain.purchase_history.domain.dto.request.PurchaseHistoryUpdateRequest;
+import codesquad.fineants.domain.purchase_history.domain.dto.response.PurchaseHistoryCreateResponse;
+import codesquad.fineants.domain.purchase_history.domain.dto.response.PurchaseHistoryDeleteResponse;
+import codesquad.fineants.domain.purchase_history.domain.dto.response.PurchaseHistoryUpdateResponse;
 import codesquad.fineants.domain.purchase_history.domain.entity.PurchaseHistory;
 import codesquad.fineants.domain.purchase_history.event.publisher.PurchaseHistoryEventPublisher;
 import codesquad.fineants.domain.purchase_history.repository.PurchaseHistoryRepository;
@@ -15,11 +21,6 @@ import codesquad.fineants.global.errors.errorcode.PortfolioErrorCode;
 import codesquad.fineants.global.errors.errorcode.PortfolioHoldingErrorCode;
 import codesquad.fineants.global.errors.errorcode.PurchaseHistoryErrorCode;
 import codesquad.fineants.global.errors.exception.FineAntsException;
-import codesquad.fineants.domain.purchase_history.domain.dto.request.PurchaseHistoryCreateRequest;
-import codesquad.fineants.domain.purchase_history.domain.dto.request.PurchaseHistoryUpdateRequest;
-import codesquad.fineants.domain.purchase_history.domain.dto.response.PurchaseHistoryCreateResponse;
-import codesquad.fineants.domain.purchase_history.domain.dto.response.PurchaseHistoryDeleteResponse;
-import codesquad.fineants.domain.purchase_history.domain.dto.response.PurchaseHistoryUpdateResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -34,6 +35,7 @@ public class PurchaseHistoryService {
 	private final PortfolioRepository portfolioRepository;
 
 	@Transactional
+	@Secured("ROLE_USER")
 	public PurchaseHistoryCreateResponse createPurchaseHistory(
 		PurchaseHistoryCreateRequest request,
 		Long portfolioId,
@@ -71,6 +73,7 @@ public class PurchaseHistoryService {
 	}
 
 	@Transactional
+	@Secured("ROLE_USER")
 	public PurchaseHistoryUpdateResponse updatePurchaseHistory(PurchaseHistoryUpdateRequest request,
 		Long portfolioHoldingId, Long purchaseHistoryId, Long portfolioId, Long memberId) {
 		log.info("매입 내역 수정 서비스 요청 : request={}, portfolioHoldingId={}, purchaseHistoryId={}", request,
@@ -91,6 +94,7 @@ public class PurchaseHistoryService {
 	}
 
 	@Transactional
+	@Secured("ROLE_USER")
 	public PurchaseHistoryDeleteResponse deletePurchaseHistory(Long portfolioHoldingId, Long purchaseHistoryId,
 		Long portfolioId, Long memberId) {
 		log.info("매입 내역 삭제 서비스 요청 : portfolioHoldingId={}, purchaseHistoryId={}", portfolioHoldingId,

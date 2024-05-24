@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,6 +50,7 @@ public class PortFolioService {
 	private final PortfolioPropertiesRepository portfolioPropertiesRepository;
 
 	@Transactional
+	@Secured("ROLE_USER")
 	public PortFolioCreateResponse createPortfolio(PortfolioCreateRequest request, Long memberId) {
 		validateSecuritiesFirm(request.getSecuritiesFirm());
 
@@ -77,6 +79,7 @@ public class PortFolioService {
 	}
 
 	@Transactional
+	@Secured("ROLE_USER")
 	public PortfolioModifyResponse updatePortfolio(PortfolioModifyRequest request, Long portfolioId, Long memberId) {
 		log.info("포트폴리오 수정 서비스 요청 : request={}, portfolioId={}, memberId={}", request, portfolioId, memberId);
 		Member member = findMember(memberId);
@@ -100,6 +103,7 @@ public class PortFolioService {
 	}
 
 	@Transactional
+	@Secured("ROLE_USER")
 	public void deletePortfolio(Long portfolioId, Long memberId) {
 		log.info("포트폴리오 삭제 서비스 요청 : portfolioId={}, memberId={}", portfolioId, memberId);
 
@@ -124,6 +128,7 @@ public class PortFolioService {
 	}
 
 	@Transactional
+	@Secured("ROLE_USER")
 	public void deletePortfolios(PortfoliosDeleteRequest request, Long memberId) {
 		for (Long portfolioId : request.getPortfolioIds()) {
 			Portfolio portfolio = findPortfolio(portfolioId);
@@ -142,11 +147,13 @@ public class PortFolioService {
 		}
 	}
 
+	@Secured("ROLE_USER")
 	public Portfolio findPortfolio(Long portfolioId) {
 		return portfolioRepository.findById(portfolioId)
 			.orElseThrow(() -> new NotFoundResourceException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
 	}
 
+	@Secured("ROLE_USER")
 	public PortfoliosResponse readMyAllPortfolio(Long memberId) {
 		List<Portfolio> portfolios = portfolioRepository.findAllByMemberIdOrderByIdDesc(memberId);
 		Map<Portfolio, PortfolioGainHistory> portfolioGainHistoryMap = portfolios.stream()
@@ -160,11 +167,5 @@ public class PortFolioService {
 			));
 
 		return PortfoliosResponse.of(portfolios, portfolioGainHistoryMap, currentPriceRepository);
-	}
-
-	public boolean hasAuthorizationBy(Long portfolioId, Long memberId) {
-		Portfolio portfolio = portfolioRepository.findById(portfolioId)
-			.orElseThrow(() -> new NotFoundResourceException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
-		return portfolio.hasAuthorization(memberId);
 	}
 }

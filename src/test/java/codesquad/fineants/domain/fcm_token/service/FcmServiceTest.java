@@ -17,6 +17,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
@@ -81,11 +83,16 @@ class FcmServiceTest extends AbstractContainerBaseTest {
 		FcmRegisterRequest request = FcmRegisterRequest.builder()
 			.fcmToken("token")
 			.build();
+
+		// 사용자 인증 제공
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		// when
 		List<CompletableFuture<FcmRegisterResponse>> futures = new ArrayList<>();
 		for (int i = 0; i < 10; i++) {
-			CompletableFuture<FcmRegisterResponse> future = CompletableFuture.supplyAsync(() ->
-				fcmService.createToken(request, member.getId()));
+			CompletableFuture<FcmRegisterResponse> future = CompletableFuture.supplyAsync(() -> {
+				SecurityContextHolder.getContextHolderStrategy().getContext().setAuthentication(authentication);
+				return fcmService.createToken(request, member.getId());
+			});
 			futures.add(future);
 		}
 

@@ -55,6 +55,7 @@ import codesquad.fineants.global.security.oauth.dto.Token;
 import codesquad.fineants.global.security.oauth.service.TokenService;
 import codesquad.fineants.infra.mail.service.MailService;
 import codesquad.fineants.infra.s3.service.AmazonS3Service;
+import jakarta.annotation.security.PermitAll;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -96,6 +97,7 @@ public class MemberService {
 	}
 
 	@Transactional
+	@PermitAll
 	public OauthMemberRefreshResponse refreshAccessToken(OauthMemberRefreshRequest request, LocalDateTime now) {
 		String refreshToken = request.getRefreshToken();
 
@@ -104,6 +106,7 @@ public class MemberService {
 	}
 
 	@Transactional
+	@Secured("ROLE_USER")
 	public SignUpServiceResponse signup(SignUpServiceRequest request) {
 		verifyEmail(request.getEmail());
 		verifyNickname(request.getNickname());
@@ -157,6 +160,7 @@ public class MemberService {
 	}
 
 	@Transactional(readOnly = true)
+	@PermitAll
 	public void sendVerifyCode(VerifyEmailRequest request) {
 		String email = request.getEmail();
 		String verifyCode = verifyCodeGenerator.generate();
@@ -175,6 +179,7 @@ public class MemberService {
 	}
 
 	@Transactional
+	@PermitAll
 	public void checkNickname(String nickname) {
 		if (!NICKNAME_PATTERN.matcher(nickname).matches()) {
 			throw new BadRequestException(MemberErrorCode.BAD_SIGNUP_INPUT);
@@ -186,6 +191,7 @@ public class MemberService {
 	}
 
 	@Transactional
+	@PermitAll
 	public void checkEmail(String email) {
 		if (!EMAIL_PATTERN.matcher(email).matches()) {
 			throw new BadRequestException(MemberErrorCode.BAD_SIGNUP_INPUT);
@@ -266,6 +272,7 @@ public class MemberService {
 	}
 
 	@Transactional(readOnly = true)
+	@PermitAll
 	public void checkVerifyCode(VerifyCodeRequest request) {
 		Optional<String> verifyCode = redisService.get(request.getEmail());
 

@@ -33,7 +33,7 @@ public class PurchaseHistoryRestController {
 
 	@ResponseStatus(HttpStatus.CREATED)
 	@PostMapping
-	@Secured("USER")
+	@Secured("ROLE_USER")
 	public ApiResponse<Void> createPurchaseHistory(
 		@PathVariable Long portfolioId,
 		@MemberAuthenticationPrincipal MemberAuthentication authentication,
@@ -45,7 +45,7 @@ public class PurchaseHistoryRestController {
 	}
 
 	@PutMapping("/{purchaseHistoryId}")
-	@Secured("USER")
+	@Secured("ROLE_USER")
 	public ApiResponse<Void> updatePurchaseHistory(
 		@PathVariable Long portfolioId,
 		@MemberAuthenticationPrincipal MemberAuthentication authentication,
@@ -59,7 +59,7 @@ public class PurchaseHistoryRestController {
 	}
 
 	@DeleteMapping("/{purchaseHistoryId}")
-	@Secured("USER")
+	@Secured("ROLE_USER")
 	public ApiResponse<Void> deletePurchaseHistory(
 		@PathVariable Long portfolioId,
 		@MemberAuthenticationPrincipal MemberAuthentication authentication,

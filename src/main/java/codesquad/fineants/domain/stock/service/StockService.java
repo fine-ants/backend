@@ -45,6 +45,8 @@ public class StockService {
 	private final KRXService krxService;
 	private final StockDividendService stockDividendService;
 
+	@Transactional(readOnly = true)
+	@Secured("ROLE_USER")
 	public List<StockSearchItem> search(StockSearchRequest request) {
 		return stockRepository.search(request.getSearchTerm())
 			.stream()
@@ -53,6 +55,7 @@ public class StockService {
 	}
 
 	@Transactional(readOnly = true)
+	@Secured("ROLE_USER")
 	public StockResponse getStock(String tickerSymbol) {
 		Stock stock = stockRepository.findByTickerSymbol(tickerSymbol)
 			.orElseThrow(() -> new NotFoundResourceException(StockErrorCode.NOT_FOUND_STOCK));
