@@ -17,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import codesquad.fineants.domain.fcm_token.repository.FcmRepository;
-import codesquad.fineants.domain.jwt.domain.JwtProvider;
 import codesquad.fineants.domain.member.domain.dto.request.ModifyPasswordRequest;
 import codesquad.fineants.domain.member.domain.dto.request.OauthMemberRefreshRequest;
 import codesquad.fineants.domain.member.domain.dto.request.ProfileChangeServiceRequest;
@@ -70,7 +69,6 @@ public class MemberService {
 	public static final Pattern NICKNAME_PATTERN = Pattern.compile("^[가-힣a-zA-Z0-9]{2,10}$");
 	public static final Pattern EMAIL_PATTERN = Pattern.compile("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6}$");
 	private final MemberRepository memberRepository;
-	private final JwtProvider jwtProvider;
 	private final OauthMemberRedisService redisService;
 	private final MailService mailService;
 	private final AmazonS3Service amazonS3Service;
@@ -196,7 +194,7 @@ public class MemberService {
 			throw new BadRequestException(MemberErrorCode.REDUNDANT_EMAIL);
 		}
 	}
-	
+
 	@Transactional
 	@Secured("ROLE_USER")
 	public ProfileChangeResponse changeProfile(ProfileChangeServiceRequest request) {

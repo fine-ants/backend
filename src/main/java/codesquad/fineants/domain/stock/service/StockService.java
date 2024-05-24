@@ -8,6 +8,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -69,6 +70,7 @@ public class StockService {
 
 	// 최신 종목을 조회하고 데이터베이스의 종목 데이터들을 최신화한다
 	@Transactional
+	@Secured("ROLE_ADMIN")
 	public StockRefreshResponse refreshStocks() {
 		CompletableFuture<Set<StockDataResponse.StockIntegrationInfo>> future = CompletableFuture.supplyAsync(
 			krxService::fetchStockInfo

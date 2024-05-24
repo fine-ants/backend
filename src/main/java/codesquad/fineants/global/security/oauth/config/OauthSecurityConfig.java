@@ -60,11 +60,13 @@ public class OauthSecurityConfig {
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		http
 			.authorizeHttpRequests(authorize ->
-				authorize.requestMatchers(
+
+				authorize
+					.requestMatchers(
 						"/oauth2/authorization/**",
-						"/login/oauth2/code/**",
-						"/api/oauth/redirect").permitAll()
-					.anyRequest().authenticated()
+						"/login/oauth2/code/**"
+					).permitAll()
+					.anyRequest().permitAll()
 			);
 		http
 			.sessionManagement(configurer -> configurer

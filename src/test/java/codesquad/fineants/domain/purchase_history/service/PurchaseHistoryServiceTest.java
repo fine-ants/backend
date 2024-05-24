@@ -16,6 +16,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.security.test.context.support.WithMockUser;
 
 import com.google.firebase.messaging.Message;
 
@@ -111,6 +112,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 		stockRepository.deleteAllInBatch();
 	}
 
+	@WithMockUser(roles = {"USER"})
 	@DisplayName("사용자는 매입 이력을 추가한다")
 	@CsvSource(value = {"3,1000000", "1000000000000,50000000000000000", "10,9223372036854775807"})
 	@ParameterizedTest
@@ -438,7 +440,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 			.isInstanceOf(FineAntsException.class)
 			.hasMessage(PurchaseHistoryErrorCode.NOT_FOUND_PURCHASE_HISTORY.getMessage());
 	}
-	
+
 	private Portfolio createPortfolio(Member member, BigDecimal budget) {
 		return Portfolio.builder()
 			.name("내꿈은 워렌버핏")

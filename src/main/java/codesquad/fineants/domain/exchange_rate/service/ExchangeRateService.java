@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +26,7 @@ public class ExchangeRateService {
 	private final ExchangeRateWebClient webClient;
 
 	@Transactional
+	@Secured("ROLE_ADMIN")
 	public void createExchangeRate(String code) {
 		List<ExchangeRate> rates = exchangeRateRepository.findAll();
 		validateDuplicateExchangeRate(rates, code);
@@ -51,13 +53,14 @@ public class ExchangeRateService {
 	}
 
 	@Transactional(readOnly = true)
+	@Secured("ROLE_ADMIN")
 	public ExchangeRateListResponse readExchangeRates() {
 		List<ExchangeRateItem> items = exchangeRateRepository.findAll().stream()
 			.map(ExchangeRateItem::from)
 			.collect(Collectors.toList());
 		return ExchangeRateListResponse.from(items);
 	}
-	
+
 	@Scheduled(cron = "0 0 * * * *") // 매일 자정에 한번씩 수행
 	@Transactional
 	public void updateExchangeRates() {
@@ -86,6 +89,7 @@ public class ExchangeRateService {
 	}
 
 	@Transactional
+	@Secured("ROLE_ADMIN")
 	public void patchBase(String code) {
 		// 기존 기준 통화의 base 값을 false로 변경
 		findBaseExchangeRate().changeBase(false);
@@ -101,6 +105,7 @@ public class ExchangeRateService {
 	}
 
 	@Transactional
+	@Secured("ROLE_ADMIN")
 	public void deleteExchangeRates(List<String> codes) {
 		validateContainsBaseExchangeRateForDelete(codes);
 		exchangeRateRepository.deleteByCodeIn(codes);

@@ -2,6 +2,7 @@ package codesquad.fineants.domain.portfolio.controller;
 
 import java.util.List;
 
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -25,6 +26,7 @@ public class DashboardRestController {
 	private final DashboardService dashboardService;
 
 	@GetMapping("/overview")
+	@Secured("USER")
 	public ApiResponse<OverviewResponse> readOverview(
 		@MemberAuthenticationPrincipal MemberAuthentication authentication) {
 		return ApiResponse.success(DashboardSuccessCode.OK_OVERVIEW,
@@ -32,6 +34,7 @@ public class DashboardRestController {
 	}
 
 	@GetMapping("/pieChart")
+	@Secured("USER")
 	public ApiResponse<List<DashboardPieChartResponse>> readPieChart(
 		@MemberAuthenticationPrincipal MemberAuthentication authentication) {
 		return ApiResponse.success(DashboardSuccessCode.OK_PORTFOLIO_PIE_CHART,
@@ -39,6 +42,7 @@ public class DashboardRestController {
 	}
 
 	@GetMapping("/lineChart")
+	@Secured("USER")
 	public ApiResponse<List<DashboardLineChartResponse>> readLineChart(
 		@MemberAuthenticationPrincipal MemberAuthentication authentication) {
 		return ApiResponse.success(DashboardSuccessCode.OK_LINE_CHART,

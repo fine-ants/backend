@@ -43,6 +43,10 @@ public class MemberAuthentication {
 		);
 	}
 
+	public static MemberAuthentication admin() {
+		return new MemberAuthentication(null, null, null, null, null, Set.of("ROLE_ADMIN"));
+	}
+
 	public Set<SimpleGrantedAuthority> getSimpleGrantedAuthority() {
 		return roleSet.stream()
 			.map(SimpleGrantedAuthority::new)

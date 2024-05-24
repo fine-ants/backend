@@ -1,6 +1,7 @@
 package codesquad.fineants.domain.purchase_history.controller;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -32,6 +33,7 @@ public class PurchaseHistoryRestController {
 
 	@ResponseStatus(HttpStatus.CREATED)
 	@PostMapping
+	@Secured("USER")
 	public ApiResponse<Void> createPurchaseHistory(
 		@PathVariable Long portfolioId,
 		@MemberAuthenticationPrincipal MemberAuthentication authentication,
@@ -43,6 +45,7 @@ public class PurchaseHistoryRestController {
 	}
 
 	@PutMapping("/{purchaseHistoryId}")
+	@Secured("USER")
 	public ApiResponse<Void> updatePurchaseHistory(
 		@PathVariable Long portfolioId,
 		@MemberAuthenticationPrincipal MemberAuthentication authentication,
@@ -56,6 +59,7 @@ public class PurchaseHistoryRestController {
 	}
 
 	@DeleteMapping("/{purchaseHistoryId}")
+	@Secured("USER")
 	public ApiResponse<Void> deletePurchaseHistory(
 		@PathVariable Long portfolioId,
 		@MemberAuthenticationPrincipal MemberAuthentication authentication,

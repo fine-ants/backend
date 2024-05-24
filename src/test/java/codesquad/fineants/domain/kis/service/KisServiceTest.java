@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.security.test.context.support.WithMockUser;
 
 import codesquad.fineants.AbstractContainerBaseTest;
 import codesquad.fineants.domain.kis.client.KisClient;
@@ -75,6 +76,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		Mockito.clearInvocations(client);
 	}
 
+	@WithMockUser(roles = {"ADMIN"})
 	@DisplayName("주식 현재가 시세를 가져온다")
 	@Test
 	void readRealTimeCurrentPrice() {
@@ -92,6 +94,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 			.containsExactlyInAnyOrder("005930", 60000L);
 	}
 
+	@WithMockUser(roles = {"ADMIN"})
 	@DisplayName("현재가 갱신시 요청건수 초과로 실패하였다가 다시 시도하여 성공한다")
 	@Test
 	void refreshStockCurrentPriceWhenExceedingTransactionPerSecond() {
@@ -118,6 +121,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		verify(client, times(1)).fetchCurrentPrice(anyString(), anyString());
 	}
 
+	@WithMockUser(roles = {"ADMIN"})
 	@DisplayName("종목 현재가 갱신시 예외가 발생하면 null을 반환한다")
 	@Test
 	void refreshStockCurrentPrice_whenException_thenReturnNull() {
@@ -143,6 +147,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		assertThat(prices).isEmpty();
 	}
 
+	@WithMockUser(roles = {"ADMIN"})
 	@DisplayName("종가 갱신시 요청건수 초과로 실패하였다가 다시 시도하여 성공한다")
 	@Test
 	void refreshLastDayClosingPriceWhenExceedingTransactionPerSecond() {

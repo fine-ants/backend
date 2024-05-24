@@ -13,22 +13,23 @@ import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Service;
 
 import codesquad.fineants.domain.kis.client.KisClient;
 import codesquad.fineants.domain.kis.client.KisCurrentPrice;
+import codesquad.fineants.domain.kis.domain.dto.response.KisClosingPrice;
+import codesquad.fineants.domain.kis.domain.dto.response.KisDividend;
+import codesquad.fineants.domain.kis.repository.ClosingPriceRepository;
 import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
 import codesquad.fineants.domain.kis.repository.HolidayRepository;
 import codesquad.fineants.domain.kis.repository.KisAccessTokenRepository;
-import codesquad.fineants.domain.kis.repository.ClosingPriceRepository;
-import codesquad.fineants.domain.kis.domain.dto.response.KisClosingPrice;
-import codesquad.fineants.domain.kis.domain.dto.response.KisDividend;
+import codesquad.fineants.domain.notification.event.publisher.PortfolioPublisher;
 import codesquad.fineants.domain.portfolio_holding.repository.PortfolioHoldingRepository;
 import codesquad.fineants.domain.stock.repository.StockRepository;
 import codesquad.fineants.domain.stock_dividend.repository.StockDividendRepository;
-import codesquad.fineants.global.errors.exception.KisException;
-import codesquad.fineants.domain.notification.event.publisher.PortfolioPublisher;
 import codesquad.fineants.domain.stock_target_price.event.publisher.StockTargetPricePublisher;
+import codesquad.fineants.global.errors.exception.KisException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
@@ -62,6 +63,7 @@ public class KisService {
 	}
 
 	// 회원이 가지고 있는 모든 종목에 대하여 현재가 갱신
+	@Secured("ROLE_ADMIN")
 	public List<KisCurrentPrice> refreshAllStockCurrentPrice() {
 		List<String> tickerSymbols = portFolioHoldingRepository.findAllTickerSymbol();
 		List<KisCurrentPrice> prices = refreshStockCurrentPrice(tickerSymbols);
@@ -71,6 +73,7 @@ public class KisService {
 	}
 
 	// 주식 현재가 갱신
+	@Secured("ROLE_ADMIN")
 	public List<KisCurrentPrice> refreshStockCurrentPrice(List<String> tickerSymbols) {
 		List<CompletableFuture<KisCurrentPrice>> futures = tickerSymbols.stream()
 			.map(this::submitCurrentPriceFuture)
@@ -122,6 +125,7 @@ public class KisService {
 		};
 	}
 
+	@Secured("ROLE_ADMIN")
 	public Mono<KisCurrentPrice> fetchCurrentPrice(String tickerSymbol) {
 		return kisClient.fetchCurrentPrice(tickerSymbol, manager.createAuthorization());
 	}
@@ -137,12 +141,14 @@ public class KisService {
 	}
 
 	// 종목 종가 모두 갱신
+	@Secured("ROLE_ADMIN")
 	public List<KisClosingPrice> refreshAllLastDayClosingPrice() {
 		List<String> tickerSymbols = portFolioHoldingRepository.findAllTickerSymbol();
 		return refreshLastDayClosingPrice(tickerSymbols);
 	}
 
 	// 종목 종가 일부 갱신
+	@Secured("ROLE_ADMIN")
 	public List<KisClosingPrice> refreshLastDayClosingPrice(List<String> tickerSymbols) {
 		List<KisClosingPrice> lastDayClosingPrices = readLastDayClosingPriceResponses(tickerSymbols);
 		lastDayClosingPrices.forEach(closingPriceRepository::addPrice);

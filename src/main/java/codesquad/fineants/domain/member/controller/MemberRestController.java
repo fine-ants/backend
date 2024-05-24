@@ -5,6 +5,7 @@ import static org.springframework.http.HttpStatus.*;
 import java.time.LocalDateTime;
 
 import org.springframework.http.MediaType;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -36,6 +37,7 @@ import codesquad.fineants.global.security.oauth.dto.MemberAuthentication;
 import codesquad.fineants.global.security.oauth.resolver.MemberAuthenticationPrincipal;
 import codesquad.fineants.global.success.MemberSuccessCode;
 import codesquad.fineants.global.success.OauthSuccessCode;
+import jakarta.annotation.security.PermitAll;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -51,6 +53,7 @@ public class MemberRestController {
 	private final MemberService memberService;
 
 	@GetMapping(value = "/auth/logout")
+	@PermitAll
 	public ApiResponse<Void> logout(HttpServletRequest request, HttpServletResponse response) {
 		memberService.logout(request, response);
 		return ApiResponse.success(OauthSuccessCode.OK_LOGOUT);
@@ -58,6 +61,7 @@ public class MemberRestController {
 
 	@ResponseStatus(OK)
 	@PostMapping("/auth/refresh/token")
+	@PermitAll
 	public ApiResponse<OauthMemberRefreshResponse> refreshAccessToken(
 		@RequestBody final OauthMemberRefreshRequest request
 	) {
@@ -68,6 +72,7 @@ public class MemberRestController {
 	@ResponseStatus(CREATED)
 	@PostMapping(value = "/auth/signup", consumes = {MediaType.APPLICATION_JSON_VALUE,
 		MediaType.MULTIPART_FORM_DATA_VALUE})
+	@PermitAll
 	public ApiResponse<Void> signup(
 		@Valid @RequestPart(value = "signupData") SignUpRequest request,
 		@RequestPart(value = "profileImageFile", required = false) MultipartFile profileImageFile
@@ -79,30 +84,35 @@ public class MemberRestController {
 	}
 
 	@PostMapping("/auth/signup/verifyEmail")
+	@PermitAll
 	public ApiResponse<Void> sendVerifyCode(@Valid @RequestBody VerifyEmailRequest request) {
 		memberService.sendVerifyCode(request);
 		return ApiResponse.success(MemberSuccessCode.OK_SEND_VERIFY_CODE);
 	}
 
 	@PostMapping("/auth/signup/verifyCode")
+	@PermitAll
 	public ApiResponse<Void> checkVerifyCode(@Valid @RequestBody VerifyCodeRequest request) {
 		memberService.checkVerifyCode(request);
 		return ApiResponse.success(MemberSuccessCode.OK_VERIF_CODE);
 	}
 
 	@GetMapping("/auth/signup/duplicationcheck/nickname/{nickname}")
+	@PermitAll
 	public ApiResponse<Void> nicknameDuplicationCheck(@PathVariable final String nickname) {
 		memberService.checkNickname(nickname);
 		return ApiResponse.success(MemberSuccessCode.OK_NICKNAME_CHECK);
 	}
 
 	@GetMapping("/auth/signup/duplicationcheck/email/{email}")
+	@PermitAll
 	public ApiResponse<Void> emailDuplicationCheck(@PathVariable final String email) {
 		memberService.checkEmail(email);
 		return ApiResponse.success(MemberSuccessCode.OK_EMAIL_CHECK);
 	}
 
 	@PostMapping(value = "/profile", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE, MediaType.APPLICATION_JSON_VALUE})
+	@Secured("USER")
 	public ApiResponse<ProfileChangeResponse> changeProfile(
 		@RequestPart(value = "profileImageFile", required = false) MultipartFile profileImageFile,
 		@Valid @RequestPart(value = "profileInformation", required = false) ProfileChangeRequest request,
@@ -118,6 +128,7 @@ public class MemberRestController {
 	}
 
 	@GetMapping(value = "/profile")
+	@Secured("USER")
 	public ApiResponse<ProfileResponse> readProfile(
 		@MemberAuthenticationPrincipal MemberAuthentication authentication) {
 		Long memberId = authentication.getId();
@@ -126,6 +137,7 @@ public class MemberRestController {
 	}
 
 	@PutMapping("/account/password")
+	@Secured("USER")
 	public ApiResponse<Void> changePassword(
 		@RequestBody ModifyPasswordRequest request,
 		@MemberAuthenticationPrincipal MemberAuthentication authentication
@@ -135,6 +147,7 @@ public class MemberRestController {
 	}
 
 	@DeleteMapping("/account")
+	@Secured("USER")
 	public ApiResponse<Void> deleteAccount(
 		@RequestBody OauthMemberLogoutRequest request,
 		@MemberAuthenticationPrincipal MemberAuthentication authentication

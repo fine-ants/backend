@@ -3,10 +3,13 @@ package codesquad.fineants.global.init;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.logging.log4j.util.Strings;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +24,7 @@ import codesquad.fineants.domain.notification_preference.domain.entity.Notificat
 import codesquad.fineants.domain.notification_preference.repository.NotificationPreferenceRepository;
 import codesquad.fineants.domain.stock.service.StockService;
 import codesquad.fineants.domain.stock_dividend.service.StockDividendService;
+import codesquad.fineants.global.security.oauth.dto.MemberAuthentication;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -45,6 +49,13 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
 		if (alreadySetup) {
 			return;
 		}
+		MemberAuthentication memberAuthentication = MemberAuthentication.admin();
+		UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
+			memberAuthentication,
+			Strings.EMPTY,
+			memberAuthentication.getSimpleGrantedAuthority()
+		);
+		SecurityContextHolder.getContext().setAuthentication(authenticationToken);
 		log.info("애플리케이션 시작시 종목 현재가 및 종가 초기화 시작");
 		kisService.scheduleRefreshingAllStockCurrentPrice();
 		kisService.scheduleRefreshingAllLastDayClosingPrice();

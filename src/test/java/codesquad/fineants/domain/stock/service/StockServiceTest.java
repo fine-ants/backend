@@ -19,7 +19,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.security.test.context.support.WithMockUser;
 
+import codesquad.fineants.AbstractContainerBaseTest;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.common.money.Percentage;
 import codesquad.fineants.domain.kis.client.KisAccessToken;
@@ -35,7 +37,6 @@ import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
 import codesquad.fineants.domain.stock_dividend.domain.entity.StockDividend;
 import codesquad.fineants.domain.stock_dividend.repository.StockDividendRepository;
-import codesquad.fineants.AbstractContainerBaseTest;
 import reactor.core.publisher.Mono;
 
 class StockServiceTest extends AbstractContainerBaseTest {
@@ -64,6 +65,7 @@ class StockServiceTest extends AbstractContainerBaseTest {
 		stockRepository.deleteAllInBatch();
 	}
 
+	@WithMockUser(roles = {"ADMIN"})
 	@DisplayName("종목 데이터를 최신화한다")
 	@Test
 	void refreshStocks() {

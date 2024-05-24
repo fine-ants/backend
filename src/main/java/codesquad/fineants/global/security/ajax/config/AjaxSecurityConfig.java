@@ -38,12 +38,13 @@ public class AjaxSecurityConfig {
 	@Bean
 	protected SecurityFilterChain ajaxSecurityFilterChain(HttpSecurity http) throws Exception {
 		http
-			.securityMatcher("/api/auth/**")
+			.securityMatcher(
+				"/api/auth/login",
+				"/api/auth/logout"
+			)
 			.authorizeHttpRequests(authorize -> authorize
 				.requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
-				.requestMatchers(
-					"/api/auth/logout",
-					"/api/auth/refresh/token").permitAll()
+				.requestMatchers("/api/auth/logout").permitAll()
 				.anyRequest().authenticated()
 			);
 		http.authenticationProvider(authenticationProvider());

@@ -1,6 +1,7 @@
 package codesquad.fineants.domain.notification.controller;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -26,6 +27,7 @@ public class NotificationRestController {
 
 	// 한 포트폴리오의 목표 수익률 도달 알림 발송
 	@PostMapping("/api/notifications/portfolios/{portfolioId}/notify/target-gain")
+	@Secured("ADMIN")
 	public ApiResponse<PortfolioNotifyMessagesResponse> notifyPortfolioTargetGainMessages(
 		@PathVariable Long portfolioId
 	) {
@@ -36,6 +38,7 @@ public class NotificationRestController {
 
 	// 한 포트폴리오의 최대 손실율 도달 알림 발송
 	@PostMapping("/api/notifications/portfolios/{portfolioId}/notify/max-loss")
+	@Secured("ADMIN")
 	public ApiResponse<PortfolioNotifyMessagesResponse> notifyPortfolioMaxLossMessages(
 		@PathVariable Long portfolioId
 	) {
@@ -47,6 +50,7 @@ public class NotificationRestController {
 	// 종목 지정가 알림 발송
 	@ResponseStatus(HttpStatus.CREATED)
 	@PostMapping("/api/stocks/target-price/notifications/send")
+	@Secured("ADMIN")
 	public ApiResponse<TargetPriceNotifyMessageResponse> sendStockTargetPriceNotification(
 		@MemberAuthenticationPrincipal MemberAuthentication authentication) {
 		TargetPriceNotifyMessageResponse response = service.notifyTargetPriceBy(authentication.getId());
