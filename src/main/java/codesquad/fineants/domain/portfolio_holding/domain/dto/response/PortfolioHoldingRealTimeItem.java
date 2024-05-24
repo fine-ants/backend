@@ -19,6 +19,7 @@ import lombok.ToString;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @ToString
 public class PortfolioHoldingRealTimeItem {
+	private Long id;
 	private Money currentValuation;
 	private Money currentPrice;
 	private Money dailyChange;
@@ -31,6 +32,7 @@ public class PortfolioHoldingRealTimeItem {
 		Bank bank = Bank.getInstance();
 		Currency to = Currency.KRW;
 		return new PortfolioHoldingRealTimeItem(
+			portfolioHolding.getId(),
 			portfolioHolding.calculateCurrentValuation().reduce(bank, to),
 			portfolioHolding.getCurrentPrice(),
 			portfolioHolding.calculateDailyChange(lastDayClosingPrice).reduce(bank, to),
