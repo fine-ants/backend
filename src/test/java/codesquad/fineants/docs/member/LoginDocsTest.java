@@ -5,6 +5,7 @@ import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.*;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.*;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
+import static org.springframework.restdocs.request.RequestDocumentation.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -22,6 +23,8 @@ import org.springframework.restdocs.RestDocumentationContextProvider;
 import org.springframework.restdocs.RestDocumentationExtension;
 import org.springframework.restdocs.mockmvc.MockMvcRestDocumentation;
 import org.springframework.restdocs.payload.JsonFieldType;
+import org.springframework.restdocs.request.RequestDocumentation;
+import org.springframework.restdocs.snippet.Attributes;
 import org.springframework.security.config.BeanIds;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -121,6 +124,36 @@ public class LoginDocsTest extends AbstractContainerBaseTest {
 							.description("액세스 토큰"),
 						fieldWithPath("data.jwt.refreshToken").type(JsonFieldType.STRING)
 							.description("리프레시 토큰")
+					)
+				)
+			);
+	}
+
+	@DisplayName("사용자는 Oauth 로그인을 요청한다")
+	@Test
+	void oauthLogin() throws Exception {
+		// given
+
+		// when & then
+		mockMvc.perform(get("/oauth2/authorization/{provider}", "naver")
+				.param("redirect_url", "http://localhost:8080/api/oauth/redirect"))
+			.andExpect(status().is3xxRedirection())
+			.andDo(
+				document(
+					"member_oauth-login",
+					preprocessRequest(prettyPrint()),
+					preprocessResponse(prettyPrint()),
+					RequestDocumentation.queryParameters(
+						parameterWithName("redirect_url").description("리다이렉트 URL")
+					),
+					pathParameters(
+						parameterWithName("provider").description("플랫폼")
+							.attributes(
+								Attributes.key("constraints").value(
+									String.join(",",
+										"google", "kakao", "naver"
+									)
+								))
 					)
 				)
 			);

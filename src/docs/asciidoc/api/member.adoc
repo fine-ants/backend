@@ -5,12 +5,11 @@
 
 include::{snippets}/member_oauth-login/http-request.adoc[]
 include::{snippets}/member_oauth-login/path-parameters.adoc[]
-include::{snippets}/member_oauth-login/request-parameters.adoc[]
+include::{snippets}/member_oauth-login/query-parameters.adoc[]
 
 ==== HTTP Response
 
 include::{snippets}/member_oauth-login/http-response.adoc[]
-include::{snippets}/member_oauth-login/response-fields.adoc[]
 
 [[member-login]]
 === 회원 일반 로그인
@@ -32,7 +31,6 @@ include::{snippets}/member-login/response-fields.adoc[]
 
 include::{snippets}/member-logout/http-request.adoc[]
 include::{snippets}/member-logout/request-headers.adoc[]
-include::{snippets}/member-logout/request-fields.adoc[]
 
 ==== HTTP Response
 
@@ -156,19 +154,6 @@ include::{snippets}/member_access_token-refresh/request-fields.adoc[]
 
 include::{snippets}/member_access_token-refresh/http-response.adoc[]
 include::{snippets}/member_access_token-refresh/response-fields.adoc[]
-
-[[member_authorization_code-create]]
-=== 인가코드 요청 URL
-
-==== HTTP Request
-
-include::{snippets}/member_authorization_code-create/http-request.adoc[]
-include::{snippets}/member_authorization_code-create/path-parameters.adoc[]
-
-==== HTTP Response
-
-include::{snippets}/member_authorization_code-create/http-response.adoc[]
-include::{snippets}/member_authorization_code-create/response-fields.adoc[]
 
 [[member-delete]]
 === 회원 계정 삭제
