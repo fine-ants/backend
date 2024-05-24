@@ -49,7 +49,7 @@ include::{snippets}/exchange-rate-patch-base/request-headers.adoc[]
 ==== HTTP Response
 
 include::{snippets}/exchange-rate-patch-base/http-response.adoc[]
-include::{snippets}/exchange-rate-patch-base/request-parameters.adoc[]
+include::{snippets}/exchange-rate-patch-base/response-fields.adoc[]
 
 [[exchange-rate-delete]]
 === 통화 환율 삭제

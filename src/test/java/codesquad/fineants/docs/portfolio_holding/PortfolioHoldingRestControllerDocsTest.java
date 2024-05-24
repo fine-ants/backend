@@ -178,7 +178,7 @@ public class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 		resultActions
 			.andExpect(jsonPath("data.portfolioHoldings[0].companyName").value(equalTo("삼성전자보통주")))
 			.andExpect(jsonPath("data.portfolioHoldings[0].tickerSymbol").value(equalTo("005930")))
-			.andExpect(jsonPath("data.portfolioHoldings[0].portfolioHoldingId").value(equalTo(1)))
+			.andExpect(jsonPath("data.portfolioHoldings[0].id").value(equalTo(1)))
 			.andExpect(jsonPath("data.portfolioHoldings[0].currentValuation").value(equalTo(180000)))
 			.andExpect(jsonPath("data.portfolioHoldings[0].currentPrice").value(equalTo(60000)))
 			.andExpect(jsonPath("data.portfolioHoldings[0].averageCostPerShare").value(equalTo(50000)))
@@ -263,12 +263,12 @@ public class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 					fieldWithPath("data.portfolioDetails.maxLossNotify").type(JsonFieldType.BOOLEAN)
 						.description("최대 손실 금액 알림 여부"),
 
+					fieldWithPath("data.portfolioHoldings[].id").type(JsonFieldType.NUMBER)
+						.description("포트폴리오 종목 등록번호"),
 					fieldWithPath("data.portfolioHoldings[].companyName").type(JsonFieldType.STRING)
 						.description("종목명"),
 					fieldWithPath("data.portfolioHoldings[].tickerSymbol").type(JsonFieldType.STRING)
 						.description("종목 티커 심볼"),
-					fieldWithPath("data.portfolioHoldings[].portfolioHoldingId").type(JsonFieldType.NUMBER)
-						.description("포트폴리오 종목 등록번호"),
 					fieldWithPath("data.portfolioHoldings[].currentValuation").type(JsonFieldType.NUMBER)
 						.description("평가금액"),
 					fieldWithPath("data.portfolioHoldings[].currentPrice").type(JsonFieldType.NUMBER)

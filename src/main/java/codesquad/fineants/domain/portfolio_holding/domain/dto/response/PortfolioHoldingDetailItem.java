@@ -22,7 +22,7 @@ import lombok.ToString;
 @Builder
 @ToString
 public class PortfolioHoldingDetailItem {
-	private Long portfolioHoldingId;
+	private Long id;
 	private Money currentValuation;
 	private Money currentPrice;
 	private Money averageCostPerShare;
@@ -39,7 +39,7 @@ public class PortfolioHoldingDetailItem {
 		Bank bank = Bank.getInstance();
 		Currency to = Currency.KRW;
 		return PortfolioHoldingDetailItem.builder()
-			.portfolioHoldingId(portfolioHolding.getId())
+			.id(portfolioHolding.getId())
 			.currentValuation(portfolioHolding.calculateCurrentValuation().reduce(bank, to))
 			.currentPrice(portfolioHolding.getCurrentPrice())
 			.averageCostPerShare(portfolioHolding.calculateAverageCostPerShare().reduce(bank, to))
