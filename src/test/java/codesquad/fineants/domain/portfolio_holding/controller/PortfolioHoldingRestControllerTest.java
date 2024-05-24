@@ -188,7 +188,7 @@ class PortfolioHoldingRestControllerTest {
 		resultActions
 			.andExpect(jsonPath("data.portfolioHoldings[0].companyName").value(equalTo("삼성전자보통주")))
 			.andExpect(jsonPath("data.portfolioHoldings[0].tickerSymbol").value(equalTo("005930")))
-			.andExpect(jsonPath("data.portfolioHoldings[0].portfolioHoldingId").value(equalTo(1)))
+			.andExpect(jsonPath("data.portfolioHoldings[0].id").value(equalTo(1)))
 			.andExpect(jsonPath("data.portfolioHoldings[0].currentValuation").value(equalTo(180000)))
 			.andExpect(jsonPath("data.portfolioHoldings[0].currentPrice").value(equalTo(60000)))
 			.andExpect(jsonPath("data.portfolioHoldings[0].averageCostPerShare").value(equalTo(50000)))
