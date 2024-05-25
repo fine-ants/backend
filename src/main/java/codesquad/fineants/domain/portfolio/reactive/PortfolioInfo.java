@@ -2,8 +2,8 @@ package codesquad.fineants.domain.portfolio.reactive;
 
 import java.util.List;
 
-import codesquad.fineants.domain.portfolio_holding.domain.dto.response.PortfolioDetailRealTimeItem;
-import codesquad.fineants.domain.portfolio_holding.domain.dto.response.PortfolioHoldingRealTimeItem;
+import codesquad.fineants.domain.holding.domain.dto.response.PortfolioDetailRealTimeItem;
+import codesquad.fineants.domain.holding.domain.dto.response.PortfolioHoldingRealTimeItem;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;

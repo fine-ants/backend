@@ -14,7 +14,7 @@ public class NotificationSentRepository {
 	private static final String MAX_LOSS_FORMAT = "maxLossSent:%d";
 	private static final String TARGET_PRICE_FORMAT = "targetPriceSent:%d";
 	private final RedisTemplate<String, String> redisTemplate;
-	private final Duration TIMEOUT = Duration.ofHours(24L);
+	private static final Duration TIMEOUT = Duration.ofHours(24L);
 
 	public void addTargetGainSendHistory(Long portfolioId) {
 		redisTemplate.opsForValue()

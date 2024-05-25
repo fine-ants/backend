@@ -18,7 +18,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import codesquad.fineants.domain.member.repository.MemberRepository;
 import codesquad.fineants.domain.member.repository.RoleRepository;
 import codesquad.fineants.domain.member.service.NicknameGenerator;
-import codesquad.fineants.domain.notification_preference.repository.NotificationPreferenceRepository;
+import codesquad.fineants.domain.notificationpreference.repository.NotificationPreferenceRepository;
 import codesquad.fineants.global.security.handler.CustomAccessDeniedHandler;
 import codesquad.fineants.global.security.oauth.filter.JwtAuthFilter;
 import codesquad.fineants.global.security.oauth.filter.OAuth2AuthorizationRequestRedirectWithRedirectUrlParamFilter;
@@ -40,19 +40,19 @@ public class OauthSecurityConfig {
 	private final TokenService tokenService;
 	private final NicknameGenerator nicknameGenerator;
 	private final RoleRepository roleRepository;
-	private final OAuth2UserMapper OAuth2UserMapper;
+	private final OAuth2UserMapper oAuth2UserMapper;
 	private final String loginSuccessUri;
 
 	public OauthSecurityConfig(MemberRepository memberRepository,
 		NotificationPreferenceRepository notificationPreferenceRepository, TokenService tokenService,
-		NicknameGenerator nicknameGenerator, RoleRepository roleRepository, OAuth2UserMapper OAuth2UserMapper,
+		NicknameGenerator nicknameGenerator, RoleRepository roleRepository, OAuth2UserMapper oAuth2UserMapper,
 		@Value("${oauth2.login-success-uri}") String loginSuccessUri) {
 		this.memberRepository = memberRepository;
 		this.notificationPreferenceRepository = notificationPreferenceRepository;
 		this.tokenService = tokenService;
 		this.nicknameGenerator = nicknameGenerator;
 		this.roleRepository = roleRepository;
-		this.OAuth2UserMapper = OAuth2UserMapper;
+		this.oAuth2UserMapper = oAuth2UserMapper;
 		this.loginSuccessUri = loginSuccessUri;
 	}
 
@@ -66,13 +66,11 @@ public class OauthSecurityConfig {
 						"/oauth2/authorization/**",
 						"/login/oauth2/code/**"
 					).permitAll()
-					.anyRequest().permitAll()
-			);
+					.anyRequest().permitAll());
 		http
 			.sessionManagement(configurer -> configurer
-				.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-			);
-		http.addFilterBefore(oAuth2AuthorizationRequestRedirectWithRedirectUrlParamFilter(),
+				.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+		http.addFilterBefore(urlParamFilter(),
 			OAuth2AuthorizationRequestRedirectFilter.class);
 		http.addFilterBefore(jwtAuthFilter(), UsernamePasswordAuthenticationFilter.class);
 
@@ -82,8 +80,7 @@ public class OauthSecurityConfig {
 					.userService(customOAuth2UserService())
 					.oidcUserService(customOidcUserService())
 				)
-				.successHandler(oAuth2SuccessHandler())
-			);
+				.successHandler(oauth2SuccessHandler()));
 		http.exceptionHandling(configurer ->
 			configurer.accessDeniedHandler(customAccessDeniedHandler()));
 		http.csrf(AbstractHttpConfigurer::disable);
@@ -108,8 +105,8 @@ public class OauthSecurityConfig {
 	}
 
 	@Bean
-	public OAuth2SuccessHandler oAuth2SuccessHandler() {
-		return new OAuth2SuccessHandler(tokenService, OAuth2UserMapper, loginSuccessUri);
+	public OAuth2SuccessHandler oauth2SuccessHandler() {
+		return new OAuth2SuccessHandler(tokenService, oAuth2UserMapper, loginSuccessUri);
 	}
 
 	@Bean
@@ -118,7 +115,7 @@ public class OauthSecurityConfig {
 	}
 
 	@Bean
-	public OAuth2AuthorizationRequestRedirectWithRedirectUrlParamFilter oAuth2AuthorizationRequestRedirectWithRedirectUrlParamFilter() {
+	public OAuth2AuthorizationRequestRedirectWithRedirectUrlParamFilter urlParamFilter() {
 		return new OAuth2AuthorizationRequestRedirectWithRedirectUrlParamFilter();
 	}
 

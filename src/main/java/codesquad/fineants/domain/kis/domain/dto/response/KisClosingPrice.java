@@ -39,9 +39,9 @@ public class KisClosingPrice {
 
 	static class KisClosingPriceDeserializer extends JsonDeserializer<KisClosingPrice> {
 		@Override
-		public KisClosingPrice deserialize(JsonParser p, DeserializationContext ctxt) throws
+		public KisClosingPrice deserialize(JsonParser parser, DeserializationContext context) throws
 			IOException {
-			TreeNode rootNode = p.readValueAsTree();
+			TreeNode rootNode = parser.readValueAsTree();
 			KisClosingPrice kisClosingPrice = new KisClosingPrice();
 
 			JsonNode outputNode = (JsonNode)rootNode.get("output1");
@@ -50,7 +50,7 @@ public class KisClosingPrice {
 				kisClosingPrice.price = stckPrdyClpr.asLong();
 			}
 
-			JsonNode stckShrnIscd = outputNode.get("stck_shrn_iscd");// 종목 코드
+			JsonNode stckShrnIscd = outputNode.get("stck_shrn_iscd"); // 종목 코드
 			if (stckShrnIscd != null) {
 				kisClosingPrice.tickerSymbol = stckShrnIscd.asText();
 			}

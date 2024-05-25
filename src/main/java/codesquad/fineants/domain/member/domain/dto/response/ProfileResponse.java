@@ -53,7 +53,7 @@ public class ProfileResponse {
 		private Boolean targetPriceNotify;
 
 		public static NotificationPreference from(
-			codesquad.fineants.domain.notification_preference.domain.entity.NotificationPreference preference) {
+			codesquad.fineants.domain.notificationpreference.domain.entity.NotificationPreference preference) {
 			return NotificationPreference.builder()
 				.browserNotify(preference.isBrowserNotify())
 				.targetGainNotify(preference.isTargetGainNotify())

@@ -84,7 +84,7 @@ public class DashboardService {
 		if (portfolios.isEmpty()) {
 			return new ArrayList<>();
 		}
-		Expression totalValuation = Money.wonZero();// 평가 금액 + 현금
+		Expression totalValuation = Money.wonZero(); // 평가 금액 + 현금
 		for (Portfolio portfolio : portfolios) {
 			portfolio.applyCurrentPriceAllHoldingsBy(currentPriceRepository);
 			totalValuation = totalValuation.plus(portfolio.calculateTotalAsset());

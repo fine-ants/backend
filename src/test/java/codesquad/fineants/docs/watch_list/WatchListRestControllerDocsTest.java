@@ -28,13 +28,13 @@ import codesquad.fineants.docs.RestDocsSupport;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.common.money.Percentage;
 import codesquad.fineants.domain.member.domain.entity.Member;
-import codesquad.fineants.domain.watch_list.controller.WatchListRestController;
-import codesquad.fineants.domain.watch_list.domain.dto.request.CreateWatchListRequest;
-import codesquad.fineants.domain.watch_list.domain.dto.response.CreateWatchListResponse;
-import codesquad.fineants.domain.watch_list.domain.dto.response.ReadWatchListResponse;
-import codesquad.fineants.domain.watch_list.domain.dto.response.ReadWatchListsResponse;
-import codesquad.fineants.domain.watch_list.domain.dto.response.WatchListHasStockResponse;
-import codesquad.fineants.domain.watch_list.service.WatchListService;
+import codesquad.fineants.domain.watchlist.controller.WatchListRestController;
+import codesquad.fineants.domain.watchlist.domain.dto.request.CreateWatchListRequest;
+import codesquad.fineants.domain.watchlist.domain.dto.response.CreateWatchListResponse;
+import codesquad.fineants.domain.watchlist.domain.dto.response.ReadWatchListResponse;
+import codesquad.fineants.domain.watchlist.domain.dto.response.ReadWatchListsResponse;
+import codesquad.fineants.domain.watchlist.domain.dto.response.WatchListHasStockResponse;
+import codesquad.fineants.domain.watchlist.service.WatchListService;
 import codesquad.fineants.global.util.ObjectMapperUtil;
 
 public class WatchListRestControllerDocsTest extends RestDocsSupport {

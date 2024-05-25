@@ -1,6 +1,7 @@
 package codesquad.fineants.domain.member.domain.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import codesquad.fineants.domain.member.domain.dto.request.AuthorizationRequest;
 import lombok.AccessLevel;
@@ -16,7 +17,8 @@ import lombok.ToString;
 @Builder
 @ToString
 public class OauthSaveUrlResponse {
-	private String authURL;
+	@JsonProperty("authURL")
+	private String authUrl;
 	@JsonIgnore
 	private AuthorizationRequest authorizationRequest;
 }

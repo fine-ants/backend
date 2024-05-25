@@ -46,8 +46,8 @@ class KisClientTest extends AbstractContainerBaseTest {
 			"secertkey",
 			"otkenURI",
 			"currentPriceURI",
-			"lastDayClosingPriceURI"
-			, "dividendURI"
+			"lastDayClosingPriceURI",
+			"dividendURI"
 		);
 		String baseUrl = String.format("http://localhost:%s", mockWebServer.getPort());
 		this.kisClient = new KisClient(
@@ -90,7 +90,7 @@ class KisClientTest extends AbstractContainerBaseTest {
 
 	public KisAccessToken createKisAccessToken() {
 		return new KisAccessToken(
-			"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0b2tlbiIsImF1ZCI6ImE1OGY4YzAyLWMzMzYtNGY3ZC04OGE0LWZkZDRhZTA3NmQ5YyIsImlzcyI6InVub2d3IiwiZXhwIjoxNzAxOTE2ODg3LCJpYXQiOjE3MDE4MzA0ODcsImp0aSI6IlBTRGc4WlVJd041eVl5ZkR6bnA0TDM2Z2xhRUpic2RJNGd6biJ9.uLZAu9_ompf8ycwiRJ5jrdoB-MiUG9a8quoQ3OeVOrUDGxyEhHmzZTPnCdLRWOEHowFlmyNOf3v-lPZGZqi9Kw",
+			"accessToken",
 			"Bearer",
 			LocalDateTime.of(2023, 12, 7, 11, 41, 27),
 			86400

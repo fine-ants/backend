@@ -21,7 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
 	private final TokenService tokenService;
-	private final OAuth2UserMapper OAuth2UserMapper;
+	private final OAuth2UserMapper oauth2UserMapper;
 	private final String loginSuccessUri;
 
 	@Override
@@ -34,7 +34,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 		} else {
 			oAuth2User = (OAuth2User)principal;
 		}
-		MemberAuthentication memberAuthentication = OAuth2UserMapper.toMemberAuthentication(oAuth2User);
+		MemberAuthentication memberAuthentication = oauth2UserMapper.toMemberAuthentication(oAuth2User);
 		log.debug("oAuth2User : {}", oAuth2User);
 		log.debug("userDto : {}", memberAuthentication);
 

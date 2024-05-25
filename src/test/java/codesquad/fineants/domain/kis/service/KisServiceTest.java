@@ -17,6 +17,9 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
 
 import codesquad.fineants.AbstractContainerBaseTest;
+import codesquad.fineants.domain.dividend.repository.StockDividendRepository;
+import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
+import codesquad.fineants.domain.holding.repository.PortfolioHoldingRepository;
 import codesquad.fineants.domain.kis.client.KisClient;
 import codesquad.fineants.domain.kis.client.KisCurrentPrice;
 import codesquad.fineants.domain.kis.domain.dto.response.KisClosingPrice;
@@ -26,12 +29,9 @@ import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.repository.PortfolioRepository;
-import codesquad.fineants.domain.portfolio_holding.domain.entity.PortfolioHolding;
-import codesquad.fineants.domain.portfolio_holding.repository.PortfolioHoldingRepository;
 import codesquad.fineants.domain.stock.domain.entity.Market;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
-import codesquad.fineants.domain.stock_dividend.repository.StockDividendRepository;
 import codesquad.fineants.global.errors.exception.KisException;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
@@ -181,7 +181,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		// given
 		given(holidayRepository.isHoliday(any(LocalDate.class))).willReturn(true);
 		// when
-		kisService.scheduleRefreshingAllStockCurrentPrice();
+		kisService.refreshCurrentPrice();
 		// then
 		verify(holidayRepository, times(1)).isHoliday(any(LocalDate.class));
 	}

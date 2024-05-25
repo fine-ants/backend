@@ -24,6 +24,8 @@ import org.springframework.security.test.context.support.WithMockUser;
 import codesquad.fineants.AbstractContainerBaseTest;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.common.money.Percentage;
+import codesquad.fineants.domain.dividend.domain.entity.StockDividend;
+import codesquad.fineants.domain.dividend.repository.StockDividendRepository;
 import codesquad.fineants.domain.kis.client.KisAccessToken;
 import codesquad.fineants.domain.kis.client.KisClient;
 import codesquad.fineants.domain.kis.client.KisCurrentPrice;
@@ -35,8 +37,6 @@ import codesquad.fineants.domain.stock.domain.dto.response.StockSectorResponse;
 import codesquad.fineants.domain.stock.domain.entity.Market;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
-import codesquad.fineants.domain.stock_dividend.domain.entity.StockDividend;
-import codesquad.fineants.domain.stock_dividend.repository.StockDividendRepository;
 import reactor.core.publisher.Mono;
 
 class StockServiceTest extends AbstractContainerBaseTest {
@@ -51,7 +51,7 @@ class StockServiceTest extends AbstractContainerBaseTest {
 	private StockDividendRepository stockDividendRepository;
 
 	@MockBean
-	private KRXService krxService;
+	private KrxService krxService;
 
 	@MockBean
 	private RedisTemplate<String, String> redisTemplate;

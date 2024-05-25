@@ -4,8 +4,8 @@ import java.util.concurrent.TimeUnit;
 
 import org.springframework.stereotype.Component;
 
-import codesquad.fineants.domain.portfolio_holding.domain.dto.response.PortfolioHoldingsRealTimeResponse;
-import codesquad.fineants.domain.portfolio_holding.service.PortfolioHoldingService;
+import codesquad.fineants.domain.holding.domain.dto.response.PortfolioHoldingsRealTimeResponse;
+import codesquad.fineants.domain.holding.service.PortfolioHoldingService;
 import io.reactivex.rxjava3.core.Observable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -24,13 +24,13 @@ import codesquad.fineants.domain.common.money.Currency;
 import codesquad.fineants.domain.common.money.Expression;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.common.money.Percentage;
+import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
 import codesquad.fineants.domain.portfolio.controller.DashboardRestController;
 import codesquad.fineants.domain.portfolio.domain.dto.response.DashboardLineChartResponse;
 import codesquad.fineants.domain.portfolio.domain.dto.response.DashboardPieChartResponse;
 import codesquad.fineants.domain.portfolio.domain.dto.response.OverviewResponse;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.service.DashboardService;
-import codesquad.fineants.domain.portfolio_holding.domain.entity.PortfolioHolding;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 
 public class DashboardRestControllerDocsTest extends RestDocsSupport {

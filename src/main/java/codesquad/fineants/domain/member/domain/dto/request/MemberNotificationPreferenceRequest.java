@@ -1,6 +1,6 @@
 package codesquad.fineants.domain.member.domain.dto.request;
 
-import codesquad.fineants.domain.notification_preference.domain.entity.NotificationPreference;
+import codesquad.fineants.domain.notificationpreference.domain.entity.NotificationPreference;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;

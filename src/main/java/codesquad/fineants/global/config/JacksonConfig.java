@@ -49,8 +49,8 @@ public class JacksonConfig {
 		}));
 		objectMapper.registerModule(new SimpleModule().addDeserializer(Money.class, new JsonDeserializer<>() {
 			@Override
-			public Money deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
-				return Money.won(p.getValueAsString());
+			public Money deserialize(JsonParser parser, DeserializationContext context) throws IOException {
+				return Money.won(parser.getValueAsString());
 			}
 		}));
 
@@ -63,11 +63,10 @@ public class JacksonConfig {
 		}));
 		objectMapper.registerModule(new SimpleModule().addDeserializer(Count.class, new JsonDeserializer<Count>() {
 			@Override
-			public Count deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
-				return Count.from(p.getValueAsString());
+			public Count deserialize(JsonParser parser, DeserializationContext context) throws IOException {
+				return Count.from(parser.getValueAsString());
 			}
 		}));
-
 		return objectMapper;
 	}
 }

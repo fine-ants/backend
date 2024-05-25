@@ -22,11 +22,6 @@ import org.springframework.restdocs.payload.JsonFieldType;
 
 import codesquad.fineants.docs.RestDocsSupport;
 import codesquad.fineants.domain.member.domain.entity.Member;
-import codesquad.fineants.domain.notification.domain.entity.Notification;
-import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
-import codesquad.fineants.domain.stock.domain.entity.Stock;
-import codesquad.fineants.domain.stock_target_price.domain.entity.StockTargetPrice;
-import codesquad.fineants.domain.stock_target_price.domain.entity.TargetPriceNotification;
 import codesquad.fineants.domain.notification.controller.NotificationRestController;
 import codesquad.fineants.domain.notification.domain.dto.response.NotifyMessage;
 import codesquad.fineants.domain.notification.domain.dto.response.PortfolioNotificationResponse;
@@ -35,9 +30,14 @@ import codesquad.fineants.domain.notification.domain.dto.response.PortfolioNotif
 import codesquad.fineants.domain.notification.domain.dto.response.PortfolioNotifyMessagesResponse;
 import codesquad.fineants.domain.notification.domain.dto.response.StockNotifyMessage;
 import codesquad.fineants.domain.notification.domain.dto.response.TargetPriceNotificationResponse;
+import codesquad.fineants.domain.notification.domain.entity.Notification;
 import codesquad.fineants.domain.notification.service.NotificationService;
+import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
+import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock_target_price.domain.dto.response.TargetPriceNotifyMessageItem;
 import codesquad.fineants.domain.stock_target_price.domain.dto.response.TargetPriceNotifyMessageResponse;
+import codesquad.fineants.domain.stock_target_price.domain.entity.StockTargetPrice;
+import codesquad.fineants.domain.stock_target_price.domain.entity.TargetPriceNotification;
 
 class NotificationRestControllerDocsTest extends RestDocsSupport {
 

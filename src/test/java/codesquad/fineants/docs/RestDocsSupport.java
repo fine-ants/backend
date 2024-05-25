@@ -29,6 +29,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import codesquad.fineants.domain.common.count.Count;
 import codesquad.fineants.domain.common.money.Money;
+import codesquad.fineants.domain.dividend.domain.entity.StockDividend;
+import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.notification.domain.dto.response.NotifyMessage;
 import codesquad.fineants.domain.notification.domain.dto.response.PortfolioNotifyMessage;
@@ -38,14 +40,12 @@ import codesquad.fineants.domain.notification.domain.entity.PortfolioNotificatio
 import codesquad.fineants.domain.notification.domain.entity.StockTargetPriceNotification;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio_gain_history.domain.entity.PortfolioGainHistory;
-import codesquad.fineants.domain.portfolio_holding.domain.entity.PortfolioHolding;
-import codesquad.fineants.domain.purchase_history.domain.entity.PurchaseHistory;
+import codesquad.fineants.domain.purchasehistory.domain.entity.PurchaseHistory;
 import codesquad.fineants.domain.stock.domain.entity.Market;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
-import codesquad.fineants.domain.stock_dividend.domain.entity.StockDividend;
 import codesquad.fineants.domain.stock_target_price.domain.entity.StockTargetPrice;
 import codesquad.fineants.domain.stock_target_price.domain.entity.TargetPriceNotification;
-import codesquad.fineants.domain.watch_list.domain.entity.WatchList;
+import codesquad.fineants.domain.watchlist.domain.entity.WatchList;
 import codesquad.fineants.global.config.JacksonConfig;
 import codesquad.fineants.global.security.oauth.dto.MemberAuthentication;
 import codesquad.fineants.global.security.oauth.resolver.MemberAuthenticationArgumentResolver;

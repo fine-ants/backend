@@ -42,9 +42,9 @@ public class KisCurrentPrice {
 
 	static class KisCurrentPriceDeserializer extends JsonDeserializer<KisCurrentPrice> {
 		@Override
-		public KisCurrentPrice deserialize(JsonParser p, DeserializationContext ctxt) throws
+		public KisCurrentPrice deserialize(JsonParser parser, DeserializationContext context) throws
 			IOException {
-			TreeNode rootNode = p.readValueAsTree();
+			TreeNode rootNode = parser.readValueAsTree();
 			KisCurrentPrice kisCurrentPrice = new KisCurrentPrice();
 
 			JsonNode outputNode = (JsonNode)rootNode.get("output");
@@ -53,7 +53,7 @@ public class KisCurrentPrice {
 				kisCurrentPrice.price = stckPrprNode.asLong();
 			}
 
-			JsonNode stckShrnIscd = outputNode.get("stck_shrn_iscd");// 주식 종목 단축 코드
+			JsonNode stckShrnIscd = outputNode.get("stck_shrn_iscd"); // 주식 종목 단축 코드
 			if (stckShrnIscd != null) {
 				kisCurrentPrice.tickerSymbol = stckShrnIscd.asText();
 			}

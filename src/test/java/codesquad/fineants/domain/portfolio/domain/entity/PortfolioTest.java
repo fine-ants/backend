@@ -15,13 +15,12 @@ import codesquad.fineants.domain.common.money.Bank;
 import codesquad.fineants.domain.common.money.Expression;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.common.money.RateDivision;
-import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
-import codesquad.fineants.domain.portfolio_holding.domain.entity.PortfolioHolding;
-import codesquad.fineants.domain.purchase_history.domain.entity.PurchaseHistory;
+import codesquad.fineants.domain.holding.domain.dto.response.PortfolioPieChartItem;
+import codesquad.fineants.domain.holding.domain.dto.response.PortfolioSectorChartItem;
+import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
+import codesquad.fineants.domain.purchasehistory.domain.entity.PurchaseHistory;
 import codesquad.fineants.domain.stock.domain.entity.Market;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
-import codesquad.fineants.domain.portfolio_holding.domain.dto.response.PortfolioPieChartItem;
-import codesquad.fineants.domain.portfolio_holding.domain.dto.response.PortfolioSectorChartItem;
 
 @ActiveProfiles("test")
 class PortfolioTest {

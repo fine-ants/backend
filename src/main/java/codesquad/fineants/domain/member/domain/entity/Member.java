@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 import org.springframework.security.core.GrantedAuthority;
 
 import codesquad.fineants.domain.BaseEntity;
-import codesquad.fineants.domain.notification_preference.domain.entity.NotificationPreference;
+import codesquad.fineants.domain.notificationpreference.domain.entity.NotificationPreference;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

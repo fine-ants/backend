@@ -1,6 +1,6 @@
 package codesquad.fineants.domain.member.domain.dto.response;
 
-import codesquad.fineants.domain.notification_preference.domain.entity.NotificationPreference;
+import codesquad.fineants.domain.notificationpreference.domain.entity.NotificationPreference;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

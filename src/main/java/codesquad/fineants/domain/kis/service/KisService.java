@@ -16,6 +16,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Service;
 
+import codesquad.fineants.domain.holding.repository.PortfolioHoldingRepository;
 import codesquad.fineants.domain.kis.client.KisClient;
 import codesquad.fineants.domain.kis.client.KisCurrentPrice;
 import codesquad.fineants.domain.kis.domain.dto.response.KisClosingPrice;
@@ -25,9 +26,6 @@ import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
 import codesquad.fineants.domain.kis.repository.HolidayRepository;
 import codesquad.fineants.domain.kis.repository.KisAccessTokenRepository;
 import codesquad.fineants.domain.notification.event.publisher.PortfolioPublisher;
-import codesquad.fineants.domain.portfolio_holding.repository.PortfolioHoldingRepository;
-import codesquad.fineants.domain.stock.repository.StockRepository;
-import codesquad.fineants.domain.stock_dividend.repository.StockDividendRepository;
 import codesquad.fineants.domain.stock_target_price.event.publisher.StockTargetPricePublisher;
 import codesquad.fineants.global.errors.exception.KisException;
 import lombok.RequiredArgsConstructor;
@@ -49,12 +47,10 @@ public class KisService {
 	private final HolidayRepository holidayRepository;
 	private final StockTargetPricePublisher stockTargetPricePublisher;
 	private final PortfolioPublisher portfolioPublisher;
-	private final StockRepository stockRepository;
-	private final StockDividendRepository stockDividendRepository;
 
 	// 평일 9am ~ 15:59pm 5초마다 현재가 갱신 수행
 	@Scheduled(cron = "0/5 * 9-15 ? * MON,TUE,WED,THU,FRI")
-	public void scheduleRefreshingAllStockCurrentPrice() {
+	public void refreshCurrentPrice() {
 		// 휴장일인 경우 실행하지 않음
 		if (holidayRepository.isHoliday(LocalDate.now())) {
 			return;
@@ -77,7 +73,7 @@ public class KisService {
 	public List<KisCurrentPrice> refreshStockCurrentPrice(List<String> tickerSymbols) {
 		List<CompletableFuture<KisCurrentPrice>> futures = tickerSymbols.stream()
 			.map(this::submitCurrentPriceFuture)
-			.collect(Collectors.toList());
+			.toList();
 
 		List<KisCurrentPrice> prices = futures.stream()
 			.map(future -> {
@@ -132,7 +128,7 @@ public class KisService {
 
 	// 15시 30분에 종가 갱신 수행
 	@Scheduled(cron = "* 30 15 * * *")
-	public void scheduleRefreshingAllLastDayClosingPrice() {
+	public void refreshClosingPrice() {
 		// 휴장일인 경우 실행하지 않음
 		if (holidayRepository.isHoliday(LocalDate.now())) {
 			return;
@@ -159,7 +155,7 @@ public class KisService {
 	private List<KisClosingPrice> readLastDayClosingPriceResponses(List<String> unknownTickerSymbols) {
 		List<CompletableFuture<KisClosingPrice>> futures = unknownTickerSymbols.stream()
 			.map(this::createClosingPriceFuture)
-			.collect(Collectors.toList());
+			.toList();
 
 		return futures.stream()
 			.map(future -> {

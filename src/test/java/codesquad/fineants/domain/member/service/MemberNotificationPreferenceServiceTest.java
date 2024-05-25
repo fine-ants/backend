@@ -12,14 +12,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import codesquad.fineants.AbstractContainerBaseTest;
-import codesquad.fineants.domain.fcm_token.domain.entity.FcmToken;
-import codesquad.fineants.domain.fcm_token.repository.FcmRepository;
+import codesquad.fineants.domain.fcm.domain.entity.FcmToken;
+import codesquad.fineants.domain.fcm.repository.FcmRepository;
 import codesquad.fineants.domain.member.domain.dto.request.MemberNotificationPreferenceRequest;
 import codesquad.fineants.domain.member.domain.dto.response.MemberNotificationPreferenceResponse;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
-import codesquad.fineants.domain.notification_preference.domain.entity.NotificationPreference;
-import codesquad.fineants.domain.notification_preference.repository.NotificationPreferenceRepository;
+import codesquad.fineants.domain.notificationpreference.domain.entity.NotificationPreference;
+import codesquad.fineants.domain.notificationpreference.repository.NotificationPreferenceRepository;
 
 class MemberNotificationPreferenceServiceTest extends AbstractContainerBaseTest {
 

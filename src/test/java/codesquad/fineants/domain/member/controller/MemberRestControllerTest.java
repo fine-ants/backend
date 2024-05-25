@@ -1,7 +1,6 @@
 package codesquad.fineants.domain.member.controller;
 
 import static org.hamcrest.Matchers.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
 import static org.springframework.http.HttpMethod.*;
@@ -182,7 +181,7 @@ class MemberRestControllerTest extends ControllerTestSupport {
 	@Test
 	void signup() throws Exception {
 		// given
-		given(memberService.signup(any(SignUpServiceRequest.class)))
+		given(memberService.signup(ArgumentMatchers.any(SignUpServiceRequest.class)))
 			.willReturn(SignUpServiceResponse.from(createMember()));
 
 		Map<String, Object> profileInformationMap = Map.of(
@@ -211,7 +210,7 @@ class MemberRestControllerTest extends ControllerTestSupport {
 	@Test
 	void signup_whenSkipProfileImageFile_then200OK() throws Exception {
 		// given
-		given(memberService.signup(any(SignUpServiceRequest.class)))
+		given(memberService.signup(ArgumentMatchers.any(SignUpServiceRequest.class)))
 			.willReturn(SignUpServiceResponse.from(createMember()));
 
 		Map<String, Object> profileInformationMap = Map.of(
@@ -266,7 +265,7 @@ class MemberRestControllerTest extends ControllerTestSupport {
 	@Test
 	void signup_whenDuplicatedNickname_thenResponse400Error() throws Exception {
 		// given
-		given(memberService.signup(any(SignUpServiceRequest.class)))
+		given(memberService.signup(ArgumentMatchers.any(SignUpServiceRequest.class)))
 			.willThrow(new BadRequestException(MemberErrorCode.REDUNDANT_NICKNAME));
 
 		Map<String, Object> profileInformationMap = Map.of(
@@ -295,7 +294,7 @@ class MemberRestControllerTest extends ControllerTestSupport {
 	@Test
 	void signup_whenDuplicatedEmail_thenResponse400Error() throws Exception {
 		// given
-		given(memberService.signup(any(SignUpServiceRequest.class)))
+		given(memberService.signup(ArgumentMatchers.any(SignUpServiceRequest.class)))
 			.willThrow(new BadRequestException(MemberErrorCode.REDUNDANT_EMAIL));
 
 		Map<String, Object> profileInformationMap = Map.of(
@@ -324,7 +323,7 @@ class MemberRestControllerTest extends ControllerTestSupport {
 	@Test
 	void signup_whenNotMatchPasswordAndPasswordConfirm_thenResponse400Error() throws Exception {
 		// given
-		given(memberService.signup(any(SignUpServiceRequest.class)))
+		given(memberService.signup(ArgumentMatchers.any(SignUpServiceRequest.class)))
 			.willThrow(new BadRequestException(MemberErrorCode.PASSWORD_CHECK_FAIL));
 
 		Map<String, Object> profileInformationMap = Map.of(
@@ -489,11 +488,7 @@ class MemberRestControllerTest extends ControllerTestSupport {
 	}
 
 	private Member createMember() {
-		return createMember("일개미1234");
-	}
-
-	private Member createMember(String nickname) {
-		return createMember(nickname, "profileUrl");
+		return createMember("일개미1234", "profileUrl");
 	}
 
 	private Member createMember(String nickname, String profileUrl) {
@@ -509,9 +504,8 @@ class MemberRestControllerTest extends ControllerTestSupport {
 
 	public MultipartFile createMockMultipartFile() {
 		ClassPathResource classPathResource = new ClassPathResource("profile.jpeg");
-		Path path = null;
 		try {
-			path = Paths.get(classPathResource.getURI());
+			Path path = Paths.get(classPathResource.getURI());
 			byte[] profile = Files.readAllBytes(path);
 			return new MockMultipartFile("profileImageFile", "profile.jpeg", "image/jpeg",
 				profile);

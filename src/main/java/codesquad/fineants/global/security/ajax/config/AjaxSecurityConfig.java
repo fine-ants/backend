@@ -21,7 +21,7 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import codesquad.fineants.global.security.ajax.entry_point.AjaxLoginAuthenticationEntryPoint;
+import codesquad.fineants.global.security.ajax.entrypoint.AjaxLoginAuthenticationEntryPoint;
 import codesquad.fineants.global.security.ajax.filter.AjaxLoginProcessingFilter;
 import codesquad.fineants.global.security.ajax.handler.AjaxAuthenticationFailHandler;
 import codesquad.fineants.global.security.ajax.handler.AjaxAuthenticationSuccessHandler;

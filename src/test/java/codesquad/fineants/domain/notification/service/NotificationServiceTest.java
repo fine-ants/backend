@@ -26,6 +26,12 @@ import com.google.firebase.messaging.Message;
 import codesquad.fineants.AbstractContainerBaseTest;
 import codesquad.fineants.domain.common.count.Count;
 import codesquad.fineants.domain.common.money.Money;
+import codesquad.fineants.domain.dividend.repository.StockDividendRepository;
+import codesquad.fineants.domain.fcm.domain.entity.FcmToken;
+import codesquad.fineants.domain.fcm.repository.FcmRepository;
+import codesquad.fineants.domain.fcm.service.FirebaseMessagingService;
+import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
+import codesquad.fineants.domain.holding.repository.PortfolioHoldingRepository;
 import codesquad.fineants.domain.fcm_token.domain.entity.FcmToken;
 import codesquad.fineants.domain.fcm_token.repository.FcmRepository;
 import codesquad.fineants.domain.fcm_token.service.FirebaseMessagingService;
@@ -40,18 +46,15 @@ import codesquad.fineants.domain.notification.domain.entity.Notification;
 import codesquad.fineants.domain.notification.domain.entity.type.NotificationType;
 import codesquad.fineants.domain.notification.repository.NotificationRepository;
 import codesquad.fineants.domain.notification.repository.NotificationSentRepository;
-import codesquad.fineants.domain.notification_preference.domain.entity.NotificationPreference;
-import codesquad.fineants.domain.notification_preference.repository.NotificationPreferenceRepository;
+import codesquad.fineants.domain.notificationpreference.domain.entity.NotificationPreference;
+import codesquad.fineants.domain.notificationpreference.repository.NotificationPreferenceRepository;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.repository.PortfolioRepository;
-import codesquad.fineants.domain.portfolio_holding.domain.entity.PortfolioHolding;
-import codesquad.fineants.domain.portfolio_holding.repository.PortfolioHoldingRepository;
-import codesquad.fineants.domain.purchase_history.domain.entity.PurchaseHistory;
-import codesquad.fineants.domain.purchase_history.repository.PurchaseHistoryRepository;
+import codesquad.fineants.domain.purchasehistory.domain.entity.PurchaseHistory;
+import codesquad.fineants.domain.purchasehistory.repository.PurchaseHistoryRepository;
 import codesquad.fineants.domain.stock.domain.entity.Market;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
-import codesquad.fineants.domain.stock_dividend.repository.StockDividendRepository;
 import codesquad.fineants.domain.stock_target_price.domain.dto.response.TargetPriceNotifyMessageResponse;
 import codesquad.fineants.domain.stock_target_price.domain.entity.StockTargetPrice;
 import codesquad.fineants.domain.stock_target_price.domain.entity.TargetPriceNotification;
@@ -220,8 +223,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 
 		FcmToken fcmToken = fcmRepository.save(FcmToken.builder()
 			.latestActivationTime(LocalDateTime.now())
-			.token(
-				"fahY76rRwq8HGy0m1lwckx:APA91bEovbLJyqdSRq8MWDbsIN8sbk90JiNHbIBs6rDoiOKeC-aa5P1QydiRa6okGrIZELrxx_cYieWUN44iX-AD6jma-cYRUR7e3bTMXwkqZFLRZh5s7-bcksGniB7Y2DkoONHtSjos")
+			.token("accessToken")
 			.member(member)
 			.build());
 
@@ -336,8 +338,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 
 		FcmToken fcmToken = fcmRepository.save(FcmToken.builder()
 			.latestActivationTime(LocalDateTime.now())
-			.token(
-				"dcEZXm1dxCV31t-Mt3yikc:APA91bHJv4tQHRaL9P985sCvGOw3b0qr0maz0BXb7_eKOKBZPFM51HytTJMbiUv9L37utFpPNPE5Uxr_VbdUIvmBahOftmVuaNiuOJ35Jk50yKlC-Cj2sQHMwruUZ_O6BjSuGMbrRCi3")
+			.token("accessToken")
 			.member(member)
 			.build());
 

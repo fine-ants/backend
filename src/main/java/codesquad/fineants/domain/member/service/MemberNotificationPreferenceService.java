@@ -4,14 +4,14 @@ import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import codesquad.fineants.domain.fcm_token.domain.dto.response.FcmDeleteResponse;
-import codesquad.fineants.domain.fcm_token.service.FcmService;
+import codesquad.fineants.domain.fcm.domain.dto.response.FcmDeleteResponse;
+import codesquad.fineants.domain.fcm.service.FcmService;
 import codesquad.fineants.domain.member.domain.dto.request.MemberNotificationPreferenceRequest;
 import codesquad.fineants.domain.member.domain.dto.response.MemberNotificationPreferenceResponse;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
-import codesquad.fineants.domain.notification_preference.domain.entity.NotificationPreference;
-import codesquad.fineants.domain.notification_preference.repository.NotificationPreferenceRepository;
+import codesquad.fineants.domain.notificationpreference.domain.entity.NotificationPreference;
+import codesquad.fineants.domain.notificationpreference.repository.NotificationPreferenceRepository;
 import codesquad.fineants.global.errors.errorcode.MemberErrorCode;
 import codesquad.fineants.global.errors.errorcode.NotificationPreferenceErrorCode;
 import codesquad.fineants.global.errors.exception.NotFoundResourceException;

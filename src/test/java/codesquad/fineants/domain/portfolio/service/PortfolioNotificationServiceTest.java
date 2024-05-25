@@ -18,6 +18,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import codesquad.fineants.AbstractContainerBaseTest;
 import codesquad.fineants.domain.common.count.Count;
 import codesquad.fineants.domain.common.money.Money;
+import codesquad.fineants.domain.dividend.repository.StockDividendRepository;
+import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
+import codesquad.fineants.domain.holding.repository.PortfolioHoldingRepository;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
 import codesquad.fineants.domain.portfolio.domain.dto.request.PortfolioNotificationUpdateRequest;
@@ -25,16 +28,13 @@ import codesquad.fineants.domain.portfolio.domain.dto.response.PortfolioNotifica
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.repository.PortfolioRepository;
 import codesquad.fineants.domain.portfolio_gain_history.repository.PortfolioGainHistoryRepository;
-import codesquad.fineants.domain.portfolio_holding.domain.entity.PortfolioHolding;
-import codesquad.fineants.domain.portfolio_holding.repository.PortfolioHoldingRepository;
-import codesquad.fineants.domain.purchase_history.domain.entity.PurchaseHistory;
-import codesquad.fineants.domain.purchase_history.repository.PurchaseHistoryRepository;
+import codesquad.fineants.domain.purchasehistory.domain.entity.PurchaseHistory;
+import codesquad.fineants.domain.purchasehistory.repository.PurchaseHistoryRepository;
 import codesquad.fineants.domain.stock.domain.entity.Market;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
 import codesquad.fineants.global.errors.errorcode.PortfolioErrorCode;
 import codesquad.fineants.global.errors.exception.FineAntsException;
-import codesquad.fineants.infra.mail.service.MailService;
 
 class PortfolioNotificationServiceTest extends AbstractContainerBaseTest {
 
@@ -62,7 +62,8 @@ class PortfolioNotificationServiceTest extends AbstractContainerBaseTest {
 	@Autowired
 	private PortfolioGainHistoryRepository portfolioGainHistoryRepository;
 
-	private MailService mailService;
+	@Autowired
+	private StockDividendRepository stockDividendRepository;
 
 	@AfterEach
 	void tearDown() {
@@ -71,6 +72,7 @@ class PortfolioNotificationServiceTest extends AbstractContainerBaseTest {
 		portFolioHoldingRepository.deleteAllInBatch();
 		portfolioRepository.deleteAllInBatch();
 		memberRepository.deleteAllInBatch();
+		stockDividendRepository.deleteAllInBatch();
 		stockRepository.deleteAllInBatch();
 	}
 

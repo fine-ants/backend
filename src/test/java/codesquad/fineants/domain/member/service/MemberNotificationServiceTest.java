@@ -16,7 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import codesquad.fineants.AbstractContainerBaseTest;
 import codesquad.fineants.domain.common.money.Money;
-import codesquad.fineants.domain.fcm_token.repository.FcmRepository;
+import codesquad.fineants.domain.fcm.repository.FcmRepository;
 import codesquad.fineants.domain.member.domain.dto.response.MemberNotification;
 import codesquad.fineants.domain.member.domain.dto.response.MemberNotificationResponse;
 import codesquad.fineants.domain.member.domain.entity.Member;

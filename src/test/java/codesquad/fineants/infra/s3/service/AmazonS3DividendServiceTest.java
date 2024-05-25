@@ -14,8 +14,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
-import codesquad.fineants.infra.s3.dto.Dividend;
 import codesquad.fineants.AbstractContainerBaseTest;
+import codesquad.fineants.infra.s3.dto.Dividend;
 
 class AmazonS3DividendServiceTest extends AbstractContainerBaseTest {
 

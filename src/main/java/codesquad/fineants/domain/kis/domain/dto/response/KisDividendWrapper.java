@@ -22,14 +22,14 @@ public class KisDividendWrapper {
 
 	static class KissDividendWrapperDeserializer extends JsonDeserializer<KisDividendWrapper> {
 		@Override
-		public KisDividendWrapper deserialize(JsonParser p, DeserializationContext ctxt) throws
+		public KisDividendWrapper deserialize(JsonParser parser, DeserializationContext context) throws
 			IOException {
-			TreeNode rootNode = p.readValueAsTree();
+			TreeNode rootNode = parser.readValueAsTree();
 			TreeNode treeNode = rootNode.get("output1");
 			KisDividendWrapper wrapper = new KisDividendWrapper();
 			List<KisDividend> kisDividends = new ArrayList<>();
 			for (int i = 0; i < treeNode.size(); i++) {
-				kisDividends.add(p.getCodec().treeToValue(treeNode.get(i), KisDividend.class));
+				kisDividends.add(parser.getCodec().treeToValue(treeNode.get(i), KisDividend.class));
 			}
 			wrapper.kisDividends = kisDividends;
 			return wrapper;
