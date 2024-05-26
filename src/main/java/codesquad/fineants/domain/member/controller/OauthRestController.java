@@ -9,6 +9,7 @@ import codesquad.fineants.global.api.ApiResponse;
 import codesquad.fineants.global.security.oauth.dto.Token;
 import codesquad.fineants.global.success.MemberSuccessCode;
 import jakarta.annotation.security.PermitAll;
+import jakarta.servlet.http.HttpServletResponse;
 
 @RestController
 public class OauthRestController {
@@ -17,9 +18,14 @@ public class OauthRestController {
 	@PermitAll
 	public ApiResponse<OauthMemberLoginResponse> oauthRedirect(
 		@RequestParam String accessToken,
-		@RequestParam String refreshToken) {
+		@RequestParam String refreshToken,
+		HttpServletResponse servletResponse) {
 		Token token = Token.create(accessToken, refreshToken);
 		OauthMemberLoginResponse response = OauthMemberLoginResponse.of(token);
+
+		servletResponse.addCookie(token.createAccessTokenCookie());
+		servletResponse.addCookie(token.createRefreshTokenCookie());
+
 		return ApiResponse.success(MemberSuccessCode.OK_LOGIN, response);
 	}
 }

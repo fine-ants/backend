@@ -26,6 +26,9 @@ public class MemberAuthenticationArgumentResolver implements HandlerMethodArgume
 	public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
 		NativeWebRequest webRequest, WebDataBinderFactory binderFactory) throws Exception {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		if (authentication == null) {
+			return null;
+		}
 		return authentication.getPrincipal();
 	}
 }

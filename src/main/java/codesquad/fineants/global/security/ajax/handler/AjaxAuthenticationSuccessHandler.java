@@ -37,6 +37,10 @@ public class AjaxAuthenticationSuccessHandler implements AuthenticationSuccessHa
 		Token token = tokenService.generateToken(MemberAuthentication.from(member));
 		LoginResponse loginResponse = LoginResponse.from(token);
 		ApiResponse<LoginResponse> body = ApiResponse.success(MemberSuccessCode.OK_LOGIN, loginResponse);
+
+		response.addCookie(token.createAccessTokenCookie());
+		response.addCookie(token.createRefreshTokenCookie());
+
 		objectMapper.writeValue(response.getWriter(), body);
 	}
 }
