@@ -224,6 +224,7 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 
 		// when
 		mockMvc.perform(RestDocumentationRequestBuilders.post("/api/stocks/target-price/notifications/send")
+				.queryParam("memberId", String.valueOf(member.getId()))
 				.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))
 			.andExpect(status().isCreated())
 			.andExpect(jsonPath("code").value(equalTo(201)))
@@ -252,6 +253,9 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 					preprocessResponse(prettyPrint()),
 					requestHeaders(
 						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
+					),
+					queryParameters(
+						parameterWithName("memberId").description("회원 등록번호")
 					),
 					responseFields(
 						fieldWithPath("code").type(JsonFieldType.NUMBER)

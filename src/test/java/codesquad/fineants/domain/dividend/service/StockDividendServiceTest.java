@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.security.test.context.support.WithMockUser;
 
 import codesquad.fineants.AbstractContainerBaseTest;
 import codesquad.fineants.domain.common.money.Money;
@@ -57,6 +58,7 @@ class StockDividendServiceTest extends AbstractContainerBaseTest {
 	/**
 	 * 해당 테스트 수행시 localStack에 저장된 dividends.csv 파일을 이용하여 배당 일정을 초기화합니다.
 	 */
+	@WithMockUser(roles = "ADMIN")
 	@DisplayName("배당일정을 초기화한다")
 	@Test
 	void initializeStockDividend() {
@@ -68,6 +70,7 @@ class StockDividendServiceTest extends AbstractContainerBaseTest {
 		assertThat(stockDividendRepository.count()).isEqualTo(5);
 	}
 
+	@WithMockUser(roles = "ADMIN")
 	@DisplayName("배당 일정을 최신화한다")
 	@Test
 	void refreshStockDividend() {
@@ -154,6 +157,7 @@ class StockDividendServiceTest extends AbstractContainerBaseTest {
 			);
 	}
 
+	@WithMockUser(roles = "ADMIN")
 	@DisplayName("S3 저장소에 배당 일정 csv 파일을 작성한다")
 	@Test
 	void writeDividendCsvToS3() {
