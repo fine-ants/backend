@@ -15,7 +15,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public class AjaxLoginAuthenticationEntryPoint implements AuthenticationEntryPoint {
+public class CommonLoginAuthenticationEntryPoint implements AuthenticationEntryPoint {
 	private final ObjectMapper objectMapper;
 
 	@Override

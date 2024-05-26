@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,6 +40,7 @@ public class StockDividendService {
 	 * - 이 메서드는 서버 시작시 수행됨
 	 */
 	@Transactional
+	@Secured("ROLE_ADMIN")
 	public void initializeStockDividend() {
 		// 기존 종목 배당금 데이터 삭제
 		stockDividendRepository.deleteAllInBatch();
@@ -74,6 +76,7 @@ public class StockDividendService {
 	 *   - ex) now=202404-17 => 범위를 벗어난 배당 일정은 2023-01-01 이전 or 2024-12-31 이후
 	 */
 	@Transactional
+	@Secured("ROLE_ADMIN")
 	public void refreshStockDividend(LocalDate now) {
 		// 0. 올해 말까지의 배당 일정을 조회
 		LocalDate to = now.with(TemporalAdjusters.lastDayOfYear());
@@ -159,6 +162,7 @@ public class StockDividendService {
 	 * 데이터베이스의 배당 일정을 S3에 CSV 파일로 저장
 	 */
 	@Transactional(readOnly = true)
+	@Secured("ROLE_ADMIN")
 	public void writeDividendCsvToS3() {
 		List<Dividend> dividends = stockDividendRepository.findAllStockDividends().stream()
 			.map(StockDividend::toDividend)

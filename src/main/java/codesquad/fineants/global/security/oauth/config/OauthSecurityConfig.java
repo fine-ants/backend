@@ -19,6 +19,7 @@ import codesquad.fineants.domain.member.repository.MemberRepository;
 import codesquad.fineants.domain.member.repository.RoleRepository;
 import codesquad.fineants.domain.member.service.NicknameGenerator;
 import codesquad.fineants.domain.notificationpreference.repository.NotificationPreferenceRepository;
+import codesquad.fineants.global.security.ajax.entrypoint.CommonLoginAuthenticationEntryPoint;
 import codesquad.fineants.global.security.handler.CustomAccessDeniedHandler;
 import codesquad.fineants.global.security.oauth.filter.JwtAuthFilter;
 import codesquad.fineants.global.security.oauth.filter.OAuth2AuthorizationRequestRedirectWithRedirectUrlParamFilter;
@@ -42,11 +43,13 @@ public class OauthSecurityConfig {
 	private final RoleRepository roleRepository;
 	private final OAuth2UserMapper oAuth2UserMapper;
 	private final String loginSuccessUri;
+	private final CommonLoginAuthenticationEntryPoint commonLoginAuthenticationEntryPoint;
 
 	public OauthSecurityConfig(MemberRepository memberRepository,
 		NotificationPreferenceRepository notificationPreferenceRepository, TokenService tokenService,
 		NicknameGenerator nicknameGenerator, RoleRepository roleRepository, OAuth2UserMapper oAuth2UserMapper,
-		@Value("${oauth2.login-success-uri}") String loginSuccessUri) {
+		@Value("${oauth2.login-success-uri}") String loginSuccessUri,
+		CommonLoginAuthenticationEntryPoint commonLoginAuthenticationEntryPoint) {
 		this.memberRepository = memberRepository;
 		this.notificationPreferenceRepository = notificationPreferenceRepository;
 		this.tokenService = tokenService;
@@ -54,6 +57,7 @@ public class OauthSecurityConfig {
 		this.roleRepository = roleRepository;
 		this.oAuth2UserMapper = oAuth2UserMapper;
 		this.loginSuccessUri = loginSuccessUri;
+		this.commonLoginAuthenticationEntryPoint = commonLoginAuthenticationEntryPoint;
 	}
 
 	@Bean
@@ -64,9 +68,18 @@ public class OauthSecurityConfig {
 				authorize
 					.requestMatchers(
 						"/oauth2/authorization/**",
-						"/login/oauth2/code/**"
+						"/login/oauth2/code/**",
+						"/api/oauth/redirect",
+						"/api/auth/signup",
+						"/api/auth/signup/duplicationcheck/nickname/**",
+						"/api/auth/signup/duplicationcheck/email/**",
+						"/api/auth/signup/verifyEmail",
+						"/api/auth/signup/verifyCode",
+						"/api/auth/refresh/token",
+						"/api/stocks/search",
+						"/api/stocks/**"
 					).permitAll()
-					.anyRequest().permitAll());
+					.anyRequest().authenticated());
 		http
 			.sessionManagement(configurer -> configurer
 				.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
@@ -81,8 +94,9 @@ public class OauthSecurityConfig {
 					.oidcUserService(customOidcUserService())
 				)
 				.successHandler(oauth2SuccessHandler()));
-		http.exceptionHandling(configurer ->
-			configurer.accessDeniedHandler(customAccessDeniedHandler()));
+		http.exceptionHandling(configurer -> configurer
+			.authenticationEntryPoint(commonLoginAuthenticationEntryPoint)
+			.accessDeniedHandler(customAccessDeniedHandler()));
 		http.csrf(AbstractHttpConfigurer::disable);
 		return http.build();
 	}

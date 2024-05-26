@@ -95,7 +95,6 @@ public class ExchangeRateService {
 		findBaseExchangeRate().changeBase(false);
 		// code의 base 값을 true로 변경
 		findExchangeRateBy(code).changeBase(true);
-		// TODO: rate 변경 반영이 안됨
 		updateExchangeRates();
 	}
 

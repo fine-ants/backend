@@ -65,6 +65,10 @@ public class NotificationPreference extends BaseEntity {
 			.build();
 	}
 
+	public void setMember(Member member) {
+		this.member = member;
+	}
+
 	public void changePreference(NotificationPreference notificationPreference) {
 		this.browserNotify = notificationPreference.browserNotify;
 		this.targetGainNotify = notificationPreference.targetGainNotify;

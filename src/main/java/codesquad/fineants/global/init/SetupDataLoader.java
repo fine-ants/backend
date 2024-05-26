@@ -5,6 +5,7 @@ import java.util.Set;
 
 import org.apache.logging.log4j.util.Strings;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -24,6 +25,8 @@ import codesquad.fineants.domain.member.repository.RoleRepository;
 import codesquad.fineants.domain.notificationpreference.domain.entity.NotificationPreference;
 import codesquad.fineants.domain.notificationpreference.repository.NotificationPreferenceRepository;
 import codesquad.fineants.domain.stock.service.StockService;
+import codesquad.fineants.global.errors.errorcode.MemberErrorCode;
+import codesquad.fineants.global.errors.exception.FineAntsException;
 import codesquad.fineants.global.security.oauth.dto.MemberAuthentication;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,6 +45,8 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
 	private final MemberRepository memberRepository;
 	private final NotificationPreferenceRepository notificationPreferenceRepository;
 	private final PasswordEncoder passwordEncoder;
+	@Value("${member.admin.password}")
+	private String password;
 
 	@Override
 	@Transactional
@@ -49,13 +54,9 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
 		if (alreadySetup) {
 			return;
 		}
-		MemberAuthentication memberAuthentication = MemberAuthentication.admin();
-		UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
-			memberAuthentication,
-			Strings.EMPTY,
-			memberAuthentication.getSimpleGrantedAuthority()
-		);
-		SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+		setupSecurityResources();
+
+		setAdminAuthentication();
 		log.info("애플리케이션 시작시 종목 현재가 및 종가 초기화 시작");
 		kisService.refreshCurrentPrice();
 		kisService.refreshClosingPrice();
@@ -63,8 +64,19 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
 		stockService.refreshStocks();
 		stockDividendService.initializeStockDividend();
 
-		setupSecurityResources();
 		alreadySetup = true;
+	}
+
+	private void setAdminAuthentication() {
+		Member admin = memberRepository.findMemberByEmailAndProvider("admin@admin.com", "local")
+			.orElseThrow(() -> new FineAntsException(MemberErrorCode.NOT_FOUND_MEMBER));
+		MemberAuthentication memberAuthentication = MemberAuthentication.from(admin);
+		UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
+			memberAuthentication,
+			Strings.EMPTY,
+			memberAuthentication.getSimpleGrantedAuthority()
+		);
+		SecurityContextHolder.getContext().setAuthentication(authenticationToken);
 	}
 
 	@Transactional
@@ -72,15 +84,13 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
 		Role adminRole = createRoleIfNotFound("ROLE_ADMIN", "관리자");
 		Role managerRole = createRoleIfNotFound("ROLE_MANAGER", "매니저");
 		Role userRole = createRoleIfNotFound("ROLE_USER", "회원");
-		log.info("create the adminRole : {}", adminRole);
-		log.info("create the managerRole : {}", managerRole);
-		log.info("create the userRole : {}", userRole);
 
-		Member userMember = createMemberIfNotFound("dragonbead95@naver.com", "일개미1111", "nemo1234@", Set.of(userRole));
-		Member oauthMember = createOauthMemberIfNotFound("dragonbead95@naver.com", "일개미1112", "naver",
+		createMemberIfNotFound("dragonbead95@naver.com", "일개미1111", "nemo1234@",
 			Set.of(userRole));
-		log.info("userMember : {}", userMember);
-		log.info("oauthMember : {}", oauthMember);
+		createOauthMemberIfNotFound("dragonbead95@naver.com", "일개미1112", "naver",
+			Set.of(userRole));
+		createMemberIfNotFound("admin@admin.com", "admin", password, Set.of(adminRole));
+		createMemberIfNotFound("manager@manager.com", "manager", password, Set.of(managerRole));
 	}
 
 	@Transactional
@@ -91,7 +101,7 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
 	}
 
 	@Transactional
-	public Member createMemberIfNotFound(String email, String nickname, String password,
+	public void createMemberIfNotFound(String email, String nickname, String password,
 		Set<Role> roleSet) {
 		Member member = memberRepository.findMemberByEmailAndProvider(email, "local")
 			.orElse(null);
@@ -106,12 +116,16 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
 			member.setMemberRoleSet(memberRoleSet);
 		}
 		Member saveMember = memberRepository.save(member);
-		notificationPreferenceRepository.save(NotificationPreference.allActive(saveMember));
-		return saveMember;
+		NotificationPreference preference = member.getNotificationPreference();
+		if (preference == null) {
+			NotificationPreference newPreference = NotificationPreference.allActive(saveMember);
+			saveMember.setNotificationPreference(newPreference);
+			notificationPreferenceRepository.save(newPreference);
+		}
 	}
 
 	@Transactional
-	public Member createOauthMemberIfNotFound(String email, String nickname, String provider, Set<Role> roleSet) {
+	public void createOauthMemberIfNotFound(String email, String nickname, String provider, Set<Role> roleSet) {
 		Member member = memberRepository.findMemberByEmailAndProvider(email, provider)
 			.orElse(null);
 
@@ -125,7 +139,11 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
 			member.setMemberRoleSet(memberRoleSet);
 		}
 		Member saveMember = memberRepository.save(member);
-		notificationPreferenceRepository.save(NotificationPreference.allActive(saveMember));
-		return saveMember;
+		NotificationPreference preference = member.getNotificationPreference();
+		if (preference == null) {
+			NotificationPreference newPreference = NotificationPreference.allActive(saveMember);
+			saveMember.setNotificationPreference(newPreference);
+			notificationPreferenceRepository.save(newPreference);
+		}
 	}
 }

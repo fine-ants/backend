@@ -83,13 +83,13 @@ public class FcmService {
 	}
 
 	@Transactional
-	@Secured("ROLE_USER")
+	@Secured(value = {"ROLE_USER", "ROLE_MANAGER", "ROLE_ADMIN"})
 	public void deleteToken(String token) {
 		int deleteCount = fcmRepository.deleteAllByToken(token);
 		log.info("FCM 토큰 삭제 개수 : deleteCount={}", deleteCount);
 	}
 
-	@Secured("ROLE_USER")
+	@Secured(value = {"ROLE_USER", "ROLE_MANAGER", "ROLE_ADMIN"})
 	public List<String> findTokens(Long memberId) {
 		return fcmRepository.findAllByMemberId(memberId).stream()
 			.map(FcmToken::getToken)

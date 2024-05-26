@@ -1,6 +1,7 @@
 package codesquad.fineants.domain.exchangerate.controller;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -29,30 +30,35 @@ public class ExchangeRateRestController {
 
 	@ResponseStatus(HttpStatus.CREATED)
 	@PostMapping
+	@Secured("ROLE_ADMIN")
 	public ApiResponse<Void> createExchangeRate(@RequestBody ExchangeRateCreateRequest request) {
 		service.createExchangeRate(request.getCode());
 		return ApiResponse.success(ExchangeRateSuccessCode.CREATE_EXCHANGE_RATE);
 	}
 
 	@GetMapping
+	@Secured("ROLE_ADMIN")
 	public ApiResponse<ExchangeRateListResponse> readExchangeRates() {
 		ExchangeRateListResponse response = service.readExchangeRates();
 		return ApiResponse.success(ExchangeRateSuccessCode.READ_EXCHANGE_RATE, response);
 	}
 
 	@PutMapping
+	@Secured("ROLE_ADMIN")
 	public ApiResponse<Void> updateExchangeRates() {
 		service.updateExchangeRates();
 		return ApiResponse.success(ExchangeRateSuccessCode.UPDATE_EXCHANGE_RATE);
 	}
 
 	@PatchMapping("/base")
+	@Secured("ROLE_ADMIN")
 	public ApiResponse<Void> patchBase(@RequestParam String code) {
 		service.patchBase(code);
 		return ApiResponse.success(ExchangeRateSuccessCode.PATCH_EXCHANGE_RATE);
 	}
 
 	@DeleteMapping
+	@Secured("ROLE_ADMIN")
 	public ApiResponse<Void> deleteExchangeRates(@RequestBody ExchangeRateDeleteRequest codes) {
 		service.deleteExchangeRates(codes.getCodes());
 		return ApiResponse.success(ExchangeRateSuccessCode.DELETE_EXCHANGE_RATE);

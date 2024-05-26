@@ -220,7 +220,6 @@ public class NotificationService {
 
 	// 회원에 대한 종목 지정가 알림 발송
 	@Transactional
-	@Secured("ROLE_USER")
 	public TargetPriceNotifyMessageResponse notifyTargetPriceBy(Long memberId) {
 		List<TargetPriceNotification> targetPrices = stockTargetPriceRepository.findAllByMemberId(memberId)
 			.stream()

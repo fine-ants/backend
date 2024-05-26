@@ -8,7 +8,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,7 +45,6 @@ public class StockService {
 	private final StockDividendService stockDividendService;
 
 	@Transactional(readOnly = true)
-	@Secured("ROLE_USER")
 	public List<StockSearchItem> search(StockSearchRequest request) {
 		return stockRepository.search(request.getSearchTerm())
 			.stream()
@@ -55,7 +53,6 @@ public class StockService {
 	}
 
 	@Transactional(readOnly = true)
-	@Secured("ROLE_USER")
 	public StockResponse getStock(String tickerSymbol) {
 		Stock stock = stockRepository.findByTickerSymbol(tickerSymbol)
 			.orElseThrow(() -> new NotFoundResourceException(StockErrorCode.NOT_FOUND_STOCK));
@@ -73,7 +70,6 @@ public class StockService {
 
 	// 최신 종목을 조회하고 데이터베이스의 종목 데이터들을 최신화한다
 	@Transactional
-	@Secured("ROLE_ADMIN")
 	public StockRefreshResponse refreshStocks() {
 		CompletableFuture<Set<StockDataResponse.StockIntegrationInfo>> future = CompletableFuture.supplyAsync(
 			krxService::fetchStockInfo

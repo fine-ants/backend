@@ -33,7 +33,7 @@ public class Role {
 	private String roleDescription;
 
 	public static Role create(String roleName, String roleDesc) {
-		return new Role(1L, roleName, roleDesc);
+		return new Role(null, roleName, roleDesc);
 	}
 
 	public SimpleGrantedAuthority toSimpleGrantedAuthority() {

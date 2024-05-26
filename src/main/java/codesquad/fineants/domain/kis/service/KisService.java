@@ -69,7 +69,7 @@ public class KisService {
 	}
 
 	// 주식 현재가 갱신
-	@Secured("ROLE_ADMIN")
+	@Secured(value = {"ROLE_USER", "ROLE_MANAGER", "ROLE_ADMIN"})
 	public List<KisCurrentPrice> refreshStockCurrentPrice(List<String> tickerSymbols) {
 		List<CompletableFuture<KisCurrentPrice>> futures = tickerSymbols.stream()
 			.map(this::submitCurrentPriceFuture)
@@ -144,7 +144,7 @@ public class KisService {
 	}
 
 	// 종목 종가 일부 갱신
-	@Secured("ROLE_ADMIN")
+	@Secured(value = {"ROLE_USER", "ROLE_MANAGER", "ROLE_ADMIN"})
 	public List<KisClosingPrice> refreshLastDayClosingPrice(List<String> tickerSymbols) {
 		List<KisClosingPrice> lastDayClosingPrices = readLastDayClosingPriceResponses(tickerSymbols);
 		lastDayClosingPrices.forEach(closingPriceRepository::addPrice);

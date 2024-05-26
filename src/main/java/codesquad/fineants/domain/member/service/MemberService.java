@@ -106,7 +106,6 @@ public class MemberService {
 	}
 
 	@Transactional
-	@Secured("ROLE_USER")
 	public SignUpServiceResponse signup(SignUpServiceRequest request) {
 		verifyEmail(request.getEmail());
 		verifyNickname(request.getNickname());

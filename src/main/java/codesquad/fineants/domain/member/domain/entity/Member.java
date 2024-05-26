@@ -100,11 +100,9 @@ public class Member extends BaseEntity {
 		this.roles = memberRoleSet;
 	}
 
-	public Map<String, Object> createClaims() {
-		Map<String, Object> claims = new HashMap<>();
-		claims.put("memberId", id);
-		claims.put("email", email);
-		return claims;
+	public void setNotificationPreference(NotificationPreference newPreference) {
+		this.notificationPreference = newPreference;
+		newPreference.setMember(this);
 	}
 
 	public boolean hasAuthorization(Long memberId) {
@@ -142,5 +140,4 @@ public class Member extends BaseEntity {
 			.collect(Collectors.toSet()));
 		return result;
 	}
-
 }

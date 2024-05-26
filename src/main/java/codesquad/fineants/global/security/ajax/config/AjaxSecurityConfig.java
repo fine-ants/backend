@@ -12,7 +12,6 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
@@ -21,7 +20,7 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import codesquad.fineants.global.security.ajax.entrypoint.AjaxLoginAuthenticationEntryPoint;
+import codesquad.fineants.global.security.ajax.entrypoint.CommonLoginAuthenticationEntryPoint;
 import codesquad.fineants.global.security.ajax.filter.AjaxLoginProcessingFilter;
 import codesquad.fineants.global.security.ajax.handler.AjaxAuthenticationFailHandler;
 import codesquad.fineants.global.security.ajax.handler.AjaxAuthenticationSuccessHandler;
@@ -70,7 +69,7 @@ public class AjaxSecurityConfig {
 		);
 
 		http.exceptionHandling(configurer ->
-			configurer.authenticationEntryPoint(ajaxLoginAuthenticationEntryPoint()));
+			configurer.authenticationEntryPoint(commonLoginAuthenticationEntryPoint()));
 		http.csrf(AbstractHttpConfigurer::disable);
 		return http.build();
 	}
@@ -103,8 +102,8 @@ public class AjaxSecurityConfig {
 	}
 
 	@Bean
-	protected AuthenticationEntryPoint ajaxLoginAuthenticationEntryPoint() {
-		return new AjaxLoginAuthenticationEntryPoint(objectMapper);
+	protected CommonLoginAuthenticationEntryPoint commonLoginAuthenticationEntryPoint() {
+		return new CommonLoginAuthenticationEntryPoint(objectMapper);
 	}
 
 	@Bean

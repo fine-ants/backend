@@ -145,9 +145,12 @@ public class MemberRestController {
 	@DeleteMapping("/account")
 	public ApiResponse<Void> deleteAccount(
 		@RequestBody OauthMemberLogoutRequest request,
-		@MemberAuthenticationPrincipal MemberAuthentication authentication
+		@MemberAuthenticationPrincipal MemberAuthentication authentication,
+		HttpServletRequest servletRequest,
+		HttpServletResponse servletResponse
 	) {
 		memberService.deleteMember(authentication.getId());
+		memberService.logout(servletRequest, servletResponse);
 		return ApiResponse.success(MemberSuccessCode.OK_DELETED_ACCOUNT);
 	}
 }

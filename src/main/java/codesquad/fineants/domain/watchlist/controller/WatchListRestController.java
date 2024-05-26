@@ -95,7 +95,7 @@ public class WatchListRestController {
 	@GetMapping("/stockExists/{tickerSymbol}")
 	public ApiResponse<List<WatchListHasStockResponse>> watchListHasStock(
 		@MemberAuthenticationPrincipal MemberAuthentication authentication,
-		@PathVariable("tickerSymbol") String tickerSymbol) {
+		@PathVariable String tickerSymbol) {
 		return ApiResponse.success(WatchListSuccessCode.HAS_STOCK,
 			watchListService.hasStock(authentication.getId(), tickerSymbol));
 	}

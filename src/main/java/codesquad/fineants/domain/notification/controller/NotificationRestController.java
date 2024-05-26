@@ -1,8 +1,10 @@
 package codesquad.fineants.domain.notification.controller;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -10,8 +12,6 @@ import codesquad.fineants.domain.notification.domain.dto.response.PortfolioNotif
 import codesquad.fineants.domain.notification.service.NotificationService;
 import codesquad.fineants.domain.stock_target_price.domain.dto.response.TargetPriceNotifyMessageResponse;
 import codesquad.fineants.global.api.ApiResponse;
-import codesquad.fineants.global.security.oauth.dto.MemberAuthentication;
-import codesquad.fineants.global.security.oauth.resolver.MemberAuthenticationPrincipal;
 import codesquad.fineants.global.success.NotificationSuccessCode;
 import codesquad.fineants.global.success.StockSuccessCode;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +26,7 @@ public class NotificationRestController {
 
 	// 한 포트폴리오의 목표 수익률 도달 알림 발송
 	@PostMapping("/api/notifications/portfolios/{portfolioId}/notify/target-gain")
+	@Secured("ROLE_ADMIN")
 	public ApiResponse<PortfolioNotifyMessagesResponse> notifyPortfolioTargetGainMessages(
 		@PathVariable Long portfolioId
 	) {
@@ -36,6 +37,7 @@ public class NotificationRestController {
 
 	// 한 포트폴리오의 최대 손실율 도달 알림 발송
 	@PostMapping("/api/notifications/portfolios/{portfolioId}/notify/max-loss")
+	@Secured("ROLE_ADMIN")
 	public ApiResponse<PortfolioNotifyMessagesResponse> notifyPortfolioMaxLossMessages(
 		@PathVariable Long portfolioId
 	) {
@@ -47,9 +49,10 @@ public class NotificationRestController {
 	// 종목 지정가 알림 발송
 	@ResponseStatus(HttpStatus.CREATED)
 	@PostMapping("/api/stocks/target-price/notifications/send")
+	@Secured("ROLE_ADMIN")
 	public ApiResponse<TargetPriceNotifyMessageResponse> sendStockTargetPriceNotification(
-		@MemberAuthenticationPrincipal MemberAuthentication authentication) {
-		TargetPriceNotifyMessageResponse response = service.notifyTargetPriceBy(authentication.getId());
+		@RequestParam Long memberId) {
+		TargetPriceNotifyMessageResponse response = service.notifyTargetPriceBy(memberId);
 		log.info("종목 지정가 알림 전송 결과 : {}", response);
 		return ApiResponse.success(StockSuccessCode.OK_CREATE_TARGET_PRICE_SEND_NOTIFICATION, response);
 	}
