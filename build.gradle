@@ -88,6 +88,8 @@ dependencies {
     // RxJava
     implementation 'io.reactivex.rxjava3:rxjava:3.1.8'
 
+    // Rest-Assured
+    testImplementation 'io.rest-assured:rest-assured'
 }
 
 tasks.named('test') {

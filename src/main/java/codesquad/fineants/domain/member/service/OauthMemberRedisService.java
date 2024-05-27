@@ -6,8 +6,6 @@ import java.util.concurrent.TimeUnit;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import codesquad.fineants.global.errors.errorcode.OauthErrorCode;
-import codesquad.fineants.global.errors.exception.UnAuthorizationException;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -22,15 +20,23 @@ public class OauthMemberRedisService {
 		return Optional.ofNullable(redisTemplate.opsForValue().get(key));
 	}
 
+	public void banRefreshToken(String token) {
+		long expiration = 1000 * 60 * 60 * 24 * 7;
+		banToken(token, expiration);
+	}
+
+	public void banAccessToken(String token) {
+		long expiration = 1000 * 60 * 5;
+		banToken(token, expiration);
+	}
+
 	public void banToken(String token, long expiration) {
 		redisTemplate.opsForValue().set(token, LOGOUT, expiration, TimeUnit.MILLISECONDS);
 	}
 
-	public void validateAlreadyLogout(String token) {
+	public boolean isAlreadyLogout(String token) {
 		String logout = redisTemplate.opsForValue().get(token);
-		if (LOGOUT.equals(logout)) {
-			throw new UnAuthorizationException(OauthErrorCode.NOT_LOGIN_STATE);
-		}
+		return LOGOUT.equals(logout);
 	}
 
 	public void saveEmailVerifCode(String email, String verifCode) {

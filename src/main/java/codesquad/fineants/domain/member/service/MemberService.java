@@ -7,6 +7,7 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -20,6 +21,7 @@ import codesquad.fineants.domain.fcm.repository.FcmRepository;
 import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
 import codesquad.fineants.domain.holding.repository.PortfolioHoldingRepository;
 import codesquad.fineants.domain.member.domain.dto.request.ModifyPasswordRequest;
+import codesquad.fineants.domain.member.domain.dto.request.OauthMemberLogoutRequest;
 import codesquad.fineants.domain.member.domain.dto.request.OauthMemberRefreshRequest;
 import codesquad.fineants.domain.member.domain.dto.request.ProfileChangeServiceRequest;
 import codesquad.fineants.domain.member.domain.dto.request.SignUpServiceRequest;
@@ -88,12 +90,34 @@ public class MemberService {
 	private final StockTargetPriceRepository stockTargetPriceRepository;
 	private final TargetPriceNotificationRepository targetPriceNotificationRepository;
 	private final TokenService tokenService;
+	private final OauthMemberRedisService oauthMemberRedisService;
 
-	public void logout(HttpServletRequest request, HttpServletResponse response) {
+	public void logout(OauthMemberLogoutRequest logoutRequest, HttpServletRequest request,
+		HttpServletResponse response) {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		if (authentication != null) {
 			new SecurityContextLogoutHandler().logout(request, response, authentication);
 		}
+
+		// accessToken, refreshToken에 대해서 블랙리스트 추가
+		banAccessToken(request);
+		oauthMemberRedisService.banRefreshToken(logoutRequest.getRefreshToken());
+	}
+
+	private void banAccessToken(HttpServletRequest request) {
+		String authorization = request.getHeader(HttpHeaders.AUTHORIZATION);
+		if (authorization == null) {
+			return;
+		}
+
+		// Authorization: Bearer (accessToken
+		String[] split = authorization.split(" ");
+		String tokenType = split[0];
+		if (!tokenType.equals("Bearer")) {
+			throw new IllegalArgumentException("Invalid token type");
+		}
+
+		oauthMemberRedisService.banAccessToken(authorization);
 	}
 
 	@Transactional

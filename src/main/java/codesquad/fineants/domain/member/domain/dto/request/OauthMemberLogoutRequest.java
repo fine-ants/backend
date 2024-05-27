@@ -1,14 +1,20 @@
 package codesquad.fineants.domain.member.domain.dto.request;
 
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class OauthMemberLogoutRequest {
 
 	private String refreshToken;
+
+	public static OauthMemberLogoutRequest create(String refreshToken) {
+		return new OauthMemberLogoutRequest(refreshToken);
+	}
 
 	@Override
 	public String toString() {

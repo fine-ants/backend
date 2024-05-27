@@ -18,17 +18,17 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import codesquad.fineants.domain.member.repository.MemberRepository;
 import codesquad.fineants.domain.member.repository.RoleRepository;
 import codesquad.fineants.domain.member.service.NicknameGenerator;
+import codesquad.fineants.domain.member.service.OauthMemberRedisService;
 import codesquad.fineants.domain.notificationpreference.repository.NotificationPreferenceRepository;
 import codesquad.fineants.global.security.ajax.entrypoint.CommonLoginAuthenticationEntryPoint;
 import codesquad.fineants.global.security.handler.CustomAccessDeniedHandler;
-import codesquad.fineants.global.security.oauth.filter.JwtAuthFilter;
+import codesquad.fineants.global.security.oauth.filter.JwtAuthenticationFilter;
 import codesquad.fineants.global.security.oauth.filter.OAuth2AuthorizationRequestRedirectWithRedirectUrlParamFilter;
 import codesquad.fineants.global.security.oauth.handler.OAuth2SuccessHandler;
 import codesquad.fineants.global.security.oauth.handler.OAuth2UserMapper;
 import codesquad.fineants.global.security.oauth.service.CustomOAuth2UserService;
 import codesquad.fineants.global.security.oauth.service.CustomOidcUserService;
 import codesquad.fineants.global.security.oauth.service.TokenService;
-import jakarta.servlet.Filter;
 
 @Configuration
 @EnableWebSecurity
@@ -42,22 +42,24 @@ public class OauthSecurityConfig {
 	private final NicknameGenerator nicknameGenerator;
 	private final RoleRepository roleRepository;
 	private final OAuth2UserMapper oAuth2UserMapper;
-	private final String loginSuccessUri;
 	private final CommonLoginAuthenticationEntryPoint commonLoginAuthenticationEntryPoint;
+	private final OauthMemberRedisService oauthMemberRedisService;
+	private final String loginSuccessUri;
 
 	public OauthSecurityConfig(MemberRepository memberRepository,
 		NotificationPreferenceRepository notificationPreferenceRepository, TokenService tokenService,
 		NicknameGenerator nicknameGenerator, RoleRepository roleRepository, OAuth2UserMapper oAuth2UserMapper,
-		@Value("${oauth2.login-success-uri}") String loginSuccessUri,
-		CommonLoginAuthenticationEntryPoint commonLoginAuthenticationEntryPoint) {
+		CommonLoginAuthenticationEntryPoint commonLoginAuthenticationEntryPoint,
+		OauthMemberRedisService oauthMemberRedisService, @Value("${oauth2.login-success-uri}") String loginSuccessUri) {
 		this.memberRepository = memberRepository;
 		this.notificationPreferenceRepository = notificationPreferenceRepository;
 		this.tokenService = tokenService;
 		this.nicknameGenerator = nicknameGenerator;
 		this.roleRepository = roleRepository;
 		this.oAuth2UserMapper = oAuth2UserMapper;
-		this.loginSuccessUri = loginSuccessUri;
 		this.commonLoginAuthenticationEntryPoint = commonLoginAuthenticationEntryPoint;
+		this.oauthMemberRedisService = oauthMemberRedisService;
+		this.loginSuccessUri = loginSuccessUri;
 	}
 
 	@Bean
@@ -102,8 +104,8 @@ public class OauthSecurityConfig {
 	}
 
 	@Bean
-	public Filter jwtAuthFilter() {
-		return new JwtAuthFilter(tokenService);
+	public JwtAuthenticationFilter jwtAuthFilter() {
+		return new JwtAuthenticationFilter(tokenService, oauthMemberRedisService);
 	}
 
 	@Bean

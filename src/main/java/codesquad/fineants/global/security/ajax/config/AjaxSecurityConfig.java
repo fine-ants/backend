@@ -15,18 +15,18 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
-import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import codesquad.fineants.domain.member.service.MemberService;
 import codesquad.fineants.global.security.ajax.entrypoint.CommonLoginAuthenticationEntryPoint;
 import codesquad.fineants.global.security.ajax.filter.AjaxLoginProcessingFilter;
 import codesquad.fineants.global.security.ajax.handler.AjaxAuthenticationFailHandler;
 import codesquad.fineants.global.security.ajax.handler.AjaxAuthenticationSuccessHandler;
 import codesquad.fineants.global.security.ajax.handler.AjaxLogoutHandler;
-import codesquad.fineants.global.security.ajax.handler.AjaxLogoutSuccessHandler;
 import codesquad.fineants.global.security.ajax.provider.AjaxAuthenticationProvider;
+import codesquad.fineants.global.security.handler.JwtLogoutSuccessHandler;
 import codesquad.fineants.global.security.oauth.service.TokenService;
 import lombok.RequiredArgsConstructor;
 
@@ -38,6 +38,7 @@ public class AjaxSecurityConfig {
 	private final PasswordEncoder passwordEncoder;
 	private final ObjectMapper objectMapper;
 	private final TokenService tokenService;
+	private final MemberService memberService;
 
 	@Bean
 	protected SecurityFilterChain ajaxSecurityFilterChain(HttpSecurity http) throws Exception {
@@ -64,7 +65,7 @@ public class AjaxSecurityConfig {
 		http.logout(configurer -> configurer
 			.logoutUrl("/api/auth/logout")
 			.addLogoutHandler(logoutHandler())
-			.logoutSuccessHandler(logoutSuccessHandler())
+			.logoutSuccessHandler(jwtLogoutSuccessHandler())
 			.permitAll()
 		);
 
@@ -93,12 +94,12 @@ public class AjaxSecurityConfig {
 
 	@Bean
 	protected LogoutHandler logoutHandler() {
-		return new AjaxLogoutHandler();
+		return new AjaxLogoutHandler(memberService);
 	}
 
 	@Bean
-	protected LogoutSuccessHandler logoutSuccessHandler() {
-		return new AjaxLogoutSuccessHandler(objectMapper);
+	protected JwtLogoutSuccessHandler jwtLogoutSuccessHandler() {
+		return new JwtLogoutSuccessHandler(objectMapper);
 	}
 
 	@Bean

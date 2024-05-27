@@ -51,13 +51,6 @@ public class MemberRestController {
 
 	private final MemberService memberService;
 
-	@GetMapping(value = "/auth/logout")
-	@PermitAll
-	public ApiResponse<Void> logout(HttpServletRequest request, HttpServletResponse response) {
-		memberService.logout(request, response);
-		return ApiResponse.success(OauthSuccessCode.OK_LOGOUT);
-	}
-
 	@ResponseStatus(OK)
 	@PostMapping("/auth/refresh/token")
 	@PermitAll
@@ -150,7 +143,7 @@ public class MemberRestController {
 		HttpServletResponse servletResponse
 	) {
 		memberService.deleteMember(authentication.getId());
-		memberService.logout(servletRequest, servletResponse);
+		memberService.logout(request, servletRequest, servletResponse);
 		return ApiResponse.success(MemberSuccessCode.OK_DELETED_ACCOUNT);
 	}
 }

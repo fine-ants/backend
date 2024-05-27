@@ -10,6 +10,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.GenericFilterBean;
 
+import codesquad.fineants.domain.member.service.OauthMemberRedisService;
 import codesquad.fineants.global.security.oauth.dto.MemberAuthentication;
 import codesquad.fineants.global.security.oauth.service.TokenService;
 import jakarta.servlet.FilterChain;
@@ -22,17 +23,18 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RequiredArgsConstructor
-public class JwtAuthFilter extends GenericFilterBean {
+public class JwtAuthenticationFilter extends GenericFilterBean {
 	private final TokenService tokenService;
+	private final OauthMemberRedisService oauthMemberRedisService;
 
 	@Override
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws
 		IOException,
 		ServletException {
 		String token = ((HttpServletRequest)request).getHeader(AUTHORIZATION);
-		if (token != null) {
-			String tokenType = token.split(" ")[0];
-			if (!tokenType.equals("Bearer")) {
+
+		if (token != null && !oauthMemberRedisService.isAlreadyLogout(token)) {
+			if (!token.startsWith("Bearer")) {
 				throw new IllegalArgumentException("Invalid token type");
 			}
 
