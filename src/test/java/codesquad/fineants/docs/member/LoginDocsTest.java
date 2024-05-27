@@ -1,8 +1,8 @@
 package codesquad.fineants.docs.member;
 
 import static org.hamcrest.Matchers.*;
+import static org.springframework.restdocs.headers.HeaderDocumentation.*;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.*;
-import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.*;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
 import static org.springframework.restdocs.request.RequestDocumentation.*;
@@ -17,11 +17,13 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockFilterConfig;
 import org.springframework.restdocs.RestDocumentationContextProvider;
 import org.springframework.restdocs.RestDocumentationExtension;
 import org.springframework.restdocs.mockmvc.MockMvcRestDocumentation;
+import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
 import org.springframework.restdocs.payload.JsonFieldType;
 import org.springframework.restdocs.request.RequestDocumentation;
 import org.springframework.restdocs.snippet.Attributes;
@@ -87,7 +89,7 @@ public class LoginDocsTest extends AbstractContainerBaseTest {
 			"password", "nemo1234@"
 		);
 		// when & then
-		mockMvc.perform(post("/api/auth/login")
+		mockMvc.perform(RestDocumentationRequestBuilders.post("/api/auth/login")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(ObjectMapperUtil.serialize(body)))
 			.andExpect(status().isOk())
@@ -131,8 +133,8 @@ public class LoginDocsTest extends AbstractContainerBaseTest {
 		// given
 
 		// when & then
-		mockMvc.perform(get("/oauth2/authorization/{provider}", "naver")
-				.param("redirect_url", "http://localhost:8080/api/oauth/redirect"))
+		mockMvc.perform(RestDocumentationRequestBuilders.get("/oauth2/authorization/{provider}", "naver")
+				.queryParam("redirect_url", "http://localhost:8080/api/oauth/redirect"))
 			.andExpect(status().is3xxRedirection())
 			.andDo(
 				document(
@@ -150,6 +152,46 @@ public class LoginDocsTest extends AbstractContainerBaseTest {
 										"google", "kakao", "naver"
 									)
 								))
+					)
+				)
+			);
+	}
+
+	@DisplayName("회원 로그아웃 API")
+	@Test
+	void logout() throws Exception {
+		// given
+		String url = "/api/auth/logout";
+
+		// when & then
+		mockMvc.perform(RestDocumentationRequestBuilders.get(url)
+				.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken")
+				.queryParam("refreshToken", "refreshToken"))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("code").value(equalTo(200)))
+			.andExpect(jsonPath("status").value(equalTo("OK")))
+			.andExpect(jsonPath("message").value(equalTo("로그아웃에 성공하였습니다")))
+			.andExpect(jsonPath("data").value(equalTo(null)))
+			.andDo(
+				document(
+					"member-logout",
+					preprocessRequest(prettyPrint()),
+					preprocessResponse(prettyPrint()),
+					queryParameters(
+						parameterWithName("refreshToken").description("리프레시 토큰").optional()
+					),
+					requestHeaders(
+						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰").optional()
+					),
+					responseFields(
+						fieldWithPath("code").type(JsonFieldType.NUMBER)
+							.description("코드"),
+						fieldWithPath("status").type(JsonFieldType.STRING)
+							.description("상태"),
+						fieldWithPath("message").type(JsonFieldType.STRING)
+							.description("메시지"),
+						fieldWithPath("data").type(JsonFieldType.NULL)
+							.description("응답 데이터")
 					)
 				)
 			);

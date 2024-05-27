@@ -101,7 +101,7 @@ public class MemberService {
 
 		// accessToken, refreshToken에 대해서 블랙리스트 추가
 		banAccessToken(request);
-		oauthMemberRedisService.banRefreshToken(logoutRequest.getRefreshToken());
+		banRefreshToken(logoutRequest.getRefreshToken());
 	}
 
 	private void banAccessToken(HttpServletRequest request) {
@@ -118,6 +118,12 @@ public class MemberService {
 		}
 
 		oauthMemberRedisService.banAccessToken(authorization);
+	}
+
+	private void banRefreshToken(String refreshToken) {
+		if (refreshToken != null) {
+			oauthMemberRedisService.banRefreshToken(refreshToken);
+		}
 	}
 
 	@Transactional

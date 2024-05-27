@@ -48,42 +48,6 @@ public class MemberRestControllerDocsTest extends RestDocsSupport {
 		return new MemberRestController(memberService);
 	}
 
-	@DisplayName("회원 로그아웃 API")
-	@Test
-	void logout() throws Exception {
-		// given
-		String url = "/api/auth/logout";
-
-		// when & then
-		mockMvc.perform(get(url)
-				.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))
-			.andExpect(status().isOk())
-			.andExpect(jsonPath("code").value(equalTo(200)))
-			.andExpect(jsonPath("status").value(equalTo("OK")))
-			.andExpect(jsonPath("message").value(equalTo("로그아웃에 성공하였습니다")))
-			.andExpect(jsonPath("data").value(equalTo(null)))
-			.andDo(
-				document(
-					"member-logout",
-					preprocessRequest(prettyPrint()),
-					preprocessResponse(prettyPrint()),
-					requestHeaders(
-						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
-					),
-					responseFields(
-						fieldWithPath("code").type(JsonFieldType.NUMBER)
-							.description("코드"),
-						fieldWithPath("status").type(JsonFieldType.STRING)
-							.description("상태"),
-						fieldWithPath("message").type(JsonFieldType.STRING)
-							.description("메시지"),
-						fieldWithPath("data").type(JsonFieldType.NULL)
-							.description("응답 데이터")
-					)
-				)
-			);
-	}
-
 	@DisplayName("사용자 일반 회원가입 API")
 	@Test
 	void signup() throws Exception {
