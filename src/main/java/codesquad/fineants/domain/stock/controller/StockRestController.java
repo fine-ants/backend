@@ -34,7 +34,7 @@ public class StockRestController {
 	}
 
 	@PostMapping("/refresh")
-	@Secured("ROLE_ADMIN")
+	@Secured(value = {"ROLE_MANAGER", "ROLE_ADMIN"})
 	public ApiResponse<StockRefreshResponse> refreshStocks() {
 		return ApiResponse.success(StockSuccessCode.OK_REFRESH_STOCKS, stockService.refreshStocks());
 	}

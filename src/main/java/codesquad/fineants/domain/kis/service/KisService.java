@@ -59,7 +59,7 @@ public class KisService {
 	}
 
 	// 회원이 가지고 있는 모든 종목에 대하여 현재가 갱신
-	@Secured("ROLE_ADMIN")
+	@Secured(value = {"ROLE_MANAGER", "ROLE_ADMIN"})
 	public List<KisCurrentPrice> refreshAllStockCurrentPrice() {
 		List<String> tickerSymbols = portFolioHoldingRepository.findAllTickerSymbol();
 		List<KisCurrentPrice> prices = refreshStockCurrentPrice(tickerSymbols);
@@ -121,7 +121,7 @@ public class KisService {
 		};
 	}
 
-	@Secured("ROLE_ADMIN")
+	@Secured(value = {"ROLE_MANAGER", "ROLE_ADMIN"})
 	public Mono<KisCurrentPrice> fetchCurrentPrice(String tickerSymbol) {
 		return kisClient.fetchCurrentPrice(tickerSymbol, manager.createAuthorization());
 	}
@@ -137,7 +137,7 @@ public class KisService {
 	}
 
 	// 종목 종가 모두 갱신
-	@Secured("ROLE_ADMIN")
+	@Secured(value = {"ROLE_MANAGER", "ROLE_ADMIN"})
 	public List<KisClosingPrice> refreshAllLastDayClosingPrice() {
 		List<String> tickerSymbols = portFolioHoldingRepository.findAllTickerSymbol();
 		return refreshLastDayClosingPrice(tickerSymbols);

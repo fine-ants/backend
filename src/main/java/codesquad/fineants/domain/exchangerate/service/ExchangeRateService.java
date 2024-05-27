@@ -53,7 +53,7 @@ public class ExchangeRateService {
 	}
 
 	@Transactional(readOnly = true)
-	@Secured("ROLE_ADMIN")
+	@Secured(value = {"ROLE_MANAGER", "ROLE_ADMIN"})
 	public ExchangeRateListResponse readExchangeRates() {
 		List<ExchangeRateItem> items = exchangeRateRepository.findAll().stream()
 			.map(ExchangeRateItem::from)

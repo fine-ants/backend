@@ -37,14 +37,14 @@ public class ExchangeRateRestController {
 	}
 
 	@GetMapping
-	@Secured("ROLE_ADMIN")
+	@Secured(value = {"ROLE_MANAGER", "ROLE_ADMIN"})
 	public ApiResponse<ExchangeRateListResponse> readExchangeRates() {
 		ExchangeRateListResponse response = service.readExchangeRates();
 		return ApiResponse.success(ExchangeRateSuccessCode.READ_EXCHANGE_RATE, response);
 	}
 
 	@PutMapping
-	@Secured("ROLE_ADMIN")
+	@Secured(value = {"ROLE_MANAGER", "ROLE_ADMIN"})
 	public ApiResponse<Void> updateExchangeRates() {
 		service.updateExchangeRates();
 		return ApiResponse.success(ExchangeRateSuccessCode.UPDATE_EXCHANGE_RATE);

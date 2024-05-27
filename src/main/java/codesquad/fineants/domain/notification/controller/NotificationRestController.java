@@ -26,7 +26,7 @@ public class NotificationRestController {
 
 	// 한 포트폴리오의 목표 수익률 도달 알림 발송
 	@PostMapping("/api/notifications/portfolios/{portfolioId}/notify/target-gain")
-	@Secured("ROLE_ADMIN")
+	@Secured(value = {"ROLE_MANAGER", "ROLE_ADMIN"})
 	public ApiResponse<PortfolioNotifyMessagesResponse> notifyPortfolioTargetGainMessages(
 		@PathVariable Long portfolioId
 	) {
@@ -37,7 +37,7 @@ public class NotificationRestController {
 
 	// 한 포트폴리오의 최대 손실율 도달 알림 발송
 	@PostMapping("/api/notifications/portfolios/{portfolioId}/notify/max-loss")
-	@Secured("ROLE_ADMIN")
+	@Secured(value = {"ROLE_MANAGER", "ROLE_ADMIN"})
 	public ApiResponse<PortfolioNotifyMessagesResponse> notifyPortfolioMaxLossMessages(
 		@PathVariable Long portfolioId
 	) {
@@ -49,7 +49,7 @@ public class NotificationRestController {
 	// 종목 지정가 알림 발송
 	@ResponseStatus(HttpStatus.CREATED)
 	@PostMapping("/api/stocks/target-price/notifications/send")
-	@Secured("ROLE_ADMIN")
+	@Secured(value = {"ROLE_MANAGER", "ROLE_ADMIN"})
 	public ApiResponse<TargetPriceNotifyMessageResponse> sendStockTargetPriceNotification(
 		@RequestParam Long memberId) {
 		TargetPriceNotifyMessageResponse response = service.notifyTargetPriceBy(memberId);

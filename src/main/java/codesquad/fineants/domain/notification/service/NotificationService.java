@@ -106,7 +106,7 @@ public class NotificationService {
 
 	// 특정 포트폴리오의 목표 수익률 달성 알림 푸시
 	@Transactional
-	@Secured("ROLE_USER")
+	@Secured(value = {"ROLE_USER", "ROLE_MANAGER", "ROLE_ADMIN"})
 	public PortfolioNotifyMessagesResponse notifyTargetGainBy(Long portfolioId) {
 		Portfolio portfolio = portfolioRepository.findByPortfolioIdWithAll(portfolioId).stream()
 			.peek(p -> p.applyCurrentPriceAllHoldingsBy(currentPriceRepository))
@@ -134,7 +134,7 @@ public class NotificationService {
 
 	// 특정 포트폴리오의 최대 손실율 달성 알림 푸시
 	@Transactional
-	@Secured("ROLE_USER")
+	@Secured(value = {"ROLE_USER", "ROLE_MANAGER", "ROLE_ADMIN"})
 	public PortfolioNotifyMessagesResponse notifyMaxLoss(Long portfolioId) {
 		Portfolio portfolio = portfolioRepository.findByPortfolioIdWithAll(portfolioId)
 			.stream().peek(p -> p.applyCurrentPriceAllHoldingsBy(currentPriceRepository))
@@ -220,6 +220,7 @@ public class NotificationService {
 
 	// 회원에 대한 종목 지정가 알림 발송
 	@Transactional
+	@Secured(value = {"ROLE_USER", "ROLE_MANAGER", "ROLE_ADMIN"})
 	public TargetPriceNotifyMessageResponse notifyTargetPriceBy(Long memberId) {
 		List<TargetPriceNotification> targetPrices = stockTargetPriceRepository.findAllByMemberId(memberId)
 			.stream()

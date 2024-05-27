@@ -1,0 +1,44 @@
+[[dividend-schedule-init]]
+=== 배당 일정 초기화
+
+해당 API는 관리자 권한이 요구됩니다.
+
+==== HTTP Request
+
+include::{snippets}/dividend-schedule-init/http-request.adoc[]
+include::{snippets}/dividend-schedule-init/request-headers.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/dividend-schedule-init/http-response.adoc[]
+include::{snippets}/dividend-schedule-init/response-fields.adoc[]
+
+[[dividend-schedule-refresh]]
+=== 배당 일정 최신화
+
+해당 API는 관리자 권한이 요구됩니다.
+
+==== HTTP Request
+
+include::{snippets}/dividend-schedule-refresh/http-request.adoc[]
+include::{snippets}/dividend-schedule-refresh/request-headers.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/dividend-schedule-refresh/http-response.adoc[]
+include::{snippets}/dividend-schedule-refresh/response-fields.adoc[]
+
+[[dividend-schedule-write-csv]]
+=== 배당 일정 S3 작성
+
+해당 API는 관리자 권한이 요구됩니다.
+
+==== HTTP Request
+
+include::{snippets}/dividend-schedule-write-csv/http-request.adoc[]
+include::{snippets}/dividend-schedule-write-csv/request-headers.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/dividend-schedule-write-csv/http-response.adoc[]
+include::{snippets}/dividend-schedule-write-csv/response-fields.adoc[]

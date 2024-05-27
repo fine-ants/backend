@@ -15,7 +15,7 @@ include::{snippets}/stock_target_price-create/response-fields.adoc[]
 [[stock_target_price-notification-notify]]
 === 종목 지정가 알림 발송
 
-해당 API는 내부 API입니다.
+해당 API는 관리자 또는 매니저 권한이 요구됩니다.
 
 ==== HTTP Request
 
