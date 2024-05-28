@@ -96,7 +96,7 @@ public class NotificationService {
 		List<Portfolio> portfolios = portfolioRepository.findAllWithAll().stream()
 			.peek(portfolio -> portfolio.applyCurrentPriceAllHoldingsBy(currentPriceRepository))
 			.collect(Collectors.toList());
-		Function<PortfolioNotifyMessageItem, PortfolioNotifyMessageItem> sentFunction = item -> {
+		Function<PortfolioNotificationResponse, PortfolioNotificationResponse> sentFunction = item -> {
 			sentManager.addTargetGainSendHistory(Long.valueOf(item.getReferenceId()));
 			return item;
 		};
@@ -110,7 +110,7 @@ public class NotificationService {
 			.peek(p -> p.applyCurrentPriceAllHoldingsBy(currentPriceRepository))
 			.findFirst()
 			.orElseThrow(() -> new FineAntsException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
-		Function<PortfolioNotifyMessageItem, PortfolioNotifyMessageItem> sentFunction = item -> {
+		Function<PortfolioNotificationResponse, PortfolioNotificationResponse> sentFunction = item -> {
 			sentManager.addTargetGainSendHistory(Long.valueOf(item.getReferenceId()));
 			return item;
 		};
@@ -123,7 +123,7 @@ public class NotificationService {
 		List<Portfolio> portfolios = portfolioRepository.findAllWithAll().stream()
 			.peek(portfolio -> portfolio.applyCurrentPriceAllHoldingsBy(currentPriceRepository))
 			.collect(Collectors.toList());
-		Function<PortfolioNotifyMessageItem, PortfolioNotifyMessageItem> sentFunction = item -> {
+		Function<PortfolioNotificationResponse, PortfolioNotificationResponse> sentFunction = item -> {
 			sentManager.addMaxLossSendHistory(Long.valueOf(item.getReferenceId()));
 			return item;
 		};
@@ -137,7 +137,7 @@ public class NotificationService {
 			.stream().peek(p -> p.applyCurrentPriceAllHoldingsBy(currentPriceRepository))
 			.findAny()
 			.orElseThrow(() -> new FineAntsException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
-		Function<PortfolioNotifyMessageItem, PortfolioNotifyMessageItem> sentFunction = item -> {
+		Function<PortfolioNotificationResponse, PortfolioNotificationResponse> sentFunction = item -> {
 			sentManager.addMaxLossSendHistory(Long.valueOf(item.getReferenceId()));
 			return item;
 		};
@@ -147,7 +147,7 @@ public class NotificationService {
 	private PortfolioNotifyMessagesResponse notifyMessage(
 		List<Portfolio> portfolios,
 		NotificationPolicy<Portfolio> policy,
-		Function<PortfolioNotifyMessageItem, PortfolioNotifyMessageItem> sentFunction) {
+		Function<PortfolioNotificationResponse, PortfolioNotificationResponse> sentFunction) {
 		// 포트폴리오별 FCM 토큰 리스트맵 생성
 		Map<Portfolio, List<String>> fcmTokenMap = portfolios.stream()
 			.collect(Collectors.toMap(
@@ -164,28 +164,35 @@ public class NotificationService {
 			}
 		}
 
+		// 알림 저장
+		List<PortfolioNotificationResponse> portfolioNotificationResponses = notifyMessages.stream()
+			.distinct()
+			.map(message -> this.saveNotification(PortfolioNotificationRequest.from(message)))
+			// 발송 이력 저장
+			.map(sentFunction)
+			.collect(Collectors.toList());
+		log.debug("portfolioNotificationResponses : {}", portfolioNotificationResponses);
+
 		// 알림 전송
+		Map<String, String> messageIdMap = new HashMap<>();
 		List<SentNotifyMessage> sentNotifyMessages = new ArrayList<>();
 		for (NotifyMessage notifyMessage : notifyMessages) {
 			firebaseMessagingService.send(notifyMessage.toMessage())
 				.ifPresentOrElse(
-					messageId -> sentNotifyMessages.add(SentNotifyMessage.create(notifyMessage, messageId)),
+					messageId -> {
+						messageIdMap.put(notifyMessage.getReferenceId(), messageId);
+						sentNotifyMessages.add(SentNotifyMessage.create(notifyMessage, messageId));
+					},
 					() -> fcmService.deleteToken(notifyMessage.getToken()));
 		}
+		log.info("포트폴리오 알림 전송 결과, sentNotifyMessage={}", sentNotifyMessages);
 
-		List<PortfolioNotifyMessageItem> items = sentNotifyMessages.stream()
-			.distinct()
-			// 알림 저장
-			.map(message -> {
-				PortfolioNotificationResponse response = this.saveNotification(
-					PortfolioNotificationRequest.from(message.getNotifyMessage()));
-				String messageId = message.getMessageId();
+		List<PortfolioNotifyMessageItem> items = portfolioNotificationResponses.stream()
+			.map(response -> {
+				String messageId = messageIdMap.getOrDefault(response.getReferenceId(), Strings.EMPTY);
 				return PortfolioNotifyMessageItem.from(response, messageId);
 			})
-			// 발송 이력 저장
-			.map(sentFunction)
 			.collect(Collectors.toList());
-		log.debug("notifyMessage : {}", items);
 		return PortfolioNotifyMessagesResponse.create(items);
 	}
 

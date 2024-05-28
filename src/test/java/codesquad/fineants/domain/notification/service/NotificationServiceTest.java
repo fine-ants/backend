@@ -201,7 +201,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		);
 	}
 
-	@DisplayName("토큰이 유효하지 않아서 목표 수익률 알림을 보낼수 없다")
+	@DisplayName("토큰이 유효하지 않아서 목표 수익률 알림을 보낼수 없지만, 알림은 저장된다")
 	@Test
 	void notifyTargetGainBy_whenInvalidFcmToken_thenDeleteFcmToken() {
 		// given
@@ -234,7 +234,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 
 		// then
 		assertAll(
-			() -> assertThat(response.getNotifications()).isEmpty(),
+			() -> assertThat(response.getNotifications()).hasSize(1),
 			() -> assertThat(fcmRepository.findById(fcmToken.getId())).isEmpty()
 		);
 	}
@@ -317,7 +317,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		);
 	}
 
-	@DisplayName("토큰이 유효하지 않아서 최대 손실율 달성 알림을 보낼수 없다")
+	@DisplayName("토큰이 유효하지 않아서 최대 손실율 달성 알림을 보낼수 없지만, 알림은 저장된다")
 	@Test
 	void notifyMaxLoss_whenInvalidFcmToken_thenDeleteFcmToken() throws FirebaseMessagingException {
 		// given
@@ -350,7 +350,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 
 		// then
 		assertAll(
-			() -> assertThat(response.getNotifications()).isEmpty(),
+			() -> assertThat(response.getNotifications()).hasSize(1),
 			() -> assertThat(fcmRepository.findById(fcmToken.getId())).isEmpty()
 		);
 	}
