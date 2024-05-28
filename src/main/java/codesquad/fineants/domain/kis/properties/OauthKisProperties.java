@@ -11,19 +11,19 @@ public class OauthKisProperties {
 
 	private final String appkey;
 	private final String secretkey;
-	private final String tokenURI;
-	private final String currentPriceURI;
-	private final String lastDayClosingPriceURI;
-	private final String dividendURI;
+	private final String tokenUrl;
+	private final String currentPriceUrl;
+	private final String closingPriceUrl;
+	private final String dividendUrl;
 
 	@ConstructorBinding
-	public OauthKisProperties(String appkey, String secretkey, String tokenURI, String currentPriceURI,
-		String lastDayClosingPriceURI, String dividendURI) {
+	public OauthKisProperties(String appkey, String secretkey, String tokenUrl, String currentPriceUrl,
+		String closingPriceUrl, String dividendUrl) {
 		this.appkey = appkey;
 		this.secretkey = secretkey;
-		this.tokenURI = tokenURI;
-		this.currentPriceURI = currentPriceURI;
-		this.lastDayClosingPriceURI = lastDayClosingPriceURI;
-		this.dividendURI = dividendURI;
+		this.tokenUrl = tokenUrl;
+		this.currentPriceUrl = currentPriceUrl;
+		this.closingPriceUrl = closingPriceUrl;
+		this.dividendUrl = dividendUrl;
 	}
 }

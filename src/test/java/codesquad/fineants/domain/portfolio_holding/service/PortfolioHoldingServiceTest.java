@@ -24,6 +24,7 @@ import codesquad.fineants.domain.common.money.Expression;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.common.money.Percentage;
 import codesquad.fineants.domain.common.money.RateDivision;
+import codesquad.fineants.domain.kis.aop.AccessTokenAspect;
 import codesquad.fineants.domain.kis.client.KisCurrentPrice;
 import codesquad.fineants.domain.kis.repository.ClosingPriceRepository;
 import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
@@ -91,6 +92,10 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 
 	@MockBean
 	private PortfolioHoldingEventPublisher publisher;
+
+	// CurrentPriceRepository AccessToken 모킹
+	@MockBean
+	private AccessTokenAspect accessTokenAspect;
 
 	@AfterEach
 	void tearDown() {

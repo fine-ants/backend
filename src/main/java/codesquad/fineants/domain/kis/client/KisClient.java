@@ -19,11 +19,11 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import codesquad.fineants.global.errors.exception.KisException;
-import codesquad.fineants.domain.kis.properties.OauthKisProperties;
 import codesquad.fineants.domain.kis.domain.dto.response.KisClosingPrice;
 import codesquad.fineants.domain.kis.domain.dto.response.KisDividend;
 import codesquad.fineants.domain.kis.domain.dto.response.KisDividendWrapper;
+import codesquad.fineants.domain.kis.properties.OauthKisProperties;
+import codesquad.fineants.global.errors.exception.KisException;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
@@ -52,12 +52,12 @@ public class KisClient {
 		requestBodyMap.put("appsecret", oauthKisProperties.getSecretkey());
 		return webClient
 			.post()
-			.uri(oauthKisProperties.getTokenURI())
+			.uri(oauthKisProperties.getTokenUrl())
 			.bodyValue(requestBodyMap)
 			.retrieve()
 			.onStatus(HttpStatus::isError, this::handleError)
 			.bodyToMono(KisAccessToken.class)
-			.retryWhen(Retry.fixedDelay(Long.MAX_VALUE, Duration.ofMinutes(1)))
+			.retryWhen(Retry.fixedDelay(Long.MAX_VALUE, Duration.ofSeconds(5)))
 			.log();
 	}
 
@@ -74,7 +74,7 @@ public class KisClient {
 		queryParamMap.add("fid_input_iscd", tickerSymbol);
 
 		return performGet(
-			oauthKisProperties.getCurrentPriceURI(),
+			oauthKisProperties.getCurrentPriceUrl(),
 			headerMap,
 			queryParamMap,
 			KisCurrentPrice.class
@@ -98,7 +98,7 @@ public class KisClient {
 		queryParamMap.add("FID_ORG_ADJ_PRC", "0");
 
 		return performGet(
-			oauthKisProperties.getLastDayClosingPriceURI(),
+			oauthKisProperties.getClosingPriceUrl(),
 			headerMap,
 			queryParamMap,
 			KisClosingPrice.class
@@ -124,7 +124,7 @@ public class KisClient {
 		queryParamMap.add("SHT_CD", tickerSymbol);
 
 		return performGet(
-			oauthKisProperties.getDividendURI(),
+			oauthKisProperties.getDividendUrl(),
 			headerMap,
 			queryParamMap,
 			String.class,
@@ -150,7 +150,7 @@ public class KisClient {
 		queryParamMap.add("SHT_CD", Strings.EMPTY);
 
 		KisDividendWrapper result = performGet(
-			oauthKisProperties.getDividendURI(),
+			oauthKisProperties.getDividendUrl(),
 			headerMap,
 			queryParamMap,
 			KisDividendWrapper.class,

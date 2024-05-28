@@ -1,8 +1,8 @@
 package codesquad.fineants.domain.stock_target_price.domain.dto.response;
 
 import codesquad.fineants.domain.common.money.Money;
-import codesquad.fineants.domain.notification.domain.entity.type.NotificationType;
 import codesquad.fineants.domain.notification.domain.dto.response.TargetPriceNotificationResponse;
+import codesquad.fineants.domain.notification.domain.entity.type.NotificationType;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

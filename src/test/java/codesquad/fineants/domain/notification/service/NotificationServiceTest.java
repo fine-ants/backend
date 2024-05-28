@@ -29,6 +29,7 @@ import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.fcm_token.domain.entity.FcmToken;
 import codesquad.fineants.domain.fcm_token.repository.FcmRepository;
 import codesquad.fineants.domain.fcm_token.service.FirebaseMessagingService;
+import codesquad.fineants.domain.kis.aop.AccessTokenAspect;
 import codesquad.fineants.domain.kis.client.KisCurrentPrice;
 import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
 import codesquad.fineants.domain.kis.service.KisService;
@@ -110,6 +111,9 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 
 	@MockBean
 	private FirebaseMessagingService firebaseMessagingService;
+
+	@MockBean
+	private AccessTokenAspect accessTokenAspect;
 
 	@AfterEach
 	void tearDown() {
@@ -197,7 +201,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		);
 	}
 
-	@DisplayName("토큰이 유효하지 않아서 목표 수익률 알림을 보낼수 없다")
+	@DisplayName("토큰이 유효하지 않아서 목표 수익률 알림을 보낼수 없지만, 알림은 저장된다")
 	@Test
 	void notifyTargetGainBy_whenInvalidFcmToken_thenDeleteFcmToken() {
 		// given
@@ -230,7 +234,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 
 		// then
 		assertAll(
-			() -> assertThat(response.getNotifications()).isEmpty(),
+			() -> assertThat(response.getNotifications()).hasSize(1),
 			() -> assertThat(fcmRepository.findById(fcmToken.getId())).isEmpty()
 		);
 	}
@@ -313,7 +317,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		);
 	}
 
-	@DisplayName("토큰이 유효하지 않아서 최대 손실율 달성 알림을 보낼수 없다")
+	@DisplayName("토큰이 유효하지 않아서 최대 손실율 달성 알림을 보낼수 없지만, 알림은 저장된다")
 	@Test
 	void notifyMaxLoss_whenInvalidFcmToken_thenDeleteFcmToken() throws FirebaseMessagingException {
 		// given
@@ -346,7 +350,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 
 		// then
 		assertAll(
-			() -> assertThat(response.getNotifications()).isEmpty(),
+			() -> assertThat(response.getNotifications()).hasSize(1),
 			() -> assertThat(fcmRepository.findById(fcmToken.getId())).isEmpty()
 		);
 	}
@@ -564,9 +568,9 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 			.hasSize(2);
 	}
 
-	@DisplayName("종목 지정가 도달 알림을 보내는데 실패하면 알림을 저장하지 않아야 한다")
+	@DisplayName("종목 지정가 도달 알림을 보내는데 실패해도 알림은 저장되어야 한다")
 	@Test
-	void notifyTargetPrice_whenFailSendingNotification_thenNotSaveNotification() {
+	void notifyTargetPrice_whenFailSendingNotification_thenSaveNotification() {
 		// given
 		Member member = memberRepository.save(createMember());
 		notificationPreferenceRepository.save(NotificationPreference.builder()
@@ -591,13 +595,12 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 			List.of(stock.getTickerSymbol()));
 
 		// then
-		NotificationType type = NotificationType.STOCK_TARGET_PRICE;
 		assertThat(response.getNotifications())
 			.asList()
-			.isEmpty();
+			.hasSize(1);
 		assertThat(notificationRepository.findAllByMemberId(member.getId()))
 			.asList()
-			.hasSize(0);
+			.hasSize(1);
 	}
 
 	@DisplayName("티커 심볼을 기준으로 종목 지정가 알림을 발송한다")
