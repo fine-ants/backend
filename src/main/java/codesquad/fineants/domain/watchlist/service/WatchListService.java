@@ -105,6 +105,7 @@ public class WatchListService {
 			.orElseThrow(() -> new NotFoundResourceException(WatchListErrorCode.NOT_FOUND_WATCH_LIST));
 
 		validateWatchListAuthorization(member.getId(), watchList.getMember().getId());
+		validateAlreadyExistWatchStocks(watchList, request.getTickerSymbols());
 
 		request.getTickerSymbols().stream()
 			.map(tickerSymbol -> stockRepository.findByTickerSymbol(tickerSymbol)
@@ -117,6 +118,14 @@ public class WatchListService {
 
 		request.getTickerSymbols()
 			.forEach(watchStockEventPublisher::publishWatchStock);
+	}
+
+	private void validateAlreadyExistWatchStocks(WatchList watchList, List<String> tickerSymbols) {
+		List<WatchStock> watchStocks = watchStockRepository.findByWatchListAndStock_TickerSymbolIn(watchList.getId(),
+			tickerSymbols);
+		if (!watchStocks.isEmpty()) {
+			throw new ForBiddenException(WatchListErrorCode.ALREADY_WATCH_STOCK);
+		}
 	}
 
 	@Transactional

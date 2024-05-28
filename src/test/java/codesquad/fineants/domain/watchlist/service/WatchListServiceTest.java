@@ -39,6 +39,8 @@ import codesquad.fineants.domain.watchlist.domain.entity.WatchList;
 import codesquad.fineants.domain.watchlist.domain.entity.WatchStock;
 import codesquad.fineants.domain.watchlist.repository.WatchListRepository;
 import codesquad.fineants.domain.watchlist.repository.WatchStockRepository;
+import codesquad.fineants.global.errors.errorcode.WatchListErrorCode;
+import codesquad.fineants.global.errors.exception.FineAntsException;
 
 class WatchListServiceTest extends AbstractContainerBaseTest {
 
@@ -74,6 +76,7 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 		watchStockRepository.deleteAllInBatch();
 		watchListRepository.deleteAllInBatch();
 		memberRepository.deleteAllInBatch();
+		stockRepository.deleteAllInBatch();
 	}
 
 	@DisplayName("회원이 watchlist를 추가한다.")
@@ -209,6 +212,27 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 		assertThat(watchStockRepository.findByWatchList(watchList)).hasSize(1);
 		assertThat(watchStockRepository.findByWatchList(watchList).get(0).getStock().getTickerSymbol()).isEqualTo(
 			tickerSymbol);
+	}
+
+	@DisplayName("사용자는 한 관심 종목에 이미 추가된 종목을 추가할 수 없다")
+	@Test
+	void createWatchStocks_whenAlreadyStock_thenNotSaveStock() {
+		// given
+		Member member = memberRepository.save(createMember());
+		stockRepository.save(createStock());
+
+		CreateWatchListResponse watchlist1 = watchListService.createWatchList(member.getId(),
+			new CreateWatchListRequest("watchlist1"));
+		CreateWatchStockRequest request = new CreateWatchStockRequest(List.of("005930"));
+		watchListService.createWatchStocks(member.getId(), watchlist1.getWatchlistId(), request);
+		// when
+		Throwable throwable = catchThrowable(
+			() -> watchListService.createWatchStocks(member.getId(), watchlist1.getWatchlistId(), request));
+
+		// then
+		assertThat(throwable)
+			.isInstanceOf(FineAntsException.class)
+			.hasMessage(WatchListErrorCode.ALREADY_WATCH_STOCK.getMessage());
 	}
 
 	@DisplayName("회원이 watchlist를 삭제한다.")
@@ -394,5 +418,15 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 
 		assertThat(hasStockForWatchList1).isTrue();
 		assertThat(hasStockForWatchList2).isFalse();
+	}
+
+	private Stock createStock() {
+		return Stock.builder()
+			.tickerSymbol("005930")
+			.stockCode("KR7005930003")
+			.companyName("삼성전자보통주")
+			.companyNameEng("SamsungElectronics")
+			.market(Market.KOSPI)
+			.build();
 	}
 }
