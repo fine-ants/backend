@@ -16,6 +16,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import codesquad.fineants.domain.dividend.service.StockDividendService;
+import codesquad.fineants.domain.exchangerate.domain.entity.ExchangeRate;
+import codesquad.fineants.domain.exchangerate.repository.ExchangeRateRepository;
 import codesquad.fineants.domain.kis.service.KisService;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.domain.entity.MemberRole;
@@ -45,6 +47,7 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
 	private final MemberRepository memberRepository;
 	private final NotificationPreferenceRepository notificationPreferenceRepository;
 	private final PasswordEncoder passwordEncoder;
+	private final ExchangeRateRepository exchangeRateRepository;
 	@Value("${member.admin.password}")
 	private String password;
 
@@ -55,8 +58,9 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
 			return;
 		}
 		setupSecurityResources();
-
 		setAdminAuthentication();
+		setupExchangeRateResources();
+		
 		log.info("애플리케이션 시작시 종목 현재가 및 종가 초기화 시작");
 		kisService.refreshCurrentPrice();
 		kisService.refreshClosingPrice();
@@ -91,6 +95,18 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
 			Set.of(userRole));
 		createMemberIfNotFound("admin@admin.com", "admin", password, Set.of(adminRole));
 		createMemberIfNotFound("manager@manager.com", "manager", password, Set.of(managerRole));
+	}
+
+	@Transactional
+	public void setupExchangeRateResources() {
+		ExchangeRate exchangeRate = createExchangeRateIfNotFound("KRW");
+		log.info("환율 생성 : {}", exchangeRate);
+	}
+
+	private ExchangeRate createExchangeRateIfNotFound(String code) {
+		ExchangeRate exchangeRate = exchangeRateRepository.findByCode(code)
+			.orElseGet(() -> ExchangeRate.base(code));
+		return exchangeRateRepository.save(exchangeRate);
 	}
 
 	@Transactional
