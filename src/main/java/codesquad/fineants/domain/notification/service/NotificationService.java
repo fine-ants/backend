@@ -3,11 +3,13 @@ package codesquad.fineants.domain.notification.service;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -195,7 +197,7 @@ public class NotificationService {
 			.map(StockTargetPrice::getTargetPriceNotifications)
 			.flatMap(Collection::stream)
 			.collect(Collectors.toList());
-		Function<TargetPriceNotifyMessageItem, TargetPriceNotifyMessageItem> sentFunction = item -> {
+		Function<TargetPriceNotificationResponse, TargetPriceNotificationResponse> sentFunction = item -> {
 			sentManager.addTargetPriceSendHistory(item.getTargetPriceNotificationId());
 			return item;
 		};
@@ -215,7 +217,7 @@ public class NotificationService {
 			.flatMap(Collection::stream)
 			.collect(Collectors.toList());
 
-		Function<TargetPriceNotifyMessageItem, TargetPriceNotifyMessageItem> sentFunction = item -> {
+		Function<TargetPriceNotificationResponse, TargetPriceNotificationResponse> sentFunction = item -> {
 			sentManager.addTargetPriceSendHistory(item.getTargetPriceNotificationId());
 			return item;
 		};
@@ -229,7 +231,7 @@ public class NotificationService {
 	private TargetPriceNotifyMessageResponse notifyTargetPrice(
 		List<TargetPriceNotification> targetPrices,
 		NotificationPolicy<TargetPriceNotification> policy,
-		Function<TargetPriceNotifyMessageItem, TargetPriceNotifyMessageItem> sentFunction) {
+		Function<TargetPriceNotificationResponse, TargetPriceNotificationResponse> sentFunction) {
 		log.debug("종목 지정가 알림 발송 서비스 시작, targetPrices={}", targetPrices);
 
 		// 지정가 알림별 FCM 토큰 리스트맵 생성
@@ -249,30 +251,39 @@ public class NotificationService {
 		}
 		log.debug("notifyMessage : {}", notifyMessages);
 
+		// 알림 저장
+		List<TargetPriceNotificationResponse> notificationSaveResponse = notifyMessages.stream()
+			.distinct()
+			// 알림 저장
+			.map(message -> this.saveNotification(StockNotificationRequest.from(message)))
+			// 발송 이력 저장
+			.map(sentFunction)
+			.sorted(Comparator.comparing(TargetPriceNotificationResponse::getReferenceId))
+			.collect(Collectors.toList());
+		log.debug("종목 지정가 알림 발송 서비스 결과, notificationSaveResponse={}", notificationSaveResponse);
+
 		// 알림 전송
+		Map<String, String> messageIdMap = new HashMap<>();
 		List<SentNotifyMessage> sentNotifyMessages = new ArrayList<>();
 		for (NotifyMessage notifyMessage : notifyMessages) {
 			firebaseMessagingService.send(notifyMessage.toMessage())
 				.ifPresentOrElse(
-					messageId -> sentNotifyMessages.add(SentNotifyMessage.create(notifyMessage, messageId)),
+					messageId -> {
+						messageIdMap.put(notifyMessage.getReferenceId(), messageId);
+						sentNotifyMessages.add(SentNotifyMessage.create(notifyMessage, messageId));
+					},
 					() -> fcmService.deleteToken(notifyMessage.getToken()));
 		}
+		log.info("종목 지정가 FCM 알림 발송 결과, sentNotifyMessage={}", sentNotifyMessages);
 
-		// 알림 저장
-		List<TargetPriceNotifyMessageItem> items = sentNotifyMessages.stream()
-			.distinct()
-			// 알림 저장
-			.map(message -> {
-				TargetPriceNotificationResponse response = this.saveNotification(
-					StockNotificationRequest.from(message.getNotifyMessage()));
-				String messageId = message.getMessageId();
+		// 응답 리스폰스 생성
+		List<TargetPriceNotifyMessageItem> items = notificationSaveResponse.stream()
+			.map(response -> {
+				String messageId = messageIdMap.getOrDefault(response.getReferenceId(), Strings.EMPTY);
 				return TargetPriceNotifyMessageItem.from(response, messageId);
 			})
-			// 발송 이력 저장
-			.map(sentFunction)
-			.sorted(Comparator.comparing(TargetPriceNotifyMessageItem::getReferenceId))
 			.collect(Collectors.toList());
-		log.debug("종목 지정가 알림 발송 서비스 결과, items={}", items);
+
 		return TargetPriceNotifyMessageResponse.from(items);
 	}
 

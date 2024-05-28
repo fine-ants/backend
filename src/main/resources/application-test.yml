@@ -2,6 +2,7 @@ spring:
   datasource:
     hikari:
       leak-detection-threshold: 2000
+      connection-timeout: 30000
   jpa:
     database: mysql
     database-platform: org.hibernate.dialect.MySQL8Dialect
