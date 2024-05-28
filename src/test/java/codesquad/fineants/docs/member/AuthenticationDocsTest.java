@@ -6,6 +6,7 @@ import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.*;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
 import static org.springframework.restdocs.request.RequestDocumentation.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -20,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockFilterConfig;
+import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.restdocs.RestDocumentationContextProvider;
 import org.springframework.restdocs.RestDocumentationExtension;
 import org.springframework.restdocs.mockmvc.MockMvcRestDocumentation;
@@ -40,11 +42,12 @@ import codesquad.fineants.domain.member.domain.entity.Role;
 import codesquad.fineants.domain.member.repository.MemberRepository;
 import codesquad.fineants.domain.member.repository.MemberRoleRepository;
 import codesquad.fineants.domain.member.repository.RoleRepository;
+import codesquad.fineants.global.security.oauth.dto.Token;
 import codesquad.fineants.global.util.ObjectMapperUtil;
 import jakarta.servlet.ServletException;
 
 @ExtendWith(RestDocumentationExtension.class)
-public class LoginDocsTest extends AbstractContainerBaseTest {
+public class AuthenticationDocsTest extends AbstractContainerBaseTest {
 	protected MockMvc mockMvc;
 	@Autowired
 	private WebApplicationContext webApplicationContext;
@@ -195,5 +198,70 @@ public class LoginDocsTest extends AbstractContainerBaseTest {
 					)
 				)
 			);
+	}
+
+	@DisplayName("액세스 토큰 갱신 API")
+	@Test
+	void refreshAccessToken() throws Exception {
+		// give
+		Token token = processingLogin();
+
+		Map<String, Object> body = Map.of(
+			"refreshToken", token.getRefreshToken()
+		);
+
+		// when & then
+		mockMvc.perform(post("/api/auth/refresh/token")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(ObjectMapperUtil.serialize(body)))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("code").value(equalTo(200)))
+			.andExpect(jsonPath("status").value(equalTo("OK")))
+			.andExpect(jsonPath("message").value(equalTo("액세스 토큰 갱신에 성공하였습니다")))
+			.andExpect(jsonPath("data.accessToken").isNotEmpty())
+			.andDo(
+				document(
+					"member_access_token-refresh",
+					preprocessRequest(prettyPrint()),
+					preprocessResponse(prettyPrint()),
+					requestFields(
+						fieldWithPath("refreshToken").type(JsonFieldType.STRING).description("리프레시 토큰")
+					),
+					responseFields(
+						fieldWithPath("code").type(JsonFieldType.NUMBER)
+							.description("코드"),
+						fieldWithPath("status").type(JsonFieldType.STRING)
+							.description("상태"),
+						fieldWithPath("message").type(JsonFieldType.STRING)
+							.description("메시지"),
+						fieldWithPath("data").type(JsonFieldType.OBJECT)
+							.description("응답 데이터"),
+						fieldWithPath("data.accessToken").type(JsonFieldType.STRING)
+							.description("액세스 토큰")
+					)
+				)
+			);
+	}
+
+	private Token processingLogin() throws Exception {
+		Role userRole = roleRepository.save(Role.create("ROLE_USER", "유저"));
+		Member member = memberRepository.save(createMember());
+		MemberRole memberRole = MemberRole.create(member, userRole);
+		member.addMemberRole(memberRole);
+		memberRepository.save(member);
+
+		Map<String, Object> body = Map.of(
+			"email", "dragonbead95@naver.com",
+			"password", "nemo1234@"
+		);
+		MockHttpServletResponse response = mockMvc.perform(RestDocumentationRequestBuilders.post("/api/auth/login")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(ObjectMapperUtil.serialize(body)))
+			.andExpect(status().isOk())
+			.andReturn()
+			.getResponse();
+		String accessToken = response.getCookie("accessToken").getValue();
+		String refreshToken = response.getCookie("refreshToken").getValue();
+		return Token.create(accessToken, refreshToken);
 	}
 }

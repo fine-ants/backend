@@ -1,0 +1,64 @@
+[[member_check_nickname-search]]
+=== 회원 닉네임 중복검사
+
+==== HTTP Request
+
+include::{snippets}/member_check_nickname-search/http-request.adoc[]
+include::{snippets}/member_check_nickname-search/path-parameters.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/member_check_nickname-search/http-response.adoc[]
+include::{snippets}/member_check_nickname-search/response-fields.adoc[]
+
+[[member_check_email-search]]
+=== 회원 이메일 중복검사
+
+==== HTTP Request
+
+include::{snippets}/member_check_email-search/http-request.adoc[]
+include::{snippets}/member_check_email-search/path-parameters.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/member_check_email-search/http-response.adoc[]
+include::{snippets}/member_check_email-search/response-fields.adoc[]
+
+[[member_email_validation_code-create]]
+=== 회원 이메일 검증 코드 생성
+
+==== HTTP Request
+
+include::{snippets}/member_email_validation_code-create/http-request.adoc[]
+include::{snippets}/member_email_validation_code-create/request-fields.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/member_email_validation_code-create/http-response.adoc[]
+include::{snippets}/member_email_validation_code-create/response-fields.adoc[]
+
+[[member_email_validation_code-verify]]
+=== 회원 인증 코드 검사
+
+==== HTTP Request
+
+include::{snippets}/member_email_validation_code-verify/http-request.adoc[]
+include::{snippets}/member_email_validation_code-verify/request-fields.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/member_email_validation_code-verify/http-response.adoc[]
+include::{snippets}/member_email_validation_code-verify/response-fields.adoc[]
+
+[[member-signup]]
+=== 일반 회원가입
+
+==== HTTP Request
+
+include::{snippets}/member-signup/http-request.adoc[]
+include::{snippets}/member-signup/request-parts.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/member-signup/http-response.adoc[]
+include::{snippets}/member-signup/response-fields.adoc[]
