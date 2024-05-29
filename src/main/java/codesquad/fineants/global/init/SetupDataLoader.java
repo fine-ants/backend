@@ -33,7 +33,7 @@ import codesquad.fineants.global.security.oauth.dto.MemberAuthentication;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-@Profile(value = {"local", "dev"})
+@Profile(value = {"local", "release", "dev"})
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -60,7 +60,7 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
 		setupSecurityResources();
 		setAdminAuthentication();
 		setupExchangeRateResources();
-		
+
 		log.info("애플리케이션 시작시 종목 현재가 및 종가 초기화 시작");
 		kisService.refreshCurrentPrice();
 		kisService.refreshClosingPrice();
