@@ -2,10 +2,9 @@ package codesquad.fineants.domain.common.count.valiator;
 
 import java.math.BigInteger;
 
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
-
 import codesquad.fineants.domain.common.count.Count;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
 
 public class CountNumberValidator implements ConstraintValidator<CountNumber, Count> {
 	@Override

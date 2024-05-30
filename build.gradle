@@ -1,15 +1,7 @@
-buildscript {
-    ext {
-        queryDslVersion = "5.0.0"
-    }
-}
-
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '2.7.16'
+    id 'org.springframework.boot' version '3.1.11'
     id 'io.spring.dependency-management' version '1.0.15.RELEASE'
-    // QueryDSL
-    id 'com.ewerk.gradle.plugins.querydsl' version '1.0.10'
     // asciidoctor
     id 'org.asciidoctor.jvm.convert' version '3.3.2'
 }
@@ -18,7 +10,7 @@ group = 'codesquad.fineants'
 version = '0.0.1-SNAPSHOT'
 
 java {
-    sourceCompatibility = '11'
+    sourceCompatibility = '17'
 }
 
 configurations {
@@ -33,6 +25,7 @@ repositories {
 }
 
 dependencies {
+    // spring
     implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
@@ -42,6 +35,9 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-devtools'
     implementation 'org.springframework.boot:spring-boot-starter-aop'
     implementation 'org.springframework.boot:spring-boot-starter-mail'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    testImplementation 'org.springframework.security:spring-security-test'
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
 
     // websocket
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
@@ -55,10 +51,6 @@ dependencies {
     implementation 'com.auth0:java-jwt:3.19.0'
     implementation 'com.auth0:jwks-rsa:0.21.1'
 
-    // QueryDSL
-    implementation "com.querydsl:querydsl-jpa:${queryDslVersion}"
-    implementation "com.querydsl:querydsl-apt:${queryDslVersion}"
-
     // AWS S3
     implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
 
@@ -68,7 +60,7 @@ dependencies {
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 
     // mockWebserver
-    testImplementation 'com.squareup.okhttp3:okhttp:4.12.0';
+    testImplementation 'com.squareup.okhttp3:okhttp:4.12.0'
     testImplementation 'com.squareup.okhttp3:mockwebserver:4.12.0'
 
     // firebase
@@ -96,32 +88,13 @@ dependencies {
     // RxJava
     implementation 'io.reactivex.rxjava3:rxjava:3.1.8'
 
+    // Rest-Assured
+    testImplementation 'io.rest-assured:rest-assured'
 }
 
 tasks.named('test') {
     useJUnitPlatform()
 }
-
-/** QueryDSL start **/
-def querydslDir = "build/generated/querydsl"
-
-querydsl {
-    jpa = true
-    querydslSourcesDir = querydslDir
-}
-sourceSets {
-    main.java.srcDir querydslDir
-}
-compileQuerydsl {
-    options.annotationProcessorPath = configurations.querydsl
-}
-configurations {
-    compileOnly {
-        extendsFrom annotationProcessor
-    }
-    querydsl.extendsFrom compileClasspath
-}
-/** QueryDSL end **/
 
 task copyPrivate(type: Copy) {
     copy {

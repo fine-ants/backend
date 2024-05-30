@@ -1,11 +1,10 @@
 package codesquad.fineants.domain.stock_target_price.domain.dto.request;
 
-import javax.validation.constraints.NotNull;
-
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.common.money.valiator.MoneyNumber;
 import codesquad.fineants.domain.stock_target_price.domain.entity.StockTargetPrice;
 import codesquad.fineants.domain.stock_target_price.domain.entity.TargetPriceNotification;
+import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

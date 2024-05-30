@@ -10,30 +10,21 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.validation.Validator;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
-import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import codesquad.fineants.domain.member.intercetpor.LogoutInterceptor;
-import codesquad.fineants.domain.oauth.support.AuthPrincipalArgumentResolver;
 import codesquad.fineants.global.converter.SseEventStreamMessageConverter;
+import codesquad.fineants.global.security.oauth.resolver.MemberAuthenticationArgumentResolver;
 import lombok.RequiredArgsConstructor;
 
 @Configuration
 @RequiredArgsConstructor
 public class WebConfig implements WebMvcConfigurer {
 
-	private final AuthPrincipalArgumentResolver authPrincipalArgumentResolver;
-
-	@Override
-	public void addInterceptors(InterceptorRegistry registry) {
-		registry.addInterceptor(new LogoutInterceptor())
-			.excludePathPatterns("/api/*")
-			.addPathPatterns("/api/auth/logout");
-	}
+	private final MemberAuthenticationArgumentResolver memberAuthenticationArgumentResolver;
 
 	@Override
 	public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
-		resolvers.add(authPrincipalArgumentResolver);
+		resolvers.add(memberAuthenticationArgumentResolver);
 	}
 
 	@Override

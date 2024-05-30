@@ -53,11 +53,11 @@ public class AverageDivision implements Expression {
 	}
 
 	@Override
-	public int compareTo(@NotNull Expression o) {
+	public int compareTo(@NotNull Expression expression) {
 		Bank bank = Bank.getInstance();
 		Currency to = KRW;
 		Money won = this.reduce(bank, to);
-		Money won2 = o.reduce(bank, to);
+		Money won2 = expression.reduce(bank, to);
 		return won.compareTo(won2);
 	}
 }

@@ -6,7 +6,6 @@ import static org.mockito.BDDMockito.anyLong;
 import static org.mockito.BDDMockito.anyString;
 import static org.mockito.BDDMockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.time.LocalDateTime;
@@ -16,34 +15,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.ArgumentMatchers;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Import;
-import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
+import codesquad.fineants.ControllerTestSupport;
 import codesquad.fineants.domain.common.money.Money;
-import codesquad.fineants.domain.member.domain.entity.Member;
-import codesquad.fineants.domain.oauth.support.AuthMember;
-import codesquad.fineants.domain.oauth.support.AuthPrincipalArgumentResolver;
 import codesquad.fineants.domain.stock.domain.entity.Market;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
-import codesquad.fineants.domain.stock_target_price.controller.StockTargetPriceNotificationRestController;
-import codesquad.fineants.global.errors.handler.GlobalExceptionHandler;
 import codesquad.fineants.domain.stock_target_price.domain.dto.request.TargetPriceNotificationCreateRequest;
 import codesquad.fineants.domain.stock_target_price.domain.dto.request.TargetPriceNotificationUpdateRequest;
 import codesquad.fineants.domain.stock_target_price.domain.dto.response.TargetPriceItem;
@@ -55,46 +39,17 @@ import codesquad.fineants.domain.stock_target_price.domain.dto.response.TargetPr
 import codesquad.fineants.domain.stock_target_price.domain.dto.response.TargetPriceNotificationSpecifiedSearchResponse;
 import codesquad.fineants.domain.stock_target_price.domain.dto.response.TargetPriceNotificationUpdateResponse;
 import codesquad.fineants.domain.stock_target_price.service.StockTargetPriceNotificationService;
-import codesquad.fineants.global.config.JacksonConfig;
-import codesquad.fineants.global.config.JpaAuditingConfiguration;
 import codesquad.fineants.global.util.ObjectMapperUtil;
 
-@ActiveProfiles("test")
 @WebMvcTest(controllers = StockTargetPriceNotificationRestController.class)
-@Import(JacksonConfig.class)
-@MockBean(JpaAuditingConfiguration.class)
-class StockTargetPriceNotificationRestControllerTest {
-
-	private MockMvc mockMvc;
-
-	@Autowired
-	private StockTargetPriceNotificationRestController stockTargetPriceNotificationRestController;
-
-	@Autowired
-	private GlobalExceptionHandler globalExceptionHandler;
-
-	@MockBean
-	private AuthPrincipalArgumentResolver authPrincipalArgumentResolver;
+class StockTargetPriceNotificationRestControllerTest extends ControllerTestSupport {
 
 	@MockBean
 	private StockTargetPriceNotificationService service;
 
-	@Autowired
-	private ObjectMapper objectMapper;
-
-	@BeforeEach
-	void setup() {
-		mockMvc = MockMvcBuilders.standaloneSetup(stockTargetPriceNotificationRestController)
-			.setControllerAdvice(globalExceptionHandler)
-			.setCustomArgumentResolvers(authPrincipalArgumentResolver)
-			.setMessageConverters(new MappingJackson2HttpMessageConverter(objectMapper))
-			.alwaysDo(print())
-			.build();
-
-		given(authPrincipalArgumentResolver.supportsParameter(ArgumentMatchers.any(MethodParameter.class)))
-			.willReturn(true);
-		given(authPrincipalArgumentResolver.resolveArgument(any(), any(), any(), any()))
-			.willReturn(AuthMember.from(createMember()));
+	@Override
+	protected Object initController() {
+		return new StockTargetPriceNotificationRestController(service);
 	}
 
 	@DisplayName("사용자는 종목 지정가 알림을 추가합니다")
@@ -352,16 +307,6 @@ class StockTargetPriceNotificationRestControllerTest {
 			.andExpect(jsonPath("status").value(equalTo("OK")))
 			.andExpect(jsonPath("message").value(equalTo("해당 종목 지정가 알림을 제거했습니다")))
 			.andExpect(jsonPath("data").value(equalTo(null)));
-	}
-
-	private Member createMember() {
-		return Member.builder()
-			.id(1L)
-			.nickname("일개미1234")
-			.email("kim1234@gmail.com")
-			.password("kim1234@")
-			.provider("local")
-			.build();
 	}
 
 	private Stock createStock() {

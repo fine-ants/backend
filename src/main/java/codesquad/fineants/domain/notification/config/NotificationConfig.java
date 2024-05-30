@@ -5,11 +5,12 @@ import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import codesquad.fineants.domain.notification.domain.entity.policy.max_loss.MaxLossAccountPreferenceCondition;
-import codesquad.fineants.domain.notification.domain.entity.policy.max_loss.MaxLossActiveCondition;
-import codesquad.fineants.domain.notification.domain.entity.policy.max_loss.MaxLossCondition;
-import codesquad.fineants.domain.notification.domain.entity.policy.max_loss.MaxLossNotificationPolicy;
-import codesquad.fineants.domain.notification.domain.entity.policy.max_loss.MaxLossSentHistoryCondition;
+import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
+import codesquad.fineants.domain.notification.domain.entity.policy.maxloss.MaxLossAccountPreferenceCondition;
+import codesquad.fineants.domain.notification.domain.entity.policy.maxloss.MaxLossActiveCondition;
+import codesquad.fineants.domain.notification.domain.entity.policy.maxloss.MaxLossCondition;
+import codesquad.fineants.domain.notification.domain.entity.policy.maxloss.MaxLossNotificationPolicy;
+import codesquad.fineants.domain.notification.domain.entity.policy.maxloss.MaxLossSentHistoryCondition;
 import codesquad.fineants.domain.notification.domain.entity.policy.target_gain.TargetGainAccountPreferenceCondition;
 import codesquad.fineants.domain.notification.domain.entity.policy.target_gain.TargetGainActiveCondition;
 import codesquad.fineants.domain.notification.domain.entity.policy.target_gain.TargetGainCondition;
@@ -20,7 +21,6 @@ import codesquad.fineants.domain.notification.domain.entity.policy.target_price.
 import codesquad.fineants.domain.notification.domain.entity.policy.target_price.TargetPriceCondition;
 import codesquad.fineants.domain.notification.domain.entity.policy.target_price.TargetPriceNotificationPolicy;
 import codesquad.fineants.domain.notification.domain.entity.policy.target_price.TargetPriceSentHistoryCondition;
-import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
 import codesquad.fineants.domain.notification.repository.NotificationSentRepository;
 import lombok.RequiredArgsConstructor;
 

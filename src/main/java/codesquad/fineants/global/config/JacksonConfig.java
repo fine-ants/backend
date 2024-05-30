@@ -6,7 +6,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
@@ -50,8 +49,8 @@ public class JacksonConfig {
 		}));
 		objectMapper.registerModule(new SimpleModule().addDeserializer(Money.class, new JsonDeserializer<>() {
 			@Override
-			public Money deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JacksonException {
-				return Money.won(p.getValueAsString());
+			public Money deserialize(JsonParser parser, DeserializationContext context) throws IOException {
+				return Money.won(parser.getValueAsString());
 			}
 		}));
 
@@ -64,11 +63,10 @@ public class JacksonConfig {
 		}));
 		objectMapper.registerModule(new SimpleModule().addDeserializer(Count.class, new JsonDeserializer<Count>() {
 			@Override
-			public Count deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JacksonException {
-				return Count.from(p.getValueAsString());
+			public Count deserialize(JsonParser parser, DeserializationContext context) throws IOException {
+				return Count.from(parser.getValueAsString());
 			}
 		}));
-
 		return objectMapper;
 	}
 }

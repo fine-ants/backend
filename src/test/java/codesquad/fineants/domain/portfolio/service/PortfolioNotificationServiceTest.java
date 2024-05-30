@@ -18,6 +18,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import codesquad.fineants.AbstractContainerBaseTest;
 import codesquad.fineants.domain.common.count.Count;
 import codesquad.fineants.domain.common.money.Money;
+import codesquad.fineants.domain.dividend.repository.StockDividendRepository;
+import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
+import codesquad.fineants.domain.holding.repository.PortfolioHoldingRepository;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
 import codesquad.fineants.domain.portfolio.domain.dto.request.PortfolioNotificationUpdateRequest;
@@ -25,16 +28,13 @@ import codesquad.fineants.domain.portfolio.domain.dto.response.PortfolioNotifica
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.repository.PortfolioRepository;
 import codesquad.fineants.domain.portfolio_gain_history.repository.PortfolioGainHistoryRepository;
-import codesquad.fineants.domain.portfolio_holding.domain.entity.PortfolioHolding;
-import codesquad.fineants.domain.portfolio_holding.repository.PortfolioHoldingRepository;
-import codesquad.fineants.domain.purchase_history.domain.entity.PurchaseHistory;
-import codesquad.fineants.domain.purchase_history.repository.PurchaseHistoryRepository;
+import codesquad.fineants.domain.purchasehistory.domain.entity.PurchaseHistory;
+import codesquad.fineants.domain.purchasehistory.repository.PurchaseHistoryRepository;
 import codesquad.fineants.domain.stock.domain.entity.Market;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
 import codesquad.fineants.global.errors.errorcode.PortfolioErrorCode;
 import codesquad.fineants.global.errors.exception.FineAntsException;
-import codesquad.fineants.infra.mail.service.MailService;
 
 class PortfolioNotificationServiceTest extends AbstractContainerBaseTest {
 
@@ -62,7 +62,8 @@ class PortfolioNotificationServiceTest extends AbstractContainerBaseTest {
 	@Autowired
 	private PortfolioGainHistoryRepository portfolioGainHistoryRepository;
 
-	private MailService mailService;
+	@Autowired
+	private StockDividendRepository stockDividendRepository;
 
 	@AfterEach
 	void tearDown() {
@@ -71,6 +72,7 @@ class PortfolioNotificationServiceTest extends AbstractContainerBaseTest {
 		portFolioHoldingRepository.deleteAllInBatch();
 		portfolioRepository.deleteAllInBatch();
 		memberRepository.deleteAllInBatch();
+		stockDividendRepository.deleteAllInBatch();
 		stockRepository.deleteAllInBatch();
 	}
 
@@ -107,7 +109,8 @@ class PortfolioNotificationServiceTest extends AbstractContainerBaseTest {
 	void updateNotificationTargetGain_whenTargetGainIsZero_thenNotUpdate() {
 		// given
 		Member member = memberRepository.save(createMember());
-		Portfolio portfolio = portfolioRepository.save(createPortfolio(member, 1000000L, 0L, 0L));
+		Portfolio portfolio = portfolioRepository.save(
+			createPortfolio(member, "내꿈은 워렌버핏", Money.won(1000000L), Money.zero(), Money.zero()));
 
 		PortfolioNotificationUpdateRequest request = PortfolioNotificationUpdateRequest.active();
 		// when
@@ -152,7 +155,8 @@ class PortfolioNotificationServiceTest extends AbstractContainerBaseTest {
 	void updateNotificationMaximumLoss() {
 		// given
 		Member member = memberRepository.save(createMember());
-		Portfolio portfolio = portfolioRepository.save(createPortfolio(member, 1000000L, 1500000L, 0L));
+		Portfolio portfolio = portfolioRepository.save(
+			createPortfolio(member, "내 꿈은 워렌버핏", Money.won(1000000L), Money.won(1500000L), Money.zero()));
 
 		PortfolioNotificationUpdateRequest request = PortfolioNotificationUpdateRequest.active();
 		// when
@@ -162,33 +166,6 @@ class PortfolioNotificationServiceTest extends AbstractContainerBaseTest {
 		assertThat(throwable)
 			.isInstanceOf(FineAntsException.class)
 			.hasMessage(PortfolioErrorCode.MAX_LOSS_IS_ZERO_WITH_NOTIFY_UPDATE.getMessage());
-	}
-
-	private Member createMember() {
-		return Member.builder()
-			.nickname("일개미1234")
-			.email("kim1234@gmail.com")
-			.password("kim1234@")
-			.provider("local")
-			.build();
-	}
-
-	private Portfolio createPortfolio(Member member) {
-		return createPortfolio(member, 1000000L, 1500000L, 900000L);
-	}
-
-	private Portfolio createPortfolio(Member member, Long budget, Long targetGain, Long maximumLoss) {
-		return new Portfolio(
-			null,
-			"내꿈은 워렌버핏",
-			"토스증권",
-			Money.won(budget),
-			Money.won(targetGain),
-			Money.won(maximumLoss),
-			true,
-			true,
-			member
-		);
 	}
 
 	private Stock createStock() {

@@ -3,11 +3,11 @@ package codesquad.fineants.domain.notification.domain.entity.policy.target_price
 import java.util.List;
 import java.util.Optional;
 
+import codesquad.fineants.domain.notification.domain.dto.response.NotifyMessage;
 import codesquad.fineants.domain.notification.domain.entity.policy.NotificationCondition;
 import codesquad.fineants.domain.notification.domain.entity.policy.NotificationPolicy;
-import codesquad.fineants.domain.notification_preference.domain.entity.NotificationPreference;
+import codesquad.fineants.domain.notificationpreference.domain.entity.NotificationPreference;
 import codesquad.fineants.domain.stock_target_price.domain.entity.TargetPriceNotification;
-import codesquad.fineants.domain.notification.domain.dto.response.NotifyMessage;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor

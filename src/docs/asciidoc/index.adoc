@@ -10,6 +10,14 @@ endif::[]
 :sectlinks:
 
 [[Product-API]]
+== 인증
+
+include::api/authentication.adoc[]
+
+== 회원 가입
+
+include::api/signup.adoc[]
+
 == 회원
 
 include::api/member.adoc[]
@@ -33,6 +41,10 @@ include::api/purchase_history.adoc[]
 == 종목
 
 include::api/stock.adoc[]
+
+== 배당금
+
+include::api/dividend.adoc[]
 
 == 관심 종목
 

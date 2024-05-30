@@ -1,0 +1,51 @@
+[[member-login]]
+=== 회원 일반 로그인
+
+==== HTTP Request
+
+include::{snippets}/member-login/http-request.adoc[]
+include::{snippets}/member-login/request-fields.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/member-login/http-response.adoc[]
+include::{snippets}/member-login/response-fields.adoc[]
+
+[[member_oauth-login]]
+=== 회원 소셜 로그인
+
+==== HTTP Request
+
+include::{snippets}/member_oauth-login/http-request.adoc[]
+include::{snippets}/member_oauth-login/path-parameters.adoc[]
+include::{snippets}/member_oauth-login/query-parameters.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/member_oauth-login/http-response.adoc[]
+
+[[member-logout]]
+=== 회원 로그아웃
+
+==== HTTP Request
+
+include::{snippets}/member-logout/http-request.adoc[]
+include::{snippets}/member-logout/request-headers.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/member-logout/http-response.adoc[]
+include::{snippets}/member-logout/response-fields.adoc[]
+
+[[member_access_token-refresh]]
+=== 회원 액세스 토큰 갱신
+
+==== HTTP Request
+
+include::{snippets}/member_access_token-refresh/http-request.adoc[]
+include::{snippets}/member_access_token-refresh/request-fields.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/member_access_token-refresh/http-response.adoc[]
+include::{snippets}/member_access_token-refresh/response-fields.adoc[]

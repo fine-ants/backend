@@ -11,11 +11,13 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import codesquad.fineants.domain.dividend.repository.StockDividendRepository;
+import codesquad.fineants.domain.dividend.service.StockDividendService;
+import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
+import codesquad.fineants.domain.holding.repository.PortfolioHoldingRepository;
 import codesquad.fineants.domain.kis.repository.ClosingPriceRepository;
 import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
-import codesquad.fineants.domain.portfolio_holding.domain.entity.PortfolioHolding;
-import codesquad.fineants.domain.portfolio_holding.repository.PortfolioHoldingRepository;
-import codesquad.fineants.domain.purchase_history.repository.PurchaseHistoryRepository;
+import codesquad.fineants.domain.purchasehistory.repository.PurchaseHistoryRepository;
 import codesquad.fineants.domain.stock.domain.dto.request.StockSearchRequest;
 import codesquad.fineants.domain.stock.domain.dto.response.StockDataResponse;
 import codesquad.fineants.domain.stock.domain.dto.response.StockRefreshResponse;
@@ -24,8 +26,6 @@ import codesquad.fineants.domain.stock.domain.dto.response.StockSearchItem;
 import codesquad.fineants.domain.stock.domain.dto.response.StockSectorResponse;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
-import codesquad.fineants.domain.stock_dividend.repository.StockDividendRepository;
-import codesquad.fineants.domain.stock_dividend.service.StockDividendService;
 import codesquad.fineants.global.errors.errorcode.StockErrorCode;
 import codesquad.fineants.global.errors.exception.NotFoundResourceException;
 import lombok.RequiredArgsConstructor;
@@ -41,9 +41,10 @@ public class StockService {
 	private final StockDividendRepository stockDividendRepository;
 	private final CurrentPriceRepository currentPriceRepository;
 	private final ClosingPriceRepository closingPriceRepository;
-	private final KRXService krxService;
+	private final KrxService krxService;
 	private final StockDividendService stockDividendService;
 
+	@Transactional(readOnly = true)
 	public List<StockSearchItem> search(StockSearchRequest request) {
 		return stockRepository.search(request.getSearchTerm())
 			.stream()

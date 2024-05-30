@@ -1,6 +1,6 @@
 package codesquad.fineants.domain.stock_target_price.event.domain;
 
-import codesquad.fineants.domain.purchase_history.event.domain.EventHoldingValue;
+import codesquad.fineants.domain.purchasehistory.event.domain.EventHoldingValue;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

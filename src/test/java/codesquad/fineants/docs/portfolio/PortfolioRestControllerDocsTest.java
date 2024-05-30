@@ -34,8 +34,6 @@ import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.common.money.Percentage;
 import codesquad.fineants.domain.common.money.RateDivision;
 import codesquad.fineants.domain.member.domain.entity.Member;
-import codesquad.fineants.domain.oauth.support.AuthMember;
-import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.controller.PortFolioRestController;
 import codesquad.fineants.domain.portfolio.domain.dto.request.PortfolioCreateRequest;
 import codesquad.fineants.domain.portfolio.domain.dto.request.PortfolioModifyRequest;
@@ -43,6 +41,7 @@ import codesquad.fineants.domain.portfolio.domain.dto.response.PortFolioCreateRe
 import codesquad.fineants.domain.portfolio.domain.dto.response.PortFolioItem;
 import codesquad.fineants.domain.portfolio.domain.dto.response.PortfolioModifyResponse;
 import codesquad.fineants.domain.portfolio.domain.dto.response.PortfoliosResponse;
+import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.service.PortFolioService;
 import codesquad.fineants.global.util.ObjectMapperUtil;
 
@@ -60,9 +59,7 @@ public class PortfolioRestControllerDocsTest extends RestDocsSupport {
 	void createPortfolio() throws Exception {
 		// given
 		Member member = createMember();
-		given(portFolioService.createPortfolio(
-			any(PortfolioCreateRequest.class),
-			any(AuthMember.class)))
+		given(portFolioService.createPortfolio(any(PortfolioCreateRequest.class), anyLong()))
 			.willReturn(PortFolioCreateResponse.from(createPortfolio(member)));
 
 		Map<String, Object> body = new HashMap<>();
@@ -142,7 +139,7 @@ public class PortfolioRestControllerDocsTest extends RestDocsSupport {
 			.numShares(Count.from(9))
 			.dateCreated(LocalDateTime.now())
 			.build();
-		given(portFolioService.readMyAllPortfolio(any(AuthMember.class)))
+		given(portFolioService.readMyAllPortfolio(anyLong()))
 			.willReturn(PortfoliosResponse.builder()
 				.portfolios(List.of(portFolioItem))
 				.build());
@@ -224,7 +221,7 @@ public class PortfolioRestControllerDocsTest extends RestDocsSupport {
 		given(portFolioService.updatePortfolio(
 			any(PortfolioModifyRequest.class),
 			anyLong(),
-			any(AuthMember.class)))
+			anyLong()))
 			.willReturn(PortfolioModifyResponse.from(portfolio));
 
 		Map<String, Object> body = new HashMap<>();

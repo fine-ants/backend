@@ -14,9 +14,12 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.security.test.context.support.WithMockUser;
 
 import codesquad.fineants.AbstractContainerBaseTest;
-import codesquad.fineants.domain.common.money.Money;
+import codesquad.fineants.domain.dividend.repository.StockDividendRepository;
+import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
+import codesquad.fineants.domain.holding.repository.PortfolioHoldingRepository;
 import codesquad.fineants.domain.kis.client.KisClient;
 import codesquad.fineants.domain.kis.client.KisCurrentPrice;
 import codesquad.fineants.domain.kis.domain.dto.response.KisClosingPrice;
@@ -26,12 +29,9 @@ import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.repository.PortfolioRepository;
-import codesquad.fineants.domain.portfolio_holding.domain.entity.PortfolioHolding;
-import codesquad.fineants.domain.portfolio_holding.repository.PortfolioHoldingRepository;
 import codesquad.fineants.domain.stock.domain.entity.Market;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
-import codesquad.fineants.domain.stock_dividend.repository.StockDividendRepository;
 import codesquad.fineants.global.errors.exception.KisException;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
@@ -76,6 +76,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		Mockito.clearInvocations(client);
 	}
 
+	@WithMockUser(roles = {"ADMIN"})
 	@DisplayName("주식 현재가 시세를 가져온다")
 	@Test
 	void readRealTimeCurrentPrice() {
@@ -93,6 +94,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 			.containsExactlyInAnyOrder("005930", 60000L);
 	}
 
+	@WithMockUser(roles = {"ADMIN"})
 	@DisplayName("현재가 갱신시 요청건수 초과로 실패하였다가 다시 시도하여 성공한다")
 	@Test
 	void refreshStockCurrentPriceWhenExceedingTransactionPerSecond() {
@@ -119,6 +121,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		verify(client, times(1)).fetchCurrentPrice(anyString(), anyString());
 	}
 
+	@WithMockUser(roles = {"ADMIN"})
 	@DisplayName("종목 현재가 갱신시 예외가 발생하면 null을 반환한다")
 	@Test
 	void refreshStockCurrentPrice_whenException_thenReturnNull() {
@@ -144,6 +147,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		assertThat(prices).isEmpty();
 	}
 
+	@WithMockUser(roles = {"ADMIN"})
 	@DisplayName("종가 갱신시 요청건수 초과로 실패하였다가 다시 시도하여 성공한다")
 	@Test
 	void refreshLastDayClosingPriceWhenExceedingTransactionPerSecond() {
@@ -177,31 +181,9 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		// given
 		given(holidayRepository.isHoliday(any(LocalDate.class))).willReturn(true);
 		// when
-		kisService.scheduleRefreshingAllStockCurrentPrice();
+		kisService.refreshCurrentPrice();
 		// then
 		verify(holidayRepository, times(1)).isHoliday(any(LocalDate.class));
-	}
-
-	private Member createMember() {
-		return Member.builder()
-			.nickname("일개미1234")
-			.email("kim1234@gmail.com")
-			.password("kim1234@")
-			.provider("local")
-			.build();
-	}
-
-	private Portfolio createPortfolio(Member member) {
-		return Portfolio.builder()
-			.name("내꿈은 워렌버핏")
-			.securitiesFirm("토스")
-			.budget(Money.won(1000000L))
-			.targetGain(Money.won(1500000L))
-			.maximumLoss(Money.won(900000L))
-			.member(member)
-			.targetGainIsActive(false)
-			.maximumLossIsActive(false)
-			.build();
 	}
 
 	private Stock createSamsungStock() {

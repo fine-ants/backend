@@ -1,14 +1,15 @@
 package codesquad.fineants.domain.portfolio.service;
 
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import codesquad.fineants.domain.portfolio.domain.dto.request.PortfolioNotificationUpdateRequest;
+import codesquad.fineants.domain.portfolio.domain.dto.response.PortfolioNotificationUpdateResponse;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.repository.PortfolioRepository;
 import codesquad.fineants.global.errors.errorcode.PortfolioErrorCode;
 import codesquad.fineants.global.errors.exception.NotFoundResourceException;
-import codesquad.fineants.domain.portfolio.domain.dto.request.PortfolioNotificationUpdateRequest;
-import codesquad.fineants.domain.portfolio.domain.dto.response.PortfolioNotificationUpdateResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -21,6 +22,7 @@ public class PortfolioNotificationService {
 	private final PortfolioRepository portfolioRepository;
 
 	@Transactional
+	@Secured("ROLE_USER")
 	public PortfolioNotificationUpdateResponse updateNotificationTargetGain(
 		PortfolioNotificationUpdateRequest request,
 		Long portfolioId) {
@@ -37,6 +39,7 @@ public class PortfolioNotificationService {
 	}
 
 	@Transactional
+	@Secured("ROLE_USER")
 	public PortfolioNotificationUpdateResponse updateNotificationMaximumLoss(
 		PortfolioNotificationUpdateRequest request,
 		Long portfolioId) {

@@ -2,7 +2,6 @@ package codesquad.fineants.domain.kis.domain.dto.response;
 
 import java.io.IOException;
 
-import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.TreeNode;
 import com.fasterxml.jackson.databind.DeserializationContext;
@@ -40,10 +39,9 @@ public class KisClosingPrice {
 
 	static class KisClosingPriceDeserializer extends JsonDeserializer<KisClosingPrice> {
 		@Override
-		public KisClosingPrice deserialize(JsonParser p, DeserializationContext ctxt) throws
-			IOException,
-			JacksonException {
-			TreeNode rootNode = p.readValueAsTree();
+		public KisClosingPrice deserialize(JsonParser parser, DeserializationContext context) throws
+			IOException {
+			TreeNode rootNode = parser.readValueAsTree();
 			KisClosingPrice kisClosingPrice = new KisClosingPrice();
 
 			JsonNode outputNode = (JsonNode)rootNode.get("output1");
@@ -52,7 +50,7 @@ public class KisClosingPrice {
 				kisClosingPrice.price = stckPrdyClpr.asLong();
 			}
 
-			JsonNode stckShrnIscd = outputNode.get("stck_shrn_iscd");// 종목 코드
+			JsonNode stckShrnIscd = outputNode.get("stck_shrn_iscd"); // 종목 코드
 			if (stckShrnIscd != null) {
 				kisClosingPrice.tickerSymbol = stckShrnIscd.asText();
 			}

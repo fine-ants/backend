@@ -14,7 +14,6 @@ import java.util.List;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.springframework.http.HttpHeaders;
 import org.springframework.restdocs.payload.JsonFieldType;
@@ -25,15 +24,14 @@ import codesquad.fineants.domain.common.money.Currency;
 import codesquad.fineants.domain.common.money.Expression;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.common.money.Percentage;
-import codesquad.fineants.domain.oauth.support.AuthMember;
-import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
-import codesquad.fineants.domain.portfolio_holding.domain.entity.PortfolioHolding;
-import codesquad.fineants.domain.stock.domain.entity.Stock;
+import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
 import codesquad.fineants.domain.portfolio.controller.DashboardRestController;
 import codesquad.fineants.domain.portfolio.domain.dto.response.DashboardLineChartResponse;
 import codesquad.fineants.domain.portfolio.domain.dto.response.DashboardPieChartResponse;
 import codesquad.fineants.domain.portfolio.domain.dto.response.OverviewResponse;
+import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.service.DashboardService;
+import codesquad.fineants.domain.stock.domain.entity.Stock;
 
 public class DashboardRestControllerDocsTest extends RestDocsSupport {
 
@@ -49,7 +47,7 @@ public class DashboardRestControllerDocsTest extends RestDocsSupport {
 	void readOverview() throws Exception {
 		// given
 
-		given(service.getOverview(ArgumentMatchers.any(AuthMember.class)))
+		given(service.getOverview(anyLong()))
 			.willReturn(OverviewResponse.builder()
 				.username("일개미1234")
 				.totalValuation(Money.won(1000000L))
@@ -122,7 +120,7 @@ public class DashboardRestControllerDocsTest extends RestDocsSupport {
 		portfolio.addPortfolioStock(holding);
 
 		Expression valuation = portfolio.calculateTotalAsset();
-		given(service.getPieChart(ArgumentMatchers.any(AuthMember.class)))
+		given(service.getPieChart(anyLong()))
 			.willReturn(List.of(
 				DashboardPieChartResponse.create(
 					1L,
@@ -188,7 +186,7 @@ public class DashboardRestControllerDocsTest extends RestDocsSupport {
 	@Test
 	void readLineChart() throws Exception {
 		// given
-		given(service.getLineChart(ArgumentMatchers.any(AuthMember.class)))
+		given(service.getLineChart(anyLong()))
 			.willReturn(List.of(
 				DashboardLineChartResponse.of("2018-10-19", Money.won(5012346L)),
 				DashboardLineChartResponse.of("2018-10-22", Money.won(4678901L))

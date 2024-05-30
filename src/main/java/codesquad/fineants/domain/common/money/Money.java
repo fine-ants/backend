@@ -145,14 +145,14 @@ public class Money implements Expression {
 	 * 두 금액간에 대소 비교한다
 	 * 주의 : 화폐(currency)단위 통일은 호출하는 객체(this)의 화폐를 기준으로 한다
 	 * 만약 bank 객체에 두 화폐간에 환율(rate)이 존재하지 않으면 에러가 발생한다
-	 * @param o the object to be compared.
+	 * @param expression the object to be compared.
 	 * @return 대소 결과
 	 */
 	@Override
-	public int compareTo(@NotNull Expression o) {
+	public int compareTo(@NotNull Expression expression) {
 		Bank bank = Bank.getInstance();
 		Money m1 = bank.reduce(this, currency);
-		Money m2 = bank.reduce(o, currency);
+		Money m2 = bank.reduce(expression, currency);
 		return m1.amount.compareTo(m2.amount);
 	}
 

@@ -14,18 +14,18 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import codesquad.fineants.AbstractContainerBaseTest;
 import codesquad.fineants.domain.common.money.Money;
-import codesquad.fineants.domain.fcm_token.repository.FcmRepository;
+import codesquad.fineants.domain.fcm.repository.FcmRepository;
+import codesquad.fineants.domain.member.domain.dto.response.MemberNotification;
+import codesquad.fineants.domain.member.domain.dto.response.MemberNotificationResponse;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
 import codesquad.fineants.domain.notification.domain.entity.Notification;
 import codesquad.fineants.domain.notification.domain.entity.NotificationBody;
 import codesquad.fineants.domain.notification.repository.NotificationRepository;
-import codesquad.fineants.AbstractContainerBaseTest;
 import codesquad.fineants.global.errors.errorcode.NotificationErrorCode;
 import codesquad.fineants.global.errors.exception.NotFoundResourceException;
-import codesquad.fineants.domain.member.domain.dto.response.MemberNotification;
-import codesquad.fineants.domain.member.domain.dto.response.MemberNotificationResponse;
 
 class MemberNotificationServiceTest extends AbstractContainerBaseTest {
 
@@ -181,15 +181,6 @@ class MemberNotificationServiceTest extends AbstractContainerBaseTest {
 		assertThat(throwable)
 			.isInstanceOf(NotFoundResourceException.class)
 			.hasMessage(NotificationErrorCode.NOT_FOUND_NOTIFICATION.getMessage());
-	}
-
-	private Member createMember() {
-		return Member.builder()
-			.nickname("일개미1234")
-			.email("dragonbead95@naver.com")
-			.password("kim1234@")
-			.provider("local")
-			.build();
 	}
 
 	private List<Notification> createNotifications(Member member) {

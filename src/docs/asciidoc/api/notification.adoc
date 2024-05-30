@@ -1,7 +1,7 @@
 [[notification_portfolio_target_gain-notify]]
 === 포트폴리오 목표 수익률 도달 알림
 
-해당 API는 내부 API입니다.
+해당 API는 관리자 또는 매니저 권한이 요구됩니다.
 
 ==== HTTP Request
 
@@ -17,7 +17,7 @@ include::{snippets}/notification_portfolio_target_gain-notify/response-fields.ad
 [[notification_portfolio_max_loss-notify]]
 === 포트폴리오 최대 손실율 도달 알림
 
-해당 API는 내부 API입니다.
+해당 API는 관리자 또는 매니저 권한이 요구됩니다.
 
 ==== HTTP Request
 

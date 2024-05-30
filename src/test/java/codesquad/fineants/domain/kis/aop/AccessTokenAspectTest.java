@@ -32,7 +32,7 @@ class AccessTokenAspectTest extends AbstractContainerBaseTest {
 
 	@DisplayName("액세스 토큰을 새로 발급하여 redis에 저장한다")
 	@Test
-	void checkAccessTokenExpiration() throws InterruptedException {
+	void checkAccessTokenExpiration() {
 		// given
 		AccessTokenAspect accessTokenAspect = new AccessTokenAspect(new KisAccessTokenRepository(null), client,
 			kisAccessTokenRedisService);
@@ -48,13 +48,4 @@ class AccessTokenAspectTest extends AbstractContainerBaseTest {
 		// then
 		Assertions.assertThat(kisAccessTokenRedisService.getAccessTokenMap().isPresent()).isTrue();
 	}
-
-	// private KisAccessToken createKisAccessToken() {
-	// 	return new KisAccessToken(
-	// 		"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0b2tlbiIsImF1ZCI6ImE1OGY4YzAyLWMzMzYtNGY3ZC04OGE0LWZkZDRhZTA3NmQ5YyIsImlzcyI6InVub2d3IiwiZXhwIjoxNzAxOTE2ODg3LCJpYXQiOjE3MDE4MzA0ODcsImp0aSI6IlBTRGc4WlVJd041eVl5ZkR6bnA0TDM2Z2xhRUpic2RJNGd6biJ9.uLZAu9_ompf8ycwiRJ5jrdoB-MiUG9a8quoQ3OeVOrUDGxyEhHmzZTPnCdLRWOEHowFlmyNOf3v-lPZGZqi9Kw",
-	// 		"Bearer",
-	// 		LocalDateTime.now().plusDays(1),
-	// 		86400
-	// 	);
-	// }
 }

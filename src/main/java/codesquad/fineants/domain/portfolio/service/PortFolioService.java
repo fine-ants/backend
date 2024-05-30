@@ -5,33 +5,33 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
+import codesquad.fineants.domain.holding.repository.PortfolioHoldingRepository;
+import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
-import codesquad.fineants.domain.oauth.support.AuthMember;
-import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
-import codesquad.fineants.domain.portfolio.repository.PortfolioRepository;
-import codesquad.fineants.domain.portfolio.repository.PortfolioPropertiesRepository;
 import codesquad.fineants.domain.portfolio.domain.dto.request.PortfolioCreateRequest;
 import codesquad.fineants.domain.portfolio.domain.dto.request.PortfolioModifyRequest;
 import codesquad.fineants.domain.portfolio.domain.dto.request.PortfoliosDeleteRequest;
 import codesquad.fineants.domain.portfolio.domain.dto.response.PortFolioCreateResponse;
 import codesquad.fineants.domain.portfolio.domain.dto.response.PortfolioModifyResponse;
 import codesquad.fineants.domain.portfolio.domain.dto.response.PortfoliosResponse;
+import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
+import codesquad.fineants.domain.portfolio.repository.PortfolioPropertiesRepository;
+import codesquad.fineants.domain.portfolio.repository.PortfolioRepository;
 import codesquad.fineants.domain.portfolio_gain_history.domain.entity.PortfolioGainHistory;
 import codesquad.fineants.domain.portfolio_gain_history.repository.PortfolioGainHistoryRepository;
-import codesquad.fineants.domain.portfolio_holding.domain.entity.PortfolioHolding;
-import codesquad.fineants.domain.portfolio_holding.repository.PortfolioHoldingRepository;
-import codesquad.fineants.domain.purchase_history.repository.PurchaseHistoryRepository;
+import codesquad.fineants.domain.purchasehistory.repository.PurchaseHistoryRepository;
 import codesquad.fineants.global.errors.errorcode.MemberErrorCode;
 import codesquad.fineants.global.errors.errorcode.PortfolioErrorCode;
 import codesquad.fineants.global.errors.exception.BadRequestException;
 import codesquad.fineants.global.errors.exception.ConflictException;
 import codesquad.fineants.global.errors.exception.ForBiddenException;
 import codesquad.fineants.global.errors.exception.NotFoundResourceException;
-import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -50,10 +50,11 @@ public class PortFolioService {
 	private final PortfolioPropertiesRepository portfolioPropertiesRepository;
 
 	@Transactional
-	public PortFolioCreateResponse createPortfolio(PortfolioCreateRequest request, AuthMember authMember) {
+	@Secured("ROLE_USER")
+	public PortFolioCreateResponse createPortfolio(PortfolioCreateRequest request, Long memberId) {
 		validateSecuritiesFirm(request.getSecuritiesFirm());
 
-		Member member = findMember(authMember.getMemberId());
+		Member member = findMember(memberId);
 
 		validateUniquePortfolioName(request.getName(), member);
 		Portfolio portfolio = request.toEntity(member);
@@ -78,14 +79,14 @@ public class PortFolioService {
 	}
 
 	@Transactional
-	public PortfolioModifyResponse updatePortfolio(PortfolioModifyRequest request, Long portfolioId,
-		AuthMember authMember) {
-		log.info("포트폴리오 수정 서비스 요청 : request={}, portfolioId={}, authMember={}", request, portfolioId, authMember);
-		Member member = findMember(authMember.getMemberId());
+	@Secured("ROLE_USER")
+	public PortfolioModifyResponse updatePortfolio(PortfolioModifyRequest request, Long portfolioId, Long memberId) {
+		log.info("포트폴리오 수정 서비스 요청 : request={}, portfolioId={}, memberId={}", request, portfolioId, memberId);
+		Member member = findMember(memberId);
 		Portfolio originalPortfolio = findPortfolio(portfolioId);
 		Portfolio changePortfolio = request.toEntity(member);
 
-		validatePortfolioAuthorization(originalPortfolio, authMember.getMemberId());
+		validatePortfolioAuthorization(originalPortfolio, memberId);
 		if (!originalPortfolio.isSameName(changePortfolio)) {
 			validateUniquePortfolioName(changePortfolio.getName(), member);
 		}
@@ -102,11 +103,12 @@ public class PortFolioService {
 	}
 
 	@Transactional
-	public void deletePortfolio(Long portfolioId, AuthMember authMember) {
-		log.info("포트폴리오 삭제 서비스 요청 : portfolioId={}, authMember={}", portfolioId, authMember);
+	@Secured("ROLE_USER")
+	public void deletePortfolio(Long portfolioId, Long memberId) {
+		log.info("포트폴리오 삭제 서비스 요청 : portfolioId={}, memberId={}", portfolioId, memberId);
 
 		Portfolio findPortfolio = findPortfolio(portfolioId);
-		validatePortfolioAuthorization(findPortfolio, authMember.getMemberId());
+		validatePortfolioAuthorization(findPortfolio, memberId);
 
 		List<Long> portfolioHoldingIds = portfolioHoldingRepository.findAllByPortfolio(findPortfolio).stream()
 			.map(PortfolioHolding::getId)
@@ -126,10 +128,11 @@ public class PortFolioService {
 	}
 
 	@Transactional
-	public void deletePortfolios(PortfoliosDeleteRequest request, AuthMember authMember) {
+	@Secured("ROLE_USER")
+	public void deletePortfolios(PortfoliosDeleteRequest request, Long memberId) {
 		for (Long portfolioId : request.getPortfolioIds()) {
 			Portfolio portfolio = findPortfolio(portfolioId);
-			validatePortfolioAuthorization(portfolio, authMember.getMemberId());
+			validatePortfolioAuthorization(portfolio, memberId);
 		}
 
 		for (Long portfolioId : request.getPortfolioIds()) {
@@ -144,27 +147,25 @@ public class PortFolioService {
 		}
 	}
 
+	@Secured("ROLE_USER")
 	public Portfolio findPortfolio(Long portfolioId) {
 		return portfolioRepository.findById(portfolioId)
 			.orElseThrow(() -> new NotFoundResourceException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
 	}
 
-	public PortfoliosResponse readMyAllPortfolio(AuthMember authMember) {
-		List<Portfolio> portfolios = portfolioRepository.findAllByMemberIdOrderByIdDesc(
-			authMember.getMemberId());
+	@Secured("ROLE_USER")
+	public PortfoliosResponse readMyAllPortfolio(Long memberId) {
+		List<Portfolio> portfolios = portfolioRepository.findAllByMemberIdOrderByIdDesc(memberId);
 		Map<Portfolio, PortfolioGainHistory> portfolioGainHistoryMap = portfolios.stream()
 			.collect(Collectors.toMap(
 				portfolio -> portfolio,
 				portfolio -> portfolioGainHistoryRepository.findFirstByPortfolioAndCreateAtIsLessThanEqualOrderByCreateAtDesc(
-					portfolio.getId(), LocalDateTime.now()).orElseGet(PortfolioGainHistory::empty)
+						portfolio.getId(), LocalDateTime.now())
+					.stream()
+					.findFirst()
+					.orElseGet(PortfolioGainHistory::empty)
 			));
 
 		return PortfoliosResponse.of(portfolios, portfolioGainHistoryMap, currentPriceRepository);
-	}
-
-	public boolean hasAuthorizationBy(Long portfolioId, Long memberId) {
-		Portfolio portfolio = portfolioRepository.findById(portfolioId)
-			.orElseThrow(() -> new NotFoundResourceException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
-		return portfolio.hasAuthorization(memberId);
 	}
 }

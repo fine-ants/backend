@@ -7,8 +7,8 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
 
-import codesquad.fineants.domain.stock_dividend.domain.dto.response.HolidayDto;
-import codesquad.fineants.domain.stock_dividend.domain.reader.HolidayFileReader;
+import codesquad.fineants.domain.dividend.domain.dto.response.HolidayDto;
+import codesquad.fineants.domain.dividend.domain.reader.HolidayFileReader;
 
 @Component
 public class HolidayRepository {

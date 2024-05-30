@@ -17,11 +17,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import codesquad.fineants.AbstractContainerBaseTest;
 import codesquad.fineants.domain.common.count.Count;
 import codesquad.fineants.domain.common.money.Money;
+import codesquad.fineants.domain.dividend.domain.entity.StockDividend;
+import codesquad.fineants.domain.dividend.repository.StockDividendRepository;
+import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
+import codesquad.fineants.domain.holding.repository.PortfolioHoldingRepository;
 import codesquad.fineants.domain.kis.client.KisCurrentPrice;
 import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
-import codesquad.fineants.domain.oauth.support.AuthMember;
 import codesquad.fineants.domain.portfolio.domain.dto.response.DashboardLineChartResponse;
 import codesquad.fineants.domain.portfolio.domain.dto.response.DashboardPieChartResponse;
 import codesquad.fineants.domain.portfolio.domain.dto.response.OverviewResponse;
@@ -29,16 +32,12 @@ import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.repository.PortfolioRepository;
 import codesquad.fineants.domain.portfolio_gain_history.domain.entity.PortfolioGainHistory;
 import codesquad.fineants.domain.portfolio_gain_history.repository.PortfolioGainHistoryRepository;
-import codesquad.fineants.domain.portfolio_holding.domain.entity.PortfolioHolding;
-import codesquad.fineants.domain.portfolio_holding.repository.PortfolioHoldingRepository;
-import codesquad.fineants.domain.purchase_history.domain.dto.request.PurchaseHistoryCreateRequest;
-import codesquad.fineants.domain.purchase_history.domain.entity.PurchaseHistory;
-import codesquad.fineants.domain.purchase_history.repository.PurchaseHistoryRepository;
+import codesquad.fineants.domain.purchasehistory.domain.dto.request.PurchaseHistoryCreateRequest;
+import codesquad.fineants.domain.purchasehistory.domain.entity.PurchaseHistory;
+import codesquad.fineants.domain.purchasehistory.repository.PurchaseHistoryRepository;
 import codesquad.fineants.domain.stock.domain.entity.Market;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
-import codesquad.fineants.domain.stock_dividend.domain.entity.StockDividend;
-import codesquad.fineants.domain.stock_dividend.repository.StockDividendRepository;
 
 public class DashboardServiceTest extends AbstractContainerBaseTest {
 	@Autowired
@@ -76,12 +75,13 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 		// given
 		Member member = Member.builder()
 			.email("member@member.com").password("password").nickname("nick").build();
-		AuthMember authMember = AuthMember.from(memberRepository.save(member));
+		member = memberRepository.save(member);
 
 		// when
-		OverviewResponse response = dashboardService.getOverview(authMember);
+		OverviewResponse response = dashboardService.getOverview(member.getId());
 
 		// then
+		Member finalMember = member;
 		Assertions.assertAll(
 			() -> assertThat(response)
 				.extracting(
@@ -96,7 +96,7 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 				.usingComparatorForType(Money::compareTo, Money.class)
 				.usingComparatorForType(codesquad.fineants.domain.common.money.Percentage::compareTo,
 					codesquad.fineants.domain.common.money.Percentage.class)
-				.containsExactly(member.getNickname(), Money.zero(), Money.zero(), Money.zero(),
+				.containsExactly(finalMember.getNickname(), Money.zero(), Money.zero(), Money.zero(),
 					codesquad.fineants.domain.common.money.Percentage.zero(), Money.zero(),
 					codesquad.fineants.domain.common.money.Percentage.zero())
 		);
@@ -107,7 +107,7 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 	void getOverviewWithPortfolio() {
 		// given
 		Member member = Member.builder().email("member@member.com").password("password").nickname("nick").build();
-		AuthMember authMember = AuthMember.from(memberRepository.save(member));
+		member = memberRepository.save(member);
 
 		Portfolio portfolio = portfolioRepository.save(Portfolio.builder()
 			.name("내꿈은 워렌버핏")
@@ -140,9 +140,10 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 
 		currentPriceRepository.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 72900L));
 		// when
-		OverviewResponse response = dashboardService.getOverview(authMember);
+		OverviewResponse response = dashboardService.getOverview(member.getId());
 
 		// then
+		Member finalMember = member;
 		Assertions.assertAll(
 			() -> assertThat(response)
 				.extracting(
@@ -157,7 +158,7 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 				.usingComparatorForType(codesquad.fineants.domain.common.money.Percentage::compareTo,
 					codesquad.fineants.domain.common.money.Percentage.class)
 				.containsExactlyInAnyOrder(
-					member.getNickname(),
+					finalMember.getNickname(),
 					Money.won(1068700L),
 					Money.won(150000L),
 					Money.won(68700L),
@@ -179,7 +180,7 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 
 		currentPriceRepository.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L));
 		// when
-		OverviewResponse response = dashboardService.getOverview(AuthMember.from(member));
+		OverviewResponse response = dashboardService.getOverview(member.getId());
 
 		// then
 		assertThat(response)
@@ -207,7 +208,7 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 	void getPieChartTest() {
 		// given
 		Member member = Member.builder().email("member@member.com").password("password").nickname("nick").build();
-		AuthMember authMember = AuthMember.from(memberRepository.save(member));
+		member = memberRepository.save(member);
 
 		Portfolio portfolio = portfolioRepository.save(Portfolio.builder()
 			.name("내꿈은 워렌버핏")
@@ -256,7 +257,7 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 		));
 		currentPriceRepository.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 60000L));
 		// when
-		List<DashboardPieChartResponse> responses = dashboardService.getPieChart(authMember);
+		List<DashboardPieChartResponse> responses = dashboardService.getPieChart(member.getId());
 
 		// then
 		Assertions.assertAll(
@@ -276,7 +277,7 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 	void getLineChartTest() {
 		// given
 		Member member = Member.builder().email("member@member.com").password("password").nickname("nick").build();
-		AuthMember authMember = AuthMember.from(memberRepository.save(member));
+		member = memberRepository.save(member);
 
 		Portfolio portfolio = portfolioRepository.save(Portfolio.builder()
 			.name("내꿈은 워렌버핏")
@@ -302,7 +303,7 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 			.build());
 
 		// when
-		List<DashboardLineChartResponse> responses = dashboardService.getLineChart(authMember);
+		List<DashboardLineChartResponse> responses = dashboardService.getLineChart(member.getId());
 
 		// then
 		Assertions.assertAll(
@@ -315,28 +316,6 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 				),
 			() -> assertThat(responses.size()).isEqualTo(1)
 		);
-	}
-
-	private Member createMember() {
-		return Member.builder()
-			.nickname("일개미1234")
-			.email("kim1234@gmail.com")
-			.password("kim1234@")
-			.provider("local")
-			.build();
-	}
-
-	private Portfolio createPortfolio(Member member) {
-		return Portfolio.builder()
-			.name("내꿈은 워렌버핏")
-			.securitiesFirm("토스")
-			.budget(Money.won(1000000L))
-			.targetGain(Money.won(1500000L))
-			.maximumLoss(Money.won(900000L))
-			.member(member)
-			.targetGainIsActive(false)
-			.maximumLossIsActive(false)
-			.build();
 	}
 
 	private Stock createStock() {

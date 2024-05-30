@@ -10,11 +10,12 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.util.Strings;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import codesquad.fineants.domain.fcm_token.service.FcmService;
-import codesquad.fineants.domain.fcm_token.service.FirebaseMessagingService;
+import codesquad.fineants.domain.fcm.service.FcmService;
+import codesquad.fineants.domain.fcm.service.FirebaseMessagingService;
 import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
@@ -27,7 +28,7 @@ import codesquad.fineants.domain.notification.domain.dto.response.SentNotifyMess
 import codesquad.fineants.domain.notification.domain.dto.response.TargetPriceNotificationResponse;
 import codesquad.fineants.domain.notification.domain.entity.Notification;
 import codesquad.fineants.domain.notification.domain.entity.policy.NotificationPolicy;
-import codesquad.fineants.domain.notification.domain.entity.policy.max_loss.MaxLossNotificationPolicy;
+import codesquad.fineants.domain.notification.domain.entity.policy.maxloss.MaxLossNotificationPolicy;
 import codesquad.fineants.domain.notification.domain.entity.policy.target_gain.TargetGainNotificationPolicy;
 import codesquad.fineants.domain.notification.domain.entity.policy.target_price.TargetPriceNotificationPolicy;
 import codesquad.fineants.domain.notification.repository.NotificationRepository;
@@ -105,6 +106,7 @@ public class NotificationService {
 
 	// 특정 포트폴리오의 목표 수익률 달성 알림 푸시
 	@Transactional
+	@Secured(value = {"ROLE_USER", "ROLE_MANAGER", "ROLE_ADMIN"})
 	public PortfolioNotifyMessagesResponse notifyTargetGainBy(Long portfolioId) {
 		Portfolio portfolio = portfolioRepository.findByPortfolioIdWithAll(portfolioId).stream()
 			.peek(p -> p.applyCurrentPriceAllHoldingsBy(currentPriceRepository))
@@ -132,6 +134,7 @@ public class NotificationService {
 
 	// 특정 포트폴리오의 최대 손실율 달성 알림 푸시
 	@Transactional
+	@Secured(value = {"ROLE_USER", "ROLE_MANAGER", "ROLE_ADMIN"})
 	public PortfolioNotifyMessagesResponse notifyMaxLoss(Long portfolioId) {
 		Portfolio portfolio = portfolioRepository.findByPortfolioIdWithAll(portfolioId)
 			.stream().peek(p -> p.applyCurrentPriceAllHoldingsBy(currentPriceRepository))
@@ -157,9 +160,9 @@ public class NotificationService {
 		// 각 토큰에 전송할 NotifyMessage 객체 생성
 		List<NotifyMessage> notifyMessages = new ArrayList<>();
 		for (Map.Entry<Portfolio, List<String>> entry : fcmTokenMap.entrySet()) {
-			Portfolio p = entry.getKey();
+			Portfolio portfolio = entry.getKey();
 			for (String token : entry.getValue()) {
-				policy.apply(p, p.getMember().getNotificationPreference(), token)
+				policy.apply(portfolio, portfolio.getMember().getNotificationPreference(), token)
 					.ifPresent(notifyMessages::add);
 			}
 		}
@@ -217,6 +220,7 @@ public class NotificationService {
 
 	// 회원에 대한 종목 지정가 알림 발송
 	@Transactional
+	@Secured(value = {"ROLE_USER", "ROLE_MANAGER", "ROLE_ADMIN"})
 	public TargetPriceNotifyMessageResponse notifyTargetPriceBy(Long memberId) {
 		List<TargetPriceNotification> targetPrices = stockTargetPriceRepository.findAllByMemberId(memberId)
 			.stream()
@@ -250,9 +254,10 @@ public class NotificationService {
 		// 각 토큰에 전송할 NotifyMessage 객체 생성
 		List<NotifyMessage> notifyMessages = new ArrayList<>();
 		for (Map.Entry<TargetPriceNotification, List<String>> entry : fcmTokenMap.entrySet()) {
-			TargetPriceNotification t = entry.getKey();
+			TargetPriceNotification targetPriceNotification = entry.getKey();
 			for (String token : entry.getValue()) {
-				policy.apply(t, t.getStockTargetPrice().getMember().getNotificationPreference(), token)
+				policy.apply(targetPriceNotification,
+						targetPriceNotification.getStockTargetPrice().getMember().getNotificationPreference(), token)
 					.ifPresent(notifyMessages::add);
 			}
 		}

@@ -1,7 +1,6 @@
 package codesquad.fineants.domain.member.domain.dto.request;
 
-import javax.validation.constraints.NotBlank;
-
+import jakarta.validation.constraints.NotBlank;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

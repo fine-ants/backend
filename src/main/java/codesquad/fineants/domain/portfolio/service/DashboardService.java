@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,19 +17,18 @@ import codesquad.fineants.domain.common.money.Currency;
 import codesquad.fineants.domain.common.money.Expression;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.common.money.RateDivision;
+import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
-import codesquad.fineants.domain.oauth.support.AuthMember;
+import codesquad.fineants.domain.portfolio.domain.dto.response.DashboardLineChartResponse;
+import codesquad.fineants.domain.portfolio.domain.dto.response.DashboardPieChartResponse;
+import codesquad.fineants.domain.portfolio.domain.dto.response.OverviewResponse;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.repository.PortfolioRepository;
 import codesquad.fineants.domain.portfolio_gain_history.domain.entity.PortfolioGainHistory;
 import codesquad.fineants.domain.portfolio_gain_history.repository.PortfolioGainHistoryRepository;
 import codesquad.fineants.global.errors.errorcode.MemberErrorCode;
 import codesquad.fineants.global.errors.exception.BadRequestException;
-import codesquad.fineants.domain.portfolio.domain.dto.response.DashboardLineChartResponse;
-import codesquad.fineants.domain.portfolio.domain.dto.response.DashboardPieChartResponse;
-import codesquad.fineants.domain.portfolio.domain.dto.response.OverviewResponse;
-import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -42,9 +42,10 @@ public class DashboardService {
 	private final PortfolioGainHistoryRepository portfolioGainHistoryRepository;
 
 	@Transactional(readOnly = true)
-	public OverviewResponse getOverview(AuthMember authMember) {
-		List<Portfolio> portfolios = portfolioRepository.findAllByMemberId(authMember.getMemberId());
-		Member member = memberRepository.findById(authMember.getMemberId())
+	@Secured("ROLE_USER")
+	public OverviewResponse getOverview(Long memberId) {
+		List<Portfolio> portfolios = portfolioRepository.findAllByMemberId(memberId);
+		Member member = memberRepository.findById(memberId)
 			.orElseThrow(() -> new BadRequestException(MemberErrorCode.NOT_FOUND_MEMBER));
 		Expression totalValuation = Money.wonZero();
 		Expression totalCurrentValuation = Money.wonZero();
@@ -77,12 +78,13 @@ public class DashboardService {
 	}
 
 	@Transactional(readOnly = true)
-	public List<DashboardPieChartResponse> getPieChart(AuthMember authMember) {
-		List<Portfolio> portfolios = portfolioRepository.findAllByMemberId(authMember.getMemberId());
+	@Secured("ROLE_USER")
+	public List<DashboardPieChartResponse> getPieChart(Long memberId) {
+		List<Portfolio> portfolios = portfolioRepository.findAllByMemberId(memberId);
 		if (portfolios.isEmpty()) {
 			return new ArrayList<>();
 		}
-		Expression totalValuation = Money.wonZero();// 평가 금액 + 현금
+		Expression totalValuation = Money.wonZero(); // 평가 금액 + 현금
 		for (Portfolio portfolio : portfolios) {
 			portfolio.applyCurrentPriceAllHoldingsBy(currentPriceRepository);
 			totalValuation = totalValuation.plus(portfolio.calculateTotalAsset());
@@ -110,8 +112,9 @@ public class DashboardService {
 	}
 
 	@Transactional(readOnly = true)
-	public List<DashboardLineChartResponse> getLineChart(AuthMember authMember) {
-		List<Portfolio> portfolios = portfolioRepository.findAllByMemberId(authMember.getMemberId());
+	@Secured("ROLE_USER")
+	public List<DashboardLineChartResponse> getLineChart(Long memberId) {
+		List<Portfolio> portfolios = portfolioRepository.findAllByMemberId(memberId);
 		if (portfolios.isEmpty()) {
 			return new ArrayList<>();
 		}

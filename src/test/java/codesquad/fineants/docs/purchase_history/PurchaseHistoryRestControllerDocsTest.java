@@ -20,12 +20,12 @@ import org.springframework.http.MediaType;
 import org.springframework.restdocs.payload.JsonFieldType;
 
 import codesquad.fineants.docs.RestDocsSupport;
+import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
-import codesquad.fineants.domain.portfolio_holding.domain.entity.PortfolioHolding;
-import codesquad.fineants.domain.purchase_history.domain.entity.PurchaseHistory;
+import codesquad.fineants.domain.purchasehistory.controller.PurchaseHistoryRestController;
+import codesquad.fineants.domain.purchasehistory.domain.entity.PurchaseHistory;
+import codesquad.fineants.domain.purchasehistory.service.PurchaseHistoryService;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
-import codesquad.fineants.domain.purchase_history.controller.PurchaseHistoryRestController;
-import codesquad.fineants.domain.purchase_history.service.PurchaseHistoryService;
 import codesquad.fineants.global.util.ObjectMapperUtil;
 
 public class PurchaseHistoryRestControllerDocsTest extends RestDocsSupport {

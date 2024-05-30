@@ -10,6 +10,7 @@ import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,48 +29,57 @@ import org.springframework.web.multipart.MultipartFile;
 
 import codesquad.fineants.domain.common.count.Count;
 import codesquad.fineants.domain.common.money.Money;
+import codesquad.fineants.domain.dividend.domain.entity.StockDividend;
+import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
 import codesquad.fineants.domain.member.domain.entity.Member;
-import codesquad.fineants.domain.member.intercetpor.LogoutInterceptor;
 import codesquad.fineants.domain.notification.domain.dto.response.NotifyMessage;
 import codesquad.fineants.domain.notification.domain.dto.response.PortfolioNotifyMessage;
 import codesquad.fineants.domain.notification.domain.dto.response.StockNotifyMessage;
 import codesquad.fineants.domain.notification.domain.entity.Notification;
 import codesquad.fineants.domain.notification.domain.entity.PortfolioNotification;
 import codesquad.fineants.domain.notification.domain.entity.StockTargetPriceNotification;
-import codesquad.fineants.domain.oauth.support.AuthMember;
-import codesquad.fineants.domain.oauth.support.AuthPrincipalArgumentResolver;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio_gain_history.domain.entity.PortfolioGainHistory;
-import codesquad.fineants.domain.portfolio_holding.domain.entity.PortfolioHolding;
-import codesquad.fineants.domain.purchase_history.domain.entity.PurchaseHistory;
+import codesquad.fineants.domain.purchasehistory.domain.entity.PurchaseHistory;
 import codesquad.fineants.domain.stock.domain.entity.Market;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
-import codesquad.fineants.domain.stock_dividend.domain.entity.StockDividend;
 import codesquad.fineants.domain.stock_target_price.domain.entity.StockTargetPrice;
 import codesquad.fineants.domain.stock_target_price.domain.entity.TargetPriceNotification;
-import codesquad.fineants.domain.watch_list.domain.entity.WatchList;
+import codesquad.fineants.domain.watchlist.domain.entity.WatchList;
 import codesquad.fineants.global.config.JacksonConfig;
+import codesquad.fineants.global.security.oauth.dto.MemberAuthentication;
+import codesquad.fineants.global.security.oauth.resolver.MemberAuthenticationArgumentResolver;
 
 @ExtendWith(RestDocumentationExtension.class)
 public abstract class RestDocsSupport {
 	protected MockMvc mockMvc;
 
-	protected AuthPrincipalArgumentResolver authPrincipalArgumentResolver;
+	protected MemberAuthenticationArgumentResolver memberAuthenticationArgumentResolver;
 
 	@BeforeEach
-	void setUp(RestDocumentationContextProvider provider) {
-		this.authPrincipalArgumentResolver = Mockito.mock(AuthPrincipalArgumentResolver.class);
+	void setUp(RestDocumentationContextProvider provider) throws Exception {
+		this.memberAuthenticationArgumentResolver = Mockito.mock(MemberAuthenticationArgumentResolver.class);
 		this.mockMvc = MockMvcBuilders.standaloneSetup(initController())
 			.apply(MockMvcRestDocumentation.documentationConfiguration(provider))
-			.setCustomArgumentResolvers(authPrincipalArgumentResolver)
+			.setCustomArgumentResolvers(memberAuthenticationArgumentResolver)
 			.setMessageConverters(new MappingJackson2HttpMessageConverter(new JacksonConfig().objectMapper()))
-			.addMappedInterceptors(new String[] {"/api/auth/logout"}, new LogoutInterceptor())
 			.build();
 
-		given(authPrincipalArgumentResolver.supportsParameter(ArgumentMatchers.any(MethodParameter.class)))
+		given(memberAuthenticationArgumentResolver.supportsParameter(ArgumentMatchers.any(MethodParameter.class)))
 			.willReturn(true);
-		given(authPrincipalArgumentResolver.resolveArgument(any(), any(), any(), any()))
-			.willReturn(AuthMember.from(createMember()));
+		given(memberAuthenticationArgumentResolver.resolveArgument(any(), any(), any(), any()))
+			.willReturn(createMemberAuthentication());
+	}
+
+	private MemberAuthentication createMemberAuthentication() {
+		return MemberAuthentication.create(
+			1L,
+			"dragonbead95@naver.com",
+			"일개미1234",
+			"local",
+			"profileUrl",
+			Set.of("ROLE_USER")
+		);
 	}
 
 	protected Member createMember() {
@@ -291,10 +301,6 @@ public abstract class RestDocsSupport {
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
-	}
-
-	protected MultipartFile createEmptyMockMultipartFile() {
-		return new MockMultipartFile("profileImageFile", new byte[] {});
 	}
 
 	protected abstract Object initController();

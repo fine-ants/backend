@@ -4,20 +4,19 @@ import static org.assertj.core.api.Assertions.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import codesquad.fineants.AbstractContainerBaseTest;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.repository.PortfolioRepository;
 import codesquad.fineants.domain.portfolio_gain_history.domain.entity.PortfolioGainHistory;
-import codesquad.fineants.AbstractContainerBaseTest;
 
 class PortfolioGainHistoryRepositoryTest extends AbstractContainerBaseTest {
 
@@ -81,35 +80,15 @@ class PortfolioGainHistoryRepositoryTest extends AbstractContainerBaseTest {
 			.build());
 
 		// when
-		Optional<PortfolioGainHistory> optional = portfolioGainHistoryRepository.findFirstByPortfolioAndCreateAtIsLessThanEqualOrderByCreateAtDesc(
-			portfolio.getId(),
-			LocalDateTime.now());
-		PortfolioGainHistory history = optional.orElseThrow();
+		PortfolioGainHistory history = portfolioGainHistoryRepository.findFirstByPortfolioAndCreateAtIsLessThanEqualOrderByCreateAtDesc(
+				portfolio.getId(),
+				LocalDateTime.now())
+			.stream()
+			.findFirst()
+			.orElseThrow();
 
 		// then
 		assertThat(history.getId()).isEqualTo(saveHistory.getId());
-	}
-
-	private Member createMember() {
-		return Member.builder()
-			.nickname("kim1234")
-			.email("kim1234@naver.com")
-			.password("kim1234@")
-			.provider("local")
-			.build();
-	}
-
-	private Portfolio createPortfolio(Member member) {
-		return Portfolio.builder()
-			.name("내꿈은 워렌버핏")
-			.securitiesFirm("토스")
-			.budget(Money.won(1000000L))
-			.targetGain(Money.won(1500000L))
-			.maximumLoss(Money.won(900000L))
-			.member(member)
-			.targetGainIsActive(false)
-			.maximumLossIsActive(false)
-			.build();
 	}
 
 	@DisplayName("주어진 날짜보다 같거나 작은 데이터들중 가장 최근의 데이터를 한개 조회한다")
@@ -151,7 +130,10 @@ class PortfolioGainHistoryRepositoryTest extends AbstractContainerBaseTest {
 
 		// when
 		PortfolioGainHistory result = portfolioGainHistoryRepository.findFirstByPortfolioAndCreateAtIsLessThanEqualOrderByCreateAtDesc(
-			portfolio.getId(), LocalDateTime.now()).orElseThrow();
+				portfolio.getId(), LocalDateTime.now())
+			.stream()
+			.findFirst()
+			.orElseThrow();
 
 		// then
 		assertThat(result.getCurrentValuation()).isEqualByComparingTo(Money.won(120000L));

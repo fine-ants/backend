@@ -1,11 +1,10 @@
 package codesquad.fineants.domain.portfolio.domain.dto.request;
 
-import javax.validation.constraints.NotBlank;
-
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.common.money.valiator.MoneyNumberWithZero;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

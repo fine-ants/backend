@@ -7,64 +7,59 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import org.springframework.http.HttpHeaders;
+import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import codesquad.fineants.domain.fcm_token.repository.FcmRepository;
-import codesquad.fineants.domain.jwt.domain.Jwt;
-import codesquad.fineants.domain.jwt.domain.JwtProvider;
-import codesquad.fineants.domain.member.domain.dto.request.AuthorizationRequest;
-import codesquad.fineants.domain.member.domain.dto.request.LoginRequest;
+import codesquad.fineants.domain.fcm.repository.FcmRepository;
+import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
+import codesquad.fineants.domain.holding.repository.PortfolioHoldingRepository;
 import codesquad.fineants.domain.member.domain.dto.request.ModifyPasswordRequest;
-import codesquad.fineants.domain.member.domain.dto.request.OauthMemberLoginRequest;
 import codesquad.fineants.domain.member.domain.dto.request.OauthMemberLogoutRequest;
 import codesquad.fineants.domain.member.domain.dto.request.OauthMemberRefreshRequest;
 import codesquad.fineants.domain.member.domain.dto.request.ProfileChangeServiceRequest;
 import codesquad.fineants.domain.member.domain.dto.request.SignUpServiceRequest;
 import codesquad.fineants.domain.member.domain.dto.request.VerifyCodeRequest;
 import codesquad.fineants.domain.member.domain.dto.request.VerifyEmailRequest;
-import codesquad.fineants.domain.member.domain.dto.response.LoginResponse;
-import codesquad.fineants.domain.member.domain.dto.response.OauthMemberLoginResponse;
 import codesquad.fineants.domain.member.domain.dto.response.OauthMemberRefreshResponse;
-import codesquad.fineants.domain.member.domain.dto.response.OauthSaveUrlResponse;
-import codesquad.fineants.domain.member.domain.dto.response.OauthUserProfile;
 import codesquad.fineants.domain.member.domain.dto.response.ProfileChangeResponse;
 import codesquad.fineants.domain.member.domain.dto.response.ProfileResponse;
 import codesquad.fineants.domain.member.domain.dto.response.SignUpServiceResponse;
 import codesquad.fineants.domain.member.domain.entity.Member;
-import codesquad.fineants.domain.member.repository.AuthorizationRequestRepository;
 import codesquad.fineants.domain.member.repository.MemberRepository;
 import codesquad.fineants.domain.notification.repository.NotificationRepository;
-import codesquad.fineants.domain.notification_preference.domain.entity.NotificationPreference;
-import codesquad.fineants.domain.notification_preference.repository.NotificationPreferenceRepository;
-import codesquad.fineants.domain.oauth.client.AuthorizationCodeRandomGenerator;
-import codesquad.fineants.domain.oauth.client.OauthClient;
-import codesquad.fineants.domain.oauth.repository.OauthClientRepository;
-import codesquad.fineants.domain.oauth.support.AuthMember;
+import codesquad.fineants.domain.notificationpreference.domain.entity.NotificationPreference;
+import codesquad.fineants.domain.notificationpreference.repository.NotificationPreferenceRepository;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.repository.PortfolioRepository;
 import codesquad.fineants.domain.portfolio_gain_history.domain.entity.PortfolioGainHistory;
 import codesquad.fineants.domain.portfolio_gain_history.repository.PortfolioGainHistoryRepository;
-import codesquad.fineants.domain.portfolio_holding.domain.entity.PortfolioHolding;
-import codesquad.fineants.domain.portfolio_holding.repository.PortfolioHoldingRepository;
-import codesquad.fineants.domain.purchase_history.repository.PurchaseHistoryRepository;
+import codesquad.fineants.domain.purchasehistory.repository.PurchaseHistoryRepository;
 import codesquad.fineants.domain.stock_target_price.domain.entity.StockTargetPrice;
 import codesquad.fineants.domain.stock_target_price.repository.StockTargetPriceRepository;
 import codesquad.fineants.domain.stock_target_price.repository.TargetPriceNotificationRepository;
-import codesquad.fineants.domain.watch_list.domain.entity.WatchList;
-import codesquad.fineants.domain.watch_list.domain.entity.WatchStock;
-import codesquad.fineants.domain.watch_list.repository.WatchListRepository;
-import codesquad.fineants.domain.watch_list.repository.WatchStockRepository;
+import codesquad.fineants.domain.watchlist.domain.entity.WatchList;
+import codesquad.fineants.domain.watchlist.domain.entity.WatchStock;
+import codesquad.fineants.domain.watchlist.repository.WatchListRepository;
+import codesquad.fineants.domain.watchlist.repository.WatchStockRepository;
 import codesquad.fineants.global.errors.errorcode.MemberErrorCode;
 import codesquad.fineants.global.errors.errorcode.NotificationPreferenceErrorCode;
 import codesquad.fineants.global.errors.exception.BadRequestException;
 import codesquad.fineants.global.errors.exception.FineAntsException;
 import codesquad.fineants.global.errors.exception.NotFoundResourceException;
+import codesquad.fineants.global.security.oauth.dto.Token;
+import codesquad.fineants.global.security.oauth.service.TokenService;
 import codesquad.fineants.infra.mail.service.MailService;
 import codesquad.fineants.infra.s3.service.AmazonS3Service;
-import io.jsonwebtoken.Claims;
+import jakarta.annotation.security.PermitAll;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -76,15 +71,10 @@ public class MemberService {
 	private static final String LOCAL_PROVIDER = "local";
 	public static final Pattern NICKNAME_PATTERN = Pattern.compile("^[가-힣a-zA-Z0-9]{2,10}$");
 	public static final Pattern EMAIL_PATTERN = Pattern.compile("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6}$");
-	private final AuthorizationRequestRepository authorizationRequestRepository;
-	private final OauthClientRepository oauthClientRepository;
 	private final MemberRepository memberRepository;
-	private final JwtProvider jwtProvider;
 	private final OauthMemberRedisService redisService;
 	private final MailService mailService;
 	private final AmazonS3Service amazonS3Service;
-	private final AuthorizationCodeRandomGenerator authorizationCodeRandomGenerator;
-	private final MemberFactory memberFactory;
 	private final PasswordEncoder passwordEncoder;
 	private final WatchListRepository watchListRepository;
 	private final WatchStockRepository watchStockRepository;
@@ -99,83 +89,50 @@ public class MemberService {
 	private final FcmRepository fcmRepository;
 	private final StockTargetPriceRepository stockTargetPriceRepository;
 	private final TargetPriceNotificationRepository targetPriceNotificationRepository;
+	private final TokenService tokenService;
+	private final OauthMemberRedisService oauthMemberRedisService;
 
-	@Transactional
-	public OauthMemberLoginResponse login(OauthMemberLoginRequest request) {
-		log.info("로그인 서비스 요청 : loginRequest={}", request);
-		String provider = request.getProvider();
+	public void logout(OauthMemberLogoutRequest logoutRequest, HttpServletRequest request,
+		HttpServletResponse response) {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		if (authentication != null) {
+			new SecurityContextLogoutHandler().logout(request, response, authentication);
+		}
 
-		OauthClient oauthClient = findOauthClient(provider);
-		OauthUserProfile profile = oauthClient.fetchProfile(request,
-			popAuthorizationRequest(request.getState()));
-		Member member = findMember(profile.getEmail(), provider)
-			.orElseGet(() -> memberFactory.createMember(profile));
-		Member saveMember = saveMember(member);
-		saveDefaultNotificationPreference(saveMember);
-		Jwt jwt = createToken(member, request.getRequestTime());
-		return OauthMemberLoginResponse.of(jwt);
+		// accessToken, refreshToken에 대해서 블랙리스트 추가
+		banAccessToken(request);
+		banRefreshToken(logoutRequest.getRefreshToken());
 	}
 
-	private OauthClient findOauthClient(String provider) {
-		return oauthClientRepository.findOneBy(provider);
-	}
-
-	private AuthorizationRequest popAuthorizationRequest(String state) {
-		return authorizationRequestRepository.pop(state);
-	}
-
-	private void saveDefaultNotificationPreference(Member member) {
-		preferenceService.registerDefaultNotificationPreference(member);
-	}
-
-	private Optional<Member> findMember(String email, String provider) {
-		return memberRepository.findMemberByEmailAndProvider(email, provider);
-	}
-
-	private Member saveMember(Member member) {
-		return memberRepository.save(member);
-	}
-
-	private Jwt createToken(Member member, LocalDateTime requestTime) {
-		Jwt jwt = jwtProvider.createJwtBasedOnMember(member, requestTime);
-		log.debug("jwt : {}", jwt);
-		return jwt;
-	}
-
-	@Transactional
-	public void logout(String accessToken, OauthMemberLogoutRequest request) {
-		String refreshToken = request.getRefreshToken();
-		banTokens(accessToken, refreshToken);
-	}
-
-	private void banTokens(String accessToken, String refreshToken) {
-		long accessTokenExpiration;
-		long refreshTokenExpiration;
-		try {
-			accessTokenExpiration = ((Integer)jwtProvider.getAccessTokenClaims(accessToken).get("exp")).longValue();
-			refreshTokenExpiration = ((Integer)jwtProvider.getRefreshTokenClaims(accessToken).get("exp")).longValue();
-		} catch (FineAntsException e) {
-			log.error(e.getMessage(), e);
+	private void banAccessToken(HttpServletRequest request) {
+		String authorization = request.getHeader(HttpHeaders.AUTHORIZATION);
+		if (authorization == null) {
 			return;
 		}
-		redisService.banToken(accessToken, accessTokenExpiration);
-		redisService.banToken(refreshToken, refreshTokenExpiration);
+
+		// Authorization: Bearer (accessToken
+		String[] split = authorization.split(" ");
+		String tokenType = split[0];
+		if (!tokenType.equals("Bearer")) {
+			throw new IllegalArgumentException("Invalid token type");
+		}
+
+		oauthMemberRedisService.banAccessToken(authorization);
+	}
+
+	private void banRefreshToken(String refreshToken) {
+		if (refreshToken != null) {
+			oauthMemberRedisService.banRefreshToken(refreshToken);
+		}
 	}
 
 	@Transactional
+	@PermitAll
 	public OauthMemberRefreshResponse refreshAccessToken(OauthMemberRefreshRequest request, LocalDateTime now) {
 		String refreshToken = request.getRefreshToken();
-		Claims claims = jwtProvider.getRefreshTokenClaims(refreshToken);
-		Jwt jwt = jwtProvider.createJwtWithRefreshToken(claims, refreshToken, now);
-		return OauthMemberRefreshResponse.from(jwt);
-	}
 
-	@Transactional(readOnly = true)
-	public OauthSaveUrlResponse saveAuthorizationCodeURL(String provider) {
-		OauthClient oauthClient = oauthClientRepository.findOneBy(provider);
-		AuthorizationRequest request = authorizationCodeRandomGenerator.generateAuthorizationRequest();
-		authorizationRequestRepository.add(request.getState(), request);
-		return new OauthSaveUrlResponse(oauthClient.createAuthURL(request), request);
+		Token token = tokenService.refreshToken(refreshToken, now);
+		return OauthMemberRefreshResponse.from(token);
 	}
 
 	@Transactional
@@ -191,22 +148,13 @@ public class MemberService {
 		}
 
 		// 비밀번호 암호화
-		String encryptedPassword = encryptPassword(request.getPassword());
+		String encryptedPassword = passwordEncoder.encode(request.getPassword());
 		// 회원 데이터베이스 저장
-		Member member = saveMember(
-			request.toEntity(
-				profileUrl,
-				encryptedPassword
-			)
-		);
-		saveDefaultNotificationPreference(member);
+		Member member = memberRepository.save(request.toEntity(profileUrl, encryptedPassword));
+		preferenceService.registerDefaultNotificationPreference(member);
 
 		log.info("일반 회원가입 결과 : {}", member);
 		return SignUpServiceResponse.from(member);
-	}
-
-	private String encryptPassword(String password) {
-		return passwordEncoder.encode(password);
 	}
 
 	private String uploadProfileImageFile(MultipartFile profileImageFile) {
@@ -241,6 +189,7 @@ public class MemberService {
 	}
 
 	@Transactional(readOnly = true)
+	@PermitAll
 	public void sendVerifyCode(VerifyEmailRequest request) {
 		String email = request.getEmail();
 		String verifyCode = verifyCodeGenerator.generate();
@@ -259,6 +208,7 @@ public class MemberService {
 	}
 
 	@Transactional
+	@PermitAll
 	public void checkNickname(String nickname) {
 		if (!NICKNAME_PATTERN.matcher(nickname).matches()) {
 			throw new BadRequestException(MemberErrorCode.BAD_SIGNUP_INPUT);
@@ -270,6 +220,7 @@ public class MemberService {
 	}
 
 	@Transactional
+	@PermitAll
 	public void checkEmail(String email) {
 		if (!EMAIL_PATTERN.matcher(email).matches()) {
 			throw new BadRequestException(MemberErrorCode.BAD_SIGNUP_INPUT);
@@ -279,21 +230,8 @@ public class MemberService {
 		}
 	}
 
-	@Transactional(readOnly = true)
-	public LoginResponse login(LoginRequest request) {
-		Member member = memberRepository.findMemberByEmailAndProvider(request.getEmail(), LOCAL_PROVIDER)
-			.orElseThrow(() -> new BadRequestException(MemberErrorCode.LOGIN_FAIL));
-		if (!passwordEncoder.matches(request.getPassword(), member.getPassword())) {
-			throw new BadRequestException(MemberErrorCode.LOGIN_FAIL);
-		}
-		if (request.getPassword().isBlank()) {
-			throw new BadRequestException(MemberErrorCode.LOGIN_FAIL);
-		}
-		Jwt jwt = jwtProvider.createJwtBasedOnMember(member, LocalDateTime.now());
-		return LoginResponse.from(jwt);
-	}
-
 	@Transactional
+	@Secured("ROLE_USER")
 	public ProfileChangeResponse changeProfile(ProfileChangeServiceRequest request) {
 		Member member = findMemberById(request.getMemberId());
 		MultipartFile profileImageFile = request.getProfileImageFile();
@@ -307,17 +245,13 @@ public class MemberService {
 		// 기존 프로필 파일 유지
 		if (profileImageFile == null) {
 			profileUrl = member.getProfileUrl();
-		}
-		// 기본 프로필 파일로 변경인 경우
-		else if (profileImageFile.isEmpty()) {
+		} else if (profileImageFile.isEmpty()) { // 기본 프로필 파일로 변경인 경우
 			// 회원의 기존 프로필 사진 제거
 			// 기존 프로필 파일 삭제
 			if (member.getProfileUrl() != null) {
 				amazonS3Service.deleteFile(member.getProfileUrl());
 			}
-		}
-		// 새로운 프로필 파일로 변경인 경우
-		else if (!profileImageFile.isEmpty()) {
+		} else if (!profileImageFile.isEmpty()) { // 새로운 프로필 파일로 변경인 경우
 			// 기존 프로필 파일 삭제
 			if (member.getProfileUrl() != null) {
 				amazonS3Service.deleteFile(member.getProfileUrl());
@@ -342,8 +276,9 @@ public class MemberService {
 	}
 
 	@Transactional
-	public void modifyPassword(ModifyPasswordRequest request, AuthMember authMember) {
-		Member member = findMember(authMember.getMemberId());
+	@Secured("ROLE_USER")
+	public void modifyPassword(ModifyPasswordRequest request, Long memberId) {
+		Member member = findMember(memberId);
 		if (!passwordEncoder.matches(request.getCurrentPassword(), member.getPassword())) {
 			throw new BadRequestException(MemberErrorCode.PASSWORD_CHECK_FAIL);
 		}
@@ -362,6 +297,7 @@ public class MemberService {
 	}
 
 	@Transactional(readOnly = true)
+	@PermitAll
 	public void checkVerifyCode(VerifyCodeRequest request) {
 		Optional<String> verifyCode = redisService.get(request.getEmail());
 
@@ -371,9 +307,10 @@ public class MemberService {
 	}
 
 	@Transactional
-	public void deleteMember(AuthMember authMember) {
-		Member member = findMember(authMember.getMemberId());
-		List<Portfolio> portfolios = portfolioRepository.findAllByMemberId(authMember.getMemberId());
+	@Secured("ROLE_USER")
+	public void deleteMember(Long memberId) {
+		Member member = findMember(memberId);
+		List<Portfolio> portfolios = portfolioRepository.findAllByMemberId(memberId);
 		List<PortfolioHolding> portfolioHoldings = new ArrayList<>();
 		portfolios.forEach(
 			portfolio -> portfolioHoldings.addAll(portfolioHoldingRepository.findAllByPortfolio(portfolio)));
@@ -401,8 +338,9 @@ public class MemberService {
 	}
 
 	@Transactional(readOnly = true)
-	public ProfileResponse readProfile(AuthMember authMember) {
-		Member member = findMember(authMember.getMemberId());
+	@Secured("ROLE_USER")
+	public ProfileResponse readProfile(Long memberId) {
+		Member member = findMember(memberId);
 		NotificationPreference preference = notificationPreferenceRepository.findByMemberId(member.getId())
 			.orElseThrow(
 				() -> new NotFoundResourceException(NotificationPreferenceErrorCode.NOT_FOUND_NOTIFICATION_PREFERENCE));

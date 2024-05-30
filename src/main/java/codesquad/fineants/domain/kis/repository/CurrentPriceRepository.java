@@ -8,8 +8,8 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
 import codesquad.fineants.domain.common.money.Money;
-import codesquad.fineants.domain.kis.client.KisClient;
 import codesquad.fineants.domain.kis.aop.AccessTokenAspect;
+import codesquad.fineants.domain.kis.client.KisClient;
 import codesquad.fineants.domain.kis.client.KisCurrentPrice;
 import lombok.RequiredArgsConstructor;
 
@@ -42,10 +42,5 @@ public class CurrentPriceRepository {
 		kisClient.fetchCurrentPrice(tickerSymbol, accessTokenManager.createAuthorization())
 			.blockOptional(TIMEOUT)
 			.ifPresent(this::addCurrentPrice);
-	}
-
-	public boolean hasCurrentPrice(String tickerSymbol) {
-		String currentPrice = redisTemplate.opsForValue().get(String.format(format, tickerSymbol));
-		return currentPrice != null;
 	}
 }
