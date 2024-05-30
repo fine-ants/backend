@@ -20,3 +20,5 @@ spring:
 logging:
   level:
     codesquad: info
+server:
+  port: 443
