@@ -24,7 +24,7 @@ services:
     image: redis:latest
     restart: always
     volumes:
-      - ./redis.conf:/usr/local/etc/redis/redis.conf
+      - ./redis.dev.conf:/usr/local/etc/redis/redis.conf
     command: redis-server /usr/local/etc/redis/redis.conf
     ports:
       - "6379:6379"
