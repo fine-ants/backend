@@ -1,7 +1,7 @@
 version: "3.8"
 services:
   app:
-    container_name: fineAnts_app
+    container_name: fineAnts_app_release
     build: .
     restart: always
     ports:
@@ -18,9 +18,9 @@ services:
     depends_on:
       - redis
     networks:
-      - spring-net
+      - spring-net-release
   redis:
-    container_name: fineAnts_redis
+    container_name: fineAnts_redis_release
     image: redis:latest
     restart: always
     volumes:
@@ -29,6 +29,6 @@ services:
     ports:
       - "6380:6380"
     networks:
-      - spring-net
+      - spring-net-release
 networks:
-  spring-net:
+  spring-net-release:
