@@ -1,0 +1,34 @@
+version: "3.8"
+services:
+  app:
+    container_name: fineAnts_app
+    build: .
+    restart: always
+    ports:
+      - "443:443"
+    environment:
+      PROFILE: release
+      TZ: Asia/Seoul
+    logging:
+      driver: awslogs
+      options:
+        awslogs-group: "fineAnts/app"
+        awslogs-region: "ap-northeast-2"
+        awslogs-stream: "web/info"
+    depends_on:
+      - redis
+    networks:
+      - spring-net
+  redis:
+    container_name: fineAnts_redis
+    image: redis:latest
+    restart: always
+    volumes:
+      - ./redis.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf
+    ports:
+      - "6379:6379"
+    networks:
+      - spring-net
+networks:
+  spring-net:

@@ -12,6 +12,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
+import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Service;
@@ -49,6 +50,7 @@ public class KisService {
 	private final PortfolioPublisher portfolioPublisher;
 
 	// 평일 9am ~ 15:59pm 5초마다 현재가 갱신 수행
+	@Profile(value = "dev")
 	@Scheduled(cron = "0/5 * 9-15 ? * MON,TUE,WED,THU,FRI")
 	public void refreshCurrentPrice() {
 		// 휴장일인 경우 실행하지 않음
