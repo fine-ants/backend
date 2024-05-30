@@ -76,6 +76,7 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 		watchStockRepository.deleteAllInBatch();
 		watchListRepository.deleteAllInBatch();
 		memberRepository.deleteAllInBatch();
+		stockDividendRepository.deleteAllInBatch();
 		stockRepository.deleteAllInBatch();
 	}
 
