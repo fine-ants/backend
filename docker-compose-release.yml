@@ -5,7 +5,7 @@ services:
     build: .
     restart: always
     ports:
-      - "443:443"
+      - "444:444"
     environment:
       PROFILE: release
       TZ: Asia/Seoul
@@ -27,7 +27,7 @@ services:
       - ./redis.conf:/usr/local/etc/redis/redis.conf
     command: redis-server /usr/local/etc/redis/redis.conf
     ports:
-      - "6379:6379"
+      - "6380:6380"
     networks:
       - spring-net
 networks:
