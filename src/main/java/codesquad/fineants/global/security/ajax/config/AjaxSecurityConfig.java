@@ -8,6 +8,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -31,6 +32,7 @@ import codesquad.fineants.global.security.oauth.service.TokenService;
 import lombok.RequiredArgsConstructor;
 
 @Configuration
+@EnableWebSecurity
 @RequiredArgsConstructor
 @Order(0)
 public class AjaxSecurityConfig {
