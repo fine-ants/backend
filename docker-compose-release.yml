@@ -2,7 +2,6 @@ version: "3.8"
 services:
   app:
     container_name: fineAnts_app_release
-    platform: linux/amd64
     build: .
     restart: always
     ports:
