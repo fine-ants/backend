@@ -78,7 +78,8 @@ public class OauthSecurityConfig {
 						"/api/auth/signup/verifyCode",
 						"/api/auth/refresh/token",
 						"/api/stocks/search",
-						"/api/stocks/**"
+						"/api/stocks/**",
+						"/error"
 					).permitAll()
 					.anyRequest().authenticated());
 		http

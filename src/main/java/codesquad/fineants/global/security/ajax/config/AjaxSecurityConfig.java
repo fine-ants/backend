@@ -47,11 +47,14 @@ public class AjaxSecurityConfig {
 		http
 			.securityMatcher(
 				"/api/auth/login",
-				"/api/auth/logout"
+				"/api/auth/logout",
+				"/error"
 			)
 			.authorizeHttpRequests(authorize -> authorize
 				.requestMatchers("/api/auth/login").permitAll()
 				.requestMatchers("/api/auth/logout").permitAll()
+				.requestMatchers("/error").permitAll()
+				.anyRequest().authenticated()
 			);
 		http.authenticationProvider(authenticationProvider());
 		http.authenticationManager(authenticationManager());
