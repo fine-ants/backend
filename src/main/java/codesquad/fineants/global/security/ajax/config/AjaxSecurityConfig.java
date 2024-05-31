@@ -75,6 +75,7 @@ public class AjaxSecurityConfig {
 		http.exceptionHandling(configurer ->
 			configurer.authenticationEntryPoint(commonLoginAuthenticationEntryPoint()));
 		http.csrf(AbstractHttpConfigurer::disable);
+		http.cors(AbstractHttpConfigurer::disable);
 		return http.build();
 	}
 
