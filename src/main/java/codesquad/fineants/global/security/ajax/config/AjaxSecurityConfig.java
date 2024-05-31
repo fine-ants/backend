@@ -28,7 +28,6 @@ import codesquad.fineants.global.security.ajax.handler.AjaxLogoutHandler;
 import codesquad.fineants.global.security.ajax.provider.AjaxAuthenticationProvider;
 import codesquad.fineants.global.security.handler.JwtLogoutSuccessHandler;
 import codesquad.fineants.global.security.oauth.service.TokenService;
-import jakarta.servlet.DispatcherType;
 import lombok.RequiredArgsConstructor;
 
 @Configuration
@@ -53,8 +52,6 @@ public class AjaxSecurityConfig {
 			.authorizeHttpRequests(authorize -> authorize
 				.requestMatchers("/api/auth/login").permitAll()
 				.requestMatchers("/api/auth/logout").permitAll()
-				.anyRequest().authenticated()
-				.dispatcherTypeMatchers(DispatcherType.ASYNC, DispatcherType.FORWARD).permitAll()
 			);
 		http.authenticationProvider(authenticationProvider());
 		http.authenticationManager(authenticationManager());
