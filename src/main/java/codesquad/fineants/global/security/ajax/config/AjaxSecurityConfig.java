@@ -3,7 +3,6 @@ package codesquad.fineants.global.security.ajax.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.ProviderManager;
@@ -51,9 +50,10 @@ public class AjaxSecurityConfig {
 				"/api/auth/logout"
 			)
 			.authorizeHttpRequests(authorize -> authorize
-				.requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
-				.requestMatchers("/api/auth/logout").permitAll()
-				.anyRequest().authenticated()
+					.requestMatchers("/api/auth/login").permitAll()
+					.requestMatchers("/api/auth/logout").permitAll()
+					.anyRequest().authenticated()
+				// .dispatcherTypeMatchers(DispatcherType.ASYNC, DispatcherType.FORWARD).permitAll()
 			);
 		http.authenticationProvider(authenticationProvider());
 		http.authenticationManager(authenticationManager());
@@ -80,7 +80,7 @@ public class AjaxSecurityConfig {
 	@Bean
 	protected AjaxLoginProcessingFilter ajaxLoginProcessingFilter(AuthenticationManager authenticationManager,
 		ObjectMapper objectMapper) {
-		return new AjaxLoginProcessingFilter(new AntPathRequestMatcher("/api/auth/login", "POST"),
+		return new AjaxLoginProcessingFilter(new AntPathRequestMatcher("/api/auth/login"),
 			authenticationManager,
 			objectMapper);
 	}
