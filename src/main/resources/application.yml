@@ -3,6 +3,7 @@ spring:
     group:
       local: local, secret
       dev: dev, secret
+      release: release, secret
       test: test, secret
     default: local
   main:
