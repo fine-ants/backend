@@ -19,7 +19,9 @@ import codesquad.fineants.global.errors.exception.FineAntsException;
 import codesquad.fineants.global.security.ajax.token.AjaxAuthenticationToken;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class AjaxLoginProcessingFilter extends AbstractAuthenticationProcessingFilter {
 
 	private final ObjectMapper objectMapper;
@@ -34,11 +36,14 @@ public class AjaxLoginProcessingFilter extends AbstractAuthenticationProcessingF
 	public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws
 		AuthenticationException,
 		IOException {
-		if (!isAjax(request)) {
+		boolean notAjax = !isAjax(request);
+		log.debug("notAjax : {}", notAjax);
+		if (notAjax) {
 			throw new IllegalStateException("Authentication is not supported");
 		}
 
 		LoginRequest loginRequest = objectMapper.readValue(request.getReader(), LoginRequest.class);
+		log.debug("loginRequest : {}", loginRequest);
 		if (StringUtils.isEmpty(loginRequest.getEmail()) || StringUtils.isEmpty(loginRequest.getPassword())) {
 			throw new FineAntsException(MemberErrorCode.LOGIN_FAIL);
 		}

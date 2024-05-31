@@ -80,7 +80,8 @@ public class AjaxSecurityConfig {
 	@Bean
 	protected AjaxLoginProcessingFilter ajaxLoginProcessingFilter(AuthenticationManager authenticationManager,
 		ObjectMapper objectMapper) {
-		return new AjaxLoginProcessingFilter(new AntPathRequestMatcher("/api/auth/login"), authenticationManager,
+		return new AjaxLoginProcessingFilter(new AntPathRequestMatcher("/api/auth/login", "POST"),
+			authenticationManager,
 			objectMapper);
 	}
 

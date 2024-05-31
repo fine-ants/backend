@@ -13,8 +13,10 @@ import codesquad.fineants.global.errors.errorcode.MemberErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @RequiredArgsConstructor
+@Slf4j
 public class CommonLoginAuthenticationEntryPoint implements AuthenticationEntryPoint {
 	private final ObjectMapper objectMapper;
 
@@ -22,6 +24,7 @@ public class CommonLoginAuthenticationEntryPoint implements AuthenticationEntryP
 	public void commence(HttpServletRequest request, HttpServletResponse response,
 		AuthenticationException exception) throws IOException {
 
+		log.error("AuthenticationEntryPoint : {}", exception.getMessage());
 		MemberErrorCode errorCode = MemberErrorCode.UNAUTHORIZED_MEMBER;
 		ApiResponse<String> body = ApiResponse.error(errorCode);
 		response.setStatus(errorCode.getHttpStatus().value());

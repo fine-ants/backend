@@ -66,7 +66,6 @@ public class OauthSecurityConfig {
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		http
 			.authorizeHttpRequests(authorize ->
-
 				authorize
 					.requestMatchers(
 						"/oauth2/authorization/**",
