@@ -34,7 +34,6 @@ import lombok.RequiredArgsConstructor;
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
-@Order(0)
 public class AjaxSecurityConfig {
 	private final UserDetailsService userDetailsService;
 	private final PasswordEncoder passwordEncoder;
@@ -43,6 +42,7 @@ public class AjaxSecurityConfig {
 	private final MemberService memberService;
 
 	@Bean
+	@Order(0)
 	protected SecurityFilterChain ajaxSecurityFilterChain(HttpSecurity http) throws Exception {
 		http.sessionManagement(configurer -> configurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 		http

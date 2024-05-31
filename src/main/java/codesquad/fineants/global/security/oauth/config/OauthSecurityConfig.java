@@ -31,7 +31,6 @@ import codesquad.fineants.global.security.oauth.service.TokenService;
 
 @Configuration
 @EnableMethodSecurity(securedEnabled = true)
-@Order(1)
 public class OauthSecurityConfig {
 
 	private final MemberRepository memberRepository;
@@ -61,6 +60,7 @@ public class OauthSecurityConfig {
 	}
 
 	@Bean
+	@Order(1)
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		http
 			.authorizeHttpRequests(authorize ->
