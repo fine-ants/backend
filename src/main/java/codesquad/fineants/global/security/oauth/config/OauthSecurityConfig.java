@@ -98,6 +98,7 @@ public class OauthSecurityConfig {
 			.authenticationEntryPoint(commonLoginAuthenticationEntryPoint)
 			.accessDeniedHandler(customAccessDeniedHandler()));
 		http.csrf(AbstractHttpConfigurer::disable);
+
 		return http.build();
 	}
 
@@ -125,7 +126,10 @@ public class OauthSecurityConfig {
 
 	@Bean
 	public WebSecurityCustomizer webSecurity() {
-		return (web) -> web.ignoring().requestMatchers(PathRequest.toStaticResources().atCommonLocations());
+		return (web) -> web.ignoring()
+			.requestMatchers("/docs/**")
+			.requestMatchers("/static/docs/**")
+			.requestMatchers(PathRequest.toStaticResources().atCommonLocations());
 	}
 
 	@Bean
