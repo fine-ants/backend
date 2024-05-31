@@ -25,7 +25,7 @@ public class CommonLoginAuthenticationEntryPoint implements AuthenticationEntryP
 		AuthenticationException exception) throws IOException {
 		log.error("requestUrl : {}", request.getRequestURL());
 		log.error("AuthenticationEntryPoint : {}", exception.getMessage());
-		exception.printStackTrace();
+		exception.printStackTrace(System.out);
 		MemberErrorCode errorCode = MemberErrorCode.UNAUTHORIZED_MEMBER;
 		ApiResponse<String> body = ApiResponse.error(errorCode);
 		response.setStatus(errorCode.getHttpStatus().value());
