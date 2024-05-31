@@ -7,8 +7,10 @@ import org.springframework.security.core.userdetails.User;
 
 import codesquad.fineants.domain.member.domain.entity.Member;
 import lombok.Getter;
+import lombok.ToString;
 
 @Getter
+@ToString
 public class MemberContext extends User {
 
 	private final Member member;

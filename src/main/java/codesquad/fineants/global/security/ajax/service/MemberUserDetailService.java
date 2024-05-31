@@ -16,9 +16,11 @@ import codesquad.fineants.domain.member.domain.entity.MemberRole;
 import codesquad.fineants.domain.member.repository.MemberRepository;
 import codesquad.fineants.global.security.ajax.provider.MemberContext;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service("memberUserDetailsService")
 @RequiredArgsConstructor
+@Slf4j
 public class MemberUserDetailService implements UserDetailsService {
 
 	private final MemberRepository memberRepository;
@@ -28,9 +30,11 @@ public class MemberUserDetailService implements UserDetailsService {
 	public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
 		Member member = memberRepository.findMemberByEmailAndProvider(email, "local")
 			.orElseThrow(() -> new BadCredentialsException("invalid email"));
+		log.debug("findMember : {}", member);
 		List<GrantedAuthority> roles = member.getRoles().stream()
 			.map(MemberRole::toSimpleGrantedAuthority)
 			.collect(Collectors.toList());
+		log.debug("fineMember's roles : {}", roles);
 		return new MemberContext(member, roles);
 	}
 }

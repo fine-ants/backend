@@ -24,6 +24,9 @@ public class AjaxAuthenticationProvider implements AuthenticationProvider {
 		String password = (String)authentication.getCredentials();
 		MemberContext memberContext = (MemberContext)userDetailsService.loadUserByUsername(email);
 
+		log.debug("email : {}", email);
+		log.debug("password : {}", password);
+		log.debug("memberContext : {}", memberContext);
 		if (!passwordEncoder.matches(password, memberContext.getMember().getPassword())) {
 			throw new BadCredentialsException("BadCredentialsException");
 		}
