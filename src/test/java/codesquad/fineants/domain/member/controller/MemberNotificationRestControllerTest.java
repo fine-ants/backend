@@ -198,17 +198,6 @@ class MemberNotificationRestControllerTest extends ControllerTestSupport {
 			.andExpect(jsonPath("message").value(equalTo("알림 삭제를 성공하였습니다")));
 	}
 
-	private Member createMember() {
-		return Member.builder()
-			.id(1L)
-			.nickname("일개미1234")
-			.email("dragonbead95@naver.com")
-			.provider("local")
-			.password("password")
-			.profileUrl("profileUrl")
-			.build();
-	}
-
 	private List<MemberNotification> createNotifications() {
 		return List.of(MemberNotification.builder()
 				.notificationId(3L)

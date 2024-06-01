@@ -31,7 +31,6 @@ import org.springframework.web.multipart.MultipartFile;
 import codesquad.fineants.ControllerTestSupport;
 import codesquad.fineants.domain.member.domain.dto.request.SignUpServiceRequest;
 import codesquad.fineants.domain.member.domain.dto.response.SignUpServiceResponse;
-import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.service.MemberService;
 import codesquad.fineants.global.errors.errorcode.MemberErrorCode;
 import codesquad.fineants.global.errors.exception.BadRequestException;
@@ -356,21 +355,6 @@ public class SignUpRestControllerTest extends ControllerTestSupport {
 			.andExpect(jsonPath("code").value(equalTo(400)))
 			.andExpect(jsonPath("status").value(equalTo("Bad Request")))
 			.andExpect(jsonPath("message").value(equalTo("잘못된 입력형식입니다")));
-	}
-
-	private Member createMember() {
-		return createMember("일개미1234", "profileUrl");
-	}
-
-	private Member createMember(String nickname, String profileUrl) {
-		return Member.builder()
-			.id(1L)
-			.nickname(nickname)
-			.email("dragonbead95@naver.com")
-			.provider("local")
-			.password("password")
-			.profileUrl(profileUrl)
-			.build();
 	}
 
 	public MultipartFile createMockMultipartFile() {

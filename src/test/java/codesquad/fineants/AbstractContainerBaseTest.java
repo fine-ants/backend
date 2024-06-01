@@ -1,7 +1,6 @@
 package codesquad.fineants;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
@@ -78,15 +77,13 @@ public class AbstractContainerBaseTest {
 	}
 
 	protected Member createMember(String nickname, String email) {
-		return Member.builder()
-			.id(1L)
-			.email(email)
-			.nickname(nickname)
-			.provider("local")
-			.password(passwordEncoder.encode("nemo1234@"))
-			.profileUrl("profileUrl")
-			.roles(new HashSet<>())
-			.build();
+		return Member.localMember(
+			1L,
+			email,
+			nickname,
+			passwordEncoder.encode("nemo1234@"),
+			"profileUrl"
+		);
 	}
 
 	protected Portfolio createPortfolio(Member member) {

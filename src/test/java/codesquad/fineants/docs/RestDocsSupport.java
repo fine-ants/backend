@@ -83,14 +83,13 @@ public abstract class RestDocsSupport {
 	}
 
 	protected Member createMember() {
-		return Member.builder()
-			.id(1L)
-			.nickname("일개미1234")
-			.email("kim1234@gmail.com")
-			.password("kim1234@")
-			.provider("local")
-			.profileUrl("profileUrl")
-			.build();
+		return Member.localMember(
+			1L,
+			"kim1234@gmail.com",
+			"일개미1234",
+			"kim1234@",
+			"profileUrl"
+		);
 	}
 
 	protected Stock createStock() {

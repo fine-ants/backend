@@ -184,15 +184,4 @@ class PortfolioNotificationRestControllerTest extends ControllerTestSupport {
 			.member(member)
 			.build();
 	}
-
-	private static Member createMember() {
-		return Member.builder()
-			.id(1L)
-			.nickname("일개미1234")
-			.email("kim1234@gmail.com")
-			.provider("local")
-			.password("kim1234@")
-			.profileUrl("profileValue")
-			.build();
-	}
 }

@@ -73,8 +73,7 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 	@Test
 	void getOverviewWhenNoPortfolio() {
 		// given
-		Member member = Member.builder()
-			.email("member@member.com").password("password").nickname("nick").build();
+		Member member = createMember();
 		member = memberRepository.save(member);
 
 		// when
@@ -106,7 +105,7 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 	@Test
 	void getOverviewWithPortfolio() {
 		// given
-		Member member = Member.builder().email("member@member.com").password("password").nickname("nick").build();
+		Member member = createMember();
 		member = memberRepository.save(member);
 
 		Portfolio portfolio = portfolioRepository.save(Portfolio.builder()
@@ -207,7 +206,7 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 	@Test
 	void getPieChartTest() {
 		// given
-		Member member = Member.builder().email("member@member.com").password("password").nickname("nick").build();
+		Member member = createMember();
 		member = memberRepository.save(member);
 
 		Portfolio portfolio = portfolioRepository.save(Portfolio.builder()
@@ -276,7 +275,7 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 	@Test
 	void getLineChartTest() {
 		// given
-		Member member = Member.builder().email("member@member.com").password("password").nickname("nick").build();
+		Member member = createMember();
 		member = memberRepository.save(member);
 
 		Portfolio portfolio = portfolioRepository.save(Portfolio.builder()

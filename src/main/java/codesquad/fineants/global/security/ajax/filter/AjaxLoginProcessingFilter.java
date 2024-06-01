@@ -44,7 +44,7 @@ public class AjaxLoginProcessingFilter extends AbstractAuthenticationProcessingF
 
 		LoginRequest loginRequest = objectMapper.readValue(request.getReader(), LoginRequest.class);
 		log.debug("loginRequest : {}", loginRequest);
-		if (StringUtils.isEmpty(loginRequest.getEmail()) || StringUtils.isEmpty(loginRequest.getPassword())) {
+		if (!StringUtils.hasText(loginRequest.getEmail()) || !StringUtils.hasText(loginRequest.getPassword())) {
 			throw new FineAntsException(MemberErrorCode.LOGIN_FAIL);
 		}
 

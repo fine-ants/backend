@@ -19,6 +19,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.global.config.JacksonConfig;
 import codesquad.fineants.global.config.JpaAuditingConfiguration;
 import codesquad.fineants.global.config.SpringConfig;
@@ -65,6 +66,16 @@ public abstract class ControllerTestSupport {
 			"local",
 			"profileUrl",
 			Set.of("ROLE_USER")
+		);
+	}
+
+	protected static Member createMember() {
+		return Member.localMember(
+			1L,
+			"dragonbead95@naver.com",
+			"nemo1234",
+			"nemo1234@",
+			"profileUrl"
 		);
 	}
 

@@ -68,13 +68,7 @@ class PortfolioGainHistoryServiceTest extends AbstractContainerBaseTest {
 
 	@BeforeEach
 	void init() {
-		Member member = Member.builder()
-			.nickname("일개미1234")
-			.email("kim1234@gmail.com")
-			.password("kim1234@")
-			.provider("local")
-			.build();
-		memberRepository.save(member);
+		Member member = memberRepository.save(createMember());
 
 		this.portfolio = Portfolio.builder()
 			.name("내꿈은 워렌버핏")

@@ -23,12 +23,16 @@ public class OAuthAttribute {
 
 	public static OAuthAttribute of(String provider, Map<String, Object> attributes,
 		String nameAttributeKey) {
-		if (provider.equals("google")) {
-			return ofGoogle(attributes, nameAttributeKey);
-		} else if (provider.equals("kakao")) {
-			return ofKakao(attributes, nameAttributeKey);
-		} else if (provider.equals("naver")) {
-			return ofNaver(attributes, nameAttributeKey);
+		switch (provider) {
+			case "google" -> {
+				return ofGoogle(attributes, nameAttributeKey);
+			}
+			case "kakao" -> {
+				return ofKakao(attributes, nameAttributeKey);
+			}
+			case "naver" -> {
+				return ofNaver(attributes, nameAttributeKey);
+			}
 		}
 		throw new IllegalArgumentException("Invalid OAuth Provider");
 	}

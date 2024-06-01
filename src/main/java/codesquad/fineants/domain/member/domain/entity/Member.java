@@ -46,8 +46,8 @@ public class Member extends BaseEntity {
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "member", orphanRemoval = true, cascade = CascadeType.ALL)
 	private Set<MemberRole> roles;
 
-	@Builder
-	public Member(LocalDateTime createAt, LocalDateTime modifiedAt, Long id, String email,
+	@Builder(access = AccessLevel.PRIVATE)
+	private Member(LocalDateTime createAt, LocalDateTime modifiedAt, Long id, String email,
 		String nickname, String provider, String password, String profileUrl,
 		NotificationPreference notificationPreference,
 		Set<MemberRole> roles) {
@@ -74,12 +74,22 @@ public class Member extends BaseEntity {
 	}
 
 	public static Member localMember(String email, String nickname, String password) {
+		return localMember(email, nickname, password, null);
+	}
+
+	public static Member localMember(String email, String nickname, String password, String profileUrl) {
+		return localMember(null, email, nickname, password, profileUrl);
+	}
+
+	public static Member localMember(Long id, String email, String nickname, String password, String profileUrl) {
 		return Member.builder()
+			.id(id)
 			.email(email)
 			.nickname(nickname)
 			.provider("local")
 			.password(password)
-			.profileUrl(null)
+			.profileUrl(profileUrl)
+			.roles(new HashSet<>())
 			.build();
 	}
 
