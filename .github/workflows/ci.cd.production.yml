@@ -2,7 +2,7 @@ name: ci-cd
 
 on:
   push:
-    branches: [ dev-cicd, dev ]
+    branches: [ main ]
 
 permissions:
   contents: read
@@ -11,7 +11,7 @@ env:
   S3_BUCKET_NAME: fineants
   AWS_REGION: ap-northeast-2
   CODEDEPLOY_NAME: fineAnts
-  CODEDEPLOY_GROUP: dev
+  CODEDEPLOY_GROUP: production
 
 jobs:
   build-image:
@@ -67,7 +67,7 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
       # S3에 업로드
       - name: Upload to S3
-        run: aws s3 cp --region ap-northeast-2 ./$GITHUB_SHA.zip s3://$S3_BUCKET_NAME/deploy/dev/$GITHUB_SHA.zip
+        run: aws s3 cp --region ap-northeast-2 ./$GITHUB_SHA.zip s3://$S3_BUCKET_NAME/deploy/production/$GITHUB_SHA.zip
       # 코드 배포
       - name: Code Deploy
-        run: aws deploy create-deployment --application-name $CODEDEPLOY_NAME --deployment-config-name CodeDeployDefault.AllAtOnce --deployment-group-name $CODEDEPLOY_GROUP --s3-location bucket=$S3_BUCKET_NAME,bundleType=zip,key=deploy/dev/$GITHUB_SHA.zip
+        run: aws deploy create-deployment --application-name $CODEDEPLOY_NAME --deployment-config-name CodeDeployDefault.AllAtOnce --deployment-group-name $CODEDEPLOY_GROUP --s3-location bucket=$S3_BUCKET_NAME,bundleType=zip,key=deploy/production/$GITHUB_SHA.zip

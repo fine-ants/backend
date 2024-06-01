@@ -33,7 +33,7 @@ import codesquad.fineants.global.security.oauth.dto.MemberAuthentication;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-@Profile(value = {"local", "release", "dev"})
+@Profile(value = {"local", "dev", "release", "production"})
 @Component
 @RequiredArgsConstructor
 @Slf4j

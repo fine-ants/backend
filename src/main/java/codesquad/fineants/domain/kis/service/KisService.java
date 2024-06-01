@@ -50,7 +50,7 @@ public class KisService {
 	private final PortfolioPublisher portfolioPublisher;
 
 	// 평일 9am ~ 15:59pm 5초마다 현재가 갱신 수행
-	@Profile(value = "dev")
+	@Profile(value = "production")
 	@Scheduled(cron = "0/5 * 9-15 ? * MON,TUE,WED,THU,FRI")
 	public void refreshCurrentPrice() {
 		// 휴장일인 경우 실행하지 않음

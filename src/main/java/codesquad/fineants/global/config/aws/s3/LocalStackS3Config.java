@@ -12,7 +12,7 @@ import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 
-@Profile(value = {"local"})
+@Profile(value = {"local", "dev"})
 @Configuration(proxyBeanMethods = false)
 public class LocalStackS3Config {
 	@Bean(initMethod = "start", destroyMethod = "stop")
