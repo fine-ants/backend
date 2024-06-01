@@ -13,7 +13,7 @@ import com.amazonaws.services.s3.model.PutObjectRequest;
 
 import lombok.RequiredArgsConstructor;
 
-@Profile({"local", "test"})
+@Profile({"test", "local", "dev"})
 @Component
 @RequiredArgsConstructor
 public class S3BucketInitializer {

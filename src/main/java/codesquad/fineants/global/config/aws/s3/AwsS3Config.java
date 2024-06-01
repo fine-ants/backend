@@ -11,7 +11,7 @@ import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 
-@Profile(value = {"release", "dev"})
+@Profile(value = {"release", "production"})
 @Configuration
 public class AwsS3Config {
 

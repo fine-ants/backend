@@ -16,7 +16,7 @@ env:
 jobs:
   build-image:
     runs-on: ubuntu-latest
-    environment: dev
+    environment: aws
     defaults:
       run:
         shell: bash
