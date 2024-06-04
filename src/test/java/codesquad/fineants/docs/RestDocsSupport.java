@@ -104,17 +104,15 @@ public abstract class RestDocsSupport {
 	}
 
 	protected Portfolio createPortfolio(Member member) {
-		return Portfolio.builder()
-			.id(1L)
-			.name("내꿈은 워렌버핏")
-			.securitiesFirm("토스")
-			.budget(Money.won(1000000L))
-			.targetGain(Money.won(1500000L))
-			.maximumLoss(Money.won(900000L))
-			.targetGainIsActive(true)
-			.maximumLossIsActive(true)
-			.member(member)
-			.build();
+		return Portfolio.active(
+			1L,
+			"내꿈은 워렌버핏",
+			"토스증권",
+			Money.won(1000000L),
+			Money.won(1500000L),
+			Money.won(900000L),
+			member
+		);
 	}
 
 	protected PortfolioHolding createPortfolioHolding(Portfolio portfolio, Stock stock) {

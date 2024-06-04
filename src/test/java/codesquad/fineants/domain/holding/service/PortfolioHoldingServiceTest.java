@@ -32,6 +32,7 @@ import codesquad.fineants.domain.holding.domain.dto.response.PortfolioChartRespo
 import codesquad.fineants.domain.holding.domain.dto.response.PortfolioDetailResponse;
 import codesquad.fineants.domain.holding.domain.dto.response.PortfolioHoldingsRealTimeResponse;
 import codesquad.fineants.domain.holding.domain.dto.response.PortfolioHoldingsResponse;
+import codesquad.fineants.domain.holding.domain.dto.response.PortfolioSectorChartItem;
 import codesquad.fineants.domain.holding.domain.dto.response.PortfolioStockCreateResponse;
 import codesquad.fineants.domain.holding.domain.dto.response.PortfolioStockDeleteResponse;
 import codesquad.fineants.domain.holding.domain.dto.response.PortfolioStockDeletesResponse;
@@ -149,7 +150,7 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 			.toPercentage(Bank.getInstance(), Currency.KRW);
 
 		assertAll(
-			() -> assertThat(details.getSecuritiesFirm()).isEqualTo("토스"),
+			() -> assertThat(details.getSecuritiesFirm()).isEqualTo("토스증권"),
 			() -> assertThat(details.getName()).isEqualTo("내꿈은 워렌버핏"),
 			() -> assertThat(details.getBudget()).isEqualByComparingTo(Money.won(1000000L)),
 			() -> assertThat(details.getTargetGain()).isEqualByComparingTo(Money.won(1500000L)),
@@ -266,11 +267,8 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 					Tuple.tuple(11, Money.won(1083L)),
 					Tuple.tuple(12, Money.zero())
 				),
-			() -> assertThat(response)
-				.extracting("sectorChart")
-				.asList()
-				.hasSize(2)
-				.extracting("sector", "sectorWeight")
+			() -> assertThat(response.getSectorChart())
+				.extracting(PortfolioSectorChartItem::getSector, PortfolioSectorChartItem::getSectorWeight)
 				.containsExactlyInAnyOrder(
 					Tuple.tuple("현금", Percentage.from(0.8252)),
 					Tuple.tuple("전기전자", Percentage.from(0.1748))
@@ -283,7 +281,7 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 	void readMyPortfolioCharts_whenPortfolioBudgetIsZero_thenOK() {
 		// given
 		Member member = memberRepository.save(createMember());
-		Portfolio portfolio = portfolioRepository.save(createPortfolioWithZero(member));
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member, Money.zero()));
 		Stock stock = stockRepository.save(createStock());
 		List<StockDividend> stockDividends = createStockDividendWith(stock);
 		stockDividends.forEach(stock::addStockDividend);
@@ -647,30 +645,6 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		assertThat(portFolioHoldingRepository.findById(portfolioHolding.getId()).isPresent()).isTrue();
 		assertThat(portFolioHoldingRepository.findById(portfolioHolding2.getId()).isPresent()).isTrue();
 		assertThat(purchaseHistoryRepository.findById(purchaseHistory.getId()).isPresent()).isTrue();
-	}
-
-	private Portfolio createPortfolioWithZero(Member member) {
-		return Portfolio.builder()
-			.name("내꿈은 워렌버핏")
-			.securitiesFirm("토스")
-			.budget(Money.won(0L))
-			.targetGain(Money.zero())
-			.maximumLoss(Money.zero())
-			.member(member)
-			.targetGainIsActive(false)
-			.maximumLossIsActive(false)
-			.build();
-	}
-
-	private Stock createStock() {
-		return Stock.builder()
-			.companyName("삼성전자보통주")
-			.tickerSymbol("005930")
-			.companyNameEng("SamsungElectronics")
-			.stockCode("KR7005930003")
-			.sector("전기전자")
-			.market(Market.KOSPI)
-			.build();
 	}
 
 	private Stock createStock(String companyName, String tickerSymbol, String companyNameEng, String stockCode,

@@ -107,7 +107,7 @@ class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 			.andExpect(jsonPath("status").value(equalTo("OK")))
 			.andExpect(jsonPath("message").value(equalTo("포트폴리오 상세 정보 및 포트폴리오 종목 목록 조회가 완료되었습니다")))
 			.andExpect(jsonPath("data.portfolioDetails.id").value(equalTo(1)))
-			.andExpect(jsonPath("data.portfolioDetails.securitiesFirm").value(equalTo("토스")))
+			.andExpect(jsonPath("data.portfolioDetails.securitiesFirm").value(equalTo("토스증권")))
 			.andExpect(jsonPath("data.portfolioDetails.name").value(equalTo("내꿈은 워렌버핏")))
 			.andExpect(jsonPath("data.portfolioDetails.budget").value(equalTo(1000000)))
 			.andExpect(jsonPath("data.portfolioDetails.targetGain").value(equalTo(1500000)))
@@ -123,8 +123,8 @@ class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 			.andExpect(jsonPath("data.portfolioDetails.annualDividendYield").value(closeTo(2.41, 0.1)))
 			.andExpect(jsonPath("data.portfolioDetails.annualInvestmentDividendYield").value(closeTo(2.89, 0.1)))
 			.andExpect(jsonPath("data.portfolioDetails.provisionalLossBalance").value(equalTo(0)))
-			.andExpect(jsonPath("data.portfolioDetails.targetGainNotify").value(equalTo(false)))
-			.andExpect(jsonPath("data.portfolioDetails.maxLossNotify").value(equalTo(false)));
+			.andExpect(jsonPath("data.portfolioDetails.targetGainNotify").value(equalTo(true)))
+			.andExpect(jsonPath("data.portfolioDetails.maxLossNotify").value(equalTo(true)));
 
 		resultActions
 			.andExpect(jsonPath("data.portfolioHoldings[0].companyName").value(equalTo("삼성전자보통주")))
@@ -401,20 +401,6 @@ class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 			.stockCode("KR7005930003")
 			.market(Market.KOSPI)
 			.sector("전기전자")
-			.build();
-	}
-	
-	private Portfolio createPortfolio(Member member) {
-		return Portfolio.builder()
-			.id(1L)
-			.name("내꿈은 워렌버핏")
-			.securitiesFirm("토스")
-			.budget(Money.won(1000000L))
-			.targetGain(Money.won(1500000L))
-			.maximumLoss(Money.won(900000L))
-			.targetGainIsActive(false)
-			.maximumLossIsActive(false)
-			.member(member)
 			.build();
 	}
 

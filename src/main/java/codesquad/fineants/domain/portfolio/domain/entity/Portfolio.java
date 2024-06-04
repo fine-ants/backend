@@ -99,14 +99,8 @@ public class Portfolio extends BaseEntity {
 	@OneToMany(mappedBy = "portfolio")
 	private final List<PortfolioHolding> portfolioHoldings = new ArrayList<>();
 
-	private Portfolio(String name, String securitiesFirm, Money budget, Money targetGain, Money maximumLoss,
-		Boolean targetGainIsActive, Boolean maximumLossIsActive, Member member) {
-		this(null, name, securitiesFirm, budget, targetGain, maximumLoss, targetGainIsActive, maximumLossIsActive,
-			member);
-	}
-
-	@Builder
-	public Portfolio(Long id, String name, String securitiesFirm, Money budget, Money targetGain, Money maximumLoss,
+	@Builder(access = AccessLevel.PRIVATE)
+	private Portfolio(Long id, String name, String securitiesFirm, Money budget, Money targetGain, Money maximumLoss,
 		Boolean targetGainIsActive, Boolean maximumLossIsActive, Member member) {
 		validateBudget(budget, targetGain, maximumLoss);
 		this.id = id;
@@ -134,9 +128,19 @@ public class Portfolio extends BaseEntity {
 		}
 	}
 
+	public static Portfolio active(String name, String securitiesFirm, Money budget, Money targetGain,
+		Money maximumLoss, Member member) {
+		return active(null, name, securitiesFirm, budget, targetGain, maximumLoss, member);
+	}
+
+	public static Portfolio active(Long id, String name, String securitiesFirm, Money budget, Money targetGain,
+		Money maximumLoss, Member member) {
+		return new Portfolio(id, name, securitiesFirm, budget, targetGain, maximumLoss, true, true, member);
+	}
+
 	public static Portfolio noActive(String name, String securitiesFirm, Money budget, Money targetGain,
 		Money maximumLoss, Member member) {
-		return new Portfolio(name, securitiesFirm, budget, targetGain, maximumLoss, false, false, member);
+		return new Portfolio(null, name, securitiesFirm, budget, targetGain, maximumLoss, false, false, member);
 	}
 
 	//== 연관관계 메소드 ==//

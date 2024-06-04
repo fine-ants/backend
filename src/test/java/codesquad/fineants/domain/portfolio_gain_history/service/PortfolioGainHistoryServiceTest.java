@@ -7,7 +7,6 @@ import java.time.LocalDateTime;
 
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +28,6 @@ import codesquad.fineants.domain.portfolio_gain_history.domain.entity.PortfolioG
 import codesquad.fineants.domain.portfolio_gain_history.repository.PortfolioGainHistoryRepository;
 import codesquad.fineants.domain.purchasehistory.domain.entity.PurchaseHistory;
 import codesquad.fineants.domain.purchasehistory.repository.PurchaseHistoryRepository;
-import codesquad.fineants.domain.stock.domain.entity.Market;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
 
@@ -62,33 +60,6 @@ class PortfolioGainHistoryServiceTest extends AbstractContainerBaseTest {
 	@Autowired
 	private CurrentPriceRepository currentPriceRepository;
 
-	private Stock stock;
-
-	private Portfolio portfolio;
-
-	@BeforeEach
-	void init() {
-		Member member = memberRepository.save(createMember());
-
-		this.portfolio = Portfolio.builder()
-			.name("내꿈은 워렌버핏")
-			.securitiesFirm("토스")
-			.budget(Money.won(1000000L))
-			.targetGain(Money.won(1500000L))
-			.maximumLoss(Money.won(900000L))
-			.member(member)
-			.build();
-
-		Stock stock = Stock.builder()
-			.companyName("삼성전자보통주")
-			.tickerSymbol("005930")
-			.companyNameEng("SamsungElectronics")
-			.stockCode("KR7005930003")
-			.market(Market.KOSPI)
-			.build();
-		this.stock = stockRepository.save(stock);
-	}
-
 	@AfterEach
 	void tearDown() {
 		portfolioGainHistoryRepository.deleteAllInBatch();
@@ -104,7 +75,9 @@ class PortfolioGainHistoryServiceTest extends AbstractContainerBaseTest {
 	@Test
 	void addPortfolioGainHistory() {
 		// given
-		Portfolio savePortfolio = portfolioRepository.save(portfolio);
+		Member member = memberRepository.save(createMember());
+		Portfolio savePortfolio = portfolioRepository.save(createPortfolio(member));
+		Stock stock = stockRepository.save(createStock());
 		PortfolioHolding portfolioHolding = PortfolioHolding.of(savePortfolio, stock, Money.won(60000L));
 		PurchaseHistory purchaseHistory = PurchaseHistory.builder()
 			.purchaseDate(LocalDateTime.now())

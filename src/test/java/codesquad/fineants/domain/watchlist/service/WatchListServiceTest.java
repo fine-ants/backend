@@ -420,14 +420,4 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 		assertThat(hasStockForWatchList1).isTrue();
 		assertThat(hasStockForWatchList2).isFalse();
 	}
-
-	private Stock createStock() {
-		return Stock.builder()
-			.tickerSymbol("005930")
-			.stockCode("KR7005930003")
-			.companyName("삼성전자보통주")
-			.companyNameEng("SamsungElectronics")
-			.market(Market.KOSPI)
-			.build();
-	}
 }

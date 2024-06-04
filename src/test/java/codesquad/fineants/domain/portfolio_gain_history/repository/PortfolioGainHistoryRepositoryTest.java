@@ -96,15 +96,7 @@ class PortfolioGainHistoryRepositoryTest extends AbstractContainerBaseTest {
 	void findFirstByCreateAtIsLessThanEqualOrderByCreateAtDesc() {
 		// given
 		Member member = memberRepository.save(createMember());
-
-		Portfolio portfolio = portfolioRepository.save(Portfolio.builder()
-			.name("내꿈은 워렌버핏")
-			.securitiesFirm("토스")
-			.budget(Money.won(1000000L))
-			.targetGain(Money.won(1500000L))
-			.maximumLoss(Money.won(900000L))
-			.member(member)
-			.build());
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 
 		PortfolioGainHistory portfolioGainHistory1 = PortfolioGainHistory.builder()
 			.totalGain(Money.won(10000L))

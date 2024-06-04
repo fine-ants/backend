@@ -44,7 +44,6 @@ import codesquad.fineants.domain.portfolio_gain_history.domain.entity.PortfolioG
 import codesquad.fineants.domain.portfolio_gain_history.repository.PortfolioGainHistoryRepository;
 import codesquad.fineants.domain.purchasehistory.domain.entity.PurchaseHistory;
 import codesquad.fineants.domain.purchasehistory.repository.PurchaseHistoryRepository;
-import codesquad.fineants.domain.stock.domain.entity.Market;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
 import codesquad.fineants.global.errors.exception.BadRequestException;
@@ -273,7 +272,14 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 		// given
 		Member member = memberRepository.save(createMember());
 		String duplicatedName = "내꿈은 찰리몽거";
-		portfolioRepository.save(createPortfolio(member, duplicatedName));
+		portfolioRepository.save(createPortfolio(
+				member,
+				duplicatedName,
+				Money.won(1000000),
+				Money.won(1500000),
+				Money.won(900000)
+			)
+		);
 		Portfolio originPortfolio = portfolioRepository.save(createPortfolio(member));
 
 		Map<String, Object> body = createModifiedPortfolioRequestBodyMap(duplicatedName);
@@ -484,16 +490,13 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 
 	private Portfolio createPortfolioWithRandomName(Member member) {
 		String randomPostfix = UUID.randomUUID().toString().substring(0, 10);
-		return Portfolio.builder()
-			.name("내꿈은 워렌버핏" + randomPostfix)
-			.securitiesFirm("토스증권")
-			.budget(Money.won(1000000L))
-			.targetGain(Money.won(1500000L))
-			.maximumLoss(Money.won(900000L))
-			.member(member)
-			.targetGainIsActive(false)
-			.maximumLossIsActive(false)
-			.build();
+		return createPortfolio(
+			member,
+			"내꿈은 워렙퍼빗" + randomPostfix,
+			Money.won(1000000L),
+			Money.won(1500000L),
+			Money.won(900000L)
+		);
 	}
 
 	private PortfolioGainHistory createPortfolioGainHistory(Portfolio portfolio) {
@@ -504,17 +507,6 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 			.cash(bank.toWon(portfolio.calculateBalance()))
 			.currentValuation(bank.toWon(portfolio.calculateTotalCurrentValuation()))
 			.portfolio(portfolio)
-			.build();
-	}
-
-	private Stock createStock() {
-		return Stock.builder()
-			.companyName("삼성전자보통주")
-			.tickerSymbol("005930")
-			.companyNameEng("SamsungElectronics")
-			.stockCode("KR7005930003")
-			.sector("전기전자")
-			.market(Market.KOSPI)
 			.build();
 	}
 

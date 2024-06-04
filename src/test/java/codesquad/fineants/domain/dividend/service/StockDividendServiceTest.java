@@ -195,17 +195,6 @@ class StockDividendServiceTest extends AbstractContainerBaseTest {
 		);
 	}
 
-	private Stock createStock() {
-		return Stock.builder()
-			.companyName("삼성전자보통주")
-			.tickerSymbol("005930")
-			.companyNameEng("SamsungElectronics")
-			.stockCode("KR7005930003")
-			.sector("전기전자")
-			.market(Market.KOSPI)
-			.build();
-	}
-
 	private Stock createStock(String companyName, String tickerSymbol, String companyNameEng, String stockCode,
 		String sector, Market market) {
 		return Stock.builder()

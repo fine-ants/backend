@@ -655,22 +655,6 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 			.build();
 	}
 
-	private Stock createStock() {
-		return createStack("삼성전자보통주", "005930", "SamsungElectronics", "KR7005930003", "전기전자", Market.KOSPI);
-	}
-
-	private Stock createStack(String companyName, String tickerSymbol, String companyNameEng, String stockCode,
-		String sector, Market market) {
-		return Stock.builder()
-			.companyName(companyName)
-			.tickerSymbol(tickerSymbol)
-			.companyNameEng(companyNameEng)
-			.stockCode(stockCode)
-			.sector(sector)
-			.market(market)
-			.build();
-	}
-
 	private PortfolioHolding createPortfolioHolding(Portfolio portfolio, Stock stock) {
 		return PortfolioHolding.builder()
 			.portfolio(portfolio)
@@ -737,17 +721,6 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 			.maxLossNotify(maxLossNotify)
 			.targetPriceNotify(true)
 			.member(member)
-			.build();
-	}
-
-	private Stock createStock2() {
-		return Stock.builder()
-			.companyName("동화약품보통주")
-			.tickerSymbol("000020")
-			.companyNameEng("DongwhaPharm")
-			.stockCode("KR7000020008")
-			.sector("의약품")
-			.market(Market.KOSPI)
 			.build();
 	}
 }

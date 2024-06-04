@@ -20,6 +20,8 @@ import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.kis.client.KisAccessToken;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
+import codesquad.fineants.domain.stock.domain.entity.Market;
+import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.global.init.S3BucketInitializer;
 import lombok.extern.slf4j.Slf4j;
 
@@ -87,23 +89,74 @@ public class AbstractContainerBaseTest {
 	}
 
 	protected Portfolio createPortfolio(Member member) {
-		return createPortfolio(member, "내꿈은 워렌버핏");
+		return createPortfolio(
+			member,
+			Money.won(1000000)
+		);
 	}
 
 	protected Portfolio createPortfolio(Member member, String name) {
-		return createPortfolio(member, name, Money.won(1000000L), Money.won(1500000L), Money.won(900000L));
+		return createPortfolio(
+			member,
+			name,
+			Money.won(1000000L),
+			Money.won(1500000L),
+			Money.won(900000L)
+		);
+	}
+
+	protected Portfolio createPortfolio(Member member, Money budget) {
+		return createPortfolio(
+			member,
+			"내꿈은 워렌버핏",
+			budget,
+			Money.won(1500000L),
+			Money.won(900000L)
+		);
 	}
 
 	protected Portfolio createPortfolio(Member member, String name, Money budget, Money targetGain, Money maximumLoss) {
-		return Portfolio.builder()
-			.name(name)
-			.securitiesFirm("토스")
-			.budget(budget)
-			.targetGain(targetGain)
-			.maximumLoss(maximumLoss)
-			.member(member)
-			.targetGainIsActive(true)
-			.maximumLossIsActive(true)
+		return Portfolio.active(
+			name,
+			"토스증권",
+			budget,
+			targetGain,
+			maximumLoss,
+			member
+		);
+	}
+
+	protected Stock createStock() {
+		return Stock.builder()
+			.companyName("삼성전자보통주")
+			.tickerSymbol("005930")
+			.companyNameEng("SamsungElectronics")
+			.stockCode("KR7005930003")
+			.sector("전기전자")
+			.market(Market.KOSPI)
+			.build();
+	}
+
+	protected Stock createStock2() {
+		return Stock.builder()
+			.companyName("동화약품보통주")
+			.tickerSymbol("000020")
+			.companyNameEng("DongwhaPharm")
+			.stockCode("KR7000020008")
+			.sector("의약품")
+			.market(Market.KOSPI)
+			.build();
+	}
+
+	protected Stock createStack(String companyName, String tickerSymbol, String companyNameEng, String stockCode,
+		String sector, Market market) {
+		return Stock.builder()
+			.companyName(companyName)
+			.tickerSymbol(tickerSymbol)
+			.companyNameEng(companyNameEng)
+			.stockCode(stockCode)
+			.sector(sector)
+			.market(market)
 			.build();
 	}
 }

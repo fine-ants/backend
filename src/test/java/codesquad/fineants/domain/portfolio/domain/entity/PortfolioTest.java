@@ -8,8 +8,8 @@ import java.util.List;
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.test.context.ActiveProfiles;
 
+import codesquad.fineants.AbstractContainerBaseTest;
 import codesquad.fineants.domain.common.count.Count;
 import codesquad.fineants.domain.common.money.Bank;
 import codesquad.fineants.domain.common.money.Expression;
@@ -22,14 +22,13 @@ import codesquad.fineants.domain.purchasehistory.domain.entity.PurchaseHistory;
 import codesquad.fineants.domain.stock.domain.entity.Market;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 
-@ActiveProfiles("test")
-class PortfolioTest {
+class PortfolioTest extends AbstractContainerBaseTest {
 
 	@DisplayName("포트폴리오의 총 손익을 계산한다")
 	@Test
 	void calculateTotalGain() {
 		// given
-		Portfolio portfolio = createPortfolio();
+		Portfolio portfolio = createPortfolio(createMember());
 		Stock stock = createSamsungStock();
 		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock, Money.won(20000L));
 
@@ -64,7 +63,7 @@ class PortfolioTest {
 	@Test
 	void calculateTotalReturnRate() {
 		// given
-		Portfolio portfolio = createPortfolio();
+		Portfolio portfolio = createPortfolio(createMember());
 		Stock stock = createSamsungStock();
 		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock, Money.won(20000L));
 
@@ -99,7 +98,7 @@ class PortfolioTest {
 	@Test
 	void createPieChart() {
 		// given
-		Portfolio portfolio = createPortfolio();
+		Portfolio portfolio = createPortfolio(createMember());
 		Stock stock = createSamsungStock();
 		Stock stock2 = createDongHwa();
 		PortfolioHolding holding1 = PortfolioHolding.of(portfolio, stock, Money.won(20000L));
@@ -144,7 +143,7 @@ class PortfolioTest {
 	@Test
 	void createSectorChart() {
 		// given
-		Portfolio portfolio = createPortfolio();
+		Portfolio portfolio = createPortfolio(createMember());
 		Stock stock = createSamsungStock();
 		Stock stock2 = createDongHwa();
 		PortfolioHolding holding1 = PortfolioHolding.of(portfolio, stock, Money.won(20000L));
@@ -179,14 +178,6 @@ class PortfolioTest {
 			.hasSize(3)
 			.extracting("sector")
 			.containsExactlyInAnyOrder("현금", "의약품", "전기전자");
-	}
-
-	private Portfolio createPortfolio() {
-		return Portfolio.builder()
-			.budget(Money.won(1000000L))
-			.targetGain(Money.won(1500000L))
-			.maximumLoss(Money.won(900000L))
-			.build();
 	}
 
 	private Stock createSamsungStock() {

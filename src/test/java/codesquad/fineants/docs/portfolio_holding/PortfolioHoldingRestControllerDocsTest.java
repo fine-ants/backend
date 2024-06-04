@@ -154,7 +154,7 @@ public class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 			.andExpect(jsonPath("status").value(equalTo("OK")))
 			.andExpect(jsonPath("message").value(equalTo("포트폴리오 상세 정보 및 포트폴리오 종목 목록 조회가 완료되었습니다")))
 			.andExpect(jsonPath("data.portfolioDetails.id").value(equalTo(1)))
-			.andExpect(jsonPath("data.portfolioDetails.securitiesFirm").value(equalTo("토스")))
+			.andExpect(jsonPath("data.portfolioDetails.securitiesFirm").value(equalTo("토스증권")))
 			.andExpect(jsonPath("data.portfolioDetails.name").value(equalTo("내꿈은 워렌버핏")))
 			.andExpect(jsonPath("data.portfolioDetails.budget").value(equalTo(1000000)))
 			.andExpect(jsonPath("data.portfolioDetails.targetGain").value(equalTo(1500000)))

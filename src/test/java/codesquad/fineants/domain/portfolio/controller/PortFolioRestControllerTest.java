@@ -51,11 +51,19 @@ class PortFolioRestControllerTest extends ControllerTestSupport {
 	@DisplayName("사용자는 포트폴리오 추가를 요청한다")
 	@CsvSource(value = {"1000000,1500000,900000", "0,0,0", "0,1500000,900000"})
 	@ParameterizedTest
-	void createPortfolio(Long budget, Long targetGain, Long maximumLoss) throws Exception {
+	void createPortfolio_whenAddPortfolio_thenSavePortfolio(Long budget, Long targetGain, Long maximumLoss) throws
+		Exception {
 		// given
 		Member member = createMember();
 		PortFolioCreateResponse response = PortFolioCreateResponse.from(
-			createPortfolio(budget, targetGain, maximumLoss, member));
+			createPortfolio(
+				member,
+				"내꿈은 워렙버핏",
+				Money.won(budget),
+				Money.won(targetGain),
+				Money.won(maximumLoss)
+			)
+		);
 		given(portFolioService.createPortfolio(any(PortfolioCreateRequest.class), anyLong()))
 			.willReturn(response);
 
@@ -155,7 +163,13 @@ class PortFolioRestControllerTest extends ControllerTestSupport {
 	void updatePortfolio(Long budget, Long targetGain, Long maximumLoss) throws Exception {
 		// given
 		Member member = createMember();
-		Portfolio portfolio = createPortfolio(1000000L, 1500000L, 900000L, member);
+		Portfolio portfolio = createPortfolio(
+			member,
+			"내꿈은 워렌버핏",
+			Money.won(1000000L),
+			Money.won(1500000L),
+			Money.won(900000L)
+		);
 		PortfolioModifyResponse response = PortfolioModifyResponse.from(portfolio);
 
 		given(portFolioService.updatePortfolio(any(PortfolioModifyRequest.class), anyLong(), anyLong()))
@@ -208,8 +222,6 @@ class PortFolioRestControllerTest extends ControllerTestSupport {
 	@Test
 	void deletePortfolio() throws Exception {
 		// given
-		Member member = createMember();
-		createPortfolio(1000000L, 1500000L, 900000L, member);
 
 		// when & then
 		mockMvc.perform(delete("/api/portfolios/1"))
@@ -224,17 +236,5 @@ class PortFolioRestControllerTest extends ControllerTestSupport {
 		return Stream.of(
 			Arguments.of("", "", 0L, null, -1L)
 		);
-	}
-
-	private Portfolio createPortfolio(Long budget, Long targetGain, Long maximumLoss, Member member) {
-		return Portfolio.builder()
-			.id(1L)
-			.name("내꿈은 워렌버핏")
-			.securitiesFirm("토스")
-			.budget(Money.won(budget))
-			.targetGain(Money.won(targetGain))
-			.maximumLoss(Money.won(maximumLoss))
-			.member(member)
-			.build();
 	}
 }

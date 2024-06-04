@@ -105,17 +105,9 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 	@Test
 	void getOverviewWithPortfolio() {
 		// given
-		Member member = createMember();
-		member = memberRepository.save(member);
+		Member member = memberRepository.save(createMember());
 
-		Portfolio portfolio = portfolioRepository.save(Portfolio.builder()
-			.name("내꿈은 워렌버핏")
-			.securitiesFirm("토스")
-			.budget(Money.won(1000000L))
-			.targetGain(Money.won(1500000L))
-			.maximumLoss(Money.won(900000L))
-			.member(member)
-			.build());
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Stock stock = stockRepository.save(Stock.builder()
 			.companyName("삼성전자보통주")
 			.tickerSymbol("005930")
@@ -142,7 +134,6 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 		OverviewResponse response = dashboardService.getOverview(member.getId());
 
 		// then
-		Member finalMember = member;
 		Assertions.assertAll(
 			() -> assertThat(response)
 				.extracting(
@@ -157,7 +148,7 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 				.usingComparatorForType(codesquad.fineants.domain.common.money.Percentage::compareTo,
 					codesquad.fineants.domain.common.money.Percentage.class)
 				.containsExactlyInAnyOrder(
-					finalMember.getNickname(),
+					member.getNickname(),
 					Money.won(1068700L),
 					Money.won(150000L),
 					Money.won(68700L),
@@ -209,22 +200,25 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 		Member member = createMember();
 		member = memberRepository.save(member);
 
-		Portfolio portfolio = portfolioRepository.save(Portfolio.builder()
-			.name("내꿈은 워렌버핏")
-			.securitiesFirm("토스")
-			.budget(Money.won(1000000L))
-			.targetGain(Money.won(1500000L))
-			.maximumLoss(Money.won(900000L))
-			.member(member)
-			.build());
-		Portfolio portfolio1 = portfolioRepository.save(Portfolio.builder()
-			.name("내꿈은 워렌버핏1")
-			.securitiesFirm("토스")
-			.budget(Money.won(1000000L))
-			.targetGain(Money.won(1500000L))
-			.maximumLoss(Money.won(900000L))
-			.member(member)
-			.build());
+		Money budget = Money.won(1000000);
+		Money targetGain = Money.won(1500000);
+		Money maximumLoss = Money.won(900000);
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(
+				member,
+				"내꿈은 워렌버핏",
+				budget,
+				targetGain,
+				maximumLoss
+			)
+		);
+		Portfolio portfolio1 = portfolioRepository.save(createPortfolio(
+				member,
+				"내꿈은 워렌버핏1",
+				budget,
+				targetGain,
+				maximumLoss
+			)
+		);
 		Stock stock = stockRepository.save(Stock.builder()
 			.companyName("삼성전자보통주")
 			.tickerSymbol("005930")
@@ -278,14 +272,7 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 		Member member = createMember();
 		member = memberRepository.save(member);
 
-		Portfolio portfolio = portfolioRepository.save(Portfolio.builder()
-			.name("내꿈은 워렌버핏")
-			.securitiesFirm("토스")
-			.budget(Money.won(1000000L))
-			.targetGain(Money.won(1500000L))
-			.maximumLoss(Money.won(900000L))
-			.member(member)
-			.build());
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		portfolioGainHistoryRepository.save(PortfolioGainHistory.builder()
 			.totalGain(Money.won(100L))
 			.dailyGain(Money.won(50L))
@@ -315,17 +302,6 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 				),
 			() -> assertThat(responses.size()).isEqualTo(1)
 		);
-	}
-
-	private Stock createStock() {
-		return Stock.builder()
-			.companyName("삼성전자보통주")
-			.tickerSymbol("005930")
-			.companyNameEng("SamsungElectronics")
-			.stockCode("KR7005930003")
-			.sector("전기전자")
-			.market(Market.KOSPI)
-			.build();
 	}
 
 	private StockDividend createStockDividend(LocalDate exDividendDate, LocalDate recordDate, LocalDate paymentDate,

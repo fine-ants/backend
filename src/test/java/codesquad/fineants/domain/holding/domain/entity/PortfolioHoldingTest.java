@@ -11,8 +11,8 @@ import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.test.context.ActiveProfiles;
 
+import codesquad.fineants.AbstractContainerBaseTest;
 import codesquad.fineants.domain.common.count.Count;
 import codesquad.fineants.domain.common.money.Bank;
 import codesquad.fineants.domain.common.money.Currency;
@@ -22,17 +22,15 @@ import codesquad.fineants.domain.common.money.RateDivision;
 import codesquad.fineants.domain.dividend.domain.entity.StockDividend;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.purchasehistory.domain.entity.PurchaseHistory;
-import codesquad.fineants.domain.stock.domain.entity.Market;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 
-@ActiveProfiles("test")
-class PortfolioHoldingTest {
+class PortfolioHoldingTest extends AbstractContainerBaseTest {
 
 	@DisplayName("한 종목의 총 투자 금액을 계산한다")
 	@Test
 	void calculateTotalInvestmentAmount() {
 		// given
-		Portfolio portfolio = createPortfolio();
+		Portfolio portfolio = createPortfolio(createMember());
 		Stock stock = createStock();
 		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock, Money.won(10000L));
 
@@ -67,7 +65,7 @@ class PortfolioHoldingTest {
 	@Test
 	void calculateAverageCostPerShare() {
 		// given
-		Portfolio portfolio = createPortfolio();
+		Portfolio portfolio = createPortfolio(createMember());
 		Stock stock = createStock();
 		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock, Money.won(10000L));
 
@@ -99,7 +97,7 @@ class PortfolioHoldingTest {
 	@Test
 	void calculateTotalGain() {
 		// given
-		Portfolio portfolio = createPortfolio();
+		Portfolio portfolio = createPortfolio(createMember());
 		Stock stock = createStock();
 		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock, Money.won(20000L));
 
@@ -132,7 +130,7 @@ class PortfolioHoldingTest {
 	@Test
 	void calculateTotalReturnRate() {
 		// given
-		Portfolio portfolio = createPortfolio();
+		Portfolio portfolio = createPortfolio(createMember());
 		Stock stock = createStock();
 		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock, Money.won(20000L));
 
@@ -167,7 +165,7 @@ class PortfolioHoldingTest {
 	@Test
 	void calculateMonthlyDividends() {
 		// given
-		Portfolio portfolio = createPortfolio();
+		Portfolio portfolio = createPortfolio(createMember());
 		Stock stock = createStock();
 		List<StockDividend> stockDividends = createStockDividends(stock);
 		stockDividends.forEach(stock::addStockDividend);
@@ -242,25 +240,6 @@ class PortfolioHoldingTest {
 			.exDividendDate(exDividendDate)
 			.paymentDate(paymentDate)
 			.stock(stock)
-			.build();
-	}
-
-	private Portfolio createPortfolio() {
-		return Portfolio.builder()
-			.id(1L)
-			.budget(Money.won(1000000L))
-			.targetGain(Money.won(1500000L))
-			.maximumLoss(Money.won(900000L))
-			.build();
-	}
-
-	private Stock createStock() {
-		return Stock.builder()
-			.tickerSymbol("005930")
-			.stockCode("KR7005930003")
-			.companyName("삼성전자보통주")
-			.companyNameEng("SamsungElectronics")
-			.market(Market.KOSPI)
 			.build();
 	}
 

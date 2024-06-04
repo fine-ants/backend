@@ -19,7 +19,9 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.member.domain.entity.Member;
+import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.global.config.JacksonConfig;
 import codesquad.fineants.global.config.JpaAuditingConfiguration;
 import codesquad.fineants.global.config.SpringConfig;
@@ -76,6 +78,40 @@ public abstract class ControllerTestSupport {
 			"nemo1234",
 			"nemo1234@",
 			"profileUrl"
+		);
+	}
+
+	protected Portfolio createPortfolio(Member member) {
+		return createPortfolio(
+			member,
+			Money.won(1000000)
+		);
+	}
+
+	protected Portfolio createPortfolio(Member member, Money budget) {
+		return createPortfolio(
+			member,
+			"내꿈은 워렌버핏",
+			budget,
+			Money.won(1500000L),
+			Money.won(900000L)
+		);
+	}
+
+	protected Portfolio createPortfolio(Member member, String name, Money budget, Money targetGain, Money maximumLoss) {
+		return createPortfolio(1L, member, name, budget, targetGain, maximumLoss);
+	}
+
+	protected Portfolio createPortfolio(Long id, Member member, String name, Money budget, Money targetGain,
+		Money maximumLoss) {
+		return Portfolio.active(
+			id,
+			name,
+			"토스증권",
+			budget,
+			targetGain,
+			maximumLoss,
+			member
 		);
 	}
 

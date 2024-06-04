@@ -47,7 +47,6 @@ import codesquad.fineants.domain.purchasehistory.domain.dto.response.PurchaseHis
 import codesquad.fineants.domain.purchasehistory.domain.dto.response.PurchaseHistoryUpdateResponse;
 import codesquad.fineants.domain.purchasehistory.domain.entity.PurchaseHistory;
 import codesquad.fineants.domain.purchasehistory.repository.PurchaseHistoryRepository;
-import codesquad.fineants.domain.stock.domain.entity.Market;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
 import codesquad.fineants.global.errors.errorcode.PortfolioErrorCode;
@@ -114,14 +113,16 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 
 	@WithMockUser(roles = {"USER"})
 	@DisplayName("사용자는 매입 이력을 추가한다")
-	@CsvSource(value = {"3,1000000", "1000000000000,50000000000000000", "10,9223372036854775807"})
+	@CsvSource(value = {"3,1000000,1500000,900000",
+		"1000000000000,50000000000000000,50000000000000001,40000000000000000",
+		"10,9223372036854775807,9223372036854775808,9223372036854775806"})
 	@ParameterizedTest
-	void addPurchaseHistory(Count numShares, BigDecimal budget) {
+	void addPurchaseHistory(Count numShares, BigDecimal budget, BigDecimal targetGain, BigDecimal maximumLoss) {
 		// given
 		Member member = memberRepository.save(createMember());
 		notificationPreferenceRepository.save(createNotificationPreference(member));
 		Portfolio portfolio = portfolioRepository.save(
-			createPortfolio(member, budget));
+			createPortfolio(member, "내꿈은 워렌버핏", Money.won(budget), Money.won(targetGain), Money.won(maximumLoss)));
 		Stock stock = stockRepository.save(createStock());
 		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
 
@@ -439,41 +440,6 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 		assertThat(throwable)
 			.isInstanceOf(FineAntsException.class)
 			.hasMessage(PurchaseHistoryErrorCode.NOT_FOUND_PURCHASE_HISTORY.getMessage());
-	}
-
-	private Portfolio createPortfolio(Member member, BigDecimal budget) {
-		return Portfolio.builder()
-			.name("내꿈은 워렌버핏")
-			.securitiesFirm("토스")
-			.budget(Money.won(budget))
-			.targetGain(Money.won(budget.add(new BigDecimal(100000))))
-			.maximumLoss(Money.won(900000L))
-			.member(member)
-			.targetGainIsActive(true)
-			.maximumLossIsActive(true)
-			.build();
-	}
-
-	private Stock createStock() {
-		return Stock.builder()
-			.companyName("삼성전자보통주")
-			.tickerSymbol("005930")
-			.companyNameEng("SamsungElectronics")
-			.stockCode("KR7005930003")
-			.sector("전기전자")
-			.market(Market.KOSPI)
-			.build();
-	}
-
-	private Stock createStock2() {
-		return Stock.builder()
-			.companyName("동화약품보통주")
-			.tickerSymbol("000020")
-			.companyNameEng("DongwhaPharm")
-			.stockCode("KR7000020008")
-			.sector("의약품")
-			.market(Market.KOSPI)
-			.build();
 	}
 
 	private PurchaseHistory createPurchaseHistory(PortfolioHolding portfolioHolding) {
