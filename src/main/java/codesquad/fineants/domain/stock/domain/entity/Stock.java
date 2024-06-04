@@ -1,6 +1,7 @@
 package codesquad.fineants.domain.stock.domain.entity;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -23,7 +24,6 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
@@ -46,15 +46,21 @@ public class Stock extends BaseEntity {
 	@OneToMany(mappedBy = "stock", fetch = FetchType.LAZY)
 	private final List<StockDividend> stockDividends = new ArrayList<>();
 
-	@Builder
-	public Stock(String tickerSymbol, String companyName, String companyNameEng, String stockCode, String sector,
-		Market market) {
+	private Stock(LocalDateTime createAt, LocalDateTime modifiedAt, String tickerSymbol,
+		String companyName, String companyNameEng, String stockCode, String sector, Market market) {
+		super(createAt, modifiedAt);
 		this.tickerSymbol = tickerSymbol;
 		this.companyName = companyName;
 		this.companyNameEng = companyNameEng;
 		this.stockCode = stockCode;
 		this.sector = sector;
 		this.market = market;
+	}
+
+	public static Stock of(String tickerSymbol, String companyName, String companyNameEng, String stockCode,
+		String sector, Market market) {
+		return new Stock(LocalDateTime.now(), null, tickerSymbol, companyName, companyNameEng, stockCode, sector,
+			market);
 	}
 
 	public void addStockDividend(StockDividend stockDividend) {
@@ -88,7 +94,7 @@ public class Stock extends BaseEntity {
 
 		List<StockDividend> currentYearStockDividends = stockDividends.stream()
 			.filter(stockDividend -> stockDividend.isCurrentYearRecordDate(currentLocalDate))
-			.collect(Collectors.toList());
+			.toList();
 
 		for (StockDividend stockDividend : currentYearStockDividends) {
 			for (PurchaseHistory purchaseHistory : purchaseHistories) {

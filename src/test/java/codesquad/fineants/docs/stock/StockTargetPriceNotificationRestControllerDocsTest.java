@@ -28,11 +28,10 @@ import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
 import org.springframework.restdocs.payload.JsonFieldType;
 import org.springframework.restdocs.snippet.Attributes;
 
+import codesquad.fineants.docs.RestDocsSupport;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
-import codesquad.fineants.domain.stock_target_price.domain.entity.StockTargetPrice;
-import codesquad.fineants.domain.stock_target_price.domain.entity.TargetPriceNotification;
 import codesquad.fineants.domain.stock_target_price.controller.StockTargetPriceNotificationRestController;
 import codesquad.fineants.domain.stock_target_price.domain.dto.request.TargetPriceNotificationCreateRequest;
 import codesquad.fineants.domain.stock_target_price.domain.dto.request.TargetPriceNotificationUpdateRequest;
@@ -44,8 +43,9 @@ import codesquad.fineants.domain.stock_target_price.domain.dto.response.TargetPr
 import codesquad.fineants.domain.stock_target_price.domain.dto.response.TargetPriceNotificationSpecificItem;
 import codesquad.fineants.domain.stock_target_price.domain.dto.response.TargetPriceNotificationSpecifiedSearchResponse;
 import codesquad.fineants.domain.stock_target_price.domain.dto.response.TargetPriceNotificationUpdateResponse;
+import codesquad.fineants.domain.stock_target_price.domain.entity.StockTargetPrice;
+import codesquad.fineants.domain.stock_target_price.domain.entity.TargetPriceNotification;
 import codesquad.fineants.domain.stock_target_price.service.StockTargetPriceNotificationService;
-import codesquad.fineants.docs.RestDocsSupport;
 import codesquad.fineants.global.util.ObjectMapperUtil;
 
 public class StockTargetPriceNotificationRestControllerDocsTest extends RestDocsSupport {
@@ -125,7 +125,7 @@ public class StockTargetPriceNotificationRestControllerDocsTest extends RestDocs
 	@Test
 	void searchStockTargetPriceNotification() throws Exception {
 		// given
-		Stock stock = createStock();
+		Stock stock = createSamsungStock();
 		LocalDateTime now = LocalDateTime.now();
 		given(service.searchStockTargetPriceNotification(anyLong()))
 			.willReturn(TargetPriceNotificationSearchResponse.builder()
@@ -214,7 +214,7 @@ public class StockTargetPriceNotificationRestControllerDocsTest extends RestDocs
 	@Test
 	void searchTargetPriceNotifications() throws Exception {
 		// given
-		Stock stock = createStock();
+		Stock stock = createSamsungStock();
 		LocalDateTime now = LocalDateTime.now();
 		given(service.searchTargetPriceNotifications(anyString(), anyLong()))
 			.willReturn(TargetPriceNotificationSpecifiedSearchResponse.builder()
@@ -282,7 +282,7 @@ public class StockTargetPriceNotificationRestControllerDocsTest extends RestDocs
 	void updateStockTargetPriceNotification() throws Exception {
 		// given
 		Member member = createMember();
-		Stock stock = createStock();
+		Stock stock = createSamsungStock();
 		StockTargetPrice stockTargetPrice = createStockTargetPrice(member, stock);
 		given(service.updateStockTargetPriceNotification(
 			any(TargetPriceNotificationUpdateRequest.class),
@@ -393,7 +393,7 @@ public class StockTargetPriceNotificationRestControllerDocsTest extends RestDocs
 	void deleteStockTargetPriceNotification() throws Exception {
 		// given
 		Member member = createMember();
-		Stock stock = createStock();
+		Stock stock = createSamsungStock();
 		StockTargetPrice stockTargetPrice = createStockTargetPrice(member, stock);
 		TargetPriceNotification targetPriceNotification = createTargetPriceNotification(stockTargetPrice);
 

@@ -26,7 +26,6 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
@@ -59,8 +58,7 @@ public class StockDividend extends BaseEntity {
 	private static final ExDividendDateCalculator EX_DIVIDEND_DATE_CALCULATOR = new ExDividendDateCalculator(
 		new HolidayRepository(new HolidayFileReader()));
 
-	@Builder
-	protected StockDividend(LocalDateTime createAt, LocalDateTime modifiedAt, Long id, Money dividend,
+	private StockDividend(LocalDateTime createAt, LocalDateTime modifiedAt, Long id, Money dividend,
 		LocalDate recordDate, LocalDate exDividendDate, LocalDate paymentDate, Stock stock) {
 		super(createAt, modifiedAt);
 		this.id = id;
@@ -74,14 +72,14 @@ public class StockDividend extends BaseEntity {
 	public static StockDividend create(Money dividend, LocalDate recordDate,
 		LocalDate paymentDate, Stock stock) {
 		LocalDate exDividendDate = EX_DIVIDEND_DATE_CALCULATOR.calculate(recordDate);
+		return new StockDividend(LocalDateTime.now(), null, null, dividend, recordDate, exDividendDate,
+			paymentDate, stock);
+	}
 
-		return StockDividend.builder()
-			.dividend(dividend)
-			.recordDate(recordDate)
-			.exDividendDate(exDividendDate)
-			.paymentDate(paymentDate)
-			.stock(stock)
-			.build();
+	public static StockDividend create(Money dividend, LocalDate recordDate, LocalDate exDividendDate,
+		LocalDate paymentDate, Stock stock) {
+		return new StockDividend(LocalDateTime.now(), null, null, dividend, recordDate, exDividendDate, paymentDate,
+			stock);
 	}
 
 	// 주식 개수에 따른 배당금 합계 계산
@@ -151,7 +149,7 @@ public class StockDividend extends BaseEntity {
 	 * 배당 일정 정보들을 파싱하여 반환
 	 * format :  tickerSymbol:dividend:recordDate:exDividendDate:paymentDate
 	 *   - ex) 005930:361:2022-08-01:2022-08-01:2022-08-01, 005930:361:2022-08-01:2022-08-01:null
-	 * @return
+	 * @return 배당 일정 정보 요약
 	 */
 	public String parse() {
 		return String.format("%s:%s:%s:%s:%s", stock.getTickerSymbol(), dividend, recordDate, exDividendDate,

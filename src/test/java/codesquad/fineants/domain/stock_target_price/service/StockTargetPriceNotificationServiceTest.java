@@ -85,7 +85,7 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 	void createStockTargetPriceNotification() {
 		// given
 		Member member = memberRepository.save(createMember());
-		Stock stock = stockRepository.save(createStock());
+		Stock stock = stockRepository.save(createSamsungStock());
 		TargetPriceNotificationCreateRequest request = TargetPriceNotificationCreateRequest.builder()
 			.tickerSymbol(stock.getTickerSymbol())
 			.targetPrice(Money.won(60000L))
@@ -112,7 +112,7 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 	void createStockTargetPriceNotification_whenTargetPriceNotificationLimit_thenThrow400Error() {
 		// given
 		Member member = memberRepository.save(createMember());
-		Stock stock = stockRepository.save(createStock());
+		Stock stock = stockRepository.save(createSamsungStock());
 		TargetPriceNotificationCreateRequest request = TargetPriceNotificationCreateRequest.builder()
 			.tickerSymbol(stock.getTickerSymbol())
 			.targetPrice(Money.won(60000L))
@@ -137,7 +137,7 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 	void createStockTargetPriceNotification_whenExistTargetPrice_thenThrow400Error() {
 		// given
 		Member member = memberRepository.save(createMember());
-		Stock stock = stockRepository.save(createStock());
+		Stock stock = stockRepository.save(createSamsungStock());
 		TargetPriceNotificationCreateRequest request = TargetPriceNotificationCreateRequest.builder()
 			.tickerSymbol(stock.getTickerSymbol())
 			.targetPrice(Money.won(60000L))
@@ -161,8 +161,8 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 		// given
 		Member member = memberRepository.save(createMember());
 		notificationPreferenceRepository.save(createNotificationPreference(member));
-		Stock stock = stockRepository.save(createStock());
-		Stock stock2 = stockRepository.save(createStock2());
+		Stock stock = stockRepository.save(createSamsungStock());
+		Stock stock2 = stockRepository.save(createDongwhaPharmStock());
 
 		StockTargetPrice stockTargetPrice = repository.save(createStockTargetPrice(member, stock));
 		List<TargetPriceNotification> targetPriceNotifications = targetPriceNotificationRepository.saveAll(
@@ -213,7 +213,7 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 	void searchTargetPriceNotifications() {
 		// given
 		Member member = memberRepository.save(createMember());
-		Stock stock = stockRepository.save(createStock());
+		Stock stock = stockRepository.save(createSamsungStock());
 		StockTargetPrice stockTargetPrice = repository.save(createStockTargetPrice(member, stock));
 		List<TargetPriceNotification> targetPriceNotifications = targetPriceNotificationRepository.saveAll(
 			createTargetPriceNotification(stockTargetPrice, List.of(60000L, 70000L)));
@@ -241,7 +241,7 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 	void searchTargetPriceNotifications_whenNotExistStock_thenResponseEmptyList() {
 		// given
 		Member member = memberRepository.save(createMember());
-		Stock stock = stockRepository.save(createStock());
+		Stock stock = stockRepository.save(createSamsungStock());
 
 		// when
 		TargetPriceNotificationSpecifiedSearchResponse response = service.searchTargetPriceNotifications(
@@ -259,7 +259,7 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 	void updateStockTargetPriceNotification() {
 		// given
 		Member member = memberRepository.save(createMember());
-		Stock stock = stockRepository.save(createStock());
+		Stock stock = stockRepository.save(createSamsungStock());
 		StockTargetPrice stockTargetPrice = repository.save(createStockTargetPrice(member, stock));
 		targetPriceNotificationRepository.saveAll(
 			createTargetPriceNotification(
@@ -292,7 +292,7 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 	void updateStockTargetPriceNotification_whenNotExistTickerSymbol_thenThrow404Error() {
 		// given
 		Member member = memberRepository.save(createMember());
-		Stock stock = stockRepository.save(createStock());
+		Stock stock = stockRepository.save(createSamsungStock());
 		StockTargetPrice stockTargetPrice = repository.save(createStockTargetPrice(member, stock));
 		targetPriceNotificationRepository.saveAll(
 			createTargetPriceNotification(
@@ -319,7 +319,7 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 	void deleteStockTargetPriceNotification() {
 		// given
 		Member member = memberRepository.save(createMember());
-		Stock stock = stockRepository.save(createStock());
+		Stock stock = stockRepository.save(createSamsungStock());
 		StockTargetPrice stockTargetPrice = repository.save(createStockTargetPrice(member, stock));
 		TargetPriceNotification targetPriceNotification = targetPriceNotificationRepository.save(
 			createTargetPriceNotification(stockTargetPrice));
@@ -347,7 +347,7 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 	void deleteStockTargetPriceNotification_whenNotExistTargetPriceNotificationIds_thenThrow404Error() {
 		// given
 		Member member = memberRepository.save(createMember());
-		Stock stock = stockRepository.save(createStock());
+		Stock stock = stockRepository.save(createSamsungStock());
 		StockTargetPrice stockTargetPrice = repository.save(createStockTargetPrice(member, stock));
 		targetPriceNotificationRepository.save(createTargetPriceNotification(stockTargetPrice));
 
@@ -371,7 +371,7 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 	void deleteStockTargetPriceNotification_whenForbiddenTargetPriceNotificationIds_thenThrow403Error() {
 		// given
 		Member member = memberRepository.save(createMember());
-		Stock stock = stockRepository.save(createStock());
+		Stock stock = stockRepository.save(createSamsungStock());
 		StockTargetPrice stockTargetPrice = repository.save(createStockTargetPrice(member, stock));
 		TargetPriceNotification targetPriceNotification = targetPriceNotificationRepository.save(
 			createTargetPriceNotification(stockTargetPrice));
@@ -393,7 +393,7 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 	void deleteAllStockTargetPriceNotification() {
 		// given
 		Member member = memberRepository.save(createMember());
-		Stock stock = stockRepository.save(createStock());
+		Stock stock = stockRepository.save(createSamsungStock());
 		StockTargetPrice stockTargetPrice = repository.save(createStockTargetPrice(member, stock));
 		List<TargetPriceNotification> targetPriceNotifications = targetPriceNotificationRepository.saveAll(
 			createTargetPriceNotification(stockTargetPrice, List.of(60000L, 70000L)));
@@ -424,7 +424,7 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 	void deleteAllStockTargetPriceNotification_whenNotExistTargetPriceNotificationIds_thenThrow404Error() {
 		// given
 		Member member = memberRepository.save(createMember());
-		Stock stock = stockRepository.save(createStock());
+		Stock stock = stockRepository.save(createSamsungStock());
 		StockTargetPrice stockTargetPrice = repository.save(createStockTargetPrice(member, stock));
 		List<TargetPriceNotification> targetPriceNotifications = targetPriceNotificationRepository.saveAll(
 			createTargetPriceNotification(stockTargetPrice, List.of(60000L, 70000L)));
@@ -452,7 +452,7 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 	void deleteAllStockTargetPriceNotification_whenNotExistStock_thenThrow404Error() {
 		// given
 		Member member = memberRepository.save(createMember());
-		Stock stock = stockRepository.save(createStock());
+		Stock stock = stockRepository.save(createSamsungStock());
 		StockTargetPrice stockTargetPrice = repository.save(createStockTargetPrice(member, stock));
 		List<TargetPriceNotification> targetPriceNotifications = targetPriceNotificationRepository.saveAll(
 			createTargetPriceNotification(stockTargetPrice, List.of(60000L, 70000L)));
@@ -479,7 +479,7 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 	void deleteAllStockTargetPriceNotification_whenForbiddenTargetPriceNotifications_thenThrow403Error() {
 		// given
 		Member member = memberRepository.save(createMember());
-		Stock stock = stockRepository.save(createStock());
+		Stock stock = stockRepository.save(createSamsungStock());
 		StockTargetPrice stockTargetPrice = repository.save(createStockTargetPrice(member, stock));
 		List<TargetPriceNotification> targetPriceNotifications = targetPriceNotificationRepository.saveAll(
 			createTargetPriceNotification(stockTargetPrice, List.of(60000L, 70000L)));

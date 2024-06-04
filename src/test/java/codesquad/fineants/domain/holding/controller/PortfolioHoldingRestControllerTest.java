@@ -51,7 +51,6 @@ import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.service.PortFolioService;
 import codesquad.fineants.domain.portfolio_gain_history.domain.entity.PortfolioGainHistory;
 import codesquad.fineants.domain.purchasehistory.domain.entity.PurchaseHistory;
-import codesquad.fineants.domain.stock.domain.entity.Market;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.global.errors.errorcode.PortfolioErrorCode;
 import codesquad.fineants.global.errors.exception.NotFoundResourceException;
@@ -83,7 +82,7 @@ class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 		// given
 		Member member = createMember();
 		Portfolio portfolio = createPortfolio(member);
-		Stock stock = createStock();
+		Stock stock = createSamsungStock();
 		List<StockDividend> stockDividends = createStockDividendWith(stock);
 		stockDividends.forEach(stock::addStockDividend);
 		PortfolioHolding portfolioHolding = createPortfolioHolding(portfolio, stock, Money.won(60000L));
@@ -170,7 +169,7 @@ class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 	void addPortfolioStock() throws Exception {
 		Member member = createMember();
 		Portfolio portfolio = createPortfolio(member);
-		Stock stock = createStock();
+		Stock stock = createSamsungStock();
 
 		PortfolioStockCreateResponse response = PortfolioStockCreateResponse.from(
 			PortfolioHolding.empty(portfolio, stock));
@@ -205,7 +204,7 @@ class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 	void addPortfolioStockOnly() throws Exception {
 		Member member = createMember();
 		Portfolio portfolio = createPortfolio(member);
-		Stock stock = createStock();
+		Stock stock = createSamsungStock();
 
 		PortfolioStockCreateResponse response = PortfolioStockCreateResponse.from(
 			PortfolioHolding.empty(portfolio, stock));
@@ -257,7 +256,7 @@ class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 		// given
 		Member member = createMember();
 		Portfolio portfolio = createPortfolio(member);
-		Stock stock = createStock();
+		Stock stock = createSamsungStock();
 		PortfolioHolding portfolioHolding = createPortfolioHolding(portfolio, stock);
 
 		Long portfolioHoldingId = portfolioHolding.getId();
@@ -329,7 +328,7 @@ class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 		// given
 		Member member = createMember();
 		Portfolio portfolio = createPortfolio(member);
-		Stock stock = createStock();
+		Stock stock = createSamsungStock();
 		List<StockDividend> stockDividends = createStockDividendWith(stock);
 		stockDividends.forEach(stock::addStockDividend);
 		PortfolioHolding portfolioHolding = createPortfolioHolding(portfolio, stock, Money.won(60000L));
@@ -393,17 +392,6 @@ class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 			.andExpect(jsonPath("data.dividendChart[11].amount").value(equalTo(0)));
 	}
 
-	private Stock createStock() {
-		return Stock.builder()
-			.tickerSymbol("005930")
-			.companyName("삼성전자보통주")
-			.companyNameEng("SamsungElectronics")
-			.stockCode("KR7005930003")
-			.market(Market.KOSPI)
-			.sector("전기전자")
-			.build();
-	}
-
 	private PurchaseHistory createPurchaseHistory(PortfolioHolding portfolioHolding, LocalDateTime purchaseDate) {
 		return PurchaseHistory.builder()
 			.id(1L)
@@ -424,17 +412,6 @@ class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 			Arguments.of(Collections.emptyList()),
 			Arguments.of((Object)null)
 		);
-	}
-
-	private StockDividend createStockDividend(LocalDate exDividendDate, LocalDate recordDate, LocalDate paymentDate,
-		Stock stock) {
-		return StockDividend.builder()
-			.dividend(Money.won(361L))
-			.exDividendDate(exDividendDate)
-			.recordDate(recordDate)
-			.paymentDate(paymentDate)
-			.stock(stock)
-			.build();
 	}
 
 	private List<StockDividend> createStockDividendWith(Stock stock) {

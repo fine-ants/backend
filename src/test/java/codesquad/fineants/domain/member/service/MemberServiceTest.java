@@ -580,7 +580,7 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 		// given
 		Member member = memberRepository.save(createMember());
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
-		Stock stock = stockRepository.save(createStock());
+		Stock stock = stockRepository.save(createSamsungStock());
 		stockDividendRepository.saveAll(createStockDividendWith(stock));
 		PortfolioHolding portfolioHolding = portfolioHoldingRepository.save(createPortfolioHolding(portfolio, stock));
 		purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding));
@@ -627,17 +627,6 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 		);
 	}
 
-	private StockDividend createStockDividend(LocalDate exDividendDate, LocalDate recordDate, LocalDate paymentDate,
-		Stock stock) {
-		return StockDividend.builder()
-			.dividend(Money.won(361L))
-			.exDividendDate(exDividendDate)
-			.recordDate(recordDate)
-			.paymentDate(paymentDate)
-			.stock(stock)
-			.build();
-	}
-
 	private PurchaseHistory createPurchaseHistory(PortfolioHolding portfolioHolding) {
 		return PurchaseHistory.builder()
 			.purchaseDate(LocalDateTime.of(2023, 9, 26, 9, 30, 0))
@@ -651,38 +640,31 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 	private List<StockDividend> createStockDividendWith(Stock stock) {
 		return List.of(
 			createStockDividend(
-				LocalDate.of(2022, 12, 30),
-				LocalDate.of(2022, 12, 31),
+				LocalDate.of(2022, 12, 31), LocalDate.of(2022, 12, 30),
 				LocalDate.of(2023, 4, 14),
 				stock),
 			createStockDividend(
-				LocalDate.of(2023, 3, 30),
-				LocalDate.of(2023, 3, 31),
+				LocalDate.of(2023, 3, 31), LocalDate.of(2023, 3, 30),
 				LocalDate.of(2023, 5, 17),
 				stock),
 			createStockDividend(
-				LocalDate.of(2023, 6, 29),
-				LocalDate.of(2023, 6, 30),
+				LocalDate.of(2023, 6, 30), LocalDate.of(2023, 6, 29),
 				LocalDate.of(2023, 8, 16),
 				stock),
 			createStockDividend(
-				LocalDate.of(2023, 9, 27),
-				LocalDate.of(2023, 9, 30),
+				LocalDate.of(2023, 9, 30), LocalDate.of(2023, 9, 27),
 				LocalDate.of(2023, 11, 20),
 				stock),
 			createStockDividend(
-				LocalDate.of(2024, 3, 29),
-				LocalDate.of(2024, 3, 31),
+				LocalDate.of(2024, 3, 31), LocalDate.of(2024, 3, 29),
 				LocalDate.of(2024, 5, 17),
 				stock),
 			createStockDividend(
-				LocalDate.of(2024, 6, 28),
-				LocalDate.of(2024, 6, 30),
+				LocalDate.of(2024, 6, 30), LocalDate.of(2024, 6, 28),
 				LocalDate.of(2024, 8, 16),
 				stock),
 			createStockDividend(
-				LocalDate.of(2024, 9, 27),
-				LocalDate.of(2024, 9, 30),
+				LocalDate.of(2024, 9, 30), LocalDate.of(2024, 9, 27),
 				LocalDate.of(2024, 11, 20),
 				stock)
 		);

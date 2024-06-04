@@ -31,7 +31,7 @@ class PortfolioHoldingTest extends AbstractContainerBaseTest {
 	void calculateTotalInvestmentAmount() {
 		// given
 		Portfolio portfolio = createPortfolio(createMember());
-		Stock stock = createStock();
+		Stock stock = createSamsungStock();
 		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock, Money.won(10000L));
 
 		PurchaseHistory purchaseHistory1 = PurchaseHistory.builder()
@@ -66,7 +66,7 @@ class PortfolioHoldingTest extends AbstractContainerBaseTest {
 	void calculateAverageCostPerShare() {
 		// given
 		Portfolio portfolio = createPortfolio(createMember());
-		Stock stock = createStock();
+		Stock stock = createSamsungStock();
 		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock, Money.won(10000L));
 
 		PurchaseHistory purchaseHistory1 = PurchaseHistory.builder()
@@ -98,7 +98,7 @@ class PortfolioHoldingTest extends AbstractContainerBaseTest {
 	void calculateTotalGain() {
 		// given
 		Portfolio portfolio = createPortfolio(createMember());
-		Stock stock = createStock();
+		Stock stock = createSamsungStock();
 		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock, Money.won(20000L));
 
 		PurchaseHistory purchaseHistory1 = PurchaseHistory.builder()
@@ -131,7 +131,7 @@ class PortfolioHoldingTest extends AbstractContainerBaseTest {
 	void calculateTotalReturnRate() {
 		// given
 		Portfolio portfolio = createPortfolio(createMember());
-		Stock stock = createStock();
+		Stock stock = createSamsungStock();
 		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock, Money.won(20000L));
 
 		PurchaseHistory purchaseHistory1 = PurchaseHistory.builder()
@@ -166,7 +166,7 @@ class PortfolioHoldingTest extends AbstractContainerBaseTest {
 	void calculateMonthlyDividends() {
 		// given
 		Portfolio portfolio = createPortfolio(createMember());
-		Stock stock = createStock();
+		Stock stock = createSamsungStock();
 		List<StockDividend> stockDividends = createStockDividends(stock);
 		stockDividends.forEach(stock::addStockDividend);
 		Long currentPrice = 60000L;
@@ -209,38 +209,22 @@ class PortfolioHoldingTest extends AbstractContainerBaseTest {
 	private List<StockDividend> createStockDividends(Stock stock) {
 		return List.of(
 			createStockDividend(
-				LocalDate.of(2022, 12, 30),
-				LocalDate.of(2022, 12, 31),
+				LocalDate.of(2022, 12, 31), LocalDate.of(2022, 12, 30),
 				LocalDate.of(2023, 4, 14),
 				stock),
 			createStockDividend(
-				LocalDate.of(2023, 3, 30),
-				LocalDate.of(2023, 3, 31),
+				LocalDate.of(2023, 3, 31), LocalDate.of(2023, 3, 30),
 				LocalDate.of(2023, 5, 17),
 				stock),
 			createStockDividend(
-				LocalDate.of(2023, 6, 29),
-				LocalDate.of(2023, 6, 30),
+				LocalDate.of(2023, 6, 30), LocalDate.of(2023, 6, 29),
 				LocalDate.of(2023, 8, 16),
 				stock),
 			createStockDividend(
-				LocalDate.of(2023, 9, 27),
-				LocalDate.of(2023, 9, 30),
+				LocalDate.of(2023, 9, 30), LocalDate.of(2023, 9, 27),
 				LocalDate.of(2023, 11, 20),
 				stock)
 		);
-	}
-
-	private StockDividend createStockDividend(LocalDate exDividendDate, LocalDate recordDate, LocalDate paymentDate,
-		Stock stock) {
-		return StockDividend.builder()
-			.id(System.currentTimeMillis())
-			.dividend(Money.won(361L))
-			.recordDate(recordDate)
-			.exDividendDate(exDividendDate)
-			.paymentDate(paymentDate)
-			.stock(stock)
-			.build();
 	}
 
 	private PurchaseHistory createPurchaseHistory(LocalDateTime purchaseDate, PortfolioHolding portfolioHolding) {

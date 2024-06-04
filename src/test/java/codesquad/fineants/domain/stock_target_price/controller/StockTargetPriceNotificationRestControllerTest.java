@@ -26,7 +26,6 @@ import org.springframework.http.MediaType;
 
 import codesquad.fineants.ControllerTestSupport;
 import codesquad.fineants.domain.common.money.Money;
-import codesquad.fineants.domain.stock.domain.entity.Market;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock_target_price.domain.dto.request.TargetPriceNotificationCreateRequest;
 import codesquad.fineants.domain.stock_target_price.domain.dto.request.TargetPriceNotificationUpdateRequest;
@@ -108,7 +107,7 @@ class StockTargetPriceNotificationRestControllerTest extends ControllerTestSuppo
 	@Test
 	void searchStockTargetPriceNotification() throws Exception {
 		// given
-		Stock stock = createStock();
+		Stock stock = createSamsungStock();
 		LocalDateTime now = LocalDateTime.now();
 		given(service.searchStockTargetPriceNotification(anyLong()))
 			.willReturn(TargetPriceNotificationSearchResponse.builder()
@@ -156,7 +155,7 @@ class StockTargetPriceNotificationRestControllerTest extends ControllerTestSuppo
 	@Test
 	void searchTargetPriceNotifications() throws Exception {
 		// given
-		Stock stock = createStock();
+		Stock stock = createSamsungStock();
 		LocalDateTime now = LocalDateTime.now();
 		given(service.searchTargetPriceNotifications(anyString(), anyLong()))
 			.willReturn(TargetPriceNotificationSpecifiedSearchResponse.builder()
@@ -192,7 +191,7 @@ class StockTargetPriceNotificationRestControllerTest extends ControllerTestSuppo
 	@Test
 	void updateStockTargetPriceNotification() throws Exception {
 		// given
-		Stock stock = createStock();
+		Stock stock = createSamsungStock();
 		Map<String, Object> body = Map.of(
 			"tickerSymbol", stock.getTickerSymbol(),
 			"isActive", false
@@ -307,17 +306,6 @@ class StockTargetPriceNotificationRestControllerTest extends ControllerTestSuppo
 			.andExpect(jsonPath("status").value(equalTo("OK")))
 			.andExpect(jsonPath("message").value(equalTo("해당 종목 지정가 알림을 제거했습니다")))
 			.andExpect(jsonPath("data").value(equalTo(null)));
-	}
-
-	private Stock createStock() {
-		return Stock.builder()
-			.companyName("삼성전자보통주")
-			.tickerSymbol("005930")
-			.companyNameEng("SamsungElectronics")
-			.stockCode("KR7005930003")
-			.sector("전기전자")
-			.market(Market.KOSPI)
-			.build();
 	}
 
 	public static Stream<Arguments> invalidTargetPrice() {

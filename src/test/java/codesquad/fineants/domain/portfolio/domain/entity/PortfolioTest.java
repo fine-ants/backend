@@ -19,7 +19,6 @@ import codesquad.fineants.domain.holding.domain.dto.response.PortfolioPieChartIt
 import codesquad.fineants.domain.holding.domain.dto.response.PortfolioSectorChartItem;
 import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
 import codesquad.fineants.domain.purchasehistory.domain.entity.PurchaseHistory;
-import codesquad.fineants.domain.stock.domain.entity.Market;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 
 class PortfolioTest extends AbstractContainerBaseTest {
@@ -100,7 +99,7 @@ class PortfolioTest extends AbstractContainerBaseTest {
 		// given
 		Portfolio portfolio = createPortfolio(createMember());
 		Stock stock = createSamsungStock();
-		Stock stock2 = createDongHwa();
+		Stock stock2 = createDongwhaPharmStock();
 		PortfolioHolding holding1 = PortfolioHolding.of(portfolio, stock, Money.won(20000L));
 		PortfolioHolding holding2 = PortfolioHolding.of(portfolio, stock2, Money.won(20000L));
 
@@ -145,7 +144,7 @@ class PortfolioTest extends AbstractContainerBaseTest {
 		// given
 		Portfolio portfolio = createPortfolio(createMember());
 		Stock stock = createSamsungStock();
-		Stock stock2 = createDongHwa();
+		Stock stock2 = createDongwhaPharmStock();
 		PortfolioHolding holding1 = PortfolioHolding.of(portfolio, stock, Money.won(20000L));
 		PortfolioHolding holding2 = PortfolioHolding.of(portfolio, stock2, Money.won(20000L));
 
@@ -178,27 +177,5 @@ class PortfolioTest extends AbstractContainerBaseTest {
 			.hasSize(3)
 			.extracting("sector")
 			.containsExactlyInAnyOrder("현금", "의약품", "전기전자");
-	}
-
-	private Stock createSamsungStock() {
-		return Stock.builder()
-			.stockCode("KR7005930003")
-			.tickerSymbol("005930")
-			.companyName("삼성전자보통주")
-			.companyNameEng("SamsungElectronics")
-			.market(Market.KOSPI)
-			.sector("전기전자")
-			.build();
-	}
-
-	private Stock createDongHwa() {
-		return Stock.builder()
-			.stockCode("KR7000020008")
-			.tickerSymbol("000020")
-			.companyName("동화약품보통주")
-			.companyNameEng("DongwhaPharm")
-			.market(Market.KOSPI)
-			.sector("의약품")
-			.build();
 	}
 }

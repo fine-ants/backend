@@ -108,14 +108,7 @@ public class StockDataResponse {
 		}
 
 		public Stock toEntity() {
-			return Stock.builder()
-				.tickerSymbol(tickerSymbol)
-				.companyName(companyName)
-				.companyNameEng(companyNameEng)
-				.stockCode(stockCode)
-				.sector(sector)
-				.market(market)
-				.build();
+			return Stock.of(tickerSymbol, companyName, companyNameEng, stockCode, sector, market);
 		}
 	}
 }

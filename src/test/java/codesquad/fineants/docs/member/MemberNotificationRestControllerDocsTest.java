@@ -51,7 +51,7 @@ public class MemberNotificationRestControllerDocsTest extends RestDocsSupport {
 		// given
 		Member member = createMember();
 		Portfolio portfolio = createPortfolio(member);
-		Stock stock = createStock();
+		Stock stock = createSamsungStock();
 
 		PortfolioNotification notification = createPortfolioTargetGainNotification(portfolio,
 			member);

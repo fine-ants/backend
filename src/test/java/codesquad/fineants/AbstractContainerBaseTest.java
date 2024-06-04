@@ -1,5 +1,6 @@
 package codesquad.fineants;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +18,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
 import codesquad.fineants.domain.common.money.Money;
+import codesquad.fineants.domain.dividend.domain.entity.StockDividend;
 import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
 import codesquad.fineants.domain.kis.client.KisAccessToken;
 import codesquad.fineants.domain.member.domain.entity.Member;
@@ -127,38 +129,33 @@ public class AbstractContainerBaseTest {
 		);
 	}
 
-	protected Stock createStock() {
-		return Stock.builder()
-			.companyName("삼성전자보통주")
-			.tickerSymbol("005930")
-			.companyNameEng("SamsungElectronics")
-			.stockCode("KR7005930003")
-			.sector("전기전자")
-			.market(Market.KOSPI)
-			.build();
+	protected Stock createSamsungStock() {
+		return Stock.of("005930", "삼성전자보통주", "SamsungElectronics", "KR7005930003", "전기전자", Market.KOSPI);
 	}
 
-	protected Stock createStock2() {
-		return Stock.builder()
-			.companyName("동화약품보통주")
-			.tickerSymbol("000020")
-			.companyNameEng("DongwhaPharm")
-			.stockCode("KR7000020008")
-			.sector("의약품")
-			.market(Market.KOSPI)
-			.build();
+	protected Stock createDongwhaPharmStock() {
+		return Stock.of("000020", "동화약품보통주", "DongwhaPharm", "KR7000020008", "의약품", Market.KOSPI);
 	}
 
-	protected Stock createStack(String companyName, String tickerSymbol, String companyNameEng, String stockCode,
+	protected Stock createCcsStack() {
+		return Stock.of("066790", "씨씨에스충북방송", "KOREA CABLE T.V CHUNG-BUK SYSTEM CO.,LTD.", "KR7066790007", "방송서비스",
+			Market.KOSDAQ);
+	}
+
+	protected Stock createKakaoStock() {
+		return createStock(
+			"035720",
+			"카카오보통주",
+			"Kakao",
+			"KR7035720002",
+			"서비스업",
+			Market.KOSPI
+		);
+	}
+
+	protected Stock createStock(String tickerSymbol, String companyName, String companyNameEng, String stockCode,
 		String sector, Market market) {
-		return Stock.builder()
-			.companyName(companyName)
-			.tickerSymbol(tickerSymbol)
-			.companyNameEng(companyNameEng)
-			.stockCode(stockCode)
-			.sector(sector)
-			.market(market)
-			.build();
+		return Stock.of(tickerSymbol, companyName, companyNameEng, stockCode, sector, market);
 	}
 
 	protected PortfolioHolding createPortfolioHolding(Portfolio portfolio, Stock stock) {
@@ -167,5 +164,15 @@ public class AbstractContainerBaseTest {
 
 	protected PortfolioHolding createPortfolioHolding(Portfolio portfolio, Stock stock, Long currentPrice) {
 		return PortfolioHolding.of(portfolio, stock, Money.won(currentPrice));
+	}
+
+	protected StockDividend createStockDividend(LocalDate recordDate, LocalDate exDividendDate, LocalDate paymentDate,
+		Stock stock) {
+		return StockDividend.create(Money.won(361), recordDate, exDividendDate, paymentDate, stock);
+	}
+
+	protected StockDividend createStockDividend(Money dividend, LocalDate recordDate, LocalDate exDividendDate,
+		LocalDate paymentDate, Stock stock) {
+		return StockDividend.create(dividend, recordDate, exDividendDate, paymentDate, stock);
 	}
 }

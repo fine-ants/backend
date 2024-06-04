@@ -30,8 +30,6 @@ import codesquad.fineants.domain.portfolio.repository.PortfolioRepository;
 import codesquad.fineants.domain.purchasehistory.domain.dto.request.PurchaseHistoryCreateRequest;
 import codesquad.fineants.domain.purchasehistory.domain.entity.PurchaseHistory;
 import codesquad.fineants.domain.purchasehistory.service.PurchaseHistoryService;
-import codesquad.fineants.domain.stock.domain.entity.Market;
-import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.global.errors.errorcode.PortfolioErrorCode;
 import codesquad.fineants.global.errors.exception.FineAntsException;
 import codesquad.fineants.global.util.ObjectMapperUtil;
@@ -56,7 +54,7 @@ class PurchaseHistoryRestControllerTest extends ControllerTestSupport {
 	void addPurchaseHistory(Count numShares) throws Exception {
 		// given
 		Portfolio portfolio = createPortfolio(createMember());
-		PortfolioHolding portfolioHolding = createPortfolioHolding(portfolio, createStock());
+		PortfolioHolding portfolioHolding = createPortfolioHolding(portfolio, createSamsungStock());
 		String url = String.format("/api/portfolio/%d/holdings/%d/purchaseHistory", portfolio.getId(),
 			portfolioHolding.getId());
 		Map<String, Object> requestBody = new HashMap<>();
@@ -84,7 +82,7 @@ class PurchaseHistoryRestControllerTest extends ControllerTestSupport {
 	void addPurchaseHistoryWithInvalidInput() throws Exception {
 		// given
 		Portfolio portfolio = createPortfolio(createMember());
-		PortfolioHolding portfolioHolding = createPortfolioHolding(portfolio, createStock());
+		PortfolioHolding portfolioHolding = createPortfolioHolding(portfolio, createSamsungStock());
 		String url = String.format("/api/portfolio/%d/holdings/%d/purchaseHistory", portfolio.getId(),
 			portfolioHolding.getId());
 		Map<String, Object> requestBody = new HashMap<>();
@@ -113,7 +111,7 @@ class PurchaseHistoryRestControllerTest extends ControllerTestSupport {
 	void addPurchaseHistoryThrowsExceptionWhenTotalInvestmentExceedsBudget() throws Exception {
 		// given
 		Portfolio portfolio = createPortfolio(createMember());
-		PortfolioHolding portfolioHolding = createPortfolioHolding(portfolio, createStock());
+		PortfolioHolding portfolioHolding = createPortfolioHolding(portfolio, createSamsungStock());
 		String url = String.format("/api/portfolio/%d/holdings/%d/purchaseHistory", portfolio.getId(),
 			portfolioHolding.getId());
 		Map<String, Object> requestBody = new HashMap<>();
@@ -149,7 +147,7 @@ class PurchaseHistoryRestControllerTest extends ControllerTestSupport {
 	void modifyPurchaseHistory() throws Exception {
 		// given
 		Portfolio portfolio = createPortfolio(createMember());
-		PortfolioHolding portfolioHolding = createPortfolioHolding(portfolio, createStock());
+		PortfolioHolding portfolioHolding = createPortfolioHolding(portfolio, createSamsungStock());
 		PurchaseHistory purchaseHistory = createPurchaseHistory();
 		String url = String.format("/api/portfolio/%d/holdings/%d/purchaseHistory/%d", portfolio.getId(),
 			portfolioHolding.getId(), purchaseHistory.getId());
@@ -180,7 +178,7 @@ class PurchaseHistoryRestControllerTest extends ControllerTestSupport {
 	void deletePurchaseHistory() throws Exception {
 		// given
 		Portfolio portfolio = createPortfolio(createMember());
-		PortfolioHolding portfolioHolding = createPortfolioHolding(portfolio, createStock());
+		PortfolioHolding portfolioHolding = createPortfolioHolding(portfolio, createSamsungStock());
 		PurchaseHistory purchaseHistory = createPurchaseHistory();
 		String url = String.format("/api/portfolio/%d/holdings/%d/purchaseHistory/%d", portfolio.getId(),
 			portfolioHolding.getId(), purchaseHistory.getId());
@@ -203,17 +201,6 @@ class PurchaseHistoryRestControllerTest extends ControllerTestSupport {
 			.purchasePricePerShare(Money.won(50000.0))
 			.numShares(Count.from(3L))
 			.memo("첫구매")
-			.build();
-	}
-
-	private static Stock createStock() {
-		return Stock.builder()
-			.tickerSymbol("005930")
-			.companyName("삼성전자보통주")
-			.companyNameEng("SamsungElectronics")
-			.stockCode("KR7005930003")
-			.sector("전기전자")
-			.market(Market.KOSPI)
 			.build();
 	}
 }

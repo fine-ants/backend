@@ -14,7 +14,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import codesquad.fineants.AbstractContainerBaseTest;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.common.money.Percentage;
-import codesquad.fineants.domain.dividend.domain.entity.StockDividend;
 import codesquad.fineants.domain.dividend.repository.StockDividendRepository;
 import codesquad.fineants.domain.kis.client.KisCurrentPrice;
 import codesquad.fineants.domain.kis.domain.dto.response.KisClosingPrice;
@@ -23,7 +22,6 @@ import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
 import codesquad.fineants.domain.kis.service.KisService;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
-import codesquad.fineants.domain.stock.domain.entity.Market;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
 import codesquad.fineants.domain.watchlist.domain.dto.request.ChangeWatchListNameRequest;
@@ -124,25 +122,8 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 	void readWatchList() {
 		// given
 		Member member = memberRepository.save(createMember());
-		Stock stock = stockRepository.save(
-			Stock.builder()
-				.companyName("삼성전자보통주")
-				.tickerSymbol("005930")
-				.companyNameEng("SamsungElectronics")
-				.stockCode("KR7005930003")
-				.sector("전기전자")
-				.market(Market.KOSPI)
-				.build()
-		);
-		stockDividendRepository.save(
-			StockDividend.builder()
-				.exDividendDate(LocalDate.now())
-				.recordDate(LocalDate.now())
-				.paymentDate(LocalDate.now())
-				.dividend(Money.won(362L))
-				.stock(stock)
-				.build()
-		);
+		Stock stock = stockRepository.save(createSamsungStock());
+		stockDividendRepository.save(createStockDividend(LocalDate.now(), LocalDate.now(), LocalDate.now(), stock));
 
 		WatchList watchList = watchListRepository.save(
 			WatchList.builder()
@@ -190,12 +171,7 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 	void createWatchStocks() {
 		// given
 		String tickerSymbol = "005930";
-		stockRepository.save(
-			Stock.builder()
-				.tickerSymbol(tickerSymbol)
-				.market(Market.KOSPI)
-				.build()
-		);
+		stockRepository.save(createSamsungStock());
 
 		Member member = memberRepository.save(createMember());
 		CreateWatchStockRequest request = new CreateWatchStockRequest(List.of(tickerSymbol));
@@ -220,7 +196,7 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 	void createWatchStocks_whenAlreadyStock_thenNotSaveStock() {
 		// given
 		Member member = memberRepository.save(createMember());
-		stockRepository.save(createStock());
+		stockRepository.save(createSamsungStock());
 
 		CreateWatchListResponse watchlist1 = watchListService.createWatchList(member.getId(),
 			new CreateWatchListRequest("watchlist1"));
@@ -240,13 +216,7 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 	@Test
 	void deleteWatchLists() {
 		// given
-		String tickerSymbol = "005930";
-		Stock stock = stockRepository.save(
-			Stock.builder()
-				.tickerSymbol(tickerSymbol)
-				.market(Market.KOSPI)
-				.build()
-		);
+		Stock stock = stockRepository.save(createSamsungStock());
 
 		Member member = memberRepository.save(createMember());
 
@@ -275,13 +245,7 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 	@Test
 	void deleteWatchStocks() {
 		// given
-		String tickerSymbol = "005930";
-		Stock stock = stockRepository.save(
-			Stock.builder()
-				.tickerSymbol(tickerSymbol)
-				.market(Market.KOSPI)
-				.build()
-		);
+		Stock stock = stockRepository.save(createSamsungStock());
 
 		Member member = memberRepository.save(createMember());
 
@@ -313,13 +277,7 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 	@Test
 	void deleteWatchStock() {
 		// given
-		String tickerSymbol = "005930";
-		Stock stock = stockRepository.save(
-			Stock.builder()
-				.tickerSymbol(tickerSymbol)
-				.market(Market.KOSPI)
-				.build()
-		);
+		Stock stock = stockRepository.save(createSamsungStock());
 
 		Member member = memberRepository.save(createMember());
 
@@ -372,16 +330,7 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 	void hasStock() {
 		// given
 		Member member = memberRepository.save(createMember());
-		Stock stock = stockRepository.save(
-			Stock.builder()
-				.companyName("삼성전자보통주")
-				.tickerSymbol("005930")
-				.companyNameEng("SamsungElectronics")
-				.stockCode("KR7005930003")
-				.sector("전기전자")
-				.market(Market.KOSPI)
-				.build()
-		);
+		Stock stock = stockRepository.save(createSamsungStock());
 		WatchList watchList1 = watchListRepository.save(WatchList.builder()
 			.name("My WatchList 1")
 			.member(member)

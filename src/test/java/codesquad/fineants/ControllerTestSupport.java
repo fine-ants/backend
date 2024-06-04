@@ -4,6 +4,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
 
+import java.time.LocalDate;
 import java.util.Set;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -20,9 +21,11 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import codesquad.fineants.domain.common.money.Money;
+import codesquad.fineants.domain.dividend.domain.entity.StockDividend;
 import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
+import codesquad.fineants.domain.stock.domain.entity.Market;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.global.config.JacksonConfig;
 import codesquad.fineants.global.config.JpaAuditingConfiguration;
@@ -123,6 +126,20 @@ public abstract class ControllerTestSupport {
 
 	protected PortfolioHolding createPortfolioHolding(Portfolio portfolio, Stock stock, Money currentPrice) {
 		return PortfolioHolding.of(1L, portfolio, stock, currentPrice);
+	}
+
+	protected Stock createSamsungStock() {
+		return Stock.of("005930", "삼성전자보통주", "SamsungElectronics", "KR7005930003", "전기전자", Market.KOSPI);
+	}
+
+	protected StockDividend createStockDividend(LocalDate recordDate, LocalDate exDividendDate, LocalDate paymentDate,
+		Stock stock) {
+		return StockDividend.create(Money.won(361), recordDate, exDividendDate, paymentDate, stock);
+	}
+
+	protected StockDividend createStockDividend(Money dividend, LocalDate recordDate, LocalDate exDividendDate,
+		LocalDate paymentDate, Stock stock) {
+		return StockDividend.create(dividend, recordDate, exDividendDate, paymentDate, stock);
 	}
 
 	protected abstract Object initController();

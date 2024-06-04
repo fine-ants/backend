@@ -71,22 +71,8 @@ class StockServiceTest extends AbstractContainerBaseTest {
 	void refreshStocks() {
 		// given
 		stockRepository.saveAll(List.of(
-			Stock.builder()
-				.tickerSymbol("345678")
-				.companyName("company3")
-				.companyNameEng("company3")
-				.stockCode("KRX70000345678")
-				.sector("전기전자")
-				.market(Market.KOSPI)
-				.build(),
-			Stock.builder()
-				.tickerSymbol("456789")
-				.companyName("company4")
-				.companyNameEng("company4")
-				.stockCode("KRX70000456789")
-				.sector("의약품")
-				.market(Market.KOSDAQ)
-				.build()
+			createStock("345678", "company3", "company3", "KRX70000345678", "전기전자", Market.KOSPI),
+			createStock("456789", "company4", "company4", "KRX70000456789", "의약품", Market.KOSPI)
 		));
 
 		Set<StockDataResponse.StockInfo> fetchStockInfoResult = Set.of(
@@ -124,7 +110,7 @@ class StockServiceTest extends AbstractContainerBaseTest {
 	@Test
 	void getStock() {
 		// given
-		Stock stock = stockRepository.save(createStock());
+		Stock stock = stockRepository.save(createSamsungStock());
 		stockDividendRepository.saveAll(createStockDividendWith(stock));
 
 		ValueOperations valueOperationMock = Mockito.mock(ValueOperations.class);
@@ -178,7 +164,7 @@ class StockServiceTest extends AbstractContainerBaseTest {
 	@Test
 	void getStock_whenPriceIsNotExist_thenFetchCurrentPrice() {
 		// given
-		Stock stock = stockRepository.save(createStock());
+		Stock stock = stockRepository.save(createSamsungStock());
 		stockDividendRepository.saveAll(createStockDividendWith(stock));
 
 		ValueOperations valueOperationMock = Mockito.mock(ValueOperations.class);
@@ -235,52 +221,34 @@ class StockServiceTest extends AbstractContainerBaseTest {
 
 	}
 
-	private StockDividend createStockDividend(LocalDate exDividendDate, LocalDate recordDate, LocalDate paymentDate,
-		Stock stock) {
-		return StockDividend.builder()
-			.dividend(Money.won(361L))
-			.exDividendDate(exDividendDate)
-			.recordDate(recordDate)
-			.paymentDate(paymentDate)
-			.stock(stock)
-			.build();
-	}
-
 	private List<StockDividend> createStockDividendWith(Stock stock) {
 		return List.of(
 			createStockDividend(
-				LocalDate.of(2022, 12, 30),
-				LocalDate.of(2022, 12, 31),
+				LocalDate.of(2022, 12, 31), LocalDate.of(2022, 12, 30),
 				LocalDate.of(2023, 4, 14),
 				stock),
 			createStockDividend(
-				LocalDate.of(2023, 3, 30),
-				LocalDate.of(2023, 3, 31),
+				LocalDate.of(2023, 3, 31), LocalDate.of(2023, 3, 30),
 				LocalDate.of(2023, 5, 17),
 				stock),
 			createStockDividend(
-				LocalDate.of(2023, 6, 29),
-				LocalDate.of(2023, 6, 30),
+				LocalDate.of(2023, 6, 30), LocalDate.of(2023, 6, 29),
 				LocalDate.of(2023, 8, 16),
 				stock),
 			createStockDividend(
-				LocalDate.of(2023, 9, 27),
-				LocalDate.of(2023, 9, 30),
+				LocalDate.of(2023, 9, 30), LocalDate.of(2023, 9, 27),
 				LocalDate.of(2023, 11, 20),
 				stock),
 			createStockDividend(
-				LocalDate.of(2024, 3, 29),
-				LocalDate.of(2024, 3, 31),
+				LocalDate.of(2024, 3, 31), LocalDate.of(2024, 3, 29),
 				LocalDate.of(2024, 5, 17),
 				stock),
 			createStockDividend(
-				LocalDate.of(2024, 6, 28),
-				LocalDate.of(2024, 6, 30),
+				LocalDate.of(2024, 6, 30), LocalDate.of(2024, 6, 28),
 				LocalDate.of(2024, 8, 16),
 				stock),
 			createStockDividend(
-				LocalDate.of(2024, 9, 27),
-				LocalDate.of(2024, 9, 30),
+				LocalDate.of(2024, 9, 30), LocalDate.of(2024, 9, 27),
 				LocalDate.of(2024, 11, 20),
 				stock)
 		);

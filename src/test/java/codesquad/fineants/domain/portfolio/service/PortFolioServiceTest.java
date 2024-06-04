@@ -383,7 +383,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 	void deletePortfolio() {
 		// given
 		Member member = memberRepository.save(createMember());
-		Stock stock = stockRepository.save(createStock());
+		Stock stock = stockRepository.save(createSamsungStock());
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		PortfolioGainHistory portfolioGainHistory = portfolioGainHistoryRepository.save(
 			createPortfolioGainHistory(portfolio));
@@ -431,7 +431,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 		// given
 		Member member = memberRepository.save(createMember());
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
-		Stock stock = stockRepository.save(createStock());
+		Stock stock = stockRepository.save(createSamsungStock());
 		PortfolioHolding portfolioHolding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
 		purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding, Money.won(90000.0)));
 		portfolioGainHistoryRepository.save(PortfolioGainHistory.builder()
@@ -464,7 +464,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 		// given
 		Member member = memberRepository.save(createMember());
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
-		Stock stock = stockRepository.save(createStock());
+		Stock stock = stockRepository.save(createSamsungStock());
 		PortfolioHolding portfolioHolding = portFolioHoldingRepository.save(createPortfolioHolding(portfolio, stock));
 		PurchaseHistory purchaseHistory1 = purchaseHistoryRepository.save(
 			createPurchaseHistory(portfolioHolding, Money.won(50000.0)));

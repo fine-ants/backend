@@ -62,7 +62,7 @@ public class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 	void createPortfolioHolding() throws Exception {
 		// given
 		Portfolio portfolio = createPortfolio(createMember());
-		Stock stock = createStock();
+		Stock stock = createSamsungStock();
 		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
 		given(service.createPortfolioHolding(
 			anyLong(),
@@ -129,7 +129,7 @@ public class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 		// given
 		Member member = createMember();
 		Portfolio portfolio = createPortfolio(member);
-		Stock stock = createStock();
+		Stock stock = createSamsungStock();
 		List<StockDividend> stockDividends = createStockDividendWith(stock);
 		stockDividends.forEach(stock::addStockDividend);
 		PortfolioHolding portfolioHolding = createPortfolioHolding(portfolio, stock);
@@ -481,7 +481,7 @@ public class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 	void deletePortfolioHolding() throws Exception {
 		// given
 		Portfolio portfolio = createPortfolio(createMember());
-		Stock stock = createStock();
+		Stock stock = createSamsungStock();
 		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
 
 		// when & then
@@ -523,7 +523,7 @@ public class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 	void deletePortfolioHoldings() throws Exception {
 		// given
 		Portfolio portfolio = createPortfolio(createMember());
-		Stock stock = createStock();
+		Stock stock = createSamsungStock();
 
 		Map<String, Object> body = Map.of(
 			"portfolioHoldingIds", List.of(1, 2)
