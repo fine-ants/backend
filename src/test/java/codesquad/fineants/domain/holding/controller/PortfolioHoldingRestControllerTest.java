@@ -86,7 +86,7 @@ class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 		Stock stock = createStock();
 		List<StockDividend> stockDividends = createStockDividendWith(stock);
 		stockDividends.forEach(stock::addStockDividend);
-		PortfolioHolding portfolioHolding = createPortfolioHolding(portfolio, stock);
+		PortfolioHolding portfolioHolding = createPortfolioHolding(portfolio, stock, Money.won(60000L));
 		portfolioHolding.addPurchaseHistory(
 			createPurchaseHistory(portfolioHolding, LocalDateTime.of(2023, 11, 1, 9, 30, 0)));
 		portfolio.addPortfolioStock(portfolioHolding);
@@ -332,7 +332,7 @@ class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 		Stock stock = createStock();
 		List<StockDividend> stockDividends = createStockDividendWith(stock);
 		stockDividends.forEach(stock::addStockDividend);
-		PortfolioHolding portfolioHolding = createPortfolioHolding(portfolio, stock);
+		PortfolioHolding portfolioHolding = createPortfolioHolding(portfolio, stock, Money.won(60000L));
 		portfolio.addPortfolioStock(portfolioHolding);
 		portfolioHolding.addPurchaseHistory(
 			createPurchaseHistory(portfolioHolding, LocalDateTime.of(2024, 1, 16, 9, 30, 0)));
@@ -401,15 +401,6 @@ class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 			.stockCode("KR7005930003")
 			.market(Market.KOSPI)
 			.sector("전기전자")
-			.build();
-	}
-
-	private PortfolioHolding createPortfolioHolding(Portfolio portfolio, Stock stock) {
-		return PortfolioHolding.builder()
-			.id(1L)
-			.portfolio(portfolio)
-			.stock(stock)
-			.currentPrice(Money.won(60000L))
 			.build();
 	}
 

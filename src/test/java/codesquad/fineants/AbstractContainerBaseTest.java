@@ -17,6 +17,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
 import codesquad.fineants.domain.common.money.Money;
+import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
 import codesquad.fineants.domain.kis.client.KisAccessToken;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
@@ -158,5 +159,13 @@ public class AbstractContainerBaseTest {
 			.sector(sector)
 			.market(market)
 			.build();
+	}
+
+	protected PortfolioHolding createPortfolioHolding(Portfolio portfolio, Stock stock) {
+		return PortfolioHolding.of(portfolio, stock);
+	}
+
+	protected PortfolioHolding createPortfolioHolding(Portfolio portfolio, Stock stock, Long currentPrice) {
+		return PortfolioHolding.of(portfolio, stock, Money.won(currentPrice));
 	}
 }

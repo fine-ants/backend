@@ -166,11 +166,7 @@ class PortfolioNotificationServiceTest extends AbstractContainerBaseTest {
 			.isInstanceOf(FineAntsException.class)
 			.hasMessage(PortfolioErrorCode.MAX_LOSS_IS_ZERO_WITH_NOTIFY_UPDATE.getMessage());
 	}
-
-	private PortfolioHolding createPortfolioHolding(Portfolio portfolio, Stock stock) {
-		return PortfolioHolding.empty(portfolio, stock);
-	}
-
+	
 	private PurchaseHistory createPurchaseHistory(PortfolioHolding portfolioHolding) {
 		return PurchaseHistory.builder()
 			.purchaseDate(LocalDateTime.now())

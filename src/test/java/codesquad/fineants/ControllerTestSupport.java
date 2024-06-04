@@ -20,8 +20,10 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import codesquad.fineants.domain.common.money.Money;
+import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
+import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.global.config.JacksonConfig;
 import codesquad.fineants.global.config.JpaAuditingConfiguration;
 import codesquad.fineants.global.config.SpringConfig;
@@ -113,6 +115,14 @@ public abstract class ControllerTestSupport {
 			maximumLoss,
 			member
 		);
+	}
+
+	protected PortfolioHolding createPortfolioHolding(Portfolio portfolio, Stock stock) {
+		return PortfolioHolding.of(1L, portfolio, stock, null);
+	}
+
+	protected PortfolioHolding createPortfolioHolding(Portfolio portfolio, Stock stock, Money currentPrice) {
+		return PortfolioHolding.of(1L, portfolio, stock, currentPrice);
 	}
 
 	protected abstract Object initController();

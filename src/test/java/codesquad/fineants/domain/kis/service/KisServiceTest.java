@@ -18,7 +18,6 @@ import org.springframework.security.test.context.support.WithMockUser;
 
 import codesquad.fineants.AbstractContainerBaseTest;
 import codesquad.fineants.domain.dividend.repository.StockDividendRepository;
-import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
 import codesquad.fineants.domain.holding.repository.PortfolioHoldingRepository;
 import codesquad.fineants.domain.kis.client.KisClient;
 import codesquad.fineants.domain.kis.client.KisCurrentPrice;
@@ -206,13 +205,6 @@ class KisServiceTest extends AbstractContainerBaseTest {
 			.stockCode(stockCode)
 			.sector(sector)
 			.market(market)
-			.build();
-	}
-
-	private PortfolioHolding createPortfolioHolding(Portfolio portfolio, Stock stock) {
-		return PortfolioHolding.builder()
-			.portfolio(portfolio)
-			.stock(stock)
 			.build();
 	}
 }

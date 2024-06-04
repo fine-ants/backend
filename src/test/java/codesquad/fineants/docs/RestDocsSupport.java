@@ -116,13 +116,7 @@ public abstract class RestDocsSupport {
 	}
 
 	protected PortfolioHolding createPortfolioHolding(Portfolio portfolio, Stock stock) {
-		return PortfolioHolding.builder()
-			.id(1L)
-			.portfolio(portfolio)
-			.stock(stock)
-			.currentPrice(Money.won(60000L))
-			.createAt(LocalDateTime.now())
-			.build();
+		return PortfolioHolding.of(1L, portfolio, stock, Money.won(60000L));
 	}
 
 	protected PurchaseHistory createPurchaseHistory(PortfolioHolding portfolioHolding, LocalDateTime purchaseDate) {

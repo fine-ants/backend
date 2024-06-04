@@ -510,13 +510,6 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 			.build();
 	}
 
-	private PortfolioHolding createPortfolioHolding(Portfolio portfolio, Stock stock) {
-		return PortfolioHolding.builder()
-			.portfolio(portfolio)
-			.stock(stock)
-			.build();
-	}
-
 	private PurchaseHistory createPurchaseHistory(PortfolioHolding portfolioHolding, Money purchasePricePerShare) {
 		return PurchaseHistory.builder()
 			.purchaseDate(LocalDateTime.of(2023, 9, 26, 9, 30, 0))

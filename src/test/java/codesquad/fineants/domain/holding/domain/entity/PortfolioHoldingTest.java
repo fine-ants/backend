@@ -243,15 +243,6 @@ class PortfolioHoldingTest extends AbstractContainerBaseTest {
 			.build();
 	}
 
-	private PortfolioHolding createPortfolioHolding(Portfolio portfolio, Stock stock, Long currentPrice) {
-		return PortfolioHolding.builder()
-			.id(System.currentTimeMillis())
-			.portfolio(portfolio)
-			.stock(stock)
-			.currentPrice(Money.won(currentPrice))
-			.build();
-	}
-
 	private PurchaseHistory createPurchaseHistory(LocalDateTime purchaseDate, PortfolioHolding portfolioHolding) {
 		return PurchaseHistory.builder()
 			.id(System.currentTimeMillis())

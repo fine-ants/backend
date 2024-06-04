@@ -206,21 +206,13 @@ class PurchaseHistoryRestControllerTest extends ControllerTestSupport {
 			.build();
 	}
 
-	private PortfolioHolding createPortfolioHolding(Portfolio portfolio, Stock stock) {
-		return PortfolioHolding.builder()
-			.id(1L)
-			.currentPrice(null)
-			.portfolio(portfolio)
-			.stock(stock)
-			.build();
-	}
-
 	private static Stock createStock() {
 		return Stock.builder()
 			.tickerSymbol("005930")
 			.companyName("삼성전자보통주")
 			.companyNameEng("SamsungElectronics")
 			.stockCode("KR7005930003")
+			.sector("전기전자")
 			.market(Market.KOSPI)
 			.build();
 	}

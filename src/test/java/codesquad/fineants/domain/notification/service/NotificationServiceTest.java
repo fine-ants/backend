@@ -654,14 +654,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 			.member(member)
 			.build();
 	}
-
-	private PortfolioHolding createPortfolioHolding(Portfolio portfolio, Stock stock) {
-		return PortfolioHolding.builder()
-			.portfolio(portfolio)
-			.stock(stock)
-			.build();
-	}
-
+	
 	private PurchaseHistory createPurchaseHistory(PortfolioHolding portfolioHolding, Long numShares,
 		Double purchasePricePerShare) {
 		return PurchaseHistory.builder()
