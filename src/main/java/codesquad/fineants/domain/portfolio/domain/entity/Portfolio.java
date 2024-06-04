@@ -49,7 +49,6 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
@@ -99,7 +98,6 @@ public class Portfolio extends BaseEntity {
 	@OneToMany(mappedBy = "portfolio")
 	private final List<PortfolioHolding> portfolioHoldings = new ArrayList<>();
 
-	@Builder(access = AccessLevel.PRIVATE)
 	private Portfolio(Long id, String name, String securitiesFirm, Money budget, Money targetGain, Money maximumLoss,
 		Boolean targetGainIsActive, Boolean maximumLossIsActive, Member member) {
 		validateBudget(budget, targetGain, maximumLoss);
