@@ -113,14 +113,12 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 		PortfolioHolding portfolioHolding = portfolioHoldingRepository.save(
 			PortfolioHolding.of(portfolio, stock, Money.won(72900L)));
 
+		LocalDateTime purchaseDate = LocalDateTime.now();
+		Count numShares = Count.from(3);
+		Money purchasePricePerShare = Money.won(50000.0);
+		String memo = "첫구매";
 		purchaseHistoryRepository.save(
-			PurchaseHistory.builder()
-				.portfolioHolding(portfolioHolding)
-				.purchaseDate(LocalDateTime.now())
-				.purchasePricePerShare(Money.won(50000.0))
-				.numShares(Count.from(3L))
-				.build()
-		);
+			createPurchaseHistory(null, purchaseDate, numShares, purchasePricePerShare, memo, portfolioHolding));
 
 		currentPriceRepository.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 72900L));
 		// when
@@ -290,7 +288,7 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 			() -> assertThat(responses.size()).isEqualTo(1)
 		);
 	}
-	
+
 	private List<StockDividend> createStockDividendWith(Stock stock) {
 		return List.of(
 			createStockDividend(

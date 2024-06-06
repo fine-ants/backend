@@ -26,7 +26,6 @@ import codesquad.fineants.domain.portfolio.repository.PortfolioRepository;
 import codesquad.fineants.domain.portfolio_gain_history.domain.dto.response.PortfolioGainHistoryCreateResponse;
 import codesquad.fineants.domain.portfolio_gain_history.domain.entity.PortfolioGainHistory;
 import codesquad.fineants.domain.portfolio_gain_history.repository.PortfolioGainHistoryRepository;
-import codesquad.fineants.domain.purchasehistory.domain.entity.PurchaseHistory;
 import codesquad.fineants.domain.purchasehistory.repository.PurchaseHistoryRepository;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
@@ -78,17 +77,15 @@ class PortfolioGainHistoryServiceTest extends AbstractContainerBaseTest {
 		Member member = memberRepository.save(createMember());
 		Portfolio savePortfolio = portfolioRepository.save(createPortfolio(member));
 		Stock stock = stockRepository.save(createSamsungStock());
-		PortfolioHolding portfolioHolding = PortfolioHolding.of(savePortfolio, stock, Money.won(60000L));
-		PurchaseHistory purchaseHistory = PurchaseHistory.builder()
-			.purchaseDate(LocalDateTime.now())
-			.numShares(Count.from(3L))
-			.purchasePricePerShare(Money.won(50000.0))
-			.memo("첫구매")
-			.portfolioHolding(portfolioHolding)
-			.build();
-		portfolioHolding.addPurchaseHistory(purchaseHistory);
-		portFolioHoldingRepository.save(portfolioHolding);
-		purchaseHistoryRepository.save(purchaseHistory);
+		PortfolioHolding portfolioHolding = portFolioHoldingRepository.save(
+			PortfolioHolding.of(savePortfolio, stock, Money.won(60000L)));
+
+		LocalDateTime purchaseDate = LocalDateTime.of(2023, 9, 26, 9, 30, 0);
+		Count numShares = Count.from(3);
+		Money purchasePricePerShare = Money.won(50000);
+		String memo = "첫구매";
+		purchaseHistoryRepository.save(
+			createPurchaseHistory(null, purchaseDate, numShares, purchasePricePerShare, memo, portfolioHolding));
 
 		currentPriceRepository.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 60000L));
 		// when

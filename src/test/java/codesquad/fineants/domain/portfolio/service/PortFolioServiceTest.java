@@ -388,8 +388,13 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 		PortfolioGainHistory portfolioGainHistory = portfolioGainHistoryRepository.save(
 			createPortfolioGainHistory(portfolio));
 		PortfolioHolding portfolioHolding = portFolioHoldingRepository.save(createPortfolioHolding(portfolio, stock));
+
+		LocalDateTime purchaseDate = LocalDateTime.of(2023, 9, 26, 9, 30, 0);
+		Count numShares = Count.from(3);
+		Money purchasePerShare = Money.won(50000);
+		String memo = "첫구매";
 		PurchaseHistory purchaseHistory = purchaseHistoryRepository.save(
-			createPurchaseHistory(portfolioHolding, Money.won(50000.0)));
+			createPurchaseHistory(null, purchaseDate, numShares, purchasePerShare, memo, portfolioHolding));
 
 		// when
 		service.deletePortfolio(portfolio.getId(), member.getId());
@@ -433,7 +438,13 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Stock stock = stockRepository.save(createSamsungStock());
 		PortfolioHolding portfolioHolding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
-		purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding, Money.won(90000.0)));
+
+		LocalDateTime purchaseDate = LocalDateTime.of(2023, 9, 26, 9, 30, 0);
+		Count numShares = Count.from(3);
+		Money purchasePerShare = Money.won(90000);
+		String memo = "첫구매";
+		purchaseHistoryRepository.save(
+			createPurchaseHistory(null, purchaseDate, numShares, purchasePerShare, memo, portfolioHolding));
 		portfolioGainHistoryRepository.save(PortfolioGainHistory.builder()
 			.totalGain(Money.won(-120000L))
 			.dailyGain(Money.won(-120000L))
@@ -466,10 +477,16 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Stock stock = stockRepository.save(createSamsungStock());
 		PortfolioHolding portfolioHolding = portFolioHoldingRepository.save(createPortfolioHolding(portfolio, stock));
+
+		LocalDateTime purchaseDate = LocalDateTime.of(2023, 9, 26, 9, 30, 0);
+		Count numShares = Count.from(3);
+		Money purchasePerShare = Money.won(50000);
+		String memo = "첫구매";
 		PurchaseHistory purchaseHistory1 = purchaseHistoryRepository.save(
-			createPurchaseHistory(portfolioHolding, Money.won(50000.0)));
+			createPurchaseHistory(null, purchaseDate, numShares, purchasePerShare, memo, portfolioHolding));
 		PurchaseHistory purchaseHistory2 = purchaseHistoryRepository.save(
-			createPurchaseHistory(portfolioHolding, Money.won(50000.0)));
+			createPurchaseHistory(null, purchaseDate, numShares, purchasePerShare, memo, portfolioHolding));
+
 		PortfolioGainHistory portfolioGainHistory = portfolioGainHistoryRepository.save(
 			createPortfolioGainHistory(portfolio));
 		Portfolio portfolio2 = portfolioRepository.save(createPortfolioWithRandomName(member));
@@ -507,16 +524,6 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 			.cash(bank.toWon(portfolio.calculateBalance()))
 			.currentValuation(bank.toWon(portfolio.calculateTotalCurrentValuation()))
 			.portfolio(portfolio)
-			.build();
-	}
-
-	private PurchaseHistory createPurchaseHistory(PortfolioHolding portfolioHolding, Money purchasePricePerShare) {
-		return PurchaseHistory.builder()
-			.purchaseDate(LocalDateTime.of(2023, 9, 26, 9, 30, 0))
-			.numShares(Count.from(3L))
-			.purchasePricePerShare(purchasePricePerShare)
-			.memo("첫구매")
-			.portfolioHolding(portfolioHolding)
 			.build();
 	}
 

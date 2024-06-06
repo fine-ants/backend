@@ -113,14 +113,7 @@ public abstract class RestDocsSupport {
 	}
 
 	protected PurchaseHistory createPurchaseHistory(PortfolioHolding portfolioHolding, LocalDateTime purchaseDate) {
-		return PurchaseHistory.builder()
-			.id(1L)
-			.purchaseDate(purchaseDate)
-			.numShares(Count.from(3L))
-			.purchasePricePerShare(Money.won(50000.0))
-			.memo("첫구매")
-			.portfolioHolding(portfolioHolding)
-			.build();
+		return PurchaseHistory.create(1L, purchaseDate, Count.from(3L), Money.won(50000), "첫구매", portfolioHolding);
 	}
 
 	protected PortfolioGainHistory createEmptyPortfolioGainHistory() {

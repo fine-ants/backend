@@ -6,27 +6,34 @@ import java.time.LocalDateTime;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.test.context.ActiveProfiles;
 
+import codesquad.fineants.AbstractContainerBaseTest;
 import codesquad.fineants.domain.common.count.Count;
 import codesquad.fineants.domain.common.money.Money;
+import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
+import codesquad.fineants.domain.member.domain.entity.Member;
+import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.purchasehistory.domain.entity.PurchaseHistory;
+import codesquad.fineants.domain.stock.domain.entity.Stock;
 
-@ActiveProfiles("test")
-class PurchaseHistoryItemTest {
+class PurchaseHistoryItemTest extends AbstractContainerBaseTest {
 
 	@DisplayName("엔티티 객체를 dto 객체로 변환한다")
 	@Test
 	void from() {
 		// given
+		Member member = createMember();
+		Portfolio portfolio = createPortfolio(member);
+		Stock samsungStock = createSamsungStock();
+		PortfolioHolding holding = createPortfolioHolding(portfolio, samsungStock);
+
 		LocalDateTime now = LocalDateTime.now();
-		PurchaseHistory history = PurchaseHistory.builder()
-			.id(1L)
-			.purchaseDate(now)
-			.numShares(Count.from(3L))
-			.purchasePricePerShare(Money.won(30000.0))
-			.memo("첫구매")
-			.build();
+		Count numShares = Count.from(3);
+		Money purchasePerShare = Money.won(30000);
+		String memo = "첫구매";
+		PurchaseHistory history = createPurchaseHistory(1L, now, numShares, purchasePerShare, memo,
+			holding);
+
 		// when
 		PurchaseHistoryItem historyItem = PurchaseHistoryItem.from(history);
 		// then

@@ -31,19 +31,14 @@ class PortfolioTest extends AbstractContainerBaseTest {
 		Stock stock = createSamsungStock();
 		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock, Money.won(20000L));
 
-		PurchaseHistory purchaseHistory1 = PurchaseHistory.builder()
-			.purchaseDate(LocalDateTime.now())
-			.numShares(Count.from(5L))
-			.purchasePricePerShare(Money.won(10000.0))
-			.portfolioHolding(portFolioHolding)
-			.build();
-
-		PurchaseHistory purchaseHistory2 = PurchaseHistory.builder()
-			.purchaseDate(LocalDateTime.now())
-			.numShares(Count.from(5L))
-			.purchasePricePerShare(Money.won(10000.0))
-			.portfolioHolding(portFolioHolding)
-			.build();
+		LocalDateTime purchaseDate = LocalDateTime.of(2023, 9, 26, 9, 30, 0);
+		Count numShares = Count.from(5);
+		Money purchasePerShare = Money.won(10000);
+		String memo = "첫구매";
+		PurchaseHistory purchaseHistory1 = createPurchaseHistory(null, purchaseDate, numShares, purchasePerShare, memo,
+			portFolioHolding);
+		PurchaseHistory purchaseHistory2 = createPurchaseHistory(null, purchaseDate, numShares, purchasePerShare, memo,
+			portFolioHolding);
 
 		portFolioHolding.addPurchaseHistory(purchaseHistory1);
 		portFolioHolding.addPurchaseHistory(purchaseHistory2);
@@ -66,17 +61,14 @@ class PortfolioTest extends AbstractContainerBaseTest {
 		Stock stock = createSamsungStock();
 		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock, Money.won(20000L));
 
-		PurchaseHistory purchaseHistory1 = PurchaseHistory.builder()
-			.purchaseDate(LocalDateTime.now())
-			.numShares(Count.from(5L))
-			.purchasePricePerShare(Money.won(10000.0))
-			.build();
-
-		PurchaseHistory purchaseHistory2 = PurchaseHistory.builder()
-			.purchaseDate(LocalDateTime.now())
-			.numShares(Count.from(5L))
-			.purchasePricePerShare(Money.won(10000.0))
-			.build();
+		LocalDateTime purchaseDate = LocalDateTime.of(2023, 9, 26, 9, 30, 0);
+		Count numShares = Count.from(5);
+		Money purchasePerShare = Money.won(10000);
+		String memo = "첫구매";
+		PurchaseHistory purchaseHistory1 = createPurchaseHistory(null, purchaseDate, numShares, purchasePerShare, memo,
+			portFolioHolding);
+		PurchaseHistory purchaseHistory2 = createPurchaseHistory(null, purchaseDate, numShares, purchasePerShare, memo,
+			portFolioHolding);
 
 		portFolioHolding.addPurchaseHistory(purchaseHistory1);
 		portFolioHolding.addPurchaseHistory(purchaseHistory2);
@@ -103,19 +95,17 @@ class PortfolioTest extends AbstractContainerBaseTest {
 		PortfolioHolding holding1 = PortfolioHolding.of(portfolio, stock, Money.won(20000L));
 		PortfolioHolding holding2 = PortfolioHolding.of(portfolio, stock2, Money.won(20000L));
 
-		PurchaseHistory purchaseHistory1 = PurchaseHistory.builder()
-			.purchaseDate(LocalDateTime.now())
-			.numShares(Count.from(5L))
-			.purchasePricePerShare(Money.won(10000.0))
-			.portfolioHolding(holding1)
-			.build();
+		LocalDateTime purchaseDate = LocalDateTime.of(2023, 9, 26, 9, 30, 0);
+		Count numShares = Count.from(5);
+		Money purchasePerShare = Money.won(10000);
+		String memo = "첫구매";
+		PurchaseHistory purchaseHistory1 = createPurchaseHistory(null, purchaseDate, numShares, purchasePerShare, memo,
+			holding1);
 
-		PurchaseHistory purchaseHistory2 = PurchaseHistory.builder()
-			.purchaseDate(LocalDateTime.now())
-			.numShares(Count.from(5L))
-			.purchasePricePerShare(Money.won(20000.0))
-			.portfolioHolding(holding2)
-			.build();
+		numShares = Count.from(5);
+		purchasePerShare = Money.won(20000);
+		PurchaseHistory purchaseHistory2 = createPurchaseHistory(null, purchaseDate, numShares, purchasePerShare, memo,
+			holding2);
 
 		holding1.addPurchaseHistory(purchaseHistory1);
 		holding2.addPurchaseHistory(purchaseHistory2);
@@ -133,9 +123,9 @@ class PortfolioTest extends AbstractContainerBaseTest {
 			.extracting("name", "valuation", "totalGain")
 			.usingComparatorForType(Money::compareTo, Money.class)
 			.containsExactlyInAnyOrder(
-				Tuple.tuple("현금", Money.won(850000L), Money.zero()),
-				Tuple.tuple("삼성전자보통주", Money.won(100000L), Money.won(50000L)),
-				Tuple.tuple("동화약품보통주", Money.won(100000L), Money.zero()));
+				Tuple.tuple("현금", Money.won(850000), Money.zero()),
+				Tuple.tuple("삼성전자보통주", Money.won(100000), Money.won(50000)),
+				Tuple.tuple("동화약품보통주", Money.won(100000), Money.zero()));
 	}
 
 	@DisplayName("사용자는 포트폴리오의 섹터 차트를 요청한다")
@@ -148,19 +138,17 @@ class PortfolioTest extends AbstractContainerBaseTest {
 		PortfolioHolding holding1 = PortfolioHolding.of(portfolio, stock, Money.won(20000L));
 		PortfolioHolding holding2 = PortfolioHolding.of(portfolio, stock2, Money.won(20000L));
 
-		PurchaseHistory purchaseHistory1 = PurchaseHistory.builder()
-			.purchaseDate(LocalDateTime.now())
-			.numShares(Count.from(5L))
-			.purchasePricePerShare(Money.won(10000.0))
-			.portfolioHolding(holding1)
-			.build();
+		LocalDateTime purchaseDate = LocalDateTime.of(2023, 9, 26, 9, 30, 0);
+		Count numShares = Count.from(5);
+		Money purchasePerShare = Money.won(10000);
+		String memo = "첫구매";
+		PurchaseHistory purchaseHistory1 = createPurchaseHistory(null, purchaseDate, numShares, purchasePerShare, memo,
+			holding1);
 
-		PurchaseHistory purchaseHistory2 = PurchaseHistory.builder()
-			.purchaseDate(LocalDateTime.now())
-			.numShares(Count.from(5L))
-			.purchasePricePerShare(Money.won(20000.0))
-			.portfolioHolding(holding2)
-			.build();
+		numShares = Count.from(5);
+		purchasePerShare = Money.won(20000);
+		PurchaseHistory purchaseHistory2 = createPurchaseHistory(null, purchaseDate, numShares, purchasePerShare, memo,
+			holding2);
 
 		holding1.addPurchaseHistory(purchaseHistory1);
 		holding2.addPurchaseHistory(purchaseHistory2);

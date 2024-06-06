@@ -5,6 +5,7 @@ import static org.mockito.BDDMockito.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Set;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -20,11 +21,13 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import codesquad.fineants.domain.common.count.Count;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.dividend.domain.entity.StockDividend;
 import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
+import codesquad.fineants.domain.purchasehistory.domain.entity.PurchaseHistory;
 import codesquad.fineants.domain.stock.domain.entity.Market;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.global.config.JacksonConfig;
@@ -140,6 +143,11 @@ public abstract class ControllerTestSupport {
 	protected StockDividend createStockDividend(Money dividend, LocalDate recordDate, LocalDate exDividendDate,
 		LocalDate paymentDate, Stock stock) {
 		return StockDividend.create(dividend, recordDate, exDividendDate, paymentDate, stock);
+	}
+	
+	protected PurchaseHistory createPurchaseHistory(Long id, LocalDateTime purchaseDate, Count count,
+		Money purchasePricePerShare, String memo, PortfolioHolding portfolioHolding) {
+		return PurchaseHistory.create(id, purchaseDate, count, purchasePricePerShare, memo, portfolioHolding);
 	}
 
 	protected abstract Object initController();

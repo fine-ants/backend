@@ -31,12 +31,6 @@ public class PurchaseHistoryUpdateRequest {
 	private String memo;
 
 	public PurchaseHistory toEntity(PortfolioHolding portfolioHolding) {
-		return PurchaseHistory.builder()
-			.purchaseDate(purchaseDate)
-			.numShares(numShares)
-			.purchasePricePerShare(purchasePricePerShare)
-			.memo(memo)
-			.portfolioHolding(portfolioHolding)
-			.build();
+		return PurchaseHistory.create(purchaseDate, numShares, purchasePricePerShare, memo, portfolioHolding);
 	}
 }

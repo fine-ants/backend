@@ -22,7 +22,6 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
@@ -32,7 +31,6 @@ import lombok.ToString;
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-@Builder
 public class PurchaseHistory extends BaseEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -74,6 +72,17 @@ public class PurchaseHistory extends BaseEntity {
 			memo,
 			holding
 		);
+	}
+
+	public static PurchaseHistory create(LocalDateTime purchaseDate, Count numShares, Money purchasePricePerShare,
+		String memo, PortfolioHolding portfolioHolding) {
+		return create(null, purchaseDate, numShares, purchasePricePerShare, memo, portfolioHolding);
+	}
+
+	public static PurchaseHistory create(Long id, LocalDateTime purchaseDate, Count numShares,
+		Money purchasePricePerShare,
+		String memo, PortfolioHolding portfolioHolding) {
+		return new PurchaseHistory(id, purchaseDate, purchasePricePerShare, numShares, memo, portfolioHolding);
 	}
 
 	// 투자 금액 = 주당 매입가 * 개수

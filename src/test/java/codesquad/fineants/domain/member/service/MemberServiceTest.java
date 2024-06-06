@@ -53,7 +53,6 @@ import codesquad.fineants.domain.notificationpreference.repository.NotificationP
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.repository.PortfolioRepository;
 import codesquad.fineants.domain.portfolio_gain_history.repository.PortfolioGainHistoryRepository;
-import codesquad.fineants.domain.purchasehistory.domain.entity.PurchaseHistory;
 import codesquad.fineants.domain.purchasehistory.repository.PurchaseHistoryRepository;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
@@ -583,7 +582,13 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 		Stock stock = stockRepository.save(createSamsungStock());
 		stockDividendRepository.saveAll(createStockDividendWith(stock));
 		PortfolioHolding portfolioHolding = portfolioHoldingRepository.save(createPortfolioHolding(portfolio, stock));
-		purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding));
+
+		LocalDateTime purchaseDate = LocalDateTime.of(2023, 9, 26, 9, 30, 0);
+		Count numShares = Count.from(3);
+		Money purchasePricePerShare = Money.won(50000);
+		String memo = "첫구매";
+		purchaseHistoryRepository.save(
+			createPurchaseHistory(null, purchaseDate, numShares, purchasePricePerShare, memo, portfolioHolding));
 		preferenceRepository.save(createNotificationPreference(member));
 		StockTargetPrice stockTargetPrice = stockTargetPriceRepository.save(createStockTargetPrice(member, stock));
 		targetPriceNotificationRepository.save(createTargetPriceNotification(stockTargetPrice));
@@ -625,16 +630,6 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 		return Stream.of(
 			Arguments.of(request, profileImageFile, "profileUrl")
 		);
-	}
-
-	private PurchaseHistory createPurchaseHistory(PortfolioHolding portfolioHolding) {
-		return PurchaseHistory.builder()
-			.purchaseDate(LocalDateTime.of(2023, 9, 26, 9, 30, 0))
-			.numShares(Count.from(3L))
-			.purchasePricePerShare(Money.won(50000.0))
-			.memo("첫구매")
-			.portfolioHolding(portfolioHolding)
-			.build();
 	}
 
 	private List<StockDividend> createStockDividendWith(Stock stock) {

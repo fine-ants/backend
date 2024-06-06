@@ -28,7 +28,6 @@ import codesquad.fineants.domain.portfolio.domain.dto.response.PortfolioNotifica
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.repository.PortfolioRepository;
 import codesquad.fineants.domain.portfolio_gain_history.repository.PortfolioGainHistoryRepository;
-import codesquad.fineants.domain.purchasehistory.domain.entity.PurchaseHistory;
 import codesquad.fineants.domain.purchasehistory.repository.PurchaseHistoryRepository;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
@@ -83,7 +82,13 @@ class PortfolioNotificationServiceTest extends AbstractContainerBaseTest {
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Stock stock = stockRepository.save(createSamsungStock());
 		PortfolioHolding portfolioHolding = portFolioHoldingRepository.save(createPortfolioHolding(portfolio, stock));
-		purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding));
+
+		LocalDateTime purchaseDate = LocalDateTime.of(2023, 9, 26, 9, 30, 0);
+		Count numShares = Count.from(3);
+		Money purchasePerShare = Money.won(50000);
+		String memo = "첫구매";
+		purchaseHistoryRepository.save(
+			createPurchaseHistory(null, purchaseDate, numShares, purchasePerShare, memo, portfolioHolding));
 
 		Map<String, Boolean> requestBodyMap = new HashMap<>();
 		requestBodyMap.put("isActive", true);
@@ -129,7 +134,12 @@ class PortfolioNotificationServiceTest extends AbstractContainerBaseTest {
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Stock stock = stockRepository.save(createSamsungStock());
 		PortfolioHolding portfolioHolding = portFolioHoldingRepository.save(createPortfolioHolding(portfolio, stock));
-		purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding));
+		LocalDateTime purchaseDate = LocalDateTime.of(2023, 9, 26, 9, 30, 0);
+		Count numShares = Count.from(3);
+		Money purchasePerShare = Money.won(50000);
+		String memo = "첫구매";
+		purchaseHistoryRepository.save(
+			createPurchaseHistory(null, purchaseDate, numShares, purchasePerShare, memo, portfolioHolding));
 
 		long portfolioId = portfolio.getId();
 		Map<String, Boolean> requestBodyMap = new HashMap<>();
@@ -165,15 +175,5 @@ class PortfolioNotificationServiceTest extends AbstractContainerBaseTest {
 		assertThat(throwable)
 			.isInstanceOf(FineAntsException.class)
 			.hasMessage(PortfolioErrorCode.MAX_LOSS_IS_ZERO_WITH_NOTIFY_UPDATE.getMessage());
-	}
-
-	private PurchaseHistory createPurchaseHistory(PortfolioHolding portfolioHolding) {
-		return PurchaseHistory.builder()
-			.purchaseDate(LocalDateTime.now())
-			.numShares(Count.from(3L))
-			.purchasePricePerShare(Money.won(50000.0))
-			.memo("첫구매")
-			.portfolioHolding(portfolioHolding)
-			.build();
 	}
 }

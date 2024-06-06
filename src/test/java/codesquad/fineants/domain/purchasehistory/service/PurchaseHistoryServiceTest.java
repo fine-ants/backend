@@ -167,7 +167,9 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 		Stock stock2 = stockRepository.save(createDongwhaPharmStock());
 		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
 		portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock2));
-		purchaseHistoryRepository.save(createPurchaseHistory(holding));
+		purchaseHistoryRepository.save(
+			createPurchaseHistory(null, LocalDateTime.of(2023, 9, 26, 9, 30, 0), Count.from(3), Money.won(50000), "첫구매",
+				holding));
 		fcmRepository.save(createFcmToken("token", member));
 		fcmRepository.save(createFcmToken("token2", member));
 
@@ -282,7 +284,9 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Stock stock = stockRepository.save(createSamsungStock());
 		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
-		PurchaseHistory history = purchaseHistoryRepository.save(createPurchaseHistory(holding));
+		PurchaseHistory history = purchaseHistoryRepository.save(
+			createPurchaseHistory(null, LocalDateTime.of(2023, 9, 26, 9, 30, 0), Count.from(3), Money.won(50000), "첫구매",
+				holding));
 
 		PurchaseHistoryUpdateRequest request = PurchaseHistoryUpdateRequest.builder()
 			.purchaseDate(LocalDateTime.now())
@@ -320,7 +324,9 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Stock stock = stockRepository.save(createSamsungStock());
 		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
-		PurchaseHistory history = purchaseHistoryRepository.save(createPurchaseHistory(holding));
+		PurchaseHistory history = purchaseHistoryRepository.save(
+			createPurchaseHistory(null, LocalDateTime.of(2023, 9, 26, 9, 30, 0), Count.from(3), Money.won(50000), "첫구매",
+				holding));
 
 		PurchaseHistoryUpdateRequest request = PurchaseHistoryUpdateRequest.builder()
 			.purchaseDate(LocalDateTime.now())
@@ -362,7 +368,9 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Stock stock = stockRepository.save(createSamsungStock());
 		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
-		PurchaseHistory history = purchaseHistoryRepository.save(createPurchaseHistory(holding));
+		PurchaseHistory history = purchaseHistoryRepository.save(
+			createPurchaseHistory(null, LocalDateTime.of(2023, 9, 26, 9, 30, 0), Count.from(3), Money.won(50000), "첫구매",
+				holding));
 
 		// when
 		PurchaseHistoryDeleteResponse response = service.deletePurchaseHistory(
@@ -388,8 +396,11 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Stock stock = stockRepository.save(createSamsungStock());
 		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
-		PurchaseHistory history = purchaseHistoryRepository.save(createPurchaseHistory(holding));
-		purchaseHistoryRepository.save(createPurchaseHistory(holding, 100.0));
+		PurchaseHistory history = purchaseHistoryRepository.save(
+			createPurchaseHistory(null, LocalDateTime.of(2023, 9, 26, 9, 30, 0), Count.from(3), Money.won(50000), "첫구매",
+				holding));
+		purchaseHistoryRepository.save(
+			createPurchaseHistory(null, LocalDateTime.now(), Count.from(100), Money.won(100), "첫구매", holding));
 		fcmRepository.save(createFcmToken("token", member));
 
 		currentPriceRepository.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L));
@@ -423,7 +434,9 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Stock stock = stockRepository.save(createSamsungStock());
 		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
-		purchaseHistoryRepository.save(createPurchaseHistory(holding));
+		purchaseHistoryRepository.save(purchaseHistoryRepository.save(
+			createPurchaseHistory(null, LocalDateTime.of(2023, 9, 26, 9, 30, 0), Count.from(3), Money.won(50000), "첫구매",
+				holding)));
 
 		Long purchaseHistoryId = 9999L;
 
@@ -440,27 +453,6 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 		assertThat(throwable)
 			.isInstanceOf(FineAntsException.class)
 			.hasMessage(PurchaseHistoryErrorCode.NOT_FOUND_PURCHASE_HISTORY.getMessage());
-	}
-
-	private PurchaseHistory createPurchaseHistory(PortfolioHolding portfolioHolding) {
-		return PurchaseHistory.builder()
-			.purchaseDate(LocalDateTime.of(2023, 9, 26, 9, 30, 0))
-			.numShares(Count.from(3L))
-			.purchasePricePerShare(Money.won(50000.0))
-			.memo("첫구매")
-			.portfolioHolding(portfolioHolding)
-			.build();
-	}
-
-	private PurchaseHistory createPurchaseHistory(PortfolioHolding portfolioHolding,
-		Double purchasePricePerShare) {
-		return PurchaseHistory.builder()
-			.purchaseDate(LocalDateTime.of(2023, 9, 26, 9, 30, 0))
-			.numShares(Count.from(100L))
-			.purchasePricePerShare(Money.won(purchasePricePerShare))
-			.memo("첫구매")
-			.portfolioHolding(portfolioHolding)
-			.build();
 	}
 
 	private NotificationPreference createNotificationPreference(Member member) {

@@ -50,7 +50,6 @@ import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.service.PortFolioService;
 import codesquad.fineants.domain.portfolio_gain_history.domain.entity.PortfolioGainHistory;
-import codesquad.fineants.domain.purchasehistory.domain.entity.PurchaseHistory;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.global.errors.errorcode.PortfolioErrorCode;
 import codesquad.fineants.global.errors.exception.NotFoundResourceException;
@@ -86,8 +85,12 @@ class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 		List<StockDividend> stockDividends = createStockDividendWith(stock);
 		stockDividends.forEach(stock::addStockDividend);
 		PortfolioHolding portfolioHolding = createPortfolioHolding(portfolio, stock, Money.won(60000L));
+		LocalDateTime purchaseDate = LocalDateTime.of(2023, 11, 1, 9, 30, 0);
+		Count numShares = Count.from(3);
+		Money purchasePerShare = Money.won(50000);
+		String memo = "첫구매";
 		portfolioHolding.addPurchaseHistory(
-			createPurchaseHistory(portfolioHolding, LocalDateTime.of(2023, 11, 1, 9, 30, 0)));
+			createPurchaseHistory(1L, purchaseDate, numShares, purchasePerShare, memo, portfolioHolding));
 		portfolio.addPortfolioStock(portfolioHolding);
 		PortfolioGainHistory history = createEmptyPortfolioGainHistory();
 
@@ -333,8 +336,12 @@ class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 		stockDividends.forEach(stock::addStockDividend);
 		PortfolioHolding portfolioHolding = createPortfolioHolding(portfolio, stock, Money.won(60000L));
 		portfolio.addPortfolioStock(portfolioHolding);
+		LocalDateTime purchaseDate = LocalDateTime.of(2023, 9, 26, 9, 30, 0);
+		Count numShares = Count.from(3);
+		Money purchasePerShare = Money.won(50000);
+		String memo = "첫구매";
 		portfolioHolding.addPurchaseHistory(
-			createPurchaseHistory(portfolioHolding, LocalDateTime.of(2024, 1, 16, 9, 30, 0)));
+			createPurchaseHistory(null, purchaseDate, numShares, purchasePerShare, memo, portfolioHolding));
 
 		given(currentPriceRepository.getCurrentPrice(stock.getTickerSymbol()))
 			.willReturn(Optional.of(portfolioHolding.getCurrentPrice()));
@@ -390,17 +397,6 @@ class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 			.andExpect(jsonPath("data.dividendChart[10].amount").value(equalTo(1083)))
 			.andExpect(jsonPath("data.dividendChart[11].month").value(equalTo(12)))
 			.andExpect(jsonPath("data.dividendChart[11].amount").value(equalTo(0)));
-	}
-
-	private PurchaseHistory createPurchaseHistory(PortfolioHolding portfolioHolding, LocalDateTime purchaseDate) {
-		return PurchaseHistory.builder()
-			.id(1L)
-			.purchaseDate(purchaseDate)
-			.numShares(Count.from(3L))
-			.purchasePricePerShare(Money.won(50000.0))
-			.memo("첫구매")
-			.portfolioHolding(portfolioHolding)
-			.build();
 	}
 
 	private PortfolioGainHistory createEmptyPortfolioGainHistory() {

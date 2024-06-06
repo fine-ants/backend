@@ -17,12 +17,14 @@ import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
+import codesquad.fineants.domain.common.count.Count;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.dividend.domain.entity.StockDividend;
 import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
 import codesquad.fineants.domain.kis.client.KisAccessToken;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
+import codesquad.fineants.domain.purchasehistory.domain.entity.PurchaseHistory;
 import codesquad.fineants.domain.stock.domain.entity.Market;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.global.init.S3BucketInitializer;
@@ -174,5 +176,10 @@ public class AbstractContainerBaseTest {
 	protected StockDividend createStockDividend(Money dividend, LocalDate recordDate, LocalDate exDividendDate,
 		LocalDate paymentDate, Stock stock) {
 		return StockDividend.create(dividend, recordDate, exDividendDate, paymentDate, stock);
+	}
+
+	protected PurchaseHistory createPurchaseHistory(Long id, LocalDateTime purchaseDate, Count numShares,
+		Money purchasePricePerShare, String memo, PortfolioHolding portfolioHolding) {
+		return PurchaseHistory.create(id, purchaseDate, numShares, purchasePricePerShare, memo, portfolioHolding);
 	}
 }

@@ -148,7 +148,8 @@ class PurchaseHistoryRestControllerTest extends ControllerTestSupport {
 		// given
 		Portfolio portfolio = createPortfolio(createMember());
 		PortfolioHolding portfolioHolding = createPortfolioHolding(portfolio, createSamsungStock());
-		PurchaseHistory purchaseHistory = createPurchaseHistory();
+		PurchaseHistory purchaseHistory = createPurchaseHistory(1L, LocalDateTime.now(), Count.from(3),
+			Money.won(50000), "첫구매", portfolioHolding);
 		String url = String.format("/api/portfolio/%d/holdings/%d/purchaseHistory/%d", portfolio.getId(),
 			portfolioHolding.getId(), purchaseHistory.getId());
 		Map<String, Object> requestBody = new HashMap<>();
@@ -179,7 +180,8 @@ class PurchaseHistoryRestControllerTest extends ControllerTestSupport {
 		// given
 		Portfolio portfolio = createPortfolio(createMember());
 		PortfolioHolding portfolioHolding = createPortfolioHolding(portfolio, createSamsungStock());
-		PurchaseHistory purchaseHistory = createPurchaseHistory();
+		PurchaseHistory purchaseHistory = createPurchaseHistory(1L, LocalDateTime.now(), Count.from(3),
+			Money.won(50000), "첫구매", portfolioHolding);
 		String url = String.format("/api/portfolio/%d/holdings/%d/purchaseHistory/%d", portfolio.getId(),
 			portfolioHolding.getId(), purchaseHistory.getId());
 
@@ -192,15 +194,5 @@ class PurchaseHistoryRestControllerTest extends ControllerTestSupport {
 			.andExpect(jsonPath("status").value(equalTo("OK")))
 			.andExpect(jsonPath("message").value(equalTo("매입 이력이 삭제되었습니다")))
 			.andExpect(jsonPath("data").value(equalTo(null)));
-	}
-
-	private static PurchaseHistory createPurchaseHistory() {
-		return PurchaseHistory.builder()
-			.id(1L)
-			.purchaseDate(LocalDateTime.now())
-			.purchasePricePerShare(Money.won(50000.0))
-			.numShares(Count.from(3L))
-			.memo("첫구매")
-			.build();
 	}
 }
