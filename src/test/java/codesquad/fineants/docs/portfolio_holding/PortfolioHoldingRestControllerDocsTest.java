@@ -136,7 +136,7 @@ public class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 		portfolioHolding.addPurchaseHistory(
 			createPurchaseHistory(portfolioHolding, LocalDateTime.of(2023, 11, 1, 9, 30, 0)));
 		portfolio.addPortfolioStock(portfolioHolding);
-		PortfolioGainHistory history = createEmptyPortfolioGainHistory();
+		PortfolioGainHistory history = createEmptyPortfolioGainHistory(portfolio);
 
 		Map<String, Money> lastDayClosingPriceMap = Map.of("005930", Money.won(50000L));
 		PortfolioHoldingsResponse mockResponse = PortfolioHoldingsResponse.of(portfolio, history,

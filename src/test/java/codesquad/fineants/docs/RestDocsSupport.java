@@ -116,8 +116,8 @@ public abstract class RestDocsSupport {
 		return PurchaseHistory.create(1L, purchaseDate, Count.from(3L), Money.won(50000), "첫구매", portfolioHolding);
 	}
 
-	protected PortfolioGainHistory createEmptyPortfolioGainHistory() {
-		return PortfolioGainHistory.empty();
+	protected PortfolioGainHistory createEmptyPortfolioGainHistory(Portfolio portfolio) {
+		return PortfolioGainHistory.empty(portfolio);
 	}
 
 	protected List<StockDividend> createStockDividendWith(Stock stock) {

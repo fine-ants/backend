@@ -280,13 +280,7 @@ public class Portfolio extends BaseEntity {
 		Money dailyGain = bank.toWon(calculateDailyGain(history));
 		Money cash = bank.toWon(calculateBalance());
 		Money currentValuation = bank.toWon(calculateTotalCurrentValuation());
-		return new PortfolioGainHistory(
-			totalGain,
-			dailyGain,
-			cash,
-			currentValuation,
-			this
-		);
+		return PortfolioGainHistory.create(totalGain, dailyGain, cash, currentValuation, this);
 	}
 
 	// 포트폴리오 모든 종목들에 주식 현재가 적용

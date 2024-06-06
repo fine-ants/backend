@@ -26,6 +26,7 @@ import codesquad.fineants.domain.kis.client.KisAccessToken;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.notificationpreference.domain.entity.NotificationPreference;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
+import codesquad.fineants.domain.portfolio_gain_history.domain.entity.PortfolioGainHistory;
 import codesquad.fineants.domain.purchasehistory.domain.entity.PurchaseHistory;
 import codesquad.fineants.domain.stock.domain.entity.Market;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
@@ -202,5 +203,10 @@ public class AbstractContainerBaseTest {
 
 	protected FcmToken createFcmToken(String token, Member member) {
 		return FcmToken.create(member, token);
+	}
+
+	protected PortfolioGainHistory createPortfolioGainHistory(Money totalGain, Money dailyGain, Money cash,
+		Money currentValuation, Portfolio portfolio) {
+		return PortfolioGainHistory.create(totalGain, dailyGain, cash, currentValuation, portfolio);
 	}
 }

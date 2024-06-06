@@ -44,7 +44,7 @@ public class PortfolioGainHistoryService {
 					portfolio.getId(), LocalDateTime.now())
 				.stream()
 				.findFirst()
-				.orElseGet(PortfolioGainHistory::empty);
+				.orElseGet(() -> PortfolioGainHistory.empty(portfolio));
 			PortfolioGainHistory history = portfolio.createPortfolioGainHistory(latestHistory);
 			portfolioGainHistories.add(repository.save(history));
 		}

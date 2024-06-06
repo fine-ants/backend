@@ -163,7 +163,7 @@ public class PortFolioService {
 						portfolio.getId(), LocalDateTime.now())
 					.stream()
 					.findFirst()
-					.orElseGet(PortfolioGainHistory::empty)
+					.orElseGet(() -> PortfolioGainHistory.empty(portfolio))
 			));
 
 		return PortfoliosResponse.of(portfolios, portfolioGainHistoryMap, currentPriceRepository);

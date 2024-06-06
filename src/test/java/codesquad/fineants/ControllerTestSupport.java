@@ -27,6 +27,7 @@ import codesquad.fineants.domain.dividend.domain.entity.StockDividend;
 import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
+import codesquad.fineants.domain.portfolio_gain_history.domain.entity.PortfolioGainHistory;
 import codesquad.fineants.domain.purchasehistory.domain.entity.PurchaseHistory;
 import codesquad.fineants.domain.stock.domain.entity.Market;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
@@ -144,10 +145,14 @@ public abstract class ControllerTestSupport {
 		LocalDate paymentDate, Stock stock) {
 		return StockDividend.create(dividend, recordDate, exDividendDate, paymentDate, stock);
 	}
-	
+
 	protected PurchaseHistory createPurchaseHistory(Long id, LocalDateTime purchaseDate, Count count,
 		Money purchasePricePerShare, String memo, PortfolioHolding portfolioHolding) {
 		return PurchaseHistory.create(id, purchaseDate, count, purchasePricePerShare, memo, portfolioHolding);
+	}
+
+	protected PortfolioGainHistory createEmptyPortfolioGainHistory(Portfolio portfolio) {
+		return PortfolioGainHistory.empty(portfolio);
 	}
 
 	protected abstract Object initController();

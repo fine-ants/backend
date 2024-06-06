@@ -92,7 +92,7 @@ class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 		portfolioHolding.addPurchaseHistory(
 			createPurchaseHistory(1L, purchaseDate, numShares, purchasePerShare, memo, portfolioHolding));
 		portfolio.addPortfolioStock(portfolioHolding);
-		PortfolioGainHistory history = createEmptyPortfolioGainHistory();
+		PortfolioGainHistory history = createEmptyPortfolioGainHistory(portfolio);
 
 		Map<String, Money> lastDayClosingPriceMap = Map.of("005930", Money.won(50000L));
 		PortfolioHoldingsResponse mockResponse = PortfolioHoldingsResponse.of(portfolio, history,
@@ -397,10 +397,6 @@ class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 			.andExpect(jsonPath("data.dividendChart[10].amount").value(equalTo(1083)))
 			.andExpect(jsonPath("data.dividendChart[11].month").value(equalTo(12)))
 			.andExpect(jsonPath("data.dividendChart[11].amount").value(equalTo(0)));
-	}
-
-	private PortfolioGainHistory createEmptyPortfolioGainHistory() {
-		return PortfolioGainHistory.empty();
 	}
 
 	public static Stream<Arguments> provideInvalidPortfolioHoldingIds() {

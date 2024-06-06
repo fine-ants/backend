@@ -258,20 +258,24 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 		member = memberRepository.save(member);
 
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
-		portfolioGainHistoryRepository.save(PortfolioGainHistory.builder()
-			.totalGain(Money.won(100L))
-			.dailyGain(Money.won(50L))
-			.currentValuation(Money.won(60L))
-			.cash(Money.won(20L))
-			.portfolio(portfolio)
-			.build());
-		portfolioGainHistoryRepository.save(PortfolioGainHistory.builder()
-			.totalGain(Money.won(100L))
-			.dailyGain(Money.won(50L))
-			.currentValuation(Money.won(60L))
-			.cash(Money.won(20L))
-			.portfolio(portfolio)
-			.build());
+		portfolioGainHistoryRepository.save(
+			PortfolioGainHistory.create(
+				Money.won(100),
+				Money.won(50),
+				Money.won(60),
+				Money.won(20),
+				portfolio
+			)
+		);
+		portfolioGainHistoryRepository.save(
+			PortfolioGainHistory.create(
+				Money.won(100),
+				Money.won(50),
+				Money.won(60),
+				Money.won(20),
+				portfolio
+			)
+		);
 
 		// when
 		List<DashboardLineChartResponse> responses = dashboardService.getLineChart(member.getId());

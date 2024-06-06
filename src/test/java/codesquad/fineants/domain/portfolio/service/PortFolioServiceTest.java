@@ -24,7 +24,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import codesquad.fineants.AbstractContainerBaseTest;
 import codesquad.fineants.domain.common.count.Count;
-import codesquad.fineants.domain.common.money.Bank;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.common.money.Percentage;
 import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
@@ -386,7 +385,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 		Stock stock = stockRepository.save(createSamsungStock());
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		PortfolioGainHistory portfolioGainHistory = portfolioGainHistoryRepository.save(
-			createPortfolioGainHistory(portfolio));
+			PortfolioGainHistory.empty(portfolio));
 		PortfolioHolding portfolioHolding = portFolioHoldingRepository.save(createPortfolioHolding(portfolio, stock));
 
 		LocalDateTime purchaseDate = LocalDateTime.of(2023, 9, 26, 9, 30, 0);
@@ -445,14 +444,15 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 		String memo = "첫구매";
 		purchaseHistoryRepository.save(
 			createPurchaseHistory(null, purchaseDate, numShares, purchasePerShare, memo, portfolioHolding));
-		portfolioGainHistoryRepository.save(PortfolioGainHistory.builder()
-			.totalGain(Money.won(-120000L))
-			.dailyGain(Money.won(-120000L))
-			.cash(Money.won(730000L))
-			.currentValuation(Money.won(150000L))
-			.portfolio(portfolio)
-			.build());
-
+		portfolioGainHistoryRepository.save(
+			PortfolioGainHistory.create(
+				Money.won(-120000L),
+				Money.won(-120000L),
+				Money.won(730000L),
+				Money.won(150000L),
+				portfolio
+			)
+		);
 		currentPriceRepository.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 40000L));
 		// when
 		PortfoliosResponse response = service.readMyAllPortfolio(member.getId());
@@ -488,7 +488,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 			createPurchaseHistory(null, purchaseDate, numShares, purchasePerShare, memo, portfolioHolding));
 
 		PortfolioGainHistory portfolioGainHistory = portfolioGainHistoryRepository.save(
-			createPortfolioGainHistory(portfolio));
+			PortfolioGainHistory.empty(portfolio));
 		Portfolio portfolio2 = portfolioRepository.save(createPortfolioWithRandomName(member));
 
 		PortfoliosDeleteRequest request = new PortfoliosDeleteRequest(List.of(portfolio.getId(), portfolio2.getId()));
@@ -514,17 +514,6 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 			Money.won(1500000L),
 			Money.won(900000L)
 		);
-	}
-
-	private PortfolioGainHistory createPortfolioGainHistory(Portfolio portfolio) {
-		Bank bank = Bank.getInstance();
-		return PortfolioGainHistory.builder()
-			.totalGain(bank.toWon(portfolio.calculateTotalGain()))
-			.dailyGain(bank.toWon(portfolio.calculateDailyGain(PortfolioGainHistory.empty())))
-			.cash(bank.toWon(portfolio.calculateBalance()))
-			.currentValuation(bank.toWon(portfolio.calculateTotalCurrentValuation()))
-			.portfolio(portfolio)
-			.build();
 	}
 
 	private static Stream<Arguments> provideInvalidTargetGain() {
