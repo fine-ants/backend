@@ -20,7 +20,6 @@ import codesquad.fineants.domain.kis.repository.ClosingPriceRepository;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
 import codesquad.fineants.domain.notification.repository.NotificationRepository;
-import codesquad.fineants.domain.notificationpreference.domain.entity.NotificationPreference;
 import codesquad.fineants.domain.notificationpreference.repository.NotificationPreferenceRepository;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
@@ -160,7 +159,7 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 	void searchStockTargetPriceNotification() {
 		// given
 		Member member = memberRepository.save(createMember());
-		notificationPreferenceRepository.save(createNotificationPreference(member));
+		notificationPreferenceRepository.save(createAllActiveNotificationPreference(member));
 		Stock stock = stockRepository.save(createSamsungStock());
 		Stock stock2 = stockRepository.save(createDongwhaPharmStock());
 
@@ -526,15 +525,5 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 				.stockTargetPrice(stockTargetPrice)
 				.build())
 			.collect(Collectors.toList());
-	}
-
-	private NotificationPreference createNotificationPreference(Member member) {
-		return NotificationPreference.builder()
-			.browserNotify(true)
-			.targetGainNotify(true)
-			.maxLossNotify(true)
-			.targetPriceNotify(true)
-			.member(member)
-			.build();
 	}
 }

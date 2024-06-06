@@ -14,6 +14,7 @@ import codesquad.fineants.domain.notificationpreference.domain.entity.Notificati
 import codesquad.fineants.domain.notificationpreference.repository.NotificationPreferenceRepository;
 import codesquad.fineants.global.errors.errorcode.MemberErrorCode;
 import codesquad.fineants.global.errors.errorcode.NotificationPreferenceErrorCode;
+import codesquad.fineants.global.errors.exception.FineAntsException;
 import codesquad.fineants.global.errors.exception.NotFoundResourceException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,13 +42,12 @@ public class MemberNotificationPreferenceService {
 	public MemberNotificationPreferenceResponse updateNotificationPreference(
 		Long memberId,
 		MemberNotificationPreferenceRequest request) {
+		Member member = memberRepository.findById(memberId)
+			.orElseThrow(() -> new FineAntsException(MemberErrorCode.NOT_FOUND_MEMBER));
 		notificationPreferenceRepository.findByMemberId(memberId)
-			.ifPresentOrElse(notificationPreference -> notificationPreference.changePreference(request.toEntity()),
-				() -> {
-					Member member = memberRepository.findById(memberId)
-						.orElseThrow(() -> new NotFoundResourceException(MemberErrorCode.NOT_FOUND_MEMBER));
-					notificationPreferenceRepository.save(NotificationPreference.defaultSetting(member));
-				});
+			.ifPresentOrElse(
+				notificationPreference -> notificationPreference.changePreference(request.toEntity(member)),
+				() -> notificationPreferenceRepository.save(NotificationPreference.defaultSetting(member)));
 		NotificationPreference preference = notificationPreferenceRepository.findByMemberId(memberId)
 			.orElseThrow(() ->
 				new NotFoundResourceException(NotificationPreferenceErrorCode.NOT_FOUND_NOTIFICATION_PREFERENCE));

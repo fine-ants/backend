@@ -24,6 +24,7 @@ import codesquad.fineants.domain.fcm.domain.entity.FcmToken;
 import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
 import codesquad.fineants.domain.kis.client.KisAccessToken;
 import codesquad.fineants.domain.member.domain.entity.Member;
+import codesquad.fineants.domain.notificationpreference.domain.entity.NotificationPreference;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.purchasehistory.domain.entity.PurchaseHistory;
 import codesquad.fineants.domain.stock.domain.entity.Market;
@@ -91,6 +92,21 @@ public class AbstractContainerBaseTest {
 			nickname,
 			passwordEncoder.encode("nemo1234@"),
 			"profileUrl"
+		);
+	}
+
+	protected NotificationPreference createAllActiveNotificationPreference(Member member) {
+		return createNotificationPreference(true, true, true, true, member);
+	}
+
+	protected NotificationPreference createNotificationPreference(boolean browserNotify, boolean targetGainNotify,
+		boolean maxLossNotify, boolean targetPriceNotify, Member member) {
+		return NotificationPreference.create(
+			browserNotify,
+			targetGainNotify,
+			maxLossNotify,
+			targetPriceNotify,
+			member
 		);
 	}
 

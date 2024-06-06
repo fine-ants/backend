@@ -80,7 +80,7 @@ class MemberNotificationPreferenceServiceTest extends AbstractContainerBaseTest 
 	void updateNotificationPreference() {
 		// given
 		Member member = memberRepository.save(createMember());
-		repository.save(createNotificationPreference(member));
+		repository.save(createAllActiveNotificationPreference(member));
 		MemberNotificationPreferenceRequest request = MemberNotificationPreferenceRequest.builder()
 			.browserNotify(false)
 			.targetGainNotify(true)
@@ -137,7 +137,7 @@ class MemberNotificationPreferenceServiceTest extends AbstractContainerBaseTest 
 		// given
 		Member member = memberRepository.save(createMember());
 		FcmToken fcmToken = fcmRepository.save(createFcmToken("fcmToken", member));
-		repository.save(createNotificationPreference(member));
+		repository.save(createAllActiveNotificationPreference(member));
 		MemberNotificationPreferenceRequest request = MemberNotificationPreferenceRequest.builder()
 			.browserNotify(false)
 			.targetGainNotify(false)
@@ -167,7 +167,7 @@ class MemberNotificationPreferenceServiceTest extends AbstractContainerBaseTest 
 	void updateNotificationPreference_whenPreferenceIsAllInActiveAndFcmTokenIsNotStored_thenNotDeleteFcmToken() {
 		// given
 		Member member = memberRepository.save(createMember());
-		repository.save(createNotificationPreference(member));
+		repository.save(createAllActiveNotificationPreference(member));
 		MemberNotificationPreferenceRequest request = MemberNotificationPreferenceRequest.builder()
 			.browserNotify(false)
 			.targetGainNotify(false)
@@ -190,15 +190,5 @@ class MemberNotificationPreferenceServiceTest extends AbstractContainerBaseTest 
 				.containsExactly(false, false, false, false),
 			() -> assertThat(fcmRepository.findAllByMemberId(member.getId()).isEmpty()).isTrue()
 		);
-	}
-
-	private NotificationPreference createNotificationPreference(Member member) {
-		return NotificationPreference.builder()
-			.browserNotify(true)
-			.targetGainNotify(false)
-			.maxLossNotify(false)
-			.targetPriceNotify(false)
-			.member(member)
-			.build();
 	}
 }

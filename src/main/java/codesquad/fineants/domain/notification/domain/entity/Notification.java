@@ -50,7 +50,7 @@ public abstract class Notification extends BaseEntity {
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "member_id")
 	private Member member;
-
+	
 	Notification(LocalDateTime createAt, LocalDateTime modifiedAt, Long id, String title,
 		Boolean isRead, NotificationType type, String referenceId, String link, Member member) {
 		super(createAt, modifiedAt);

@@ -1,5 +1,6 @@
 package codesquad.fineants.domain.member.domain.dto.request;
 
+import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.notificationpreference.domain.entity.NotificationPreference;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
@@ -23,12 +24,7 @@ public class MemberNotificationPreferenceRequest {
 	private Boolean targetPriceNotify;
 	private Long fcmTokenId;
 
-	public NotificationPreference toEntity() {
-		return NotificationPreference.builder()
-			.browserNotify(browserNotify)
-			.targetGainNotify(targetGainNotify)
-			.maxLossNotify(maxLossNotify)
-			.targetPriceNotify(targetPriceNotify)
-			.build();
+	public NotificationPreference toEntity(Member member) {
+		return NotificationPreference.create(browserNotify, targetGainNotify, maxLossNotify, targetPriceNotify, member);
 	}
 }

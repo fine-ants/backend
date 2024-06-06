@@ -10,12 +10,13 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import lombok.AccessLevel;
-import lombok.Builder;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Entity
 public class NotificationPreference extends BaseEntity {
 
@@ -35,34 +36,26 @@ public class NotificationPreference extends BaseEntity {
 	@JoinColumn(name = "member_id")
 	private Member member;
 
-	@Builder
-	public NotificationPreference(Member member, boolean browserNotify, boolean targetGainNotify, boolean maxLossNotify,
-		boolean targetPriceNotify) {
-		this.member = member;
+	NotificationPreference(boolean browserNotify, boolean targetGainNotify, boolean maxLossNotify,
+		boolean targetPriceNotify, Member member) {
 		this.browserNotify = browserNotify;
 		this.targetGainNotify = targetGainNotify;
 		this.maxLossNotify = maxLossNotify;
 		this.targetPriceNotify = targetPriceNotify;
+		this.member = member;
 	}
 
 	public static NotificationPreference allActive(Member member) {
-		return NotificationPreference.builder()
-			.browserNotify(true)
-			.targetGainNotify(true)
-			.maxLossNotify(true)
-			.targetPriceNotify(true)
-			.member(member)
-			.build();
+		return new NotificationPreference(true, true, true, true, member);
 	}
 
 	public static NotificationPreference defaultSetting(Member member) {
-		return NotificationPreference.builder()
-			.browserNotify(false)
-			.targetGainNotify(false)
-			.maxLossNotify(false)
-			.targetPriceNotify(false)
-			.member(member)
-			.build();
+		return new NotificationPreference(false, false, false, false, member);
+	}
+
+	public static NotificationPreference create(boolean browserNotify, boolean targetGainNotify, boolean maxLossNotify,
+		boolean targetPriceNotify, Member member) {
+		return new NotificationPreference(browserNotify, targetGainNotify, maxLossNotify, targetPriceNotify, member);
 	}
 
 	public void setMember(Member member) {

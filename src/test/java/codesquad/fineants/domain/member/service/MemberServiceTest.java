@@ -589,7 +589,7 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 		String memo = "첫구매";
 		purchaseHistoryRepository.save(
 			createPurchaseHistory(null, purchaseDate, numShares, purchasePricePerShare, memo, portfolioHolding));
-		preferenceRepository.save(createNotificationPreference(member));
+		preferenceRepository.save(createAllActiveNotificationPreference(member));
 		StockTargetPrice stockTargetPrice = stockTargetPriceRepository.save(createStockTargetPrice(member, stock));
 		targetPriceNotificationRepository.save(createTargetPriceNotification(stockTargetPrice));
 		WatchList watchList = watchListRepository.save(createWatchList(member));
@@ -663,16 +663,6 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 				LocalDate.of(2024, 11, 20),
 				stock)
 		);
-	}
-
-	private NotificationPreference createNotificationPreference(Member member) {
-		return NotificationPreference.builder()
-			.browserNotify(true)
-			.targetGainNotify(true)
-			.maxLossNotify(true)
-			.targetPriceNotify(true)
-			.member(member)
-			.build();
 	}
 
 	private StockTargetPrice createStockTargetPrice(Member member, Stock stock) {
