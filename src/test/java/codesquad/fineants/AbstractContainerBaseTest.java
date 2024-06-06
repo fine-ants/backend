@@ -20,6 +20,7 @@ import org.testcontainers.utility.DockerImageName;
 import codesquad.fineants.domain.common.count.Count;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.dividend.domain.entity.StockDividend;
+import codesquad.fineants.domain.fcm.domain.entity.FcmToken;
 import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
 import codesquad.fineants.domain.kis.client.KisAccessToken;
 import codesquad.fineants.domain.member.domain.entity.Member;
@@ -181,5 +182,9 @@ public class AbstractContainerBaseTest {
 	protected PurchaseHistory createPurchaseHistory(Long id, LocalDateTime purchaseDate, Count numShares,
 		Money purchasePricePerShare, String memo, PortfolioHolding portfolioHolding) {
 		return PurchaseHistory.create(id, purchaseDate, numShares, purchasePricePerShare, memo, portfolioHolding);
+	}
+
+	protected FcmToken createFcmToken(String token, Member member) {
+		return FcmToken.create(member, token);
 	}
 }

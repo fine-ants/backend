@@ -145,11 +145,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		purchaseHistoryRepository.save(
 			createPurchaseHistory(null, purchaseDate, numShares, purchasePricePerShare, memo, portfolioHolding));
 
-		fcmRepository.save(FcmToken.builder()
-			.latestActivationTime(LocalDateTime.now())
-			.token("fcmToken")
-			.member(member)
-			.build());
+		fcmRepository.save(createFcmToken("fcmToken", member));
 
 		given(firebaseMessagingService.send(any(Message.class)))
 			.willReturn(Optional.of("projects/fineants-404407/messages/4754d355-5d5d-4f14-a642-75fecdb91fa5"));
@@ -192,11 +188,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		purchaseHistoryRepository.save(
 			createPurchaseHistory(null, purchaseDate, numShares, purchasePricePerShare, memo, ccsHolding));
 
-		fcmRepository.save(FcmToken.builder()
-			.latestActivationTime(LocalDateTime.now())
-			.token("fcmToken")
-			.member(member)
-			.build());
+		fcmRepository.save(createFcmToken("fcmToken", member));
 
 		given(firebaseMessagingService.send(any(Message.class)))
 			.willReturn(Optional.of("projects/fineants-404407/messages/4754d355-5d5d-4f14-a642-75fecdb91fa5"));
@@ -236,11 +228,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		purchaseHistoryRepository.save(
 			createPurchaseHistory(null, purchaseDate, numShares, purchasePricePerShare, memo, portfolioHolding));
 
-		FcmToken fcmToken = fcmRepository.save(FcmToken.builder()
-			.latestActivationTime(LocalDateTime.now())
-			.token("accessToken")
-			.member(member)
-			.build());
+		FcmToken fcmToken = fcmRepository.save(createFcmToken("fcmToken", member));
 
 		given(firebaseMessagingService.send(any(Message.class)))
 			.willReturn(Optional.empty());
@@ -353,6 +341,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		);
 	}
 
+	@SuppressWarnings("checkstyle:OneStatementPerLine")
 	@DisplayName("토큰이 유효하지 않아서 최대 손실율 달성 알림을 보낼수 없지만, 알림은 저장된다")
 	@Test
 	void notifyMaxLoss_whenInvalidFcmToken_thenDeleteFcmToken() throws FirebaseMessagingException {
@@ -375,11 +364,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		purchaseHistoryRepository.save(
 			createPurchaseHistory(null, purchaseDate, numShares, purchasePricePerShare, memo, portfolioHolding));
 
-		FcmToken fcmToken = fcmRepository.save(FcmToken.builder()
-			.latestActivationTime(LocalDateTime.now())
-			.token("accessToken")
-			.member(member)
-			.build());
+		FcmToken fcmToken = fcmRepository.save(createFcmToken("fcmToken", member));
 
 		given(firebaseMessaging.send(any(Message.class)))
 			.willThrow(FirebaseMessagingException.class);
@@ -699,14 +684,6 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		assertThat(notificationRepository.findAllByMemberId(member.getId()))
 			.asList()
 			.hasSize(2);
-	}
-
-	private FcmToken createFcmToken(String token, Member member) {
-		return FcmToken.builder()
-			.token(token)
-			.latestActivationTime(LocalDateTime.now())
-			.member(member)
-			.build();
 	}
 
 	private StockTargetPrice createStockTargetPrice(Member member, Stock stock) {

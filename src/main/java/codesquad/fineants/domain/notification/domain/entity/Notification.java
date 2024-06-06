@@ -20,11 +20,13 @@ import jakarta.persistence.InheritanceType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PACKAGE)
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn
 @Entity
@@ -49,7 +51,7 @@ public abstract class Notification extends BaseEntity {
 	@JoinColumn(name = "member_id")
 	private Member member;
 
-	protected Notification(LocalDateTime createAt, LocalDateTime modifiedAt, Long id, String title,
+	Notification(LocalDateTime createAt, LocalDateTime modifiedAt, Long id, String title,
 		Boolean isRead, NotificationType type, String referenceId, String link, Member member) {
 		super(createAt, modifiedAt);
 		this.id = id;
@@ -65,14 +67,14 @@ public abstract class Notification extends BaseEntity {
 		String referenceId, String link, Member member) {
 		if (type == NotificationType.PORTFOLIO_TARGET_GAIN
 			|| type == NotificationType.PORTFOLIO_MAX_LOSS) {
-			return PortfolioNotification.create(portfolioName, title, type, referenceId, link, member);
+			return PortfolioNotification.newNotification(title, type, referenceId, link, portfolioName, member);
 		}
 		throw new IllegalArgumentException("잘못된 타입입니다. type=" + type);
 	}
 
 	public static Notification stock(String stockName, Money targetPrice, String title,
 		String referenceId, String link, Long targetPriceNotificationId, Member member) {
-		return StockTargetPriceNotification.create(stockName, targetPrice, title, referenceId,
+		return StockTargetPriceNotification.newNotification(stockName, targetPrice, title, referenceId,
 			link, targetPriceNotificationId, member);
 	}
 

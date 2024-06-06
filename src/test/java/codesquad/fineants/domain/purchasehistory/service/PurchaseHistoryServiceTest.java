@@ -24,7 +24,6 @@ import codesquad.fineants.AbstractContainerBaseTest;
 import codesquad.fineants.domain.common.count.Count;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.dividend.repository.StockDividendRepository;
-import codesquad.fineants.domain.fcm.domain.entity.FcmToken;
 import codesquad.fineants.domain.fcm.repository.FcmRepository;
 import codesquad.fineants.domain.fcm.service.FirebaseMessagingService;
 import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
@@ -199,14 +198,6 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 			() -> assertThat(response.getId()).isNotNull(),
 			() -> assertThat(notificationRepository.findAllByMemberId(member.getId())).hasSize(1)
 		);
-	}
-
-	private static FcmToken createFcmToken(String token, Member member) {
-		return FcmToken.builder()
-			.token(token)
-			.latestActivationTime(LocalDateTime.now())
-			.member(member)
-			.build();
 	}
 
 	@DisplayName("사용자는 매입 이력 추가시 최대 손실율에 달성하여 알림을 받는다")

@@ -14,13 +14,14 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
-import lombok.Builder;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @ToString(exclude = "member")
 @Table(name = "fcm_token", uniqueConstraints = {
 	@UniqueConstraint(name = "token_member_id_unique", columnNames = {"token", "member_id"})
@@ -40,12 +41,12 @@ public class FcmToken extends BaseEntity {
 
 	private LocalDateTime latestActivationTime;
 
-	@Builder
-	public FcmToken(Long id, Member member, String token, LocalDateTime latestActivationTime) {
-		this.id = id;
-		this.member = member;
-		this.token = token;
-		this.latestActivationTime = latestActivationTime;
+	public static FcmToken create(Member member, String token) {
+		return create(null, member, token);
+	}
+
+	public static FcmToken create(Long id, Member member, String token) {
+		return new FcmToken(id, member, token, LocalDateTime.now());
 	}
 
 	public void refreshLatestActivationTime() {
