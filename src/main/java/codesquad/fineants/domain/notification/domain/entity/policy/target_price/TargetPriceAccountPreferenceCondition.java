@@ -6,6 +6,6 @@ import codesquad.fineants.domain.notificationpreference.domain.entity.Notificati
 public class TargetPriceAccountPreferenceCondition implements NotificationCondition<NotificationPreference> {
 	@Override
 	public boolean isSatisfiedBy(NotificationPreference notificationPreference) {
-		return notificationPreference.isPossibleTargetGainNotification();
+		return notificationPreference.isPossibleStockTargetPriceNotification();
 	}
 }
