@@ -95,11 +95,12 @@ public class AuthenticationIntegrationTest extends AbstractContainerBaseTest {
 	void logout() {
 		// given
 		memberRepository.save(createMember());
-		String refreshToken = processLogin();
+		Map<String, String> cookies = processLogin();
 
-		String url = String.format("/api/auth/logout?refreshToken=%s", refreshToken);
-		// when & then
+		String url = "/api/auth/logout";
+		// when
 		given().log().all()
+			.cookies(cookies)
 			.contentType(MediaType.APPLICATION_JSON_VALUE)
 			.when()
 			.get(url)
@@ -107,9 +108,19 @@ public class AuthenticationIntegrationTest extends AbstractContainerBaseTest {
 			.log()
 			.body()
 			.statusCode(200);
+
+		// then
+		given().log().all()
+			.cookies(cookies)
+			.when()
+			.get("/api/profile")
+			.then()
+			.log()
+			.body()
+			.statusCode(401);
 	}
 
-	private String processLogin() {
+	private Map<String, String> processLogin() {
 		Map<String, String> body = Map.of(
 			"email", "dragonbead95@naver.com",
 			"password", "nemo1234@"
@@ -125,6 +136,6 @@ public class AuthenticationIntegrationTest extends AbstractContainerBaseTest {
 			.body()
 			.statusCode(200)
 			.extract();
-		return extract.body().jsonPath().get("data.jwt.refreshToken");
+		return extract.cookies();
 	}
 }

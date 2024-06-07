@@ -31,6 +31,7 @@ public class TokenFactory {
 		result.setPath("/");
 		result.setSecure(secure);
 		result.setHttpOnly(true);
+
 		return result;
 	}
 

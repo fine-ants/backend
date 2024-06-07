@@ -1,7 +1,5 @@
 package codesquad.fineants.global.security.oauth.filter;
 
-import static org.springframework.http.HttpHeaders.*;
-
 import java.io.IOException;
 
 import org.apache.logging.log4j.util.Strings;
@@ -13,6 +11,7 @@ import org.springframework.web.filter.GenericFilterBean;
 import codesquad.fineants.domain.member.service.OauthMemberRedisService;
 import codesquad.fineants.global.security.oauth.dto.MemberAuthentication;
 import codesquad.fineants.global.security.oauth.service.TokenService;
+import codesquad.fineants.global.util.CookieUtils;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
@@ -31,14 +30,9 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws
 		IOException,
 		ServletException {
-		String token = ((HttpServletRequest)request).getHeader(AUTHORIZATION);
+		String token = CookieUtils.getAccessToken((HttpServletRequest)request);
 
 		if (token != null && !oauthMemberRedisService.isAlreadyLogout(token)) {
-			if (!token.startsWith("Bearer")) {
-				throw new IllegalArgumentException("Invalid token type");
-			}
-
-			token = token.split(" ")[1];
 			if (tokenService.verifyToken(token)) {
 				MemberAuthentication memberAuthentication = tokenService.parseMemberAuthenticationToken(token);
 				Authentication auth = getAuthentication(memberAuthentication);
