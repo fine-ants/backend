@@ -30,7 +30,7 @@ public class TokenFactory {
 		return token.createAccessTokenCookie()
 			.sameSite("None")
 			.path("/")
-			.secure(secure)
+			.secure(true)
 			.httpOnly(true)
 			.build();
 	}
@@ -39,7 +39,7 @@ public class TokenFactory {
 		return token.createRefreshTokenCookie()
 			.sameSite("None")
 			.path("/")
-			.secure(secure)
+			.secure(true)
 			.httpOnly(true)
 			.build();
 	}
