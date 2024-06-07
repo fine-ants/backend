@@ -18,16 +18,10 @@ public class Token {
 	}
 
 	public Cookie createAccessTokenCookie() {
-		Cookie result = new Cookie("accessToken", accessToken);
-		result.setSecure(true);
-		result.setHttpOnly(true);
-		return result;
+		return new Cookie("accessToken", accessToken);
 	}
 
 	public Cookie createRefreshTokenCookie() {
-		Cookie result = new Cookie("refreshToken", refreshToken);
-		result.setSecure(true);
-		result.setHttpOnly(true);
-		return result;
+		return new Cookie("refreshToken", refreshToken);
 	}
 }
