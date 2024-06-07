@@ -13,6 +13,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
 
 import codesquad.fineants.domain.member.repository.MemberRepository;
 import codesquad.fineants.domain.member.repository.RoleRepository;
@@ -44,13 +45,14 @@ public class OauthSecurityConfig {
 	private final OauthMemberRedisService oauthMemberRedisService;
 	private final String loginSuccessUri;
 	private final TokenFactory tokenFactory;
+	private final CorsConfiguration corsConfiguration;
 
 	public OauthSecurityConfig(MemberRepository memberRepository,
 		NotificationPreferenceRepository notificationPreferenceRepository, TokenService tokenService,
 		NicknameGenerator nicknameGenerator, RoleRepository roleRepository, OAuth2UserMapper oAuth2UserMapper,
 		CommonLoginAuthenticationEntryPoint commonLoginAuthenticationEntryPoint,
 		OauthMemberRedisService oauthMemberRedisService, @Value("${oauth2.login-success-uri}") String loginSuccessUri,
-		TokenFactory tokenFactory) {
+		TokenFactory tokenFactory, CorsConfiguration corsConfiguration) {
 		this.memberRepository = memberRepository;
 		this.notificationPreferenceRepository = notificationPreferenceRepository;
 		this.tokenService = tokenService;
@@ -61,6 +63,7 @@ public class OauthSecurityConfig {
 		this.oauthMemberRedisService = oauthMemberRedisService;
 		this.loginSuccessUri = loginSuccessUri;
 		this.tokenFactory = tokenFactory;
+		this.corsConfiguration = corsConfiguration;
 	}
 
 	@Bean
@@ -101,6 +104,7 @@ public class OauthSecurityConfig {
 		http.exceptionHandling(configurer -> configurer
 			.authenticationEntryPoint(commonLoginAuthenticationEntryPoint)
 			.accessDeniedHandler(customAccessDeniedHandler()));
+		http.cors(configurer -> configurer.configurationSource(request -> corsConfiguration));
 		http.csrf(AbstractHttpConfigurer::disable);
 
 		return http.build();

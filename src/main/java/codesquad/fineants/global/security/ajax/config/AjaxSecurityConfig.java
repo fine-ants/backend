@@ -16,6 +16,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.web.cors.CorsConfiguration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -42,6 +43,7 @@ public class AjaxSecurityConfig {
 	private final TokenService tokenService;
 	private final MemberService memberService;
 	private final TokenFactory tokenFactory;
+	private final CorsConfiguration corsConfiguration;
 
 	@Bean
 	@Order(0)
@@ -78,6 +80,7 @@ public class AjaxSecurityConfig {
 
 		http.exceptionHandling(configurer ->
 			configurer.authenticationEntryPoint(commonLoginAuthenticationEntryPoint()));
+		http.cors(configurer -> configurer.configurationSource(request -> corsConfiguration));
 		http.csrf(AbstractHttpConfigurer::disable);
 		return http.build();
 	}
