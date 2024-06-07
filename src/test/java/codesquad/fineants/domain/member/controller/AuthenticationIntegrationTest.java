@@ -1,9 +1,11 @@
 package codesquad.fineants.domain.member.controller;
 
 import static io.restassured.RestAssured.*;
+import static org.hamcrest.Matchers.*;
 
 import java.util.Map;
 
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -37,6 +39,7 @@ public class AuthenticationIntegrationTest extends AbstractContainerBaseTest {
 		memberRepository.deleteAllInBatch();
 	}
 
+	@SuppressWarnings("checkstyle:NoWhitespaceBefore")
 	@DisplayName("사용자는 일반 로그인한다")
 	@Test
 	void login() {
@@ -55,12 +58,13 @@ public class AuthenticationIntegrationTest extends AbstractContainerBaseTest {
 			.when()
 			.post("/api/auth/login")
 			.then()
+			.cookie("accessToken", notNullValue())
+			.cookie("refreshToken", notNullValue())
 			.log()
 			.body()
 			.statusCode(200)
 			.assertThat()
-			.body("data.jwt.accessToken", org.hamcrest.Matchers.notNullValue())
-			.body("data.jwt.refreshToken", org.hamcrest.Matchers.notNullValue());
+			.body("data", Matchers.nullValue());
 	}
 
 	@DisplayName("사용자는 이메일 또는 비밀번호를 틀려서 로그인 할 수 없다")
