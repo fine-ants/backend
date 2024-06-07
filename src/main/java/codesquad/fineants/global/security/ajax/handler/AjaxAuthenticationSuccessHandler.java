@@ -12,6 +12,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import codesquad.fineants.domain.member.domain.dto.response.LoginResponse;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.global.api.ApiResponse;
+import codesquad.fineants.global.security.factory.TokenFactory;
 import codesquad.fineants.global.security.oauth.dto.MemberAuthentication;
 import codesquad.fineants.global.security.oauth.dto.Token;
 import codesquad.fineants.global.security.oauth.service.TokenService;
@@ -24,6 +25,7 @@ import lombok.RequiredArgsConstructor;
 public class AjaxAuthenticationSuccessHandler implements AuthenticationSuccessHandler {
 	private final ObjectMapper objectMapper;
 	private final TokenService tokenService;
+	private final TokenFactory tokenFactory;
 
 	@Override
 	public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
@@ -38,8 +40,8 @@ public class AjaxAuthenticationSuccessHandler implements AuthenticationSuccessHa
 		LoginResponse loginResponse = LoginResponse.from(token);
 		ApiResponse<LoginResponse> body = ApiResponse.success(MemberSuccessCode.OK_LOGIN, loginResponse);
 
-		response.addCookie(token.createAccessTokenCookie());
-		response.addCookie(token.createRefreshTokenCookie());
+		response.addCookie(tokenFactory.createAccessTokenCookie(token));
+		response.addCookie(tokenFactory.createRefreshTokenCookie(token));
 
 		objectMapper.writeValue(response.getWriter(), body);
 	}

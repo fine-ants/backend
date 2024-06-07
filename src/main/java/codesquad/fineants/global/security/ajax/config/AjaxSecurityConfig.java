@@ -26,6 +26,7 @@ import codesquad.fineants.global.security.ajax.handler.AjaxAuthenticationFailHan
 import codesquad.fineants.global.security.ajax.handler.AjaxAuthenticationSuccessHandler;
 import codesquad.fineants.global.security.ajax.handler.AjaxLogoutHandler;
 import codesquad.fineants.global.security.ajax.provider.AjaxAuthenticationProvider;
+import codesquad.fineants.global.security.factory.TokenFactory;
 import codesquad.fineants.global.security.handler.JwtLogoutSuccessHandler;
 import codesquad.fineants.global.security.oauth.service.TokenService;
 import jakarta.servlet.DispatcherType;
@@ -40,6 +41,7 @@ public class AjaxSecurityConfig {
 	private final ObjectMapper objectMapper;
 	private final TokenService tokenService;
 	private final MemberService memberService;
+	private final TokenFactory tokenFactory;
 
 	@Bean
 	@Order(0)
@@ -115,7 +117,7 @@ public class AjaxSecurityConfig {
 
 	@Bean
 	protected AjaxAuthenticationSuccessHandler ajaxAuthenticationSuccessHandler() {
-		return new AjaxAuthenticationSuccessHandler(objectMapper, tokenService);
+		return new AjaxAuthenticationSuccessHandler(objectMapper, tokenService, tokenFactory);
 	}
 
 	@Bean
