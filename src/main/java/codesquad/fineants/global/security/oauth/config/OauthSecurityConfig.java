@@ -20,6 +20,7 @@ import codesquad.fineants.domain.member.service.NicknameGenerator;
 import codesquad.fineants.domain.member.service.OauthMemberRedisService;
 import codesquad.fineants.domain.notificationpreference.repository.NotificationPreferenceRepository;
 import codesquad.fineants.global.security.ajax.entrypoint.CommonLoginAuthenticationEntryPoint;
+import codesquad.fineants.global.security.factory.TokenFactory;
 import codesquad.fineants.global.security.handler.CustomAccessDeniedHandler;
 import codesquad.fineants.global.security.oauth.filter.JwtAuthenticationFilter;
 import codesquad.fineants.global.security.oauth.filter.OAuth2AuthorizationRequestRedirectWithRedirectUrlParamFilter;
@@ -42,12 +43,14 @@ public class OauthSecurityConfig {
 	private final CommonLoginAuthenticationEntryPoint commonLoginAuthenticationEntryPoint;
 	private final OauthMemberRedisService oauthMemberRedisService;
 	private final String loginSuccessUri;
+	private final TokenFactory tokenFactory;
 
 	public OauthSecurityConfig(MemberRepository memberRepository,
 		NotificationPreferenceRepository notificationPreferenceRepository, TokenService tokenService,
 		NicknameGenerator nicknameGenerator, RoleRepository roleRepository, OAuth2UserMapper oAuth2UserMapper,
 		CommonLoginAuthenticationEntryPoint commonLoginAuthenticationEntryPoint,
-		OauthMemberRedisService oauthMemberRedisService, @Value("${oauth2.login-success-uri}") String loginSuccessUri) {
+		OauthMemberRedisService oauthMemberRedisService, @Value("${oauth2.login-success-uri}") String loginSuccessUri,
+		TokenFactory tokenFactory) {
 		this.memberRepository = memberRepository;
 		this.notificationPreferenceRepository = notificationPreferenceRepository;
 		this.tokenService = tokenService;
@@ -57,6 +60,7 @@ public class OauthSecurityConfig {
 		this.commonLoginAuthenticationEntryPoint = commonLoginAuthenticationEntryPoint;
 		this.oauthMemberRedisService = oauthMemberRedisService;
 		this.loginSuccessUri = loginSuccessUri;
+		this.tokenFactory = tokenFactory;
 	}
 
 	@Bean
@@ -121,7 +125,7 @@ public class OauthSecurityConfig {
 
 	@Bean
 	public OAuth2SuccessHandler oauth2SuccessHandler() {
-		return new OAuth2SuccessHandler(tokenService, oAuth2UserMapper, loginSuccessUri);
+		return new OAuth2SuccessHandler(tokenService, oAuth2UserMapper, loginSuccessUri, tokenFactory);
 	}
 
 	@Bean

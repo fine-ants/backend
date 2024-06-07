@@ -8,6 +8,7 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import codesquad.fineants.global.security.factory.TokenFactory;
 import codesquad.fineants.global.security.oauth.dto.MemberAuthentication;
 import codesquad.fineants.global.security.oauth.dto.Token;
 import codesquad.fineants.global.security.oauth.service.TokenService;
@@ -23,6 +24,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 	private final TokenService tokenService;
 	private final OAuth2UserMapper oauth2UserMapper;
 	private final String loginSuccessUri;
+	private final TokenFactory tokenFactory;
 
 	@Override
 	public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
@@ -52,6 +54,9 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 			.queryParam("refreshToken", token.getRefreshToken())
 			.build()
 			.toUriString();
+
+		response.addCookie(tokenFactory.createAccessTokenCookie(token));
+		response.addCookie(tokenFactory.createRefreshTokenCookie(token));
 
 		getRedirectStrategy().sendRedirect(request, response, targetUrl);
 	}
