@@ -37,8 +37,7 @@ public class AjaxAuthenticationSuccessHandler implements AuthenticationSuccessHa
 		response.setCharacterEncoding("utf-8");
 
 		Token token = tokenService.generateToken(MemberAuthentication.from(member));
-		LoginResponse loginResponse = LoginResponse.from(token);
-		ApiResponse<LoginResponse> body = ApiResponse.success(MemberSuccessCode.OK_LOGIN, loginResponse);
+		ApiResponse<LoginResponse> body = ApiResponse.success(MemberSuccessCode.OK_LOGIN);
 
 		response.addCookie(tokenFactory.createAccessTokenCookie(token));
 		response.addCookie(tokenFactory.createRefreshTokenCookie(token));

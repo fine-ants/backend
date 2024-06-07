@@ -96,11 +96,16 @@ public class AuthenticationDocsTest extends AbstractContainerBaseTest {
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(ObjectMapperUtil.serialize(body)))
 			.andExpect(status().isOk())
+			.andExpect(cookie().exists("accessToken"))
+			.andExpect(cookie().httpOnly("accessToken", true))
+			.andExpect(cookie().secure("accessToken", true))
+			.andExpect(cookie().exists("refreshToken"))
+			.andExpect(cookie().httpOnly("refreshToken", true))
+			.andExpect(cookie().secure("refreshToken", true))
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
 			.andExpect(jsonPath("message").value(equalTo("로그인에 성공하였습니다.")))
-			.andExpect(jsonPath("data.jwt.accessToken").isNotEmpty())
-			.andExpect(jsonPath("data.jwt.refreshToken").isNotEmpty())
+			.andExpect(jsonPath("data").value(equalTo(null)))
 			.andDo(
 				document(
 					"member-login",
@@ -117,14 +122,8 @@ public class AuthenticationDocsTest extends AbstractContainerBaseTest {
 							.description("상태"),
 						fieldWithPath("message").type(JsonFieldType.STRING)
 							.description("메시지"),
-						fieldWithPath("data").type(JsonFieldType.OBJECT)
-							.description("응답 데이터"),
-						fieldWithPath("data.jwt").type(JsonFieldType.OBJECT)
-							.description("Json Web Token"),
-						fieldWithPath("data.jwt.accessToken").type(JsonFieldType.STRING)
-							.description("액세스 토큰"),
-						fieldWithPath("data.jwt.refreshToken").type(JsonFieldType.STRING)
-							.description("리프레시 토큰")
+						fieldWithPath("data").type(JsonFieldType.NULL)
+							.description("응답 데이터")
 					)
 				)
 			);
