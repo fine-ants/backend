@@ -6,6 +6,7 @@ import org.springframework.security.web.authentication.logout.SecurityContextLog
 
 import codesquad.fineants.domain.member.domain.dto.request.OauthMemberLogoutRequest;
 import codesquad.fineants.domain.member.service.MemberService;
+import codesquad.fineants.global.util.CookieUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +21,7 @@ public class AjaxLogoutHandler implements LogoutHandler {
 			new SecurityContextLogoutHandler().logout(request, response, authentication);
 		}
 		// add the refreshToken to the blacklist
-		String refreshToken = request.getParameter("refreshToken");
+		String refreshToken = CookieUtils.getRefreshToken(request);
 		memberService.logout(OauthMemberLogoutRequest.create(refreshToken), request, response);
 	}
 }
