@@ -28,6 +28,7 @@ public class TokenFactory {
 
 	public ResponseCookie createAccessTokenCookie(Token token) {
 		return token.createAccessTokenCookie()
+			.sameSite("None")
 			.path("/")
 			.secure(secure)
 			.httpOnly(true)
@@ -36,6 +37,7 @@ public class TokenFactory {
 
 	public ResponseCookie createRefreshTokenCookie(Token token) {
 		return token.createRefreshTokenCookie()
+			.sameSite("None")
 			.path("/")
 			.secure(secure)
 			.httpOnly(true)

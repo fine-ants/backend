@@ -14,7 +14,8 @@ public class CommonSecurityConfig {
 	public CorsConfiguration corsConfiguration() {
 		CorsConfiguration config = new CorsConfiguration();
 		config.setAllowedOrigins(
-			List.of("https://fineants.co", "https://release.fineants.co", "http://localhost:5173"));
+			List.of("https://fineants.co", "https://release.fineants.co", "http://localhost:5173",
+				"https://localhost:5173"));
 		config.setAllowedMethods(Collections.singletonList("*"));
 		config.setAllowedHeaders(Collections.singletonList("*"));
 		config.setAllowCredentials(true);
