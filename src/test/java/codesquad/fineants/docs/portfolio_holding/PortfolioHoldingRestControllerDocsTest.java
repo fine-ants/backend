@@ -62,7 +62,7 @@ public class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 	void createPortfolioHolding() throws Exception {
 		// given
 		Portfolio portfolio = createPortfolio(createMember());
-		Stock stock = createStock();
+		Stock stock = createSamsungStock();
 		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
 		given(service.createPortfolioHolding(
 			anyLong(),
@@ -129,14 +129,14 @@ public class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 		// given
 		Member member = createMember();
 		Portfolio portfolio = createPortfolio(member);
-		Stock stock = createStock();
+		Stock stock = createSamsungStock();
 		List<StockDividend> stockDividends = createStockDividendWith(stock);
 		stockDividends.forEach(stock::addStockDividend);
 		PortfolioHolding portfolioHolding = createPortfolioHolding(portfolio, stock);
 		portfolioHolding.addPurchaseHistory(
 			createPurchaseHistory(portfolioHolding, LocalDateTime.of(2023, 11, 1, 9, 30, 0)));
 		portfolio.addPortfolioStock(portfolioHolding);
-		PortfolioGainHistory history = createEmptyPortfolioGainHistory();
+		PortfolioGainHistory history = createEmptyPortfolioGainHistory(portfolio);
 
 		Map<String, Money> lastDayClosingPriceMap = Map.of("005930", Money.won(50000L));
 		PortfolioHoldingsResponse mockResponse = PortfolioHoldingsResponse.of(portfolio, history,
@@ -154,7 +154,7 @@ public class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 			.andExpect(jsonPath("status").value(equalTo("OK")))
 			.andExpect(jsonPath("message").value(equalTo("포트폴리오 상세 정보 및 포트폴리오 종목 목록 조회가 완료되었습니다")))
 			.andExpect(jsonPath("data.portfolioDetails.id").value(equalTo(1)))
-			.andExpect(jsonPath("data.portfolioDetails.securitiesFirm").value(equalTo("토스")))
+			.andExpect(jsonPath("data.portfolioDetails.securitiesFirm").value(equalTo("토스증권")))
 			.andExpect(jsonPath("data.portfolioDetails.name").value(equalTo("내꿈은 워렌버핏")))
 			.andExpect(jsonPath("data.portfolioDetails.budget").value(equalTo(1000000)))
 			.andExpect(jsonPath("data.portfolioDetails.targetGain").value(equalTo(1500000)))
@@ -481,7 +481,7 @@ public class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 	void deletePortfolioHolding() throws Exception {
 		// given
 		Portfolio portfolio = createPortfolio(createMember());
-		Stock stock = createStock();
+		Stock stock = createSamsungStock();
 		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
 
 		// when & then
@@ -523,7 +523,7 @@ public class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 	void deletePortfolioHoldings() throws Exception {
 		// given
 		Portfolio portfolio = createPortfolio(createMember());
-		Stock stock = createStock();
+		Stock stock = createSamsungStock();
 
 		Map<String, Object> body = Map.of(
 			"portfolioHoldingIds", List.of(1, 2)

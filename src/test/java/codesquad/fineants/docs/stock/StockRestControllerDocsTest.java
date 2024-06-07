@@ -52,7 +52,7 @@ public class StockRestControllerDocsTest extends RestDocsSupport {
 	@Test
 	void search() throws Exception {
 		// given
-		Stock stock = createStock();
+		Stock stock = createSamsungStock();
 		given(service.search(ArgumentMatchers.any(StockSearchRequest.class)))
 			.willReturn(List.of(
 				StockSearchItem.from(stock)
@@ -112,7 +112,7 @@ public class StockRestControllerDocsTest extends RestDocsSupport {
 	@Test
 	void refreshStocks() throws Exception {
 		// given
-		Stock stock = createStock();
+		Stock stock = createSamsungStock();
 		given(service.refreshStocks())
 			.willReturn(StockRefreshResponse.create(
 				List.of("123456", "234567"),
@@ -159,7 +159,7 @@ public class StockRestControllerDocsTest extends RestDocsSupport {
 	void getStock() throws Exception {
 		// given
 		Portfolio portfolio = createPortfolio(createMember());
-		Stock stock = createStock();
+		Stock stock = createSamsungStock();
 		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
 		holding.addPurchaseHistory(createPurchaseHistory(holding, LocalDateTime.now()));
 		portfolio.addPortfolioStock(holding);

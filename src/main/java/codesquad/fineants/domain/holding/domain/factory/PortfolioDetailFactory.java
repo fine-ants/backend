@@ -25,7 +25,7 @@ public class PortfolioDetailFactory {
 				portfolio.getId(), LocalDateTime.now())
 			.stream()
 			.findFirst()
-			.orElseGet(PortfolioGainHistory::empty);
+			.orElseGet(() -> PortfolioGainHistory.empty(portfolio));
 		return PortfolioDetailResponse.from(portfolio, history);
 	}
 
@@ -35,7 +35,7 @@ public class PortfolioDetailFactory {
 				portfolio.getId(), LocalDateTime.now())
 			.stream()
 			.findFirst()
-			.orElseGet(PortfolioGainHistory::empty);
+			.orElseGet(() -> PortfolioGainHistory.empty(portfolio));
 		return PortfolioDetailRealTimeItem.of(portfolio, history);
 	}
 }

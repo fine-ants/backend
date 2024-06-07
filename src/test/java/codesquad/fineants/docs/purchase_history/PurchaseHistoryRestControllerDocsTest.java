@@ -42,7 +42,7 @@ public class PurchaseHistoryRestControllerDocsTest extends RestDocsSupport {
 	void createPurchaseHistory() throws Exception {
 		// given
 		Portfolio portfolio = createPortfolio(createMember());
-		Stock stock = createStock();
+		Stock stock = createSamsungStock();
 		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
 
 		Map<String, Object> body = Map.of(
@@ -99,7 +99,7 @@ public class PurchaseHistoryRestControllerDocsTest extends RestDocsSupport {
 	void updatePurchaseHistory() throws Exception {
 		// given
 		Portfolio portfolio = createPortfolio(createMember());
-		Stock stock = createStock();
+		Stock stock = createSamsungStock();
 		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
 		PurchaseHistory history = createPurchaseHistory(holding, LocalDateTime.of(2023, 10, 23, 13, 0, 0));
 
@@ -160,7 +160,7 @@ public class PurchaseHistoryRestControllerDocsTest extends RestDocsSupport {
 	void deletePurchaseHistory() throws Exception {
 		// given
 		Portfolio portfolio = createPortfolio(createMember());
-		Stock stock = createStock();
+		Stock stock = createSamsungStock();
 		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
 		PurchaseHistory history = createPurchaseHistory(holding, LocalDateTime.of(2023, 10, 23, 13, 0, 0));
 

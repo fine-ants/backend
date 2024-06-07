@@ -24,7 +24,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import codesquad.fineants.AbstractContainerBaseTest;
 import codesquad.fineants.domain.common.count.Count;
-import codesquad.fineants.domain.common.money.Bank;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.common.money.Percentage;
 import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
@@ -44,7 +43,6 @@ import codesquad.fineants.domain.portfolio_gain_history.domain.entity.PortfolioG
 import codesquad.fineants.domain.portfolio_gain_history.repository.PortfolioGainHistoryRepository;
 import codesquad.fineants.domain.purchasehistory.domain.entity.PurchaseHistory;
 import codesquad.fineants.domain.purchasehistory.repository.PurchaseHistoryRepository;
-import codesquad.fineants.domain.stock.domain.entity.Market;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
 import codesquad.fineants.global.errors.exception.BadRequestException;
@@ -273,7 +271,14 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 		// given
 		Member member = memberRepository.save(createMember());
 		String duplicatedName = "내꿈은 찰리몽거";
-		portfolioRepository.save(createPortfolio(member, duplicatedName));
+		portfolioRepository.save(createPortfolio(
+				member,
+				duplicatedName,
+				Money.won(1000000),
+				Money.won(1500000),
+				Money.won(900000)
+			)
+		);
 		Portfolio originPortfolio = portfolioRepository.save(createPortfolio(member));
 
 		Map<String, Object> body = createModifiedPortfolioRequestBodyMap(duplicatedName);
@@ -377,13 +382,18 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 	void deletePortfolio() {
 		// given
 		Member member = memberRepository.save(createMember());
-		Stock stock = stockRepository.save(createStock());
+		Stock stock = stockRepository.save(createSamsungStock());
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		PortfolioGainHistory portfolioGainHistory = portfolioGainHistoryRepository.save(
-			createPortfolioGainHistory(portfolio));
+			PortfolioGainHistory.empty(portfolio));
 		PortfolioHolding portfolioHolding = portFolioHoldingRepository.save(createPortfolioHolding(portfolio, stock));
+
+		LocalDateTime purchaseDate = LocalDateTime.of(2023, 9, 26, 9, 30, 0);
+		Count numShares = Count.from(3);
+		Money purchasePerShare = Money.won(50000);
+		String memo = "첫구매";
 		PurchaseHistory purchaseHistory = purchaseHistoryRepository.save(
-			createPurchaseHistory(portfolioHolding, Money.won(50000.0)));
+			createPurchaseHistory(null, purchaseDate, numShares, purchasePerShare, memo, portfolioHolding));
 
 		// when
 		service.deletePortfolio(portfolio.getId(), member.getId());
@@ -425,17 +435,24 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 		// given
 		Member member = memberRepository.save(createMember());
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
-		Stock stock = stockRepository.save(createStock());
+		Stock stock = stockRepository.save(createSamsungStock());
 		PortfolioHolding portfolioHolding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
-		purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding, Money.won(90000.0)));
-		portfolioGainHistoryRepository.save(PortfolioGainHistory.builder()
-			.totalGain(Money.won(-120000L))
-			.dailyGain(Money.won(-120000L))
-			.cash(Money.won(730000L))
-			.currentValuation(Money.won(150000L))
-			.portfolio(portfolio)
-			.build());
 
+		LocalDateTime purchaseDate = LocalDateTime.of(2023, 9, 26, 9, 30, 0);
+		Count numShares = Count.from(3);
+		Money purchasePerShare = Money.won(90000);
+		String memo = "첫구매";
+		purchaseHistoryRepository.save(
+			createPurchaseHistory(null, purchaseDate, numShares, purchasePerShare, memo, portfolioHolding));
+		portfolioGainHistoryRepository.save(
+			PortfolioGainHistory.create(
+				Money.won(-120000L),
+				Money.won(-120000L),
+				Money.won(730000L),
+				Money.won(150000L),
+				portfolio
+			)
+		);
 		currentPriceRepository.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 40000L));
 		// when
 		PortfoliosResponse response = service.readMyAllPortfolio(member.getId());
@@ -458,14 +475,20 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 		// given
 		Member member = memberRepository.save(createMember());
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
-		Stock stock = stockRepository.save(createStock());
+		Stock stock = stockRepository.save(createSamsungStock());
 		PortfolioHolding portfolioHolding = portFolioHoldingRepository.save(createPortfolioHolding(portfolio, stock));
+
+		LocalDateTime purchaseDate = LocalDateTime.of(2023, 9, 26, 9, 30, 0);
+		Count numShares = Count.from(3);
+		Money purchasePerShare = Money.won(50000);
+		String memo = "첫구매";
 		PurchaseHistory purchaseHistory1 = purchaseHistoryRepository.save(
-			createPurchaseHistory(portfolioHolding, Money.won(50000.0)));
+			createPurchaseHistory(null, purchaseDate, numShares, purchasePerShare, memo, portfolioHolding));
 		PurchaseHistory purchaseHistory2 = purchaseHistoryRepository.save(
-			createPurchaseHistory(portfolioHolding, Money.won(50000.0)));
+			createPurchaseHistory(null, purchaseDate, numShares, purchasePerShare, memo, portfolioHolding));
+
 		PortfolioGainHistory portfolioGainHistory = portfolioGainHistoryRepository.save(
-			createPortfolioGainHistory(portfolio));
+			PortfolioGainHistory.empty(portfolio));
 		Portfolio portfolio2 = portfolioRepository.save(createPortfolioWithRandomName(member));
 
 		PortfoliosDeleteRequest request = new PortfoliosDeleteRequest(List.of(portfolio.getId(), portfolio2.getId()));
@@ -484,55 +507,13 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 
 	private Portfolio createPortfolioWithRandomName(Member member) {
 		String randomPostfix = UUID.randomUUID().toString().substring(0, 10);
-		return Portfolio.builder()
-			.name("내꿈은 워렌버핏" + randomPostfix)
-			.securitiesFirm("토스증권")
-			.budget(Money.won(1000000L))
-			.targetGain(Money.won(1500000L))
-			.maximumLoss(Money.won(900000L))
-			.member(member)
-			.targetGainIsActive(false)
-			.maximumLossIsActive(false)
-			.build();
-	}
-
-	private PortfolioGainHistory createPortfolioGainHistory(Portfolio portfolio) {
-		Bank bank = Bank.getInstance();
-		return PortfolioGainHistory.builder()
-			.totalGain(bank.toWon(portfolio.calculateTotalGain()))
-			.dailyGain(bank.toWon(portfolio.calculateDailyGain(PortfolioGainHistory.empty())))
-			.cash(bank.toWon(portfolio.calculateBalance()))
-			.currentValuation(bank.toWon(portfolio.calculateTotalCurrentValuation()))
-			.portfolio(portfolio)
-			.build();
-	}
-
-	private Stock createStock() {
-		return Stock.builder()
-			.companyName("삼성전자보통주")
-			.tickerSymbol("005930")
-			.companyNameEng("SamsungElectronics")
-			.stockCode("KR7005930003")
-			.sector("전기전자")
-			.market(Market.KOSPI)
-			.build();
-	}
-
-	private PortfolioHolding createPortfolioHolding(Portfolio portfolio, Stock stock) {
-		return PortfolioHolding.builder()
-			.portfolio(portfolio)
-			.stock(stock)
-			.build();
-	}
-
-	private PurchaseHistory createPurchaseHistory(PortfolioHolding portfolioHolding, Money purchasePricePerShare) {
-		return PurchaseHistory.builder()
-			.purchaseDate(LocalDateTime.of(2023, 9, 26, 9, 30, 0))
-			.numShares(Count.from(3L))
-			.purchasePricePerShare(purchasePricePerShare)
-			.memo("첫구매")
-			.portfolioHolding(portfolioHolding)
-			.build();
+		return createPortfolio(
+			member,
+			"내꿈은 워렙퍼빗" + randomPostfix,
+			Money.won(1000000L),
+			Money.won(1500000L),
+			Money.won(900000L)
+		);
 	}
 
 	private static Stream<Arguments> provideInvalidTargetGain() {

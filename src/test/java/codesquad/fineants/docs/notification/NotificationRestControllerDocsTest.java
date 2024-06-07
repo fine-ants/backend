@@ -212,7 +212,7 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 	void sendStockTargetPriceNotification() throws Exception {
 		// given
 		Member member = createMember();
-		Stock stock = createStock();
+		Stock stock = createSamsungStock();
 		StockTargetPrice stockTargetPrice = createStockTargetPrice(member, stock);
 		TargetPriceNotification targetPriceNotification = createTargetPriceNotification(stockTargetPrice);
 		NotifyMessage message = targetPriceNotification.getTargetPriceMessage("token");

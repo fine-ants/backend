@@ -25,14 +25,11 @@ import codesquad.fineants.ControllerTestSupport;
 import codesquad.fineants.domain.common.count.Count;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
-import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.repository.PortfolioRepository;
 import codesquad.fineants.domain.purchasehistory.domain.dto.request.PurchaseHistoryCreateRequest;
 import codesquad.fineants.domain.purchasehistory.domain.entity.PurchaseHistory;
 import codesquad.fineants.domain.purchasehistory.service.PurchaseHistoryService;
-import codesquad.fineants.domain.stock.domain.entity.Market;
-import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.global.errors.errorcode.PortfolioErrorCode;
 import codesquad.fineants.global.errors.exception.FineAntsException;
 import codesquad.fineants.global.util.ObjectMapperUtil;
@@ -57,7 +54,7 @@ class PurchaseHistoryRestControllerTest extends ControllerTestSupport {
 	void addPurchaseHistory(Count numShares) throws Exception {
 		// given
 		Portfolio portfolio = createPortfolio(createMember());
-		PortfolioHolding portfolioHolding = createPortfolioHolding(portfolio, createStock());
+		PortfolioHolding portfolioHolding = createPortfolioHolding(portfolio, createSamsungStock());
 		String url = String.format("/api/portfolio/%d/holdings/%d/purchaseHistory", portfolio.getId(),
 			portfolioHolding.getId());
 		Map<String, Object> requestBody = new HashMap<>();
@@ -85,7 +82,7 @@ class PurchaseHistoryRestControllerTest extends ControllerTestSupport {
 	void addPurchaseHistoryWithInvalidInput() throws Exception {
 		// given
 		Portfolio portfolio = createPortfolio(createMember());
-		PortfolioHolding portfolioHolding = createPortfolioHolding(portfolio, createStock());
+		PortfolioHolding portfolioHolding = createPortfolioHolding(portfolio, createSamsungStock());
 		String url = String.format("/api/portfolio/%d/holdings/%d/purchaseHistory", portfolio.getId(),
 			portfolioHolding.getId());
 		Map<String, Object> requestBody = new HashMap<>();
@@ -114,7 +111,7 @@ class PurchaseHistoryRestControllerTest extends ControllerTestSupport {
 	void addPurchaseHistoryThrowsExceptionWhenTotalInvestmentExceedsBudget() throws Exception {
 		// given
 		Portfolio portfolio = createPortfolio(createMember());
-		PortfolioHolding portfolioHolding = createPortfolioHolding(portfolio, createStock());
+		PortfolioHolding portfolioHolding = createPortfolioHolding(portfolio, createSamsungStock());
 		String url = String.format("/api/portfolio/%d/holdings/%d/purchaseHistory", portfolio.getId(),
 			portfolioHolding.getId());
 		Map<String, Object> requestBody = new HashMap<>();
@@ -150,8 +147,9 @@ class PurchaseHistoryRestControllerTest extends ControllerTestSupport {
 	void modifyPurchaseHistory() throws Exception {
 		// given
 		Portfolio portfolio = createPortfolio(createMember());
-		PortfolioHolding portfolioHolding = createPortfolioHolding(portfolio, createStock());
-		PurchaseHistory purchaseHistory = createPurchaseHistory();
+		PortfolioHolding portfolioHolding = createPortfolioHolding(portfolio, createSamsungStock());
+		PurchaseHistory purchaseHistory = createPurchaseHistory(1L, LocalDateTime.now(), Count.from(3),
+			Money.won(50000), "첫구매", portfolioHolding);
 		String url = String.format("/api/portfolio/%d/holdings/%d/purchaseHistory/%d", portfolio.getId(),
 			portfolioHolding.getId(), purchaseHistory.getId());
 		Map<String, Object> requestBody = new HashMap<>();
@@ -181,8 +179,9 @@ class PurchaseHistoryRestControllerTest extends ControllerTestSupport {
 	void deletePurchaseHistory() throws Exception {
 		// given
 		Portfolio portfolio = createPortfolio(createMember());
-		PortfolioHolding portfolioHolding = createPortfolioHolding(portfolio, createStock());
-		PurchaseHistory purchaseHistory = createPurchaseHistory();
+		PortfolioHolding portfolioHolding = createPortfolioHolding(portfolio, createSamsungStock());
+		PurchaseHistory purchaseHistory = createPurchaseHistory(1L, LocalDateTime.now(), Count.from(3),
+			Money.won(50000), "첫구매", portfolioHolding);
 		String url = String.format("/api/portfolio/%d/holdings/%d/purchaseHistory/%d", portfolio.getId(),
 			portfolioHolding.getId(), purchaseHistory.getId());
 
@@ -195,57 +194,5 @@ class PurchaseHistoryRestControllerTest extends ControllerTestSupport {
 			.andExpect(jsonPath("status").value(equalTo("OK")))
 			.andExpect(jsonPath("message").value(equalTo("매입 이력이 삭제되었습니다")))
 			.andExpect(jsonPath("data").value(equalTo(null)));
-	}
-
-	private static PurchaseHistory createPurchaseHistory() {
-		return PurchaseHistory.builder()
-			.id(1L)
-			.purchaseDate(LocalDateTime.now())
-			.purchasePricePerShare(Money.won(50000.0))
-			.numShares(Count.from(3L))
-			.memo("첫구매")
-			.build();
-	}
-
-	private PortfolioHolding createPortfolioHolding(Portfolio portfolio, Stock stock) {
-		return PortfolioHolding.builder()
-			.id(1L)
-			.currentPrice(null)
-			.portfolio(portfolio)
-			.stock(stock)
-			.build();
-	}
-
-	private static Stock createStock() {
-		return Stock.builder()
-			.tickerSymbol("005930")
-			.companyName("삼성전자보통주")
-			.companyNameEng("SamsungElectronics")
-			.stockCode("KR7005930003")
-			.market(Market.KOSPI)
-			.build();
-	}
-
-	private Portfolio createPortfolio(Member member) {
-		return Portfolio.builder()
-			.id(1L)
-			.name("내꿈은 워렌버핏")
-			.securitiesFirm("토스")
-			.budget(Money.won(1000000L))
-			.targetGain(Money.won(1500000L))
-			.maximumLoss(Money.won(900000L))
-			.member(member)
-			.build();
-	}
-
-	private static Member createMember() {
-		return Member.builder()
-			.id(1L)
-			.nickname("일개미1234")
-			.email("kim1234@gmail.com")
-			.provider("local")
-			.password("kim1234@")
-			.profileUrl("profileValue")
-			.build();
 	}
 }

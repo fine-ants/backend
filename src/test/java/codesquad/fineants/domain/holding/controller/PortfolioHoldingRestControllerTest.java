@@ -50,8 +50,6 @@ import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.service.PortFolioService;
 import codesquad.fineants.domain.portfolio_gain_history.domain.entity.PortfolioGainHistory;
-import codesquad.fineants.domain.purchasehistory.domain.entity.PurchaseHistory;
-import codesquad.fineants.domain.stock.domain.entity.Market;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.global.errors.errorcode.PortfolioErrorCode;
 import codesquad.fineants.global.errors.exception.NotFoundResourceException;
@@ -83,14 +81,18 @@ class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 		// given
 		Member member = createMember();
 		Portfolio portfolio = createPortfolio(member);
-		Stock stock = createStock();
+		Stock stock = createSamsungStock();
 		List<StockDividend> stockDividends = createStockDividendWith(stock);
 		stockDividends.forEach(stock::addStockDividend);
-		PortfolioHolding portfolioHolding = createPortfolioHolding(portfolio, stock);
+		PortfolioHolding portfolioHolding = createPortfolioHolding(portfolio, stock, Money.won(60000L));
+		LocalDateTime purchaseDate = LocalDateTime.of(2023, 11, 1, 9, 30, 0);
+		Count numShares = Count.from(3);
+		Money purchasePerShare = Money.won(50000);
+		String memo = "첫구매";
 		portfolioHolding.addPurchaseHistory(
-			createPurchaseHistory(portfolioHolding, LocalDateTime.of(2023, 11, 1, 9, 30, 0)));
+			createPurchaseHistory(1L, purchaseDate, numShares, purchasePerShare, memo, portfolioHolding));
 		portfolio.addPortfolioStock(portfolioHolding);
-		PortfolioGainHistory history = createEmptyPortfolioGainHistory();
+		PortfolioGainHistory history = createEmptyPortfolioGainHistory(portfolio);
 
 		Map<String, Money> lastDayClosingPriceMap = Map.of("005930", Money.won(50000L));
 		PortfolioHoldingsResponse mockResponse = PortfolioHoldingsResponse.of(portfolio, history,
@@ -107,7 +109,7 @@ class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 			.andExpect(jsonPath("status").value(equalTo("OK")))
 			.andExpect(jsonPath("message").value(equalTo("포트폴리오 상세 정보 및 포트폴리오 종목 목록 조회가 완료되었습니다")))
 			.andExpect(jsonPath("data.portfolioDetails.id").value(equalTo(1)))
-			.andExpect(jsonPath("data.portfolioDetails.securitiesFirm").value(equalTo("토스")))
+			.andExpect(jsonPath("data.portfolioDetails.securitiesFirm").value(equalTo("토스증권")))
 			.andExpect(jsonPath("data.portfolioDetails.name").value(equalTo("내꿈은 워렌버핏")))
 			.andExpect(jsonPath("data.portfolioDetails.budget").value(equalTo(1000000)))
 			.andExpect(jsonPath("data.portfolioDetails.targetGain").value(equalTo(1500000)))
@@ -123,8 +125,8 @@ class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 			.andExpect(jsonPath("data.portfolioDetails.annualDividendYield").value(closeTo(2.41, 0.1)))
 			.andExpect(jsonPath("data.portfolioDetails.annualInvestmentDividendYield").value(closeTo(2.89, 0.1)))
 			.andExpect(jsonPath("data.portfolioDetails.provisionalLossBalance").value(equalTo(0)))
-			.andExpect(jsonPath("data.portfolioDetails.targetGainNotify").value(equalTo(false)))
-			.andExpect(jsonPath("data.portfolioDetails.maxLossNotify").value(equalTo(false)));
+			.andExpect(jsonPath("data.portfolioDetails.targetGainNotify").value(equalTo(true)))
+			.andExpect(jsonPath("data.portfolioDetails.maxLossNotify").value(equalTo(true)));
 
 		resultActions
 			.andExpect(jsonPath("data.portfolioHoldings[0].companyName").value(equalTo("삼성전자보통주")))
@@ -170,7 +172,7 @@ class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 	void addPortfolioStock() throws Exception {
 		Member member = createMember();
 		Portfolio portfolio = createPortfolio(member);
-		Stock stock = createStock();
+		Stock stock = createSamsungStock();
 
 		PortfolioStockCreateResponse response = PortfolioStockCreateResponse.from(
 			PortfolioHolding.empty(portfolio, stock));
@@ -205,7 +207,7 @@ class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 	void addPortfolioStockOnly() throws Exception {
 		Member member = createMember();
 		Portfolio portfolio = createPortfolio(member);
-		Stock stock = createStock();
+		Stock stock = createSamsungStock();
 
 		PortfolioStockCreateResponse response = PortfolioStockCreateResponse.from(
 			PortfolioHolding.empty(portfolio, stock));
@@ -257,7 +259,7 @@ class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 		// given
 		Member member = createMember();
 		Portfolio portfolio = createPortfolio(member);
-		Stock stock = createStock();
+		Stock stock = createSamsungStock();
 		PortfolioHolding portfolioHolding = createPortfolioHolding(portfolio, stock);
 
 		Long portfolioHoldingId = portfolioHolding.getId();
@@ -329,13 +331,17 @@ class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 		// given
 		Member member = createMember();
 		Portfolio portfolio = createPortfolio(member);
-		Stock stock = createStock();
+		Stock stock = createSamsungStock();
 		List<StockDividend> stockDividends = createStockDividendWith(stock);
 		stockDividends.forEach(stock::addStockDividend);
-		PortfolioHolding portfolioHolding = createPortfolioHolding(portfolio, stock);
+		PortfolioHolding portfolioHolding = createPortfolioHolding(portfolio, stock, Money.won(60000L));
 		portfolio.addPortfolioStock(portfolioHolding);
+		LocalDateTime purchaseDate = LocalDateTime.of(2023, 9, 26, 9, 30, 0);
+		Count numShares = Count.from(3);
+		Money purchasePerShare = Money.won(50000);
+		String memo = "첫구매";
 		portfolioHolding.addPurchaseHistory(
-			createPurchaseHistory(portfolioHolding, LocalDateTime.of(2024, 1, 16, 9, 30, 0)));
+			createPurchaseHistory(null, purchaseDate, numShares, purchasePerShare, memo, portfolioHolding));
 
 		given(currentPriceRepository.getCurrentPrice(stock.getTickerSymbol()))
 			.willReturn(Optional.of(portfolioHolding.getCurrentPrice()));
@@ -393,82 +399,11 @@ class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 			.andExpect(jsonPath("data.dividendChart[11].amount").value(equalTo(0)));
 	}
 
-	private Stock createStock() {
-		return Stock.builder()
-			.tickerSymbol("005930")
-			.companyName("삼성전자보통주")
-			.companyNameEng("SamsungElectronics")
-			.stockCode("KR7005930003")
-			.market(Market.KOSPI)
-			.sector("전기전자")
-			.build();
-	}
-
-	private Member createMember() {
-		return Member.builder()
-			.id(1L)
-			.nickname("일개미1234")
-			.email("kim1234@gmail.com")
-			.provider("local")
-			.password("kim1234@")
-			.profileUrl("profileValue")
-			.build();
-	}
-
-	private Portfolio createPortfolio(Member member) {
-		return Portfolio.builder()
-			.id(1L)
-			.name("내꿈은 워렌버핏")
-			.securitiesFirm("토스")
-			.budget(Money.won(1000000L))
-			.targetGain(Money.won(1500000L))
-			.maximumLoss(Money.won(900000L))
-			.targetGainIsActive(false)
-			.maximumLossIsActive(false)
-			.member(member)
-			.build();
-	}
-
-	private PortfolioHolding createPortfolioHolding(Portfolio portfolio, Stock stock) {
-		return PortfolioHolding.builder()
-			.id(1L)
-			.portfolio(portfolio)
-			.stock(stock)
-			.currentPrice(Money.won(60000L))
-			.build();
-	}
-
-	private PurchaseHistory createPurchaseHistory(PortfolioHolding portfolioHolding, LocalDateTime purchaseDate) {
-		return PurchaseHistory.builder()
-			.id(1L)
-			.purchaseDate(purchaseDate)
-			.numShares(Count.from(3L))
-			.purchasePricePerShare(Money.won(50000.0))
-			.memo("첫구매")
-			.portfolioHolding(portfolioHolding)
-			.build();
-	}
-
-	private PortfolioGainHistory createEmptyPortfolioGainHistory() {
-		return PortfolioGainHistory.empty();
-	}
-
 	public static Stream<Arguments> provideInvalidPortfolioHoldingIds() {
 		return Stream.of(
 			Arguments.of(Collections.emptyList()),
 			Arguments.of((Object)null)
 		);
-	}
-
-	private StockDividend createStockDividend(LocalDate exDividendDate, LocalDate recordDate, LocalDate paymentDate,
-		Stock stock) {
-		return StockDividend.builder()
-			.dividend(Money.won(361L))
-			.exDividendDate(exDividendDate)
-			.recordDate(recordDate)
-			.paymentDate(paymentDate)
-			.stock(stock)
-			.build();
 	}
 
 	private List<StockDividend> createStockDividendWith(Stock stock) {

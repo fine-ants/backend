@@ -35,7 +35,6 @@ import codesquad.fineants.domain.portfolio_gain_history.repository.PortfolioGain
 import codesquad.fineants.domain.purchasehistory.domain.dto.request.PurchaseHistoryCreateRequest;
 import codesquad.fineants.domain.purchasehistory.domain.entity.PurchaseHistory;
 import codesquad.fineants.domain.purchasehistory.repository.PurchaseHistoryRepository;
-import codesquad.fineants.domain.stock.domain.entity.Market;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
 
@@ -73,8 +72,7 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 	@Test
 	void getOverviewWhenNoPortfolio() {
 		// given
-		Member member = Member.builder()
-			.email("member@member.com").password("password").nickname("nick").build();
+		Member member = createMember();
 		member = memberRepository.save(member);
 
 		// when
@@ -106,44 +104,27 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 	@Test
 	void getOverviewWithPortfolio() {
 		// given
-		Member member = Member.builder().email("member@member.com").password("password").nickname("nick").build();
-		member = memberRepository.save(member);
+		Member member = memberRepository.save(createMember());
 
-		Portfolio portfolio = portfolioRepository.save(Portfolio.builder()
-			.name("내꿈은 워렌버핏")
-			.securitiesFirm("토스")
-			.budget(Money.won(1000000L))
-			.targetGain(Money.won(1500000L))
-			.maximumLoss(Money.won(900000L))
-			.member(member)
-			.build());
-		Stock stock = stockRepository.save(Stock.builder()
-			.companyName("삼성전자보통주")
-			.tickerSymbol("005930")
-			.companyNameEng("SamsungElectronics")
-			.stockCode("KR7005930003")
-			.market(Market.KOSPI)
-			.build());
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
+		Stock stock = stockRepository.save(createSamsungStock());
 		stockDividendRepository.saveAll(createStockDividendWith(stock));
 
 		PortfolioHolding portfolioHolding = portfolioHoldingRepository.save(
 			PortfolioHolding.of(portfolio, stock, Money.won(72900L)));
 
+		LocalDateTime purchaseDate = LocalDateTime.now();
+		Count numShares = Count.from(3);
+		Money purchasePricePerShare = Money.won(50000.0);
+		String memo = "첫구매";
 		purchaseHistoryRepository.save(
-			PurchaseHistory.builder()
-				.portfolioHolding(portfolioHolding)
-				.purchaseDate(LocalDateTime.now())
-				.purchasePricePerShare(Money.won(50000.0))
-				.numShares(Count.from(3L))
-				.build()
-		);
+			createPurchaseHistory(null, purchaseDate, numShares, purchasePricePerShare, memo, portfolioHolding));
 
 		currentPriceRepository.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 72900L));
 		// when
 		OverviewResponse response = dashboardService.getOverview(member.getId());
 
 		// then
-		Member finalMember = member;
 		Assertions.assertAll(
 			() -> assertThat(response)
 				.extracting(
@@ -158,7 +139,7 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 				.usingComparatorForType(codesquad.fineants.domain.common.money.Percentage::compareTo,
 					codesquad.fineants.domain.common.money.Percentage.class)
 				.containsExactlyInAnyOrder(
-					finalMember.getNickname(),
+					member.getNickname(),
 					Money.won(1068700L),
 					Money.won(150000L),
 					Money.won(68700L),
@@ -175,7 +156,7 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 		// given
 		Member member = memberRepository.save(createMember());
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
-		Stock stock = stockRepository.save(createStock());
+		Stock stock = stockRepository.save(createSamsungStock());
 		portfolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
 
 		currentPriceRepository.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L));
@@ -207,32 +188,29 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 	@Test
 	void getPieChartTest() {
 		// given
-		Member member = Member.builder().email("member@member.com").password("password").nickname("nick").build();
+		Member member = createMember();
 		member = memberRepository.save(member);
 
-		Portfolio portfolio = portfolioRepository.save(Portfolio.builder()
-			.name("내꿈은 워렌버핏")
-			.securitiesFirm("토스")
-			.budget(Money.won(1000000L))
-			.targetGain(Money.won(1500000L))
-			.maximumLoss(Money.won(900000L))
-			.member(member)
-			.build());
-		Portfolio portfolio1 = portfolioRepository.save(Portfolio.builder()
-			.name("내꿈은 워렌버핏1")
-			.securitiesFirm("토스")
-			.budget(Money.won(1000000L))
-			.targetGain(Money.won(1500000L))
-			.maximumLoss(Money.won(900000L))
-			.member(member)
-			.build());
-		Stock stock = stockRepository.save(Stock.builder()
-			.companyName("삼성전자보통주")
-			.tickerSymbol("005930")
-			.companyNameEng("SamsungElectronics")
-			.stockCode("KR7005930003")
-			.market(Market.KOSPI)
-			.build());
+		Money budget = Money.won(1000000);
+		Money targetGain = Money.won(1500000);
+		Money maximumLoss = Money.won(900000);
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(
+				member,
+				"내꿈은 워렌버핏",
+				budget,
+				targetGain,
+				maximumLoss
+			)
+		);
+		Portfolio portfolio1 = portfolioRepository.save(createPortfolio(
+				member,
+				"내꿈은 워렌버핏1",
+				budget,
+				targetGain,
+				maximumLoss
+			)
+		);
+		Stock stock = stockRepository.save(createSamsungStock());
 
 		PortfolioHolding holding1 = portfolioHoldingRepository.save(
 			PortfolioHolding.of(portfolio, stock, Money.won(100L)));
@@ -276,31 +254,28 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 	@Test
 	void getLineChartTest() {
 		// given
-		Member member = Member.builder().email("member@member.com").password("password").nickname("nick").build();
+		Member member = createMember();
 		member = memberRepository.save(member);
 
-		Portfolio portfolio = portfolioRepository.save(Portfolio.builder()
-			.name("내꿈은 워렌버핏")
-			.securitiesFirm("토스")
-			.budget(Money.won(1000000L))
-			.targetGain(Money.won(1500000L))
-			.maximumLoss(Money.won(900000L))
-			.member(member)
-			.build());
-		portfolioGainHistoryRepository.save(PortfolioGainHistory.builder()
-			.totalGain(Money.won(100L))
-			.dailyGain(Money.won(50L))
-			.currentValuation(Money.won(60L))
-			.cash(Money.won(20L))
-			.portfolio(portfolio)
-			.build());
-		portfolioGainHistoryRepository.save(PortfolioGainHistory.builder()
-			.totalGain(Money.won(100L))
-			.dailyGain(Money.won(50L))
-			.currentValuation(Money.won(60L))
-			.cash(Money.won(20L))
-			.portfolio(portfolio)
-			.build());
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
+		portfolioGainHistoryRepository.save(
+			PortfolioGainHistory.create(
+				Money.won(100),
+				Money.won(50),
+				Money.won(60),
+				Money.won(20),
+				portfolio
+			)
+		);
+		portfolioGainHistoryRepository.save(
+			PortfolioGainHistory.create(
+				Money.won(100),
+				Money.won(50),
+				Money.won(60),
+				Money.won(20),
+				portfolio
+			)
+		);
 
 		// when
 		List<DashboardLineChartResponse> responses = dashboardService.getLineChart(member.getId());
@@ -318,63 +293,34 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 		);
 	}
 
-	private Stock createStock() {
-		return Stock.builder()
-			.companyName("삼성전자보통주")
-			.tickerSymbol("005930")
-			.companyNameEng("SamsungElectronics")
-			.stockCode("KR7005930003")
-			.sector("전기전자")
-			.market(Market.KOSPI)
-			.build();
-	}
-
-	private StockDividend createStockDividend(LocalDate exDividendDate, LocalDate recordDate, LocalDate paymentDate,
-		Stock stock) {
-		return StockDividend.builder()
-			.dividend(Money.won(361L))
-			.exDividendDate(exDividendDate)
-			.recordDate(recordDate)
-			.paymentDate(paymentDate)
-			.stock(stock)
-			.build();
-	}
-
 	private List<StockDividend> createStockDividendWith(Stock stock) {
 		return List.of(
 			createStockDividend(
-				LocalDate.of(2022, 12, 30),
-				LocalDate.of(2022, 12, 31),
+				LocalDate.of(2022, 12, 31), LocalDate.of(2022, 12, 30),
 				LocalDate.of(2023, 4, 14),
 				stock),
 			createStockDividend(
-				LocalDate.of(2023, 3, 30),
-				LocalDate.of(2023, 3, 31),
+				LocalDate.of(2023, 3, 31), LocalDate.of(2023, 3, 30),
 				LocalDate.of(2023, 5, 17),
 				stock),
 			createStockDividend(
-				LocalDate.of(2023, 6, 29),
-				LocalDate.of(2023, 6, 30),
+				LocalDate.of(2023, 6, 30), LocalDate.of(2023, 6, 29),
 				LocalDate.of(2023, 8, 16),
 				stock),
 			createStockDividend(
-				LocalDate.of(2023, 9, 27),
-				LocalDate.of(2023, 9, 30),
+				LocalDate.of(2023, 9, 30), LocalDate.of(2023, 9, 27),
 				LocalDate.of(2023, 11, 20),
 				stock),
 			createStockDividend(
-				LocalDate.of(2024, 3, 29),
-				LocalDate.of(2024, 3, 31),
+				LocalDate.of(2024, 3, 31), LocalDate.of(2024, 3, 29),
 				LocalDate.of(2024, 5, 17),
 				stock),
 			createStockDividend(
-				LocalDate.of(2024, 6, 28),
-				LocalDate.of(2024, 6, 30),
+				LocalDate.of(2024, 6, 30), LocalDate.of(2024, 6, 28),
 				LocalDate.of(2024, 8, 16),
 				stock),
 			createStockDividend(
-				LocalDate.of(2024, 9, 27),
-				LocalDate.of(2024, 9, 30),
+				LocalDate.of(2024, 9, 30), LocalDate.of(2024, 9, 27),
 				LocalDate.of(2024, 11, 20),
 				stock)
 		);

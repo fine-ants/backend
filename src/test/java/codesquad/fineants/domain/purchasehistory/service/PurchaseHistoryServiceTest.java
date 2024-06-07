@@ -24,7 +24,6 @@ import codesquad.fineants.AbstractContainerBaseTest;
 import codesquad.fineants.domain.common.count.Count;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.dividend.repository.StockDividendRepository;
-import codesquad.fineants.domain.fcm.domain.entity.FcmToken;
 import codesquad.fineants.domain.fcm.repository.FcmRepository;
 import codesquad.fineants.domain.fcm.service.FirebaseMessagingService;
 import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
@@ -47,7 +46,6 @@ import codesquad.fineants.domain.purchasehistory.domain.dto.response.PurchaseHis
 import codesquad.fineants.domain.purchasehistory.domain.dto.response.PurchaseHistoryUpdateResponse;
 import codesquad.fineants.domain.purchasehistory.domain.entity.PurchaseHistory;
 import codesquad.fineants.domain.purchasehistory.repository.PurchaseHistoryRepository;
-import codesquad.fineants.domain.stock.domain.entity.Market;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
 import codesquad.fineants.global.errors.errorcode.PortfolioErrorCode;
@@ -114,15 +112,17 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 
 	@WithMockUser(roles = {"USER"})
 	@DisplayName("사용자는 매입 이력을 추가한다")
-	@CsvSource(value = {"3,1000000", "1000000000000,50000000000000000", "10,9223372036854775807"})
+	@CsvSource(value = {"3,1000000,1500000,900000",
+		"1000000000000,50000000000000000,50000000000000001,40000000000000000",
+		"10,9223372036854775807,9223372036854775808,9223372036854775806"})
 	@ParameterizedTest
-	void addPurchaseHistory(Count numShares, BigDecimal budget) {
+	void addPurchaseHistory(Count numShares, BigDecimal budget, BigDecimal targetGain, BigDecimal maximumLoss) {
 		// given
 		Member member = memberRepository.save(createMember());
 		notificationPreferenceRepository.save(createNotificationPreference(member));
 		Portfolio portfolio = portfolioRepository.save(
-			createPortfolio(member, budget));
-		Stock stock = stockRepository.save(createStock());
+			createPortfolio(member, "내꿈은 워렌버핏", Money.won(budget), Money.won(targetGain), Money.won(maximumLoss)));
+		Stock stock = stockRepository.save(createSamsungStock());
 		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
 
 		LocalDateTime now = LocalDateTime.now();
@@ -162,11 +162,13 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 		Member member = memberRepository.save(createMember());
 		notificationPreferenceRepository.save(createNotificationPreference(member));
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
-		Stock stock = stockRepository.save(createStock());
-		Stock stock2 = stockRepository.save(createStock2());
+		Stock stock = stockRepository.save(createSamsungStock());
+		Stock stock2 = stockRepository.save(createDongwhaPharmStock());
 		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
 		portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock2));
-		purchaseHistoryRepository.save(createPurchaseHistory(holding));
+		purchaseHistoryRepository.save(
+			createPurchaseHistory(null, LocalDateTime.of(2023, 9, 26, 9, 30, 0), Count.from(3), Money.won(50000), "첫구매",
+				holding));
 		fcmRepository.save(createFcmToken("token", member));
 		fcmRepository.save(createFcmToken("token2", member));
 
@@ -198,14 +200,6 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 		);
 	}
 
-	private static FcmToken createFcmToken(String token, Member member) {
-		return FcmToken.builder()
-			.token(token)
-			.latestActivationTime(LocalDateTime.now())
-			.member(member)
-			.build();
-	}
-
 	@DisplayName("사용자는 매입 이력 추가시 최대 손실율에 달성하여 알림을 받는다")
 	@Test
 	void addPurchaseHistory_whenAchieveMaxLoss_thenSaveNotification() {
@@ -213,7 +207,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 		Member member = memberRepository.save(createMember());
 		notificationPreferenceRepository.save(createNotificationPreference(member));
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
-		Stock stock = stockRepository.save(createStock());
+		Stock stock = stockRepository.save(createSamsungStock());
 		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
 		fcmRepository.save(createFcmToken("token", member));
 
@@ -252,7 +246,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 		Member member = memberRepository.save(createMember());
 		notificationPreferenceRepository.save(createNotificationPreference(member));
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
-		Stock stock = stockRepository.save(createStock());
+		Stock stock = stockRepository.save(createSamsungStock());
 		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
 
 		PurchaseHistoryCreateRequest request = PurchaseHistoryCreateRequest.builder()
@@ -279,9 +273,11 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 		Member member = memberRepository.save(createMember());
 		notificationPreferenceRepository.save(createNotificationPreference(member));
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
-		Stock stock = stockRepository.save(createStock());
+		Stock stock = stockRepository.save(createSamsungStock());
 		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
-		PurchaseHistory history = purchaseHistoryRepository.save(createPurchaseHistory(holding));
+		PurchaseHistory history = purchaseHistoryRepository.save(
+			createPurchaseHistory(null, LocalDateTime.of(2023, 9, 26, 9, 30, 0), Count.from(3), Money.won(50000), "첫구매",
+				holding));
 
 		PurchaseHistoryUpdateRequest request = PurchaseHistoryUpdateRequest.builder()
 			.purchaseDate(LocalDateTime.now())
@@ -317,9 +313,11 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 		notificationPreferenceRepository.save(createNotificationPreference(member));
 		fcmRepository.save(createFcmToken("token", member));
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
-		Stock stock = stockRepository.save(createStock());
+		Stock stock = stockRepository.save(createSamsungStock());
 		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
-		PurchaseHistory history = purchaseHistoryRepository.save(createPurchaseHistory(holding));
+		PurchaseHistory history = purchaseHistoryRepository.save(
+			createPurchaseHistory(null, LocalDateTime.of(2023, 9, 26, 9, 30, 0), Count.from(3), Money.won(50000), "첫구매",
+				holding));
 
 		PurchaseHistoryUpdateRequest request = PurchaseHistoryUpdateRequest.builder()
 			.purchaseDate(LocalDateTime.now())
@@ -359,9 +357,11 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 		Member member = memberRepository.save(createMember());
 		notificationPreferenceRepository.save(createNotificationPreference(member));
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
-		Stock stock = stockRepository.save(createStock());
+		Stock stock = stockRepository.save(createSamsungStock());
 		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
-		PurchaseHistory history = purchaseHistoryRepository.save(createPurchaseHistory(holding));
+		PurchaseHistory history = purchaseHistoryRepository.save(
+			createPurchaseHistory(null, LocalDateTime.of(2023, 9, 26, 9, 30, 0), Count.from(3), Money.won(50000), "첫구매",
+				holding));
 
 		// when
 		PurchaseHistoryDeleteResponse response = service.deletePurchaseHistory(
@@ -385,10 +385,13 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 		Member member = memberRepository.save(createMember());
 		notificationPreferenceRepository.save(createNotificationPreference(member));
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
-		Stock stock = stockRepository.save(createStock());
+		Stock stock = stockRepository.save(createSamsungStock());
 		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
-		PurchaseHistory history = purchaseHistoryRepository.save(createPurchaseHistory(holding));
-		purchaseHistoryRepository.save(createPurchaseHistory(holding, 100.0));
+		PurchaseHistory history = purchaseHistoryRepository.save(
+			createPurchaseHistory(null, LocalDateTime.of(2023, 9, 26, 9, 30, 0), Count.from(3), Money.won(50000), "첫구매",
+				holding));
+		purchaseHistoryRepository.save(
+			createPurchaseHistory(null, LocalDateTime.now(), Count.from(100), Money.won(100), "첫구매", holding));
 		fcmRepository.save(createFcmToken("token", member));
 
 		currentPriceRepository.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L));
@@ -420,9 +423,11 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 		Member member = memberRepository.save(createMember());
 		notificationPreferenceRepository.save(createNotificationPreference(member));
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
-		Stock stock = stockRepository.save(createStock());
+		Stock stock = stockRepository.save(createSamsungStock());
 		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
-		purchaseHistoryRepository.save(createPurchaseHistory(holding));
+		purchaseHistoryRepository.save(purchaseHistoryRepository.save(
+			createPurchaseHistory(null, LocalDateTime.of(2023, 9, 26, 9, 30, 0), Count.from(3), Money.won(50000), "첫구매",
+				holding)));
 
 		Long purchaseHistoryId = 9999L;
 
@@ -439,62 +444,6 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 		assertThat(throwable)
 			.isInstanceOf(FineAntsException.class)
 			.hasMessage(PurchaseHistoryErrorCode.NOT_FOUND_PURCHASE_HISTORY.getMessage());
-	}
-
-	private Portfolio createPortfolio(Member member, BigDecimal budget) {
-		return Portfolio.builder()
-			.name("내꿈은 워렌버핏")
-			.securitiesFirm("토스")
-			.budget(Money.won(budget))
-			.targetGain(Money.won(budget.add(new BigDecimal(100000))))
-			.maximumLoss(Money.won(900000L))
-			.member(member)
-			.targetGainIsActive(true)
-			.maximumLossIsActive(true)
-			.build();
-	}
-
-	private Stock createStock() {
-		return Stock.builder()
-			.companyName("삼성전자보통주")
-			.tickerSymbol("005930")
-			.companyNameEng("SamsungElectronics")
-			.stockCode("KR7005930003")
-			.sector("전기전자")
-			.market(Market.KOSPI)
-			.build();
-	}
-
-	private Stock createStock2() {
-		return Stock.builder()
-			.companyName("동화약품보통주")
-			.tickerSymbol("000020")
-			.companyNameEng("DongwhaPharm")
-			.stockCode("KR7000020008")
-			.sector("의약품")
-			.market(Market.KOSPI)
-			.build();
-	}
-
-	private PurchaseHistory createPurchaseHistory(PortfolioHolding portfolioHolding) {
-		return PurchaseHistory.builder()
-			.purchaseDate(LocalDateTime.of(2023, 9, 26, 9, 30, 0))
-			.numShares(Count.from(3L))
-			.purchasePricePerShare(Money.won(50000.0))
-			.memo("첫구매")
-			.portfolioHolding(portfolioHolding)
-			.build();
-	}
-
-	private PurchaseHistory createPurchaseHistory(PortfolioHolding portfolioHolding,
-		Double purchasePricePerShare) {
-		return PurchaseHistory.builder()
-			.purchaseDate(LocalDateTime.of(2023, 9, 26, 9, 30, 0))
-			.numShares(Count.from(100L))
-			.purchasePricePerShare(Money.won(purchasePricePerShare))
-			.memo("첫구매")
-			.portfolioHolding(portfolioHolding)
-			.build();
 	}
 
 	private NotificationPreference createNotificationPreference(Member member) {

@@ -11,8 +11,8 @@ import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.test.context.ActiveProfiles;
 
+import codesquad.fineants.AbstractContainerBaseTest;
 import codesquad.fineants.domain.common.count.Count;
 import codesquad.fineants.domain.common.money.Bank;
 import codesquad.fineants.domain.common.money.Currency;
@@ -22,33 +22,22 @@ import codesquad.fineants.domain.common.money.RateDivision;
 import codesquad.fineants.domain.dividend.domain.entity.StockDividend;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.purchasehistory.domain.entity.PurchaseHistory;
-import codesquad.fineants.domain.stock.domain.entity.Market;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 
-@ActiveProfiles("test")
-class PortfolioHoldingTest {
+class PortfolioHoldingTest extends AbstractContainerBaseTest {
 
 	@DisplayName("한 종목의 총 투자 금액을 계산한다")
 	@Test
 	void calculateTotalInvestmentAmount() {
 		// given
-		Portfolio portfolio = createPortfolio();
-		Stock stock = createStock();
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createSamsungStock();
 		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock, Money.won(10000L));
 
-		PurchaseHistory purchaseHistory1 = PurchaseHistory.builder()
-			.purchaseDate(LocalDateTime.now())
-			.numShares(Count.from(5L))
-			.purchasePricePerShare(Money.won(10000.0))
-			.portfolioHolding(portFolioHolding)
-			.build();
-
-		PurchaseHistory purchaseHistory2 = PurchaseHistory.builder()
-			.purchaseDate(LocalDateTime.now())
-			.numShares(Count.from(5L))
-			.purchasePricePerShare(Money.dollar(10))
-			.portfolioHolding(portFolioHolding)
-			.build();
+		PurchaseHistory purchaseHistory1 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
+			Money.won(10000), "첫구매", portFolioHolding);
+		PurchaseHistory purchaseHistory2 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
+			Money.dollar(10), "첫구매", portFolioHolding);
 
 		portFolioHolding.addPurchaseHistory(purchaseHistory1);
 		portFolioHolding.addPurchaseHistory(purchaseHistory2);
@@ -67,23 +56,14 @@ class PortfolioHoldingTest {
 	@Test
 	void calculateAverageCostPerShare() {
 		// given
-		Portfolio portfolio = createPortfolio();
-		Stock stock = createStock();
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createSamsungStock();
 		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock, Money.won(10000L));
 
-		PurchaseHistory purchaseHistory1 = PurchaseHistory.builder()
-			.purchaseDate(LocalDateTime.now())
-			.numShares(Count.from(5L))
-			.purchasePricePerShare(Money.won(10000.0))
-			.portfolioHolding(portFolioHolding)
-			.build();
-
-		PurchaseHistory purchaseHistory2 = PurchaseHistory.builder()
-			.purchaseDate(LocalDateTime.now())
-			.numShares(Count.from(5L))
-			.purchasePricePerShare(Money.won(10000.0))
-			.portfolioHolding(portFolioHolding)
-			.build();
+		PurchaseHistory purchaseHistory1 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
+			Money.won(10000), "첫구매", portFolioHolding);
+		PurchaseHistory purchaseHistory2 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
+			Money.won(10000), "첫구매", portFolioHolding);
 
 		portFolioHolding.addPurchaseHistory(purchaseHistory1);
 		portFolioHolding.addPurchaseHistory(purchaseHistory2);
@@ -99,23 +79,14 @@ class PortfolioHoldingTest {
 	@Test
 	void calculateTotalGain() {
 		// given
-		Portfolio portfolio = createPortfolio();
-		Stock stock = createStock();
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createSamsungStock();
 		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock, Money.won(20000L));
 
-		PurchaseHistory purchaseHistory1 = PurchaseHistory.builder()
-			.purchaseDate(LocalDateTime.now())
-			.numShares(Count.from(5L))
-			.purchasePricePerShare(Money.won(10000.0))
-			.portfolioHolding(portFolioHolding)
-			.build();
-
-		PurchaseHistory purchaseHistory2 = PurchaseHistory.builder()
-			.purchaseDate(LocalDateTime.now())
-			.numShares(Count.from(5L))
-			.purchasePricePerShare(Money.won(10000.0))
-			.portfolioHolding(portFolioHolding)
-			.build();
+		PurchaseHistory purchaseHistory1 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
+			Money.won(10000), "첫구매", portFolioHolding);
+		PurchaseHistory purchaseHistory2 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
+			Money.won(10000), "첫구매", portFolioHolding);
 
 		portFolioHolding.addPurchaseHistory(purchaseHistory1);
 		portFolioHolding.addPurchaseHistory(purchaseHistory2);
@@ -132,23 +103,14 @@ class PortfolioHoldingTest {
 	@Test
 	void calculateTotalReturnRate() {
 		// given
-		Portfolio portfolio = createPortfolio();
-		Stock stock = createStock();
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createSamsungStock();
 		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock, Money.won(20000L));
 
-		PurchaseHistory purchaseHistory1 = PurchaseHistory.builder()
-			.purchaseDate(LocalDateTime.now())
-			.numShares(Count.from(5L))
-			.purchasePricePerShare(Money.won(10000.0))
-			.portfolioHolding(portFolioHolding)
-			.build();
-
-		PurchaseHistory purchaseHistory2 = PurchaseHistory.builder()
-			.purchaseDate(LocalDateTime.now())
-			.numShares(Count.from(5L))
-			.purchasePricePerShare(Money.won(10000.0))
-			.portfolioHolding(portFolioHolding)
-			.build();
+		PurchaseHistory purchaseHistory1 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
+			Money.won(10000), "첫구매", portFolioHolding);
+		PurchaseHistory purchaseHistory2 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
+			Money.won(10000), "첫구매", portFolioHolding);
 
 		portFolioHolding.addPurchaseHistory(purchaseHistory1);
 		portFolioHolding.addPurchaseHistory(purchaseHistory2);
@@ -167,16 +129,15 @@ class PortfolioHoldingTest {
 	@Test
 	void calculateMonthlyDividends() {
 		// given
-		Portfolio portfolio = createPortfolio();
-		Stock stock = createStock();
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createSamsungStock();
 		List<StockDividend> stockDividends = createStockDividends(stock);
 		stockDividends.forEach(stock::addStockDividend);
 		Long currentPrice = 60000L;
 		PortfolioHolding portfolioHolding = createPortfolioHolding(portfolio, stock, currentPrice);
-		PurchaseHistory purchaseHistory = createPurchaseHistory(
-			LocalDateTime.of(2023, 3, 1, 9, 30),
-			portfolioHolding
-		);
+
+		PurchaseHistory purchaseHistory = createPurchaseHistory(null, LocalDateTime.of(2023, 3, 1, 9, 30),
+			Count.from(3), Money.won(50000), "첫구매", portfolioHolding);
 		portfolioHolding.addPurchaseHistory(purchaseHistory);
 		// when
 		Map<Integer, Expression> result = portfolioHolding.createMonthlyDividendMap(LocalDate.of(2023, 12, 15));
@@ -211,76 +172,21 @@ class PortfolioHoldingTest {
 	private List<StockDividend> createStockDividends(Stock stock) {
 		return List.of(
 			createStockDividend(
-				LocalDate.of(2022, 12, 30),
-				LocalDate.of(2022, 12, 31),
+				LocalDate.of(2022, 12, 31), LocalDate.of(2022, 12, 30),
 				LocalDate.of(2023, 4, 14),
 				stock),
 			createStockDividend(
-				LocalDate.of(2023, 3, 30),
-				LocalDate.of(2023, 3, 31),
+				LocalDate.of(2023, 3, 31), LocalDate.of(2023, 3, 30),
 				LocalDate.of(2023, 5, 17),
 				stock),
 			createStockDividend(
-				LocalDate.of(2023, 6, 29),
-				LocalDate.of(2023, 6, 30),
+				LocalDate.of(2023, 6, 30), LocalDate.of(2023, 6, 29),
 				LocalDate.of(2023, 8, 16),
 				stock),
 			createStockDividend(
-				LocalDate.of(2023, 9, 27),
-				LocalDate.of(2023, 9, 30),
+				LocalDate.of(2023, 9, 30), LocalDate.of(2023, 9, 27),
 				LocalDate.of(2023, 11, 20),
 				stock)
 		);
-	}
-
-	private StockDividend createStockDividend(LocalDate exDividendDate, LocalDate recordDate, LocalDate paymentDate,
-		Stock stock) {
-		return StockDividend.builder()
-			.id(System.currentTimeMillis())
-			.dividend(Money.won(361L))
-			.recordDate(recordDate)
-			.exDividendDate(exDividendDate)
-			.paymentDate(paymentDate)
-			.stock(stock)
-			.build();
-	}
-
-	private Portfolio createPortfolio() {
-		return Portfolio.builder()
-			.id(1L)
-			.budget(Money.won(1000000L))
-			.targetGain(Money.won(1500000L))
-			.maximumLoss(Money.won(900000L))
-			.build();
-	}
-
-	private Stock createStock() {
-		return Stock.builder()
-			.tickerSymbol("005930")
-			.stockCode("KR7005930003")
-			.companyName("삼성전자보통주")
-			.companyNameEng("SamsungElectronics")
-			.market(Market.KOSPI)
-			.build();
-	}
-
-	private PortfolioHolding createPortfolioHolding(Portfolio portfolio, Stock stock, Long currentPrice) {
-		return PortfolioHolding.builder()
-			.id(System.currentTimeMillis())
-			.portfolio(portfolio)
-			.stock(stock)
-			.currentPrice(Money.won(currentPrice))
-			.build();
-	}
-
-	private PurchaseHistory createPurchaseHistory(LocalDateTime purchaseDate, PortfolioHolding portfolioHolding) {
-		return PurchaseHistory.builder()
-			.id(System.currentTimeMillis())
-			.purchaseDate(purchaseDate)
-			.purchasePricePerShare(Money.won(50000.0))
-			.numShares(Count.from(3L))
-			.memo("구매 메모")
-			.portfolioHolding(portfolioHolding)
-			.build();
 	}
 }

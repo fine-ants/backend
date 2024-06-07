@@ -114,7 +114,7 @@ public class DashboardRestControllerDocsTest extends RestDocsSupport {
 	void readPieChart() throws Exception {
 		// given
 		Portfolio portfolio = createPortfolio(createMember());
-		Stock stock = createStock();
+		Stock stock = createSamsungStock();
 		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
 		holding.addPurchaseHistory(createPurchaseHistory(holding, LocalDateTime.now()));
 		portfolio.addPortfolioStock(holding);

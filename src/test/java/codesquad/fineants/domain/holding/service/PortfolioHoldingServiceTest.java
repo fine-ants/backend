@@ -32,6 +32,7 @@ import codesquad.fineants.domain.holding.domain.dto.response.PortfolioChartRespo
 import codesquad.fineants.domain.holding.domain.dto.response.PortfolioDetailResponse;
 import codesquad.fineants.domain.holding.domain.dto.response.PortfolioHoldingsRealTimeResponse;
 import codesquad.fineants.domain.holding.domain.dto.response.PortfolioHoldingsResponse;
+import codesquad.fineants.domain.holding.domain.dto.response.PortfolioSectorChartItem;
 import codesquad.fineants.domain.holding.domain.dto.response.PortfolioStockCreateResponse;
 import codesquad.fineants.domain.holding.domain.dto.response.PortfolioStockDeleteResponse;
 import codesquad.fineants.domain.holding.domain.dto.response.PortfolioStockDeletesResponse;
@@ -49,7 +50,6 @@ import codesquad.fineants.domain.portfolio.repository.PortfolioRepository;
 import codesquad.fineants.domain.portfolio_gain_history.repository.PortfolioGainHistoryRepository;
 import codesquad.fineants.domain.purchasehistory.domain.entity.PurchaseHistory;
 import codesquad.fineants.domain.purchasehistory.repository.PurchaseHistoryRepository;
-import codesquad.fineants.domain.stock.domain.entity.Market;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
 import codesquad.fineants.global.errors.exception.FineAntsException;
@@ -113,10 +113,16 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		// given
 		Member member = memberRepository.save(createMember());
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
-		Stock stock = stockRepository.save(createStock());
+		Stock stock = stockRepository.save(createSamsungStock());
 		stockDividendRepository.saveAll(createStockDividendWith(stock));
 		PortfolioHolding portfolioHolding = portFolioHoldingRepository.save(createPortfolioHolding(portfolio, stock));
-		purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding));
+
+		LocalDateTime purchaseDate = LocalDateTime.of(2023, 9, 26, 9, 30, 0);
+		Count numShares = Count.from(3);
+		Money purchasePerShare = Money.won(50000);
+		String memo = "첫구매";
+		purchaseHistoryRepository.save(
+			createPurchaseHistory(null, purchaseDate, numShares, purchasePerShare, memo, portfolioHolding));
 
 		currentPriceRepository.addCurrentPrice(KisCurrentPrice.create("005930", 60000L));
 		closingPriceRepository.addPrice("005930", 50000);
@@ -149,7 +155,7 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 			.toPercentage(Bank.getInstance(), Currency.KRW);
 
 		assertAll(
-			() -> assertThat(details.getSecuritiesFirm()).isEqualTo("토스"),
+			() -> assertThat(details.getSecuritiesFirm()).isEqualTo("토스증권"),
 			() -> assertThat(details.getName()).isEqualTo("내꿈은 워렌버핏"),
 			() -> assertThat(details.getBudget()).isEqualByComparingTo(Money.won(1000000L)),
 			() -> assertThat(details.getTargetGain()).isEqualByComparingTo(Money.won(1500000L)),
@@ -219,12 +225,18 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		// given
 		Member member = memberRepository.save(createMember());
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
-		Stock stock = stockRepository.save(createStock());
+		Stock stock = stockRepository.save(createSamsungStock());
 		List<StockDividend> stockDividends = createStockDividendWith(stock);
 		stockDividends.forEach(stock::addStockDividend);
 		stockDividendRepository.saveAll(stockDividends);
 		PortfolioHolding portfolioHolding = portFolioHoldingRepository.save(createPortfolioHolding(portfolio, stock));
-		purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding));
+
+		LocalDateTime purchaseDate = LocalDateTime.of(2023, 9, 26, 9, 30, 0);
+		Count numShares = Count.from(3);
+		Money purchasePerShare = Money.won(50000);
+		String memo = "첫구매";
+		purchaseHistoryRepository.save(
+			createPurchaseHistory(null, purchaseDate, numShares, purchasePerShare, memo, portfolioHolding));
 
 		currentPriceRepository.addCurrentPrice(KisCurrentPrice.create("005930", 60000L));
 		closingPriceRepository.addPrice("005930", 50000);
@@ -266,11 +278,8 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 					Tuple.tuple(11, Money.won(1083L)),
 					Tuple.tuple(12, Money.zero())
 				),
-			() -> assertThat(response)
-				.extracting("sectorChart")
-				.asList()
-				.hasSize(2)
-				.extracting("sector", "sectorWeight")
+			() -> assertThat(response.getSectorChart())
+				.extracting(PortfolioSectorChartItem::getSector, PortfolioSectorChartItem::getSectorWeight)
 				.containsExactlyInAnyOrder(
 					Tuple.tuple("현금", Percentage.from(0.8252)),
 					Tuple.tuple("전기전자", Percentage.from(0.1748))
@@ -283,8 +292,8 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 	void readMyPortfolioCharts_whenPortfolioBudgetIsZero_thenOK() {
 		// given
 		Member member = memberRepository.save(createMember());
-		Portfolio portfolio = portfolioRepository.save(createPortfolioWithZero(member));
-		Stock stock = stockRepository.save(createStock());
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member, Money.zero()));
+		Stock stock = stockRepository.save(createSamsungStock());
 		List<StockDividend> stockDividends = createStockDividendWith(stock);
 		stockDividends.forEach(stock::addStockDividend);
 		stockDividendRepository.saveAll(stockDividends);
@@ -320,16 +329,25 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		// given
 		Member member = memberRepository.save(createMember());
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
-		Stock stock = stockRepository.save(createStock());
+		Stock stock = stockRepository.save(createSamsungStock());
 		Stock stock2 = stockRepository.save(
-			createStock("카카오보통주", "035720", "Kakao", "KR7035720002", "서비스업"));
+			createStock("035720", "카카오보통주", "Kakao", "KR7035720002", "서비스업"));
 		stockDividendRepository.saveAll(createStockDividendWith(stock));
 		PortfolioHolding portfolioHolding = portFolioHoldingRepository.save(createPortfolioHolding(portfolio, stock));
 		PortfolioHolding portfolioHolding2 = portFolioHoldingRepository.save(createPortfolioHolding(portfolio, stock2));
-		purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding));
-		purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding));
-		purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding2));
-		purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding2));
+
+		LocalDateTime purchaseDate = LocalDateTime.of(2023, 9, 26, 9, 30, 0);
+		Count numShares = Count.from(3);
+		Money purchasePerShare = Money.won(50000);
+		String memo = "첫구매";
+		purchaseHistoryRepository.save(
+			createPurchaseHistory(null, purchaseDate, numShares, purchasePerShare, memo, portfolioHolding));
+		purchaseHistoryRepository.save(
+			createPurchaseHistory(null, purchaseDate, numShares, purchasePerShare, memo, portfolioHolding));
+		purchaseHistoryRepository.save(
+			createPurchaseHistory(null, purchaseDate, numShares, purchasePerShare, memo, portfolioHolding2));
+		purchaseHistoryRepository.save(
+			createPurchaseHistory(null, purchaseDate, numShares, purchasePerShare, memo, portfolioHolding2));
 
 		currentPriceRepository.addCurrentPrice(KisCurrentPrice.create("005930", 60000L));
 		currentPriceRepository.addCurrentPrice(KisCurrentPrice.create("035720", 60000L));
@@ -373,7 +391,7 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		// given
 		Member member = memberRepository.save(createMember());
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
-		Stock stock = stockRepository.save(createStock());
+		Stock stock = stockRepository.save(createSamsungStock());
 
 		Map<String, Object> requestBodyMap = new HashMap<>();
 		requestBodyMap.put("tickerSymbol", stock.getTickerSymbol());
@@ -398,7 +416,7 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		// given
 		Member member = memberRepository.save(createMember());
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
-		Stock stock = stockRepository.save(createStock());
+		Stock stock = stockRepository.save(createSamsungStock());
 
 		Map<Object, Object> purchaseHistory = new HashMap<>();
 		purchaseHistory.put("purchaseDate", LocalDateTime.now());
@@ -428,9 +446,14 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		// given
 		Member member = memberRepository.save(createMember());
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
-		Stock stock = stockRepository.save(createStock());
+		Stock stock = stockRepository.save(createSamsungStock());
 		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
-		purchaseHistoryRepository.save(createPurchaseHistory(holding));
+		LocalDateTime purchaseDate = LocalDateTime.of(2023, 9, 26, 9, 30, 0);
+		Count numShares = Count.from(5);
+		Money purchasePerShare = Money.won(10000);
+		String memo = "첫구매";
+		purchaseHistoryRepository.save(
+			createPurchaseHistory(null, purchaseDate, numShares, purchasePerShare, memo, holding));
 
 		Map<Object, Object> purchaseHistory = new HashMap<>();
 		purchaseHistory.put("purchaseDate", LocalDateTime.now());
@@ -461,7 +484,7 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		// given
 		Member member = memberRepository.save(createMember());
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
-		Stock stock = stockRepository.save(createStock());
+		Stock stock = stockRepository.save(createSamsungStock());
 
 		Map<Object, Object> purchaseHistory = new HashMap<>();
 		purchaseHistory.put("purchaseDate", LocalDateTime.now());
@@ -508,20 +531,18 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		// given
 		Member member = memberRepository.save(createMember());
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
-		Stock stock = stockRepository.save(createStock());
+		Stock stock = stockRepository.save(createSamsungStock());
 
 		PortfolioHolding portfolioHolding = portFolioHoldingRepository.save(
 			PortfolioHolding.empty(portfolio, stock)
 		);
 
+		LocalDateTime purchaseDate = LocalDateTime.of(2023, 9, 26, 9, 30, 0);
+		Count numShares = Count.from(1);
+		Money purchasePerShare = Money.won(10000);
+		String memo = "첫구매";
 		purchaseHistoryRepository.save(
-			PurchaseHistory.builder()
-				.purchaseDate(LocalDateTime.now())
-				.purchasePricePerShare(Money.won(10000.0))
-				.numShares(Count.from(1L))
-				.memo("첫구매")
-				.build()
-		);
+			createPurchaseHistory(null, purchaseDate, numShares, purchasePerShare, memo, portfolioHolding));
 
 		Long portfolioHoldingId = portfolioHolding.getId();
 		// when
@@ -557,14 +578,19 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		// given
 		Member member = memberRepository.save(createMember());
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
-		Stock stock1 = stockRepository.save(createStock());
-		Stock stock2 = stockRepository.save(
-			createStock("동화약품보통주", "000020", "DongwhaPharm", "KR7000020008", "의약품"));
+		Stock stock1 = stockRepository.save(createSamsungStock());
+		Stock stock2 = stockRepository.save(createDongwhaPharmStock());
 		PortfolioHolding portfolioHolding1 = portFolioHoldingRepository.save(createPortfolioHolding(portfolio, stock1));
 		PortfolioHolding portfolioHolding2 = portFolioHoldingRepository.save(createPortfolioHolding(portfolio, stock2));
 
-		PurchaseHistory purchaseHistory1 = purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding1));
-		PurchaseHistory purchaseHistory2 = purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding2));
+		LocalDateTime purchaseDate = LocalDateTime.of(2023, 9, 26, 9, 30, 0);
+		Count numShares = Count.from(5);
+		Money purchasePerShare = Money.won(10000);
+		String memo = "첫구매";
+		PurchaseHistory purchaseHistory1 = purchaseHistoryRepository.save(
+			createPurchaseHistory(null, purchaseDate, numShares, purchasePerShare, memo, portfolioHolding1));
+		PurchaseHistory purchaseHistory2 = purchaseHistoryRepository.save(
+			createPurchaseHistory(null, purchaseDate, numShares, purchasePerShare, memo, portfolioHolding2));
 
 		Map<String, Object> requestBodyMap = new HashMap<>();
 		requestBodyMap.put("portfolioHoldingIds", List.of(portfolioHolding1.getId(), portfolioHolding2.getId()));
@@ -595,9 +621,14 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		// given
 		Member member = memberRepository.save(createMember());
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
-		Stock stock1 = stockRepository.save(createStock());
+		Stock stock1 = stockRepository.save(createSamsungStock());
 		PortfolioHolding portfolioHolding = portFolioHoldingRepository.save(createPortfolioHolding(portfolio, stock1));
-		PurchaseHistory purchaseHistory = purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding));
+		LocalDateTime purchaseDate = LocalDateTime.of(2023, 9, 26, 9, 30, 0);
+		Count numShares = Count.from(3);
+		Money purchasePerShare = Money.won(50000);
+		String memo = "첫구매";
+		PurchaseHistory purchaseHistory = purchaseHistoryRepository.save(
+			createPurchaseHistory(null, purchaseDate, numShares, purchasePerShare, memo, portfolioHolding));
 
 		Map<String, Object> requestBodyMap = new HashMap<>();
 		requestBodyMap.put("portfolioHoldingIds", List.of(portfolioHolding.getId(), 9999L));
@@ -622,9 +653,15 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		// given
 		Member member = memberRepository.save(createMember());
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
-		Stock stock1 = stockRepository.save(createStock());
+		Stock stock1 = stockRepository.save(createSamsungStock());
 		PortfolioHolding portfolioHolding = portFolioHoldingRepository.save(createPortfolioHolding(portfolio, stock1));
-		PurchaseHistory purchaseHistory = purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding));
+
+		LocalDateTime purchaseDate = LocalDateTime.of(2023, 9, 26, 9, 30, 0);
+		Count numShares = Count.from(3);
+		Money purchasePerShare = Money.won(50000);
+		String memo = "첫구매";
+		PurchaseHistory purchaseHistory = purchaseHistoryRepository.save(
+			createPurchaseHistory(null, purchaseDate, numShares, purchasePerShare, memo, portfolioHolding));
 
 		Member member2 = memberRepository.save(createMember("일개미2222", "user2@gmail.com"));
 		Portfolio portfolio2 = portfolioRepository.save(createPortfolio(member2));
@@ -649,105 +686,34 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		assertThat(purchaseHistoryRepository.findById(purchaseHistory.getId()).isPresent()).isTrue();
 	}
 
-	private Portfolio createPortfolioWithZero(Member member) {
-		return Portfolio.builder()
-			.name("내꿈은 워렌버핏")
-			.securitiesFirm("토스")
-			.budget(Money.won(0L))
-			.targetGain(Money.zero())
-			.maximumLoss(Money.zero())
-			.member(member)
-			.targetGainIsActive(false)
-			.maximumLossIsActive(false)
-			.build();
-	}
-
-	private Stock createStock() {
-		return Stock.builder()
-			.companyName("삼성전자보통주")
-			.tickerSymbol("005930")
-			.companyNameEng("SamsungElectronics")
-			.stockCode("KR7005930003")
-			.sector("전기전자")
-			.market(Market.KOSPI)
-			.build();
-	}
-
-	private Stock createStock(String companyName, String tickerSymbol, String companyNameEng, String stockCode,
-		String sector) {
-		return Stock.builder()
-			.companyName(companyName)
-			.tickerSymbol(tickerSymbol)
-			.companyNameEng(companyNameEng)
-			.stockCode(stockCode)
-			.sector(sector)
-			.market(Market.KOSPI)
-			.build();
-	}
-
-	private StockDividend createStockDividend(LocalDate exDividendDate, LocalDate recordDate, LocalDate paymentDate,
-		Stock stock) {
-		return StockDividend.builder()
-			.dividend(Money.won(361L))
-			.exDividendDate(exDividendDate)
-			.recordDate(recordDate)
-			.paymentDate(paymentDate)
-			.stock(stock)
-			.build();
-	}
-
-	private PortfolioHolding createPortfolioHolding(Portfolio portfolio, Stock stock) {
-		return PortfolioHolding.builder()
-			.portfolio(portfolio)
-			.stock(stock)
-			.build();
-	}
-
-	private PurchaseHistory createPurchaseHistory(PortfolioHolding portfolioHolding) {
-		return PurchaseHistory.builder()
-			.purchaseDate(LocalDateTime.of(2023, 9, 26, 9, 30, 0))
-			.numShares(Count.from(3L))
-			.purchasePricePerShare(Money.won(50000.0))
-			.memo("첫구매")
-			.portfolioHolding(portfolioHolding)
-			.build();
-	}
-
 	private List<StockDividend> createStockDividendWith(Stock stock) {
 		return List.of(
 			createStockDividend(
-				LocalDate.of(2022, 12, 30),
-				LocalDate.of(2022, 12, 31),
+				LocalDate.of(2022, 12, 31), LocalDate.of(2022, 12, 30),
 				LocalDate.of(2023, 4, 14),
 				stock),
 			createStockDividend(
-				LocalDate.of(2023, 3, 30),
-				LocalDate.of(2023, 3, 31),
+				LocalDate.of(2023, 3, 31), LocalDate.of(2023, 3, 30),
 				LocalDate.of(2023, 5, 17),
 				stock),
 			createStockDividend(
-				LocalDate.of(2023, 6, 29),
-				LocalDate.of(2023, 6, 30),
+				LocalDate.of(2023, 6, 30), LocalDate.of(2023, 6, 29),
 				LocalDate.of(2023, 8, 16),
 				stock),
 			createStockDividend(
-				LocalDate.of(2023, 9, 27),
-				LocalDate.of(2023, 9, 30),
+				LocalDate.of(2023, 9, 30), LocalDate.of(2023, 9, 27),
 				LocalDate.of(2023, 11, 20),
 				stock),
 			createStockDividend(
-				LocalDate.of(2024, 3, 29),
-				LocalDate.of(2024, 3, 31),
+				LocalDate.of(2024, 3, 31), LocalDate.of(2024, 3, 29),
 				LocalDate.of(2024, 5, 17),
 				stock),
 			createStockDividend(
-				LocalDate.of(2024, 6, 28),
-				LocalDate.of(2024, 6, 30),
+				LocalDate.of(2024, 6, 30), LocalDate.of(2024, 6, 28),
 				LocalDate.of(2024, 8, 16),
 				stock),
 			createStockDividend(
-				LocalDate.of(2024, 9, 27),
-				LocalDate.of(2024, 9, 30),
+				LocalDate.of(2024, 9, 30), LocalDate.of(2024, 9, 27),
 				LocalDate.of(2024, 11, 20),
 				stock)
 		);

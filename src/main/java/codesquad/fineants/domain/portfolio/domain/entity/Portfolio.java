@@ -49,7 +49,6 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
@@ -99,14 +98,7 @@ public class Portfolio extends BaseEntity {
 	@OneToMany(mappedBy = "portfolio")
 	private final List<PortfolioHolding> portfolioHoldings = new ArrayList<>();
 
-	private Portfolio(String name, String securitiesFirm, Money budget, Money targetGain, Money maximumLoss,
-		Boolean targetGainIsActive, Boolean maximumLossIsActive, Member member) {
-		this(null, name, securitiesFirm, budget, targetGain, maximumLoss, targetGainIsActive, maximumLossIsActive,
-			member);
-	}
-
-	@Builder
-	public Portfolio(Long id, String name, String securitiesFirm, Money budget, Money targetGain, Money maximumLoss,
+	private Portfolio(Long id, String name, String securitiesFirm, Money budget, Money targetGain, Money maximumLoss,
 		Boolean targetGainIsActive, Boolean maximumLossIsActive, Member member) {
 		validateBudget(budget, targetGain, maximumLoss);
 		this.id = id;
@@ -134,9 +126,19 @@ public class Portfolio extends BaseEntity {
 		}
 	}
 
+	public static Portfolio active(String name, String securitiesFirm, Money budget, Money targetGain,
+		Money maximumLoss, Member member) {
+		return active(null, name, securitiesFirm, budget, targetGain, maximumLoss, member);
+	}
+
+	public static Portfolio active(Long id, String name, String securitiesFirm, Money budget, Money targetGain,
+		Money maximumLoss, Member member) {
+		return new Portfolio(id, name, securitiesFirm, budget, targetGain, maximumLoss, true, true, member);
+	}
+
 	public static Portfolio noActive(String name, String securitiesFirm, Money budget, Money targetGain,
 		Money maximumLoss, Member member) {
-		return new Portfolio(name, securitiesFirm, budget, targetGain, maximumLoss, false, false, member);
+		return new Portfolio(null, name, securitiesFirm, budget, targetGain, maximumLoss, false, false, member);
 	}
 
 	//== 연관관계 메소드 ==//
@@ -278,13 +280,7 @@ public class Portfolio extends BaseEntity {
 		Money dailyGain = bank.toWon(calculateDailyGain(history));
 		Money cash = bank.toWon(calculateBalance());
 		Money currentValuation = bank.toWon(calculateTotalCurrentValuation());
-		return new PortfolioGainHistory(
-			totalGain,
-			dailyGain,
-			cash,
-			currentValuation,
-			this
-		);
+		return PortfolioGainHistory.create(totalGain, dailyGain, cash, currentValuation, this);
 	}
 
 	// 포트폴리오 모든 종목들에 주식 현재가 적용

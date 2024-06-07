@@ -1,7 +1,5 @@
 package codesquad.fineants.domain.fcm.domain.dto.request;
 
-import java.time.LocalDateTime;
-
 import codesquad.fineants.domain.fcm.domain.entity.FcmToken;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import jakarta.validation.constraints.NotBlank;
@@ -20,10 +18,6 @@ public class FcmRegisterRequest {
 	private String fcmToken;
 
 	public FcmToken toEntity(Member member) {
-		return FcmToken.builder()
-			.token(fcmToken)
-			.member(member)
-			.latestActivationTime(LocalDateTime.now())
-			.build();
+		return FcmToken.create(member, fcmToken);
 	}
 }

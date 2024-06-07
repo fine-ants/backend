@@ -42,13 +42,7 @@ class PortfolioGainHistoryRepositoryTest extends AbstractContainerBaseTest {
 		// given
 		Member member = memberRepository.save(createMember());
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
-		portfolioGainHistoryRepository.save(PortfolioGainHistory.builder()
-			.totalGain(Money.zero())
-			.dailyGain(Money.zero())
-			.currentValuation(Money.zero())
-			.cash(Money.zero())
-			.portfolio(portfolio)
-			.build());
+		portfolioGainHistoryRepository.save(PortfolioGainHistory.empty(portfolio));
 
 		// when
 		List<PortfolioGainHistory> histories = portfolioGainHistoryRepository.findAllByPortfolioId(
@@ -64,20 +58,8 @@ class PortfolioGainHistoryRepositoryTest extends AbstractContainerBaseTest {
 		// given
 		Member member = memberRepository.save(createMember());
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
-		portfolioGainHistoryRepository.save(PortfolioGainHistory.builder()
-			.totalGain(Money.zero())
-			.dailyGain(Money.zero())
-			.currentValuation(Money.zero())
-			.cash(Money.zero())
-			.portfolio(portfolio)
-			.build());
-		PortfolioGainHistory saveHistory = portfolioGainHistoryRepository.save(PortfolioGainHistory.builder()
-			.totalGain(Money.zero())
-			.dailyGain(Money.zero())
-			.currentValuation(Money.zero())
-			.cash(Money.zero())
-			.portfolio(portfolio)
-			.build());
+		portfolioGainHistoryRepository.save(PortfolioGainHistory.empty(portfolio));
+		PortfolioGainHistory saveHistory = portfolioGainHistoryRepository.save(PortfolioGainHistory.empty(portfolio));
 
 		// when
 		PortfolioGainHistory history = portfolioGainHistoryRepository.findFirstByPortfolioAndCreateAtIsLessThanEqualOrderByCreateAtDesc(
@@ -95,36 +77,24 @@ class PortfolioGainHistoryRepositoryTest extends AbstractContainerBaseTest {
 	@Test
 	void findFirstByCreateAtIsLessThanEqualOrderByCreateAtDesc() {
 		// given
-		Member member = memberRepository.save(Member.builder()
-			.nickname("일개미1234")
-			.email("kim1234@gmail.com")
-			.password("kim1234@")
-			.provider("local")
-			.build());
+		Member member = memberRepository.save(createMember());
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 
-		Portfolio portfolio = portfolioRepository.save(Portfolio.builder()
-			.name("내꿈은 워렌버핏")
-			.securitiesFirm("토스")
-			.budget(Money.won(1000000L))
-			.targetGain(Money.won(1500000L))
-			.maximumLoss(Money.won(900000L))
-			.member(member)
-			.build());
+		PortfolioGainHistory portfolioGainHistory1 = PortfolioGainHistory.create(
+			Money.won(10000L),
+			Money.won(10000L),
+			Money.won(1000000L),
+			Money.won(110000L),
+			portfolio
+		);
 
-		PortfolioGainHistory portfolioGainHistory1 = PortfolioGainHistory.builder()
-			.totalGain(Money.won(10000L))
-			.dailyGain(Money.won(10000L))
-			.cash(Money.won(1000000L))
-			.currentValuation(Money.won(110000L))
-			.portfolio(portfolio)
-			.build();
-		PortfolioGainHistory portfolioGainHistory2 = PortfolioGainHistory.builder()
-			.totalGain(Money.won(20000L))
-			.dailyGain(Money.won(10000L))
-			.cash(Money.won(1000000L))
-			.currentValuation(Money.won(120000L))
-			.portfolio(portfolio)
-			.build();
+		PortfolioGainHistory portfolioGainHistory2 = PortfolioGainHistory.create(
+			Money.won(20000L),
+			Money.won(10000L),
+			Money.won(1000000L),
+			Money.won(120000L),
+			portfolio
+		);
 		portfolioGainHistoryRepository.save(portfolioGainHistory1);
 		portfolioGainHistoryRepository.save(portfolioGainHistory2);
 

@@ -19,8 +19,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 
 import codesquad.fineants.ControllerTestSupport;
-import codesquad.fineants.domain.common.money.Money;
-import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.portfolio.domain.dto.request.PortfolioNotificationUpdateRequest;
 import codesquad.fineants.domain.portfolio.domain.dto.response.PortfolioNotificationUpdateResponse;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
@@ -171,28 +169,5 @@ class PortfolioNotificationRestControllerTest extends ControllerTestSupport {
 			.andExpect(jsonPath("status").value(equalTo("OK")))
 			.andExpect(jsonPath("message").value(equalTo("최대 손실율 알림이 비 활성화되었습니다")))
 			.andExpect(jsonPath("data").value(equalTo(null)));
-	}
-
-	private Portfolio createPortfolio(Member member) {
-		return Portfolio.builder()
-			.id(1L)
-			.name("내꿈은 워렌버핏")
-			.securitiesFirm("토스")
-			.budget(Money.won(1000000L))
-			.targetGain(Money.won(1500000L))
-			.maximumLoss(Money.won(900000L))
-			.member(member)
-			.build();
-	}
-
-	private static Member createMember() {
-		return Member.builder()
-			.id(1L)
-			.nickname("일개미1234")
-			.email("kim1234@gmail.com")
-			.provider("local")
-			.password("kim1234@")
-			.profileUrl("profileValue")
-			.build();
 	}
 }

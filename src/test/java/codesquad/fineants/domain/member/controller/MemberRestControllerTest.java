@@ -45,7 +45,7 @@ class MemberRestControllerTest extends ControllerTestSupport {
 	@Test
 	void changeProfile() throws Exception {
 		// given
-		Member member = createMember("일개미12345", "profileUrl");
+		Member member = createMember();
 		given(memberService.changeProfile(ArgumentMatchers.any(ProfileChangeServiceRequest.class)))
 			.willReturn(ProfileChangeResponse.from(member));
 
@@ -66,7 +66,7 @@ class MemberRestControllerTest extends ControllerTestSupport {
 			.andExpect(jsonPath("status").value(equalTo("OK")))
 			.andExpect(jsonPath("message").value(equalTo("프로필이 수정되었습니다")))
 			.andExpect(jsonPath("data.user.id").value(equalTo(1)))
-			.andExpect(jsonPath("data.user.nickname").value(equalTo("일개미12345")))
+			.andExpect(jsonPath("data.user.nickname").value(equalTo("nemo1234")))
 			.andExpect(jsonPath("data.user.email").value(equalTo("dragonbead95@naver.com")))
 			.andExpect(jsonPath("data.user.profileUrl").value(equalTo("profileUrl")));
 	}
@@ -75,7 +75,7 @@ class MemberRestControllerTest extends ControllerTestSupport {
 	@Test
 	void changeProfile_whenNewProfile_thenOK() throws Exception {
 		// given
-		Member member = createMember("일개미12345", "profileUrl");
+		Member member = createMember();
 		given(memberService.changeProfile(ArgumentMatchers.any(ProfileChangeServiceRequest.class)))
 			.willReturn(ProfileChangeResponse.from(member));
 
@@ -87,7 +87,7 @@ class MemberRestControllerTest extends ControllerTestSupport {
 			.andExpect(jsonPath("status").value(equalTo("OK")))
 			.andExpect(jsonPath("message").value(equalTo("프로필이 수정되었습니다")))
 			.andExpect(jsonPath("data.user.id").value(equalTo(1)))
-			.andExpect(jsonPath("data.user.nickname").value(equalTo("일개미12345")))
+			.andExpect(jsonPath("data.user.nickname").value(equalTo("nemo1234")))
 			.andExpect(jsonPath("data.user.email").value(equalTo("dragonbead95@naver.com")))
 			.andExpect(jsonPath("data.user.profileUrl").value(equalTo("profileUrl")));
 	}
@@ -96,7 +96,7 @@ class MemberRestControllerTest extends ControllerTestSupport {
 	@Test
 	void changeProfile_whenEmptyProfile_thenOK() throws Exception {
 		// given
-		Member member = createMember("일개미12345", null);
+		Member member = createMember();
 		given(memberService.changeProfile(ArgumentMatchers.any(ProfileChangeServiceRequest.class)))
 			.willReturn(ProfileChangeResponse.from(member));
 
@@ -108,16 +108,16 @@ class MemberRestControllerTest extends ControllerTestSupport {
 			.andExpect(jsonPath("status").value(equalTo("OK")))
 			.andExpect(jsonPath("message").value(equalTo("프로필이 수정되었습니다")))
 			.andExpect(jsonPath("data.user.id").value(equalTo(1)))
-			.andExpect(jsonPath("data.user.nickname").value(equalTo("일개미12345")))
+			.andExpect(jsonPath("data.user.nickname").value(equalTo("nemo1234")))
 			.andExpect(jsonPath("data.user.email").value(equalTo("dragonbead95@naver.com")))
-			.andExpect(jsonPath("data.user.profileUrl").value(equalTo(null)));
+			.andExpect(jsonPath("data.user.profileUrl").value(equalTo("profileUrl")));
 	}
 
 	@DisplayName("사용자는 회원의 프로필에서 프로필을 유지하고 닉네임만 변경한다")
 	@Test
 	void changeProfile_whenOnlyChangeNickname_thenOK() throws Exception {
 		// given
-		Member member = createMember("일개미1234", "profileUrl");
+		Member member = createMember();
 		given(memberService.changeProfile(ArgumentMatchers.any(ProfileChangeServiceRequest.class)))
 			.willReturn(ProfileChangeResponse.from(member));
 
@@ -136,7 +136,7 @@ class MemberRestControllerTest extends ControllerTestSupport {
 			.andExpect(jsonPath("status").value(equalTo("OK")))
 			.andExpect(jsonPath("message").value(equalTo("프로필이 수정되었습니다")))
 			.andExpect(jsonPath("data.user.id").value(equalTo(1)))
-			.andExpect(jsonPath("data.user.nickname").value(equalTo("일개미1234")))
+			.andExpect(jsonPath("data.user.nickname").value(equalTo("nemo1234")))
 			.andExpect(jsonPath("data.user.email").value(equalTo("dragonbead95@naver.com")))
 			.andExpect(jsonPath("data.user.profileUrl").value(equalTo("profileUrl")));
 	}
@@ -145,7 +145,7 @@ class MemberRestControllerTest extends ControllerTestSupport {
 	@Test
 	void changeProfile_whenInvalidNickname_thenResponse400() throws Exception {
 		// given
-		Member member = createMember("일개미1234", "profileUrl");
+		Member member = createMember();
 		given(memberService.changeProfile(ArgumentMatchers.any(ProfileChangeServiceRequest.class)))
 			.willReturn(ProfileChangeResponse.from(member));
 
@@ -166,17 +166,6 @@ class MemberRestControllerTest extends ControllerTestSupport {
 			.andExpect(jsonPath("message").value(equalTo("잘못된 입력형식입니다")))
 			.andExpect(jsonPath("data[0].field").value(equalTo("nickname")))
 			.andExpect(jsonPath("data[0].defaultMessage").value(equalTo("잘못된 입력형식입니다.")));
-	}
-
-	private Member createMember(String nickname, String profileUrl) {
-		return Member.builder()
-			.id(1L)
-			.nickname(nickname)
-			.email("dragonbead95@naver.com")
-			.provider("local")
-			.password("password")
-			.profileUrl(profileUrl)
-			.build();
 	}
 
 	public MultipartFile createMockMultipartFile() {

@@ -7,7 +7,6 @@ import java.time.LocalDateTime;
 
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,9 +26,7 @@ import codesquad.fineants.domain.portfolio.repository.PortfolioRepository;
 import codesquad.fineants.domain.portfolio_gain_history.domain.dto.response.PortfolioGainHistoryCreateResponse;
 import codesquad.fineants.domain.portfolio_gain_history.domain.entity.PortfolioGainHistory;
 import codesquad.fineants.domain.portfolio_gain_history.repository.PortfolioGainHistoryRepository;
-import codesquad.fineants.domain.purchasehistory.domain.entity.PurchaseHistory;
 import codesquad.fineants.domain.purchasehistory.repository.PurchaseHistoryRepository;
-import codesquad.fineants.domain.stock.domain.entity.Market;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
 
@@ -62,39 +59,6 @@ class PortfolioGainHistoryServiceTest extends AbstractContainerBaseTest {
 	@Autowired
 	private CurrentPriceRepository currentPriceRepository;
 
-	private Stock stock;
-
-	private Portfolio portfolio;
-
-	@BeforeEach
-	void init() {
-		Member member = Member.builder()
-			.nickname("일개미1234")
-			.email("kim1234@gmail.com")
-			.password("kim1234@")
-			.provider("local")
-			.build();
-		memberRepository.save(member);
-
-		this.portfolio = Portfolio.builder()
-			.name("내꿈은 워렌버핏")
-			.securitiesFirm("토스")
-			.budget(Money.won(1000000L))
-			.targetGain(Money.won(1500000L))
-			.maximumLoss(Money.won(900000L))
-			.member(member)
-			.build();
-
-		Stock stock = Stock.builder()
-			.companyName("삼성전자보통주")
-			.tickerSymbol("005930")
-			.companyNameEng("SamsungElectronics")
-			.stockCode("KR7005930003")
-			.market(Market.KOSPI)
-			.build();
-		this.stock = stockRepository.save(stock);
-	}
-
 	@AfterEach
 	void tearDown() {
 		portfolioGainHistoryRepository.deleteAllInBatch();
@@ -110,18 +74,18 @@ class PortfolioGainHistoryServiceTest extends AbstractContainerBaseTest {
 	@Test
 	void addPortfolioGainHistory() {
 		// given
-		Portfolio savePortfolio = portfolioRepository.save(portfolio);
-		PortfolioHolding portfolioHolding = PortfolioHolding.of(savePortfolio, stock, Money.won(60000L));
-		PurchaseHistory purchaseHistory = PurchaseHistory.builder()
-			.purchaseDate(LocalDateTime.now())
-			.numShares(Count.from(3L))
-			.purchasePricePerShare(Money.won(50000.0))
-			.memo("첫구매")
-			.portfolioHolding(portfolioHolding)
-			.build();
-		portfolioHolding.addPurchaseHistory(purchaseHistory);
-		portFolioHoldingRepository.save(portfolioHolding);
-		purchaseHistoryRepository.save(purchaseHistory);
+		Member member = memberRepository.save(createMember());
+		Portfolio savePortfolio = portfolioRepository.save(createPortfolio(member));
+		Stock stock = stockRepository.save(createSamsungStock());
+		PortfolioHolding portfolioHolding = portFolioHoldingRepository.save(
+			PortfolioHolding.of(savePortfolio, stock, Money.won(60000L)));
+
+		LocalDateTime purchaseDate = LocalDateTime.of(2023, 9, 26, 9, 30, 0);
+		Count numShares = Count.from(3);
+		Money purchasePricePerShare = Money.won(50000);
+		String memo = "첫구매";
+		purchaseHistoryRepository.save(
+			createPurchaseHistory(null, purchaseDate, numShares, purchasePricePerShare, memo, portfolioHolding));
 
 		currentPriceRepository.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 60000L));
 		// when

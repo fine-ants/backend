@@ -14,7 +14,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -43,28 +42,27 @@ public class PortfolioGainHistory extends BaseEntity {
 	@JoinColumn(name = "portfolio_id")
 	private Portfolio portfolio;
 
-	public PortfolioGainHistory(Money totalGain, Money dailyGain, Money cash, Money currentValuation,
+	private PortfolioGainHistory(Money totalGain, Money dailyGain, Money cash, Money currentValuation,
 		Portfolio portfolio) {
 		this(null, totalGain, dailyGain, cash, currentValuation, portfolio);
 	}
 
-	@Builder
-	public PortfolioGainHistory(Long id, Money totalGain, Money dailyGain, Money cash,
-		Money currentValuation, Portfolio portfolio) {
+	private PortfolioGainHistory(Long id, Money totalGain, Money dailyGain, Money cash, Money currentValuation,
+		Portfolio portfolio) {
 		this.id = id;
 		this.totalGain = totalGain;
 		this.dailyGain = dailyGain;
+		this.cash = cash;
 		this.currentValuation = currentValuation;
 		this.portfolio = portfolio;
-		this.cash = cash;
 	}
 
-	public static PortfolioGainHistory empty() {
-		return PortfolioGainHistory.builder()
-			.totalGain(Money.zero())
-			.dailyGain(Money.zero())
-			.currentValuation(Money.zero())
-			.cash(Money.zero())
-			.build();
+	public static PortfolioGainHistory empty(Portfolio portfolio) {
+		return new PortfolioGainHistory(Money.zero(), Money.zero(), Money.zero(), Money.zero(), portfolio);
+	}
+
+	public static PortfolioGainHistory create(Money totalGain, Money dailyGain, Money cash, Money currentValuation,
+		Portfolio portfolio) {
+		return new PortfolioGainHistory(totalGain, dailyGain, cash, currentValuation, portfolio);
 	}
 }

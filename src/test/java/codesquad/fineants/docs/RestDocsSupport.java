@@ -83,218 +83,142 @@ public abstract class RestDocsSupport {
 	}
 
 	protected Member createMember() {
-		return Member.builder()
-			.id(1L)
-			.nickname("일개미1234")
-			.email("kim1234@gmail.com")
-			.password("kim1234@")
-			.provider("local")
-			.profileUrl("profileUrl")
-			.build();
+		return Member.localMember(
+			1L,
+			"kim1234@gmail.com",
+			"일개미1234",
+			"kim1234@",
+			"profileUrl"
+		);
 	}
 
-	protected Stock createStock() {
-		return Stock.builder()
-			.companyName("삼성전자보통주")
-			.tickerSymbol("005930")
-			.companyNameEng("SamsungElectronics")
-			.stockCode("KR7005930003")
-			.sector("전기전자")
-			.market(Market.KOSPI)
-			.build();
+	protected Stock createSamsungStock() {
+		return Stock.of("005930", "삼성전자보통주", "SamsungElectronics", "KR7005930003", "전기전자", Market.KOSPI);
 	}
 
 	protected Portfolio createPortfolio(Member member) {
-		return Portfolio.builder()
-			.id(1L)
-			.name("내꿈은 워렌버핏")
-			.securitiesFirm("토스")
-			.budget(Money.won(1000000L))
-			.targetGain(Money.won(1500000L))
-			.maximumLoss(Money.won(900000L))
-			.targetGainIsActive(true)
-			.maximumLossIsActive(true)
-			.member(member)
-			.build();
+		return Portfolio.active(
+			1L,
+			"내꿈은 워렌버핏",
+			"토스증권",
+			Money.won(1000000L),
+			Money.won(1500000L),
+			Money.won(900000L),
+			member
+		);
 	}
 
 	protected PortfolioHolding createPortfolioHolding(Portfolio portfolio, Stock stock) {
-		return PortfolioHolding.builder()
-			.id(1L)
-			.portfolio(portfolio)
-			.stock(stock)
-			.currentPrice(Money.won(60000L))
-			.createAt(LocalDateTime.now())
-			.build();
+		return PortfolioHolding.of(1L, portfolio, stock, Money.won(60000L));
 	}
 
 	protected PurchaseHistory createPurchaseHistory(PortfolioHolding portfolioHolding, LocalDateTime purchaseDate) {
-		return PurchaseHistory.builder()
-			.id(1L)
-			.purchaseDate(purchaseDate)
-			.numShares(Count.from(3L))
-			.purchasePricePerShare(Money.won(50000.0))
-			.memo("첫구매")
-			.portfolioHolding(portfolioHolding)
-			.build();
+		return PurchaseHistory.create(1L, purchaseDate, Count.from(3L), Money.won(50000), "첫구매", portfolioHolding);
 	}
 
-	protected PortfolioGainHistory createEmptyPortfolioGainHistory() {
-		return PortfolioGainHistory.empty();
-	}
-
-	protected StockDividend createStockDividend(LocalDate exDividendDate, LocalDate recordDate, LocalDate paymentDate,
-		Stock stock) {
-		return StockDividend.builder()
-			.dividend(Money.won(361L))
-			.exDividendDate(exDividendDate)
-			.recordDate(recordDate)
-			.paymentDate(paymentDate)
-			.stock(stock)
-			.build();
+	protected PortfolioGainHistory createEmptyPortfolioGainHistory(Portfolio portfolio) {
+		return PortfolioGainHistory.empty(portfolio);
 	}
 
 	protected List<StockDividend> createStockDividendWith(Stock stock) {
 		return List.of(
 			createStockDividend(
-				LocalDate.of(2022, 3, 30),
-				LocalDate.of(2022, 3, 31),
+				LocalDate.of(2022, 3, 31), LocalDate.of(2022, 3, 30),
 				LocalDate.of(2022, 5, 17),
 				stock
 			),
 			createStockDividend(
-				LocalDate.of(2022, 6, 29),
-				LocalDate.of(2022, 6, 30),
+				LocalDate.of(2022, 6, 30), LocalDate.of(2022, 6, 29),
 				LocalDate.of(2022, 8, 16),
 				stock
 			),
 			createStockDividend(
-				LocalDate.of(2022, 9, 29),
-				LocalDate.of(2022, 9, 30),
+				LocalDate.of(2022, 9, 30), LocalDate.of(2022, 9, 29),
 				LocalDate.of(2022, 11, 15),
 				stock
 			),
 			createStockDividend(
-				LocalDate.of(2022, 12, 30),
-				LocalDate.of(2022, 12, 31),
+				LocalDate.of(2022, 12, 31), LocalDate.of(2022, 12, 30),
 				LocalDate.of(2023, 4, 14),
 				stock),
 			createStockDividend(
-				LocalDate.of(2023, 3, 30),
-				LocalDate.of(2023, 3, 31),
+				LocalDate.of(2023, 3, 31), LocalDate.of(2023, 3, 30),
 				LocalDate.of(2023, 5, 17),
 				stock),
 			createStockDividend(
-				LocalDate.of(2023, 6, 29),
-				LocalDate.of(2023, 6, 30),
+				LocalDate.of(2023, 6, 30), LocalDate.of(2023, 6, 29),
 				LocalDate.of(2023, 8, 16),
 				stock),
 			createStockDividend(
-				LocalDate.of(2023, 9, 27),
-				LocalDate.of(2023, 9, 30),
+				LocalDate.of(2023, 9, 30), LocalDate.of(2023, 9, 27),
 				LocalDate.of(2023, 11, 20),
 				stock),
 			createStockDividend(
-				LocalDate.of(2024, 3, 30),
-				LocalDate.of(2024, 3, 31),
+				LocalDate.of(2024, 3, 31), LocalDate.of(2024, 3, 30),
 				LocalDate.of(2024, 5, 17),
 				stock)
 		);
 	}
 
+	protected StockDividend createStockDividend(LocalDate recordDate, LocalDate exDividendDate, LocalDate paymentDate,
+		Stock stock) {
+		return StockDividend.create(Money.won(361), recordDate, exDividendDate, paymentDate, stock);
+	}
+
 	protected Notification createPortfolioNotification(PortfolioNotifyMessage message, Member member) {
-		return PortfolioNotification.builder()
-			.id(1L)
-			.isRead(false)
-			.type(message.getType())
-			.title(message.getTitle())
-			.referenceId(message.getReferenceId())
-			.link(message.getLink())
-			.name(message.getName())
-			.member(member)
-			.build();
+		return PortfolioNotification.newNotification(1L, message.getTitle(), message.getType(),
+			message.getReferenceId(), message.getLink(), message.getName(), member);
 	}
 
 	protected Notification createStockNotification(StockNotifyMessage message, Member member) {
-		return StockTargetPriceNotification.builder()
-			.id(1L)
-			.isRead(false)
-			.type(message.getType())
-			.title(message.getTitle())
-			.referenceId(message.getReferenceId())
-			.link(message.getLink())
-			.stockName(message.getStockName())
-			.targetPrice(message.getTargetPrice())
-			.targetPriceNotificationId(message.getTargetPriceNotificationId())
-			.member(member)
-			.build();
+		return StockTargetPriceNotification.newNotification(
+			1L,
+			message.getStockName(),
+			message.getTargetPrice(),
+			message.getTitle(),
+			message.getReferenceId(),
+			message.getLink(),
+			message.getTargetPriceNotificationId(),
+			member);
 	}
 
 	protected StockTargetPrice createStockTargetPrice(Member member, Stock stock) {
-		return StockTargetPrice.builder()
-			.id(1L)
-			.isActive(true)
-			.member(member)
-			.stock(stock)
-			.build();
+		return StockTargetPrice.newStockTargetPriceWithActive(1L, member, stock);
 	}
 
 	protected TargetPriceNotification createTargetPriceNotification(StockTargetPrice stockTargetPrice) {
-		return TargetPriceNotification.builder()
-			.id(1L)
-			.targetPrice(Money.won(60000L))
-			.stockTargetPrice(stockTargetPrice)
-			.build();
+		return TargetPriceNotification.newTargetPriceNotification(1L, Money.won(60000), stockTargetPrice);
 	}
 
 	protected PortfolioNotification createPortfolioTargetGainNotification(Portfolio portfolio, Member member) {
 		NotifyMessage message = portfolio.getTargetGainMessage("token");
-		return PortfolioNotification.builder()
-			.id(1L)
-			.name(portfolio.getName())
-			.title(message.getTitle())
-			.isRead(false)
-			.type(message.getType())
-			.referenceId(message.getReferenceId())
-			.link(message.getLink())
-			.createAt(LocalDateTime.of(2024, 1, 24, 10, 10, 10))
-			.member(member)
-			.build();
+		return PortfolioNotification.newNotification(1L, message.getTitle(), message.getType(),
+			message.getReferenceId(), message.getLink(), portfolio.getName(), member);
 	}
 
 	protected StockTargetPriceNotification createStockTargetPriceNotification(
 		TargetPriceNotification targetPriceNotification, Member member) {
 		StockNotifyMessage message = (StockNotifyMessage)targetPriceNotification.getTargetPriceMessage("token");
-		return StockTargetPriceNotification.builder()
-			.id(1L)
-			.stockName(message.getStockName())
-			.targetPrice(message.getTargetPrice())
-			.targetPriceNotificationId(message.getTargetPriceNotificationId())
-			.title(message.getTitle())
-			.isRead(false)
-			.type(message.getType())
-			.referenceId(message.getReferenceId())
-			.link(message.getLink())
-			.createAt(LocalDateTime.of(2024, 1, 24, 10, 10, 10))
-			.member(member)
-			.build();
+		return StockTargetPriceNotification.newNotification(
+			1L,
+			message.getStockName(),
+			message.getTargetPrice(),
+			message.getTitle(),
+			message.getReferenceId(),
+			message.getLink(),
+			message.getTargetPriceNotificationId(),
+			member
+		);
 	}
 
 	protected WatchList createWatchList(Member member) {
-		return WatchList.builder()
-			.id(1L)
-			.name("my watchlist 1")
-			.member(member)
-			.createAt(LocalDateTime.now())
-			.member(member)
-			.build();
+		return WatchList.newWatchList(1L, "my watchlist 1", member);
 	}
 
 	protected MultipartFile createMockMultipartFile() {
 		ClassPathResource classPathResource = new ClassPathResource("profile.jpeg");
-		Path path = null;
 		try {
-			path = Paths.get(classPathResource.getURI());
+			Path path = Paths.get(classPathResource.getURI());
 			byte[] profile = Files.readAllBytes(path);
 			return new MockMultipartFile("profileImageFile", "profile.jpeg", "image/jpeg",
 				profile);

@@ -33,7 +33,6 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Transient;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
@@ -66,8 +65,7 @@ public class PortfolioHolding extends BaseEntity {
 		this.purchaseHistory = new ArrayList<>();
 	}
 
-	@Builder
-	public PortfolioHolding(LocalDateTime createAt, LocalDateTime modifiedAt, Long id,
+	private PortfolioHolding(LocalDateTime createAt, LocalDateTime modifiedAt, Long id,
 		Portfolio portfolio, Stock stock, Money currentPrice) {
 		super(createAt, modifiedAt);
 		this.id = id;
@@ -80,12 +78,16 @@ public class PortfolioHolding extends BaseEntity {
 		return of(portfolio, stock, Money.zero());
 	}
 
+	public static PortfolioHolding of(Portfolio portfolio, Stock stock) {
+		return of(portfolio, stock, null);
+	}
+
 	public static PortfolioHolding of(Portfolio portfolio, Stock stock, Money currentPrice) {
-		return PortfolioHolding.builder()
-			.currentPrice(currentPrice)
-			.portfolio(portfolio)
-			.stock(stock)
-			.build();
+		return of(null, portfolio, stock, currentPrice);
+	}
+
+	public static PortfolioHolding of(Long id, Portfolio portfolio, Stock stock, Money currentPrice) {
+		return new PortfolioHolding(LocalDateTime.now(), null, id, portfolio, stock, currentPrice);
 	}
 
 	//== 연관관계 메소드 ==//

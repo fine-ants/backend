@@ -21,7 +21,6 @@ import codesquad.fineants.domain.dividend.repository.StockDividendRepository;
 import codesquad.fineants.domain.kis.domain.dto.response.KisDividend;
 import codesquad.fineants.domain.kis.repository.KisAccessTokenRepository;
 import codesquad.fineants.domain.kis.service.KisService;
-import codesquad.fineants.domain.stock.domain.entity.Market;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
 import codesquad.fineants.infra.s3.dto.Dividend;
@@ -63,7 +62,7 @@ class StockDividendServiceTest extends AbstractContainerBaseTest {
 	@Test
 	void initializeStockDividend() {
 		// given
-		stockRepository.save(createStock());
+		stockRepository.save(this.createSamsungStock());
 		// when
 		stockDividendService.initializeStockDividend();
 		// then
@@ -173,51 +172,6 @@ class StockDividendServiceTest extends AbstractContainerBaseTest {
 			.hasSize(6);
 	}
 
-	private Stock createSamsungStock() {
-		return createStock(
-			"삼성전자보통주",
-			"005930",
-			"SamsungElectronics",
-			"KR7005930003",
-			"전기전자",
-			Market.KOSPI
-		);
-	}
-
-	private Stock createKakaoStock() {
-		return createStock(
-			"카카오보통주",
-			"035720",
-			"Kakao",
-			"KR7035720002",
-			"서비스업",
-			Market.KOSPI
-		);
-	}
-
-	private Stock createStock() {
-		return Stock.builder()
-			.companyName("삼성전자보통주")
-			.tickerSymbol("005930")
-			.companyNameEng("SamsungElectronics")
-			.stockCode("KR7005930003")
-			.sector("전기전자")
-			.market(Market.KOSPI)
-			.build();
-	}
-
-	private Stock createStock(String companyName, String tickerSymbol, String companyNameEng, String stockCode,
-		String sector, Market market) {
-		return Stock.builder()
-			.companyName(companyName)
-			.tickerSymbol(tickerSymbol)
-			.companyNameEng(companyNameEng)
-			.stockCode(stockCode)
-			.sector(sector)
-			.market(market)
-			.build();
-	}
-
 	private List<StockDividend> createSamsungDividends(Stock stock) {
 		return List.of(
 			createStockDividend(
@@ -297,17 +251,5 @@ class StockDividendServiceTest extends AbstractContainerBaseTest {
 				stock
 			)
 		);
-	}
-
-	private StockDividend createStockDividend(Money dividend, LocalDate recordDate, LocalDate exDividendDate,
-		LocalDate paymentDate,
-		Stock stock) {
-		return StockDividend.builder()
-			.dividend(dividend)
-			.exDividendDate(exDividendDate)
-			.recordDate(recordDate)
-			.paymentDate(paymentDate)
-			.stock(stock)
-			.build();
 	}
 }

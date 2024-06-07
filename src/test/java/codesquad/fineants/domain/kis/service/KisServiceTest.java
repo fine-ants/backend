@@ -18,7 +18,6 @@ import org.springframework.security.test.context.support.WithMockUser;
 
 import codesquad.fineants.AbstractContainerBaseTest;
 import codesquad.fineants.domain.dividend.repository.StockDividendRepository;
-import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
 import codesquad.fineants.domain.holding.repository.PortfolioHoldingRepository;
 import codesquad.fineants.domain.kis.client.KisClient;
 import codesquad.fineants.domain.kis.client.KisCurrentPrice;
@@ -29,7 +28,6 @@ import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.repository.PortfolioRepository;
-import codesquad.fineants.domain.stock.domain.entity.Market;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
 import codesquad.fineants.global.errors.exception.KisException;
@@ -184,35 +182,5 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		kisService.refreshCurrentPrice();
 		// then
 		verify(holidayRepository, times(1)).isHoliday(any(LocalDate.class));
-	}
-
-	private Stock createSamsungStock() {
-		return createStock(
-			"삼성전자보통주",
-			"005930",
-			"SamsungElectronics",
-			"KR7005930003",
-			"전기전자",
-			Market.KOSPI
-		);
-	}
-
-	private Stock createStock(String companyName, String tickerSymbol, String companyNameEng, String stockCode,
-		String sector, Market market) {
-		return Stock.builder()
-			.companyName(companyName)
-			.tickerSymbol(tickerSymbol)
-			.companyNameEng(companyNameEng)
-			.stockCode(stockCode)
-			.sector(sector)
-			.market(market)
-			.build();
-	}
-
-	private PortfolioHolding createPortfolioHolding(Portfolio portfolio, Stock stock) {
-		return PortfolioHolding.builder()
-			.portfolio(portfolio)
-			.stock(stock)
-			.build();
 	}
 }

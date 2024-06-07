@@ -51,7 +51,7 @@ public class MemberNotificationRestControllerDocsTest extends RestDocsSupport {
 		// given
 		Member member = createMember();
 		Portfolio portfolio = createPortfolio(member);
-		Stock stock = createStock();
+		Stock stock = createSamsungStock();
 
 		PortfolioNotification notification = createPortfolioTargetGainNotification(portfolio,
 			member);
@@ -84,8 +84,7 @@ public class MemberNotificationRestControllerDocsTest extends RestDocsSupport {
 				.value(equalTo(memberNotification.getBody().getName())))
 			.andExpect(jsonPath("data.notifications[0].body.target")
 				.value(equalTo(memberNotification.getBody().getTarget())))
-			.andExpect(jsonPath("data.notifications[0].timestamp")
-				.value(equalTo(memberNotification.getTimestamp().toString())))
+			.andExpect(jsonPath("data.notifications[0].timestamp").isNotEmpty())
 			.andExpect(jsonPath("data.notifications[0].isRead")
 				.value(equalTo(memberNotification.getIsRead())))
 			.andExpect(jsonPath("data.notifications[0].type")

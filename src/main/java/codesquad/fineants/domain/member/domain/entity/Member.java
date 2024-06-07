@@ -22,7 +22,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -46,8 +45,7 @@ public class Member extends BaseEntity {
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "member", orphanRemoval = true, cascade = CascadeType.ALL)
 	private Set<MemberRole> roles;
 
-	@Builder
-	public Member(LocalDateTime createAt, LocalDateTime modifiedAt, Long id, String email,
+	private Member(LocalDateTime createAt, LocalDateTime modifiedAt, Long id, String email,
 		String nickname, String provider, String password, String profileUrl,
 		NotificationPreference notificationPreference,
 		Set<MemberRole> roles) {
@@ -64,23 +62,21 @@ public class Member extends BaseEntity {
 
 	public static Member oauthMember(String email, String nickname, String provider,
 		String profileUrl) {
-		return Member.builder()
-			.email(email)
-			.nickname(nickname)
-			.provider(provider)
-			.profileUrl(profileUrl)
-			.roles(new HashSet<>())
-			.build();
+		return new Member(LocalDateTime.now(), null, null, email, nickname, provider, null, profileUrl, null,
+			new HashSet<>());
 	}
 
 	public static Member localMember(String email, String nickname, String password) {
-		return Member.builder()
-			.email(email)
-			.nickname(nickname)
-			.provider("local")
-			.password(password)
-			.profileUrl(null)
-			.build();
+		return localMember(email, nickname, password, null);
+	}
+
+	public static Member localMember(String email, String nickname, String password, String profileUrl) {
+		return localMember(null, email, nickname, password, profileUrl);
+	}
+
+	public static Member localMember(Long id, String email, String nickname, String password, String profileUrl) {
+		return new Member(LocalDateTime.now(), null, id, email, nickname, "local", password, profileUrl, null,
+			new HashSet<>());
 	}
 
 	public void addMemberRole(MemberRole memberRole) {

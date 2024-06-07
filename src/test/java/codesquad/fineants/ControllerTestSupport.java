@@ -4,6 +4,8 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Set;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -19,6 +21,16 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import codesquad.fineants.domain.common.count.Count;
+import codesquad.fineants.domain.common.money.Money;
+import codesquad.fineants.domain.dividend.domain.entity.StockDividend;
+import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
+import codesquad.fineants.domain.member.domain.entity.Member;
+import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
+import codesquad.fineants.domain.portfolio_gain_history.domain.entity.PortfolioGainHistory;
+import codesquad.fineants.domain.purchasehistory.domain.entity.PurchaseHistory;
+import codesquad.fineants.domain.stock.domain.entity.Market;
+import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.global.config.JacksonConfig;
 import codesquad.fineants.global.config.JpaAuditingConfiguration;
 import codesquad.fineants.global.config.SpringConfig;
@@ -66,6 +78,81 @@ public abstract class ControllerTestSupport {
 			"profileUrl",
 			Set.of("ROLE_USER")
 		);
+	}
+
+	protected static Member createMember() {
+		return Member.localMember(
+			1L,
+			"dragonbead95@naver.com",
+			"nemo1234",
+			"nemo1234@",
+			"profileUrl"
+		);
+	}
+
+	protected Portfolio createPortfolio(Member member) {
+		return createPortfolio(
+			member,
+			Money.won(1000000)
+		);
+	}
+
+	protected Portfolio createPortfolio(Member member, Money budget) {
+		return createPortfolio(
+			member,
+			"내꿈은 워렌버핏",
+			budget,
+			Money.won(1500000L),
+			Money.won(900000L)
+		);
+	}
+
+	protected Portfolio createPortfolio(Member member, String name, Money budget, Money targetGain, Money maximumLoss) {
+		return createPortfolio(1L, member, name, budget, targetGain, maximumLoss);
+	}
+
+	protected Portfolio createPortfolio(Long id, Member member, String name, Money budget, Money targetGain,
+		Money maximumLoss) {
+		return Portfolio.active(
+			id,
+			name,
+			"토스증권",
+			budget,
+			targetGain,
+			maximumLoss,
+			member
+		);
+	}
+
+	protected PortfolioHolding createPortfolioHolding(Portfolio portfolio, Stock stock) {
+		return PortfolioHolding.of(1L, portfolio, stock, null);
+	}
+
+	protected PortfolioHolding createPortfolioHolding(Portfolio portfolio, Stock stock, Money currentPrice) {
+		return PortfolioHolding.of(1L, portfolio, stock, currentPrice);
+	}
+
+	protected Stock createSamsungStock() {
+		return Stock.of("005930", "삼성전자보통주", "SamsungElectronics", "KR7005930003", "전기전자", Market.KOSPI);
+	}
+
+	protected StockDividend createStockDividend(LocalDate recordDate, LocalDate exDividendDate, LocalDate paymentDate,
+		Stock stock) {
+		return StockDividend.create(Money.won(361), recordDate, exDividendDate, paymentDate, stock);
+	}
+
+	protected StockDividend createStockDividend(Money dividend, LocalDate recordDate, LocalDate exDividendDate,
+		LocalDate paymentDate, Stock stock) {
+		return StockDividend.create(dividend, recordDate, exDividendDate, paymentDate, stock);
+	}
+
+	protected PurchaseHistory createPurchaseHistory(Long id, LocalDateTime purchaseDate, Count count,
+		Money purchasePricePerShare, String memo, PortfolioHolding portfolioHolding) {
+		return PurchaseHistory.create(id, purchaseDate, count, purchasePricePerShare, memo, portfolioHolding);
+	}
+
+	protected PortfolioGainHistory createEmptyPortfolioGainHistory(Portfolio portfolio) {
+		return PortfolioGainHistory.empty(portfolio);
 	}
 
 	protected abstract Object initController();

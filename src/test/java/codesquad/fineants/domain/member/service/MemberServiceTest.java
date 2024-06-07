@@ -53,17 +53,13 @@ import codesquad.fineants.domain.notificationpreference.repository.NotificationP
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.repository.PortfolioRepository;
 import codesquad.fineants.domain.portfolio_gain_history.repository.PortfolioGainHistoryRepository;
-import codesquad.fineants.domain.purchasehistory.domain.entity.PurchaseHistory;
 import codesquad.fineants.domain.purchasehistory.repository.PurchaseHistoryRepository;
-import codesquad.fineants.domain.stock.domain.entity.Market;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
 import codesquad.fineants.domain.stock_target_price.domain.entity.StockTargetPrice;
-import codesquad.fineants.domain.stock_target_price.domain.entity.TargetPriceNotification;
 import codesquad.fineants.domain.stock_target_price.repository.StockTargetPriceRepository;
 import codesquad.fineants.domain.stock_target_price.repository.TargetPriceNotificationRepository;
 import codesquad.fineants.domain.watchlist.domain.entity.WatchList;
-import codesquad.fineants.domain.watchlist.domain.entity.WatchStock;
 import codesquad.fineants.domain.watchlist.repository.WatchListRepository;
 import codesquad.fineants.domain.watchlist.repository.WatchStockRepository;
 import codesquad.fineants.global.errors.errorcode.MemberErrorCode;
@@ -581,11 +577,17 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 		// given
 		Member member = memberRepository.save(createMember());
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
-		Stock stock = stockRepository.save(createStock());
+		Stock stock = stockRepository.save(createSamsungStock());
 		stockDividendRepository.saveAll(createStockDividendWith(stock));
 		PortfolioHolding portfolioHolding = portfolioHoldingRepository.save(createPortfolioHolding(portfolio, stock));
-		purchaseHistoryRepository.save(createPurchaseHistory(portfolioHolding));
-		preferenceRepository.save(createNotificationPreference(member));
+
+		LocalDateTime purchaseDate = LocalDateTime.of(2023, 9, 26, 9, 30, 0);
+		Count numShares = Count.from(3);
+		Money purchasePricePerShare = Money.won(50000);
+		String memo = "첫구매";
+		purchaseHistoryRepository.save(
+			createPurchaseHistory(null, purchaseDate, numShares, purchasePricePerShare, memo, portfolioHolding));
+		preferenceRepository.save(createAllActiveNotificationPreference(member));
 		StockTargetPrice stockTargetPrice = stockTargetPriceRepository.save(createStockTargetPrice(member, stock));
 		targetPriceNotificationRepository.save(createTargetPriceNotification(stockTargetPrice));
 		WatchList watchList = watchListRepository.save(createWatchList(member));
@@ -628,121 +630,36 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 		);
 	}
 
-	private Stock createStock() {
-		return Stock.builder()
-			.companyName("삼성전자보통주")
-			.tickerSymbol("005930")
-			.companyNameEng("SamsungElectronics")
-			.stockCode("KR7005930003")
-			.sector("전기전자")
-			.market(Market.KOSPI)
-			.build();
-	}
-
-	private StockDividend createStockDividend(LocalDate exDividendDate, LocalDate recordDate, LocalDate paymentDate,
-		Stock stock) {
-		return StockDividend.builder()
-			.dividend(Money.won(361L))
-			.exDividendDate(exDividendDate)
-			.recordDate(recordDate)
-			.paymentDate(paymentDate)
-			.stock(stock)
-			.build();
-	}
-
-	private PortfolioHolding createPortfolioHolding(Portfolio portfolio, Stock stock) {
-		return PortfolioHolding.builder()
-			.portfolio(portfolio)
-			.stock(stock)
-			.build();
-	}
-
-	private PurchaseHistory createPurchaseHistory(PortfolioHolding portfolioHolding) {
-		return PurchaseHistory.builder()
-			.purchaseDate(LocalDateTime.of(2023, 9, 26, 9, 30, 0))
-			.numShares(Count.from(3L))
-			.purchasePricePerShare(Money.won(50000.0))
-			.memo("첫구매")
-			.portfolioHolding(portfolioHolding)
-			.build();
-	}
-
 	private List<StockDividend> createStockDividendWith(Stock stock) {
 		return List.of(
 			createStockDividend(
-				LocalDate.of(2022, 12, 30),
-				LocalDate.of(2022, 12, 31),
+				LocalDate.of(2022, 12, 31), LocalDate.of(2022, 12, 30),
 				LocalDate.of(2023, 4, 14),
 				stock),
 			createStockDividend(
-				LocalDate.of(2023, 3, 30),
-				LocalDate.of(2023, 3, 31),
+				LocalDate.of(2023, 3, 31), LocalDate.of(2023, 3, 30),
 				LocalDate.of(2023, 5, 17),
 				stock),
 			createStockDividend(
-				LocalDate.of(2023, 6, 29),
-				LocalDate.of(2023, 6, 30),
+				LocalDate.of(2023, 6, 30), LocalDate.of(2023, 6, 29),
 				LocalDate.of(2023, 8, 16),
 				stock),
 			createStockDividend(
-				LocalDate.of(2023, 9, 27),
-				LocalDate.of(2023, 9, 30),
+				LocalDate.of(2023, 9, 30), LocalDate.of(2023, 9, 27),
 				LocalDate.of(2023, 11, 20),
 				stock),
 			createStockDividend(
-				LocalDate.of(2024, 3, 29),
-				LocalDate.of(2024, 3, 31),
+				LocalDate.of(2024, 3, 31), LocalDate.of(2024, 3, 29),
 				LocalDate.of(2024, 5, 17),
 				stock),
 			createStockDividend(
-				LocalDate.of(2024, 6, 28),
-				LocalDate.of(2024, 6, 30),
+				LocalDate.of(2024, 6, 30), LocalDate.of(2024, 6, 28),
 				LocalDate.of(2024, 8, 16),
 				stock),
 			createStockDividend(
-				LocalDate.of(2024, 9, 27),
-				LocalDate.of(2024, 9, 30),
+				LocalDate.of(2024, 9, 30), LocalDate.of(2024, 9, 27),
 				LocalDate.of(2024, 11, 20),
 				stock)
 		);
-	}
-
-	private NotificationPreference createNotificationPreference(Member member) {
-		return NotificationPreference.builder()
-			.browserNotify(true)
-			.targetGainNotify(true)
-			.maxLossNotify(true)
-			.targetPriceNotify(true)
-			.member(member)
-			.build();
-	}
-
-	private StockTargetPrice createStockTargetPrice(Member member, Stock stock) {
-		return StockTargetPrice.builder()
-			.isActive(true)
-			.stock(stock)
-			.member(member)
-			.build();
-	}
-
-	private TargetPriceNotification createTargetPriceNotification(StockTargetPrice stockTargetPrice) {
-		return TargetPriceNotification.builder()
-			.targetPrice(Money.won(60000L))
-			.stockTargetPrice(stockTargetPrice)
-			.build();
-	}
-
-	private WatchList createWatchList(Member member) {
-		return WatchList.builder()
-			.name("관심 종목1")
-			.member(member)
-			.build();
-	}
-
-	private WatchStock createWatchStock(WatchList watchList, Stock stock) {
-		return WatchStock.builder()
-			.stock(stock)
-			.watchList(watchList)
-			.build();
 	}
 }

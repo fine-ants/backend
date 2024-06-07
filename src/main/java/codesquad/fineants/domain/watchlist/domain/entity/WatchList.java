@@ -17,7 +17,6 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -39,8 +38,7 @@ public class WatchList extends BaseEntity {
 	@OneToMany(mappedBy = "watchList", cascade = CascadeType.REMOVE, orphanRemoval = true)
 	private List<WatchStock> watchStocks = new ArrayList<>();
 
-	@Builder
-	public WatchList(LocalDateTime createAt, LocalDateTime modifiedAt, Long id, String name,
+	private WatchList(LocalDateTime createAt, LocalDateTime modifiedAt, Long id, String name,
 		Member member, List<WatchStock> watchStocks) {
 		super(createAt, modifiedAt);
 		this.id = id;
@@ -49,7 +47,15 @@ public class WatchList extends BaseEntity {
 		this.watchStocks = watchStocks;
 	}
 
-	public void change(String name) {
+	public static WatchList newWatchList(String name, Member member) {
+		return newWatchList(null, name, member);
+	}
+
+	public static WatchList newWatchList(Long id, String name, Member member) {
+		return new WatchList(LocalDateTime.now(), null, id, name, member, new ArrayList<>());
+	}
+
+	public void changeName(String name) {
 		this.name = name;
 	}
 }

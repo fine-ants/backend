@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -134,7 +133,7 @@ class FcmServiceTest extends AbstractContainerBaseTest {
 	void registerToken_whenAlreadyFcmToken_thenThrow409Error() {
 		// given
 		Member member = memberRepository.save(createMember());
-		FcmToken token = fcmRepository.save(createFcmToken(member));
+		FcmToken token = fcmRepository.save(createFcmToken("fcmToken", member));
 		FcmRegisterRequest request = FcmRegisterRequest.builder()
 			.fcmToken("fcmToken")
 			.build();
@@ -158,7 +157,7 @@ class FcmServiceTest extends AbstractContainerBaseTest {
 	void deleteToken() {
 		// given
 		Member member = memberRepository.save(createMember());
-		FcmToken fcmToken = fcmRepository.save(createFcmToken(member));
+		FcmToken fcmToken = fcmRepository.save(createFcmToken("fcmToken", member));
 
 		// when
 		FcmDeleteResponse response = fcmService.deleteToken(fcmToken.getId(), member.getId());
@@ -170,13 +169,5 @@ class FcmServiceTest extends AbstractContainerBaseTest {
 				.isEqualTo(fcmToken.getId()),
 			() -> assertThat(fcmRepository.findById(fcmToken.getId()).isEmpty()).isTrue()
 		);
-	}
-
-	private FcmToken createFcmToken(Member member) {
-		return FcmToken.builder()
-			.latestActivationTime(LocalDateTime.now())
-			.token("fcmToken")
-			.member(member)
-			.build();
 	}
 }
