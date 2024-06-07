@@ -141,11 +141,6 @@ public abstract class ControllerTestSupport {
 		return StockDividend.create(Money.won(361), recordDate, exDividendDate, paymentDate, stock);
 	}
 
-	protected StockDividend createStockDividend(Money dividend, LocalDate recordDate, LocalDate exDividendDate,
-		LocalDate paymentDate, Stock stock) {
-		return StockDividend.create(dividend, recordDate, exDividendDate, paymentDate, stock);
-	}
-
 	protected PurchaseHistory createPurchaseHistory(Long id, LocalDateTime purchaseDate, Count count,
 		Money purchasePricePerShare, String memo, PortfolioHolding portfolioHolding) {
 		return PurchaseHistory.create(id, purchaseDate, count, purchasePricePerShare, memo, portfolioHolding);
