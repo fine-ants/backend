@@ -57,7 +57,6 @@ import codesquad.fineants.domain.purchasehistory.repository.PurchaseHistoryRepos
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
 import codesquad.fineants.domain.stock_target_price.domain.entity.StockTargetPrice;
-import codesquad.fineants.domain.stock_target_price.domain.entity.TargetPriceNotification;
 import codesquad.fineants.domain.stock_target_price.repository.StockTargetPriceRepository;
 import codesquad.fineants.domain.stock_target_price.repository.TargetPriceNotificationRepository;
 import codesquad.fineants.domain.watchlist.domain.entity.WatchList;
@@ -662,20 +661,5 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 				LocalDate.of(2024, 11, 20),
 				stock)
 		);
-	}
-
-	private StockTargetPrice createStockTargetPrice(Member member, Stock stock) {
-		return StockTargetPrice.builder()
-			.isActive(true)
-			.stock(stock)
-			.member(member)
-			.build();
-	}
-
-	private TargetPriceNotification createTargetPriceNotification(StockTargetPrice stockTargetPrice) {
-		return TargetPriceNotification.builder()
-			.targetPrice(Money.won(60000L))
-			.stockTargetPrice(stockTargetPrice)
-			.build();
 	}
 }

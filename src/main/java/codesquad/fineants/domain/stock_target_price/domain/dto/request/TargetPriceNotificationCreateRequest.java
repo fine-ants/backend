@@ -24,9 +24,6 @@ public class TargetPriceNotificationCreateRequest {
 	private Money targetPrice;
 
 	public TargetPriceNotification toEntity(StockTargetPrice stockTargetPrice) {
-		return TargetPriceNotification.builder()
-			.targetPrice(targetPrice)
-			.stockTargetPrice(stockTargetPrice)
-			.build();
+		return TargetPriceNotification.newTargetPriceNotification(targetPrice, stockTargetPrice);
 	}
 }

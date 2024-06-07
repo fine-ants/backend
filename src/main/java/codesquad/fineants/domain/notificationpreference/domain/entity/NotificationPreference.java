@@ -1,5 +1,7 @@
 package codesquad.fineants.domain.notificationpreference.domain.entity;
 
+import java.time.LocalDateTime;
+
 import codesquad.fineants.domain.BaseEntity;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import jakarta.persistence.Entity;
@@ -38,6 +40,15 @@ public class NotificationPreference extends BaseEntity {
 
 	NotificationPreference(boolean browserNotify, boolean targetGainNotify, boolean maxLossNotify,
 		boolean targetPriceNotify, Member member) {
+		this(LocalDateTime.now(), null, null, browserNotify, targetGainNotify, maxLossNotify, targetPriceNotify,
+			member);
+	}
+
+	NotificationPreference(LocalDateTime createAt, LocalDateTime modifiedAt, Long id,
+		boolean browserNotify, boolean targetGainNotify, boolean maxLossNotify, boolean targetPriceNotify,
+		Member member) {
+		super(createAt, modifiedAt);
+		this.id = id;
 		this.browserNotify = browserNotify;
 		this.targetGainNotify = targetGainNotify;
 		this.maxLossNotify = maxLossNotify;

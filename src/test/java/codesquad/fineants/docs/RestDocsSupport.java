@@ -183,20 +183,11 @@ public abstract class RestDocsSupport {
 	}
 
 	protected StockTargetPrice createStockTargetPrice(Member member, Stock stock) {
-		return StockTargetPrice.builder()
-			.id(1L)
-			.isActive(true)
-			.member(member)
-			.stock(stock)
-			.build();
+		return StockTargetPrice.newStockTargetPriceWithActive(1L, member, stock);
 	}
 
 	protected TargetPriceNotification createTargetPriceNotification(StockTargetPrice stockTargetPrice) {
-		return TargetPriceNotification.builder()
-			.id(1L)
-			.targetPrice(Money.won(60000L))
-			.stockTargetPrice(stockTargetPrice)
-			.build();
+		return TargetPriceNotification.newTargetPriceNotification(1L, Money.won(60000), stockTargetPrice);
 	}
 
 	protected PortfolioNotification createPortfolioTargetGainNotification(Portfolio portfolio, Member member) {

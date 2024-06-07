@@ -20,7 +20,6 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
@@ -43,13 +42,26 @@ public class TargetPriceNotification extends BaseEntity {
 	@JoinColumn(name = "stock_target_price_id")
 	private StockTargetPrice stockTargetPrice;
 
-	@Builder
-	public TargetPriceNotification(LocalDateTime createAt, LocalDateTime modifiedAt, Long id,
+	private TargetPriceNotification(Money targetPrice, StockTargetPrice stockTargetPrice) {
+		this(LocalDateTime.now(), null, null, targetPrice, stockTargetPrice);
+	}
+
+	private TargetPriceNotification(LocalDateTime createAt, LocalDateTime modifiedAt, Long id,
 		Money targetPrice, StockTargetPrice stockTargetPrice) {
 		super(createAt, modifiedAt);
 		this.id = id;
 		this.targetPrice = targetPrice;
 		this.stockTargetPrice = stockTargetPrice;
+	}
+
+	public static TargetPriceNotification newTargetPriceNotification(Money targetPrice,
+		StockTargetPrice stockTargetPrice) {
+		return newTargetPriceNotification(null, targetPrice, stockTargetPrice);
+	}
+
+	public static TargetPriceNotification newTargetPriceNotification(Long id, Money targetPrice,
+		StockTargetPrice stockTargetPrice) {
+		return new TargetPriceNotification(LocalDateTime.now(), null, id, targetPrice, stockTargetPrice);
 	}
 
 	public boolean isMatchMember(Long memberId) {

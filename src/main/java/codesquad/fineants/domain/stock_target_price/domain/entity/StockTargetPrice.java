@@ -1,6 +1,7 @@
 package codesquad.fineants.domain.stock_target_price.domain.entity;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import codesquad.fineants.domain.BaseEntity;
@@ -19,7 +20,6 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
@@ -50,8 +50,12 @@ public class StockTargetPrice extends BaseEntity {
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "stockTargetPrice")
 	private List<TargetPriceNotification> targetPriceNotifications;
 
-	@Builder
-	public StockTargetPrice(LocalDateTime createAt, LocalDateTime modifiedAt, Long id, Boolean isActive, Member member,
+	private StockTargetPrice(Boolean isActive, Member member, Stock stock,
+		List<TargetPriceNotification> targetPriceNotifications) {
+		this(LocalDateTime.now(), null, null, isActive, member, stock, targetPriceNotifications);
+	}
+
+	private StockTargetPrice(LocalDateTime createAt, LocalDateTime modifiedAt, Long id, Boolean isActive, Member member,
 		Stock stock, List<TargetPriceNotification> targetPriceNotifications) {
 		super(createAt, modifiedAt);
 		this.id = id;
@@ -59,6 +63,14 @@ public class StockTargetPrice extends BaseEntity {
 		this.member = member;
 		this.stock = stock;
 		this.targetPriceNotifications = targetPriceNotifications;
+	}
+
+	public static StockTargetPrice newStockTargetPriceWithActive(Member member, Stock stock) {
+		return newStockTargetPriceWithActive(null, member, stock);
+	}
+
+	public static StockTargetPrice newStockTargetPriceWithActive(Long id, Member member, Stock stock) {
+		return new StockTargetPrice(LocalDateTime.now(), null, id, true, member, stock, new ArrayList<>());
 	}
 
 	public void changeIsActive(Boolean isActive) {

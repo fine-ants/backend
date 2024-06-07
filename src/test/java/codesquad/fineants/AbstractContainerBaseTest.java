@@ -2,6 +2,8 @@ package codesquad.fineants;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
@@ -29,6 +31,8 @@ import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.purchasehistory.domain.entity.PurchaseHistory;
 import codesquad.fineants.domain.stock.domain.entity.Market;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
+import codesquad.fineants.domain.stock_target_price.domain.entity.StockTargetPrice;
+import codesquad.fineants.domain.stock_target_price.domain.entity.TargetPriceNotification;
 import codesquad.fineants.domain.watchlist.domain.entity.WatchList;
 import codesquad.fineants.domain.watchlist.domain.entity.WatchStock;
 import codesquad.fineants.global.init.S3BucketInitializer;
@@ -89,7 +93,6 @@ public class AbstractContainerBaseTest {
 
 	protected Member createMember(String nickname, String email) {
 		return Member.localMember(
-			1L,
 			email,
 			nickname,
 			passwordEncoder.encode("nemo1234@"),
@@ -215,5 +218,21 @@ public class AbstractContainerBaseTest {
 
 	protected WatchStock createWatchStock(WatchList watchList, Stock stock) {
 		return WatchStock.newWatchStock(watchList, stock);
+	}
+
+	protected StockTargetPrice createStockTargetPrice(Member member, Stock stock) {
+		return StockTargetPrice.newStockTargetPriceWithActive(member, stock);
+	}
+
+	protected TargetPriceNotification createTargetPriceNotification(StockTargetPrice stockTargetPrice) {
+		return TargetPriceNotification.newTargetPriceNotification(Money.won(60000L), stockTargetPrice);
+	}
+
+	protected List<TargetPriceNotification> createTargetPriceNotification(StockTargetPrice stockTargetPrice,
+		List<Long> targetPrices) {
+		return targetPrices.stream()
+			.map(targetPrice -> TargetPriceNotification.newTargetPriceNotification(Money.won(targetPrice),
+				stockTargetPrice))
+			.collect(Collectors.toList());
 	}
 }

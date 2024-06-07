@@ -92,16 +92,8 @@ public class StockTargetPriceNotificationService {
 	private StockTargetPrice saveStockTargetPrice(Member member, Stock stock) {
 		StockTargetPrice stockTargetPrice = repository.findByTickerSymbolAndMemberId(stock.getTickerSymbol(),
 				member.getId())
-			.orElseGet(() -> createStockTargetPrice(member, stock));
+			.orElseGet(() -> StockTargetPrice.newStockTargetPriceWithActive(member, stock));
 		return repository.save(stockTargetPrice);
-	}
-
-	private StockTargetPrice createStockTargetPrice(Member member, Stock stock) {
-		return StockTargetPrice.builder()
-			.member(member)
-			.stock(stock)
-			.isActive(true)
-			.build();
 	}
 
 	private void verifyExistTargetPriceNotification(String tickerSymbol, Money targetPrice, Long memberId) {

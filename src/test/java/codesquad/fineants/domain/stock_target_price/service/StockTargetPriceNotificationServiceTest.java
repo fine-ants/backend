@@ -501,29 +501,4 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 			.isInstanceOf(ForBiddenException.class)
 			.hasMessage(StockErrorCode.FORBIDDEN_DELETE_TARGET_PRICE_NOTIFICATION.getMessage());
 	}
-
-	private StockTargetPrice createStockTargetPrice(Member member, Stock stock) {
-		return StockTargetPrice.builder()
-			.member(member)
-			.stock(stock)
-			.isActive(true)
-			.build();
-	}
-
-	private TargetPriceNotification createTargetPriceNotification(StockTargetPrice stockTargetPrice) {
-		return TargetPriceNotification.builder()
-			.targetPrice(Money.won(60000L))
-			.stockTargetPrice(stockTargetPrice)
-			.build();
-	}
-
-	private List<TargetPriceNotification> createTargetPriceNotification(StockTargetPrice stockTargetPrice,
-		List<Long> targetPrices) {
-		return targetPrices.stream()
-			.map(targetPrice -> TargetPriceNotification.builder()
-				.targetPrice(Money.won(targetPrice))
-				.stockTargetPrice(stockTargetPrice)
-				.build())
-			.collect(Collectors.toList());
-	}
 }

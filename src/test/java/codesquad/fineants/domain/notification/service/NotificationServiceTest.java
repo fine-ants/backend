@@ -655,22 +655,4 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 			.asList()
 			.hasSize(2);
 	}
-
-	private StockTargetPrice createStockTargetPrice(Member member, Stock stock) {
-		return StockTargetPrice.builder()
-			.member(member)
-			.stock(stock)
-			.isActive(true)
-			.build();
-	}
-
-	private List<TargetPriceNotification> createTargetPriceNotification(StockTargetPrice stockTargetPrice,
-		List<Long> targetPrices) {
-		return targetPrices.stream()
-			.map(targetPrice -> TargetPriceNotification.builder()
-				.targetPrice(Money.won(targetPrice))
-				.stockTargetPrice(stockTargetPrice)
-				.build())
-			.collect(Collectors.toList());
-	}
 }
