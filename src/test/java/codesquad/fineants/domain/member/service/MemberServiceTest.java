@@ -9,9 +9,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -31,7 +29,6 @@ import org.springframework.web.multipart.MultipartFile;
 import codesquad.fineants.AbstractContainerBaseTest;
 import codesquad.fineants.domain.common.count.Count;
 import codesquad.fineants.domain.common.money.Money;
-import codesquad.fineants.domain.dividend.domain.entity.StockDividend;
 import codesquad.fineants.domain.dividend.repository.StockDividendRepository;
 import codesquad.fineants.domain.fcm.repository.FcmRepository;
 import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
@@ -627,39 +624,6 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 		MultipartFile profileImageFile = createProfileFile();
 		return Stream.of(
 			Arguments.of(request, profileImageFile, "profileUrl")
-		);
-	}
-
-	private List<StockDividend> createStockDividendWith(Stock stock) {
-		return List.of(
-			createStockDividend(
-				LocalDate.of(2022, 12, 31), LocalDate.of(2022, 12, 30),
-				LocalDate.of(2023, 4, 14),
-				stock),
-			createStockDividend(
-				LocalDate.of(2023, 3, 31), LocalDate.of(2023, 3, 30),
-				LocalDate.of(2023, 5, 17),
-				stock),
-			createStockDividend(
-				LocalDate.of(2023, 6, 30), LocalDate.of(2023, 6, 29),
-				LocalDate.of(2023, 8, 16),
-				stock),
-			createStockDividend(
-				LocalDate.of(2023, 9, 30), LocalDate.of(2023, 9, 27),
-				LocalDate.of(2023, 11, 20),
-				stock),
-			createStockDividend(
-				LocalDate.of(2024, 3, 31), LocalDate.of(2024, 3, 29),
-				LocalDate.of(2024, 5, 17),
-				stock),
-			createStockDividend(
-				LocalDate.of(2024, 6, 30), LocalDate.of(2024, 6, 28),
-				LocalDate.of(2024, 8, 16),
-				stock),
-			createStockDividend(
-				LocalDate.of(2024, 9, 30), LocalDate.of(2024, 9, 27),
-				LocalDate.of(2024, 11, 20),
-				stock)
 		);
 	}
 }

@@ -145,7 +145,7 @@ public abstract class ControllerTestSupport {
 		LocalDate paymentDate, Stock stock) {
 		return StockDividend.create(dividend, recordDate, exDividendDate, paymentDate, stock);
 	}
-
+  
 	protected PurchaseHistory createPurchaseHistory(Long id, LocalDateTime purchaseDate, Count count,
 		Money purchasePricePerShare, String memo, PortfolioHolding portfolioHolding) {
 		return PurchaseHistory.create(id, purchaseDate, count, purchasePricePerShare, memo, portfolioHolding);

@@ -685,37 +685,4 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		assertThat(portFolioHoldingRepository.findById(portfolioHolding2.getId()).isPresent()).isTrue();
 		assertThat(purchaseHistoryRepository.findById(purchaseHistory.getId()).isPresent()).isTrue();
 	}
-
-	private List<StockDividend> createStockDividendWith(Stock stock) {
-		return List.of(
-			createStockDividend(
-				LocalDate.of(2022, 12, 31), LocalDate.of(2022, 12, 30),
-				LocalDate.of(2023, 4, 14),
-				stock),
-			createStockDividend(
-				LocalDate.of(2023, 3, 31), LocalDate.of(2023, 3, 30),
-				LocalDate.of(2023, 5, 17),
-				stock),
-			createStockDividend(
-				LocalDate.of(2023, 6, 30), LocalDate.of(2023, 6, 29),
-				LocalDate.of(2023, 8, 16),
-				stock),
-			createStockDividend(
-				LocalDate.of(2023, 9, 30), LocalDate.of(2023, 9, 27),
-				LocalDate.of(2023, 11, 20),
-				stock),
-			createStockDividend(
-				LocalDate.of(2024, 3, 31), LocalDate.of(2024, 3, 29),
-				LocalDate.of(2024, 5, 17),
-				stock),
-			createStockDividend(
-				LocalDate.of(2024, 6, 30), LocalDate.of(2024, 6, 28),
-				LocalDate.of(2024, 8, 16),
-				stock),
-			createStockDividend(
-				LocalDate.of(2024, 9, 30), LocalDate.of(2024, 9, 27),
-				LocalDate.of(2024, 11, 20),
-				stock)
-		);
-	}
 }
