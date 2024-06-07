@@ -61,7 +61,6 @@ import codesquad.fineants.domain.stock_target_price.domain.entity.TargetPriceNot
 import codesquad.fineants.domain.stock_target_price.repository.StockTargetPriceRepository;
 import codesquad.fineants.domain.stock_target_price.repository.TargetPriceNotificationRepository;
 import codesquad.fineants.domain.watchlist.domain.entity.WatchList;
-import codesquad.fineants.domain.watchlist.domain.entity.WatchStock;
 import codesquad.fineants.domain.watchlist.repository.WatchListRepository;
 import codesquad.fineants.domain.watchlist.repository.WatchStockRepository;
 import codesquad.fineants.global.errors.errorcode.MemberErrorCode;
@@ -677,20 +676,6 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 		return TargetPriceNotification.builder()
 			.targetPrice(Money.won(60000L))
 			.stockTargetPrice(stockTargetPrice)
-			.build();
-	}
-
-	private WatchList createWatchList(Member member) {
-		return WatchList.builder()
-			.name("관심 종목1")
-			.member(member)
-			.build();
-	}
-
-	private WatchStock createWatchStock(WatchList watchList, Stock stock) {
-		return WatchStock.builder()
-			.stock(stock)
-			.watchList(watchList)
 			.build();
 	}
 }

@@ -221,20 +221,13 @@ public abstract class RestDocsSupport {
 	}
 
 	protected WatchList createWatchList(Member member) {
-		return WatchList.builder()
-			.id(1L)
-			.name("my watchlist 1")
-			.member(member)
-			.createAt(LocalDateTime.now())
-			.member(member)
-			.build();
+		return WatchList.newWatchList(1L, "my watchlist 1", member);
 	}
 
 	protected MultipartFile createMockMultipartFile() {
 		ClassPathResource classPathResource = new ClassPathResource("profile.jpeg");
-		Path path = null;
 		try {
-			path = Paths.get(classPathResource.getURI());
+			Path path = Paths.get(classPathResource.getURI());
 			byte[] profile = Files.readAllBytes(path);
 			return new MockMultipartFile("profileImageFile", "profile.jpeg", "image/jpeg",
 				profile);

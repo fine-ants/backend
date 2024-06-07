@@ -49,10 +49,7 @@ public class WatchListService {
 	@Secured("ROLE_USER")
 	public CreateWatchListResponse createWatchList(Long memberId, CreateWatchListRequest request) {
 		Member member = findMember(memberId);
-		WatchList watchList = WatchList.builder()
-			.member(member)
-			.name(request.getName())
-			.build();
+		WatchList watchList = WatchList.newWatchList(request.getName(), member);
 		watchList = watchListRepository.save(watchList);
 		return CreateWatchListResponse.create(watchList.getId());
 	}
@@ -110,10 +107,7 @@ public class WatchListService {
 		request.getTickerSymbols().stream()
 			.map(tickerSymbol -> stockRepository.findByTickerSymbol(tickerSymbol)
 				.orElseThrow(() -> new NotFoundResourceException(StockErrorCode.NOT_FOUND_STOCK)))
-			.map(stock -> WatchStock.builder()
-				.watchList(watchList)
-				.stock(stock)
-				.build())
+			.map(stock -> WatchStock.newWatchStock(watchList, stock))
 			.forEach(watchStockRepository::save);
 
 		request.getTickerSymbols()
@@ -158,7 +152,7 @@ public class WatchListService {
 			.orElseThrow(() -> new NotFoundResourceException(WatchListErrorCode.NOT_FOUND_WATCH_LIST));
 		validateWatchListAuthorization(member.getId(), watchList.getMember().getId());
 
-		watchList.change(request.getName());
+		watchList.changeName(request.getName());
 	}
 
 	@Transactional(readOnly = true)

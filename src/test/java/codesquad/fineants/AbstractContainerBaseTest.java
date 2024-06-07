@@ -26,10 +26,11 @@ import codesquad.fineants.domain.kis.client.KisAccessToken;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.notificationpreference.domain.entity.NotificationPreference;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
-import codesquad.fineants.domain.portfolio_gain_history.domain.entity.PortfolioGainHistory;
 import codesquad.fineants.domain.purchasehistory.domain.entity.PurchaseHistory;
 import codesquad.fineants.domain.stock.domain.entity.Market;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
+import codesquad.fineants.domain.watchlist.domain.entity.WatchList;
+import codesquad.fineants.domain.watchlist.domain.entity.WatchStock;
 import codesquad.fineants.global.init.S3BucketInitializer;
 import lombok.extern.slf4j.Slf4j;
 
@@ -168,14 +169,13 @@ public class AbstractContainerBaseTest {
 			"카카오보통주",
 			"Kakao",
 			"KR7035720002",
-			"서비스업",
-			Market.KOSPI
+			"서비스업"
 		);
 	}
 
 	protected Stock createStock(String tickerSymbol, String companyName, String companyNameEng, String stockCode,
-		String sector, Market market) {
-		return Stock.of(tickerSymbol, companyName, companyNameEng, stockCode, sector, market);
+		String sector) {
+		return Stock.of(tickerSymbol, companyName, companyNameEng, stockCode, sector, Market.KOSPI);
 	}
 
 	protected PortfolioHolding createPortfolioHolding(Portfolio portfolio, Stock stock) {
@@ -205,8 +205,15 @@ public class AbstractContainerBaseTest {
 		return FcmToken.create(member, token);
 	}
 
-	protected PortfolioGainHistory createPortfolioGainHistory(Money totalGain, Money dailyGain, Money cash,
-		Money currentValuation, Portfolio portfolio) {
-		return PortfolioGainHistory.create(totalGain, dailyGain, cash, currentValuation, portfolio);
+	protected WatchList createWatchList(Member member) {
+		return createWatchList("관심 종목1", member);
+	}
+
+	protected WatchList createWatchList(String name, Member member) {
+		return WatchList.newWatchList(name, member);
+	}
+
+	protected WatchStock createWatchStock(WatchList watchList, Stock stock) {
+		return WatchStock.newWatchStock(watchList, stock);
 	}
 }

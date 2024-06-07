@@ -97,18 +97,8 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 	void readWatchLists() {
 		//given
 		Member member = memberRepository.save(createMember());
-		watchListRepository.save(
-			WatchList.builder()
-				.name("My WatchList 1")
-				.member(member)
-				.build()
-		);
-		watchListRepository.save(
-			WatchList.builder()
-				.name("My WatchList 2")
-				.member(member)
-				.build()
-		);
+		watchListRepository.save(createWatchList("My WatchList 1", member));
+		watchListRepository.save(createWatchList("My WatchList 2", member));
 
 		//when
 		List<ReadWatchListsResponse> response = watchListService.readWatchLists(member.getId());
@@ -125,18 +115,8 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 		Stock stock = stockRepository.save(createSamsungStock());
 		stockDividendRepository.save(createStockDividend(LocalDate.now(), LocalDate.now(), LocalDate.now(), stock));
 
-		WatchList watchList = watchListRepository.save(
-			WatchList.builder()
-				.name("My WatchList 1")
-				.member(member)
-				.build()
-		);
-		watchStockRepository.save(
-			WatchStock.builder()
-				.stock(stock)
-				.watchList(watchList)
-				.build()
-		);
+		WatchList watchList = watchListRepository.save(createWatchList("My WatchList 1", member));
+		watchStockRepository.save(createWatchStock(watchList, stock));
 
 		currentPriceRepository.addCurrentPrice(KisCurrentPrice.create("005930", 77000L));
 		closingPriceRepository.addPrice(KisClosingPrice.create("005930", 77000L));
@@ -176,10 +156,7 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 		Member member = memberRepository.save(createMember());
 		CreateWatchStockRequest request = new CreateWatchStockRequest(List.of(tickerSymbol));
 
-		WatchList watchList = watchListRepository.save(WatchList.builder()
-			.name("My WatchList")
-			.member(member)
-			.build());
+		WatchList watchList = watchListRepository.save(createWatchList(member));
 		Long watchListId = watchList.getId();
 
 		// when
@@ -220,18 +197,10 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 
 		Member member = memberRepository.save(createMember());
 
-		WatchList watchList = watchListRepository.save(WatchList.builder()
-			.name("My WatchList")
-			.member(member)
-			.build());
+		WatchList watchList = watchListRepository.save(createWatchList(member));
 		Long watchListId = watchList.getId();
 
-		watchStockRepository.save(
-			WatchStock.builder()
-				.watchList(watchList)
-				.stock(stock)
-				.build()
-		);
+		watchStockRepository.save(createWatchStock(watchList, stock));
 
 		// when
 		watchListService.deleteWatchLists(member.getId(), new DeleteWatchListsRequests(List.of(watchListId)));
@@ -249,18 +218,10 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 
 		Member member = memberRepository.save(createMember());
 
-		WatchList watchList = watchListRepository.save(WatchList.builder()
-			.name("My WatchList")
-			.member(member)
-			.build());
+		WatchList watchList = watchListRepository.save(createWatchList(member));
 		Long watchListId = watchList.getId();
 
-		WatchStock watchStock = watchStockRepository.save(
-			WatchStock.builder()
-				.watchList(watchList)
-				.stock(stock)
-				.build()
-		);
+		WatchStock watchStock = watchStockRepository.save(createWatchStock(watchList, stock));
 		Long watchStockId = watchStock.getId();
 
 		DeleteWatchStocksRequest request = new DeleteWatchStocksRequest(
@@ -281,18 +242,10 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 
 		Member member = memberRepository.save(createMember());
 
-		WatchList watchList = watchListRepository.save(WatchList.builder()
-			.name("My WatchList")
-			.member(member)
-			.build());
+		WatchList watchList = watchListRepository.save(createWatchList(member));
 		Long watchListId = watchList.getId();
 
-		WatchStock watchStock = watchStockRepository.save(
-			WatchStock.builder()
-				.watchList(watchList)
-				.stock(stock)
-				.build()
-		);
+		WatchStock watchStock = watchStockRepository.save(createWatchStock(watchList, stock));
 		Long watchStockId = watchStock.getId();
 
 		// when
@@ -308,10 +261,7 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 		// given
 		Member member = memberRepository.save(createMember());
 
-		WatchList watchList = watchListRepository.save(WatchList.builder()
-			.name("My WatchList")
-			.member(member)
-			.build());
+		WatchList watchList = watchListRepository.save(createWatchList(member));
 		Long watchListId = watchList.getId();
 
 		String name = "New Name";
@@ -331,22 +281,10 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 		// given
 		Member member = memberRepository.save(createMember());
 		Stock stock = stockRepository.save(createSamsungStock());
-		WatchList watchList1 = watchListRepository.save(WatchList.builder()
-			.name("My WatchList 1")
-			.member(member)
-			.build());
+		WatchList watchList1 = watchListRepository.save(createWatchList(member));
+		watchStockRepository.save(createWatchStock(watchList1, stock));
 
-		watchStockRepository.save(
-			WatchStock.builder()
-				.watchList(watchList1)
-				.stock(stock)
-				.build()
-		);
-
-		WatchList watchList2 = watchListRepository.save(WatchList.builder()
-			.name("My WatchList 2")
-			.member(member)
-			.build());
+		WatchList watchList2 = watchListRepository.save(createWatchList(member));
 
 		// when
 		List<WatchListHasStockResponse> responseList = watchListService.hasStock(member.getId(),

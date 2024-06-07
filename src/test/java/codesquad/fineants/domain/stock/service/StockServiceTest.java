@@ -34,7 +34,6 @@ import codesquad.fineants.domain.stock.domain.dto.response.StockDataResponse;
 import codesquad.fineants.domain.stock.domain.dto.response.StockRefreshResponse;
 import codesquad.fineants.domain.stock.domain.dto.response.StockResponse;
 import codesquad.fineants.domain.stock.domain.dto.response.StockSectorResponse;
-import codesquad.fineants.domain.stock.domain.entity.Market;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
 import reactor.core.publisher.Mono;
@@ -71,8 +70,8 @@ class StockServiceTest extends AbstractContainerBaseTest {
 	void refreshStocks() {
 		// given
 		stockRepository.saveAll(List.of(
-			createStock("345678", "company3", "company3", "KRX70000345678", "전기전자", Market.KOSPI),
-			createStock("456789", "company4", "company4", "KRX70000456789", "의약품", Market.KOSPI)
+			createStock("345678", "company3", "company3", "KRX70000345678", "전기전자"),
+			createStock("456789", "company4", "company4", "KRX70000456789", "의약품")
 		));
 
 		Set<StockDataResponse.StockInfo> fetchStockInfoResult = Set.of(

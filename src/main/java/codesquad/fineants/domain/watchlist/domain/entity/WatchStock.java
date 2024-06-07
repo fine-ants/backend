@@ -13,7 +13,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import lombok.AccessLevel;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -34,8 +33,11 @@ public class WatchStock extends BaseEntity {
 	@JoinColumn(name = "ticker_symbol", referencedColumnName = "tickerSymbol")
 	private Stock stock;
 
-	@Builder
-	public WatchStock(LocalDateTime createAt, LocalDateTime modifiedAt, Long id, WatchList watchList,
+	private WatchStock(WatchList watchList, Stock stock) {
+		this(LocalDateTime.now(), null, null, watchList, stock);
+	}
+
+	private WatchStock(LocalDateTime createAt, LocalDateTime modifiedAt, Long id, WatchList watchList,
 		Stock stock) {
 		super(createAt, modifiedAt);
 		this.id = id;
@@ -43,7 +45,7 @@ public class WatchStock extends BaseEntity {
 		this.stock = stock;
 	}
 
-	public static WatchStock create(WatchList watchList, Stock stock) {
-		return new WatchStock(LocalDateTime.now(), LocalDateTime.now(), null, watchList, stock);
+	public static WatchStock newWatchStock(WatchList watchList, Stock stock) {
+		return new WatchStock(watchList, stock);
 	}
 }
