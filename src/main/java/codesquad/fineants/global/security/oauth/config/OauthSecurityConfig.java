@@ -47,7 +47,6 @@ public class OauthSecurityConfig {
 	private final TokenFactory tokenFactory;
 	private final CorsConfiguration corsConfiguration;
 
-
 	public OauthSecurityConfig(MemberRepository memberRepository,
 		NotificationPreferenceRepository notificationPreferenceRepository, TokenService tokenService,
 		NicknameGenerator nicknameGenerator, RoleRepository roleRepository, OAuth2UserMapper oAuth2UserMapper,
