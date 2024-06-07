@@ -72,8 +72,7 @@ public class StockDividend extends BaseEntity {
 	public static StockDividend create(Money dividend, LocalDate recordDate,
 		LocalDate paymentDate, Stock stock) {
 		LocalDate exDividendDate = EX_DIVIDEND_DATE_CALCULATOR.calculate(recordDate);
-		return new StockDividend(LocalDateTime.now(), null, null, dividend, recordDate, exDividendDate,
-			paymentDate, stock);
+		return create(dividend, recordDate, exDividendDate, paymentDate, stock);
 	}
 
 	public static StockDividend create(Money dividend, LocalDate recordDate, LocalDate exDividendDate,
