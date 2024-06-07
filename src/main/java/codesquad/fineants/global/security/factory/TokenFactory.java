@@ -28,6 +28,7 @@ public class TokenFactory {
 
 	public Cookie createAccessTokenCookie(Token token) {
 		Cookie result = token.createAccessTokenCookie();
+		result.setPath("/");
 		result.setSecure(secure);
 		result.setHttpOnly(true);
 		return result;
@@ -35,6 +36,7 @@ public class TokenFactory {
 
 	public Cookie createRefreshTokenCookie(Token token) {
 		Cookie result = token.createRefreshTokenCookie();
+		result.setPath("/");
 		result.setSecure(secure);
 		result.setHttpOnly(true);
 		return result;
