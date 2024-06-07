@@ -1,6 +1,7 @@
 package codesquad.fineants.global.security.oauth.dto;
 
-import jakarta.servlet.http.Cookie;
+import org.springframework.http.ResponseCookie;
+
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -17,11 +18,11 @@ public class Token {
 		return new Token(accessToken, refreshToken);
 	}
 
-	public Cookie createAccessTokenCookie() {
-		return new Cookie("accessToken", accessToken);
+	public ResponseCookie.ResponseCookieBuilder createAccessTokenCookie() {
+		return ResponseCookie.from("accessToken", accessToken);
 	}
 
-	public Cookie createRefreshTokenCookie() {
-		return new Cookie("refreshToken", refreshToken);
+	public ResponseCookie.ResponseCookieBuilder createRefreshTokenCookie() {
+		return ResponseCookie.from("refreshToken", refreshToken);
 	}
 }

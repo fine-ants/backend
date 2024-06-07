@@ -1,7 +1,10 @@
 package codesquad.fineants.global.util;
 
+import org.springframework.http.ResponseCookie;
+
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 public class CookieUtils {
 
@@ -27,5 +30,9 @@ public class CookieUtils {
 			}
 		}
 		return null;
+	}
+
+	public static void setCookie(HttpServletResponse response, ResponseCookie cookie) {
+		response.addHeader("Set-Cookie", cookie.toString());
 	}
 }

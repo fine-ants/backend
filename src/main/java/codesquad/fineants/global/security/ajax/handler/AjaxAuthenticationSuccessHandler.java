@@ -17,6 +17,7 @@ import codesquad.fineants.global.security.oauth.dto.MemberAuthentication;
 import codesquad.fineants.global.security.oauth.dto.Token;
 import codesquad.fineants.global.security.oauth.service.TokenService;
 import codesquad.fineants.global.success.MemberSuccessCode;
+import codesquad.fineants.global.util.CookieUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -39,8 +40,8 @@ public class AjaxAuthenticationSuccessHandler implements AuthenticationSuccessHa
 		Token token = tokenService.generateToken(MemberAuthentication.from(member));
 		ApiResponse<LoginResponse> body = ApiResponse.success(MemberSuccessCode.OK_LOGIN);
 
-		response.addCookie(tokenFactory.createAccessTokenCookie(token));
-		response.addCookie(tokenFactory.createRefreshTokenCookie(token));
+		CookieUtils.setCookie(response, tokenFactory.createAccessTokenCookie(token));
+		CookieUtils.setCookie(response, tokenFactory.createRefreshTokenCookie(token));
 
 		objectMapper.writeValue(response.getWriter(), body);
 	}

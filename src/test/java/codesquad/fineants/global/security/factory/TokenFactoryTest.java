@@ -6,10 +6,10 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseCookie;
 
 import codesquad.fineants.AbstractContainerBaseTest;
 import codesquad.fineants.global.security.oauth.dto.Token;
-import jakarta.servlet.http.Cookie;
 
 class TokenFactoryTest extends AbstractContainerBaseTest {
 
@@ -22,10 +22,10 @@ class TokenFactoryTest extends AbstractContainerBaseTest {
 		// given
 		Token token = Token.create("accessToken", "refreshToken");
 		// when
-		Cookie accessTokenCookie = tokenFactory.createAccessTokenCookie(token);
+		ResponseCookie accessTokenCookie = tokenFactory.createAccessTokenCookie(token);
 		// then
 		Assertions.assertAll(
-			() -> assertThat(accessTokenCookie.getSecure()).isTrue(),
+			() -> assertThat(accessTokenCookie.isSecure()).isTrue(),
 			() -> assertThat(accessTokenCookie.isHttpOnly()).isTrue(),
 			() -> assertThat(accessTokenCookie.getName()).isEqualTo("accessToken"),
 			() -> assertThat(accessTokenCookie.getValue()).isEqualTo("accessToken")
@@ -38,13 +38,13 @@ class TokenFactoryTest extends AbstractContainerBaseTest {
 		// given
 		Token token = Token.create("accessToken", "refreshToken");
 		// when
-		Cookie accessTokenCookie = tokenFactory.createRefreshTokenCookie(token);
+		ResponseCookie refreshTokenCookie = tokenFactory.createRefreshTokenCookie(token);
 		// then
 		Assertions.assertAll(
-			() -> assertThat(accessTokenCookie.getSecure()).isTrue(),
-			() -> assertThat(accessTokenCookie.isHttpOnly()).isTrue(),
-			() -> assertThat(accessTokenCookie.getName()).isEqualTo("refreshToken"),
-			() -> assertThat(accessTokenCookie.getValue()).isEqualTo("refreshToken")
+			() -> assertThat(refreshTokenCookie.isSecure()).isTrue(),
+			() -> assertThat(refreshTokenCookie.isHttpOnly()).isTrue(),
+			() -> assertThat(refreshTokenCookie.getName()).isEqualTo("refreshToken"),
+			() -> assertThat(refreshTokenCookie.getValue()).isEqualTo("refreshToken")
 		);
 	}
 }

@@ -12,6 +12,7 @@ import codesquad.fineants.global.security.factory.TokenFactory;
 import codesquad.fineants.global.security.oauth.dto.MemberAuthentication;
 import codesquad.fineants.global.security.oauth.dto.Token;
 import codesquad.fineants.global.security.oauth.service.TokenService;
+import codesquad.fineants.global.util.CookieUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -53,8 +54,8 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 			.build()
 			.toUriString();
 
-		response.addCookie(tokenFactory.createAccessTokenCookie(token));
-		response.addCookie(tokenFactory.createRefreshTokenCookie(token));
+		CookieUtils.setCookie(response, tokenFactory.createAccessTokenCookie(token));
+		CookieUtils.setCookie(response, tokenFactory.createRefreshTokenCookie(token));
 
 		getRedirectStrategy().sendRedirect(request, response, targetUrl);
 	}

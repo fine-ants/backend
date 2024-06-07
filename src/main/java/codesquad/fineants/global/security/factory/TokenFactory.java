@@ -4,10 +4,10 @@ import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
+import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
 
 import codesquad.fineants.global.security.oauth.dto.Token;
-import jakarta.servlet.http.Cookie;
 import lombok.extern.slf4j.Slf4j;
 
 @Component
@@ -26,20 +26,19 @@ public class TokenFactory {
 		this.secure = secure;
 	}
 
-	public Cookie createAccessTokenCookie(Token token) {
-		Cookie result = token.createAccessTokenCookie();
-		result.setPath("/");
-		result.setSecure(secure);
-		result.setHttpOnly(true);
-
-		return result;
+	public ResponseCookie createAccessTokenCookie(Token token) {
+		return token.createAccessTokenCookie()
+			.path("/")
+			.secure(secure)
+			.httpOnly(true)
+			.build();
 	}
 
-	public Cookie createRefreshTokenCookie(Token token) {
-		Cookie result = token.createRefreshTokenCookie();
-		result.setPath("/");
-		result.setSecure(secure);
-		result.setHttpOnly(true);
-		return result;
+	public ResponseCookie createRefreshTokenCookie(Token token) {
+		return token.createRefreshTokenCookie()
+			.path("/")
+			.secure(secure)
+			.httpOnly(true)
+			.build();
 	}
 }

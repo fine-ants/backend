@@ -9,6 +9,7 @@ import codesquad.fineants.global.api.ApiResponse;
 import codesquad.fineants.global.security.factory.TokenFactory;
 import codesquad.fineants.global.security.oauth.dto.Token;
 import codesquad.fineants.global.success.MemberSuccessCode;
+import codesquad.fineants.global.util.CookieUtils;
 import jakarta.annotation.security.PermitAll;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -28,8 +29,8 @@ public class OauthRestController {
 		Token token = Token.create(accessToken, refreshToken);
 		OauthMemberLoginResponse response = OauthMemberLoginResponse.of(token);
 
-		servletResponse.addCookie(tokenFactory.createAccessTokenCookie(token));
-		servletResponse.addCookie(tokenFactory.createRefreshTokenCookie(token));
+		CookieUtils.setCookie(servletResponse, tokenFactory.createAccessTokenCookie(token));
+		CookieUtils.setCookie(servletResponse, tokenFactory.createRefreshTokenCookie(token));
 
 		return ApiResponse.success(MemberSuccessCode.OK_LOGIN, response);
 	}
