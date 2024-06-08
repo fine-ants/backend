@@ -30,8 +30,6 @@ include::{snippets}/member_oauth-login/http-response.adoc[]
 ==== HTTP Request
 
 include::{snippets}/member-logout/http-request.adoc[]
-include::{snippets}/member-logout/request-headers.adoc[]
-include::{snippets}/member-logout/query-parameters.adoc[]
 
 ==== HTTP Response
 

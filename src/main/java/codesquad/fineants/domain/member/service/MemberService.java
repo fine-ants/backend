@@ -20,7 +20,6 @@ import codesquad.fineants.domain.fcm.repository.FcmRepository;
 import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
 import codesquad.fineants.domain.holding.repository.PortfolioHoldingRepository;
 import codesquad.fineants.domain.member.domain.dto.request.ModifyPasswordRequest;
-import codesquad.fineants.domain.member.domain.dto.request.OauthMemberLogoutRequest;
 import codesquad.fineants.domain.member.domain.dto.request.OauthMemberRefreshRequest;
 import codesquad.fineants.domain.member.domain.dto.request.ProfileChangeServiceRequest;
 import codesquad.fineants.domain.member.domain.dto.request.SignUpServiceRequest;
@@ -92,26 +91,21 @@ public class MemberService {
 	private final TokenService tokenService;
 	private final OauthMemberRedisService oauthMemberRedisService;
 
-	public void logout(OauthMemberLogoutRequest logoutRequest, HttpServletRequest request,
-		HttpServletResponse response) {
+	public void logout(HttpServletRequest request, HttpServletResponse response) {
+		// clear Authentication
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		if (authentication != null) {
 			new SecurityContextLogoutHandler().logout(request, response, authentication);
 		}
 
-		// accessToken, refreshToken에 대해서 블랙리스트 추가
-		banAccessToken(request);
-		banRefreshToken(logoutRequest.getRefreshToken());
-	}
-
-	private void banAccessToken(HttpServletRequest request) {
+		// ban accessToken
 		String accessToken = CookieUtils.getAccessToken(request);
 		if (accessToken != null) {
 			oauthMemberRedisService.banAccessToken(accessToken);
 		}
-	}
 
-	private void banRefreshToken(String refreshToken) {
+		// ban refreshToken
+		String refreshToken = CookieUtils.getRefreshToken(request);
 		if (refreshToken != null) {
 			oauthMemberRedisService.banRefreshToken(refreshToken);
 		}
