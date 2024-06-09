@@ -6,7 +6,6 @@ import static org.hamcrest.Matchers.*;
 import java.util.Map;
 
 import org.hamcrest.Matchers;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -32,11 +31,6 @@ public class AuthenticationIntegrationTest extends AbstractContainerBaseTest {
 	@BeforeEach
 	void setUp() {
 		RestAssured.port = port;
-	}
-
-	@AfterEach
-	void tearDown() {
-		memberRepository.deleteAllInBatch();
 	}
 
 	@SuppressWarnings("checkstyle:NoWhitespaceBefore")
@@ -101,7 +95,6 @@ public class AuthenticationIntegrationTest extends AbstractContainerBaseTest {
 		// when
 		given().log().all()
 			.cookies(cookies)
-			.contentType(MediaType.APPLICATION_JSON_VALUE)
 			.when()
 			.get(url)
 			.then()
@@ -118,6 +111,27 @@ public class AuthenticationIntegrationTest extends AbstractContainerBaseTest {
 			.log()
 			.body()
 			.statusCode(401);
+	}
+
+	@DisplayName("사용자는 프로필 조회를 요청하다가 액세스 토큰이 만료되어 갱신된다")
+	@Test
+	void refreshAccessToken() {
+		// given
+		memberRepository.save(createMember());
+		Map<String, String> cookies = processLogin();
+
+		// when & then
+		given().log().all()
+			.cookies(cookies)
+			.contentType(MediaType.APPLICATION_JSON_VALUE)
+			.when()
+			.get("/api/profile")
+			.then()
+			.cookie("accessToken", notNullValue())
+			.cookie("refreshToken", notNullValue())
+			.log()
+			.body()
+			.statusCode(200);
 	}
 
 	private Map<String, String> processLogin() {

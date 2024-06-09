@@ -11,7 +11,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.assertj.core.groups.Tuple;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -26,7 +25,6 @@ import com.google.firebase.messaging.Message;
 import codesquad.fineants.AbstractContainerBaseTest;
 import codesquad.fineants.domain.common.count.Count;
 import codesquad.fineants.domain.common.money.Money;
-import codesquad.fineants.domain.dividend.repository.StockDividendRepository;
 import codesquad.fineants.domain.fcm.domain.entity.FcmToken;
 import codesquad.fineants.domain.fcm.repository.FcmRepository;
 import codesquad.fineants.domain.fcm.service.FirebaseMessagingService;
@@ -92,9 +90,6 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 	@Autowired
 	private NotificationPreferenceRepository notificationPreferenceRepository;
 
-	@Autowired
-	private StockDividendRepository stockDividendRepository;
-
 	@MockBean
 	private NotificationSentRepository sentManager;
 
@@ -113,27 +108,11 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 	@MockBean
 	private AccessTokenAspect accessTokenAspect;
 
-	@AfterEach
-	void tearDown() {
-		notificationRepository.deleteAllInBatch();
-		fcmRepository.deleteAllInBatch();
-		targetPriceNotificationRepository.deleteAllInBatch();
-		stockTargetPriceRepository.deleteAllInBatch();
-		purchaseHistoryRepository.deleteAllInBatch();
-		portfolioHoldingRepository.deleteAllInBatch();
-		portfolioRepository.deleteAllInBatch();
-		notificationPreferenceRepository.deleteAllInBatch();
-		memberRepository.deleteAllInBatch();
-		stockDividendRepository.deleteAllInBatch();
-		stockRepository.deleteAllInBatch();
-	}
-
 	@DisplayName("포트폴리오 목표 수익률 달성 알림 메시지들을 푸시합니다")
 	@Test
 	void notifyTargetGainBy() {
 		// given
 		Member member = memberRepository.save(createMember());
-		notificationPreferenceRepository.save(createAllActiveNotificationPreference(member));
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Stock stock = stockRepository.save(createSamsungStock());
 		PortfolioHolding portfolioHolding = portfolioHoldingRepository.save(createPortfolioHolding(portfolio, stock));
@@ -166,7 +145,6 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 	void notifyTargetGainBy_whenNoTargetGain_thenNotSendNotification() {
 		// given
 		Member member = memberRepository.save(createMember());
-		notificationPreferenceRepository.save(createAllActiveNotificationPreference(member));
 		Portfolio portfolio = portfolioRepository.save(
 			createPortfolio(member, "내꿈은 워렌버핏", Money.won(1000000L), Money.won(1100000L), Money.won(900000L)));
 		Stock samsung = stockRepository.save(createSamsungStock());
@@ -210,7 +188,6 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 	void notifyTargetGainBy_whenInvalidFcmToken_thenDeleteFcmToken() {
 		// given
 		Member member = memberRepository.save(createMember());
-		notificationPreferenceRepository.save(NotificationPreference.allActive(member));
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Stock stock = stockRepository.save(createSamsungStock());
 
@@ -245,8 +222,10 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		boolean targetGainNotify) {
 		// given
 		Member member = memberRepository.save(createMember());
-		notificationPreferenceRepository.save(
-			createNotificationPreference(browserNotify, targetGainNotify, true, true, member));
+		NotificationPreference preference = member.getNotificationPreference();
+		preference.changePreference(createNotificationPreference(browserNotify, targetGainNotify, true, true, member));
+		notificationPreferenceRepository.save(preference);
+
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Stock stock = stockRepository.save(createSamsungStock());
 
@@ -276,7 +255,6 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 	void notifyPortfolioMaxLossMessages() {
 		// given
 		Member member = memberRepository.save(createMember());
-		notificationPreferenceRepository.save(createAllActiveNotificationPreference(member));
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Stock stock = stockRepository.save(createSamsungStock());
 		PortfolioHolding portfolioHolding = portfolioHoldingRepository.save(createPortfolioHolding(portfolio, stock));
@@ -310,8 +288,10 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		boolean maxLossNotify) {
 		// given
 		Member member = memberRepository.save(createMember());
-		notificationPreferenceRepository.save(
-			createNotificationPreference(browserNotify, true, maxLossNotify, true, member));
+		NotificationPreference preference = member.getNotificationPreference();
+		preference.changePreference(createNotificationPreference(browserNotify, true, maxLossNotify, true, member));
+		notificationPreferenceRepository.save(preference);
+
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Stock stock = stockRepository.save(createSamsungStock());
 		PortfolioHolding portfolioHolding = portfolioHoldingRepository.save(createPortfolioHolding(portfolio, stock));
@@ -341,7 +321,6 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 	void notifyMaxLoss_whenInvalidFcmToken_thenDeleteFcmToken() throws FirebaseMessagingException {
 		// given
 		Member member = memberRepository.save(createMember());
-		notificationPreferenceRepository.save(NotificationPreference.allActive(member));
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Stock stock = stockRepository.save(createSamsungStock());
 		PortfolioHolding portfolioHolding = portfolioHoldingRepository.save(createPortfolioHolding(portfolio, stock));
@@ -373,7 +352,6 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 	void notifyPortfolioTargetGainMessagesByCurrentPrice() {
 		// given
 		Member member = memberRepository.save(createMember());
-		notificationPreferenceRepository.save(createAllActiveNotificationPreference(member));
 		fcmRepository.saveAll(List.of(createFcmToken("token1", member), createFcmToken("token2", member)));
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Stock stock = stockRepository.save(createSamsungStock());
@@ -396,6 +374,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 			createPurchaseHistory(null, purchaseDate, numShares, purchasePricePerShare, memo, holding2));
 
 		manager.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 60000L));
+		manager.addCurrentPrice(KisCurrentPrice.create(stock2.getTickerSymbol(), 60000L));
 		given(firebaseMessagingService.send(any(Message.class)))
 			.willReturn(Optional.of("messageId"));
 
@@ -415,9 +394,6 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		// given
 		Member member = memberRepository.save(createMember("일개미1234", "kim1234@naver.com"));
 		Member member2 = memberRepository.save(createMember("네모네모", "dragonbead95@naver.com"));
-
-		notificationPreferenceRepository.save(createAllActiveNotificationPreference(member));
-		notificationPreferenceRepository.save(createAllActiveNotificationPreference(member2));
 
 		fcmRepository.save(createFcmToken("token1", member));
 		fcmRepository.save(createFcmToken("token2", member2));
@@ -469,7 +445,6 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 	void sendStockTargetPriceNotification() {
 		// given
 		Member member = memberRepository.save(createMember());
-		notificationPreferenceRepository.save(createAllActiveNotificationPreference(member));
 		fcmRepository.save(createFcmToken("token", member));
 		fcmRepository.save(createFcmToken("token2", member));
 		Stock stock = stockRepository.save(createSamsungStock());
@@ -540,7 +515,6 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 	void notifyTargetPrice_whenExistNotification_thenNotSentNotification() {
 		// given
 		Member member = memberRepository.save(createMember());
-		notificationPreferenceRepository.save(NotificationPreference.allActive(member));
 		fcmRepository.save(createFcmToken("token", member));
 		Stock stock = stockRepository.save(createSamsungStock());
 		Stock stock2 = stockRepository.save(createDongwhaPharmStock());
@@ -592,7 +566,6 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 	void notifyTargetPrice_whenFailSendingNotification_thenSaveNotification() {
 		// given
 		Member member = memberRepository.save(createMember());
-		notificationPreferenceRepository.save(createAllActiveNotificationPreference(member));
 		fcmRepository.save(createFcmToken("token", member));
 		Stock stock = stockRepository.save(createSamsungStock());
 		StockTargetPrice stockTargetPrice = stockTargetPriceRepository.save(createStockTargetPrice(member, stock));
@@ -621,7 +594,6 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 	void notifyTargetPrice_whenMultipleMember_thenSendNotification() {
 		// given
 		Member member = memberRepository.save(createMember());
-		notificationPreferenceRepository.save(NotificationPreference.allActive(member));
 		fcmRepository.save(createFcmToken("token", member));
 		Stock stock = stockRepository.save(createSamsungStock());
 		Stock stock2 = stockRepository.save(createDongwhaPharmStock());

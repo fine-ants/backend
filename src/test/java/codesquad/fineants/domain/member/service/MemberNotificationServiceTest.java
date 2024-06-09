@@ -9,14 +9,12 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import codesquad.fineants.AbstractContainerBaseTest;
 import codesquad.fineants.domain.common.money.Money;
-import codesquad.fineants.domain.fcm.repository.FcmRepository;
 import codesquad.fineants.domain.member.domain.dto.response.MemberNotification;
 import codesquad.fineants.domain.member.domain.dto.response.MemberNotificationResponse;
 import codesquad.fineants.domain.member.domain.entity.Member;
@@ -37,16 +35,6 @@ class MemberNotificationServiceTest extends AbstractContainerBaseTest {
 
 	@Autowired
 	private NotificationRepository notificationRepository;
-
-	@Autowired
-	private FcmRepository fcmRepository;
-
-	@AfterEach
-	void tearDown() {
-		fcmRepository.deleteAllInBatch();
-		notificationRepository.deleteAllInBatch();
-		memberRepository.deleteAllInBatch();
-	}
 
 	@DisplayName("사용자는 회원 알림 목록을 조회합니다")
 	@Test

@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.assertj.core.groups.Tuple;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,17 +66,6 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 
 	@Autowired
 	private ClosingPriceRepository manager;
-
-	@AfterEach
-	void tearDown() {
-		notificationPreferenceRepository.deleteAllInBatch();
-		fcmRepository.deleteAllInBatch();
-		notificationRepository.deleteAllInBatch();
-		targetPriceNotificationRepository.deleteAllInBatch();
-		repository.deleteAllInBatch();
-		stockRepository.deleteAllInBatch();
-		memberRepository.deleteAllInBatch();
-	}
 
 	@DisplayName("사용자는 종목 지정가 알림을 추가합니다")
 	@Test
@@ -159,7 +147,6 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 	void searchStockTargetPriceNotification() {
 		// given
 		Member member = memberRepository.save(createMember());
-		notificationPreferenceRepository.save(createAllActiveNotificationPreference(member));
 		Stock stock = stockRepository.save(createSamsungStock());
 		Stock stock2 = stockRepository.save(createDongwhaPharmStock());
 

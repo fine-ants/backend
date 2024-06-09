@@ -10,7 +10,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -47,12 +46,6 @@ class FcmServiceTest extends AbstractContainerBaseTest {
 
 	@MockBean
 	private FirebaseMessaging firebaseMessaging;
-
-	@AfterEach
-	void tearDown() {
-		fcmRepository.deleteAllInBatch();
-		memberRepository.deleteAllInBatch();
-	}
 
 	@DisplayName("사용자는 FCM 토큰을 등록한다")
 	@Test

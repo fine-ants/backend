@@ -9,7 +9,6 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -23,7 +22,6 @@ import com.google.firebase.messaging.Message;
 import codesquad.fineants.AbstractContainerBaseTest;
 import codesquad.fineants.domain.common.count.Count;
 import codesquad.fineants.domain.common.money.Money;
-import codesquad.fineants.domain.dividend.repository.StockDividendRepository;
 import codesquad.fineants.domain.fcm.repository.FcmRepository;
 import codesquad.fineants.domain.fcm.service.FirebaseMessagingService;
 import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
@@ -34,11 +32,9 @@ import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
 import codesquad.fineants.domain.notification.repository.NotificationRepository;
 import codesquad.fineants.domain.notification.repository.NotificationSentRepository;
-import codesquad.fineants.domain.notificationpreference.domain.entity.NotificationPreference;
 import codesquad.fineants.domain.notificationpreference.repository.NotificationPreferenceRepository;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.repository.PortfolioRepository;
-import codesquad.fineants.domain.portfolio_gain_history.repository.PortfolioGainHistoryRepository;
 import codesquad.fineants.domain.purchasehistory.domain.dto.request.PurchaseHistoryCreateRequest;
 import codesquad.fineants.domain.purchasehistory.domain.dto.request.PurchaseHistoryUpdateRequest;
 import codesquad.fineants.domain.purchasehistory.domain.dto.response.PurchaseHistoryCreateResponse;
@@ -70,12 +66,6 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 	private PurchaseHistoryRepository purchaseHistoryRepository;
 
 	@Autowired
-	private PortfolioGainHistoryRepository portfolioGainHistoryRepository;
-
-	@Autowired
-	private StockDividendRepository stockDividendRepository;
-
-	@Autowired
 	private PurchaseHistoryService service;
 
 	@Autowired
@@ -96,21 +86,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 	@MockBean
 	private NotificationSentRepository sentManager;
 
-	@AfterEach
-	void tearDown() {
-		fcmRepository.deleteAllInBatch();
-		notificationPreferenceRepository.deleteAllInBatch();
-		notificationRepository.deleteAllInBatch();
-		purchaseHistoryRepository.deleteAllInBatch();
-		portFolioHoldingRepository.deleteAllInBatch();
-		portfolioGainHistoryRepository.deleteAllInBatch();
-		portfolioRepository.deleteAllInBatch();
-		memberRepository.deleteAllInBatch();
-		stockDividendRepository.deleteAllInBatch();
-		stockRepository.deleteAllInBatch();
-	}
-
-	@WithMockUser(roles = {"USER"})
+	@WithMockUser
 	@DisplayName("사용자는 매입 이력을 추가한다")
 	@CsvSource(value = {"3,1000000,1500000,900000",
 		"1000000000000,50000000000000000,50000000000000001,40000000000000000",
@@ -119,7 +95,6 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 	void addPurchaseHistory(Count numShares, BigDecimal budget, BigDecimal targetGain, BigDecimal maximumLoss) {
 		// given
 		Member member = memberRepository.save(createMember());
-		notificationPreferenceRepository.save(createNotificationPreference(member));
 		Portfolio portfolio = portfolioRepository.save(
 			createPortfolio(member, "내꿈은 워렌버핏", Money.won(budget), Money.won(targetGain), Money.won(maximumLoss)));
 		Stock stock = stockRepository.save(createSamsungStock());
@@ -160,7 +135,6 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 	void addPurchaseHistory_whenAchieveTargetGain_thenSaveNotification() {
 		// given
 		Member member = memberRepository.save(createMember());
-		notificationPreferenceRepository.save(createNotificationPreference(member));
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Stock stock = stockRepository.save(createSamsungStock());
 		Stock stock2 = stockRepository.save(createDongwhaPharmStock());
@@ -205,7 +179,6 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 	void addPurchaseHistory_whenAchieveMaxLoss_thenSaveNotification() {
 		// given
 		Member member = memberRepository.save(createMember());
-		notificationPreferenceRepository.save(createNotificationPreference(member));
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Stock stock = stockRepository.save(createSamsungStock());
 		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
@@ -244,7 +217,6 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 	void addPurchaseHistoryFailsWhenTotalInvestmentExceedsBudget() {
 		// given
 		Member member = memberRepository.save(createMember());
-		notificationPreferenceRepository.save(createNotificationPreference(member));
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Stock stock = stockRepository.save(createSamsungStock());
 		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
@@ -271,7 +243,6 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 	void modifyPurchaseHistory() {
 		// given
 		Member member = memberRepository.save(createMember());
-		notificationPreferenceRepository.save(createNotificationPreference(member));
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Stock stock = stockRepository.save(createSamsungStock());
 		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
@@ -310,7 +281,6 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 	void modifyPurchaseHistory_whenTargetGain_thenSaveNotification() {
 		// given
 		Member member = memberRepository.save(createMember());
-		notificationPreferenceRepository.save(createNotificationPreference(member));
 		fcmRepository.save(createFcmToken("token", member));
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Stock stock = stockRepository.save(createSamsungStock());
@@ -355,7 +325,6 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 	void deletePurchaseHistory() {
 		// given
 		Member member = memberRepository.save(createMember());
-		notificationPreferenceRepository.save(createNotificationPreference(member));
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Stock stock = stockRepository.save(createSamsungStock());
 		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
@@ -383,7 +352,6 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 	void deletePurchaseHistory_whenTargetGain_thenSaveNotification() {
 		// given
 		Member member = memberRepository.save(createMember());
-		notificationPreferenceRepository.save(createNotificationPreference(member));
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Stock stock = stockRepository.save(createSamsungStock());
 		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
@@ -421,7 +389,6 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 	void deletePurchaseHistoryWithNotExistPurchaseHistoryId() {
 		// given
 		Member member = memberRepository.save(createMember());
-		notificationPreferenceRepository.save(createNotificationPreference(member));
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Stock stock = stockRepository.save(createSamsungStock());
 		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
@@ -444,9 +411,5 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 		assertThat(throwable)
 			.isInstanceOf(FineAntsException.class)
 			.hasMessage(PurchaseHistoryErrorCode.NOT_FOUND_PURCHASE_HISTORY.getMessage());
-	}
-
-	private NotificationPreference createNotificationPreference(Member member) {
-		return NotificationPreference.allActive(member);
 	}
 }

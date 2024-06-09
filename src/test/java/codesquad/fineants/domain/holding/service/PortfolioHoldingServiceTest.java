@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.assertj.core.groups.Tuple;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -95,17 +94,6 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 	// CurrentPriceRepository AccessToken 모킹
 	@MockBean
 	private AccessTokenAspect accessTokenAspect;
-
-	@AfterEach
-	void tearDown() {
-		purchaseHistoryRepository.deleteAllInBatch();
-		portFolioHoldingRepository.deleteAllInBatch();
-		portfolioGainHistoryRepository.deleteAllInBatch();
-		portfolioRepository.deleteAllInBatch();
-		memberRepository.deleteAllInBatch();
-		stockDividendRepository.deleteAllInBatch();
-		stockRepository.deleteAllInBatch();
-	}
 
 	@DisplayName("포트폴리오 종목들의 상세 정보를 조회한다")
 	@Test

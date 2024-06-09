@@ -41,7 +41,7 @@ public class Member extends BaseEntity {
 	private String password;
 	private String profileUrl;
 
-	@OneToOne(fetch = FetchType.LAZY, mappedBy = "member")
+	@OneToOne(fetch = FetchType.LAZY, mappedBy = "member", orphanRemoval = true, cascade = CascadeType.ALL)
 	private NotificationPreference notificationPreference;
 
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "member", orphanRemoval = true, cascade = CascadeType.ALL)

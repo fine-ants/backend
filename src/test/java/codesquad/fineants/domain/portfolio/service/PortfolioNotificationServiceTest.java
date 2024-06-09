@@ -7,7 +7,6 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +17,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import codesquad.fineants.AbstractContainerBaseTest;
 import codesquad.fineants.domain.common.count.Count;
 import codesquad.fineants.domain.common.money.Money;
-import codesquad.fineants.domain.dividend.repository.StockDividendRepository;
 import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
 import codesquad.fineants.domain.holding.repository.PortfolioHoldingRepository;
 import codesquad.fineants.domain.member.domain.entity.Member;
@@ -27,7 +25,6 @@ import codesquad.fineants.domain.portfolio.domain.dto.request.PortfolioNotificat
 import codesquad.fineants.domain.portfolio.domain.dto.response.PortfolioNotificationUpdateResponse;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.repository.PortfolioRepository;
-import codesquad.fineants.domain.portfolio_gain_history.repository.PortfolioGainHistoryRepository;
 import codesquad.fineants.domain.purchasehistory.repository.PurchaseHistoryRepository;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
@@ -56,23 +53,6 @@ class PortfolioNotificationServiceTest extends AbstractContainerBaseTest {
 
 	@Autowired
 	private PurchaseHistoryRepository purchaseHistoryRepository;
-
-	@Autowired
-	private PortfolioGainHistoryRepository portfolioGainHistoryRepository;
-
-	@Autowired
-	private StockDividendRepository stockDividendRepository;
-
-	@AfterEach
-	void tearDown() {
-		portfolioGainHistoryRepository.deleteAllInBatch();
-		purchaseHistoryRepository.deleteAllInBatch();
-		portFolioHoldingRepository.deleteAllInBatch();
-		portfolioRepository.deleteAllInBatch();
-		memberRepository.deleteAllInBatch();
-		stockDividendRepository.deleteAllInBatch();
-		stockRepository.deleteAllInBatch();
-	}
 
 	@DisplayName("사용자는 포트폴리오 목표수익금액 알림을 활성화한다")
 	@Test

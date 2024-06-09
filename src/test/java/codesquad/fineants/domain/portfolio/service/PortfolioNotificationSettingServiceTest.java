@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import org.assertj.core.groups.Tuple;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,12 +24,6 @@ class PortfolioNotificationSettingServiceTest extends AbstractContainerBaseTest 
 
 	@Autowired
 	private PortfolioRepository portfolioRepository;
-
-	@AfterEach
-	void tearDown() {
-		portfolioRepository.deleteAllInBatch();
-		memberRepository.deleteAllInBatch();
-	}
 
 	@DisplayName("사용자는 포트폴리오의 활성 알림 목록을 조회합니다")
 	@Test

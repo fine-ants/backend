@@ -318,7 +318,6 @@ public class MemberService {
 		targetPriceNotificationRepository.deleteAllByStockTargetPrices(stockTargetPrices);
 		stockTargetPriceRepository.deleteAllByMemberId(member.getId());
 		notificationRepository.deleteAllByMemberId(member.getId());
-		notificationPreferenceRepository.deleteAllByMemberId(member.getId());
 		memberRepository.delete(member);
 	}
 

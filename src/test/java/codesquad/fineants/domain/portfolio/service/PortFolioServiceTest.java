@@ -13,7 +13,6 @@ import java.util.UUID;
 import java.util.stream.Stream;
 
 import org.assertj.core.groups.Tuple;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -76,16 +75,6 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 
 	@Autowired
 	private CurrentPriceRepository currentPriceRepository;
-
-	@AfterEach
-	void tearDown() {
-		purchaseHistoryRepository.deleteAllInBatch();
-		portFolioHoldingRepository.deleteAllInBatch();
-		portfolioGainHistoryRepository.deleteAllInBatch();
-		portfolioRepository.deleteAllInBatch();
-		stockRepository.deleteAllInBatch();
-		memberRepository.deleteAllInBatch();
-	}
 
 	@DisplayName("회원이 포트폴리오를 추가한다")
 	@CsvSource(value = {

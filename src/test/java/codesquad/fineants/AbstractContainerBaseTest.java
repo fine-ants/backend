@@ -5,6 +5,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -26,6 +28,9 @@ import codesquad.fineants.domain.fcm.domain.entity.FcmToken;
 import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
 import codesquad.fineants.domain.kis.client.KisAccessToken;
 import codesquad.fineants.domain.member.domain.entity.Member;
+import codesquad.fineants.domain.member.domain.entity.MemberRole;
+import codesquad.fineants.domain.member.domain.entity.Role;
+import codesquad.fineants.domain.member.repository.RoleRepository;
 import codesquad.fineants.domain.notificationpreference.domain.entity.NotificationPreference;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.purchasehistory.domain.entity.PurchaseHistory;
@@ -35,6 +40,8 @@ import codesquad.fineants.domain.stock_target_price.domain.entity.StockTargetPri
 import codesquad.fineants.domain.stock_target_price.domain.entity.TargetPriceNotification;
 import codesquad.fineants.domain.watchlist.domain.entity.WatchList;
 import codesquad.fineants.domain.watchlist.domain.entity.WatchStock;
+import codesquad.fineants.global.errors.errorcode.RoleErrorCode;
+import codesquad.fineants.global.errors.exception.FineAntsException;
 import codesquad.fineants.global.init.S3BucketInitializer;
 import lombok.extern.slf4j.Slf4j;
 
@@ -66,6 +73,12 @@ public class AbstractContainerBaseTest {
 	@Autowired
 	private PasswordEncoder passwordEncoder;
 
+	@Autowired
+	private RoleRepository roleRepository;
+
+	@Autowired
+	private DatabaseCleaner databaseCleaner;
+
 	@DynamicPropertySource
 	public static void overrideProps(DynamicPropertyRegistry registry) {
 		// redis property config
@@ -79,8 +92,26 @@ public class AbstractContainerBaseTest {
 		registry.add("spring.datasource.password", () -> "password1234!");
 	}
 
+	@BeforeEach
+	public void abstractSetup() {
+		createRoleIfNotFound("ROLE_ADMIN", "관리자");
+		createRoleIfNotFound("ROLE_MANAGER", "매니저");
+		createRoleIfNotFound("ROLE_USER", "회원");
+	}
+
+	@AfterEach
+	public void cleanDatabase() {
+		databaseCleaner.clear();
+	}
+
 	public KisAccessToken createKisAccessToken() {
 		return KisAccessToken.bearerType("accessToken", LocalDateTime.now().plusSeconds(86400), 86400);
+	}
+
+	protected void createRoleIfNotFound(String roleName, String roleDesc) {
+		Role role = roleRepository.findRoleByRoleName(roleName)
+			.orElseGet(() -> Role.create(roleName, roleDesc));
+		roleRepository.save(role);
 	}
 
 	protected Member createMember() {
@@ -92,16 +123,21 @@ public class AbstractContainerBaseTest {
 	}
 
 	protected Member createMember(String nickname, String email) {
-		return Member.localMember(
+		Role userRole = roleRepository.findRoleByRoleName("ROLE_USER")
+			.orElseThrow(() -> new FineAntsException(RoleErrorCode.NOT_EXIST_ROLE));
+		// 회원 생성
+		Member member = Member.localMember(
 			email,
 			nickname,
 			passwordEncoder.encode("nemo1234@"),
 			"profileUrl"
 		);
-	}
+		// 역할 설정
+		member.addMemberRole(MemberRole.create(member, userRole));
 
-	protected NotificationPreference createAllActiveNotificationPreference(Member member) {
-		return createNotificationPreference(true, true, true, true, member);
+		// 계정 알림 설정
+		member.setNotificationPreference(NotificationPreference.allActive(member));
+		return member;
 	}
 
 	protected NotificationPreference createNotificationPreference(boolean browserNotify, boolean targetGainNotify,

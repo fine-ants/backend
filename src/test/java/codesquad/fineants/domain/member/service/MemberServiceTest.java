@@ -14,7 +14,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -44,8 +43,8 @@ import codesquad.fineants.domain.member.domain.dto.response.ProfileResponse;
 import codesquad.fineants.domain.member.domain.dto.response.SignUpServiceResponse;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
+import codesquad.fineants.domain.member.repository.MemberRoleRepository;
 import codesquad.fineants.domain.notification.repository.NotificationRepository;
-import codesquad.fineants.domain.notificationpreference.domain.entity.NotificationPreference;
 import codesquad.fineants.domain.notificationpreference.repository.NotificationPreferenceRepository;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.repository.PortfolioRepository;
@@ -70,6 +69,9 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 
 	@Autowired
 	private MemberService memberService;
+
+	@Autowired
+	private MemberRoleRepository memberRoleRepository;
 
 	@Autowired
 	private MemberRepository memberRepository;
@@ -124,24 +126,6 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 
 	@MockBean
 	private VerifyCodeGenerator verifyCodeGenerator;
-
-	@AfterEach
-	void tearDown() {
-		fcmRepository.deleteAllInBatch();
-		notificationRepository.deleteAllInBatch();
-		targetPriceNotificationRepository.deleteAllInBatch();
-		stockTargetPriceRepository.deleteAllInBatch();
-		preferenceRepository.deleteAllInBatch();
-		purchaseHistoryRepository.deleteAllInBatch();
-		portfolioHoldingRepository.deleteAllInBatch();
-		portfolioGainHistoryRepository.deleteAllInBatch();
-		portfolioRepository.deleteAllInBatch();
-		watchStockRepository.deleteAllInBatch();
-		watchListRepository.deleteAllInBatch();
-		memberRepository.deleteAllInBatch();
-		stockDividendRepository.deleteAllInBatch();
-		stockRepository.deleteAllInBatch();
-	}
 
 	@DisplayName("사용자는 회원의 프로필에서 새 프로필 사진과 닉네임을 변경한다")
 	@Test
@@ -552,7 +536,6 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 	void readProfile() {
 		// given
 		Member member = memberRepository.save(createMember());
-		preferenceRepository.save(NotificationPreference.defaultSetting(member));
 
 		// when
 		ProfileResponse response = memberService.readProfile(member.getId());
@@ -565,7 +548,7 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 		assertThat(response)
 			.extracting("user.notificationPreferences")
 			.extracting("browserNotify", "targetGainNotify", "maxLossNotify", "targetPriceNotify")
-			.containsExactlyInAnyOrder(false, false, false, false);
+			.containsExactlyInAnyOrder(true, true, true, true);
 	}
 
 	@DisplayName("사용자는 계정을 삭제한다")
@@ -584,7 +567,6 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 		String memo = "첫구매";
 		purchaseHistoryRepository.save(
 			createPurchaseHistory(null, purchaseDate, numShares, purchasePricePerShare, memo, portfolioHolding));
-		preferenceRepository.save(createAllActiveNotificationPreference(member));
 		StockTargetPrice stockTargetPrice = stockTargetPriceRepository.save(createStockTargetPrice(member, stock));
 		targetPriceNotificationRepository.save(createTargetPriceNotification(stockTargetPrice));
 		WatchList watchList = watchListRepository.save(createWatchList(member));

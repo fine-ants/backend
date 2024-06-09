@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.*;
 import java.time.LocalDate;
 import java.util.List;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,15 +67,6 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 
 	@MockBean
 	private KisService kisService;
-
-	@AfterEach
-	void tearDown() {
-		watchStockRepository.deleteAllInBatch();
-		watchListRepository.deleteAllInBatch();
-		memberRepository.deleteAllInBatch();
-		stockDividendRepository.deleteAllInBatch();
-		stockRepository.deleteAllInBatch();
-	}
 
 	@DisplayName("회원이 watchlist를 추가한다.")
 	@Test
