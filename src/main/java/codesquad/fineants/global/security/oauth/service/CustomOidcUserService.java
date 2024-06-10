@@ -38,9 +38,7 @@ public class CustomOidcUserService extends AbstractUserService implements OAuth2
 	public OidcUser loadUser(OidcUserRequest userRequest) throws OAuth2AuthenticationException {
 		OAuth2UserService<OAuth2UserRequest, OAuth2User> delegate = new DefaultOAuth2UserService();
 		OAuth2User oAuth2User = delegate.loadUser(userRequest);
-
 		OAuthAttribute attributes = getUserInfo(userRequest, oAuth2User);
-
 		Member member = saveOrUpdate(attributes);
 		return (OidcUser)createOAuth2User(member, userRequest, attributes.getSub());
 	}
