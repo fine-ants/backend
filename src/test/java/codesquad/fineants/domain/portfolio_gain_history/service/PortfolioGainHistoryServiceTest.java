@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.time.LocalDateTime;
 
 import org.assertj.core.groups.Tuple;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,17 +57,6 @@ class PortfolioGainHistoryServiceTest extends AbstractContainerBaseTest {
 
 	@Autowired
 	private CurrentPriceRepository currentPriceRepository;
-
-	@AfterEach
-	void tearDown() {
-		portfolioGainHistoryRepository.deleteAllInBatch();
-		purchaseHistoryRepository.deleteAllInBatch();
-		portFolioHoldingRepository.deleteAllInBatch();
-		portfolioRepository.deleteAllInBatch();
-		memberRepository.deleteAllInBatch();
-		stockDividendRepository.deleteAllInBatch();
-		stockRepository.deleteAllInBatch();
-	}
 
 	@DisplayName("모든 포트폴리오의 손익 내역을 추가한다")
 	@Test

@@ -22,5 +22,3 @@ logging:
     codesquad: debug
 server:
   port: 444
-token:
-  secure: false

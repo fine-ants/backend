@@ -17,7 +17,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
 
 import codesquad.fineants.AbstractContainerBaseTest;
-import codesquad.fineants.domain.dividend.repository.StockDividendRepository;
 import codesquad.fineants.domain.holding.repository.PortfolioHoldingRepository;
 import codesquad.fineants.domain.kis.client.KisClient;
 import codesquad.fineants.domain.kis.client.KisCurrentPrice;
@@ -52,9 +51,6 @@ class KisServiceTest extends AbstractContainerBaseTest {
 	@Autowired
 	private StockRepository stockRepository;
 
-	@Autowired
-	private StockDividendRepository stockDividendRepository;
-
 	@MockBean
 	private KisClient client;
 
@@ -66,11 +62,6 @@ class KisServiceTest extends AbstractContainerBaseTest {
 
 	@AfterEach
 	void tearDown() {
-		portfolioHoldingRepository.deleteAllInBatch();
-		portfolioRepository.deleteAllInBatch();
-		memberRepository.deleteAllInBatch();
-		stockDividendRepository.deleteAllInBatch();
-		stockRepository.deleteAllInBatch();
 		Mockito.clearInvocations(client);
 	}
 

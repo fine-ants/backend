@@ -20,7 +20,6 @@ import codesquad.fineants.domain.fcm.repository.FcmRepository;
 import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
 import codesquad.fineants.domain.holding.repository.PortfolioHoldingRepository;
 import codesquad.fineants.domain.member.domain.dto.request.ModifyPasswordRequest;
-import codesquad.fineants.domain.member.domain.dto.request.OauthMemberLogoutRequest;
 import codesquad.fineants.domain.member.domain.dto.request.OauthMemberRefreshRequest;
 import codesquad.fineants.domain.member.domain.dto.request.ProfileChangeServiceRequest;
 import codesquad.fineants.domain.member.domain.dto.request.SignUpServiceRequest;
@@ -31,7 +30,10 @@ import codesquad.fineants.domain.member.domain.dto.response.ProfileChangeRespons
 import codesquad.fineants.domain.member.domain.dto.response.ProfileResponse;
 import codesquad.fineants.domain.member.domain.dto.response.SignUpServiceResponse;
 import codesquad.fineants.domain.member.domain.entity.Member;
+import codesquad.fineants.domain.member.domain.entity.MemberRole;
+import codesquad.fineants.domain.member.domain.entity.Role;
 import codesquad.fineants.domain.member.repository.MemberRepository;
+import codesquad.fineants.domain.member.repository.RoleRepository;
 import codesquad.fineants.domain.notification.repository.NotificationRepository;
 import codesquad.fineants.domain.notificationpreference.domain.entity.NotificationPreference;
 import codesquad.fineants.domain.notificationpreference.repository.NotificationPreferenceRepository;
@@ -49,6 +51,7 @@ import codesquad.fineants.domain.watchlist.repository.WatchListRepository;
 import codesquad.fineants.domain.watchlist.repository.WatchStockRepository;
 import codesquad.fineants.global.errors.errorcode.MemberErrorCode;
 import codesquad.fineants.global.errors.errorcode.NotificationPreferenceErrorCode;
+import codesquad.fineants.global.errors.errorcode.RoleErrorCode;
 import codesquad.fineants.global.errors.exception.BadRequestException;
 import codesquad.fineants.global.errors.exception.FineAntsException;
 import codesquad.fineants.global.errors.exception.NotFoundResourceException;
@@ -91,27 +94,23 @@ public class MemberService {
 	private final TargetPriceNotificationRepository targetPriceNotificationRepository;
 	private final TokenService tokenService;
 	private final OauthMemberRedisService oauthMemberRedisService;
+	private final RoleRepository roleRepository;
 
-	public void logout(OauthMemberLogoutRequest logoutRequest, HttpServletRequest request,
-		HttpServletResponse response) {
+	public void logout(HttpServletRequest request, HttpServletResponse response) {
+		// clear Authentication
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		if (authentication != null) {
 			new SecurityContextLogoutHandler().logout(request, response, authentication);
 		}
 
-		// accessToken, refreshToken에 대해서 블랙리스트 추가
-		banAccessToken(request);
-		banRefreshToken(logoutRequest.getRefreshToken());
-	}
-
-	private void banAccessToken(HttpServletRequest request) {
+		// ban accessToken
 		String accessToken = CookieUtils.getAccessToken(request);
 		if (accessToken != null) {
 			oauthMemberRedisService.banAccessToken(accessToken);
 		}
-	}
 
-	private void banRefreshToken(String refreshToken) {
+		// ban refreshToken
+		String refreshToken = CookieUtils.getRefreshToken(request);
 		if (refreshToken != null) {
 			oauthMemberRedisService.banRefreshToken(refreshToken);
 		}
@@ -140,12 +139,17 @@ public class MemberService {
 
 		// 비밀번호 암호화
 		String encryptedPassword = passwordEncoder.encode(request.getPassword());
+		// 역할 추가
+		Role userRole = roleRepository.findRoleByRoleName("ROLE_USER")
+			.orElseThrow(() -> new FineAntsException(RoleErrorCode.NOT_EXIST_ROLE));
+		Member member = request.toEntity(profileUrl, encryptedPassword);
+		member.addMemberRole(MemberRole.create(member, userRole));
+		member.setNotificationPreference(NotificationPreference.defaultSetting(member));
 		// 회원 데이터베이스 저장
-		Member member = memberRepository.save(request.toEntity(profileUrl, encryptedPassword));
-		preferenceService.registerDefaultNotificationPreference(member);
+		Member saveMember = memberRepository.save(member);
 
-		log.info("일반 회원가입 결과 : {}", member);
-		return SignUpServiceResponse.from(member);
+		log.info("일반 회원가입 결과 : {}", saveMember);
+		return SignUpServiceResponse.from(saveMember);
 	}
 
 	private String uploadProfileImageFile(MultipartFile profileImageFile) {
@@ -324,7 +328,6 @@ public class MemberService {
 		targetPriceNotificationRepository.deleteAllByStockTargetPrices(stockTargetPrices);
 		stockTargetPriceRepository.deleteAllByMemberId(member.getId());
 		notificationRepository.deleteAllByMemberId(member.getId());
-		notificationPreferenceRepository.deleteAllByMemberId(member.getId());
 		memberRepository.delete(member);
 	}
 

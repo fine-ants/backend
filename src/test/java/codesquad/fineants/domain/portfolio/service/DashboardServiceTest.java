@@ -7,7 +7,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import org.assertj.core.data.Percentage;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -55,17 +54,6 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 	private StockDividendRepository stockDividendRepository;
 	@Autowired
 	private CurrentPriceRepository currentPriceRepository;
-
-	@AfterEach
-	void tearDown() {
-		purchaseHistoryRepository.deleteAllInBatch();
-		portfolioHoldingRepository.deleteAllInBatch();
-		portfolioGainHistoryRepository.deleteAllInBatch();
-		portfolioRepository.deleteAllInBatch();
-		memberRepository.deleteAllInBatch();
-		stockDividendRepository.deleteAllInBatch();
-		stockRepository.deleteAllInBatch();
-	}
 
 	@Test
 	void getOverviewWhenNoPortfolio() {

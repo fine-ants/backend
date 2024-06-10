@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.*;
 import java.util.List;
 
 import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,13 +21,7 @@ class PortfolioRepositoryTest extends AbstractContainerBaseTest {
 
 	@Autowired
 	private PortfolioRepository portfolioRepository;
-
-	@AfterEach
-	void tearDown() {
-		portfolioRepository.deleteAllInBatch();
-		memberRepository.deleteAllInBatch();
-	}
-
+	
 	@DisplayName("회원이 가지고 있는 포트폴리오들을 조회한다")
 	@Test
 	void findAllByMemberId() {

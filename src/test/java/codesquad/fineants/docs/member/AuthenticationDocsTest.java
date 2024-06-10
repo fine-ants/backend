@@ -5,21 +5,22 @@ import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.*;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
 import static org.springframework.restdocs.request.RequestDocumentation.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import java.io.IOException;
 import java.util.Map;
 
-import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseCookie;
 import org.springframework.mock.web.MockFilterConfig;
-import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.restdocs.RestDocumentationContextProvider;
 import org.springframework.restdocs.RestDocumentationExtension;
 import org.springframework.restdocs.mockmvc.MockMvcRestDocumentation;
@@ -34,9 +35,6 @@ import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.filter.DelegatingFilterProxy;
 
 import codesquad.fineants.AbstractContainerBaseTest;
-import codesquad.fineants.domain.member.domain.entity.Member;
-import codesquad.fineants.domain.member.domain.entity.MemberRole;
-import codesquad.fineants.domain.member.domain.entity.Role;
 import codesquad.fineants.domain.member.repository.MemberRepository;
 import codesquad.fineants.domain.member.repository.MemberRoleRepository;
 import codesquad.fineants.domain.member.repository.RoleRepository;
@@ -44,10 +42,11 @@ import codesquad.fineants.global.security.factory.TokenFactory;
 import codesquad.fineants.global.security.oauth.dto.Token;
 import codesquad.fineants.global.util.ObjectMapperUtil;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.Cookie;
+import okhttp3.mockwebserver.MockWebServer;
 
 @ExtendWith(RestDocumentationExtension.class)
 public class AuthenticationDocsTest extends AbstractContainerBaseTest {
+	public static MockWebServer mockWebServer;
 	protected MockMvc mockMvc;
 	@Autowired
 	private WebApplicationContext webApplicationContext;
@@ -57,6 +56,17 @@ public class AuthenticationDocsTest extends AbstractContainerBaseTest {
 	private RoleRepository roleRepository;
 	@Autowired
 	private MemberRoleRepository memberRoleRepository;
+
+	@BeforeAll
+	static void setUp() throws IOException {
+		mockWebServer = new MockWebServer();
+		mockWebServer.start();
+	}
+
+	@AfterAll
+	static void allTearDown() throws IOException {
+		mockWebServer.shutdown();
+	}
 
 	@BeforeEach
 	void setUp(RestDocumentationContextProvider provider) throws ServletException {
@@ -70,22 +80,11 @@ public class AuthenticationDocsTest extends AbstractContainerBaseTest {
 			.build();
 	}
 
-	@AfterEach
-	void tearDown() {
-		memberRoleRepository.deleteAllInBatch();
-		memberRepository.deleteAllInBatch();
-		roleRepository.deleteAllInBatch();
-	}
-
 	@DisplayName("사용자가 일반 로그인한다")
 	@Test
 	void login() throws Exception {
 		// given
-		Role userRole = roleRepository.save(Role.create("ROLE_USER", "유저"));
-		Member member = memberRepository.save(createMember());
-		MemberRole memberRole = MemberRole.create(member, userRole);
-		member.addMemberRole(memberRole);
-		memberRepository.save(member);
+		memberRepository.save(createMember());
 
 		Map<String, Object> body = Map.of(
 			"email", "dragonbead95@naver.com",
@@ -97,11 +96,15 @@ public class AuthenticationDocsTest extends AbstractContainerBaseTest {
 				.content(ObjectMapperUtil.serialize(body)))
 			.andExpect(status().isOk())
 			.andExpect(cookie().exists("accessToken"))
+			.andExpect(cookie().path("accessToken", "/"))
 			.andExpect(cookie().httpOnly("accessToken", true))
 			.andExpect(cookie().secure("accessToken", true))
+			.andExpect(cookie().sameSite("accessToken", "None"))
 			.andExpect(cookie().exists("refreshToken"))
+			.andExpect(cookie().path("refreshToken", "/"))
 			.andExpect(cookie().httpOnly("refreshToken", true))
 			.andExpect(cookie().secure("refreshToken", true))
+			.andExpect(cookie().sameSite("refreshToken", "None"))
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
 			.andExpect(jsonPath("message").value(equalTo("로그인에 성공하였습니다.")))
@@ -164,12 +167,15 @@ public class AuthenticationDocsTest extends AbstractContainerBaseTest {
 	void logout() throws Exception {
 		// given
 		String url = "/api/auth/logout";
-		TokenFactory tokenFactory = new TokenFactory(true);
-		Cookie accessTokenCookie = new Cookie("accessToken", "accessToken");
-		Cookie refreshTokenCookie = new Cookie("refreshToken", "refreshToken");
+		TokenFactory tokenFactory = new TokenFactory();
+		Token token = Token.create("accessToken", "refreshToken");
+		ResponseCookie accessTokenCookie = tokenFactory.createAccessTokenCookie(token);
+		ResponseCookie refreshTokenCookie = tokenFactory.createRefreshTokenCookie(token);
+
 		// when & then
 		mockMvc.perform(RestDocumentationRequestBuilders.get(url)
-				.cookie(accessTokenCookie, refreshTokenCookie)
+				.header("Set-Cookie", accessTokenCookie.toString())
+				.header("Set-Cookie", refreshTokenCookie.toString())
 			)
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("code").value(equalTo(200)))
@@ -193,70 +199,5 @@ public class AuthenticationDocsTest extends AbstractContainerBaseTest {
 					)
 				)
 			);
-	}
-
-	@DisplayName("액세스 토큰 갱신 API")
-	@Test
-	void refreshAccessToken() throws Exception {
-		// give
-		Token token = processingLogin();
-
-		Map<String, Object> body = Map.of(
-			"refreshToken", token.getRefreshToken()
-		);
-
-		// when & then
-		mockMvc.perform(post("/api/auth/refresh/token")
-				.contentType(MediaType.APPLICATION_JSON)
-				.content(ObjectMapperUtil.serialize(body)))
-			.andExpect(status().isOk())
-			.andExpect(jsonPath("code").value(equalTo(200)))
-			.andExpect(jsonPath("status").value(equalTo("OK")))
-			.andExpect(jsonPath("message").value(equalTo("액세스 토큰 갱신에 성공하였습니다")))
-			.andExpect(jsonPath("data.accessToken").isNotEmpty())
-			.andDo(
-				document(
-					"member_access_token-refresh",
-					preprocessRequest(prettyPrint()),
-					preprocessResponse(prettyPrint()),
-					requestFields(
-						fieldWithPath("refreshToken").type(JsonFieldType.STRING).description("리프레시 토큰")
-					),
-					responseFields(
-						fieldWithPath("code").type(JsonFieldType.NUMBER)
-							.description("코드"),
-						fieldWithPath("status").type(JsonFieldType.STRING)
-							.description("상태"),
-						fieldWithPath("message").type(JsonFieldType.STRING)
-							.description("메시지"),
-						fieldWithPath("data").type(JsonFieldType.OBJECT)
-							.description("응답 데이터"),
-						fieldWithPath("data.accessToken").type(JsonFieldType.STRING)
-							.description("액세스 토큰")
-					)
-				)
-			);
-	}
-
-	private Token processingLogin() throws Exception {
-		Role userRole = roleRepository.save(Role.create("ROLE_USER", "유저"));
-		Member member = memberRepository.save(createMember());
-		MemberRole memberRole = MemberRole.create(member, userRole);
-		member.addMemberRole(memberRole);
-		memberRepository.save(member);
-
-		Map<String, Object> body = Map.of(
-			"email", "dragonbead95@naver.com",
-			"password", "nemo1234@"
-		);
-		MockHttpServletResponse response = mockMvc.perform(RestDocumentationRequestBuilders.post("/api/auth/login")
-				.contentType(MediaType.APPLICATION_JSON)
-				.content(ObjectMapperUtil.serialize(body)))
-			.andExpect(status().isOk())
-			.andReturn()
-			.getResponse();
-		String accessToken = response.getCookie("accessToken").getValue();
-		String refreshToken = response.getCookie("refreshToken").getValue();
-		return Token.create(accessToken, refreshToken);
 	}
 }

@@ -28,6 +28,7 @@ import codesquad.fineants.domain.notificationpreference.domain.entity.Notificati
 import codesquad.fineants.domain.notificationpreference.repository.NotificationPreferenceRepository;
 import codesquad.fineants.domain.stock.service.StockService;
 import codesquad.fineants.global.errors.errorcode.MemberErrorCode;
+import codesquad.fineants.global.errors.errorcode.RoleErrorCode;
 import codesquad.fineants.global.errors.exception.FineAntsException;
 import codesquad.fineants.global.security.oauth.dto.MemberAuthentication;
 import lombok.RequiredArgsConstructor;
@@ -58,6 +59,7 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
 			return;
 		}
 		setupSecurityResources();
+		setupMemberResources();
 		setAdminAuthentication();
 		setupExchangeRateResources();
 
@@ -85,9 +87,19 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
 
 	@Transactional
 	public void setupSecurityResources() {
-		Role adminRole = createRoleIfNotFound("ROLE_ADMIN", "관리자");
-		Role managerRole = createRoleIfNotFound("ROLE_MANAGER", "매니저");
-		Role userRole = createRoleIfNotFound("ROLE_USER", "회원");
+		createRoleIfNotFound("ROLE_ADMIN", "관리자");
+		createRoleIfNotFound("ROLE_MANAGER", "매니저");
+		createRoleIfNotFound("ROLE_USER", "회원");
+	}
+
+	@Transactional
+	public void setupMemberResources() {
+		Role userRole = roleRepository.findRoleByRoleName("ROLE_USER")
+			.orElseThrow(() -> new FineAntsException(RoleErrorCode.NOT_EXIST_ROLE));
+		Role managerRole = roleRepository.findRoleByRoleName("ROLE_MANAGER")
+			.orElseThrow(() -> new FineAntsException(RoleErrorCode.NOT_EXIST_ROLE));
+		Role adminRole = roleRepository.findRoleByRoleName("ROLE_ADMIN")
+			.orElseThrow(() -> new FineAntsException(RoleErrorCode.NOT_EXIST_ROLE));
 
 		createMemberIfNotFound("dragonbead95@naver.com", "일개미1111", "nemo1234@",
 			Set.of(userRole));
@@ -110,10 +122,10 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
 	}
 
 	@Transactional
-	public Role createRoleIfNotFound(String roleName, String roleDesc) {
+	public void createRoleIfNotFound(String roleName, String roleDesc) {
 		Role role = roleRepository.findRoleByRoleName(roleName)
 			.orElseGet(() -> Role.create(roleName, roleDesc));
-		return roleRepository.save(role);
+		roleRepository.save(role);
 	}
 
 	@Transactional

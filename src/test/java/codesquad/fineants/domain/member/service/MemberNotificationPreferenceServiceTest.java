@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.List;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,18 +33,14 @@ class MemberNotificationPreferenceServiceTest extends AbstractContainerBaseTest 
 	@Autowired
 	private FcmRepository fcmRepository;
 
-	@AfterEach
-	void tearDown() {
-		fcmRepository.deleteAllInBatch();
-		repository.deleteAllInBatch();
-		memberRepository.deleteAllInBatch();
-	}
-
 	@DisplayName("사용자는 계정 알림 설정을 등록합니다")
 	@Test
 	void registerDefaultNotificationPreference() {
 		// given
 		Member member = memberRepository.save(createMember());
+		NotificationPreference preference = member.getNotificationPreference();
+		preference.changePreference(createNotificationPreference(false, false, false, false, member));
+		repository.save(preference);
 
 		// when
 		MemberNotificationPreferenceResponse response = service.registerDefaultNotificationPreference(member);
@@ -65,7 +60,6 @@ class MemberNotificationPreferenceServiceTest extends AbstractContainerBaseTest 
 	void registerDefaultNotificationPreference_whenExistNotificationPreference_thenNotRegister() {
 		// given
 		Member member = memberRepository.save(createMember());
-		repository.save(NotificationPreference.defaultSetting(member));
 
 		// when
 		service.registerDefaultNotificationPreference(member);
@@ -80,7 +74,6 @@ class MemberNotificationPreferenceServiceTest extends AbstractContainerBaseTest 
 	void updateNotificationPreference() {
 		// given
 		Member member = memberRepository.save(createMember());
-		repository.save(createAllActiveNotificationPreference(member));
 		MemberNotificationPreferenceRequest request = MemberNotificationPreferenceRequest.builder()
 			.browserNotify(false)
 			.targetGainNotify(true)
@@ -111,9 +104,9 @@ class MemberNotificationPreferenceServiceTest extends AbstractContainerBaseTest 
 		Member member = memberRepository.save(createMember());
 		MemberNotificationPreferenceRequest request = MemberNotificationPreferenceRequest.builder()
 			.browserNotify(false)
-			.targetGainNotify(true)
-			.maxLossNotify(true)
-			.targetPriceNotify(true)
+			.targetGainNotify(false)
+			.maxLossNotify(false)
+			.targetPriceNotify(false)
 			.build();
 
 		// when
@@ -137,7 +130,6 @@ class MemberNotificationPreferenceServiceTest extends AbstractContainerBaseTest 
 		// given
 		Member member = memberRepository.save(createMember());
 		FcmToken fcmToken = fcmRepository.save(createFcmToken("fcmToken", member));
-		repository.save(createAllActiveNotificationPreference(member));
 		MemberNotificationPreferenceRequest request = MemberNotificationPreferenceRequest.builder()
 			.browserNotify(false)
 			.targetGainNotify(false)
@@ -167,7 +159,6 @@ class MemberNotificationPreferenceServiceTest extends AbstractContainerBaseTest 
 	void updateNotificationPreference_whenPreferenceIsAllInActiveAndFcmTokenIsNotStored_thenNotDeleteFcmToken() {
 		// given
 		Member member = memberRepository.save(createMember());
-		repository.save(createAllActiveNotificationPreference(member));
 		MemberNotificationPreferenceRequest request = MemberNotificationPreferenceRequest.builder()
 			.browserNotify(false)
 			.targetGainNotify(false)

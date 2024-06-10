@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import codesquad.fineants.domain.member.domain.dto.request.ModifyPasswordRequest;
-import codesquad.fineants.domain.member.domain.dto.request.OauthMemberLogoutRequest;
 import codesquad.fineants.domain.member.domain.dto.request.ProfileChangeRequest;
 import codesquad.fineants.domain.member.domain.dto.request.ProfileChangeServiceRequest;
 import codesquad.fineants.domain.member.domain.dto.response.ProfileChangeResponse;
@@ -70,13 +69,12 @@ public class MemberRestController {
 
 	@DeleteMapping("/account")
 	public ApiResponse<Void> deleteAccount(
-		@RequestBody OauthMemberLogoutRequest request,
 		@MemberAuthenticationPrincipal MemberAuthentication authentication,
 		HttpServletRequest servletRequest,
 		HttpServletResponse servletResponse
 	) {
 		memberService.deleteMember(authentication.getId());
-		memberService.logout(request, servletRequest, servletResponse);
+		memberService.logout(servletRequest, servletResponse);
 		return ApiResponse.success(MemberSuccessCode.OK_DELETED_ACCOUNT);
 	}
 }
