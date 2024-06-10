@@ -9,10 +9,12 @@ import codesquad.fineants.domain.member.service.NicknameGenerator;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 
 @Getter
 @RequiredArgsConstructor
 @ToString
+@Slf4j
 public class OAuthAttribute {
 	private final Map<String, Object> attributes;
 	private final String nameAttributeKey;
@@ -46,6 +48,7 @@ public class OAuthAttribute {
 	}
 
 	private static OAuthAttribute ofKakao(Map<String, Object> attributes, String nameAttributeKey) {
+		log.info("attributes = {}", attributes);
 		Map<String, Object> kakaoAccountMap = (Map<String, Object>)attributes.get("kakao_account");
 		Map<String, Object> profileMap = (Map<String, Object>)kakaoAccountMap.get("profile");
 		String email = (String)kakaoAccountMap.get("email");
