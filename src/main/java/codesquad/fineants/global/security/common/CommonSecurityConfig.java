@@ -15,7 +15,9 @@ public class CommonSecurityConfig {
 		CorsConfiguration config = new CorsConfiguration();
 		config.setAllowedOrigins(
 			List.of("https://fineants.co", "https://release.fineants.co", "http://localhost:5173",
-				"https://localhost:5173"));
+				"https://localhost:5173", "https://accounts.kakao.com/login",
+				"https://nid.naver.com/oauth2.0/authorize",
+				"https://accounts.google.com/o/oauth2/v2/auth"));
 		config.setAllowedMethods(Collections.singletonList("*"));
 		config.setAllowedHeaders(Collections.singletonList("*"));
 		config.setAllowCredentials(true);
