@@ -1,7 +1,6 @@
 package codesquad.fineants.docs.exchangerate;
 
 import static org.hamcrest.Matchers.*;
-import static org.springframework.restdocs.headers.HeaderDocumentation.*;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.*;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.*;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
@@ -16,7 +15,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.BDDMockito;
 import org.mockito.Mockito;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.payload.JsonFieldType;
 
@@ -49,7 +47,7 @@ public class ExchangeRateRestControllerDocsTest extends RestDocsSupport {
 		mockMvc.perform(post("/api/exchange-rates")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(ObjectMapperUtil.serialize(code))
-				.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))
+				.cookie(createTokenCookies()))
 			.andExpect(status().isCreated())
 			.andExpect(jsonPath("code").value(equalTo(201)))
 			.andExpect(jsonPath("status").value(equalTo("Created")))
@@ -60,9 +58,6 @@ public class ExchangeRateRestControllerDocsTest extends RestDocsSupport {
 					"exchange-rate-create",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint()),
-					requestHeaders(
-						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
-					),
 					requestFields(
 						fieldWithPath("code").type(JsonFieldType.STRING)
 							.description("통화 코드")
@@ -91,7 +86,7 @@ public class ExchangeRateRestControllerDocsTest extends RestDocsSupport {
 
 		// when & then
 		mockMvc.perform(get("/api/exchange-rates")
-				.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))
+				.cookie(createTokenCookies()))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
@@ -103,9 +98,6 @@ public class ExchangeRateRestControllerDocsTest extends RestDocsSupport {
 					"exchange-rate-read",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint()),
-					requestHeaders(
-						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
-					),
 					responseFields(
 						fieldWithPath("code").type(JsonFieldType.NUMBER)
 							.description("코드"),
@@ -133,7 +125,7 @@ public class ExchangeRateRestControllerDocsTest extends RestDocsSupport {
 
 		// when & then
 		mockMvc.perform(put("/api/exchange-rates")
-				.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))
+				.cookie(createTokenCookies()))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
@@ -144,9 +136,6 @@ public class ExchangeRateRestControllerDocsTest extends RestDocsSupport {
 					"exchange-rate-update",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint()),
-					requestHeaders(
-						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
-					),
 					responseFields(
 						fieldWithPath("code").type(JsonFieldType.NUMBER)
 							.description("코드"),
@@ -169,7 +158,7 @@ public class ExchangeRateRestControllerDocsTest extends RestDocsSupport {
 		// when & then
 		mockMvc.perform(patch("/api/exchange-rates/base")
 				.queryParam("code", "KRW")
-				.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))
+				.cookie(createTokenCookies()))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
@@ -180,9 +169,6 @@ public class ExchangeRateRestControllerDocsTest extends RestDocsSupport {
 					"exchange-rate-patch-base",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint()),
-					requestHeaders(
-						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
-					),
 					queryParameters(
 						parameterWithName("code").description("기준 통화로 변경할 통화 코드")
 					),
@@ -209,7 +195,7 @@ public class ExchangeRateRestControllerDocsTest extends RestDocsSupport {
 		mockMvc.perform(delete("/api/exchange-rates")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(ObjectMapperUtil.serialize(Map.of("codes", List.of("USD"))))
-				.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))
+				.cookie(createTokenCookies()))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
@@ -220,9 +206,6 @@ public class ExchangeRateRestControllerDocsTest extends RestDocsSupport {
 					"exchange-rate-delete",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint()),
-					requestHeaders(
-						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
-					),
 					requestFields(
 						fieldWithPath("codes").type(JsonFieldType.ARRAY)
 							.description("통화 코드 목록")

@@ -1,7 +1,6 @@
 package codesquad.fineants.docs.member;
 
 import static org.hamcrest.Matchers.*;
-import static org.springframework.restdocs.cookies.CookieDocumentation.*;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.*;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
@@ -20,7 +19,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseCookie;
 import org.springframework.mock.web.MockFilterConfig;
 import org.springframework.restdocs.RestDocumentationContextProvider;
 import org.springframework.restdocs.RestDocumentationExtension;
@@ -39,8 +37,6 @@ import codesquad.fineants.AbstractContainerBaseTest;
 import codesquad.fineants.domain.member.repository.MemberRepository;
 import codesquad.fineants.domain.member.repository.MemberRoleRepository;
 import codesquad.fineants.domain.member.repository.RoleRepository;
-import codesquad.fineants.global.security.factory.TokenFactory;
-import codesquad.fineants.global.security.oauth.dto.Token;
 import codesquad.fineants.global.util.ObjectMapperUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -169,15 +165,11 @@ public class AuthenticationDocsTest extends AbstractContainerBaseTest {
 	void logout() throws Exception {
 		// given
 		String url = "/api/auth/logout";
-		TokenFactory tokenFactory = new TokenFactory();
-		Token token = Token.create("accessToken", "refreshToken");
-		ResponseCookie accessTokenCookie = tokenFactory.createAccessTokenCookie(token);
-		ResponseCookie refreshTokenCookie = tokenFactory.createRefreshTokenCookie(token);
+		Cookie[] cookies = createTokenCookies();
 
 		// when & then
 		mockMvc.perform(RestDocumentationRequestBuilders.get(url)
-				.cookie(new Cookie(accessTokenCookie.getName(), accessTokenCookie.getValue()))
-				.cookie(new Cookie(refreshTokenCookie.getName(), refreshTokenCookie.getValue()))
+				.cookie(cookies)
 			)
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("code").value(equalTo(200)))
@@ -189,10 +181,6 @@ public class AuthenticationDocsTest extends AbstractContainerBaseTest {
 					"member-logout",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint()),
-					requestCookies(
-						cookieWithName(accessTokenCookie.getName()).optional().description("인증에 필요한 액세스 토큰"),
-						cookieWithName(refreshTokenCookie.getName()).optional().description("리프레시 토큰")
-					),
 					responseFields(
 						fieldWithPath("code").type(JsonFieldType.NUMBER)
 							.description("코드"),

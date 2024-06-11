@@ -2,7 +2,6 @@ package codesquad.fineants.docs.watch_list;
 
 import static org.hamcrest.Matchers.*;
 import static org.mockito.BDDMockito.*;
-import static org.springframework.restdocs.headers.HeaderDocumentation.*;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.*;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
@@ -19,7 +18,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
 import org.springframework.restdocs.payload.JsonFieldType;
@@ -61,7 +59,7 @@ public class WatchListRestControllerDocsTest extends RestDocsSupport {
 
 		// when & then
 		mockMvc.perform(RestDocumentationRequestBuilders.post("/api/watchlists")
-				.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken")
+				.cookie(createTokenCookies())
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(ObjectMapperUtil.serialize(body)))
 			.andExpect(status().isOk())
@@ -74,9 +72,6 @@ public class WatchListRestControllerDocsTest extends RestDocsSupport {
 					"watchlist-create",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint()),
-					requestHeaders(
-						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
-					),
 					requestFields(
 						fieldWithPath("name").type(JsonFieldType.STRING)
 							.description("관심 종목 목록 이름")
@@ -111,7 +106,7 @@ public class WatchListRestControllerDocsTest extends RestDocsSupport {
 
 		// when & then
 		mockMvc.perform(RestDocumentationRequestBuilders.get("/api/watchlists")
-				.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))
+				.cookie(createTokenCookies()))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
@@ -123,9 +118,6 @@ public class WatchListRestControllerDocsTest extends RestDocsSupport {
 					"watchlist-multiple-search",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint()),
-					requestHeaders(
-						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
-					),
 					responseFields(
 						fieldWithPath("code").type(JsonFieldType.NUMBER)
 							.description("코드"),
@@ -155,7 +147,7 @@ public class WatchListRestControllerDocsTest extends RestDocsSupport {
 
 		// when & then
 		mockMvc.perform(RestDocumentationRequestBuilders.delete("/api/watchlists")
-				.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken")
+				.cookie(createTokenCookies())
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(ObjectMapperUtil.serialize(body)))
 			.andExpect(status().isOk())
@@ -167,9 +159,6 @@ public class WatchListRestControllerDocsTest extends RestDocsSupport {
 					"watchlist-multiple-delete",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint()),
-					requestHeaders(
-						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
-					),
 					requestFields(
 						fieldWithPath("watchlistIds").type(JsonFieldType.ARRAY).description("관심종목 리스트 등록번호 리스트")
 					),
@@ -213,7 +202,7 @@ public class WatchListRestControllerDocsTest extends RestDocsSupport {
 
 		// when & then
 		mockMvc.perform(RestDocumentationRequestBuilders.get("/api/watchlists/{watchlistId}", watchlistId)
-				.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))
+				.cookie(createTokenCookies()))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
@@ -223,9 +212,6 @@ public class WatchListRestControllerDocsTest extends RestDocsSupport {
 					"watchlist-one-search",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint()),
-					requestHeaders(
-						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
-					),
 					pathParameters(
 						parameterWithName("watchlistId").description("관심종목 리스트 등록번호")
 					),
@@ -278,7 +264,7 @@ public class WatchListRestControllerDocsTest extends RestDocsSupport {
 
 		// when & then
 		mockMvc.perform(RestDocumentationRequestBuilders.put("/api/watchlists/{watchlistId}", watchlistId)
-				.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken")
+				.cookie(createTokenCookies())
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(ObjectMapperUtil.serialize(body)))
 			.andExpect(status().isOk())
@@ -290,9 +276,6 @@ public class WatchListRestControllerDocsTest extends RestDocsSupport {
 					"watchlist_name-update",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint()),
-					requestHeaders(
-						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
-					),
 					pathParameters(
 						parameterWithName("watchlistId").description("관심종목 리스트 등록번호")
 					),
@@ -326,7 +309,7 @@ public class WatchListRestControllerDocsTest extends RestDocsSupport {
 
 		// when & then
 		mockMvc.perform(RestDocumentationRequestBuilders.post("/api/watchlists/{watchlistId}/stock", watchlistId)
-				.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken")
+				.cookie(createTokenCookies())
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(ObjectMapperUtil.serialize(body)))
 			.andExpect(status().isOk())
@@ -338,9 +321,6 @@ public class WatchListRestControllerDocsTest extends RestDocsSupport {
 					"watchlist-stock-multiple-create",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint()),
-					requestHeaders(
-						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
-					),
 					pathParameters(
 						parameterWithName("watchlistId").description("관심종목 리스트 등록번호")
 					),
@@ -374,7 +354,7 @@ public class WatchListRestControllerDocsTest extends RestDocsSupport {
 
 		// when & then
 		mockMvc.perform(RestDocumentationRequestBuilders.delete("/api/watchlists/{watchlistId}/stock", watchlistId)
-				.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken")
+				.cookie(createTokenCookies())
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(ObjectMapperUtil.serialize(body)))
 			.andExpect(status().isOk())
@@ -386,9 +366,6 @@ public class WatchListRestControllerDocsTest extends RestDocsSupport {
 					"watchlist-stock-multiple-delete",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint()),
-					requestHeaders(
-						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
-					),
 					pathParameters(
 						parameterWithName("watchlistId").description("관심종목 리스트 등록번호")
 					),
@@ -421,7 +398,7 @@ public class WatchListRestControllerDocsTest extends RestDocsSupport {
 		mockMvc.perform(
 				RestDocumentationRequestBuilders.delete("/api/watchlists/{watchlistId}/stock/{tickerSymbol}", watchlistId,
 						tickerSymbol)
-					.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))
+					.cookie(createTokenCookies()))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
@@ -431,9 +408,6 @@ public class WatchListRestControllerDocsTest extends RestDocsSupport {
 					"watchlist-stock-one-delete",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint()),
-					requestHeaders(
-						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
-					),
 					pathParameters(
 						parameterWithName("watchlistId").description("관심종목 리스트 등록번호"),
 						parameterWithName("tickerSymbol").description("관심종목 티커 심볼")
@@ -468,7 +442,7 @@ public class WatchListRestControllerDocsTest extends RestDocsSupport {
 		// when & then
 		mockMvc.perform(
 				RestDocumentationRequestBuilders.get("/api/watchlists/stockExists/{tickerSymbol}", tickerSymbol)
-					.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))
+					.cookie(createTokenCookies()))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
@@ -478,9 +452,6 @@ public class WatchListRestControllerDocsTest extends RestDocsSupport {
 					"watchlist-stock-contain-get",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint()),
-					requestHeaders(
-						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
-					),
 					pathParameters(
 						parameterWithName("tickerSymbol").description("관심종목 티커 심볼")
 					),

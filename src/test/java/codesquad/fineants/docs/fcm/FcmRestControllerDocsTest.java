@@ -3,7 +3,6 @@ package codesquad.fineants.docs.fcm;
 import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.anyLong;
-import static org.springframework.restdocs.headers.HeaderDocumentation.*;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.*;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.*;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
@@ -17,7 +16,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.BDDMockito;
 import org.mockito.Mockito;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.payload.JsonFieldType;
 
@@ -53,7 +51,7 @@ public class FcmRestControllerDocsTest extends RestDocsSupport {
 		mockMvc.perform(post("/api/fcm/tokens")
 				.content(ObjectMapperUtil.serialize(body))
 				.contentType(MediaType.APPLICATION_JSON)
-				.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))
+				.cookie(createTokenCookies()))
 			.andExpect(status().isCreated())
 			.andExpect(jsonPath("code").value(equalTo(201)))
 			.andExpect(jsonPath("status").value(equalTo("Created")))
@@ -64,9 +62,6 @@ public class FcmRestControllerDocsTest extends RestDocsSupport {
 					"fcm-create",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint()),
-					requestHeaders(
-						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
-					),
 					requestFields(
 						fieldWithPath("fcmToken").type(JsonFieldType.STRING)
 							.description("FCM 토큰")
@@ -99,7 +94,7 @@ public class FcmRestControllerDocsTest extends RestDocsSupport {
 
 		// when & then
 		mockMvc.perform(delete("/api/fcm/tokens/{fcmTokenId}", fcmTokenId)
-				.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))
+				.cookie(createTokenCookies()))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
@@ -111,9 +106,6 @@ public class FcmRestControllerDocsTest extends RestDocsSupport {
 					preprocessResponse(prettyPrint()),
 					pathParameters(
 						parameterWithName("fcmTokenId").description("FCM 토큰 등록번호")
-					),
-					requestHeaders(
-						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
 					),
 					responseFields(
 						fieldWithPath("code").type(JsonFieldType.NUMBER)

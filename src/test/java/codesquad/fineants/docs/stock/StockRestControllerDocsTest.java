@@ -2,7 +2,6 @@ package codesquad.fineants.docs.stock;
 
 import static org.hamcrest.Matchers.*;
 import static org.mockito.BDDMockito.*;
-import static org.springframework.restdocs.headers.HeaderDocumentation.*;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.*;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.*;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
@@ -19,7 +18,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.payload.JsonFieldType;
 
@@ -121,7 +119,7 @@ public class StockRestControllerDocsTest extends RestDocsSupport {
 
 		// when & then
 		mockMvc.perform(post("/api/stocks/refresh")
-				.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))
+				.cookie(createTokenCookies()))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
@@ -133,9 +131,6 @@ public class StockRestControllerDocsTest extends RestDocsSupport {
 					"stock-refresh",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint()),
-					requestHeaders(
-						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
-					),
 					responseFields(
 						fieldWithPath("code").type(JsonFieldType.NUMBER)
 							.description("코드"),

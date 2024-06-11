@@ -3,7 +3,6 @@ package codesquad.fineants.docs.member;
 import static org.hamcrest.Matchers.*;
 import static org.mockito.BDDMockito.*;
 import static org.springframework.http.HttpMethod.*;
-import static org.springframework.restdocs.headers.HeaderDocumentation.*;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.*;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
@@ -18,7 +17,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
@@ -67,7 +65,7 @@ public class MemberRestControllerDocsTest extends RestDocsSupport {
 
 		// when & then
 		mockMvc.perform(get("/api/profile")
-				.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))
+				.cookie(createTokenCookies()))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
@@ -86,9 +84,6 @@ public class MemberRestControllerDocsTest extends RestDocsSupport {
 					"member-search",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint()),
-					requestHeaders(
-						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
-					),
 					responseFields(
 						fieldWithPath("code").type(JsonFieldType.NUMBER)
 							.description("코드"),
@@ -143,11 +138,12 @@ public class MemberRestControllerDocsTest extends RestDocsSupport {
 		member.updateNickname("일개미12345");
 		given(memberService.changeProfile(ArgumentMatchers.any(ProfileChangeServiceRequest.class)))
 			.willReturn(ProfileChangeResponse.from(member));
+
 		// when & then
 		mockMvc.perform(multipart(POST, "/api/profile")
 				.file((MockMultipartFile)createMockMultipartFile())
 				.file(profileInformation)
-				.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))
+				.cookie(createTokenCookies()))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
@@ -162,9 +158,6 @@ public class MemberRestControllerDocsTest extends RestDocsSupport {
 					"member-update",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint()),
-					requestHeaders(
-						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
-					),
 					requestParts(
 						partWithName("profileImageFile")
 							.optional()
@@ -213,7 +206,7 @@ public class MemberRestControllerDocsTest extends RestDocsSupport {
 		mockMvc.perform(RestDocumentationRequestBuilders.put("/api/account/password")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(ObjectMapperUtil.serialize(body))
-				.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))
+				.cookie(createTokenCookies()))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
@@ -224,9 +217,6 @@ public class MemberRestControllerDocsTest extends RestDocsSupport {
 					"member_password-update",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint()),
-					requestHeaders(
-						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
-					),
 					requestFields(
 						fieldWithPath("currentPassword").type(JsonFieldType.STRING).description("현재 비밀번호"),
 						fieldWithPath("newPassword").type(JsonFieldType.STRING).description("새 비밀번호"),
@@ -250,15 +240,10 @@ public class MemberRestControllerDocsTest extends RestDocsSupport {
 	@Test
 	void deleteAccount() throws Exception {
 		// given
-		Map<String, Object> body = Map.of(
-			"refreshToken", "refreshToken"
-		);
 
 		// when & then
 		mockMvc.perform(delete("/api/account")
-				.contentType(MediaType.APPLICATION_JSON)
-				.content(ObjectMapperUtil.serialize(body))
-				.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))
+				.cookie(createTokenCookies()))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
@@ -268,13 +253,6 @@ public class MemberRestControllerDocsTest extends RestDocsSupport {
 					"member-delete",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint()),
-					requestHeaders(
-						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
-					),
-					requestFields(
-						fieldWithPath("refreshToken").type(JsonFieldType.STRING)
-							.description("리프레시 토큰")
-					),
 					responseFields(
 						fieldWithPath("code").type(JsonFieldType.NUMBER)
 							.description("코드"),

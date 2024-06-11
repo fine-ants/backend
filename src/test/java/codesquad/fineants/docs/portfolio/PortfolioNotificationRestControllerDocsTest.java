@@ -2,7 +2,6 @@ package codesquad.fineants.docs.portfolio;
 
 import static org.hamcrest.Matchers.*;
 import static org.mockito.BDDMockito.*;
-import static org.springframework.restdocs.headers.HeaderDocumentation.*;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.*;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.*;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
@@ -15,17 +14,16 @@ import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.payload.JsonFieldType;
 import org.springframework.restdocs.snippet.Attributes;
 
-import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
+import codesquad.fineants.docs.RestDocsSupport;
 import codesquad.fineants.domain.portfolio.controller.PortfolioNotificationRestController;
 import codesquad.fineants.domain.portfolio.domain.dto.request.PortfolioNotificationUpdateRequest;
 import codesquad.fineants.domain.portfolio.domain.dto.response.PortfolioNotificationUpdateResponse;
+import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.service.PortfolioNotificationService;
-import codesquad.fineants.docs.RestDocsSupport;
 import codesquad.fineants.global.util.ObjectMapperUtil;
 
 public class PortfolioNotificationRestControllerDocsTest extends RestDocsSupport {
@@ -54,7 +52,7 @@ public class PortfolioNotificationRestControllerDocsTest extends RestDocsSupport
 
 		// when
 		mockMvc.perform(put("/api/portfolio/{portfolioId}/notification/targetGain", portfolio.getId())
-				.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken")
+				.cookie(createTokenCookies())
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(ObjectMapperUtil.serialize(body)))
 			.andExpect(status().isOk())
@@ -66,9 +64,6 @@ public class PortfolioNotificationRestControllerDocsTest extends RestDocsSupport
 					"portfolio_notification_target_gain_active-update",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint()),
-					requestHeaders(
-						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
-					),
 					pathParameters(
 						parameterWithName("portfolioId").description("포트폴리오 등록번호")
 					),
@@ -112,7 +107,7 @@ public class PortfolioNotificationRestControllerDocsTest extends RestDocsSupport
 
 		// when
 		mockMvc.perform(put("/api/portfolio/{portfolioId}/notification/maxLoss", portfolio.getId())
-				.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken")
+				.cookie(createTokenCookies())
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(ObjectMapperUtil.serialize(body)))
 			.andExpect(status().isOk())
@@ -124,9 +119,6 @@ public class PortfolioNotificationRestControllerDocsTest extends RestDocsSupport
 					"portfolio_notification_maximum_loss_active-update",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint()),
-					requestHeaders(
-						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
-					),
 					pathParameters(
 						parameterWithName("portfolioId").description("포트폴리오 등록번호")
 					),

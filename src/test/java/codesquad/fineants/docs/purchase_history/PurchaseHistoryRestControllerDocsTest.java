@@ -1,7 +1,6 @@
 package codesquad.fineants.docs.purchase_history;
 
 import static org.hamcrest.Matchers.*;
-import static org.springframework.restdocs.headers.HeaderDocumentation.*;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.*;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.*;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
@@ -15,7 +14,6 @@ import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.payload.JsonFieldType;
 
@@ -55,7 +53,7 @@ public class PurchaseHistoryRestControllerDocsTest extends RestDocsSupport {
 		mockMvc.perform(
 				post("/api/portfolio/{portfolioId}/holdings/{portfolioHoldingId}/purchaseHistory", portfolio.getId(),
 					holding.getId())
-					.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken")
+					.cookie(createTokenCookies())
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(ObjectMapperUtil.serialize(body)))
 			.andExpect(status().isCreated())
@@ -67,9 +65,6 @@ public class PurchaseHistoryRestControllerDocsTest extends RestDocsSupport {
 					"purchase_history-create",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint()),
-					requestHeaders(
-						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
-					),
 					pathParameters(
 						parameterWithName("portfolioId").description("포트폴리오 등록번호"),
 						parameterWithName("portfolioHoldingId").description("포트폴리오 종목 등록번호")
@@ -115,7 +110,7 @@ public class PurchaseHistoryRestControllerDocsTest extends RestDocsSupport {
 					portfolio.getId(),
 					holding.getId(),
 					history.getId())
-					.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken")
+					.cookie(createTokenCookies())
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(ObjectMapperUtil.serialize(body)))
 			.andExpect(status().isOk())
@@ -127,9 +122,6 @@ public class PurchaseHistoryRestControllerDocsTest extends RestDocsSupport {
 					"purchase_history-update",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint()),
-					requestHeaders(
-						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
-					),
 					pathParameters(
 						parameterWithName("portfolioId").description("포트폴리오 등록번호"),
 						parameterWithName("portfolioHoldingId").description("포트폴리오 종목 등록번호"),
@@ -170,7 +162,7 @@ public class PurchaseHistoryRestControllerDocsTest extends RestDocsSupport {
 					portfolio.getId(),
 					holding.getId(),
 					history.getId())
-					.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))
+					.cookie(createTokenCookies()))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
@@ -180,9 +172,6 @@ public class PurchaseHistoryRestControllerDocsTest extends RestDocsSupport {
 					"purchase_history-delete",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint()),
-					requestHeaders(
-						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
-					),
 					pathParameters(
 						parameterWithName("portfolioId").description("포트폴리오 등록번호"),
 						parameterWithName("portfolioHoldingId").description("포트폴리오 종목 등록번호"),
