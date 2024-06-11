@@ -1,6 +1,7 @@
 package codesquad.fineants.global.security.ajax.handler;
 
 import java.io.IOException;
+import java.util.Date;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -37,7 +38,7 @@ public class AjaxAuthenticationSuccessHandler implements AuthenticationSuccessHa
 		response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 		response.setCharacterEncoding("utf-8");
 
-		Token token = tokenService.generateToken(MemberAuthentication.from(member));
+		Token token = tokenService.generateToken(MemberAuthentication.from(member), new Date());
 		ApiResponse<LoginResponse> body = ApiResponse.success(MemberSuccessCode.OK_LOGIN);
 
 		CookieUtils.setCookie(response, tokenFactory.createAccessTokenCookie(token));

@@ -1,6 +1,7 @@
 package codesquad.fineants.global.security.oauth.handler;
 
 import java.io.IOException;
+import java.util.Date;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
@@ -41,7 +42,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 		log.debug("oAuth2User : {}", oAuth2User);
 		log.debug("userDto : {}", memberAuthentication);
 
-		Token token = tokenService.generateToken(memberAuthentication);
+		Token token = tokenService.generateToken(memberAuthentication, new Date());
 		log.debug("token : {}", token);
 
 		String redirectUrl = (String)request.getSession().getAttribute("redirect_url");

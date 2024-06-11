@@ -112,7 +112,7 @@ public class OauthSecurityConfig {
 
 	@Bean
 	public JwtAuthenticationFilter jwtAuthFilter() {
-		return new JwtAuthenticationFilter(tokenService, oauthMemberRedisService);
+		return new JwtAuthenticationFilter(tokenService, oauthMemberRedisService, tokenFactory);
 	}
 
 	@Bean

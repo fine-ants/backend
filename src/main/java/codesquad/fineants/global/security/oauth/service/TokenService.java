@@ -1,6 +1,8 @@
 package codesquad.fineants.global.security.oauth.service;
 
 import java.sql.Timestamp;
+import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Base64;
@@ -16,6 +18,7 @@ import codesquad.fineants.global.errors.exception.FineAntsException;
 import codesquad.fineants.global.security.oauth.dto.MemberAuthentication;
 import codesquad.fineants.global.security.oauth.dto.Token;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -24,6 +27,8 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @Slf4j
 public class TokenService {
+
+	private static final Duration EXPIRY_IMMINENT_TIME = Duration.ofHours(1);
 	private final String secretKey;
 	private final Long tokenPeriod;
 	private final Long refreshPeriod;
@@ -38,10 +43,8 @@ public class TokenService {
 		this.refreshPeriod = refreshPeriod;
 	}
 
-	public Token generateToken(MemberAuthentication authentication) {
+	public Token generateToken(MemberAuthentication authentication, Date now) {
 		Claims claims = generateClaims(authentication);
-
-		Date now = new Date();
 		String accessToken = generateAccessToken(claims, now);
 		String refreshToken = generateRefreshToken(claims, now);
 		return Token.create(accessToken, refreshToken);
@@ -110,8 +113,64 @@ public class TokenService {
 			MemberAuthentication memberAuthentication = parseMemberAuthenticationToken(refreshToken);
 			Claims claims = generateClaims(memberAuthentication);
 			String accessToken = generateAccessToken(claims, Timestamp.valueOf(now));
-			return Token.create(accessToken, refreshToken);
+			String newRefreshToken = refreshToken;
+			if (isRefreshTokenNearExpiry(refreshToken)) {
+				newRefreshToken = generateRefreshToken(claims, Timestamp.valueOf(now));
+			}
+			return Token.create(accessToken, newRefreshToken);
 		}
 		throw new FineAntsException(JwtErrorCode.INVALID_TOKEN);
+	}
+
+	/**
+	 * 리프레시 토큰의 만료 임박 시간 체크
+	 * @param token 리프레시 토큰
+	 * @return 만료 임박 시간 체크 결과
+	 */
+	public boolean isRefreshTokenNearExpiry(String token) {
+		Date expiration;
+		try {
+			Jws<Claims> claims = Jwts.parserBuilder()
+				.setSigningKey(secretKey)
+				.build()
+				.parseClaimsJws(token);
+			expiration = claims.getBody()
+				.getExpiration();
+		} catch (Exception e) {
+			return false;
+		}
+
+		// 현재 시간
+		Instant now = Instant.now();
+
+		// 만료 시간
+		Instant expirationInstant = expiration.toInstant();
+
+		// 만료 까지의 시간 간격
+		Duration duration = Duration.between(now, expirationInstant);
+
+		// 만료 까지의 시간 간격이 EXPIRY_IMMINENT_TIME 미만 인지 확인
+		return duration.compareTo(EXPIRY_IMMINENT_TIME) < 0;
+	}
+
+	/**
+	 * 토큰 만료 여부 확인
+	 * @param token JWT 토큰
+	 * @return 토큰 만료 여부
+	 */
+	public boolean isExpiredToken(String token) {
+		try {
+			Jws<Claims> claims = Jwts.parserBuilder()
+				.setSigningKey(secretKey)
+				.build()
+				.parseClaimsJws(token);
+			return claims.getBody()
+				.getExpiration()
+				.before(new Date());
+		} catch (ExpiredJwtException e) {
+			return true;
+		} catch (Exception e) {
+			return false;
+		}
 	}
 }
