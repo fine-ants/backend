@@ -4,6 +4,7 @@ import static io.restassured.RestAssured.*;
 import static org.hamcrest.Matchers.*;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.Map;
@@ -139,9 +140,6 @@ public class AuthenticationIntegrationTest extends AbstractContainerBaseTest {
 	 * - accessToken 만료 and refreshToken 유효 => accessToken 갱신
 	 * - accessToken 만료 and refreshToken 만료 임박 => accessToken 갱신, refreshToken 갱신
 	 * - accessToken 유효 and refreshToken 만료 임박 => refreshToken 갱신
-	 * 토큰 갱신 실패 케이스
-	 * - accessToken 만료 and refreshToken 만료 => 401
-	 * - accessToken 유효 and refreshToken 만료 => 401
 	 *
 	 * @param accessTokenCreateDate AccessToken 생성 시간
 	 * @param refreshTokenCreateDate RefreshToken 생성 시간
@@ -178,10 +176,11 @@ public class AuthenticationIntegrationTest extends AbstractContainerBaseTest {
 	}
 
 	public static Stream<Arguments> validJwtTokenCreateDateSource() {
-		Date now1 = Date.from(LocalDateTime.now().minusDays(1).toInstant(ZoneOffset.ofHours(9)));
+		ZoneId kst = ZoneId.of("Asia/Seoul");
+		Date now1 = Date.from(LocalDateTime.now(kst).minusDays(1).toInstant(ZoneOffset.ofHours(9)));
 		Date now2 = Date.from(
-			LocalDateTime.now().minusDays(13).minusHours(23).minusMinutes(5).toInstant(ZoneOffset.ofHours(9)));
-		Date now3 = Date.from(LocalDateTime.now().toInstant(ZoneOffset.ofHours(9)));
+			LocalDateTime.now(kst).minusDays(13).minusHours(23).minusMinutes(5).toInstant(ZoneOffset.ofHours(9)));
+		Date now3 = Date.from(LocalDateTime.now(kst).toInstant(ZoneOffset.ofHours(9)));
 		return Stream.of(
 
 			Arguments.of(now1, now1),
