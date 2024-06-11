@@ -12,7 +12,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.access.intercept.AuthorizationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 
 import codesquad.fineants.domain.member.repository.MemberRepository;
@@ -92,7 +92,7 @@ public class OauthSecurityConfig {
 				.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 		http.addFilterBefore(urlParamFilter(),
 			OAuth2AuthorizationRequestRedirectFilter.class);
-		http.addFilterBefore(jwtAuthFilter(), UsernamePasswordAuthenticationFilter.class);
+		http.addFilterBefore(jwtAuthFilter(), AuthorizationFilter.class);
 
 		http
 			.oauth2Login(configurer -> configurer
@@ -112,7 +112,7 @@ public class OauthSecurityConfig {
 
 	@Bean
 	public JwtAuthenticationFilter jwtAuthFilter() {
-		return new JwtAuthenticationFilter(tokenService, oauthMemberRedisService);
+		return new JwtAuthenticationFilter(tokenService, oauthMemberRedisService, tokenFactory);
 	}
 
 	@Bean

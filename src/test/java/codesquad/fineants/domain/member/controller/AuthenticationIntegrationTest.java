@@ -3,19 +3,31 @@ package codesquad.fineants.domain.member.controller;
 import static io.restassured.RestAssured.*;
 import static org.hamcrest.Matchers.*;
 
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.Date;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseCookie;
 
 import codesquad.fineants.AbstractContainerBaseTest;
+import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
+import codesquad.fineants.global.security.factory.TokenFactory;
+import codesquad.fineants.global.security.oauth.dto.MemberAuthentication;
+import codesquad.fineants.global.security.oauth.dto.Token;
+import codesquad.fineants.global.security.oauth.service.TokenService;
 import codesquad.fineants.global.util.ObjectMapperUtil;
 import io.restassured.RestAssured;
 import io.restassured.response.ExtractableResponse;
@@ -25,6 +37,12 @@ public class AuthenticationIntegrationTest extends AbstractContainerBaseTest {
 
 	@Autowired
 	private MemberRepository memberRepository;
+
+	@Autowired
+	private TokenService tokenService;
+
+	@Autowired
+	private TokenFactory tokenFactory;
 
 	@LocalServerPort
 	private int port;
@@ -114,14 +132,36 @@ public class AuthenticationIntegrationTest extends AbstractContainerBaseTest {
 			.statusCode(401);
 	}
 
-	// TODO: 테스트 해결
-	@Disabled
-	@DisplayName("사용자는 프로필 조회를 요청하다가 액세스 토큰이 만료되어 갱신된다")
-	@Test
-	void refreshAccessToken() {
+	/**
+	 * 토큰 갱신 테스트
+	 * <p>
+	 * 토큰 갱신 성공 케이스
+	 * - accessToken 만료 and refreshToken 유효 => accessToken 갱신
+	 * - accessToken 만료 and refreshToken 만료 임박 => accessToken 갱신, refreshToken 갱신
+	 * - accessToken 유효 and refreshToken 만료 임박 => refreshToken 갱신
+	 * 토큰 갱신 실패 케이스
+	 * - accessToken 만료 and refreshToken 만료 => 401
+	 * - accessToken 유효 and refreshToken 만료 => 401
+	 *
+	 * @param accessTokenCreateDate AccessToken 생성 시간
+	 * @param refreshTokenCreateDate RefreshToken 생성 시간
+	 */
+	@DisplayName("사용자는 액세스 토큰이 만료된 상태에서 액세스 토큰을 갱신한다")
+	@MethodSource(value = {"validJwtTokenCreateDateSource"})
+	@ParameterizedTest(name = "{index} ==> the tokenCreateDate is {0}, {1} ")
+	void refreshAccessToken(Date accessTokenCreateDate, Date refreshTokenCreateDate) {
 		// given
-		memberRepository.save(createMember());
-		Map<String, String> cookies = processLogin();
+		Member member = memberRepository.save(createMember());
+		Token token = tokenService.generateToken(MemberAuthentication.from(member), accessTokenCreateDate);
+		ResponseCookie accessTokenCookie = tokenFactory.createAccessTokenCookie(token);
+
+		token = tokenService.generateToken(MemberAuthentication.from(member), refreshTokenCreateDate);
+		ResponseCookie refreshTokenCookie = tokenFactory.createRefreshTokenCookie(token);
+
+		Map<String, String> cookies = Map.of(
+			accessTokenCookie.getName(), accessTokenCookie.getValue(),
+			refreshTokenCookie.getName(), refreshTokenCookie.getValue()
+		);
 
 		// when & then
 		given().log().all()
@@ -130,11 +170,70 @@ public class AuthenticationIntegrationTest extends AbstractContainerBaseTest {
 			.when()
 			.get("/api/profile")
 			.then()
-			.cookie("accessToken", notNullValue())
-			.cookie("refreshToken", notNullValue())
+			.cookies("accessToken", notNullValue())
+			.cookies("refreshToken", notNullValue())
 			.log()
 			.body()
 			.statusCode(200);
+	}
+
+	public static Stream<Arguments> validJwtTokenCreateDateSource() {
+		Date now1 = Date.from(LocalDateTime.now().minusDays(1).toInstant(ZoneOffset.ofHours(9)));
+		Date now2 = Date.from(
+			LocalDateTime.now().minusDays(13).minusHours(23).minusMinutes(5).toInstant(ZoneOffset.ofHours(9)));
+		Date now3 = Date.from(LocalDateTime.now().toInstant(ZoneOffset.ofHours(9)));
+		return Stream.of(
+
+			Arguments.of(now1, now1),
+			Arguments.of(now2, now2),
+			Arguments.of(now3, now2)
+		);
+	}
+
+	/**
+	 * 토큰 갱신 실패 테스트
+	 * <p>
+	 *
+	 * 토큰 갱신 실패 케이스
+	 * - accessToken 만료 and refreshToken 만료 => 401
+	 *
+	 * @param accessTokenCreateDate AccessToken 생성 시간
+	 * @param refreshTokenCreateDate RefreshToken 생성 시간
+	 */
+	@DisplayName("사용자는 리프레시 토큰이 만료된 상태에서는 액세스 토큰을 갱신할 수 없다")
+	@MethodSource(value = {"invalidJwtTokenCreateDateSource"})
+	@ParameterizedTest(name = "{index} ==> the tokenCreateDate is {0}, {1} ")
+	void refreshAccessToken_whenExpiredRefreshToken_then401(Date accessTokenCreateDate, Date refreshTokenCreateDate) {
+		// given
+		Member member = memberRepository.save(createMember());
+		Token token = tokenService.generateToken(MemberAuthentication.from(member), accessTokenCreateDate);
+		ResponseCookie accessTokenCookie = tokenFactory.createAccessTokenCookie(token);
+
+		token = tokenService.generateToken(MemberAuthentication.from(member), refreshTokenCreateDate);
+		ResponseCookie refreshTokenCookie = tokenFactory.createRefreshTokenCookie(token);
+
+		Map<String, String> cookies = Map.of(
+			accessTokenCookie.getName(), accessTokenCookie.getValue(),
+			refreshTokenCookie.getName(), refreshTokenCookie.getValue()
+		);
+
+		// when & then
+		given().log().all()
+			.cookies(cookies)
+			.contentType(MediaType.APPLICATION_JSON_VALUE)
+			.when()
+			.get("/api/profile")
+			.then()
+			.log()
+			.body()
+			.statusCode(401);
+	}
+
+	public static Stream<Arguments> invalidJwtTokenCreateDateSource() {
+		Date now1 = Date.from(LocalDateTime.now().minusDays(15).toInstant(ZoneOffset.ofHours(9)));
+		return Stream.of(
+			Arguments.of(now1, now1)
+		);
 	}
 
 	private Map<String, String> processLogin() {

@@ -9,7 +9,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum JwtErrorCode implements ErrorCode {
 
-	INVALID_TOKEN(HttpStatus.BAD_REQUEST, "유효하지 않은 토큰입니다"),
+	INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰입니다"),
 	EMPTY_TOKEN(HttpStatus.UNAUTHORIZED, "토큰이 존재하지 않습니다"),
 	REFRESH_TOKEN_EXPIRE_TOKEN(HttpStatus.UNAUTHORIZED, "리프레시 토큰이 만료되었습니다"),
 	ACCESS_TOKEN_EXPIRE_TOKEN(HttpStatus.FORBIDDEN, "액세스 토큰이 만료되었습니다");

@@ -3,7 +3,10 @@ package codesquad.fineants.global.security.oauth.service;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.Date;
 import java.util.Set;
 
 import org.jetbrains.annotations.NotNull;
@@ -34,7 +37,7 @@ class TokenServiceTest {
 		// given
 		MemberAuthentication authentication = createMemberAuthentication();
 		// when
-		Token token = tokenService.generateToken(authentication);
+		Token token = tokenService.generateToken(authentication, new Date());
 
 		// then
 		assertAll(
@@ -50,7 +53,7 @@ class TokenServiceTest {
 	void verifyToken() {
 		// given
 		MemberAuthentication authentication = createMemberAuthentication();
-		Token token = tokenService.generateToken(authentication);
+		Token token = tokenService.generateToken(authentication, new Date());
 		// when
 		boolean actual1 = tokenService.verifyToken(token.getAccessToken());
 		boolean actual2 = tokenService.verifyToken(token.getRefreshToken());
@@ -61,12 +64,38 @@ class TokenServiceTest {
 		);
 	}
 
+	@DisplayName("액세스 토큰이 만료되면 false가 나온다")
+	@Test
+	void verifyToken_whenAccessTokenIsExpired_thenFalse() {
+		// given
+		Instant instant = LocalDateTime.now().minusDays(1L).toInstant(ZoneOffset.ofHours(9));
+		Date now = Date.from(instant);
+		Token token = tokenService.generateToken(createMemberAuthentication(), now);
+		// when
+		boolean actual = tokenService.verifyToken(token.getAccessToken());
+		// then
+		assertThat(actual).isFalse();
+	}
+
+	@DisplayName("액세스 토큰이 만료되었는지 확인한다")
+	@Test
+	void isExpiredToken_whenAccessTokenIsExpired_thenFalse() {
+		// given
+		Instant instant = LocalDateTime.now().minusDays(1L).toInstant(ZoneOffset.ofHours(9));
+		Date now = Date.from(instant);
+		Token token = tokenService.generateToken(createMemberAuthentication(), now);
+		// when
+		boolean actual = tokenService.isExpiredToken(token.getAccessToken());
+		// then
+		assertThat(actual).isTrue();
+	}
+
 	@DisplayName("토큰을 파싱한다")
 	@Test
 	void parseMemberAuthenticationToken() {
 		// given
 		MemberAuthentication authentication = createMemberAuthentication();
-		Token token = tokenService.generateToken(authentication);
+		Token token = tokenService.generateToken(authentication, new Date());
 		// when
 		MemberAuthentication memberAuthentication = tokenService.parseMemberAuthenticationToken(token.getAccessToken());
 
@@ -85,7 +114,7 @@ class TokenServiceTest {
 	void refreshToken() {
 		// given
 		MemberAuthentication authentication = createMemberAuthentication();
-		Token token = tokenService.generateToken(authentication);
+		Token token = tokenService.generateToken(authentication, new Date());
 		// when
 		Token newToken = tokenService.refreshToken(token.getRefreshToken(), LocalDateTime.now());
 		// then
