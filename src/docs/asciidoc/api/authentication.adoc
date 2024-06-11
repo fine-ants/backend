@@ -30,21 +30,9 @@ include::{snippets}/member_oauth-login/http-response.adoc[]
 ==== HTTP Request
 
 include::{snippets}/member-logout/http-request.adoc[]
+include::{snippets}/member-logout/request-cookies.adoc[]
 
 ==== HTTP Response
 
 include::{snippets}/member-logout/http-response.adoc[]
 include::{snippets}/member-logout/response-fields.adoc[]
-
-[[member_access_token-refresh]]
-=== 회원 액세스 토큰 갱신
-
-==== HTTP Request
-
-include::{snippets}/member_access_token-refresh/http-request.adoc[]
-include::{snippets}/member_access_token-refresh/request-fields.adoc[]
-
-==== HTTP Response
-
-include::{snippets}/member_access_token-refresh/http-response.adoc[]
-include::{snippets}/member_access_token-refresh/response-fields.adoc[]

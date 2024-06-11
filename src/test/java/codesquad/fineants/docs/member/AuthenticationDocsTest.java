@@ -1,6 +1,7 @@
 package codesquad.fineants.docs.member;
 
 import static org.hamcrest.Matchers.*;
+import static org.springframework.restdocs.cookies.CookieDocumentation.*;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.*;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
@@ -42,6 +43,7 @@ import codesquad.fineants.global.security.factory.TokenFactory;
 import codesquad.fineants.global.security.oauth.dto.Token;
 import codesquad.fineants.global.util.ObjectMapperUtil;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import okhttp3.mockwebserver.MockWebServer;
 
 @ExtendWith(RestDocumentationExtension.class)
@@ -174,8 +176,8 @@ public class AuthenticationDocsTest extends AbstractContainerBaseTest {
 
 		// when & then
 		mockMvc.perform(RestDocumentationRequestBuilders.get(url)
-				.header("Set-Cookie", accessTokenCookie.toString())
-				.header("Set-Cookie", refreshTokenCookie.toString())
+				.cookie(new Cookie(accessTokenCookie.getName(), accessTokenCookie.getValue()))
+				.cookie(new Cookie(refreshTokenCookie.getName(), refreshTokenCookie.getValue()))
 			)
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("code").value(equalTo(200)))
@@ -187,6 +189,10 @@ public class AuthenticationDocsTest extends AbstractContainerBaseTest {
 					"member-logout",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint()),
+					requestCookies(
+						cookieWithName(accessTokenCookie.getName()).optional().description("인증에 필요한 액세스 토큰"),
+						cookieWithName(refreshTokenCookie.getName()).optional().description("리프레시 토큰")
+					),
 					responseFields(
 						fieldWithPath("code").type(JsonFieldType.NUMBER)
 							.description("코드"),
