@@ -42,7 +42,7 @@ public class OAuthAttribute {
 
 	private static OAuthAttribute ofGoogle(Map<String, Object> attributes, String nameAttributeKey) {
 		String email = (String)attributes.get("email");
-		String profileUrl = (String)attributes.get("picture");
+		String profileUrl = (String)attributes.getOrDefault("picture", null);
 		String provider = "google";
 		String sub = (String)attributes.get("sub");
 		return new OAuthAttribute(attributes, nameAttributeKey, email, profileUrl, provider, sub);
@@ -66,7 +66,7 @@ public class OAuthAttribute {
 	private static OAuthAttribute ofNaver(Map<String, Object> attributes, String nameAttributeKey) {
 		Map<String, Object> responseMap = (Map<String, Object>)attributes.get("response");
 		String email = (String)responseMap.get("email");
-		String profileUrl = (String)responseMap.get("profile_image");
+		String profileUrl = (String)responseMap.getOrDefault("profile_image", null);
 		String sub = (String)responseMap.get("id");
 		return new OAuthAttribute(attributes, nameAttributeKey, email, profileUrl, "naver", sub);
 	}
