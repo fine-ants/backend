@@ -51,6 +51,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 		}
 
 		String targetUrl = UriComponentsBuilder.fromUriString(redirectUrl)
+			.queryParam("success", "true")
 			.build()
 			.toUriString();
 

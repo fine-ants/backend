@@ -190,6 +190,52 @@ public class AuthenticationIntegrationTest extends AbstractContainerBaseTest {
 		);
 	}
 
+	/**
+	 * 토큰 갱신 실패 테스트
+	 * <p>
+	 *
+	 * 토큰 갱신 실패 케이스
+	 * - accessToken 만료 and refreshToken 만료 => 401
+	 *
+	 * @param accessTokenCreateDate AccessToken 생성 시간
+	 * @param refreshTokenCreateDate RefreshToken 생성 시간
+	 */
+	@DisplayName("사용자는 리프레시 토큰이 만료된 상태에서는 액세스 토큰을 갱신할 수 없다")
+	@MethodSource(value = {"invalidJwtTokenCreateDateSource"})
+	@ParameterizedTest(name = "{index} ==> the tokenCreateDate is {0}, {1} ")
+	void refreshAccessToken_whenExpiredRefreshToken_then401(Date accessTokenCreateDate, Date refreshTokenCreateDate) {
+		// given
+		Member member = memberRepository.save(createMember());
+		Token token = tokenService.generateToken(MemberAuthentication.from(member), accessTokenCreateDate);
+		ResponseCookie accessTokenCookie = tokenFactory.createAccessTokenCookie(token);
+
+		token = tokenService.generateToken(MemberAuthentication.from(member), refreshTokenCreateDate);
+		ResponseCookie refreshTokenCookie = tokenFactory.createRefreshTokenCookie(token);
+
+		Map<String, String> cookies = Map.of(
+			accessTokenCookie.getName(), accessTokenCookie.getValue(),
+			refreshTokenCookie.getName(), refreshTokenCookie.getValue()
+		);
+
+		// when & then
+		given().log().all()
+			.cookies(cookies)
+			.contentType(MediaType.APPLICATION_JSON_VALUE)
+			.when()
+			.get("/api/profile")
+			.then()
+			.log()
+			.body()
+			.statusCode(401);
+	}
+
+	public static Stream<Arguments> invalidJwtTokenCreateDateSource() {
+		Date now1 = Date.from(LocalDateTime.now().minusDays(15).toInstant(ZoneOffset.ofHours(9)));
+		return Stream.of(
+			Arguments.of(now1, now1)
+		);
+	}
+
 	private Map<String, String> processLogin() {
 		Map<String, String> body = Map.of(
 			"email", "dragonbead95@naver.com",

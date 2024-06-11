@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.GenericFilterBean;
 
@@ -34,7 +35,8 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
 	@Override
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws
 		IOException,
-		ServletException {
+		ServletException,
+		AuthenticationException {
 		String accessToken = CookieUtils.getAccessToken((HttpServletRequest)request);
 		String refreshToken = CookieUtils.getRefreshToken((HttpServletRequest)request);
 
@@ -42,22 +44,21 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
 		// accessToken 만료 and refreshToken 만료 임박 => accessToken 갱신, refreshToken 갱신
 		// accessToken 유효 and refreshToken 만료 임박 => accessToken 갱신, refreshToken 갱신
 		// accessToken 만료 and refreshToken 만료 => 401
-		// accessToken 유효 and refreshToken 만료 => 401
+		// accessToken 유효 and refreshToken 만료 => nothing
 		// accessToken 유효 and refreshToken 유효 => nothing
 		Token token = null;
 		if (accessToken != null && !oauthMemberRedisService.isAlreadyLogout(accessToken)) {
 			if (tokenService.isExpiredToken(accessToken)) {
 				token = tokenService.refreshToken(refreshToken, LocalDateTime.now());
-				setAuthentication(token.getAccessToken());
 			} else if (tokenService.verifyToken(accessToken) && tokenService.isRefreshTokenNearExpiry(refreshToken)) {
 				token = tokenService.refreshToken(refreshToken, LocalDateTime.now());
-				setAuthentication(token.getAccessToken());
 			} else if (tokenService.verifyToken(accessToken)) {
-				setAuthentication(accessToken);
+				token = Token.create(accessToken, refreshToken);
 			}
 		}
 
 		if (token != null) {
+			setAuthentication(token.getAccessToken());
 			CookieUtils.setCookie((HttpServletResponse)response, tokenFactory.createAccessTokenCookie(token));
 			CookieUtils.setCookie((HttpServletResponse)response, tokenFactory.createRefreshTokenCookie(token));
 		}

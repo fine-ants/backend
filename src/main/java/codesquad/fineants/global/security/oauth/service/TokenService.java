@@ -11,10 +11,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 
 import codesquad.fineants.global.errors.errorcode.JwtErrorCode;
-import codesquad.fineants.global.errors.exception.FineAntsException;
 import codesquad.fineants.global.security.oauth.dto.MemberAuthentication;
 import codesquad.fineants.global.security.oauth.dto.Token;
 import io.jsonwebtoken.Claims;
@@ -119,7 +119,7 @@ public class TokenService {
 			}
 			return Token.create(accessToken, newRefreshToken);
 		}
-		throw new FineAntsException(JwtErrorCode.INVALID_TOKEN);
+		throw new BadCredentialsException(JwtErrorCode.INVALID_TOKEN.getMessage());
 	}
 
 	/**
