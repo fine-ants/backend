@@ -4,7 +4,6 @@ import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
-import static org.springframework.restdocs.headers.HeaderDocumentation.*;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.*;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.delete;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
@@ -22,7 +21,6 @@ import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
 import org.springframework.restdocs.payload.JsonFieldType;
@@ -79,7 +77,7 @@ public class StockTargetPriceNotificationRestControllerDocsTest extends RestDocs
 		mockMvc.perform(post("/api/stocks/target-price/notifications")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(ObjectMapperUtil.serialize(body))
-				.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))
+				.cookie(createTokenCookies()))
 			.andExpect(status().isCreated())
 			.andExpect(jsonPath("code").value(equalTo(201)))
 			.andExpect(jsonPath("status").value(equalTo("Created")))
@@ -92,9 +90,6 @@ public class StockTargetPriceNotificationRestControllerDocsTest extends RestDocs
 					"stock_target_price-create",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint()),
-					requestHeaders(
-						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
-					),
 					requestFields(
 						fieldWithPath("tickerSymbol").type(JsonFieldType.STRING)
 							.description("종목 티커 심볼"),
@@ -152,7 +147,7 @@ public class StockTargetPriceNotificationRestControllerDocsTest extends RestDocs
 
 		// when & then
 		mockMvc.perform(get("/api/stocks/target-price/notifications")
-				.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))
+				.cookie(createTokenCookies()))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
@@ -173,9 +168,6 @@ public class StockTargetPriceNotificationRestControllerDocsTest extends RestDocs
 					"stock_target_price-list-search",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint()),
-					requestHeaders(
-						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
-					),
 					responseFields(
 						fieldWithPath("code").type(JsonFieldType.NUMBER)
 							.description("코드"),
@@ -235,7 +227,7 @@ public class StockTargetPriceNotificationRestControllerDocsTest extends RestDocs
 		// when & then
 		mockMvc.perform(RestDocumentationRequestBuilders.get("/api/stocks/{tickerSymbol}/target-price/notifications",
 					stock.getTickerSymbol())
-				.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))
+				.cookie(createTokenCookies()))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
@@ -251,9 +243,6 @@ public class StockTargetPriceNotificationRestControllerDocsTest extends RestDocs
 					"stock_target_price-one-search",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint()),
-					requestHeaders(
-						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
-					),
 					pathParameters(
 						parameterWithName("tickerSymbol").description("종목 티커 심볼")
 					),
@@ -296,7 +285,7 @@ public class StockTargetPriceNotificationRestControllerDocsTest extends RestDocs
 
 		// when & then
 		mockMvc.perform(put("/api/stocks/target-price/notifications")
-				.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken")
+				.cookie(createTokenCookies())
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(ObjectMapperUtil.serialize(body)))
 			.andExpect(status().isOk())
@@ -308,9 +297,6 @@ public class StockTargetPriceNotificationRestControllerDocsTest extends RestDocs
 					"stock_target_price-update",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint()),
-					requestHeaders(
-						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
-					),
 					requestFields(
 						fieldWithPath("tickerSymbol").type(JsonFieldType.STRING).description("종목 티커 심볼"),
 						fieldWithPath("isActive").type(JsonFieldType.BOOLEAN).description("알림 활성화 여부")
@@ -354,7 +340,7 @@ public class StockTargetPriceNotificationRestControllerDocsTest extends RestDocs
 
 		// when & then
 		mockMvc.perform(delete("/api/stocks/target-price/notifications")
-				.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken")
+				.cookie(createTokenCookies())
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(ObjectMapperUtil.serialize(body)))
 			.andExpect(status().isOk())
@@ -366,9 +352,6 @@ public class StockTargetPriceNotificationRestControllerDocsTest extends RestDocs
 					"stock_target_price-multiple-delete",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint()),
-					requestHeaders(
-						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
-					),
 					requestFields(
 						fieldWithPath("tickerSymbol").type(JsonFieldType.STRING).description("종목 티커 심볼"),
 						fieldWithPath("targetPriceNotificationIds").type(JsonFieldType.ARRAY)
@@ -407,7 +390,7 @@ public class StockTargetPriceNotificationRestControllerDocsTest extends RestDocs
 		// when & then
 		mockMvc.perform(delete("/api/stocks/target-price/notifications/{targetPriceNotificationId}",
 				targetPriceNotification.getId())
-				.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))
+				.cookie(createTokenCookies()))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
@@ -417,9 +400,6 @@ public class StockTargetPriceNotificationRestControllerDocsTest extends RestDocs
 					"stock_target_price-one-delete",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint()),
-					requestHeaders(
-						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
-					),
 					pathParameters(
 						parameterWithName("targetPriceNotificationId").description("지정가 알림 등록번호")
 					),
@@ -436,5 +416,4 @@ public class StockTargetPriceNotificationRestControllerDocsTest extends RestDocs
 				)
 			);
 	}
-
 }

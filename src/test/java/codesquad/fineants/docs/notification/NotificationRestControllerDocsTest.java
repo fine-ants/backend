@@ -3,7 +3,6 @@ package codesquad.fineants.docs.notification;
 import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
-import static org.springframework.restdocs.headers.HeaderDocumentation.*;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.*;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.*;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
@@ -16,7 +15,6 @@ import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import org.springframework.http.HttpHeaders;
 import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
 import org.springframework.restdocs.payload.JsonFieldType;
 
@@ -67,7 +65,7 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 
 		// when
 		mockMvc.perform(post("/api/notifications/portfolios/{portfolioId}/notify/target-gain", portfolio.getId())
-				.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))
+				.cookie(createTokenCookies()))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
@@ -88,9 +86,6 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 					"notification_portfolio_target_gain-notify",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint()),
-					requestHeaders(
-						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
-					),
 					pathParameters(
 						parameterWithName("portfolioId").description("포트폴리오 등록번호")
 					),
@@ -146,7 +141,7 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 
 		// when
 		mockMvc.perform(post("/api/notifications/portfolios/{portfolioId}/notify/max-loss", portfolio.getId())
-				.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))
+				.cookie(createTokenCookies()))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
@@ -167,9 +162,6 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 					"notification_portfolio_max_loss-notify",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint()),
-					requestHeaders(
-						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
-					),
 					pathParameters(
 						parameterWithName("portfolioId").description("포트폴리오 등록번호")
 					),
@@ -225,7 +217,7 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 		// when
 		mockMvc.perform(RestDocumentationRequestBuilders.post("/api/stocks/target-price/notifications/send")
 				.queryParam("memberId", String.valueOf(member.getId()))
-				.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))
+				.cookie(createTokenCookies()))
 			.andExpect(status().isCreated())
 			.andExpect(jsonPath("code").value(equalTo(201)))
 			.andExpect(jsonPath("status").value(equalTo("Created")))
@@ -251,9 +243,6 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 					"stock_target_price-notification-notify",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint()),
-					requestHeaders(
-						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
-					),
 					queryParameters(
 						parameterWithName("memberId").description("회원 등록번호")
 					),

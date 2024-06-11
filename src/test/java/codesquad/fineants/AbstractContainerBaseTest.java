@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
@@ -43,6 +44,9 @@ import codesquad.fineants.domain.watchlist.domain.entity.WatchStock;
 import codesquad.fineants.global.errors.errorcode.RoleErrorCode;
 import codesquad.fineants.global.errors.exception.FineAntsException;
 import codesquad.fineants.global.init.S3BucketInitializer;
+import codesquad.fineants.global.security.factory.TokenFactory;
+import codesquad.fineants.global.security.oauth.dto.Token;
+import jakarta.servlet.http.Cookie;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -303,5 +307,19 @@ public class AbstractContainerBaseTest {
 				LocalDate.of(2024, 11, 20),
 				stock)
 		);
+	}
+
+	protected Cookie[] createTokenCookies() {
+		TokenFactory tokenFactory = new TokenFactory();
+		Token token = Token.create("accessToken", "refreshToken");
+		ResponseCookie accessTokenCookie = tokenFactory.createAccessTokenCookie(token);
+		ResponseCookie refreshTokenCookie = tokenFactory.createRefreshTokenCookie(token);
+		return new Cookie[] {convertCookie(accessTokenCookie), convertCookie(refreshTokenCookie)};
+	}
+
+	private Cookie convertCookie(ResponseCookie cookie) {
+		String cookieString = cookie.toString();
+		int start = cookieString.indexOf("=") + 1;
+		return new Cookie(cookie.getName(), cookieString.substring(start));
 	}
 }

@@ -3,7 +3,6 @@ package codesquad.fineants.docs.portfolio_holding;
 import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
-import static org.springframework.restdocs.headers.HeaderDocumentation.*;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.*;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.*;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
@@ -20,7 +19,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.payload.JsonFieldType;
 import org.springframework.test.web.servlet.ResultActions;
@@ -81,7 +79,7 @@ public class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 
 		// when & then
 		mockMvc.perform(post("/api/portfolio/{portfolioId}/holdings", portfolio.getId())
-				.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken")
+				.cookie(createTokenCookies())
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(ObjectMapperUtil.serialize(body)))
 			.andExpect(status().isCreated())
@@ -93,9 +91,6 @@ public class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 					"holding-create",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint()),
-					requestHeaders(
-						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
-					),
 					pathParameters(
 						parameterWithName("portfolioId").description("포트폴리오 등록번호")
 					),
@@ -146,7 +141,7 @@ public class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 		given(service.readPortfolioHoldings(anyLong())).willReturn(mockResponse);
 		// when & then
 		ResultActions resultActions = mockMvc.perform(get("/api/portfolio/{portfolioId}/holdings", portfolio.getId())
-				.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))
+				.cookie(createTokenCookies()))
 			.andExpect(status().isOk());
 
 		resultActions
@@ -203,9 +198,6 @@ public class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 				"holding-search",
 				preprocessRequest(prettyPrint()),
 				preprocessResponse(prettyPrint()),
-				requestHeaders(
-					headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
-				),
 				pathParameters(
 					parameterWithName("portfolioId").description("포트폴리오 등록번호")
 				),
@@ -320,16 +312,13 @@ public class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 		// when & then
 		mockMvc.perform(
 				get("/api/portfolio/{portfolioId}/holdings/realtime", portfolio.getId())
-					.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))
+					.cookie(createTokenCookies()))
 			.andExpect(status().isOk())
 			.andDo(
 				document(
 					"holding_real_time-search",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint()),
-					requestHeaders(
-						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
-					),
 					pathParameters(
 						parameterWithName("portfolioId").description("포트폴리오 등록번호")
 					)
@@ -383,7 +372,7 @@ public class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 		// when
 		mockMvc.perform(
 				get("/api/portfolio/{portfolioId}/charts", portfolio.getId())
-					.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))
+					.cookie(createTokenCookies()))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
@@ -431,9 +420,6 @@ public class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 					"portfolio_charts-search",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint()),
-					requestHeaders(
-						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
-					),
 					pathParameters(
 						parameterWithName("portfolioId").description("포트폴리오 등록번호")
 					),
@@ -487,7 +473,7 @@ public class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 		// when & then
 		mockMvc.perform(
 				delete("/api/portfolio/{portfolioId}/holdings/{portfolioHoldingId}", portfolio.getId(), holding.getId())
-					.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))
+					.cookie(createTokenCookies()))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
@@ -497,9 +483,6 @@ public class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 					"holding-one-delete",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint()),
-					requestHeaders(
-						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
-					),
 					pathParameters(
 						parameterWithName("portfolioId").description("포트폴리오 등록번호"),
 						parameterWithName("portfolioHoldingId").description("포트폴리오 종목 등록번호")
@@ -532,7 +515,7 @@ public class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 		// when & then
 		mockMvc.perform(
 				delete("/api/portfolio/{portfolioId}/holdings", portfolio.getId())
-					.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken")
+					.cookie(createTokenCookies())
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(ObjectMapperUtil.serialize(body)))
 			.andExpect(status().isOk())
@@ -544,9 +527,6 @@ public class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 					"holding-multiple-delete",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint()),
-					requestHeaders(
-						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
-					),
 					pathParameters(
 						parameterWithName("portfolioId").description("포트폴리오 등록번호")
 					),

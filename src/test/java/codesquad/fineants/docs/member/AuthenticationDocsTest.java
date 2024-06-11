@@ -19,7 +19,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseCookie;
 import org.springframework.mock.web.MockFilterConfig;
 import org.springframework.restdocs.RestDocumentationContextProvider;
 import org.springframework.restdocs.RestDocumentationExtension;
@@ -38,10 +37,9 @@ import codesquad.fineants.AbstractContainerBaseTest;
 import codesquad.fineants.domain.member.repository.MemberRepository;
 import codesquad.fineants.domain.member.repository.MemberRoleRepository;
 import codesquad.fineants.domain.member.repository.RoleRepository;
-import codesquad.fineants.global.security.factory.TokenFactory;
-import codesquad.fineants.global.security.oauth.dto.Token;
 import codesquad.fineants.global.util.ObjectMapperUtil;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import okhttp3.mockwebserver.MockWebServer;
 
 @ExtendWith(RestDocumentationExtension.class)
@@ -167,15 +165,11 @@ public class AuthenticationDocsTest extends AbstractContainerBaseTest {
 	void logout() throws Exception {
 		// given
 		String url = "/api/auth/logout";
-		TokenFactory tokenFactory = new TokenFactory();
-		Token token = Token.create("accessToken", "refreshToken");
-		ResponseCookie accessTokenCookie = tokenFactory.createAccessTokenCookie(token);
-		ResponseCookie refreshTokenCookie = tokenFactory.createRefreshTokenCookie(token);
+		Cookie[] cookies = createTokenCookies();
 
 		// when & then
 		mockMvc.perform(RestDocumentationRequestBuilders.get(url)
-				.header("Set-Cookie", accessTokenCookie.toString())
-				.header("Set-Cookie", refreshTokenCookie.toString())
+				.cookie(cookies)
 			)
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("code").value(equalTo(200)))

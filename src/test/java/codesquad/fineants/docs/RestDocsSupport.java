@@ -18,6 +18,7 @@ import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.restdocs.RestDocumentationContextProvider;
@@ -47,8 +48,11 @@ import codesquad.fineants.domain.stock_target_price.domain.entity.StockTargetPri
 import codesquad.fineants.domain.stock_target_price.domain.entity.TargetPriceNotification;
 import codesquad.fineants.domain.watchlist.domain.entity.WatchList;
 import codesquad.fineants.global.config.JacksonConfig;
+import codesquad.fineants.global.security.factory.TokenFactory;
 import codesquad.fineants.global.security.oauth.dto.MemberAuthentication;
+import codesquad.fineants.global.security.oauth.dto.Token;
 import codesquad.fineants.global.security.oauth.resolver.MemberAuthenticationArgumentResolver;
+import jakarta.servlet.http.Cookie;
 
 @ExtendWith(RestDocumentationExtension.class)
 public abstract class RestDocsSupport {
@@ -225,6 +229,20 @@ public abstract class RestDocsSupport {
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	protected Cookie[] createTokenCookies() {
+		TokenFactory tokenFactory = new TokenFactory();
+		Token token = Token.create("accessToken", "refreshToken");
+		ResponseCookie accessTokenCookie = tokenFactory.createAccessTokenCookie(token);
+		ResponseCookie refreshTokenCookie = tokenFactory.createRefreshTokenCookie(token);
+		return new Cookie[] {convertCookie(accessTokenCookie), convertCookie(refreshTokenCookie)};
+	}
+
+	private Cookie convertCookie(ResponseCookie cookie) {
+		String cookieString = cookie.toString();
+		int start = cookieString.indexOf("=") + 1;
+		return new Cookie(cookie.getName(), cookieString.substring(start));
 	}
 
 	protected abstract Object initController();

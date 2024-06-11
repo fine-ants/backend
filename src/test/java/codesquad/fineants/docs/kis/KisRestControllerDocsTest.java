@@ -2,7 +2,6 @@ package codesquad.fineants.docs.kis;
 
 import static org.hamcrest.Matchers.*;
 import static org.mockito.BDDMockito.*;
-import static org.springframework.restdocs.headers.HeaderDocumentation.*;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.*;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
@@ -15,7 +14,6 @@ import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
 import org.springframework.restdocs.payload.JsonFieldType;
@@ -50,7 +48,7 @@ public class KisRestControllerDocsTest extends RestDocsSupport {
 
 		// when
 		mockMvc.perform(RestDocumentationRequestBuilders.post("/api/kis/current-price/all/refresh")
-				.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))
+				.cookie(createTokenCookies()))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
@@ -63,9 +61,6 @@ public class KisRestControllerDocsTest extends RestDocsSupport {
 					"kis_current_price-all-refresh",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint()),
-					requestHeaders(
-						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
-					),
 					responseFields(
 						fieldWithPath("code").type(JsonFieldType.NUMBER)
 							.description("코드"),
@@ -102,7 +97,7 @@ public class KisRestControllerDocsTest extends RestDocsSupport {
 		mockMvc.perform(RestDocumentationRequestBuilders.post("/api/kis/current-price/refresh")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(ObjectMapperUtil.serialize(body))
-				.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))
+				.cookie(createTokenCookies()))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
@@ -115,9 +110,6 @@ public class KisRestControllerDocsTest extends RestDocsSupport {
 					"kis_current_price-refresh",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint()),
-					requestHeaders(
-						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
-					),
 					requestFields(
 						fieldWithPath("tickerSymbols").type(JsonFieldType.ARRAY).description("티커 심볼 리스트")
 					),
@@ -150,7 +142,7 @@ public class KisRestControllerDocsTest extends RestDocsSupport {
 		// when
 		MvcResult mvcResult = mockMvc.perform(
 				RestDocumentationRequestBuilders.get("/api/kis/current-price/{tickerSymbol}", tickerSymbol)
-					.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))
+					.cookie(createTokenCookies()))
 			.andExpect(request().asyncStarted())
 			.andReturn();
 
@@ -166,9 +158,6 @@ public class KisRestControllerDocsTest extends RestDocsSupport {
 					"kis_current_price-search",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint()),
-					requestHeaders(
-						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
-					),
 					pathParameters(
 						parameterWithName("tickerSymbol").description("티커 심볼")
 					),
@@ -201,7 +190,7 @@ public class KisRestControllerDocsTest extends RestDocsSupport {
 
 		// when
 		mockMvc.perform(RestDocumentationRequestBuilders.post("/api/kis/closing-price/all/refresh")
-				.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))
+				.cookie(createTokenCookies()))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
@@ -214,9 +203,6 @@ public class KisRestControllerDocsTest extends RestDocsSupport {
 					"kis_closing_price-all-refresh",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint()),
-					requestHeaders(
-						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
-					),
 					responseFields(
 						fieldWithPath("code").type(JsonFieldType.NUMBER)
 							.description("코드"),
@@ -253,7 +239,7 @@ public class KisRestControllerDocsTest extends RestDocsSupport {
 		mockMvc.perform(RestDocumentationRequestBuilders.post("/api/kis/closing-price/refresh")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(ObjectMapperUtil.serialize(body))
-				.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))
+				.cookie(createTokenCookies()))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
@@ -266,9 +252,6 @@ public class KisRestControllerDocsTest extends RestDocsSupport {
 					"kis_closing_price-refresh",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint()),
-					requestHeaders(
-						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
-					),
 					requestFields(
 						fieldWithPath("tickerSymbols").type(JsonFieldType.ARRAY).description("티커 심볼 리스트")
 					),

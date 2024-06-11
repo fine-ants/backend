@@ -2,7 +2,6 @@ package codesquad.fineants.docs.member;
 
 import static org.hamcrest.Matchers.*;
 import static org.mockito.BDDMockito.*;
-import static org.springframework.restdocs.headers.HeaderDocumentation.*;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.*;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
 import static org.springframework.restdocs.payload.PayloadDocumentation.*;
@@ -15,7 +14,6 @@ import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
 import org.springframework.restdocs.payload.JsonFieldType;
@@ -71,7 +69,7 @@ public class MemberNotificationRestControllerDocsTest extends RestDocsSupport {
 
 		// when & then
 		mockMvc.perform(RestDocumentationRequestBuilders.get("/api/members/{memberId}/notifications", member.getId())
-				.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))
+				.cookie(createTokenCookies()))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
@@ -111,9 +109,6 @@ public class MemberNotificationRestControllerDocsTest extends RestDocsSupport {
 					"member_notification-search",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint()),
-					requestHeaders(
-						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
-					),
 					pathParameters(
 						parameterWithName("memberId").description("회원 등록 번호")
 					),
@@ -169,7 +164,7 @@ public class MemberNotificationRestControllerDocsTest extends RestDocsSupport {
 		// when & then
 		mockMvc.perform(
 				RestDocumentationRequestBuilders.put("/api/members/{memberId}/notification/settings", member.getId())
-					.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken")
+					.cookie(createTokenCookies())
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(ObjectMapperUtil.serialize(body)))
 			.andExpect(status().isOk())
@@ -181,9 +176,6 @@ public class MemberNotificationRestControllerDocsTest extends RestDocsSupport {
 					"member_notification_settings-update",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint()),
-					requestHeaders(
-						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
-					),
 					pathParameters(
 						parameterWithName("memberId").description("회원 등록 번호")
 					),
@@ -220,7 +212,7 @@ public class MemberNotificationRestControllerDocsTest extends RestDocsSupport {
 		// when & then
 		mockMvc.perform(
 				RestDocumentationRequestBuilders.delete("/api/members/{memberId}/notifications", member.getId())
-					.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken")
+					.cookie(createTokenCookies())
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(ObjectMapperUtil.serialize(body)))
 			.andExpect(status().isOk())
@@ -232,9 +224,6 @@ public class MemberNotificationRestControllerDocsTest extends RestDocsSupport {
 					"member_notification-all-delete",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint()),
-					requestHeaders(
-						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
-					),
 					pathParameters(
 						parameterWithName("memberId").description("회원 등록 번호")
 					),
@@ -266,7 +255,7 @@ public class MemberNotificationRestControllerDocsTest extends RestDocsSupport {
 		mockMvc.perform(
 				RestDocumentationRequestBuilders.delete("/api/members/{memberId}/notifications/{notificationId}",
 						member.getId(), notificationId)
-					.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken"))
+					.cookie(createTokenCookies()))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
@@ -276,9 +265,6 @@ public class MemberNotificationRestControllerDocsTest extends RestDocsSupport {
 					"member_notification-one-delete",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint()),
-					requestHeaders(
-						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
-					),
 					pathParameters(
 						parameterWithName("memberId").description("회원 등록 번호"),
 						parameterWithName("notificationId").description("알림 등록 번호")
@@ -310,7 +296,7 @@ public class MemberNotificationRestControllerDocsTest extends RestDocsSupport {
 		// when & then
 		mockMvc.perform(
 				RestDocumentationRequestBuilders.patch("/api/members/{memberId}/notifications/", member.getId())
-					.header(HttpHeaders.AUTHORIZATION, "Bearer accessToken")
+					.cookie(createTokenCookies())
 					.contentType(MediaType.APPLICATION_JSON)
 					.content(ObjectMapperUtil.serialize(body)))
 			.andExpect(status().isOk())
@@ -322,9 +308,6 @@ public class MemberNotificationRestControllerDocsTest extends RestDocsSupport {
 					"member_notification-all-read",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint()),
-					requestHeaders(
-						headerWithName(HttpHeaders.AUTHORIZATION).description("액세스 토큰")
-					),
 					pathParameters(
 						parameterWithName("memberId").description("회원 등록 번호")
 					),
