@@ -229,7 +229,8 @@ public class AuthenticationIntegrationTest extends AbstractContainerBaseTest {
 	}
 
 	public static Stream<Arguments> invalidJwtTokenCreateDateSource() {
-		Date now1 = Date.from(LocalDateTime.now().minusDays(15).toInstant(ZoneOffset.ofHours(9)));
+		ZoneId kst = ZoneId.of("Asia/Seoul");
+		Date now1 = Date.from(LocalDateTime.now(kst).minusDays(15).toInstant(ZoneOffset.ofHours(9)));
 		return Stream.of(
 			Arguments.of(now1, now1)
 		);
