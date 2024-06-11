@@ -1,5 +1,6 @@
 package codesquad.fineants.global.security.oauth.dto;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -50,9 +51,12 @@ public class OAuthAttribute {
 	private static OAuthAttribute ofKakao(Map<String, Object> attributes, String nameAttributeKey) {
 		log.info("attributes = {}", attributes);
 		Map<String, Object> kakaoAccountMap = (Map<String, Object>)attributes.get("kakao_account");
-		Map<String, Object> profileMap = (Map<String, Object>)kakaoAccountMap.get("profile");
+		Map<String, Object> profileMap = new HashMap<>();
+		if (kakaoAccountMap.containsKey("profile")) {
+			profileMap = (Map<String, Object>)kakaoAccountMap.get("profile");
+		}
 		String email = (String)kakaoAccountMap.get("email");
-		String profileUrl = (String)profileMap.get("profile_image_url");
+		String profileUrl = (String)profileMap.getOrDefault("profile_image_url", null);
 		String provider = "kakao";
 		Long id = (Long)attributes.get("id");
 		String sub = id.toString();
