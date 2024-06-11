@@ -4,7 +4,6 @@
 ==== HTTP Request
 
 include::{snippets}/holding-create/http-request.adoc[]
-include::{snippets}/holding-create/request-headers.adoc[]
 include::{snippets}/holding-create/path-parameters.adoc[]
 include::{snippets}/holding-create/request-fields.adoc[]
 
@@ -19,7 +18,6 @@ include::{snippets}/holding-create/response-fields.adoc[]
 ==== HTTP Request
 
 include::{snippets}/holding-search/http-request.adoc[]
-include::{snippets}/holding-search/request-headers.adoc[]
 include::{snippets}/holding-search/path-parameters.adoc[]
 
 ==== HTTP Response
@@ -33,7 +31,6 @@ include::{snippets}/holding-search/response-fields.adoc[]
 ==== HTTP Request
 
 include::{snippets}/holding_real_time-search/http-request.adoc[]
-include::{snippets}/holding_real_time-search/request-headers.adoc[]
 include::{snippets}/holding_real_time-search/path-parameters.adoc[]
 
 ==== HTTP Response
@@ -46,7 +43,6 @@ include::{snippets}/holding_real_time-search/http-response.adoc[]
 ==== HTTP Request
 
 include::{snippets}/holding-one-delete/http-request.adoc[]
-include::{snippets}/holding-one-delete/request-headers.adoc[]
 include::{snippets}/holding-one-delete/path-parameters.adoc[]
 
 ==== HTTP Response
@@ -60,7 +56,6 @@ include::{snippets}/holding-one-delete/response-fields.adoc[]
 ==== HTTP Request
 
 include::{snippets}/holding-multiple-delete/http-request.adoc[]
-include::{snippets}/holding-multiple-delete/request-headers.adoc[]
 include::{snippets}/holding-multiple-delete/path-parameters.adoc[]
 
 ==== HTTP Response
@@ -74,7 +69,6 @@ include::{snippets}/holding-multiple-delete/response-fields.adoc[]
 ==== HTTP Request
 
 include::{snippets}/portfolio_charts-search/http-request.adoc[]
-include::{snippets}/portfolio_charts-search/request-headers.adoc[]
 include::{snippets}/portfolio_charts-search/path-parameters.adoc[]
 
 ==== HTTP Response

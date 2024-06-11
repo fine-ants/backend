@@ -4,7 +4,6 @@
 ==== HTTP Request
 
 include::{snippets}/stock_target_price-create/http-request.adoc[]
-include::{snippets}/stock_target_price-create/request-headers.adoc[]
 include::{snippets}/stock_target_price-create/request-fields.adoc[]
 
 ==== HTTP Response
@@ -20,7 +19,6 @@ include::{snippets}/stock_target_price-create/response-fields.adoc[]
 ==== HTTP Request
 
 include::{snippets}/stock_target_price-notification-notify/http-request.adoc[]
-include::{snippets}/stock_target_price-notification-notify/request-headers.adoc[]
 
 ==== HTTP Response
 
@@ -33,7 +31,6 @@ include::{snippets}/stock_target_price-notification-notify/response-fields.adoc[
 ==== HTTP Request
 
 include::{snippets}/stock_target_price-list-search/http-request.adoc[]
-include::{snippets}/stock_target_price-list-search/request-headers.adoc[]
 
 ==== HTTP Response
 
@@ -46,7 +43,6 @@ include::{snippets}/stock_target_price-list-search/response-fields.adoc[]
 ==== HTTP Request
 
 include::{snippets}/stock_target_price-one-search/http-request.adoc[]
-include::{snippets}/stock_target_price-one-search/request-headers.adoc[]
 include::{snippets}/stock_target_price-one-search/path-parameters.adoc[]
 
 ==== HTTP Response
@@ -60,7 +56,6 @@ include::{snippets}/stock_target_price-one-search/response-fields.adoc[]
 ==== HTTP Request
 
 include::{snippets}/stock_target_price-update/http-request.adoc[]
-include::{snippets}/stock_target_price-update/request-headers.adoc[]
 include::{snippets}/stock_target_price-update/request-fields.adoc[]
 
 ==== HTTP Response
@@ -74,7 +69,6 @@ include::{snippets}/stock_target_price-update/response-fields.adoc[]
 ==== HTTP Request
 
 include::{snippets}/stock_target_price-multiple-delete/http-request.adoc[]
-include::{snippets}/stock_target_price-multiple-delete/request-headers.adoc[]
 include::{snippets}/stock_target_price-multiple-delete/request-fields.adoc[]
 
 ==== HTTP Response
@@ -88,7 +82,6 @@ include::{snippets}/stock_target_price-multiple-delete/response-fields.adoc[]
 ==== HTTP Request
 
 include::{snippets}/stock_target_price-one-delete/http-request.adoc[]
-include::{snippets}/stock_target_price-one-delete/request-headers.adoc[]
 include::{snippets}/stock_target_price-one-delete/path-parameters.adoc[]
 
 ==== HTTP Response

@@ -4,7 +4,6 @@
 ==== HTTP Request
 
 include::{snippets}/dashboard_overview-search/http-request.adoc[]
-include::{snippets}/dashboard_overview-search/request-headers.adoc[]
 
 ==== HTTP Response
 
@@ -17,7 +16,6 @@ include::{snippets}/dashboard_overview-search/response-fields.adoc[]
 ==== HTTP Request
 
 include::{snippets}/dashboard_portfolio_pie_chart-search/http-request.adoc[]
-include::{snippets}/dashboard_portfolio_pie_chart-search/request-headers.adoc[]
 
 ==== HTTP Response
 
@@ -30,7 +28,6 @@ include::{snippets}/dashboard_portfolio_pie_chart-search/response-fields.adoc[]
 ==== HTTP Request
 
 include::{snippets}/dashboard_line_chart-search/http-request.adoc[]
-include::{snippets}/dashboard_line_chart-search/request-headers.adoc[]
 
 ==== HTTP Response
 

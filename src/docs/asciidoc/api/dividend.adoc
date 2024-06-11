@@ -6,7 +6,6 @@
 ==== HTTP Request
 
 include::{snippets}/dividend-schedule-init/http-request.adoc[]
-include::{snippets}/dividend-schedule-init/request-headers.adoc[]
 
 ==== HTTP Response
 
@@ -21,7 +20,6 @@ include::{snippets}/dividend-schedule-init/response-fields.adoc[]
 ==== HTTP Request
 
 include::{snippets}/dividend-schedule-refresh/http-request.adoc[]
-include::{snippets}/dividend-schedule-refresh/request-headers.adoc[]
 
 ==== HTTP Response
 
@@ -36,7 +34,6 @@ include::{snippets}/dividend-schedule-refresh/response-fields.adoc[]
 ==== HTTP Request
 
 include::{snippets}/dividend-schedule-write-csv/http-request.adoc[]
-include::{snippets}/dividend-schedule-write-csv/request-headers.adoc[]
 
 ==== HTTP Response
 

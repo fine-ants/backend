@@ -4,7 +4,6 @@
 ==== HTTP Request
 
 include::{snippets}/member-search/http-request.adoc[]
-include::{snippets}/member-search/request-headers.adoc[]
 
 ==== HTTP Response
 
@@ -17,7 +16,6 @@ include::{snippets}/member-search/response-fields.adoc[]
 ==== HTTP Request
 
 include::{snippets}/member-update/http-request.adoc[]
-include::{snippets}/member-update/request-headers.adoc[]
 include::{snippets}/member-update/request-parts.adoc[]
 
 ==== HTTP Response
@@ -31,7 +29,6 @@ include::{snippets}/member-update/response-fields.adoc[]
 ==== HTTP Request
 
 include::{snippets}/member_password-update/http-request.adoc[]
-include::{snippets}/member_password-update/request-headers.adoc[]
 
 ==== HTTP Response
 
@@ -44,7 +41,6 @@ include::{snippets}/member_password-update/response-fields.adoc[]
 ==== HTTP Request
 
 include::{snippets}/member-delete/http-request.adoc[]
-include::{snippets}/member-delete/request-fields.adoc[]
 
 ==== HTTP Response
 

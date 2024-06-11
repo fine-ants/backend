@@ -4,7 +4,6 @@
 ==== HTTP Request
 
 include::{snippets}/member_notification-search/http-request.adoc[]
-include::{snippets}/member_notification-search/request-headers.adoc[]
 include::{snippets}/member_notification-search/path-parameters.adoc[]
 
 ==== HTTP Response
@@ -18,7 +17,6 @@ include::{snippets}/member_notification-search/response-fields.adoc[]
 ==== HTTP Request
 
 include::{snippets}/member_notification_settings-update/http-request.adoc[]
-include::{snippets}/member_notification_settings-update/request-headers.adoc[]
 include::{snippets}/member_notification_settings-update/path-parameters.adoc[]
 include::{snippets}/member_notification_settings-update/request-fields.adoc[]
 
@@ -33,7 +31,6 @@ include::{snippets}/member_notification_settings-update/response-fields.adoc[]
 ==== HTTP Request
 
 include::{snippets}/member_notification-all-delete/http-request.adoc[]
-include::{snippets}/member_notification-all-delete/request-headers.adoc[]
 include::{snippets}/member_notification-all-delete/path-parameters.adoc[]
 include::{snippets}/member_notification-all-delete/request-fields.adoc[]
 
@@ -48,7 +45,6 @@ include::{snippets}/member_notification-all-delete/response-fields.adoc[]
 ==== HTTP Request
 
 include::{snippets}/member_notification-one-delete/http-request.adoc[]
-include::{snippets}/member_notification-one-delete/request-headers.adoc[]
 include::{snippets}/member_notification-one-delete/path-parameters.adoc[]
 
 ==== HTTP Response
@@ -62,7 +58,6 @@ include::{snippets}/member_notification-one-delete/response-fields.adoc[]
 ==== HTTP Request
 
 include::{snippets}/member_notification-all-read/http-request.adoc[]
-include::{snippets}/member_notification-all-read/request-headers.adoc[]
 include::{snippets}/member_notification-all-read/path-parameters.adoc[]
 include::{snippets}/member_notification-all-read/request-fields.adoc[]
 

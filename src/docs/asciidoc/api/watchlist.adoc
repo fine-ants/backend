@@ -4,7 +4,6 @@
 ==== HTTP Request
 
 include::{snippets}/watchlist-create/http-request.adoc[]
-include::{snippets}/watchlist-create/request-headers.adoc[]
 include::{snippets}/watchlist-create/request-fields.adoc[]
 
 ==== HTTP Response
@@ -18,7 +17,6 @@ include::{snippets}/watchlist-create/response-fields.adoc[]
 ==== HTTP Request
 
 include::{snippets}/watchlist-multiple-search/http-request.adoc[]
-include::{snippets}/watchlist-multiple-search/request-headers.adoc[]
 
 ==== HTTP Response
 
@@ -31,7 +29,6 @@ include::{snippets}/watchlist-multiple-search/response-fields.adoc[]
 ==== HTTP Request
 
 include::{snippets}/watchlist-multiple-delete/http-request.adoc[]
-include::{snippets}/watchlist-multiple-delete/request-headers.adoc[]
 include::{snippets}/watchlist-multiple-delete/request-fields.adoc[]
 
 ==== HTTP Response
@@ -45,7 +42,6 @@ include::{snippets}/watchlist-multiple-delete/response-fields.adoc[]
 ==== HTTP Request
 
 include::{snippets}/watchlist-one-search/http-request.adoc[]
-include::{snippets}/watchlist-one-search/request-headers.adoc[]
 include::{snippets}/watchlist-one-search/path-parameters.adoc[]
 
 ==== HTTP Response
@@ -59,7 +55,6 @@ include::{snippets}/watchlist-one-search/response-fields.adoc[]
 ==== HTTP Request
 
 include::{snippets}/watchlist_name-update/http-request.adoc[]
-include::{snippets}/watchlist_name-update/request-headers.adoc[]
 include::{snippets}/watchlist_name-update/path-parameters.adoc[]
 include::{snippets}/watchlist_name-update/request-fields.adoc[]
 
@@ -74,7 +69,6 @@ include::{snippets}/watchlist_name-update/response-fields.adoc[]
 ==== HTTP Request
 
 include::{snippets}/watchlist-stock-multiple-create/http-request.adoc[]
-include::{snippets}/watchlist-stock-multiple-create/request-headers.adoc[]
 include::{snippets}/watchlist-stock-multiple-create/path-parameters.adoc[]
 include::{snippets}/watchlist-stock-multiple-create/request-fields.adoc[]
 
@@ -89,7 +83,6 @@ include::{snippets}/watchlist-stock-multiple-create/response-fields.adoc[]
 ==== HTTP Request
 
 include::{snippets}/watchlist-stock-multiple-delete/http-request.adoc[]
-include::{snippets}/watchlist-stock-multiple-delete/request-headers.adoc[]
 include::{snippets}/watchlist-stock-multiple-delete/path-parameters.adoc[]
 include::{snippets}/watchlist-stock-multiple-delete/request-fields.adoc[]
 
@@ -104,7 +97,6 @@ include::{snippets}/watchlist-stock-multiple-delete/response-fields.adoc[]
 ==== HTTP Request
 
 include::{snippets}/watchlist-stock-one-delete/http-request.adoc[]
-include::{snippets}/watchlist-stock-one-delete/request-headers.adoc[]
 include::{snippets}/watchlist-stock-one-delete/path-parameters.adoc[]
 
 ==== HTTP Response
@@ -118,7 +110,6 @@ include::{snippets}/watchlist-stock-one-delete/response-fields.adoc[]
 ==== HTTP Request
 
 include::{snippets}/watchlist-stock-contain-get/http-request.adoc[]
-include::{snippets}/watchlist-stock-contain-get/request-headers.adoc[]
 include::{snippets}/watchlist-stock-contain-get/path-parameters.adoc[]
 
 ==== HTTP Response

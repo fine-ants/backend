@@ -6,7 +6,6 @@
 ==== HTTP Request
 
 include::{snippets}/notification_portfolio_target_gain-notify/http-request.adoc[]
-include::{snippets}/notification_portfolio_target_gain-notify/request-headers.adoc[]
 include::{snippets}/notification_portfolio_target_gain-notify/path-parameters.adoc[]
 
 ==== HTTP Response
@@ -22,7 +21,6 @@ include::{snippets}/notification_portfolio_target_gain-notify/response-fields.ad
 ==== HTTP Request
 
 include::{snippets}/notification_portfolio_max_loss-notify/http-request.adoc[]
-include::{snippets}/notification_portfolio_max_loss-notify/request-headers.adoc[]
 include::{snippets}/notification_portfolio_max_loss-notify/path-parameters.adoc[]
 
 ==== HTTP Response

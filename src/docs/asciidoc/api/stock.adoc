@@ -19,7 +19,6 @@ include::{snippets}/stock-search/response-fields.adoc[]
 ==== HTTP Request
 
 include::{snippets}/stock-refresh/http-request.adoc[]
-include::{snippets}/stock-refresh/request-headers.adoc[]
 
 ==== HTTP Response
 

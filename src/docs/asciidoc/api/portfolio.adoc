@@ -4,7 +4,6 @@
 ==== HTTP Request
 
 include::{snippets}/portfolio-create/http-request.adoc[]
-include::{snippets}/portfolio-create/request-headers.adoc[]
 include::{snippets}/portfolio-create/request-fields.adoc[]
 
 ==== HTTP Response
@@ -18,7 +17,6 @@ include::{snippets}/portfolio-create/response-fields.adoc[]
 ==== HTTP Request
 
 include::{snippets}/portfolio-search/http-request.adoc[]
-include::{snippets}/portfolio-search/request-headers.adoc[]
 
 ==== HTTP Response
 
@@ -31,7 +29,6 @@ include::{snippets}/portfolio-search/response-fields.adoc[]
 ==== HTTP Request
 
 include::{snippets}/portfolio_notification_settings-search/http-request.adoc[]
-include::{snippets}/portfolio_notification_settings-search/request-headers.adoc[]
 
 ==== HTTP Response
 
@@ -44,7 +41,6 @@ include::{snippets}/portfolio_notification_settings-search/response-fields.adoc[
 ==== HTTP Request
 
 include::{snippets}/portfolio-update/http-request.adoc[]
-include::{snippets}/portfolio-update/request-headers.adoc[]
 include::{snippets}/portfolio-update/request-fields.adoc[]
 
 ==== HTTP Response
@@ -58,7 +54,6 @@ include::{snippets}/portfolio-update/response-fields.adoc[]
 ==== HTTP Request
 
 include::{snippets}/portfolio_notification_target_gain_active-update/http-request.adoc[]
-include::{snippets}/portfolio_notification_target_gain_active-update/request-headers.adoc[]
 include::{snippets}/portfolio_notification_target_gain_active-update/path-parameters.adoc[]
 include::{snippets}/portfolio_notification_target_gain_active-update/request-fields.adoc[]
 
@@ -73,7 +68,6 @@ include::{snippets}/portfolio_notification_target_gain_active-update/response-fi
 ==== HTTP Request
 
 include::{snippets}/portfolio_notification_maximum_loss_active-update/http-request.adoc[]
-include::{snippets}/portfolio_notification_maximum_loss_active-update/request-headers.adoc[]
 include::{snippets}/portfolio_notification_maximum_loss_active-update/path-parameters.adoc[]
 include::{snippets}/portfolio_notification_maximum_loss_active-update/request-fields.adoc[]
 
@@ -88,7 +82,6 @@ include::{snippets}/portfolio_notification_maximum_loss_active-update/response-f
 ==== HTTP Request
 
 include::{snippets}/portfolio-one-delete/http-request.adoc[]
-include::{snippets}/portfolio-one-delete/request-headers.adoc[]
 include::{snippets}/portfolio-one-delete/path-parameters.adoc[]
 
 ==== HTTP Response
@@ -102,7 +95,6 @@ include::{snippets}/portfolio-one-delete/response-fields.adoc[]
 ==== HTTP Request
 
 include::{snippets}/portfolio-multiple-delete/http-request.adoc[]
-include::{snippets}/portfolio-multiple-delete/request-headers.adoc[]
 include::{snippets}/portfolio-multiple-delete/request-fields.adoc[]
 
 ==== HTTP Response

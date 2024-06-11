@@ -4,7 +4,6 @@
 ==== HTTP Request
 
 include::{snippets}/purchase_history-create/http-request.adoc[]
-include::{snippets}/purchase_history-create/request-headers.adoc[]
 include::{snippets}/purchase_history-create/path-parameters.adoc[]
 include::{snippets}/purchase_history-create/request-fields.adoc[]
 
@@ -19,7 +18,6 @@ include::{snippets}/purchase_history-create/response-fields.adoc[]
 ==== HTTP Request
 
 include::{snippets}/purchase_history-update/http-request.adoc[]
-include::{snippets}/purchase_history-update/request-headers.adoc[]
 include::{snippets}/purchase_history-update/path-parameters.adoc[]
 include::{snippets}/purchase_history-update/request-fields.adoc[]
 
@@ -34,7 +32,6 @@ include::{snippets}/purchase_history-update/response-fields.adoc[]
 ==== HTTP Request
 
 include::{snippets}/purchase_history-delete/http-request.adoc[]
-include::{snippets}/purchase_history-delete/request-headers.adoc[]
 include::{snippets}/purchase_history-delete/path-parameters.adoc[]
 
 ==== HTTP Response
