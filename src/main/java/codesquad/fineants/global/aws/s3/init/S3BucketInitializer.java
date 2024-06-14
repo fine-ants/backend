@@ -1,4 +1,4 @@
-package codesquad.fineants.global.init;
+package codesquad.fineants.global.aws.s3.init;
 
 import java.io.IOException;
 

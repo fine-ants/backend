@@ -46,5 +46,23 @@ services:
       - "6379:6379"
     networks:
       - spring-net
+  localstack:
+    container_name: fineAnts_localstack
+    image: localstack/localstack:0.14.3
+    ports:
+      - "4566:4566" # localstack port
+      - "4572:4572" # aws s3 port
+    environment:
+      - SERVICES=s3
+      - DEBUG=1
+      - DATA_DIR=/tmp/localstack/data
+      - DOCKER_SOCK=unix:///var/run/docker.sock
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - AWS_DEFAULT_REGION=us-east-1
+    volumes:
+      - "./localstack:/tmp/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+
 networks:
   spring-net:
