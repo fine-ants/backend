@@ -49,6 +49,10 @@ jobs:
       # gradlew 실행을 위해서 실행 권한을 부여
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
+      # Timezone 설정
+      - name: Set timezone to Asia/Seoul
+        run: |
+          sudo timedatectl set-timezone Asia/Seoul
       # 테스트 실행
       - name: Test with Gradle
         run: ./gradlew test

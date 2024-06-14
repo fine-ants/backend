@@ -177,7 +177,11 @@ public class AuthenticationIntegrationTest extends AbstractContainerBaseTest {
 	public static Stream<Arguments> validJwtTokenCreateDateSource() {
 		Date now1 = Date.from(LocalDateTime.now().minusDays(1).toInstant(ZoneOffset.ofHours(9)));
 		Date now2 = Date.from(
-			LocalDateTime.now().minusDays(13).minusHours(23).minusMinutes(5).toInstant(ZoneOffset.ofHours(9)));
+			LocalDateTime.now()
+				.minusDays(13)
+				.minusHours(23)
+				.minusMinutes(5)
+				.toInstant(ZoneOffset.ofHours(9)));
 		Date now3 = Date.from(LocalDateTime.now().toInstant(ZoneOffset.ofHours(9)));
 		return Stream.of(
 
