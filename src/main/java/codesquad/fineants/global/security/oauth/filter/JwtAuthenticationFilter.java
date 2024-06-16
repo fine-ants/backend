@@ -50,8 +50,10 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
 		if (accessToken != null && !oauthMemberRedisService.isAlreadyLogout(accessToken)) {
 			if (tokenService.isExpiredToken(accessToken)) {
 				token = tokenService.refreshToken(refreshToken, LocalDateTime.now());
+				setTokenCookie((HttpServletResponse)response, token);
 			} else if (tokenService.verifyToken(accessToken) && tokenService.isRefreshTokenNearExpiry(refreshToken)) {
 				token = tokenService.refreshToken(refreshToken, LocalDateTime.now());
+				setTokenCookie((HttpServletResponse)response, token);
 			} else if (tokenService.verifyToken(accessToken)) {
 				token = Token.create(accessToken, refreshToken);
 			}
@@ -59,11 +61,14 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
 
 		if (token != null) {
 			setAuthentication(token.getAccessToken());
-			CookieUtils.setCookie((HttpServletResponse)response, tokenFactory.createAccessTokenCookie(token));
-			CookieUtils.setCookie((HttpServletResponse)response, tokenFactory.createRefreshTokenCookie(token));
 		}
 
 		chain.doFilter(request, response);
+	}
+
+	private void setTokenCookie(HttpServletResponse response, Token token) {
+		CookieUtils.setCookie(response, tokenFactory.createAccessTokenCookie(token));
+		CookieUtils.setCookie(response, tokenFactory.createRefreshTokenCookie(token));
 	}
 
 	private void setAuthentication(String accessToken) {
