@@ -2,9 +2,12 @@ package codesquad.fineants.global.security.ajax.handler;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 
@@ -41,8 +44,12 @@ public class AjaxAuthenticationSuccessHandler implements AuthenticationSuccessHa
 		Token token = tokenService.generateToken(MemberAuthentication.from(member), new Date());
 		ApiResponse<LoginResponse> body = ApiResponse.success(MemberSuccessCode.OK_LOGIN);
 
-		CookieUtils.setCookie(response, tokenFactory.createAccessTokenCookie(token));
-		CookieUtils.setCookie(response, tokenFactory.createRefreshTokenCookie(token));
+		List<ResponseCookie> cookies = List.of(tokenFactory.createAccessTokenCookie(token),
+			tokenFactory.createRefreshTokenCookie(token));
+		String cookieValue = cookies.stream()
+			.map(ResponseCookie::toString)
+			.collect(Collectors.joining("; "));
+		CookieUtils.setCookie(response, cookieValue);
 
 		objectMapper.writeValue(response.getWriter(), body);
 	}

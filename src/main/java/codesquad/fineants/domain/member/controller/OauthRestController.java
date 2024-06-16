@@ -1,5 +1,9 @@
 package codesquad.fineants.domain.member.controller;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.http.ResponseCookie;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -30,8 +34,12 @@ public class OauthRestController {
 		Token token = Token.create(accessToken, refreshToken);
 		OauthMemberLoginResponse response = OauthMemberLoginResponse.of(token);
 
-		CookieUtils.setCookie(servletResponse, tokenFactory.createAccessTokenCookie(token));
-		CookieUtils.setCookie(servletResponse, tokenFactory.createRefreshTokenCookie(token));
+		List<ResponseCookie> cookies = List.of(tokenFactory.createAccessTokenCookie(token),
+			tokenFactory.createRefreshTokenCookie(token));
+		String cookieValue = cookies.stream()
+			.map(ResponseCookie::toString)
+			.collect(Collectors.joining("; "));
+		CookieUtils.setCookie(servletResponse, cookieValue);
 
 		return ApiResponse.success(MemberSuccessCode.OK_LOGIN, response);
 	}
