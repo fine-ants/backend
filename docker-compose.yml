@@ -46,5 +46,7 @@ services:
       - "6379:6379"
     networks:
       - spring-net
+
 networks:
   spring-net:
+    driver: bridge

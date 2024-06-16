@@ -140,4 +140,3 @@ bootJar {
     archiveFileName = "fineAnts_app.jar"
     copyPrivate
 }
-

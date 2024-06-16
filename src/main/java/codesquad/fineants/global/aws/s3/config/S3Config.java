@@ -1,4 +1,4 @@
-package codesquad.fineants.global.config.aws.s3;
+package codesquad.fineants.global.aws.s3.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -11,10 +11,12 @@ import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 
-@Profile(value = {"release", "production"})
-@Configuration
-public class AwsS3Config {
+import lombok.extern.slf4j.Slf4j;
 
+@Profile(value = {"local", "release", "production"})
+@Configuration
+@Slf4j
+public class S3Config {
 	@Value("${aws.access-key}")
 	private String accessKey;
 	@Value("${aws.secret-key}")
@@ -23,7 +25,7 @@ public class AwsS3Config {
 	private String region;
 
 	@Bean
-	public AmazonS3 s3Client() {
+	public AmazonS3 amazonS3() {
 		AWSCredentials credentials = new BasicAWSCredentials(accessKey, accessSecret);
 		return AmazonS3ClientBuilder.standard()
 			.withCredentials(new AWSStaticCredentialsProvider(credentials)).withRegion(region).build();
