@@ -20,6 +20,7 @@ public class CommonSecurityConfig {
 				"https://accounts.google.com/o/oauth2/v2/auth"));
 		config.setAllowedMethods(Collections.singletonList("*"));
 		config.setAllowedHeaders(Collections.singletonList("*"));
+		;
 		config.setAllowCredentials(true);
 		config.setMaxAge(3600L);
 		return config;

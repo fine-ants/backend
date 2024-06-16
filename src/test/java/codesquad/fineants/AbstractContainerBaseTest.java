@@ -41,7 +41,6 @@ import codesquad.fineants.domain.stock_target_price.domain.entity.StockTargetPri
 import codesquad.fineants.domain.stock_target_price.domain.entity.TargetPriceNotification;
 import codesquad.fineants.domain.watchlist.domain.entity.WatchList;
 import codesquad.fineants.domain.watchlist.domain.entity.WatchStock;
-import codesquad.fineants.global.aws.s3.init.S3BucketInitializer;
 import codesquad.fineants.global.errors.errorcode.RoleErrorCode;
 import codesquad.fineants.global.errors.exception.FineAntsException;
 import codesquad.fineants.global.security.factory.TokenFactory;
@@ -52,7 +51,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @ActiveProfiles("test")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@Import(value = {AmazonS3Config.class, S3BucketInitializer.class})
+@Import(value = {AmazonS3Config.class})
 @AutoConfigureWebTestClient
 @Testcontainers
 @WithMockUser(username = "dragonbead95@naver.com", roles = {"USER"})
