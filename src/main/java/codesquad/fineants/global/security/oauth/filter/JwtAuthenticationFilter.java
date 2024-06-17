@@ -2,11 +2,8 @@ package codesquad.fineants.global.security.oauth.filter;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.util.Strings;
-import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -70,13 +67,8 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
 	}
 
 	private void setTokenCookie(HttpServletResponse response, Token token) {
-		List<ResponseCookie> cookies = List.of(tokenFactory.createAccessTokenCookie(token),
-			tokenFactory.createRefreshTokenCookie(token));
-
-		String cookieValue = cookies.stream()
-			.map(ResponseCookie::toString)
-			.collect(Collectors.joining("; "));
-		CookieUtils.setCookie(response, cookieValue);
+		CookieUtils.setCookie(response, tokenFactory.createAccessTokenCookie(token));
+		CookieUtils.setCookie(response, tokenFactory.createRefreshTokenCookie(token));
 	}
 
 	private void setAuthentication(String accessToken) {
