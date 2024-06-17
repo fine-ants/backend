@@ -21,4 +21,4 @@ logging:
   level:
     codesquad: debug
 server:
-  port: 443
+  port: 444
