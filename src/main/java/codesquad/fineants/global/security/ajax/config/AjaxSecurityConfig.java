@@ -65,7 +65,9 @@ public class AjaxSecurityConfig {
 		http.authenticationProvider(authenticationProvider());
 		http.authenticationManager(authenticationManager());
 
-		AjaxLoginProcessingFilter ajaxLoginProcessingFilter = ajaxLoginProcessingFilter(authenticationManager(),
+		AjaxLoginProcessingFilter ajaxLoginProcessingFilter = new AjaxLoginProcessingFilter(
+			new AntPathRequestMatcher("/api/auth/login"),
+			authenticationManager(),
 			objectMapper);
 		ajaxLoginProcessingFilter.setAuthenticationSuccessHandler(ajaxAuthenticationSuccessHandler());
 		ajaxLoginProcessingFilter.setAuthenticationFailureHandler(ajaxAuthenticationFailHandler());
@@ -83,14 +85,6 @@ public class AjaxSecurityConfig {
 		http.cors(configurer -> configurer.configurationSource(request -> corsConfiguration));
 		http.csrf(AbstractHttpConfigurer::disable);
 		return http.build();
-	}
-
-	@Bean
-	protected AjaxLoginProcessingFilter ajaxLoginProcessingFilter(AuthenticationManager authenticationManager,
-		ObjectMapper objectMapper) {
-		return new AjaxLoginProcessingFilter(new AntPathRequestMatcher("/api/auth/login"),
-			authenticationManager,
-			objectMapper);
 	}
 
 	@Bean

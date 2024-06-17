@@ -90,9 +90,10 @@ public class OauthSecurityConfig {
 		http
 			.sessionManagement(configurer -> configurer
 				.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-		http.addFilterBefore(urlParamFilter(),
+		http.addFilterBefore(new OAuth2AuthorizationRequestRedirectWithRedirectUrlParamFilter(),
 			OAuth2AuthorizationRequestRedirectFilter.class);
-		http.addFilterBefore(jwtAuthFilter(), AuthorizationFilter.class);
+		http.addFilterBefore(new JwtAuthenticationFilter(tokenService, oauthMemberRedisService, tokenFactory),
+			AuthorizationFilter.class);
 
 		http
 			.oauth2Login(configurer -> configurer
@@ -108,11 +109,6 @@ public class OauthSecurityConfig {
 		http.csrf(AbstractHttpConfigurer::disable);
 
 		return http.build();
-	}
-
-	@Bean
-	public JwtAuthenticationFilter jwtAuthFilter() {
-		return new JwtAuthenticationFilter(tokenService, oauthMemberRedisService, tokenFactory);
 	}
 
 	@Bean
@@ -138,11 +134,6 @@ public class OauthSecurityConfig {
 			.requestMatchers("/docs/**")
 			.requestMatchers("/static/docs/**")
 			.requestMatchers(PathRequest.toStaticResources().atCommonLocations());
-	}
-
-	@Bean
-	public OAuth2AuthorizationRequestRedirectWithRedirectUrlParamFilter urlParamFilter() {
-		return new OAuth2AuthorizationRequestRedirectWithRedirectUrlParamFilter();
 	}
 
 	@Bean
