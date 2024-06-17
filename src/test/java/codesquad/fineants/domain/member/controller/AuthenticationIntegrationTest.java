@@ -3,8 +3,6 @@ package codesquad.fineants.domain.member.controller;
 import static io.restassured.RestAssured.*;
 import static org.hamcrest.Matchers.*;
 
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -177,19 +175,19 @@ public class AuthenticationIntegrationTest extends AbstractContainerBaseTest {
 	}
 
 	public static Stream<Arguments> validJwtTokenCreateDateSource() {
-		Date now1 = Date.from(LocalDateTime.now().minusDays(1).toInstant(ZoneOffset.ofHours(9)));
-		Date now2 = Date.from(
-			LocalDateTime.now()
-				.minusDays(13)
-				.minusHours(23)
-				.minusMinutes(5)
-				.toInstant(ZoneOffset.ofHours(9)));
-		Date now3 = Date.from(LocalDateTime.now().toInstant(ZoneOffset.ofHours(9)));
-		return Stream.of(
+		Date now = new Date();
+		long oneDayMilliSeconds = 1000 * 60 * 60 * 24; // 1일
+		long oneHourMilliSeconds = 1000 * 60 * 60; // 1시간
+		long oneMinuteMilliSeconds = 1000 * 60; // 1분
+		long thirteenDaysMilliSeconds =
+			oneDayMilliSeconds * 13 + oneHourMilliSeconds * 23 + oneMinuteMilliSeconds * 5; // 13일 23시간 5분
+		Date now1 = new Date(now.getTime() - oneDayMilliSeconds);
+		Date now2 = new Date(now.getTime() - thirteenDaysMilliSeconds);
 
+		return Stream.of(
 			Arguments.of(now1, now1),
 			Arguments.of(now2, now2),
-			Arguments.of(now3, now2)
+			Arguments.of(now, now2)
 		);
 	}
 
@@ -234,7 +232,8 @@ public class AuthenticationIntegrationTest extends AbstractContainerBaseTest {
 	}
 
 	public static Stream<Arguments> invalidJwtTokenCreateDateSource() {
-		Date now1 = Date.from(LocalDateTime.now().minusDays(15).toInstant(ZoneOffset.ofHours(9)));
+		long fifteenDayMilliSeconds = 1000 * 60 * 60 * 24 * 15; // 1일
+		Date now1 = new Date(fifteenDayMilliSeconds);
 		return Stream.of(
 			Arguments.of(now1, now1)
 		);
