@@ -35,8 +35,4 @@ public class CookieUtils {
 	public static void setCookie(HttpServletResponse response, ResponseCookie cookie) {
 		response.addHeader("Set-Cookie", cookie.toString());
 	}
-
-	public static void setCookie(HttpServletResponse response, String value) {
-		response.setHeader("Set-Cookie", value);
-	}
 }

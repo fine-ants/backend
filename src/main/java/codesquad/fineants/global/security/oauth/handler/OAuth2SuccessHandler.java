@@ -2,10 +2,7 @@ package codesquad.fineants.global.security.oauth.handler;
 
 import java.io.IOException;
 import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
 
-import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -58,12 +55,8 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 			.build()
 			.toUriString();
 
-		List<ResponseCookie> cookies = List.of(tokenFactory.createAccessTokenCookie(token),
-			tokenFactory.createRefreshTokenCookie(token));
-		String cookieValue = cookies.stream()
-			.map(ResponseCookie::toString)
-			.collect(Collectors.joining("; "));
-		CookieUtils.setCookie(response, cookieValue);
+		CookieUtils.setCookie(response, tokenFactory.createAccessTokenCookie(token));
+		CookieUtils.setCookie(response, tokenFactory.createRefreshTokenCookie(token));
 
 		getRedirectStrategy().sendRedirect(request, response, targetUrl);
 	}
