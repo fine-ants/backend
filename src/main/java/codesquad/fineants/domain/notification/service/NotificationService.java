@@ -68,9 +68,7 @@ public class NotificationService {
 	@Transactional
 	public PortfolioNotificationResponse saveNotification(PortfolioNotificationRequest request) {
 		Member member = findMember(request.getMemberId());
-		Notification notification = notificationRepository.save(
-			request.toEntity(member)
-		);
+		Notification notification = notificationRepository.save(request.toEntity(member));
 		return PortfolioNotificationResponse.from(notification);
 	}
 
@@ -83,13 +81,14 @@ public class NotificationService {
 	@Transactional
 	public TargetPriceNotificationResponse saveNotification(StockNotificationRequest request) {
 		Member member = findMember(request.getMemberId());
-		Notification notification = notificationRepository.save(
-			request.toEntity(member)
-		);
+		Notification notification = notificationRepository.save(request.toEntity(member));
 		return TargetPriceNotificationResponse.from(notification);
 	}
 
-	// 모든 회원을 대상으로 목표 수익률 달성 알림 푸시
+	/**
+	 * 모든 회원을 대상으로 목표 수익률을 만족하는 포트폴리오에 대해서 목표 수익률 달성 알림 푸시
+	 * @return 알림 전송 결과
+	 */
 	@Transactional
 	public PortfolioNotifyMessagesResponse notifyTargetGain() {
 		// 모든 회원의 포트폴리오 중에서 입력으로 받은 종목들을 가진 포트폴리오들을 조회
@@ -100,6 +99,10 @@ public class NotificationService {
 			sentManager.addTargetGainSendHistory(Long.valueOf(item.getReferenceId()));
 			return item;
 		};
+
+		// 알림 저장
+		// 알림 전송
+
 		return notifyMessage(portfolios, targetGainNotificationPolicy, sentFunction);
 	}
 

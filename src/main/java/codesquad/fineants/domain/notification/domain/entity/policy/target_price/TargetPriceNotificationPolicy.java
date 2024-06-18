@@ -18,8 +18,7 @@ public class TargetPriceNotificationPolicy implements NotificationPolicy<TargetP
 
 	@Override
 	public Optional<NotifyMessage> apply(TargetPriceNotification targetPriceNotification,
-		NotificationPreference preference,
-		String token) {
+		NotificationPreference preference, String token) {
 		boolean result = targetPriceConditions.stream()
 			.allMatch(condition -> condition.isSatisfiedBy(targetPriceNotification))
 			&& preferenceConditions.stream()

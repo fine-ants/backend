@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
+import codesquad.fineants.domain.notification.domain.entity.policy.ConditionEvaluator;
 import codesquad.fineants.domain.notification.domain.entity.policy.maxloss.MaxLossAccountPreferenceCondition;
 import codesquad.fineants.domain.notification.domain.entity.policy.maxloss.MaxLossActiveCondition;
 import codesquad.fineants.domain.notification.domain.entity.policy.maxloss.MaxLossCondition;
@@ -22,6 +23,8 @@ import codesquad.fineants.domain.notification.domain.entity.policy.target_price.
 import codesquad.fineants.domain.notification.domain.entity.policy.target_price.TargetPriceNotificationPolicy;
 import codesquad.fineants.domain.notification.domain.entity.policy.target_price.TargetPriceSentHistoryCondition;
 import codesquad.fineants.domain.notification.repository.NotificationSentRepository;
+import codesquad.fineants.domain.notificationpreference.domain.entity.NotificationPreference;
+import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import lombok.RequiredArgsConstructor;
 
 @Configuration
@@ -33,16 +36,22 @@ public class NotificationConfig {
 
 	@Bean
 	public TargetGainNotificationPolicy targetGainNotificationPolicy() {
-		return new TargetGainNotificationPolicy(
-			List.of(
-				new TargetGainCondition(),
-				new TargetGainActiveCondition(),
-				new TargetGainSentHistoryCondition(sentManager)
-			),
-			List.of(
-				new TargetGainAccountPreferenceCondition()
-			)
-		);
+		return new TargetGainNotificationPolicy(portfolioConditionEvaluator(),
+			notificationPreferenceConditionEvaluator());
+	}
+
+	@Bean
+	public ConditionEvaluator<Portfolio> portfolioConditionEvaluator() {
+		return new ConditionEvaluator<>(List.of(
+			new TargetGainCondition(),
+			new TargetGainActiveCondition(),
+			new TargetGainSentHistoryCondition(sentManager)
+		));
+	}
+
+	@Bean
+	public ConditionEvaluator<NotificationPreference> notificationPreferenceConditionEvaluator() {
+		return new ConditionEvaluator<>(List.of(new TargetGainAccountPreferenceCondition()));
 	}
 
 	@Bean
