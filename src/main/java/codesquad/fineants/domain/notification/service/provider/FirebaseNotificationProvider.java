@@ -47,19 +47,19 @@ public abstract class FirebaseNotificationProvider<T> implements NotificationPro
 		log.debug("notifyMessages : {}", notifyMessages);
 
 		// 만족하는 포트폴리오를 대상으로 알림 데이터 생성 & 알림 전송
-		List<SentNotifyMessage> sentNotifyMessages = new ArrayList<>();
+		List<SentNotifyMessage> result = new ArrayList<>();
 		notifyMessages.forEach(notifyMessage -> {
 			String messageId = firebaseMessagingService.send(notifyMessage.toMessage()).orElse(null);
 			SentNotifyMessage sentNotifyMessage = SentNotifyMessage.create(notifyMessage, messageId);
-			sentNotifyMessages.add(sentNotifyMessage);
+			result.add(sentNotifyMessage);
 		});
-		log.debug("sentNotifyMessages : {}", sentNotifyMessages);
+		log.debug("sentNotifyMessages : {}", result);
 
 		// 알림 전송이 실패한 메시지들을 대상으로 FCM 토큰 삭제
-		sentNotifyMessages.stream()
+		result.stream()
 			.filter(sentNotifyMessage -> !sentNotifyMessage.hasMessageId())
 			.forEach(sentNotifyMessage -> sentNotifyMessage.deleteToken(fcmService));
-		return sentNotifyMessages;
+		return result;
 	}
 
 	public abstract List<String> findTokens(T target);
