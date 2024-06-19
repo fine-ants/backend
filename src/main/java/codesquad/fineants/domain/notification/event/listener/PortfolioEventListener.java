@@ -21,7 +21,7 @@ public class PortfolioEventListener {
 	@Async
 	@EventListener
 	public void notifyTargetGain(CurrentPriceEvent event) {
-		PortfolioNotifyMessagesResponse response = notificationService.notifyTargetGain();
+		PortfolioNotifyMessagesResponse response = notificationService.notifyTargetGainAll();
 		log.debug("목표수익률 알림 전송 결과 : {}", response);
 	}
 

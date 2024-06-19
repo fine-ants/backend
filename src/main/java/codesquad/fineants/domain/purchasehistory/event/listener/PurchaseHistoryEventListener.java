@@ -23,7 +23,7 @@ public class PurchaseHistoryEventListener {
 	@EventListener
 	public void notifyTargetGainBy(PushNotificationEvent event) {
 		PurchaseHistoryEventSendableParameter parameter = event.getValue();
-		PortfolioNotifyMessagesResponse response = notificationService.notifyTargetGainBy(
+		PortfolioNotifyMessagesResponse response = notificationService.notifyTargetGainOf(
 			parameter.getPortfolioId());
 		log.info("매입 이력 이벤트로 인한 목표 수익률 달성 알림 결과 : {}", response);
 	}

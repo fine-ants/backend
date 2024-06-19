@@ -30,7 +30,7 @@ public class NotificationRestController {
 	public ApiResponse<PortfolioNotifyMessagesResponse> notifyPortfolioTargetGainMessages(
 		@PathVariable Long portfolioId
 	) {
-		PortfolioNotifyMessagesResponse response = service.notifyTargetGainBy(portfolioId);
+		PortfolioNotifyMessagesResponse response = service.notifyTargetGainOf(portfolioId);
 		log.info("포트폴리오 목표 수익률 알림 결과 : response={}", response);
 		return ApiResponse.success(NotificationSuccessCode.OK_NOTIFY_PORTFOLIO_TARGET_GAIN_MESSAGES, response);
 	}

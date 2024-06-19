@@ -67,7 +67,11 @@ public class NotificationService {
 	private final TargetPriceNotificationPolicy targetPriceNotificationPolicy;
 	private final NotificationProvider<Portfolio> notificationProvider;
 
-	// 알림 저장
+	/**
+	 * 포트폴리오 알림 저장
+	 * @param request 알림 데이터
+	 * @return 알림 저장 결과
+	 */
 	@Transactional
 	public PortfolioNotificationResponse saveNotification(PortfolioNotificationRequest request) {
 		Member member = findMember(request.getMemberId());
@@ -75,12 +79,11 @@ public class NotificationService {
 		return PortfolioNotificationResponse.from(notification);
 	}
 
-	private Member findMember(Long memberId) {
-		return memberRepository.findById(memberId)
-			.orElseThrow(() -> new NotFoundResourceException(MemberErrorCode.NOT_FOUND_MEMBER));
-	}
-
-	// 알림 저장
+	/**
+	 * 지정가 알림 저장
+	 * @param request 알림 데이터
+	 * @return 알림 저장 결과
+	 */
 	@Transactional
 	public TargetPriceNotificationResponse saveNotification(StockNotificationRequest request) {
 		Member member = findMember(request.getMemberId());
@@ -88,15 +91,17 @@ public class NotificationService {
 		return TargetPriceNotificationResponse.from(notification);
 	}
 
+	private Member findMember(Long memberId) {
+		return memberRepository.findById(memberId)
+			.orElseThrow(() -> new NotFoundResourceException(MemberErrorCode.NOT_FOUND_MEMBER));
+	}
+
 	@NotNull
 	@Transactional
 	public List<PortfolioNotificationResponse> saveNotification(List<SentNotifyMessage> sentNotifyMessages) {
-		List<NotifyMessage> notifyMessages = sentNotifyMessages.stream()
-			.map(SentNotifyMessage::getNotifyMessage)
-			.toList();
-
 		List<PortfolioNotificationResponse> result = new ArrayList<>();
-		notifyMessages.stream()
+		sentNotifyMessages.stream()
+			.map(SentNotifyMessage::getNotifyMessage)
 			.distinct()
 			.forEach(message -> {
 				PortfolioNotificationResponse response = this.saveNotification(
@@ -111,12 +116,30 @@ public class NotificationService {
 	 * @return 알림 전송 결과
 	 */
 	@Transactional
-	public PortfolioNotifyMessagesResponse notifyTargetGain() {
+	public PortfolioNotifyMessagesResponse notifyTargetGainAll() {
 		// 모든 회원의 포트폴리오 중에서 입력으로 받은 종목들을 가진 포트폴리오들을 조회
 		List<Portfolio> portfolios = portfolioRepository.findAllWithAll().stream()
 			.peek(portfolio -> portfolio.applyCurrentPriceAllHoldingsBy(currentPriceRepository))
 			.collect(Collectors.toList());
+		return notifyTargetGainOf(portfolios);
+	}
 
+	/**
+	 * 특정 포트폴리오의 목표 수익률 달성 알림 푸시
+	 * @param portfolioId 포트폴리오 등록번호
+	 * @return 알림 전송 결과
+	 */
+	@Transactional
+	public PortfolioNotifyMessagesResponse notifyTargetGainOf(Long portfolioId) {
+		Portfolio portfolio = portfolioRepository.findByPortfolioIdWithAll(portfolioId).stream()
+			.peek(p -> p.applyCurrentPriceAllHoldingsBy(currentPriceRepository))
+			.findFirst()
+			.orElseThrow(() -> new FineAntsException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
+		return notifyTargetGainOf(List.of(portfolio));
+	}
+
+	@NotNull
+	private PortfolioNotifyMessagesResponse notifyTargetGainOf(List<Portfolio> portfolios) {
 		// 알림 전송
 		List<SentNotifyMessage> sentNotifyMessages = notificationProvider.sendNotification(portfolios,
 			targetGainNotificationPolicy);
@@ -148,28 +171,12 @@ public class NotificationService {
 		return PortfolioNotifyMessagesResponse.create(items);
 	}
 
-	₩
-
 	private Map<String, String> getMessageIdMap(List<SentNotifyMessage> sentNotifyMessages) {
 		Map<String, String> result = new HashMap<>();
 		for (SentNotifyMessage target : sentNotifyMessages) {
 			result.put(target.getNotifyMessage().getReferenceId(), target.getMessageId());
 		}
 		return result;
-	}
-
-	// 특정 포트폴리오의 목표 수익률 달성 알림 푸시
-	@Transactional
-	public PortfolioNotifyMessagesResponse notifyTargetGainBy(Long portfolioId) {
-		Portfolio portfolio = portfolioRepository.findByPortfolioIdWithAll(portfolioId).stream()
-			.peek(p -> p.applyCurrentPriceAllHoldingsBy(currentPriceRepository))
-			.findFirst()
-			.orElseThrow(() -> new FineAntsException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
-		Function<PortfolioNotificationResponse, PortfolioNotificationResponse> sentFunction = item -> {
-			sentManager.addTargetGainSendHistory(Long.valueOf(item.getReferenceId()));
-			return item;
-		};
-		return notifyMessage(List.of(portfolio), targetGainNotificationPolicy, sentFunction);
 	}
 
 	// 모든 트폴리오의 최대 손실율 달성 알림 푸시

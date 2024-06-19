@@ -59,7 +59,7 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 			PortfolioNotificationResponse.from(notification), messageId);
 		List<PortfolioNotifyMessageItem> items = List.of(item);
 
-		given(service.notifyTargetGainBy(
+		given(service.notifyTargetGainOf(
 			anyLong()))
 			.willReturn(PortfolioNotifyMessagesResponse.create(items));
 
