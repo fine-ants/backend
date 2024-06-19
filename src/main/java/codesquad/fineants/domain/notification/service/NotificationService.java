@@ -32,6 +32,7 @@ import codesquad.fineants.domain.notification.domain.entity.policy.target_gain.T
 import codesquad.fineants.domain.notification.domain.entity.policy.target_price.TargetPriceNotificationPolicy;
 import codesquad.fineants.domain.notification.repository.NotificationRepository;
 import codesquad.fineants.domain.notification.repository.NotificationSentRepository;
+import codesquad.fineants.domain.notification.service.provider.NotificationProvider;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.repository.PortfolioRepository;
 import codesquad.fineants.domain.stock_target_price.domain.dto.request.StockNotificationRequest;
@@ -63,6 +64,7 @@ public class NotificationService {
 	private final TargetGainNotificationPolicy targetGainNotificationPolicy;
 	private final MaxLossNotificationPolicy maximumLossNotificationPolicy;
 	private final TargetPriceNotificationPolicy targetPriceNotificationPolicy;
+	private final NotificationProvider<Portfolio> notificationProvider;
 
 	// 알림 저장
 	@Transactional
@@ -99,10 +101,8 @@ public class NotificationService {
 			sentManager.addTargetGainSendHistory(Long.valueOf(item.getReferenceId()));
 			return item;
 		};
-
-		// 알림 저장
 		// 알림 전송
-
+		notificationProvider.sendNotification(portfolios, targetGainNotificationPolicy);
 		return notifyMessage(portfolios, targetGainNotificationPolicy, sentFunction);
 	}
 

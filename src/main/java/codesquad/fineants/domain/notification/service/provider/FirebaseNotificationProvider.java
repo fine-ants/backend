@@ -5,49 +5,43 @@ import java.util.List;
 import java.util.Optional;
 
 import org.jetbrains.annotations.NotNull;
-import org.springframework.stereotype.Component;
 
 import codesquad.fineants.domain.fcm.service.FcmService;
 import codesquad.fineants.domain.fcm.service.FirebaseMessagingService;
 import codesquad.fineants.domain.notification.domain.dto.response.NotifyMessage;
 import codesquad.fineants.domain.notification.domain.dto.response.SentNotifyMessage;
-import codesquad.fineants.domain.notification.domain.entity.policy.target_gain.TargetGainNotificationPolicy;
-import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
+import codesquad.fineants.domain.notification.domain.entity.policy.NotificationPolicy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RequiredArgsConstructor
-@Component
-public class FirebaseNotificationProvider<T> implements NotificationProvider<T> {
+public abstract class FirebaseNotificationProvider<T> implements NotificationProvider<T> {
 
-	private final FcmService fcmService;
-	private final FirebaseMessagingService firebaseMessagingService;
-	private final TargetGainNotificationPolicy targetGainNotificationPolicy;
+	final FcmService fcmService;
+	final FirebaseMessagingService firebaseMessagingService;
 
 	/**
 	 * FCM 토큰을 이용하여 푸시 알림
 	 */
 	@Override
-	public List<SentNotifyMessage> sendNotification(List<T> data) {
+	public List<SentNotifyMessage> sendNotification(List<T> data, NotificationPolicy<T> policy) {
 		List<SentNotifyMessage> result = new ArrayList<>();
 		for (T element : data) {
-			if (element instanceof Portfolio portfolio) {
-				result.addAll(notifyIfAchieved(portfolio));
-			}
+			result.addAll(notifyIfAchieved(element, policy));
 		}
 		return result;
 	}
 
 	@NotNull
-	private List<SentNotifyMessage> notifyIfAchieved(Portfolio portfolio) {
+	private List<SentNotifyMessage> notifyIfAchieved(T target, NotificationPolicy<T> policy) {
 		// Portfolio 소유한 회원의 FCM 토큰 리스트 조회
-		List<String> tokens = fcmService.findTokens(portfolio.getMember().getId());
+		List<String> tokens = findTokens(target);
 		log.debug("tokens : {}", tokens);
 
 		// 알림 조건을 만족하는지 검사
 		List<NotifyMessage> notifyMessages = tokens.stream()
-			.map(token -> targetGainNotificationPolicy.apply(portfolio, token))
+			.map(token -> policy.apply(target, token))
 			.flatMap(Optional::stream)
 			.toList();
 		log.debug("notifyMessages : {}", notifyMessages);
@@ -67,4 +61,6 @@ public class FirebaseNotificationProvider<T> implements NotificationProvider<T> 
 			.forEach(sentNotifyMessage -> sentNotifyMessage.deleteToken(fcmService));
 		return sentNotifyMessages;
 	}
+
+	public abstract List<String> findTokens(T target);
 }

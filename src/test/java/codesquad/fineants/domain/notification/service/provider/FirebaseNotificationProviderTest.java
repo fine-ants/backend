@@ -28,6 +28,7 @@ import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
 import codesquad.fineants.domain.notification.domain.dto.response.SentNotifyMessage;
+import codesquad.fineants.domain.notification.domain.entity.policy.target_gain.TargetGainNotificationPolicy;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.repository.PortfolioRepository;
 import codesquad.fineants.domain.purchasehistory.domain.entity.PurchaseHistory;
@@ -38,7 +39,7 @@ import codesquad.fineants.domain.stock.repository.StockRepository;
 class FirebaseNotificationProviderTest extends AbstractContainerBaseTest {
 
 	@Autowired
-	private FirebaseNotificationProvider<Portfolio> provider;
+	private FirebasePortfolioNotificationProvider provider;
 
 	@Autowired
 	private MemberRepository memberRepository;
@@ -61,6 +62,9 @@ class FirebaseNotificationProviderTest extends AbstractContainerBaseTest {
 	@Autowired
 	private CurrentPriceRepository currentPriceRepository;
 
+	@Autowired
+	private TargetGainNotificationPolicy targetGainNotificationPolicy;
+
 	@MockBean
 	private FirebaseMessagingService firebaseMessagingService;
 
@@ -82,7 +86,7 @@ class FirebaseNotificationProviderTest extends AbstractContainerBaseTest {
 			.willReturn(Optional.of("messageId"));
 
 		// when
-		List<SentNotifyMessage> messages = provider.sendNotification(List.of(portfolio));
+		List<SentNotifyMessage> messages = provider.sendNotification(List.of(portfolio), targetGainNotificationPolicy);
 
 		// then
 		Assertions.assertThat(messages)
