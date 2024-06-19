@@ -10,6 +10,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.util.Strings;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -87,6 +88,24 @@ public class NotificationService {
 		return TargetPriceNotificationResponse.from(notification);
 	}
 
+	@NotNull
+	@Transactional
+	public List<PortfolioNotificationResponse> saveNotification(List<SentNotifyMessage> sentNotifyMessages) {
+		List<NotifyMessage> notifyMessages = sentNotifyMessages.stream()
+			.map(SentNotifyMessage::getNotifyMessage)
+			.toList();
+
+		List<PortfolioNotificationResponse> result = new ArrayList<>();
+		notifyMessages.stream()
+			.distinct()
+			.forEach(message -> {
+				PortfolioNotificationResponse response = this.saveNotification(
+					PortfolioNotificationRequest.from(message));
+				result.add(response);
+			});
+		return result;
+	}
+
 	/**
 	 * 모든 회원을 대상으로 목표 수익률을 만족하는 포트폴리오에 대해서 목표 수익률 달성 알림 푸시
 	 * @return 알림 전송 결과
@@ -97,13 +116,46 @@ public class NotificationService {
 		List<Portfolio> portfolios = portfolioRepository.findAllWithAll().stream()
 			.peek(portfolio -> portfolio.applyCurrentPriceAllHoldingsBy(currentPriceRepository))
 			.collect(Collectors.toList());
-		Function<PortfolioNotificationResponse, PortfolioNotificationResponse> sentFunction = item -> {
-			sentManager.addTargetGainSendHistory(Long.valueOf(item.getReferenceId()));
-			return item;
-		};
+
 		// 알림 전송
-		notificationProvider.sendNotification(portfolios, targetGainNotificationPolicy);
-		return notifyMessage(portfolios, targetGainNotificationPolicy, sentFunction);
+		List<SentNotifyMessage> sentNotifyMessages = notificationProvider.sendNotification(portfolios,
+			targetGainNotificationPolicy);
+
+		// 알림 저장
+		List<PortfolioNotificationResponse> portfolioNotificationResponses = saveNotification(sentNotifyMessages);
+
+		// 전송 내역 저장
+		portfolioNotificationResponses.stream()
+			.map(PortfolioNotificationResponse::getReferenceId)
+			.map(Long::valueOf)
+			.forEach(sentManager::addTargetGainSendHistory);
+
+		// Response 생성
+		return createPortfolioNotifyMessagesResponse(sentNotifyMessages, portfolioNotificationResponses);
+	}
+
+	@NotNull
+	private PortfolioNotifyMessagesResponse createPortfolioNotifyMessagesResponse(
+		List<SentNotifyMessage> sentNotifyMessages,
+		List<PortfolioNotificationResponse> portfolioNotificationResponses) {
+		Map<String, String> messageIdMap = getMessageIdMap(sentNotifyMessages);
+		List<PortfolioNotifyMessageItem> items = portfolioNotificationResponses.stream()
+			.map(response -> {
+				String messageId = messageIdMap.getOrDefault(response.getReferenceId(), Strings.EMPTY);
+				return PortfolioNotifyMessageItem.from(response, messageId);
+			})
+			.toList();
+		return PortfolioNotifyMessagesResponse.create(items);
+	}
+
+	₩
+
+	private Map<String, String> getMessageIdMap(List<SentNotifyMessage> sentNotifyMessages) {
+		Map<String, String> result = new HashMap<>();
+		for (SentNotifyMessage target : sentNotifyMessages) {
+			result.put(target.getNotifyMessage().getReferenceId(), target.getMessageId());
+		}
+		return result;
 	}
 
 	// 특정 포트폴리오의 목표 수익률 달성 알림 푸시
