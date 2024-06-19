@@ -5,6 +5,7 @@ import java.io.IOException;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
@@ -14,8 +15,6 @@ import org.springframework.util.StringUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import codesquad.fineants.domain.member.domain.dto.request.LoginRequest;
-import codesquad.fineants.global.errors.errorcode.MemberErrorCode;
-import codesquad.fineants.global.errors.exception.FineAntsException;
 import codesquad.fineants.global.security.ajax.token.AjaxAuthenticationToken;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -45,7 +44,7 @@ public class AjaxLoginProcessingFilter extends AbstractAuthenticationProcessingF
 		LoginRequest loginRequest = objectMapper.readValue(request.getReader(), LoginRequest.class);
 		log.debug("loginRequest : {}", loginRequest);
 		if (!StringUtils.hasText(loginRequest.getEmail()) || !StringUtils.hasText(loginRequest.getPassword())) {
-			throw new FineAntsException(MemberErrorCode.LOGIN_FAIL);
+			throw new BadCredentialsException("Invalid email or password");
 		}
 
 		AbstractAuthenticationToken authRequest = AjaxAuthenticationToken.unauthenticated(loginRequest.getEmail(),

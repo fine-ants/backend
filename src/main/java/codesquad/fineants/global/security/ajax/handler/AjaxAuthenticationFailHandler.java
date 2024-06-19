@@ -22,7 +22,6 @@ public class AjaxAuthenticationFailHandler implements AuthenticationFailureHandl
 	@Override
 	public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
 		AuthenticationException exception) throws IOException {
-
 		MemberErrorCode errorCode = MemberErrorCode.LOGIN_FAIL;
 		ApiResponse<String> body = ApiResponse.error(errorCode);
 		response.setStatus(errorCode.getHttpStatus().value());

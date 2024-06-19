@@ -98,7 +98,7 @@ public class AuthenticationIntegrationTest extends AbstractContainerBaseTest {
 			.then()
 			.log()
 			.body()
-			.statusCode(401);
+			.statusCode(400);
 	}
 
 	@DisplayName("사용자는 로그아웃한다")

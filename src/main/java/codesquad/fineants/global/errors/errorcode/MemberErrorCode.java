@@ -21,7 +21,7 @@ public enum MemberErrorCode implements ErrorCode {
 	NEW_PASSWORD_CONFIRM_FAIL(HttpStatus.BAD_REQUEST, "새 비밀번호와 확인 비밀번호가 같아야 합니다."),
 	IMAGE_SIZE_EXCEEDED(HttpStatus.BAD_REQUEST, "이미지 사이즈 제한을 초과했습니다."),
 	UNAUTHORIZED_MEMBER(HttpStatus.UNAUTHORIZED, "인증되지 않은 사용자입니다"),
-	LOGIN_FAIL(HttpStatus.UNAUTHORIZED, "로그인에 실패하였습니다."),
+	LOGIN_FAIL(HttpStatus.BAD_REQUEST, "로그인에 실패하였습니다."),
 	FORBIDDEN_MEMBER(HttpStatus.FORBIDDEN, "권한이 없습니다."),
 	NO_PROFILE_CHANGES(HttpStatus.BAD_REQUEST, "변경할 회원 정보가 없습니다"),
 	BAD_REQUEST_PROFILE_URL(HttpStatus.BAD_REQUEST, "회원의 프로필 URL과 요청 프로필 URL이 일치하지 않습니다");
