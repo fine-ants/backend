@@ -3,7 +3,6 @@ package codesquad.fineants.global.security.ajax.provider;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -19,7 +18,7 @@ public class AjaxAuthenticationProvider implements AuthenticationProvider {
 	private final PasswordEncoder passwordEncoder;
 
 	@Override
-	public Authentication authenticate(Authentication authentication) throws AuthenticationException {
+	public Authentication authenticate(Authentication authentication) {
 		String email = authentication.getName();
 		String password = (String)authentication.getCredentials();
 		MemberContext memberContext = (MemberContext)userDetailsService.loadUserByUsername(email);
@@ -28,7 +27,7 @@ public class AjaxAuthenticationProvider implements AuthenticationProvider {
 		log.debug("password : {}", password);
 		log.debug("memberContext : {}", memberContext);
 		if (!passwordEncoder.matches(password, memberContext.getMember().getPassword())) {
-			throw new BadCredentialsException("BadCredentialsException");
+			throw new BadCredentialsException("Invalid email or password");
 		}
 		return AjaxAuthenticationToken.authenticated(memberContext.getMember(), null, memberContext.getAuthorities());
 	}
