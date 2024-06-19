@@ -112,7 +112,7 @@ public class DashboardRestControllerDocsTest extends RestDocsSupport {
 		Stock stock = createSamsungStock();
 		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
 		holding.addPurchaseHistory(createPurchaseHistory(holding, LocalDateTime.now()));
-		portfolio.addPortfolioStock(holding);
+		portfolio.addHolding(holding);
 
 		Expression valuation = portfolio.calculateTotalAsset();
 		given(service.getPieChart(anyLong()))

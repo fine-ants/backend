@@ -92,7 +92,7 @@ class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 		String memo = "첫구매";
 		portfolioHolding.addPurchaseHistory(
 			createPurchaseHistory(1L, purchaseDate, numShares, purchasePerShare, memo, portfolioHolding));
-		portfolio.addPortfolioStock(portfolioHolding);
+		portfolio.addHolding(portfolioHolding);
 		PortfolioGainHistory history = createEmptyPortfolioGainHistory(portfolio);
 
 		Map<String, Money> lastDayClosingPriceMap = Map.of("005930", Money.won(50000L));
@@ -336,7 +336,7 @@ class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 		List<StockDividend> stockDividends = createStockDividendWith(stock);
 		stockDividends.forEach(stock::addStockDividend);
 		PortfolioHolding portfolioHolding = createPortfolioHolding(portfolio, stock, Money.won(60000L));
-		portfolio.addPortfolioStock(portfolioHolding);
+		portfolio.addHolding(portfolioHolding);
 		LocalDateTime purchaseDate = LocalDateTime.of(2023, 9, 26, 9, 30, 0);
 		Count numShares = Count.from(3);
 		Money purchasePerShare = Money.won(50000);

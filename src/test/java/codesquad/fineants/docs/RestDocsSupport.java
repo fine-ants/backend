@@ -195,7 +195,7 @@ public abstract class RestDocsSupport {
 	}
 
 	protected PortfolioNotification createPortfolioTargetGainNotification(Portfolio portfolio, Member member) {
-		NotifyMessage message = portfolio.getTargetGainMessage("token");
+		NotifyMessage message = portfolio.createTargetGainMessage("token");
 		return PortfolioNotification.newNotification(1L, message.getTitle(), message.getType(),
 			message.getReferenceId(), message.getLink(), portfolio.getName(), member);
 	}

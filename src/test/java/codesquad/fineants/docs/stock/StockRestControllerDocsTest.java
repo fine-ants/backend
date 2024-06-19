@@ -157,7 +157,7 @@ public class StockRestControllerDocsTest extends RestDocsSupport {
 		Stock stock = createSamsungStock();
 		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
 		holding.addPurchaseHistory(createPurchaseHistory(holding, LocalDateTime.now()));
-		portfolio.addPortfolioStock(holding);
+		portfolio.addHolding(holding);
 
 		CurrentPriceRepository currentPriceRepository = Mockito.mock(CurrentPriceRepository.class);
 		ClosingPriceRepository closingPriceRepository = Mockito.mock(ClosingPriceRepository.class);

@@ -6,6 +6,7 @@ import com.google.firebase.messaging.WebpushConfig;
 import com.google.firebase.messaging.WebpushFcmOptions;
 
 import codesquad.fineants.domain.common.money.Money;
+import codesquad.fineants.domain.fcm.service.FcmService;
 import codesquad.fineants.domain.notification.domain.entity.type.NotificationType;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -53,5 +54,9 @@ public abstract class NotifyMessage {
 					.build())
 				.build())
 			.build();
+	}
+
+	public void deleteTokenBy(FcmService service) {
+		service.deleteToken(token);
 	}
 }

@@ -142,9 +142,10 @@ public class Portfolio extends BaseEntity {
 	}
 
 	//== 연관관계 메소드 ==//
-	public void addPortfolioStock(PortfolioHolding portFolioHolding) {
+	public void addHolding(PortfolioHolding portFolioHolding) {
 		if (!portfolioHoldings.contains(portFolioHolding)) {
 			portfolioHoldings.add(portFolioHolding);
+			portFolioHolding.setPortfolio(this);
 		}
 	}
 
@@ -457,7 +458,7 @@ public class Portfolio extends BaseEntity {
 		return manager.hasMaxLossSendHistory(id);
 	}
 
-	public NotifyMessage getTargetGainMessage(String token) {
+	public NotifyMessage createTargetGainMessage(String token) {
 		String title = "포트폴리오";
 		String content = String.format("%s의 목표 수익률을 달성했습니다", name);
 		NotificationType type = NotificationType.PORTFOLIO_TARGET_GAIN;

@@ -17,12 +17,12 @@ public class TargetPriceNotificationPolicy implements NotificationPolicy<TargetP
 	private final List<NotificationCondition<NotificationPreference>> preferenceConditions;
 
 	@Override
-	public Optional<NotifyMessage> apply(TargetPriceNotification targetPriceNotification,
-		NotificationPreference preference, String token) {
+	public Optional<NotifyMessage> apply(TargetPriceNotification targetPriceNotification, String token) {
 		boolean result = targetPriceConditions.stream()
 			.allMatch(condition -> condition.isSatisfiedBy(targetPriceNotification))
 			&& preferenceConditions.stream()
-			.allMatch(condition -> condition.isSatisfiedBy(preference));
+			.allMatch(condition -> condition.isSatisfiedBy(targetPriceNotification.getStockTargetPrice().getMember()
+				.getNotificationPreference()));
 		if (result) {
 			return Optional.of(targetPriceNotification.getTargetPriceMessage(token));
 		}

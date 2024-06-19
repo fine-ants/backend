@@ -17,12 +17,11 @@ public class MaxLossNotificationPolicy implements NotificationPolicy<Portfolio> 
 	private final List<NotificationCondition<NotificationPreference>> preferenceConditions;
 
 	@Override
-	public Optional<NotifyMessage> apply(Portfolio portfolio, NotificationPreference preference,
-		String token) {
+	public Optional<NotifyMessage> apply(Portfolio portfolio, String token) {
 		boolean result = portfolioConditions.stream()
 			.allMatch(condition -> condition.isSatisfiedBy(portfolio))
 			&& preferenceConditions.stream()
-			.allMatch(condition -> condition.isSatisfiedBy(preference));
+			.allMatch(condition -> condition.isSatisfiedBy(portfolio.getMember().getNotificationPreference()));
 		if (result) {
 			return Optional.of(portfolio.getMaxLossMessage(token));
 		}

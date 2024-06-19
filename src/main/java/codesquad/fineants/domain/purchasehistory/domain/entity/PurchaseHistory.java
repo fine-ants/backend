@@ -85,6 +85,11 @@ public class PurchaseHistory extends BaseEntity {
 		return new PurchaseHistory(id, purchaseDate, purchasePricePerShare, numShares, memo, portfolioHolding);
 	}
 
+	//== 연관 관계 메서드 ==//
+	public void setHolding(PortfolioHolding holding) {
+		this.portfolioHolding = holding;
+	}
+
 	// 투자 금액 = 주당 매입가 * 개수
 	public Expression calculateInvestmentAmount() {
 		return purchasePricePerShare.times(numShares.getValue().intValue());
@@ -108,5 +113,4 @@ public class PurchaseHistory extends BaseEntity {
 		return purcahseLocalDate.equals(exDividendDate)
 			|| purcahseLocalDate.isBefore(exDividendDate);
 	}
-
 }

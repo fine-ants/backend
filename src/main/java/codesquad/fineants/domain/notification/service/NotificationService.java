@@ -162,7 +162,7 @@ public class NotificationService {
 		for (Map.Entry<Portfolio, List<String>> entry : fcmTokenMap.entrySet()) {
 			Portfolio portfolio = entry.getKey();
 			for (String token : entry.getValue()) {
-				policy.apply(portfolio, portfolio.getMember().getNotificationPreference(), token)
+				policy.apply(portfolio, token)
 					.ifPresent(notifyMessages::add);
 			}
 		}
@@ -255,8 +255,7 @@ public class NotificationService {
 		for (Map.Entry<TargetPriceNotification, List<String>> entry : fcmTokenMap.entrySet()) {
 			TargetPriceNotification targetPriceNotification = entry.getKey();
 			for (String token : entry.getValue()) {
-				policy.apply(targetPriceNotification,
-						targetPriceNotification.getStockTargetPrice().getMember().getNotificationPreference(), token)
+				policy.apply(targetPriceNotification, token)
 					.ifPresent(notifyMessages::add);
 			}
 		}

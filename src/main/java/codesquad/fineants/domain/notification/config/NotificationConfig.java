@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Configuration;
 
 import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
 import codesquad.fineants.domain.notification.domain.entity.policy.ConditionEvaluator;
+import codesquad.fineants.domain.notification.domain.entity.policy.TargetGainNotificationEvaluator;
 import codesquad.fineants.domain.notification.domain.entity.policy.maxloss.MaxLossAccountPreferenceCondition;
 import codesquad.fineants.domain.notification.domain.entity.policy.maxloss.MaxLossActiveCondition;
 import codesquad.fineants.domain.notification.domain.entity.policy.maxloss.MaxLossCondition;
@@ -36,7 +37,12 @@ public class NotificationConfig {
 
 	@Bean
 	public TargetGainNotificationPolicy targetGainNotificationPolicy() {
-		return new TargetGainNotificationPolicy(portfolioConditionEvaluator(),
+		return new TargetGainNotificationPolicy(targetGainNotificationEvaluator());
+	}
+
+	@Bean
+	public TargetGainNotificationEvaluator targetGainNotificationEvaluator() {
+		return new TargetGainNotificationEvaluator(portfolioConditionEvaluator(),
 			notificationPreferenceConditionEvaluator());
 	}
 

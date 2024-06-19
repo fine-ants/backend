@@ -43,7 +43,7 @@ class PortfolioTest extends AbstractContainerBaseTest {
 		portFolioHolding.addPurchaseHistory(purchaseHistory1);
 		portFolioHolding.addPurchaseHistory(purchaseHistory2);
 
-		portfolio.addPortfolioStock(portFolioHolding);
+		portfolio.addHolding(portFolioHolding);
 
 		// when
 		Expression result = portfolio.calculateTotalGain();
@@ -73,7 +73,7 @@ class PortfolioTest extends AbstractContainerBaseTest {
 		portFolioHolding.addPurchaseHistory(purchaseHistory1);
 		portFolioHolding.addPurchaseHistory(purchaseHistory2);
 
-		portfolio.addPortfolioStock(portFolioHolding);
+		portfolio.addHolding(portFolioHolding);
 
 		// when
 		RateDivision result = portfolio.calculateTotalGainRate();
@@ -110,8 +110,8 @@ class PortfolioTest extends AbstractContainerBaseTest {
 		holding1.addPurchaseHistory(purchaseHistory1);
 		holding2.addPurchaseHistory(purchaseHistory2);
 
-		portfolio.addPortfolioStock(holding1);
-		portfolio.addPortfolioStock(holding2);
+		portfolio.addHolding(holding1);
+		portfolio.addHolding(holding2);
 
 		// when
 		List<PortfolioPieChartItem> items = portfolio.createPieChart();
@@ -153,8 +153,8 @@ class PortfolioTest extends AbstractContainerBaseTest {
 		holding1.addPurchaseHistory(purchaseHistory1);
 		holding2.addPurchaseHistory(purchaseHistory2);
 
-		portfolio.addPortfolioStock(holding1);
-		portfolio.addPortfolioStock(holding2);
+		portfolio.addHolding(holding1);
+		portfolio.addHolding(holding2);
 
 		// when
 		List<PortfolioSectorChartItem> items = portfolio.createSectorChart();

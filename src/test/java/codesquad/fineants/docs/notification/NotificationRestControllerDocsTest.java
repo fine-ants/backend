@@ -52,7 +52,7 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 		// given
 		Member member = createMember();
 		Portfolio portfolio = createPortfolio(member);
-		PortfolioNotifyMessage message = (PortfolioNotifyMessage)portfolio.getTargetGainMessage("token");
+		PortfolioNotifyMessage message = (PortfolioNotifyMessage)portfolio.createTargetGainMessage("token");
 		Notification notification = createPortfolioNotification(message, member);
 		String messageId = "messageId";
 		PortfolioNotifyMessageItem item = PortfolioNotifyMessageItem.from(
