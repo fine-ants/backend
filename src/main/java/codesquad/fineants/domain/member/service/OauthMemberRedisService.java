@@ -1,15 +1,18 @@
 package codesquad.fineants.domain.member.service;
 
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @RequiredArgsConstructor
 @Service
+@Slf4j
 public class OauthMemberRedisService {
 
 	private static final String LOGOUT = "logout";
@@ -42,5 +45,15 @@ public class OauthMemberRedisService {
 	public void saveEmailVerifCode(String email, String verifCode) {
 		long expirationTimeInMinutes = 5; // 5 minutes
 		redisTemplate.opsForValue().set(email, verifCode, expirationTimeInMinutes, TimeUnit.MINUTES);
+	}
+
+	public void clear() {
+		Set<String> keys = redisTemplate.keys("*");
+		if (keys == null) {
+			return;
+		}
+		for (String key : keys) {
+			redisTemplate.delete(key);
+		}
 	}
 }
