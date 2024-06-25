@@ -143,6 +143,24 @@ public class AbstractContainerBaseTest {
 		return member;
 	}
 
+	protected Member createOauthMember(String nickname, String email, String provider, String profileUrl) {
+		Role userRole = roleRepository.findRoleByRoleName("ROLE_USER")
+			.orElseThrow(() -> new FineAntsException(RoleErrorCode.NOT_EXIST_ROLE));
+		// 회원 생성
+		Member member = Member.oauthMember(
+			email,
+			nickname,
+			provider,
+			profileUrl
+		);
+		// 역할 설정
+		member.addMemberRole(MemberRole.create(member, userRole));
+
+		// 계정 알림 설정
+		member.setNotificationPreference(NotificationPreference.allActive(member));
+		return member;
+	}
+
 	protected NotificationPreference createNotificationPreference(boolean browserNotify, boolean targetGainNotify,
 		boolean maxLossNotify, boolean targetPriceNotify, Member member) {
 		return NotificationPreference.create(
