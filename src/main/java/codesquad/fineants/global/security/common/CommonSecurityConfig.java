@@ -18,7 +18,7 @@ public class CommonSecurityConfig {
 				"https://localhost:5173", "https://accounts.kakao.com/login",
 				"https://nid.naver.com/oauth2.0/authorize",
 				"https://accounts.google.com/o/oauth2/v2/auth"));
-		config.setAllowedMethods(List.of("GET", "POST", "UPDATE", "DELETE", "PATCH", "OPTIONS", "HEAD"));
+		config.setAllowedMethods(List.of("GET", "POST", "PUT", "UPDATE", "DELETE", "PATCH", "OPTIONS", "HEAD"));
 		config.setAllowedHeaders(Collections.singletonList("*"));
 		config.addExposedHeader("Set-Cookie");
 		config.setAllowCredentials(true);
