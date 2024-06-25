@@ -235,6 +235,10 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		// then
 		assertAll(
 			() -> assertThat(response)
+				.extracting("portfolioDetails")
+				.extracting("id", "securitiesFirm", "name")
+				.containsExactly(portfolio.getId(), "토스증권", "내꿈은 워렌버핏"),
+			() -> assertThat(response)
 				.extracting("pieChart")
 				.asList()
 				.hasSize(2)
@@ -291,6 +295,9 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 
 		// then
 		assertAll(
+			() -> assertThat(response.getPortfolioDetails())
+				.extracting("id", "securitiesFirm", "name")
+				.containsExactly(portfolio.getId(), "토스증권", "내꿈은 워렌버핏"),
 			() -> assertThat(response.getPieChart())
 				.asList()
 				.hasSize(1)
