@@ -2,7 +2,6 @@ package codesquad.fineants.global.security.oauth.service;
 
 import java.sql.Timestamp;
 import java.time.Duration;
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Base64;
@@ -141,13 +140,18 @@ public class TokenService {
 		}
 
 		// 현재 시간
-		Instant now = Instant.now();
+		LocalDateTime now = LocalDateTime.now();
+		log.debug("now : {}", now);
 
 		// 만료 시간
-		Instant expirationInstant = expiration.toInstant();
+		LocalDateTime expirationDateTime = expiration.toInstant()
+			.atZone(java.time.ZoneId.systemDefault())
+			.toLocalDateTime();
+		log.debug("expirationDateTime : {}", expirationDateTime);
 
 		// 만료 까지의 시간 간격
-		Duration duration = Duration.between(now, expirationInstant);
+		Duration duration = Duration.between(now, expirationDateTime);
+		log.debug("duration : {}", duration);
 
 		// 만료 까지의 시간 간격이 EXPIRY_IMMINENT_TIME 미만 인지 확인
 		return duration.compareTo(EXPIRY_IMMINENT_TIME) < 0;

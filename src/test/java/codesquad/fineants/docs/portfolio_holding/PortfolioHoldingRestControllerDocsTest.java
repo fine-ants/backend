@@ -30,6 +30,7 @@ import codesquad.fineants.domain.dividend.domain.entity.StockDividend;
 import codesquad.fineants.domain.holding.controller.PortfolioHoldingRestController;
 import codesquad.fineants.domain.holding.domain.dto.request.PortfolioHoldingCreateRequest;
 import codesquad.fineants.domain.holding.domain.dto.response.PortfolioChartResponse;
+import codesquad.fineants.domain.holding.domain.dto.response.PortfolioDetails;
 import codesquad.fineants.domain.holding.domain.dto.response.PortfolioDividendChartItem;
 import codesquad.fineants.domain.holding.domain.dto.response.PortfolioHoldingsResponse;
 import codesquad.fineants.domain.holding.domain.dto.response.PortfolioPieChartItem;
@@ -335,6 +336,7 @@ public class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 		int samsungValuation = 600000;
 		int samsungTotalGain = 100000;
 		int cash = 500000;
+		PortfolioDetails portfolioDetails = PortfolioDetails.from(portfolio);
 		List<PortfolioPieChartItem> pieChartItems = List.of(
 			PortfolioPieChartItem.stock(
 				"삼성전자보통주",
@@ -367,7 +369,8 @@ public class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 		);
 
 		given(service.readPortfolioCharts(anyLong(), ArgumentMatchers.any(LocalDate.class)))
-			.willReturn(PortfolioChartResponse.create(pieChartItems, dividendChartItems, sectorChartItems));
+			.willReturn(PortfolioChartResponse.create(portfolioDetails, pieChartItems, dividendChartItems,
+				sectorChartItems));
 
 		// when
 		mockMvc.perform(
@@ -377,6 +380,9 @@ public class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
 			.andExpect(jsonPath("message").value(equalTo("포트폴리오에 대한 차트 조회가 완료되었습니다")))
+			.andExpect(jsonPath("data.portfolioDetails.id").value(equalTo(1)))
+			.andExpect(jsonPath("data.portfolioDetails.securitiesFirm").value(equalTo("토스증권")))
+			.andExpect(jsonPath("data.portfolioDetails.name").value(equalTo("내꿈은 워렌버핏")))
 			.andExpect(jsonPath("data.pieChart[0].name").value(equalTo("삼성전자보통주")))
 			.andExpect(jsonPath("data.pieChart[0].valuation").value(equalTo(600000)))
 			.andExpect(jsonPath("data.pieChart[0].weight").value(closeTo(54.55, 0.1)))
@@ -432,6 +438,12 @@ public class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 							.description("메시지"),
 						fieldWithPath("data").type(JsonFieldType.OBJECT)
 							.description("응답 데이터"),
+						fieldWithPath("data.portfolioDetails.id").type(JsonFieldType.NUMBER)
+							.description("포트폴리오 등록번호"),
+						fieldWithPath("data.portfolioDetails.securitiesFirm").type(JsonFieldType.STRING)
+							.description("포트폴리오 증권사"),
+						fieldWithPath("data.portfolioDetails.name").type(JsonFieldType.STRING)
+							.description("포트폴리오 이름"),
 						fieldWithPath("data.pieChart").type(JsonFieldType.ARRAY)
 							.description("파이 차트 리스트"),
 						fieldWithPath("data.pieChart[].name").type(JsonFieldType.STRING)

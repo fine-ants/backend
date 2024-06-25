@@ -50,12 +50,15 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
 		log.debug("requestURL : {}", ((HttpServletRequest)request).getRequestURL());
 		if (accessToken != null && !oauthMemberRedisService.isAlreadyLogout(accessToken)) {
 			if (tokenService.isExpiredToken(accessToken)) {
+				log.debug("accessToken is Expired");
 				token = tokenService.refreshToken(refreshToken, LocalDateTime.now());
 				setTokenCookie((HttpServletResponse)response, token);
 			} else if (tokenService.verifyToken(accessToken) && tokenService.isRefreshTokenNearExpiry(refreshToken)) {
+				log.debug("accessToken is verified but, refreshToken is near expired");
 				token = tokenService.refreshToken(refreshToken, LocalDateTime.now());
 				setTokenCookie((HttpServletResponse)response, token);
 			} else if (tokenService.verifyToken(accessToken)) {
+				log.debug("accessToken is verified and refreshToken is not near expired");
 				token = Token.create(accessToken, refreshToken);
 			}
 		}

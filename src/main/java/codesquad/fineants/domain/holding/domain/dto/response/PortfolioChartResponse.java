@@ -15,14 +15,16 @@ import lombok.ToString;
 @Builder
 @ToString
 public class PortfolioChartResponse {
+	private PortfolioDetails portfolioDetails;
 	private List<PortfolioPieChartItem> pieChart;
 	private List<PortfolioDividendChartItem> dividendChart;
 	private List<PortfolioSectorChartItem> sectorChart;
 
 	public static PortfolioChartResponse create(
+		PortfolioDetails portfolioDetails,
 		List<PortfolioPieChartItem> pieChart,
 		List<PortfolioDividendChartItem> dividendChart,
 		List<PortfolioSectorChartItem> sectorChart) {
-		return new PortfolioChartResponse(pieChart, dividendChart, sectorChart);
+		return new PortfolioChartResponse(portfolioDetails, pieChart, dividendChart, sectorChart);
 	}
 }

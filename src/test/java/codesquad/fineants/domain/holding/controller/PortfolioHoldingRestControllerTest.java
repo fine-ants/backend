@@ -36,6 +36,7 @@ import codesquad.fineants.domain.holding.domain.chart.SectorChart;
 import codesquad.fineants.domain.holding.domain.dto.request.PortfolioHoldingCreateRequest;
 import codesquad.fineants.domain.holding.domain.dto.request.PortfolioStocksDeleteRequest;
 import codesquad.fineants.domain.holding.domain.dto.response.PortfolioChartResponse;
+import codesquad.fineants.domain.holding.domain.dto.response.PortfolioDetails;
 import codesquad.fineants.domain.holding.domain.dto.response.PortfolioDividendChartItem;
 import codesquad.fineants.domain.holding.domain.dto.response.PortfolioHoldingsResponse;
 import codesquad.fineants.domain.holding.domain.dto.response.PortfolioPieChartItem;
@@ -350,12 +351,13 @@ class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 		DividendChart dividendChart = new DividendChart(currentPriceRepository);
 		SectorChart sectorChart = new SectorChart(currentPriceRepository);
 
+		PortfolioDetails portfolioDetails = PortfolioDetails.from(portfolio);
 		List<PortfolioPieChartItem> pieChartItems = pieChart.createBy(portfolio);
 		List<PortfolioDividendChartItem> dividendChartItems = dividendChart.createBy(portfolio,
 			LocalDate.of(2024, 1, 16));
 		List<PortfolioSectorChartItem> sectorChartItems = sectorChart.createBy(portfolio);
-		PortfolioChartResponse response = PortfolioChartResponse.create(pieChartItems, dividendChartItems,
-			sectorChartItems);
+		PortfolioChartResponse response = PortfolioChartResponse.create(portfolioDetails, pieChartItems,
+			dividendChartItems, sectorChartItems);
 		given(portfolioHoldingService.readPortfolioCharts(anyLong(), any(LocalDate.class)))
 			.willReturn(response);
 
@@ -365,6 +367,9 @@ class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
 			.andExpect(jsonPath("message").value(equalTo("포트폴리오에 대한 차트 조회가 완료되었습니다")))
+			.andExpect(jsonPath("data.portfolioDetails.id").value(equalTo(1)))
+			.andExpect(jsonPath("data.portfolioDetails.securitiesFirm").value(equalTo("토스증권")))
+			.andExpect(jsonPath("data.portfolioDetails.name").value(equalTo("내꿈은 워렌버핏")))
 			.andExpect(jsonPath("data.pieChart[0].name").value(equalTo("현금")))
 			.andExpect(jsonPath("data.pieChart[0].valuation").value(equalTo(850000)))
 			.andExpect(jsonPath("data.pieChart[0].weight").value(equalTo(82.52)))

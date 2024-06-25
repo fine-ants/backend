@@ -16,6 +16,7 @@ import codesquad.fineants.domain.holding.domain.dto.request.PortfolioStocksDelet
 import codesquad.fineants.domain.holding.domain.dto.response.PortfolioChartResponse;
 import codesquad.fineants.domain.holding.domain.dto.response.PortfolioDetailRealTimeItem;
 import codesquad.fineants.domain.holding.domain.dto.response.PortfolioDetailResponse;
+import codesquad.fineants.domain.holding.domain.dto.response.PortfolioDetails;
 import codesquad.fineants.domain.holding.domain.dto.response.PortfolioDividendChartItem;
 import codesquad.fineants.domain.holding.domain.dto.response.PortfolioHoldingItem;
 import codesquad.fineants.domain.holding.domain.dto.response.PortfolioHoldingRealTimeItem;
@@ -174,9 +175,10 @@ public class PortfolioHoldingService {
 
 	public PortfolioChartResponse readPortfolioCharts(Long portfolioId, LocalDate currentLocalDate) {
 		Portfolio portfolio = findPortfolio(portfolioId);
+		PortfolioDetails portfolioDetails = PortfolioDetails.from(portfolio);
 		List<PortfolioPieChartItem> pieChartItems = pieChart.createBy(portfolio);
 		List<PortfolioDividendChartItem> dividendChartItems = dividendChart.createBy(portfolio, currentLocalDate);
 		List<PortfolioSectorChartItem> sectorChartItems = sectorChart.createBy(portfolio);
-		return PortfolioChartResponse.create(pieChartItems, dividendChartItems, sectorChartItems);
+		return PortfolioChartResponse.create(portfolioDetails, pieChartItems, dividendChartItems, sectorChartItems);
 	}
 }
