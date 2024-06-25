@@ -87,7 +87,7 @@ public class AuthenticationIntegrationTest extends AbstractContainerBaseTest {
 			.assertThat()
 			.body("data", Matchers.nullValue());
 	}
-
+	
 	@DisplayName("사용자는 이메일 또는 비밀번호를 틀려서 로그인 할 수 없다")
 	@Test
 	void login_whenInvalidUsernameAndPassword_then401() {

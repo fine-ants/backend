@@ -27,7 +27,7 @@ public abstract class AbstractUserService {
 	private final NicknameGenerator nicknameGenerator;
 	private final RoleRepository roleRepository;
 
-	OAuthAttribute getUserInfo(OAuth2UserRequest userRequest, OAuth2User oAuth2User) {
+	public OAuthAttribute getUserInfo(OAuth2UserRequest userRequest, OAuth2User oAuth2User) {
 		String provider = userRequest.getClientRegistration().getRegistrationId();
 		String nameAttributeKey = userRequest.getClientRegistration()
 			.getProviderDetails()
@@ -38,7 +38,7 @@ public abstract class AbstractUserService {
 		return OAuthAttribute.of(provider, oAuth2User.getAttributes(), nameAttributeKey);
 	}
 
-	Member saveOrUpdate(OAuthAttribute attributes) {
+	public Member saveOrUpdate(OAuthAttribute attributes) {
 		Member member = attributes.getMemberFrom(memberRepository)
 			.orElseGet(() -> attributes.toEntity(nicknameGenerator));
 		Set<String> roleNames = member.getRoles().stream()
