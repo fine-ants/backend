@@ -24,4 +24,9 @@ public class PortfolioNotifyMessagesResponse implements NotifyMessageResponse {
 	public static PortfolioNotifyMessagesResponse empty() {
 		return new PortfolioNotifyMessagesResponse(Collections.emptyList());
 	}
+
+	@Override
+	public boolean isEmpty() {
+		return notifications.isEmpty();
+	}
 }

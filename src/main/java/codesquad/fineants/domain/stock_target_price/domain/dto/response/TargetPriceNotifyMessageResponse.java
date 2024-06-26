@@ -25,4 +25,9 @@ public class TargetPriceNotifyMessageResponse implements NotifyMessageResponse {
 	public static TargetPriceNotifyMessageResponse empty() {
 		return new TargetPriceNotifyMessageResponse(Collections.emptyList());
 	}
+
+	@Override
+	public boolean isEmpty() {
+		return notifications.isEmpty();
+	}
 }

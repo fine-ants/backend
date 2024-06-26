@@ -36,6 +36,7 @@ import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
 import codesquad.fineants.domain.kis.service.KisService;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
+import codesquad.fineants.domain.notification.domain.dto.response.NotifyMessageResponse;
 import codesquad.fineants.domain.notification.domain.dto.response.PortfolioNotifyMessagesResponse;
 import codesquad.fineants.domain.notification.domain.entity.Notification;
 import codesquad.fineants.domain.notification.domain.entity.type.NotificationType;
@@ -48,7 +49,6 @@ import codesquad.fineants.domain.portfolio.repository.PortfolioRepository;
 import codesquad.fineants.domain.purchasehistory.repository.PurchaseHistoryRepository;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
-import codesquad.fineants.domain.stock_target_price.domain.dto.response.TargetPriceNotifyMessageResponse;
 import codesquad.fineants.domain.stock_target_price.domain.entity.StockTargetPrice;
 import codesquad.fineants.domain.stock_target_price.domain.entity.TargetPriceNotification;
 import codesquad.fineants.domain.stock_target_price.repository.StockTargetPriceRepository;
@@ -434,11 +434,12 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 			.collect(Collectors.toList());
 
 		// when
-		TargetPriceNotifyMessageResponse response = service.notifyTargetPriceToAllMember(tickerSymbols);
+		NotifyMessageResponse response = service.notifyTargetPriceToAllMember(tickerSymbols);
 
 		// then
 		assertAll(
-			() -> assertThat(response.getNotifications())
+			() -> assertThat(response)
+				.extracting("notifications")
 				.asList()
 				.hasSize(4),
 			() -> assertThat(notificationRepository.findAllByMemberIds(List.of(member.getId(), member2.getId())))
@@ -468,12 +469,13 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		given(firebaseMessagingService.send(any(Message.class)))
 			.willReturn(Optional.of("messageId"));
 		// when
-		TargetPriceNotifyMessageResponse response = service.notifyTargetPrice(
+		NotifyMessageResponse response = service.notifyTargetPrice(
 			member.getId());
 
 		// then
 		NotificationType type = NotificationType.STOCK_TARGET_PRICE;
-		assertThat(response.getNotifications())
+		assertThat(response)
+			.extracting("notifications")
 			.asList()
 			.hasSize(2)
 			.extracting(
@@ -552,12 +554,13 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		given(firebaseMessagingService.send(any(Message.class)))
 			.willReturn(Optional.of("messageId"));
 		// when
-		TargetPriceNotifyMessageResponse response = service.notifyTargetPriceToAllMember(
+		NotifyMessageResponse response = service.notifyTargetPriceToAllMember(
 			List.of(stock.getTickerSymbol(), stock2.getTickerSymbol()));
 
 		// then
 		NotificationType type = NotificationType.STOCK_TARGET_PRICE;
-		assertThat(response.getNotifications())
+		assertThat(response)
+			.extracting("notifications")
 			.asList()
 			.hasSize(1)
 			.extracting("title", "type", "referenceId", "messageId")
@@ -584,11 +587,12 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		given(firebaseMessagingService.send(any(Message.class)))
 			.willReturn(Optional.empty());
 		// when
-		TargetPriceNotifyMessageResponse response = service.notifyTargetPriceToAllMember(
+		NotifyMessageResponse response = service.notifyTargetPriceToAllMember(
 			List.of(stock.getTickerSymbol()));
 
 		// then
-		assertThat(response.getNotifications())
+		assertThat(response)
+			.extracting("notifications")
 			.asList()
 			.hasSize(1);
 		assertThat(notificationRepository.findAllByMemberId(member.getId()))
@@ -618,12 +622,13 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		given(firebaseMessagingService.send(any(Message.class)))
 			.willReturn(Optional.of("messageId"));
 		// when
-		TargetPriceNotifyMessageResponse response = service.notifyTargetPriceToAllMember(
+		NotifyMessageResponse response = service.notifyTargetPriceToAllMember(
 			List.of(stock.getTickerSymbol(), stock2.getTickerSymbol()));
 
 		// then
 		NotificationType type = NotificationType.STOCK_TARGET_PRICE;
-		assertThat(response.getNotifications())
+		assertThat(response)
+			.extracting("notifications")
 			.asList()
 			.hasSize(2)
 			.extracting("title", "type", "referenceId", "messageId")

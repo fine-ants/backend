@@ -103,20 +103,6 @@ public class NotificationService {
 		);
 	}
 
-	@NotNull
-	private List<NotifyMessageItem> createNotifyMessageItems(
-		List<SentNotifyMessage> sentNotifyMessages,
-		List<NotificationSaveResponse> notificationSaveResponses) {
-		Map<String, String> messageIdMap = getMessageIdMap(sentNotifyMessages);
-
-		return notificationSaveResponses.stream()
-			.map(response -> {
-				String messageId = messageIdMap.getOrDefault(response.getReferenceId(), Strings.EMPTY);
-				return response.toNotifyMessageItemWith(messageId);
-			})
-			.toList();
-	}
-
 	/**
 	 * 특정 포트폴리오의 목표 수익률 달성 알림 푸시
 	 * @param portfolioId 포트폴리오 등록번호
@@ -151,6 +137,20 @@ public class NotificationService {
 
 		// Response 생성
 		return createNotifyMessageItems(messages, saveResponses);
+	}
+
+	@NotNull
+	private List<NotifyMessageItem> createNotifyMessageItems(
+		List<SentNotifyMessage> sentNotifyMessages,
+		List<NotificationSaveResponse> notificationSaveResponses) {
+		Map<String, String> messageIdMap = getMessageIdMap(sentNotifyMessages);
+
+		return notificationSaveResponses.stream()
+			.map(response -> {
+				String messageId = messageIdMap.getOrDefault(response.getReferenceId(), Strings.EMPTY);
+				return response.toNotifyMessageItemWith(messageId);
+			})
+			.toList();
 	}
 
 	private Map<String, String> getMessageIdMap(List<SentNotifyMessage> sentNotifyMessages) {
@@ -191,7 +191,7 @@ public class NotificationService {
 
 	// 모든 회원을 대상으로 특정 티커 심볼들에 대한 종목 지정가 알림 발송
 	@Transactional
-	public TargetPriceNotifyMessageResponse notifyTargetPriceToAllMember(List<String> tickerSymbols) {
+	public NotifyMessageResponse notifyTargetPriceToAllMember(List<String> tickerSymbols) {
 		List<Notifiable> targetPrices = stockTargetPriceRepository.findAllByTickerSymbols(tickerSymbols)
 			.stream()
 			.map(StockTargetPrice::getTargetPriceNotifications)
@@ -204,8 +204,14 @@ public class NotificationService {
 	}
 
 	// 회원에 대한 종목 지정가 알림 발송
+
+	/**
+	 * 특정 회원을 대상으로 종목 지정가 알림 발송
+	 * @param memberId 회원의 등록번호
+	 * @return 알림 전송 결과
+	 */
 	@Transactional
-	public TargetPriceNotifyMessageResponse notifyTargetPrice(Long memberId) {
+	public NotifyMessageResponse notifyTargetPrice(Long memberId) {
 		List<Notifiable> targetPrices = stockTargetPriceRepository.findAllByMemberId(memberId)
 			.stream()
 			.map(StockTargetPrice::getTargetPriceNotifications)

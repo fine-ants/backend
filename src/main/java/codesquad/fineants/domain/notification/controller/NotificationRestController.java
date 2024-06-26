@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.RestController;
 import codesquad.fineants.domain.notification.domain.dto.response.NotifyMessageResponse;
 import codesquad.fineants.domain.notification.domain.dto.response.PortfolioNotifyMessagesResponse;
 import codesquad.fineants.domain.notification.service.NotificationService;
-import codesquad.fineants.domain.stock_target_price.domain.dto.response.TargetPriceNotifyMessageResponse;
 import codesquad.fineants.global.api.ApiResponse;
 import codesquad.fineants.global.success.NotificationSuccessCode;
 import codesquad.fineants.global.success.StockSuccessCode;
@@ -52,9 +51,9 @@ public class NotificationRestController {
 	@ResponseStatus(HttpStatus.CREATED)
 	@PostMapping("/api/stocks/target-price/notifications/send")
 	@Secured(value = {"ROLE_MANAGER", "ROLE_ADMIN"})
-	public ApiResponse<TargetPriceNotifyMessageResponse> sendStockTargetPriceNotification(
+	public ApiResponse<NotifyMessageResponse> sendStockTargetPriceNotification(
 		@RequestParam Long memberId) {
-		TargetPriceNotifyMessageResponse response = service.notifyTargetPrice(memberId);
+		NotifyMessageResponse response = service.notifyTargetPrice(memberId);
 		log.info("종목 지정가 알림 전송 결과 : {}", response);
 		return ApiResponse.success(StockSuccessCode.OK_CREATE_TARGET_PRICE_SEND_NOTIFICATION, response);
 	}
