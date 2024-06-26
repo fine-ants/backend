@@ -2,6 +2,7 @@ package codesquad.fineants.domain.stock_target_price.domain.dto.request;
 
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.member.domain.entity.Member;
+import codesquad.fineants.domain.notification.domain.dto.request.NotificationSaveRequest;
 import codesquad.fineants.domain.notification.domain.dto.response.NotifyMessage;
 import codesquad.fineants.domain.notification.domain.dto.response.StockNotifyMessage;
 import codesquad.fineants.domain.notification.domain.entity.Notification;
@@ -20,7 +21,7 @@ import lombok.ToString;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder(access = AccessLevel.PRIVATE)
 @ToString
-public class StockNotificationRequest {
+public class StockNotificationSaveRequest extends NotificationSaveRequest {
 	private String stockName;
 	@NotNull
 	@PositiveOrZero
@@ -32,9 +33,9 @@ public class StockNotificationRequest {
 	private Long targetPriceNotificationId;
 	private Long memberId;
 
-	public static StockNotificationRequest from(NotifyMessage message) {
+	public static StockNotificationSaveRequest from(NotifyMessage message) {
 		StockNotifyMessage stock = (StockNotifyMessage)message;
-		return StockNotificationRequest.builder()
+		return StockNotificationSaveRequest.builder()
 			.stockName(stock.getStockName())
 			.targetPrice(stock.getTargetPrice())
 			.title(stock.getTitle())
@@ -46,6 +47,7 @@ public class StockNotificationRequest {
 			.build();
 	}
 
+	@Override
 	public Notification toEntity(Member member) {
 		return Notification.stock(
 			stockName,

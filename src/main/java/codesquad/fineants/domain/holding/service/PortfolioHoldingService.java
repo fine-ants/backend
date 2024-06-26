@@ -67,7 +67,7 @@ public class PortfolioHoldingService {
 	@Transactional
 	public PortfolioStockCreateResponse createPortfolioHolding(Long portfolioId,
 		PortfolioHoldingCreateRequest request) {
-		log.info("포트폴리오 종목 추가 서비스 요청 : portfolioId={}, request={}, authMember={}", request, portfolioId);
+		log.info("포트폴리오 종목 추가 서비스 요청 : portfolioId={}, request={}", portfolioId, request);
 
 		Portfolio portfolio = findPortfolio(portfolioId);
 
@@ -168,8 +168,8 @@ public class PortfolioHoldingService {
 		Portfolio portfolio = findPortfolioUsingFetchJoin(portfolioId);
 		PortfolioDetailRealTimeItem portfolioDetail = portfolioDetailFactory.createPortfolioDetailRealTimeItem(
 			portfolio);
-		List<PortfolioHoldingRealTimeItem> portfolioHoldingDetails = portfolioHoldingDetailFactory.createPortfolioHoldingRealTimeItems(
-			portfolio);
+		List<PortfolioHoldingRealTimeItem> portfolioHoldingDetails =
+			portfolioHoldingDetailFactory.createPortfolioHoldingRealTimeItems(portfolio);
 		return PortfolioHoldingsRealTimeResponse.of(portfolioDetail, portfolioHoldingDetails);
 	}
 

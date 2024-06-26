@@ -131,7 +131,8 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		manager.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L));
 
 		// when
-		PortfolioNotifyMessagesResponse response = service.notifyTargetGainOf(portfolio.getId());
+		PortfolioNotifyMessagesResponse response = (PortfolioNotifyMessagesResponse)service.notifyTargetGainOf(
+			portfolio.getId());
 
 		// then
 		assertAll(
@@ -174,7 +175,8 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		manager.addCurrentPrice(KisCurrentPrice.create(ccs.getTickerSymbol(), 3750L));
 
 		// when
-		PortfolioNotifyMessagesResponse response = service.notifyTargetGainOf(portfolio.getId());
+		PortfolioNotifyMessagesResponse response = (PortfolioNotifyMessagesResponse)service.notifyTargetGainOf(
+			portfolio.getId());
 
 		// then
 		assertAll(
@@ -206,7 +208,8 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		manager.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L));
 
 		// when
-		PortfolioNotifyMessagesResponse response = service.notifyTargetGainOf(portfolio.getId());
+		PortfolioNotifyMessagesResponse response = (PortfolioNotifyMessagesResponse)service.notifyTargetGainOf(
+			portfolio.getId());
 
 		// then
 		assertAll(
@@ -242,7 +245,8 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		manager.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L));
 
 		// when
-		PortfolioNotifyMessagesResponse response = service.notifyTargetGainOf(portfolio.getId());
+		PortfolioNotifyMessagesResponse response = (PortfolioNotifyMessagesResponse)service.notifyTargetGainOf(
+			portfolio.getId());
 
 		// then
 		assertAll(
@@ -272,7 +276,8 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		manager.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 100L));
 
 		// when
-		PortfolioNotifyMessagesResponse response = service.notifyMaxLoss(portfolio.getId());
+		PortfolioNotifyMessagesResponse response = (PortfolioNotifyMessagesResponse)service.notifyMaxLossOf(
+			portfolio.getId());
 
 		// then
 		assertAll(
@@ -307,7 +312,8 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		manager.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L));
 
 		// when
-		PortfolioNotifyMessagesResponse response = service.notifyMaxLoss(portfolio.getId());
+		PortfolioNotifyMessagesResponse response = (PortfolioNotifyMessagesResponse)service.notifyMaxLossOf(
+			portfolio.getId());
 
 		// then
 		assertAll(
@@ -338,7 +344,8 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		manager.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L));
 
 		// when
-		PortfolioNotifyMessagesResponse response = service.notifyMaxLoss(portfolio.getId());
+		PortfolioNotifyMessagesResponse response = (PortfolioNotifyMessagesResponse)service.notifyMaxLossOf(
+			portfolio.getId());
 
 		// then
 		assertAll(
@@ -379,7 +386,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 			.willReturn(Optional.of("messageId"));
 
 		// when
-		PortfolioNotifyMessagesResponse response = service.notifyTargetGainAll();
+		PortfolioNotifyMessagesResponse response = (PortfolioNotifyMessagesResponse)service.notifyTargetGainAll();
 
 		// then
 		assertAll(

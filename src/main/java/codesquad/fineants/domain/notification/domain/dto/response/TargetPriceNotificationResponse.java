@@ -16,7 +16,7 @@ import lombok.ToString;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder(access = AccessLevel.PRIVATE)
 @ToString
-public class TargetPriceNotificationResponse {
+public class TargetPriceNotificationResponse implements NotifyMessageResponse {
 	private Long notificationId;
 	private Boolean isRead;
 	private String title;

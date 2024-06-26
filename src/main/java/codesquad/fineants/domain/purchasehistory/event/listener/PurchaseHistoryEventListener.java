@@ -23,7 +23,7 @@ public class PurchaseHistoryEventListener {
 	@EventListener
 	public void notifyTargetGainBy(PushNotificationEvent event) {
 		PurchaseHistoryEventSendableParameter parameter = event.getValue();
-		PortfolioNotifyMessagesResponse response = notificationService.notifyTargetGainOf(
+		PortfolioNotifyMessagesResponse response = (PortfolioNotifyMessagesResponse)notificationService.notifyTargetGainOf(
 			parameter.getPortfolioId());
 		log.info("매입 이력 이벤트로 인한 목표 수익률 달성 알림 결과 : {}", response);
 	}
@@ -33,7 +33,7 @@ public class PurchaseHistoryEventListener {
 	@EventListener
 	public void notifyMaxLoss(PushNotificationEvent event) {
 		PurchaseHistoryEventSendableParameter parameter = event.getValue();
-		PortfolioNotifyMessagesResponse response = notificationService.notifyMaxLoss(
+		PortfolioNotifyMessagesResponse response = (PortfolioNotifyMessagesResponse)notificationService.notifyMaxLossOf(
 			parameter.getPortfolioId());
 		log.info("매입 이력 이벤트로 인한 최대 손실율 달성 알림 결과 : response={}", response);
 	}

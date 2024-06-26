@@ -1,6 +1,7 @@
 package codesquad.fineants.domain.notification.domain.dto.response;
 
 import codesquad.fineants.domain.fcm.service.FcmService;
+import codesquad.fineants.domain.notification.domain.dto.request.NotificationSaveRequest;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -30,5 +31,9 @@ public class SentNotifyMessage {
 
 	public void deleteToken(FcmService service) {
 		notifyMessage.deleteTokenBy(service);
+	}
+
+	public NotificationSaveRequest toNotificationSaveRequest() {
+		return notifyMessage.toNotificationSaveRequest();
 	}
 }

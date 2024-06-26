@@ -19,6 +19,7 @@ import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.common.money.MoneyConverter;
 import codesquad.fineants.domain.common.money.Percentage;
 import codesquad.fineants.domain.common.money.RateDivision;
+import codesquad.fineants.domain.common.notification.Notifiable;
 import codesquad.fineants.domain.holding.domain.dto.response.PortfolioDividendChartItem;
 import codesquad.fineants.domain.holding.domain.dto.response.PortfolioPieChartItem;
 import codesquad.fineants.domain.holding.domain.dto.response.PortfolioSectorChartItem;
@@ -28,6 +29,7 @@ import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.notification.domain.dto.response.NotifyMessage;
 import codesquad.fineants.domain.notification.domain.entity.type.NotificationType;
 import codesquad.fineants.domain.notification.repository.NotificationSentRepository;
+import codesquad.fineants.domain.notificationpreference.domain.entity.NotificationPreference;
 import codesquad.fineants.domain.portfolio_gain_history.domain.entity.PortfolioGainHistory;
 import codesquad.fineants.global.errors.errorcode.PortfolioErrorCode;
 import codesquad.fineants.global.errors.exception.BadRequestException;
@@ -71,7 +73,7 @@ import lombok.extern.slf4j.Slf4j;
 @Table(name = "portfolio", uniqueConstraints = {
 	@UniqueConstraint(columnNames = {"name", "member_id"})
 })
-public class Portfolio extends BaseEntity {
+public class Portfolio extends BaseEntity implements Notifiable {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "id")
@@ -458,7 +460,8 @@ public class Portfolio extends BaseEntity {
 		return manager.hasMaxLossSendHistory(id);
 	}
 
-	public NotifyMessage createTargetGainMessage(String token) {
+	@Override
+	public NotifyMessage createTargetGainMessageWith(String token) {
 		String title = "포트폴리오";
 		String content = String.format("%s의 목표 수익률을 달성했습니다", name);
 		NotificationType type = NotificationType.PORTFOLIO_TARGET_GAIN;
@@ -477,7 +480,8 @@ public class Portfolio extends BaseEntity {
 		);
 	}
 
-	public NotifyMessage getMaxLossMessage(String token) {
+	@Override
+	public NotifyMessage createMaxLossMessageWith(String token) {
 		String title = "포트폴리오";
 		String content = String.format("%s이(가) 최대 손실율에 도달했습니다", name);
 		NotificationType type = NotificationType.PORTFOLIO_MAX_LOSS;
@@ -508,5 +512,15 @@ public class Portfolio extends BaseEntity {
 		Bank bank = Bank.getInstance();
 		Expression investAmount = calculateTotalInvestmentAmount().plus(amount);
 		return budget.compareTo(bank.toWon(investAmount)) < 0;
+	}
+
+	@Override
+	public Long fetchMemberId() {
+		return member.getId();
+	}
+
+	@Override
+	public NotificationPreference getNotificationPreference() {
+		return member.getNotificationPreference();
 	}
 }

@@ -40,7 +40,7 @@ import codesquad.fineants.domain.stock.repository.StockRepository;
 class FirebaseNotificationProviderTest extends AbstractContainerBaseTest {
 
 	@Autowired
-	private FirebasePortfolioNotificationProvider provider;
+	private FirebaseNotificationProvider provider;
 
 	@Autowired
 	private MemberRepository memberRepository;

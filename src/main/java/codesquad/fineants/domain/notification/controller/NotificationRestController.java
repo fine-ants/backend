@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import codesquad.fineants.domain.notification.domain.dto.response.NotifyMessageResponse;
 import codesquad.fineants.domain.notification.domain.dto.response.PortfolioNotifyMessagesResponse;
 import codesquad.fineants.domain.notification.service.NotificationService;
 import codesquad.fineants.domain.stock_target_price.domain.dto.response.TargetPriceNotifyMessageResponse;
@@ -30,7 +31,8 @@ public class NotificationRestController {
 	public ApiResponse<PortfolioNotifyMessagesResponse> notifyPortfolioTargetGainMessages(
 		@PathVariable Long portfolioId
 	) {
-		PortfolioNotifyMessagesResponse response = service.notifyTargetGainOf(portfolioId);
+		PortfolioNotifyMessagesResponse response = (PortfolioNotifyMessagesResponse)service.notifyTargetGainOf(
+			portfolioId);
 		log.info("포트폴리오 목표 수익률 알림 결과 : response={}", response);
 		return ApiResponse.success(NotificationSuccessCode.OK_NOTIFY_PORTFOLIO_TARGET_GAIN_MESSAGES, response);
 	}
@@ -38,10 +40,10 @@ public class NotificationRestController {
 	// 한 포트폴리오의 최대 손실율 도달 알림 발송
 	@PostMapping("/api/notifications/portfolios/{portfolioId}/notify/max-loss")
 	@Secured(value = {"ROLE_MANAGER", "ROLE_ADMIN"})
-	public ApiResponse<PortfolioNotifyMessagesResponse> notifyPortfolioMaxLossMessages(
+	public ApiResponse<NotifyMessageResponse> notifyPortfolioMaxLossMessages(
 		@PathVariable Long portfolioId
 	) {
-		PortfolioNotifyMessagesResponse response = service.notifyMaxLoss(portfolioId);
+		NotifyMessageResponse response = service.notifyMaxLossOf(portfolioId);
 		log.info("포트폴리오 최대 손실율 알림 결과 : response={}", response);
 		return ApiResponse.success(NotificationSuccessCode.OK_NOTIFY_PORTFOLIO_MAX_LOSS_MESSAGES, response);
 	}

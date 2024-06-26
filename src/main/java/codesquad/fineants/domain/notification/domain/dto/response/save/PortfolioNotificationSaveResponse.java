@@ -1,5 +1,6 @@
-package codesquad.fineants.domain.notification.domain.dto.response;
+package codesquad.fineants.domain.notification.domain.dto.response.save;
 
+import codesquad.fineants.domain.notification.domain.dto.response.PortfolioNotifyMessageItem;
 import codesquad.fineants.domain.notification.domain.entity.Notification;
 import codesquad.fineants.domain.notification.domain.entity.type.NotificationType;
 import lombok.AccessLevel;
@@ -14,7 +15,7 @@ import lombok.ToString;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder(access = AccessLevel.PRIVATE)
 @ToString
-public class PortfolioNotificationResponse {
+public class PortfolioNotificationSaveResponse implements NotificationSaveResponse {
 	private Long notificationId;
 	private Boolean isRead;
 	private String title;
@@ -25,8 +26,8 @@ public class PortfolioNotificationResponse {
 	private Long memberId;
 	private String name;
 
-	public static PortfolioNotificationResponse from(Notification notification) {
-		return PortfolioNotificationResponse.builder()
+	public static PortfolioNotificationSaveResponse from(Notification notification) {
+		return PortfolioNotificationSaveResponse.builder()
 			.notificationId(notification.getId())
 			.isRead(notification.getIsRead())
 			.title(notification.getTitle())
@@ -37,5 +38,21 @@ public class PortfolioNotificationResponse {
 			.memberId(notification.getMember().getId())
 			.name(notification.getName())
 			.build();
+	}
+
+	@Override
+	public PortfolioNotifyMessageItem toNotifyMessageItemWith(String messageId) {
+		return PortfolioNotifyMessageItem.create(
+			notificationId,
+			isRead,
+			title,
+			content,
+			type,
+			referenceId,
+			memberId,
+			link,
+			messageId,
+			name
+		);
 	}
 }

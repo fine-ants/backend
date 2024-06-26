@@ -22,12 +22,12 @@ import codesquad.fineants.docs.RestDocsSupport;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.notification.controller.NotificationRestController;
 import codesquad.fineants.domain.notification.domain.dto.response.NotifyMessage;
-import codesquad.fineants.domain.notification.domain.dto.response.PortfolioNotificationResponse;
 import codesquad.fineants.domain.notification.domain.dto.response.PortfolioNotifyMessage;
 import codesquad.fineants.domain.notification.domain.dto.response.PortfolioNotifyMessageItem;
 import codesquad.fineants.domain.notification.domain.dto.response.PortfolioNotifyMessagesResponse;
 import codesquad.fineants.domain.notification.domain.dto.response.StockNotifyMessage;
 import codesquad.fineants.domain.notification.domain.dto.response.TargetPriceNotificationResponse;
+import codesquad.fineants.domain.notification.domain.dto.response.save.PortfolioNotificationSaveResponse;
 import codesquad.fineants.domain.notification.domain.entity.Notification;
 import codesquad.fineants.domain.notification.service.NotificationService;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
@@ -52,11 +52,11 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 		// given
 		Member member = createMember();
 		Portfolio portfolio = createPortfolio(member);
-		PortfolioNotifyMessage message = (PortfolioNotifyMessage)portfolio.createTargetGainMessage("token");
+		PortfolioNotifyMessage message = (PortfolioNotifyMessage)portfolio.createTargetGainMessageWith("token");
 		Notification notification = createPortfolioNotification(message, member);
 		String messageId = "messageId";
 		PortfolioNotifyMessageItem item = PortfolioNotifyMessageItem.from(
-			PortfolioNotificationResponse.from(notification), messageId);
+			PortfolioNotificationSaveResponse.from(notification), messageId);
 		List<PortfolioNotifyMessageItem> items = List.of(item);
 
 		given(service.notifyTargetGainOf(
@@ -129,13 +129,13 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 		// given
 		Member member = createMember();
 		Portfolio portfolio = createPortfolio(member);
-		PortfolioNotifyMessage message = (PortfolioNotifyMessage)portfolio.getMaxLossMessage("token");
+		PortfolioNotifyMessage message = (PortfolioNotifyMessage)portfolio.createMaxLossMessageWith("token");
 		Notification notification = createPortfolioNotification(message, member);
 		String messageId = "messageId";
 		PortfolioNotifyMessageItem item = PortfolioNotifyMessageItem.from(
-			PortfolioNotificationResponse.from(notification), messageId);
+			PortfolioNotificationSaveResponse.from(notification), messageId);
 		List<PortfolioNotifyMessageItem> items = List.of(item);
-		given(service.notifyMaxLoss(
+		given(service.notifyMaxLossOf(
 			anyLong()))
 			.willReturn(PortfolioNotifyMessagesResponse.create(items));
 

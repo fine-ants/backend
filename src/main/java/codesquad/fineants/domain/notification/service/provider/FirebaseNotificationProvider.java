@@ -5,7 +5,9 @@ import java.util.List;
 import java.util.Optional;
 
 import org.jetbrains.annotations.NotNull;
+import org.springframework.stereotype.Component;
 
+import codesquad.fineants.domain.common.notification.Notifiable;
 import codesquad.fineants.domain.fcm.service.FcmService;
 import codesquad.fineants.domain.fcm.service.FirebaseMessagingService;
 import codesquad.fineants.domain.notification.domain.dto.response.NotifyMessage;
@@ -16,25 +18,26 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RequiredArgsConstructor
-public abstract class FirebaseNotificationProvider<T> implements NotificationProvider<T> {
+@Component
+public class FirebaseNotificationProvider implements NotificationProvider<Notifiable> {
 
-	final FcmService fcmService;
-	final FirebaseMessagingService firebaseMessagingService;
+	private final FcmService fcmService;
+	private final FirebaseMessagingService firebaseMessagingService;
 
 	/**
 	 * FCM 토큰을 이용하여 푸시 알림
 	 */
 	@Override
-	public List<SentNotifyMessage> sendNotification(List<T> data, NotificationPolicy<T> policy) {
+	public List<SentNotifyMessage> sendNotification(List<Notifiable> data, NotificationPolicy<Notifiable> policy) {
 		List<SentNotifyMessage> result = new ArrayList<>();
-		for (T element : data) {
+		for (Notifiable element : data) {
 			result.addAll(notifyIfAchieved(element, policy));
 		}
 		return result;
 	}
 
 	@NotNull
-	private List<SentNotifyMessage> notifyIfAchieved(T target, NotificationPolicy<T> policy) {
+	private List<SentNotifyMessage> notifyIfAchieved(Notifiable target, NotificationPolicy<Notifiable> policy) {
 		// Portfolio 소유한 회원의 FCM 토큰 리스트 조회
 		List<String> tokens = findTokens(target);
 		log.debug("tokens : {}", tokens);
@@ -62,5 +65,7 @@ public abstract class FirebaseNotificationProvider<T> implements NotificationPro
 		return result;
 	}
 
-	public abstract List<String> findTokens(T target);
+	public List<String> findTokens(Notifiable target) {
+		return fcmService.findTokens(target.fetchMemberId());
+	}
 }
