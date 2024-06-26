@@ -6,9 +6,11 @@ import codesquad.fineants.domain.BaseEntity;
 import codesquad.fineants.domain.common.money.Expression;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.common.money.MoneyConverter;
+import codesquad.fineants.domain.common.notification.Notifiable;
 import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
 import codesquad.fineants.domain.notification.domain.dto.response.NotifyMessage;
 import codesquad.fineants.domain.notification.domain.entity.type.NotificationType;
+import codesquad.fineants.domain.notificationpreference.domain.entity.NotificationPreference;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
@@ -29,7 +31,7 @@ import lombok.ToString;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "target_price_notification")
-public class TargetPriceNotification extends BaseEntity {
+public class TargetPriceNotification extends BaseEntity implements Notifiable {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
@@ -76,6 +78,32 @@ public class TargetPriceNotification extends BaseEntity {
 		return stockTargetPrice.getIsActive();
 	}
 
+	public boolean isSameTargetPrice(CurrentPriceRepository manager) {
+		Expression currentPrice = stockTargetPrice.getCurrentPrice(manager);
+		return targetPrice.compareTo(currentPrice) == 0;
+	}
+
+	@Override
+	public Long fetchMemberId() {
+		return stockTargetPrice.getMember().getId();
+	}
+
+	@Override
+	public NotifyMessage createTargetGainMessageWith(String token) {
+		throw new UnsupportedOperationException("This method is not supported for TargetPriceNotification");
+	}
+
+	@Override
+	public NotificationPreference getNotificationPreference() {
+		return stockTargetPrice.getMember().getNotificationPreference();
+	}
+
+	@Override
+	public NotifyMessage createMaxLossMessageWith(String token) {
+		throw new UnsupportedOperationException("This method is not supported for TargetPriceNotification");
+	}
+
+	@Override
 	public NotifyMessage getTargetPriceMessage(String token) {
 		NotificationType type = NotificationType.STOCK_TARGET_PRICE;
 		String title = type.getName();
@@ -99,10 +127,5 @@ public class TargetPriceNotification extends BaseEntity {
 			targetPrice,
 			id
 		);
-	}
-
-	public boolean isSameTargetPrice(CurrentPriceRepository manager) {
-		Expression currentPrice = stockTargetPrice.getCurrentPrice(manager);
-		return targetPrice.compareTo(currentPrice) == 0;
 	}
 }

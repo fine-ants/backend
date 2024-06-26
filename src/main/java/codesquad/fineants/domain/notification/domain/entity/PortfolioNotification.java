@@ -3,6 +3,8 @@ package codesquad.fineants.domain.notification.domain.entity;
 import java.time.LocalDateTime;
 
 import codesquad.fineants.domain.member.domain.entity.Member;
+import codesquad.fineants.domain.notification.domain.dto.response.save.NotificationSaveResponse;
+import codesquad.fineants.domain.notification.domain.dto.response.save.PortfolioNotificationSaveResponse;
 import codesquad.fineants.domain.notification.domain.entity.type.NotificationType;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
@@ -49,5 +51,10 @@ public class PortfolioNotification extends Notification {
 	@Override
 	public String getName() {
 		return name;
+	}
+
+	@Override
+	public NotificationSaveResponse toSaveResponse() {
+		return PortfolioNotificationSaveResponse.from(this);
 	}
 }

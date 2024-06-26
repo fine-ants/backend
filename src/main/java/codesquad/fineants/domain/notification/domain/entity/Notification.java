@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import codesquad.fineants.domain.BaseEntity;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.member.domain.entity.Member;
+import codesquad.fineants.domain.notification.domain.dto.response.save.NotificationSaveResponse;
 import codesquad.fineants.domain.notification.domain.entity.type.NotificationType;
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorColumn;
@@ -50,7 +51,7 @@ public abstract class Notification extends BaseEntity {
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "member_id")
 	private Member member;
-	
+
 	Notification(LocalDateTime createAt, LocalDateTime modifiedAt, Long id, String title,
 		Boolean isRead, NotificationType type, String referenceId, String link, Member member) {
 		super(createAt, modifiedAt);
@@ -88,4 +89,6 @@ public abstract class Notification extends BaseEntity {
 	public abstract String getContent();
 
 	public abstract String getName();
+
+	public abstract NotificationSaveResponse toSaveResponse();
 }

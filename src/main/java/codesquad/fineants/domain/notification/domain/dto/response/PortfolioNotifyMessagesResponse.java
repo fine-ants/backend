@@ -14,10 +14,10 @@ import lombok.ToString;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @ToString
 public class PortfolioNotifyMessagesResponse implements NotifyMessageResponse {
-	private List<PortfolioNotifyMessageItem> notifications;
+	private List<NotifyMessageItem> notifications;
 
 	public static PortfolioNotifyMessagesResponse create(
-		List<PortfolioNotifyMessageItem> items) {
+		List<NotifyMessageItem> items) {
 		return new PortfolioNotifyMessagesResponse(items);
 	}
 

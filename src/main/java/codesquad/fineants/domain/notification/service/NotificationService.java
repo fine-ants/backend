@@ -2,12 +2,10 @@ package codesquad.fineants.domain.notification.service;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.util.Strings;
@@ -16,21 +14,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import codesquad.fineants.domain.common.notification.Notifiable;
-import codesquad.fineants.domain.fcm.service.FcmService;
-import codesquad.fineants.domain.fcm.service.FirebaseMessagingService;
 import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
 import codesquad.fineants.domain.notification.domain.dto.request.NotificationSaveRequest;
-import codesquad.fineants.domain.notification.domain.dto.response.NotifyMessage;
+import codesquad.fineants.domain.notification.domain.dto.response.NotifyMessageItem;
 import codesquad.fineants.domain.notification.domain.dto.response.NotifyMessageResponse;
-import codesquad.fineants.domain.notification.domain.dto.response.PortfolioNotifyMessageItem;
 import codesquad.fineants.domain.notification.domain.dto.response.PortfolioNotifyMessagesResponse;
 import codesquad.fineants.domain.notification.domain.dto.response.SentNotifyMessage;
-import codesquad.fineants.domain.notification.domain.dto.response.TargetPriceNotificationResponse;
 import codesquad.fineants.domain.notification.domain.dto.response.save.NotificationSaveResponse;
-import codesquad.fineants.domain.notification.domain.dto.response.save.PortfolioNotificationSaveResponse;
-import codesquad.fineants.domain.notification.domain.entity.Notification;
 import codesquad.fineants.domain.notification.domain.entity.policy.NotificationPolicy;
 import codesquad.fineants.domain.notification.domain.entity.policy.maxloss.MaxLossNotificationPolicy;
 import codesquad.fineants.domain.notification.domain.entity.policy.target_gain.TargetGainNotificationPolicy;
@@ -40,11 +32,8 @@ import codesquad.fineants.domain.notification.repository.NotificationSentReposit
 import codesquad.fineants.domain.notification.service.provider.FirebaseNotificationProvider;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.repository.PortfolioRepository;
-import codesquad.fineants.domain.stock_target_price.domain.dto.request.StockNotificationSaveRequest;
-import codesquad.fineants.domain.stock_target_price.domain.dto.response.TargetPriceNotifyMessageItem;
 import codesquad.fineants.domain.stock_target_price.domain.dto.response.TargetPriceNotifyMessageResponse;
 import codesquad.fineants.domain.stock_target_price.domain.entity.StockTargetPrice;
-import codesquad.fineants.domain.stock_target_price.domain.entity.TargetPriceNotification;
 import codesquad.fineants.domain.stock_target_price.repository.StockTargetPriceRepository;
 import codesquad.fineants.global.errors.errorcode.MemberErrorCode;
 import codesquad.fineants.global.errors.errorcode.PortfolioErrorCode;
@@ -59,8 +48,6 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 public class NotificationService {
 	private final PortfolioRepository portfolioRepository;
-	private final FcmService fcmService;
-	private final FirebaseMessagingService firebaseMessagingService;
 	private final NotificationRepository notificationRepository;
 	private final MemberRepository memberRepository;
 	private final CurrentPriceRepository currentPriceRepository;
@@ -92,20 +79,7 @@ public class NotificationService {
 	@Transactional
 	public NotificationSaveResponse saveNotification(NotificationSaveRequest request) {
 		Member member = findMember(request.getMemberId());
-		Notification notification = notificationRepository.save(request.toEntity(member));
-		return PortfolioNotificationSaveResponse.from(notification);
-	}
-
-	/**
-	 * 지정가 알림 저장
-	 * @param request 알림 데이터
-	 * @return 알림 저장 결과
-	 */
-	@Transactional
-	public TargetPriceNotificationResponse saveNotification(StockNotificationSaveRequest request) {
-		Member member = findMember(request.getMemberId());
-		Notification notification = notificationRepository.save(request.toEntity(member));
-		return TargetPriceNotificationResponse.from(notification);
+		return notificationRepository.save(request.toEntity(member)).toSaveResponse();
 	}
 
 	private Member findMember(Long memberId) {
@@ -124,7 +98,23 @@ public class NotificationService {
 			.peek(portfolio -> portfolio.applyCurrentPriceAllHoldingsBy(currentPriceRepository))
 			.collect(Collectors.toList());
 		Consumer<Long> sentFunction = sentManager::addTargetGainSendHistory;
-		return notifyMessage(portfolios, targetGainNotificationPolicy, sentFunction);
+		return PortfolioNotifyMessagesResponse.create(
+			notifyMessage(portfolios, targetGainNotificationPolicy, sentFunction)
+		);
+	}
+
+	@NotNull
+	private List<NotifyMessageItem> createNotifyMessageItems(
+		List<SentNotifyMessage> sentNotifyMessages,
+		List<NotificationSaveResponse> notificationSaveResponses) {
+		Map<String, String> messageIdMap = getMessageIdMap(sentNotifyMessages);
+
+		return notificationSaveResponses.stream()
+			.map(response -> {
+				String messageId = messageIdMap.getOrDefault(response.getReferenceId(), Strings.EMPTY);
+				return response.toNotifyMessageItemWith(messageId);
+			})
+			.toList();
 	}
 
 	/**
@@ -133,20 +123,22 @@ public class NotificationService {
 	 * @return 알림 전송 결과
 	 */
 	@Transactional
-	public NotifyMessageResponse notifyTargetGainOf(Long portfolioId) {
+	public NotifyMessageResponse notifyTargetGain(Long portfolioId) {
 		Portfolio portfolio = portfolioRepository.findByPortfolioIdWithAll(portfolioId).stream()
 			.peek(p -> p.applyCurrentPriceAllHoldingsBy(currentPriceRepository))
 			.findFirst()
 			.orElseThrow(() -> new FineAntsException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
 		Consumer<Long> sentFunction = sentManager::addTargetGainSendHistory;
-		return notifyMessage(List.of(portfolio), targetGainNotificationPolicy, sentFunction);
+		return PortfolioNotifyMessagesResponse.create(
+			notifyMessage(List.of(portfolio), targetGainNotificationPolicy, sentFunction)
+		);
 	}
 
 	@NotNull
-	private NotifyMessageResponse notifyMessage(List<Notifiable> portfolios,
+	private List<NotifyMessageItem> notifyMessage(List<Notifiable> targets,
 		NotificationPolicy<Notifiable> policy, Consumer<Long> sentFunction) {
 		// 알림 전송
-		List<SentNotifyMessage> messages = notificationProvider.sendNotification(portfolios, policy);
+		List<SentNotifyMessage> messages = notificationProvider.sendNotification(targets, policy);
 
 		// 알림 저장
 		List<NotificationSaveResponse> saveResponses = this.saveNotification(messages);
@@ -158,21 +150,7 @@ public class NotificationService {
 			.forEach(sentFunction);
 
 		// Response 생성
-		return createPortfolioNotifyMessagesResponse(messages, saveResponses);
-	}
-
-	@NotNull
-	private NotifyMessageResponse createPortfolioNotifyMessagesResponse(
-		List<SentNotifyMessage> sentNotifyMessages,
-		List<NotificationSaveResponse> notificationSaveResponses) {
-		Map<String, String> messageIdMap = getMessageIdMap(sentNotifyMessages);
-		List<PortfolioNotifyMessageItem> items = notificationSaveResponses.stream()
-			.map(response -> {
-				String messageId = messageIdMap.getOrDefault(response.getReferenceId(), Strings.EMPTY);
-				return PortfolioNotifyMessageItem.from(response, messageId);
-			})
-			.toList();
-		return PortfolioNotifyMessagesResponse.create(items);
+		return createNotifyMessageItems(messages, saveResponses);
 	}
 
 	private Map<String, String> getMessageIdMap(List<SentNotifyMessage> sentNotifyMessages) {
@@ -193,116 +171,50 @@ public class NotificationService {
 			.peek(portfolio -> portfolio.applyCurrentPriceAllHoldingsBy(currentPriceRepository))
 			.collect(Collectors.toList());
 		Consumer<Long> sentFunction = sentManager::addMaxLossSendHistory;
-		return notifyMessage(portfolios, maximumLossNotificationPolicy, sentFunction);
+		return PortfolioNotifyMessagesResponse.create(
+			notifyMessage(portfolios, maximumLossNotificationPolicy, sentFunction)
+		);
 	}
 
 	// 특정 포트폴리오의 최대 손실율 달성 알림 푸시
 	@Transactional
-	public NotifyMessageResponse notifyMaxLossOf(Long portfolioId) {
+	public NotifyMessageResponse notifyMaxLoss(Long portfolioId) {
 		Portfolio portfolio = portfolioRepository.findByPortfolioIdWithAll(portfolioId)
 			.stream().peek(p -> p.applyCurrentPriceAllHoldingsBy(currentPriceRepository))
 			.findAny()
 			.orElseThrow(() -> new FineAntsException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
 		Consumer<Long> sentFunction = sentManager::addMaxLossSendHistory;
-		return notifyMessage(List.of(portfolio), maximumLossNotificationPolicy, sentFunction);
+		return PortfolioNotifyMessagesResponse.create(
+			notifyMessage(List.of(portfolio), maximumLossNotificationPolicy, sentFunction)
+		);
 	}
 
 	// 모든 회원을 대상으로 특정 티커 심볼들에 대한 종목 지정가 알림 발송
 	@Transactional
-	public TargetPriceNotifyMessageResponse notifyTargetPriceBy(List<String> tickerSymbols) {
-		List<TargetPriceNotification> targetPrices = stockTargetPriceRepository.findAllByTickerSymbols(tickerSymbols)
+	public TargetPriceNotifyMessageResponse notifyTargetPriceToAllMember(List<String> tickerSymbols) {
+		List<Notifiable> targetPrices = stockTargetPriceRepository.findAllByTickerSymbols(tickerSymbols)
 			.stream()
 			.map(StockTargetPrice::getTargetPriceNotifications)
 			.flatMap(Collection::stream)
 			.collect(Collectors.toList());
-		Function<TargetPriceNotificationResponse, TargetPriceNotificationResponse> sentFunction = item -> {
-			sentManager.addTargetPriceSendHistory(item.getTargetPriceNotificationId());
-			return item;
-		};
-		return notifyTargetPrice(
-			targetPrices,
-			targetPriceNotificationPolicy,
-			sentFunction
+		Consumer<Long> sentFunction = sentManager::addTargetPriceSendHistory;
+		return TargetPriceNotifyMessageResponse.create(
+			notifyMessage(targetPrices, targetPriceNotificationPolicy, sentFunction)
 		);
 	}
 
 	// 회원에 대한 종목 지정가 알림 발송
 	@Transactional
-	public TargetPriceNotifyMessageResponse notifyTargetPriceBy(Long memberId) {
-		List<TargetPriceNotification> targetPrices = stockTargetPriceRepository.findAllByMemberId(memberId)
+	public TargetPriceNotifyMessageResponse notifyTargetPrice(Long memberId) {
+		List<Notifiable> targetPrices = stockTargetPriceRepository.findAllByMemberId(memberId)
 			.stream()
 			.map(StockTargetPrice::getTargetPriceNotifications)
 			.flatMap(Collection::stream)
-			.collect(Collectors.toList());
-
-		Function<TargetPriceNotificationResponse, TargetPriceNotificationResponse> sentFunction = item -> {
-			sentManager.addTargetPriceSendHistory(item.getTargetPriceNotificationId());
-			return item;
-		};
-		return notifyTargetPrice(
-			targetPrices,
-			targetPriceNotificationPolicy,
-			sentFunction
+			.map(targetPriceNotification -> (Notifiable)targetPriceNotification)
+			.toList();
+		Consumer<Long> sentFunction = sentManager::addTargetPriceSendHistory;
+		return TargetPriceNotifyMessageResponse.create(
+			notifyMessage(targetPrices, targetPriceNotificationPolicy, sentFunction)
 		);
 	}
-
-	private TargetPriceNotifyMessageResponse notifyTargetPrice(
-		List<TargetPriceNotification> targetPrices,
-		NotificationPolicy<TargetPriceNotification> policy,
-		Function<TargetPriceNotificationResponse, TargetPriceNotificationResponse> sentFunction) {
-		log.debug("종목 지정가 알림 발송 서비스 시작, targetPrices={}", targetPrices);
-
-		// 지정가 알림별 FCM 토큰 리스트맵 생성
-		Map<TargetPriceNotification, List<String>> fcmTokenMap = targetPrices.stream()
-			.collect(Collectors.toMap(
-				t -> t,
-				t -> fcmService.findTokens(t.getStockTargetPrice().getMember().getId())
-			));
-		// 각 토큰에 전송할 NotifyMessage 객체 생성
-		List<NotifyMessage> notifyMessages = new ArrayList<>();
-		for (Map.Entry<TargetPriceNotification, List<String>> entry : fcmTokenMap.entrySet()) {
-			TargetPriceNotification targetPriceNotification = entry.getKey();
-			for (String token : entry.getValue()) {
-				policy.apply(targetPriceNotification, token)
-					.ifPresent(notifyMessages::add);
-			}
-		}
-		log.debug("notifyMessage : {}", notifyMessages);
-
-		// 알림 저장
-		List<TargetPriceNotificationResponse> notificationSaveResponse = notifyMessages.stream()
-			.distinct()
-			// 알림 저장
-			.map(message -> this.saveNotification(StockNotificationSaveRequest.from(message)))
-			// 발송 이력 저장
-			.map(sentFunction)
-			.sorted(Comparator.comparing(TargetPriceNotificationResponse::getReferenceId))
-			.collect(Collectors.toList());
-		log.debug("종목 지정가 알림 발송 서비스 결과, notificationSaveResponse={}", notificationSaveResponse);
-
-		// 알림 전송
-		Map<String, String> messageIdMap = new HashMap<>();
-		List<SentNotifyMessage> sentNotifyMessages = new ArrayList<>();
-		for (NotifyMessage notifyMessage : notifyMessages) {
-			firebaseMessagingService.send(notifyMessage.toMessage())
-				.ifPresentOrElse(
-					messageId -> {
-						messageIdMap.put(notifyMessage.getReferenceId(), messageId);
-						sentNotifyMessages.add(SentNotifyMessage.create(notifyMessage, messageId));
-					},
-					() -> fcmService.deleteToken(notifyMessage.getToken()));
-		}
-		log.info("종목 지정가 FCM 알림 발송 결과, sentNotifyMessage={}", sentNotifyMessages);
-
-		// 응답 리스폰스 생성
-		List<TargetPriceNotifyMessageItem> items = notificationSaveResponse.stream()
-			.map(response -> {
-				String messageId = messageIdMap.getOrDefault(response.getReferenceId(), Strings.EMPTY);
-				return TargetPriceNotifyMessageItem.from(response, messageId);
-			})
-			.collect(Collectors.toList());
-
-		return TargetPriceNotifyMessageResponse.from(items);
-	}
-
 }

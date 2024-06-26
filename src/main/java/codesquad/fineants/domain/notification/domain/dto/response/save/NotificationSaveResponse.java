@@ -1,9 +1,9 @@
 package codesquad.fineants.domain.notification.domain.dto.response.save;
 
-import codesquad.fineants.domain.notification.domain.dto.response.PortfolioNotifyMessageItem;
+import codesquad.fineants.domain.notification.domain.dto.response.NotifyMessageItem;
 
 public interface NotificationSaveResponse {
 	String getReferenceId();
 
-	PortfolioNotifyMessageItem toNotifyMessageItemWith(String messageId);
+	NotifyMessageItem toNotifyMessageItemWith(String messageId);
 }

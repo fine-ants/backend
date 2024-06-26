@@ -1,5 +1,6 @@
 package codesquad.fineants.domain.notification.domain.dto.response.save;
 
+import codesquad.fineants.domain.notification.domain.dto.response.NotifyMessageItem;
 import codesquad.fineants.domain.notification.domain.dto.response.PortfolioNotifyMessageItem;
 import codesquad.fineants.domain.notification.domain.entity.Notification;
 import codesquad.fineants.domain.notification.domain.entity.type.NotificationType;
@@ -41,7 +42,7 @@ public class PortfolioNotificationSaveResponse implements NotificationSaveRespon
 	}
 
 	@Override
-	public PortfolioNotifyMessageItem toNotifyMessageItemWith(String messageId) {
+	public NotifyMessageItem toNotifyMessageItemWith(String messageId) {
 		return PortfolioNotifyMessageItem.create(
 			notificationId,
 			isRead,

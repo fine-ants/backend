@@ -523,4 +523,9 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	public NotificationPreference getNotificationPreference() {
 		return member.getNotificationPreference();
 	}
+
+	@Override
+	public NotifyMessage getTargetPriceMessage(String token) {
+		throw new UnsupportedOperationException("This method is not supported for Portfolio");
+	}
 }

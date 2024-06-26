@@ -31,7 +31,7 @@ public class NotificationRestController {
 	public ApiResponse<PortfolioNotifyMessagesResponse> notifyPortfolioTargetGainMessages(
 		@PathVariable Long portfolioId
 	) {
-		PortfolioNotifyMessagesResponse response = (PortfolioNotifyMessagesResponse)service.notifyTargetGainOf(
+		PortfolioNotifyMessagesResponse response = (PortfolioNotifyMessagesResponse)service.notifyTargetGain(
 			portfolioId);
 		log.info("포트폴리오 목표 수익률 알림 결과 : response={}", response);
 		return ApiResponse.success(NotificationSuccessCode.OK_NOTIFY_PORTFOLIO_TARGET_GAIN_MESSAGES, response);
@@ -43,7 +43,7 @@ public class NotificationRestController {
 	public ApiResponse<NotifyMessageResponse> notifyPortfolioMaxLossMessages(
 		@PathVariable Long portfolioId
 	) {
-		NotifyMessageResponse response = service.notifyMaxLossOf(portfolioId);
+		NotifyMessageResponse response = service.notifyMaxLoss(portfolioId);
 		log.info("포트폴리오 최대 손실율 알림 결과 : response={}", response);
 		return ApiResponse.success(NotificationSuccessCode.OK_NOTIFY_PORTFOLIO_MAX_LOSS_MESSAGES, response);
 	}
@@ -54,7 +54,7 @@ public class NotificationRestController {
 	@Secured(value = {"ROLE_MANAGER", "ROLE_ADMIN"})
 	public ApiResponse<TargetPriceNotifyMessageResponse> sendStockTargetPriceNotification(
 		@RequestParam Long memberId) {
-		TargetPriceNotifyMessageResponse response = service.notifyTargetPriceBy(memberId);
+		TargetPriceNotifyMessageResponse response = service.notifyTargetPrice(memberId);
 		log.info("종목 지정가 알림 전송 결과 : {}", response);
 		return ApiResponse.success(StockSuccessCode.OK_CREATE_TARGET_PRICE_SEND_NOTIFICATION, response);
 	}

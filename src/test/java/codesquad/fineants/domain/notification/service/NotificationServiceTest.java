@@ -131,7 +131,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		manager.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L));
 
 		// when
-		PortfolioNotifyMessagesResponse response = (PortfolioNotifyMessagesResponse)service.notifyTargetGainOf(
+		PortfolioNotifyMessagesResponse response = (PortfolioNotifyMessagesResponse)service.notifyTargetGain(
 			portfolio.getId());
 
 		// then
@@ -175,7 +175,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		manager.addCurrentPrice(KisCurrentPrice.create(ccs.getTickerSymbol(), 3750L));
 
 		// when
-		PortfolioNotifyMessagesResponse response = (PortfolioNotifyMessagesResponse)service.notifyTargetGainOf(
+		PortfolioNotifyMessagesResponse response = (PortfolioNotifyMessagesResponse)service.notifyTargetGain(
 			portfolio.getId());
 
 		// then
@@ -208,7 +208,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		manager.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L));
 
 		// when
-		PortfolioNotifyMessagesResponse response = (PortfolioNotifyMessagesResponse)service.notifyTargetGainOf(
+		PortfolioNotifyMessagesResponse response = (PortfolioNotifyMessagesResponse)service.notifyTargetGain(
 			portfolio.getId());
 
 		// then
@@ -245,7 +245,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		manager.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L));
 
 		// when
-		PortfolioNotifyMessagesResponse response = (PortfolioNotifyMessagesResponse)service.notifyTargetGainOf(
+		PortfolioNotifyMessagesResponse response = (PortfolioNotifyMessagesResponse)service.notifyTargetGain(
 			portfolio.getId());
 
 		// then
@@ -276,7 +276,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		manager.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 100L));
 
 		// when
-		PortfolioNotifyMessagesResponse response = (PortfolioNotifyMessagesResponse)service.notifyMaxLossOf(
+		PortfolioNotifyMessagesResponse response = (PortfolioNotifyMessagesResponse)service.notifyMaxLoss(
 			portfolio.getId());
 
 		// then
@@ -312,7 +312,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		manager.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L));
 
 		// when
-		PortfolioNotifyMessagesResponse response = (PortfolioNotifyMessagesResponse)service.notifyMaxLossOf(
+		PortfolioNotifyMessagesResponse response = (PortfolioNotifyMessagesResponse)service.notifyMaxLoss(
 			portfolio.getId());
 
 		// then
@@ -344,7 +344,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		manager.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L));
 
 		// when
-		PortfolioNotifyMessagesResponse response = (PortfolioNotifyMessagesResponse)service.notifyMaxLossOf(
+		PortfolioNotifyMessagesResponse response = (PortfolioNotifyMessagesResponse)service.notifyMaxLoss(
 			portfolio.getId());
 
 		// then
@@ -434,7 +434,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 			.collect(Collectors.toList());
 
 		// when
-		TargetPriceNotifyMessageResponse response = service.notifyTargetPriceBy(tickerSymbols);
+		TargetPriceNotifyMessageResponse response = service.notifyTargetPriceToAllMember(tickerSymbols);
 
 		// then
 		assertAll(
@@ -468,7 +468,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		given(firebaseMessagingService.send(any(Message.class)))
 			.willReturn(Optional.of("messageId"));
 		// when
-		TargetPriceNotifyMessageResponse response = service.notifyTargetPriceBy(
+		TargetPriceNotifyMessageResponse response = service.notifyTargetPrice(
 			member.getId());
 
 		// then
@@ -552,7 +552,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		given(firebaseMessagingService.send(any(Message.class)))
 			.willReturn(Optional.of("messageId"));
 		// when
-		TargetPriceNotifyMessageResponse response = service.notifyTargetPriceBy(
+		TargetPriceNotifyMessageResponse response = service.notifyTargetPriceToAllMember(
 			List.of(stock.getTickerSymbol(), stock2.getTickerSymbol()));
 
 		// then
@@ -584,7 +584,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		given(firebaseMessagingService.send(any(Message.class)))
 			.willReturn(Optional.empty());
 		// when
-		TargetPriceNotifyMessageResponse response = service.notifyTargetPriceBy(
+		TargetPriceNotifyMessageResponse response = service.notifyTargetPriceToAllMember(
 			List.of(stock.getTickerSymbol()));
 
 		// then
@@ -618,7 +618,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		given(firebaseMessagingService.send(any(Message.class)))
 			.willReturn(Optional.of("messageId"));
 		// when
-		TargetPriceNotifyMessageResponse response = service.notifyTargetPriceBy(
+		TargetPriceNotifyMessageResponse response = service.notifyTargetPriceToAllMember(
 			List.of(stock.getTickerSymbol(), stock2.getTickerSymbol()));
 
 		// then

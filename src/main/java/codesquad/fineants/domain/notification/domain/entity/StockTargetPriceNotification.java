@@ -5,6 +5,8 @@ import java.time.LocalDateTime;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.common.money.MoneyConverter;
 import codesquad.fineants.domain.member.domain.entity.Member;
+import codesquad.fineants.domain.notification.domain.dto.response.TargetPriceNotificationSaveResponse;
+import codesquad.fineants.domain.notification.domain.dto.response.save.NotificationSaveResponse;
 import codesquad.fineants.domain.notification.domain.entity.type.NotificationType;
 import jakarta.persistence.Convert;
 import jakarta.persistence.DiscriminatorValue;
@@ -59,5 +61,10 @@ public class StockTargetPriceNotification extends Notification {
 	@Override
 	public String getName() {
 		return stockName;
+	}
+
+	@Override
+	public NotificationSaveResponse toSaveResponse() {
+		return TargetPriceNotificationSaveResponse.from(this);
 	}
 }

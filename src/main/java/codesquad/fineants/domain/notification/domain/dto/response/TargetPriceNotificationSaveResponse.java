@@ -1,9 +1,11 @@
 package codesquad.fineants.domain.notification.domain.dto.response;
 
 import codesquad.fineants.domain.common.money.Money;
+import codesquad.fineants.domain.notification.domain.dto.response.save.NotificationSaveResponse;
 import codesquad.fineants.domain.notification.domain.entity.Notification;
 import codesquad.fineants.domain.notification.domain.entity.StockTargetPriceNotification;
 import codesquad.fineants.domain.notification.domain.entity.type.NotificationType;
+import codesquad.fineants.domain.stock_target_price.domain.dto.response.TargetPriceNotifyMessageItem;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,7 +18,7 @@ import lombok.ToString;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder(access = AccessLevel.PRIVATE)
 @ToString
-public class TargetPriceNotificationResponse implements NotifyMessageResponse {
+public class TargetPriceNotificationSaveResponse implements NotificationSaveResponse {
 	private Long notificationId;
 	private Boolean isRead;
 	private String title;
@@ -29,9 +31,9 @@ public class TargetPriceNotificationResponse implements NotifyMessageResponse {
 	private Money targetPrice;
 	private Long targetPriceNotificationId;
 
-	public static TargetPriceNotificationResponse from(Notification notification) {
+	public static TargetPriceNotificationSaveResponse from(Notification notification) {
 		StockTargetPriceNotification priceNotification = (StockTargetPriceNotification)notification;
-		return TargetPriceNotificationResponse.builder()
+		return TargetPriceNotificationSaveResponse.builder()
 			.notificationId(priceNotification.getId())
 			.isRead(priceNotification.getIsRead())
 			.title(priceNotification.getTitle())
@@ -44,5 +46,10 @@ public class TargetPriceNotificationResponse implements NotifyMessageResponse {
 			.targetPrice(priceNotification.getTargetPrice())
 			.targetPriceNotificationId(priceNotification.getTargetPriceNotificationId())
 			.build();
+	}
+
+	@Override
+	public NotifyMessageItem toNotifyMessageItemWith(String messageId) {
+		return TargetPriceNotifyMessageItem.from(this, messageId);
 	}
 }
