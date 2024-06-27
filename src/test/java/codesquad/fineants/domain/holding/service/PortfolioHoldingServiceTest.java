@@ -14,6 +14,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import codesquad.fineants.AbstractContainerBaseTest;
 import codesquad.fineants.domain.common.count.Count;
@@ -51,9 +52,12 @@ import codesquad.fineants.domain.purchasehistory.domain.entity.PurchaseHistory;
 import codesquad.fineants.domain.purchasehistory.repository.PurchaseHistoryRepository;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
+import codesquad.fineants.global.errors.errorcode.PortfolioHoldingErrorCode;
 import codesquad.fineants.global.errors.exception.FineAntsException;
 import codesquad.fineants.global.errors.exception.ForBiddenException;
 import codesquad.fineants.global.errors.exception.NotFoundResourceException;
+import codesquad.fineants.global.security.ajax.token.AjaxAuthenticationToken;
+import codesquad.fineants.global.security.oauth.dto.MemberAuthentication;
 import codesquad.fineants.global.util.ObjectMapperUtil;
 
 class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
@@ -403,6 +407,30 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 				.isNotNull(),
 			() -> assertThat(portFolioHoldingRepository.findAll()).hasSize(1)
 		);
+	}
+
+	@DisplayName("다른 회원의 포트폴리오에 포트폴리오 종목을 등록할 수 없다")
+	@Test
+	void createPortfolioHolding_whenCreatePortfolioHoldingToOtherMemberPortfolio_then403Error() {
+		// given
+		Member member = memberRepository.save(createMember());
+		Member other = memberRepository.save(createMember("other1234"));
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
+		Stock stock = stockRepository.save(createSamsungStock());
+
+		SecurityContextHolder.getContext()
+			.setAuthentication(AjaxAuthenticationToken.authenticated(
+				MemberAuthentication.from(other), null, member.getSimpleGrantedAuthorities()));
+
+		PortfolioHoldingCreateRequest request = PortfolioHoldingCreateRequest.create(stock.getTickerSymbol(), null);
+
+		// when
+		Throwable throwable = catchThrowable(() -> service.createPortfolioHolding(portfolio.getId(), request));
+
+		// then
+		assertThat(throwable)
+			.isInstanceOf(FineAntsException.class)
+			.hasMessage(PortfolioHoldingErrorCode.FORBIDDEN_PORTFOLIO_HOLDING.getMessage());
 	}
 
 	@DisplayName("사용자는 포트폴리오에 종목과 매입이력을 추가한다")

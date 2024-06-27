@@ -4,6 +4,8 @@ import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -45,6 +47,7 @@ import codesquad.fineants.global.errors.errorcode.StockErrorCode;
 import codesquad.fineants.global.errors.exception.FineAntsException;
 import codesquad.fineants.global.errors.exception.ForBiddenException;
 import codesquad.fineants.global.errors.exception.NotFoundResourceException;
+import codesquad.fineants.global.security.oauth.dto.MemberAuthentication;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -70,6 +73,7 @@ public class PortfolioHoldingService {
 		log.info("포트폴리오 종목 추가 서비스 요청 : portfolioId={}, request={}", portfolioId, request);
 
 		Portfolio portfolio = findPortfolio(portfolioId);
+		validateHasAuthorization(portfolio);
 
 		Stock stock = stockRepository.findByTickerSymbol(request.getTickerSymbol())
 			.orElseThrow(() -> new NotFoundResourceException(StockErrorCode.NOT_FOUND_STOCK));
@@ -89,6 +93,15 @@ public class PortfolioHoldingService {
 		publisher.publishPortfolioHolding(stock.getTickerSymbol());
 		log.info("포트폴리오 종목 추가 결과 : {}", saveHolding);
 		return PortfolioStockCreateResponse.from(saveHolding);
+	}
+
+	private void validateHasAuthorization(Portfolio portfolio) {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		Object principal = authentication.getPrincipal();
+		MemberAuthentication memberAuthentication = (MemberAuthentication)principal;
+		if (!portfolio.hasAuthorization(memberAuthentication.getId())) {
+			throw new FineAntsException(PortfolioHoldingErrorCode.FORBIDDEN_PORTFOLIO_HOLDING);
+		}
 	}
 
 	@Transactional
