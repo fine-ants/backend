@@ -1,6 +1,8 @@
 package codesquad.fineants.domain.notification.repository;
 
 import java.time.Duration;
+import java.util.List;
+import java.util.Set;
 
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
@@ -10,9 +12,13 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Component
 public class NotificationSentRepository {
-	private static final String TARGET_GAIN_FORMAT = "targetGainSent:%d";
-	private static final String MAX_LOSS_FORMAT = "maxLossSent:%d";
-	private static final String TARGET_PRICE_FORMAT = "targetPriceSent:%d";
+	private static final String TARGET_GAIN_PREFIX = "targetGainSent";
+	private static final String MAX_LOSS_PREFIX = "maxLossSent";
+	private static final String TARGET_PRICE_PREFIX = "targetPriceSent";
+	private static final String TARGET_GAIN_FORMAT = TARGET_GAIN_PREFIX + ":%d";
+	private static final String MAX_LOSS_FORMAT = MAX_LOSS_PREFIX + ":%d";
+	private static final String TARGET_PRICE_FORMAT = TARGET_PRICE_PREFIX + ":%d";
+
 	private final RedisTemplate<String, String> redisTemplate;
 	private static final Duration TIMEOUT = Duration.ofHours(24L);
 
@@ -44,5 +50,25 @@ public class NotificationSentRepository {
 	public boolean hasTargetPriceSendHistory(Long targetPriceNotificationId) {
 		String result = redisTemplate.opsForValue().get(String.format(TARGET_PRICE_FORMAT, targetPriceNotificationId));
 		return result != null;
+	}
+
+	public void clear() {
+		String targetGainPattern = TARGET_GAIN_PREFIX + ":*";
+		String maxLossPattern = MAX_LOSS_PREFIX + ":*";
+		String targetPricePattern = TARGET_PRICE_PREFIX + ":*";
+		List<String> patterns = List.of(targetGainPattern, maxLossPattern, targetPricePattern);
+
+		for (String pattern : patterns) {
+			Set<String> keys = redisTemplate.keys(pattern);
+			clear(keys);
+		}
+	}
+
+	private void clear(Set<String> keys) {
+		if (keys != null) {
+			for (String key : keys) {
+				redisTemplate.delete(key);
+			}
+		}
 	}
 }
