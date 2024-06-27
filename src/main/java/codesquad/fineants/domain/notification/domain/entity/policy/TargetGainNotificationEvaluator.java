@@ -7,8 +7,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class TargetGainNotificationEvaluator implements NotificationEvaluator<Portfolio> {
 
-	private final ConditionEvaluator<
-		Portfolio> portfolioConditionEvaluator;
+	private final ConditionEvaluator<Portfolio> portfolioConditionEvaluator;
 	private final ConditionEvaluator<NotificationPreference> notificationPreferenceConditionEvaluator;
 
 	@Override
