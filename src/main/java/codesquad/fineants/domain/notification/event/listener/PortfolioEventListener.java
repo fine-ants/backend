@@ -21,15 +21,17 @@ public class PortfolioEventListener {
 	@Async
 	@EventListener
 	public void notifyTargetGain(CurrentPriceEvent event) {
-		PortfolioNotifyMessagesResponse response = notificationService.notifyTargetGain();
-		log.debug("목표수익률 알림 전송 결과 : {}", response);
+		PortfolioNotifyMessagesResponse response =
+			(PortfolioNotifyMessagesResponse)notificationService.notifyTargetGainAll();
+		log.debug("event : {}, 목표수익률 알림 전송 결과 : {}", event, response);
 	}
 
 	// 현재가 변경 이벤트가 발생하면 포트폴리오 최대손실율에 도달하면 푸시 알림
 	@Async
 	@EventListener
 	public void notifyPortfolioMaxLossMessages(CurrentPriceEvent event) {
-		PortfolioNotifyMessagesResponse response = notificationService.notifyMaxLoss();
-		log.debug("최대손실율 알림 전송 결과 : {}", response);
+		PortfolioNotifyMessagesResponse response =
+			(PortfolioNotifyMessagesResponse)notificationService.notifyMaxLossAll();
+		log.debug("event : {}, 최대손실율 알림 전송 결과 : {}", event, response);
 	}
 }

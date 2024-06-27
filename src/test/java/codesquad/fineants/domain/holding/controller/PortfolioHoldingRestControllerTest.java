@@ -30,6 +30,7 @@ import codesquad.fineants.ControllerTestSupport;
 import codesquad.fineants.domain.common.count.Count;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.dividend.domain.entity.StockDividend;
+import codesquad.fineants.domain.gainhistory.domain.entity.PortfolioGainHistory;
 import codesquad.fineants.domain.holding.domain.chart.DividendChart;
 import codesquad.fineants.domain.holding.domain.chart.PieChart;
 import codesquad.fineants.domain.holding.domain.chart.SectorChart;
@@ -50,7 +51,6 @@ import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.service.PortFolioService;
-import codesquad.fineants.domain.portfolio_gain_history.domain.entity.PortfolioGainHistory;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.global.errors.errorcode.PortfolioErrorCode;
 import codesquad.fineants.global.errors.exception.NotFoundResourceException;
@@ -92,7 +92,7 @@ class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 		String memo = "첫구매";
 		portfolioHolding.addPurchaseHistory(
 			createPurchaseHistory(1L, purchaseDate, numShares, purchasePerShare, memo, portfolioHolding));
-		portfolio.addPortfolioStock(portfolioHolding);
+		portfolio.addHolding(portfolioHolding);
 		PortfolioGainHistory history = createEmptyPortfolioGainHistory(portfolio);
 
 		Map<String, Money> lastDayClosingPriceMap = Map.of("005930", Money.won(50000L));
@@ -336,7 +336,7 @@ class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 		List<StockDividend> stockDividends = createStockDividendWith(stock);
 		stockDividends.forEach(stock::addStockDividend);
 		PortfolioHolding portfolioHolding = createPortfolioHolding(portfolio, stock, Money.won(60000L));
-		portfolio.addPortfolioStock(portfolioHolding);
+		portfolio.addHolding(portfolioHolding);
 		LocalDateTime purchaseDate = LocalDateTime.of(2023, 9, 26, 9, 30, 0);
 		Count numShares = Count.from(3);
 		Money purchasePerShare = Money.won(50000);

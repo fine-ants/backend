@@ -94,7 +94,12 @@ public class PortfolioHolding extends BaseEntity {
 	public void addPurchaseHistory(PurchaseHistory purchaseHistory) {
 		if (!this.purchaseHistory.contains(purchaseHistory)) {
 			this.purchaseHistory.add(purchaseHistory);
+			purchaseHistory.setHolding(this);
 		}
+	}
+
+	public void setPortfolio(Portfolio portfolio) {
+		this.portfolio = portfolio;
 	}
 
 	// 종목 총 손익 = (종목 현재가 - 종목 평균 매입가) * 개수

@@ -6,7 +6,11 @@ import com.google.firebase.messaging.WebpushConfig;
 import com.google.firebase.messaging.WebpushFcmOptions;
 
 import codesquad.fineants.domain.common.money.Money;
+import codesquad.fineants.domain.fcm.service.FcmService;
+import codesquad.fineants.domain.notification.domain.dto.request.NotificationSaveRequest;
+import codesquad.fineants.domain.notification.domain.dto.request.PortfolioNotificationSaveRequest;
 import codesquad.fineants.domain.notification.domain.entity.type.NotificationType;
+import codesquad.fineants.domain.stock_target_price.domain.dto.request.StockNotificationSaveRequest;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
@@ -53,5 +57,17 @@ public abstract class NotifyMessage {
 					.build())
 				.build())
 			.build();
+	}
+
+	public void deleteTokenBy(FcmService service) {
+		service.deleteToken(token);
+	}
+
+	public NotificationSaveRequest toNotificationSaveRequest() {
+		if (type == NotificationType.PORTFOLIO_TARGET_GAIN || type == NotificationType.PORTFOLIO_MAX_LOSS) {
+			return PortfolioNotificationSaveRequest.from(this);
+		} else {
+			return StockNotificationSaveRequest.from(this);
+		}
 	}
 }

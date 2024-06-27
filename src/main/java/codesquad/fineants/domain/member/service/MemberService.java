@@ -17,6 +17,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import codesquad.fineants.domain.fcm.repository.FcmRepository;
+import codesquad.fineants.domain.gainhistory.domain.entity.PortfolioGainHistory;
+import codesquad.fineants.domain.gainhistory.repository.PortfolioGainHistoryRepository;
 import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
 import codesquad.fineants.domain.holding.repository.PortfolioHoldingRepository;
 import codesquad.fineants.domain.member.domain.dto.request.ModifyPasswordRequest;
@@ -39,8 +41,6 @@ import codesquad.fineants.domain.notificationpreference.domain.entity.Notificati
 import codesquad.fineants.domain.notificationpreference.repository.NotificationPreferenceRepository;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.repository.PortfolioRepository;
-import codesquad.fineants.domain.portfolio_gain_history.domain.entity.PortfolioGainHistory;
-import codesquad.fineants.domain.portfolio_gain_history.repository.PortfolioGainHistoryRepository;
 import codesquad.fineants.domain.purchasehistory.repository.PurchaseHistoryRepository;
 import codesquad.fineants.domain.stock_target_price.domain.entity.StockTargetPrice;
 import codesquad.fineants.domain.stock_target_price.repository.StockTargetPriceRepository;

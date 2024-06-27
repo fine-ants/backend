@@ -2,7 +2,6 @@ package codesquad.fineants.domain.portfolio.controller;
 
 import static org.hamcrest.Matchers.*;
 import static org.mockito.BDDMockito.any;
-import static org.mockito.BDDMockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -18,6 +17,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.ArgumentMatchers;
+import org.mockito.BDDMockito;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
@@ -64,7 +65,8 @@ class PortFolioRestControllerTest extends ControllerTestSupport {
 				Money.won(maximumLoss)
 			)
 		);
-		given(portFolioService.createPortfolio(any(PortfolioCreateRequest.class), anyLong()))
+		BDDMockito.given(portFolioService.createPortfolio(any(PortfolioCreateRequest.class),
+				ArgumentMatchers.anyLong()))
 			.willReturn(response);
 
 		Map<String, Object> requestBodyMap = new HashMap<>();
@@ -129,7 +131,7 @@ class PortFolioRestControllerTest extends ControllerTestSupport {
 			.numShares(Count.from(0))
 			.dateCreated(LocalDateTime.now())
 			.build();
-		given(portFolioService.readMyAllPortfolio(anyLong()))
+		BDDMockito.given(portFolioService.readMyAllPortfolio(ArgumentMatchers.anyLong()))
 			.willReturn(PortfoliosResponse.builder()
 				.portfolios(List.of(portFolioItem))
 				.build());
@@ -172,7 +174,8 @@ class PortFolioRestControllerTest extends ControllerTestSupport {
 		);
 		PortfolioModifyResponse response = PortfolioModifyResponse.from(portfolio);
 
-		given(portFolioService.updatePortfolio(any(PortfolioModifyRequest.class), anyLong(), anyLong()))
+		BDDMockito.given(portFolioService.updatePortfolio(any(PortfolioModifyRequest.class), ArgumentMatchers.anyLong(),
+				ArgumentMatchers.anyLong()))
 			.willReturn(response);
 
 		Map<String, Object> requestBodyMap = new HashMap<>();

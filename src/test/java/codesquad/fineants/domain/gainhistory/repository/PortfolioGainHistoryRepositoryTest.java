@@ -1,4 +1,4 @@
-package codesquad.fineants.domain.portfolio_gain_history.repository;
+package codesquad.fineants.domain.gainhistory.repository;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -11,11 +11,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import codesquad.fineants.AbstractContainerBaseTest;
 import codesquad.fineants.domain.common.money.Money;
+import codesquad.fineants.domain.gainhistory.domain.entity.PortfolioGainHistory;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.repository.PortfolioRepository;
-import codesquad.fineants.domain.portfolio_gain_history.domain.entity.PortfolioGainHistory;
 
 class PortfolioGainHistoryRepositoryTest extends AbstractContainerBaseTest {
 
@@ -54,12 +54,13 @@ class PortfolioGainHistoryRepositoryTest extends AbstractContainerBaseTest {
 		PortfolioGainHistory saveHistory = portfolioGainHistoryRepository.save(PortfolioGainHistory.empty(portfolio));
 
 		// when
-		PortfolioGainHistory history = portfolioGainHistoryRepository.findFirstByPortfolioAndCreateAtIsLessThanEqualOrderByCreateAtDesc(
-				portfolio.getId(),
-				LocalDateTime.now())
-			.stream()
-			.findFirst()
-			.orElseThrow();
+		PortfolioGainHistory history =
+			portfolioGainHistoryRepository.findFirstByPortfolioAndCreateAtIsLessThanEqualOrderByCreateAtDesc(
+					portfolio.getId(),
+					LocalDateTime.now())
+				.stream()
+				.findFirst()
+				.orElseThrow();
 
 		// then
 		assertThat(history.getId()).isEqualTo(saveHistory.getId());
@@ -91,11 +92,12 @@ class PortfolioGainHistoryRepositoryTest extends AbstractContainerBaseTest {
 		portfolioGainHistoryRepository.save(portfolioGainHistory2);
 
 		// when
-		PortfolioGainHistory result = portfolioGainHistoryRepository.findFirstByPortfolioAndCreateAtIsLessThanEqualOrderByCreateAtDesc(
-				portfolio.getId(), LocalDateTime.now())
-			.stream()
-			.findFirst()
-			.orElseThrow();
+		PortfolioGainHistory result =
+			portfolioGainHistoryRepository.findFirstByPortfolioAndCreateAtIsLessThanEqualOrderByCreateAtDesc(
+					portfolio.getId(), LocalDateTime.now())
+				.stream()
+				.findFirst()
+				.orElseThrow();
 
 		// then
 		assertThat(result.getCurrentValuation()).isEqualByComparingTo(Money.won(120000L));

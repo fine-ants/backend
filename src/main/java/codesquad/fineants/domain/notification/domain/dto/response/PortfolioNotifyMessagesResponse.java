@@ -5,7 +5,6 @@ import java.util.List;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
@@ -13,21 +12,21 @@ import lombok.ToString;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-@Builder(access = AccessLevel.PRIVATE)
 @ToString
-public class PortfolioNotifyMessagesResponse {
-	private List<PortfolioNotifyMessageItem> notifications;
+public class PortfolioNotifyMessagesResponse implements NotifyMessageResponse {
+	private List<NotifyMessageItem> notifications;
 
 	public static PortfolioNotifyMessagesResponse create(
-		List<PortfolioNotifyMessageItem> items) {
-		return PortfolioNotifyMessagesResponse.builder()
-			.notifications(items)
-			.build();
+		List<NotifyMessageItem> items) {
+		return new PortfolioNotifyMessagesResponse(items);
 	}
 
 	public static PortfolioNotifyMessagesResponse empty() {
-		return PortfolioNotifyMessagesResponse.builder()
-			.notifications(Collections.emptyList())
-			.build();
+		return new PortfolioNotifyMessagesResponse(Collections.emptyList());
+	}
+
+	@Override
+	public boolean isEmpty() {
+		return notifications.isEmpty();
 	}
 }

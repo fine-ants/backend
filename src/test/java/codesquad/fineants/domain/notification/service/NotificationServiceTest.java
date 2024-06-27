@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.assertj.core.groups.Tuple;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -36,6 +37,7 @@ import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
 import codesquad.fineants.domain.kis.service.KisService;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
+import codesquad.fineants.domain.notification.domain.dto.response.NotifyMessageResponse;
 import codesquad.fineants.domain.notification.domain.dto.response.PortfolioNotifyMessagesResponse;
 import codesquad.fineants.domain.notification.domain.entity.Notification;
 import codesquad.fineants.domain.notification.domain.entity.type.NotificationType;
@@ -48,7 +50,6 @@ import codesquad.fineants.domain.portfolio.repository.PortfolioRepository;
 import codesquad.fineants.domain.purchasehistory.repository.PurchaseHistoryRepository;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
-import codesquad.fineants.domain.stock_target_price.domain.dto.response.TargetPriceNotifyMessageResponse;
 import codesquad.fineants.domain.stock_target_price.domain.entity.StockTargetPrice;
 import codesquad.fineants.domain.stock_target_price.domain.entity.TargetPriceNotification;
 import codesquad.fineants.domain.stock_target_price.repository.StockTargetPriceRepository;
@@ -90,7 +91,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 	@Autowired
 	private NotificationPreferenceRepository notificationPreferenceRepository;
 
-	@MockBean
+	@Autowired
 	private NotificationSentRepository sentManager;
 
 	@MockBean
@@ -107,6 +108,11 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 
 	@MockBean
 	private AccessTokenAspect accessTokenAspect;
+
+	@AfterEach
+	void tearDown() {
+		sentManager.clear();
+	}
 
 	@DisplayName("포트폴리오 목표 수익률 달성 알림 메시지들을 푸시합니다")
 	@Test
@@ -131,12 +137,14 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		manager.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L));
 
 		// when
-		PortfolioNotifyMessagesResponse response = service.notifyTargetGainBy(portfolio.getId());
+		PortfolioNotifyMessagesResponse response = (PortfolioNotifyMessagesResponse)service.notifyTargetGain(
+			portfolio.getId());
 
 		// then
 		assertAll(
 			() -> assertThat(response.getNotifications()).hasSize(1),
-			() -> assertThat(notificationRepository.findAllByMemberId(member.getId())).hasSize(1)
+			() -> assertThat(notificationRepository.findAllByMemberId(member.getId())).hasSize(1),
+			() -> assertThat(sentManager.hasTargetGainSendHistory(portfolio.getId())).isTrue()
 		);
 	}
 
@@ -174,12 +182,14 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		manager.addCurrentPrice(KisCurrentPrice.create(ccs.getTickerSymbol(), 3750L));
 
 		// when
-		PortfolioNotifyMessagesResponse response = service.notifyTargetGainBy(portfolio.getId());
+		PortfolioNotifyMessagesResponse response = (PortfolioNotifyMessagesResponse)service.notifyTargetGain(
+			portfolio.getId());
 
 		// then
 		assertAll(
 			() -> assertThat(response.getNotifications()).hasSize(0),
-			() -> assertThat(notificationRepository.findAllByMemberId(member.getId())).hasSize(0)
+			() -> assertThat(notificationRepository.findAllByMemberId(member.getId())).hasSize(0),
+			() -> assertThat(sentManager.hasTargetGainSendHistory(portfolio.getId())).isFalse()
 		);
 	}
 
@@ -206,12 +216,14 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		manager.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L));
 
 		// when
-		PortfolioNotifyMessagesResponse response = service.notifyTargetGainBy(portfolio.getId());
+		PortfolioNotifyMessagesResponse response = (PortfolioNotifyMessagesResponse)service.notifyTargetGain(
+			portfolio.getId());
 
 		// then
 		assertAll(
 			() -> assertThat(response.getNotifications()).hasSize(1),
-			() -> assertThat(fcmRepository.findById(fcmToken.getId())).isEmpty()
+			() -> assertThat(fcmRepository.findById(fcmToken.getId())).isEmpty(),
+			() -> assertThat(sentManager.hasTargetGainSendHistory(portfolio.getId())).isTrue()
 		);
 	}
 
@@ -242,11 +254,44 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		manager.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L));
 
 		// when
-		PortfolioNotifyMessagesResponse response = service.notifyTargetGainBy(portfolio.getId());
+		PortfolioNotifyMessagesResponse response = (PortfolioNotifyMessagesResponse)service.notifyTargetGain(
+			portfolio.getId());
 
 		// then
 		assertAll(
 			() -> assertThat(response.getNotifications()).isEmpty()
+		);
+	}
+
+	@DisplayName("모든 포트폴리오의 최대 손실율 도달을 만족하는 회원들에게 알림을 푸시한다")
+	@Test
+	void notifyMaxLossAll() {
+		// given
+		Member member = memberRepository.save(createMember());
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
+		Stock stock = stockRepository.save(createSamsungStock());
+		PortfolioHolding portfolioHolding = portfolioHoldingRepository.save(createPortfolioHolding(portfolio, stock));
+
+		LocalDateTime purchaseDate = LocalDateTime.of(2023, 9, 26, 9, 30, 0);
+		Count numShares = Count.from(50);
+		Money purchasePricePerShare = Money.won(60000);
+		String memo = "첫구매";
+		purchaseHistoryRepository.save(
+			createPurchaseHistory(null, purchaseDate, numShares, purchasePricePerShare, memo, portfolioHolding));
+		fcmRepository.save(createFcmToken("token", member));
+
+		given(firebaseMessagingService.send(any(Message.class)))
+			.willReturn(Optional.of("messageId"));
+		manager.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 100L));
+
+		// when
+		PortfolioNotifyMessagesResponse response = (PortfolioNotifyMessagesResponse)service.notifyMaxLossAll();
+
+		// then
+		assertAll(
+			() -> assertThat(response.getNotifications()).hasSize(1),
+			() -> assertThat(notificationRepository.findAllByMemberId(member.getId())).hasSize(1),
+			() -> assertThat(sentManager.hasMaxLossSendHistory(portfolio.getId())).isTrue()
 		);
 	}
 
@@ -272,12 +317,14 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		manager.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 100L));
 
 		// when
-		PortfolioNotifyMessagesResponse response = service.notifyMaxLoss(portfolio.getId());
+		PortfolioNotifyMessagesResponse response = (PortfolioNotifyMessagesResponse)service.notifyMaxLoss(
+			portfolio.getId());
 
 		// then
 		assertAll(
 			() -> assertThat(response.getNotifications()).hasSize(1),
-			() -> assertThat(notificationRepository.findAllByMemberId(member.getId())).hasSize(1)
+			() -> assertThat(notificationRepository.findAllByMemberId(member.getId())).hasSize(1),
+			() -> assertThat(sentManager.hasMaxLossSendHistory(portfolio.getId())).isTrue()
 		);
 	}
 
@@ -307,11 +354,13 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		manager.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L));
 
 		// when
-		PortfolioNotifyMessagesResponse response = service.notifyMaxLoss(portfolio.getId());
+		PortfolioNotifyMessagesResponse response = (PortfolioNotifyMessagesResponse)service.notifyMaxLoss(
+			portfolio.getId());
 
 		// then
 		assertAll(
-			() -> assertThat(response.getNotifications()).isEmpty()
+			() -> assertThat(response.getNotifications()).isEmpty(),
+			() -> assertThat(sentManager.hasMaxLossSendHistory(portfolio.getId())).isFalse()
 		);
 	}
 
@@ -338,12 +387,14 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		manager.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L));
 
 		// when
-		PortfolioNotifyMessagesResponse response = service.notifyMaxLoss(portfolio.getId());
+		PortfolioNotifyMessagesResponse response = (PortfolioNotifyMessagesResponse)service.notifyMaxLoss(
+			portfolio.getId());
 
 		// then
 		assertAll(
 			() -> assertThat(response.getNotifications()).hasSize(1),
-			() -> assertThat(fcmRepository.findById(fcmToken.getId())).isEmpty()
+			() -> assertThat(fcmRepository.findById(fcmToken.getId())).isEmpty(),
+			() -> assertThat(sentManager.hasMaxLossSendHistory(portfolio.getId())).isTrue()
 		);
 	}
 
@@ -379,12 +430,13 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 			.willReturn(Optional.of("messageId"));
 
 		// when
-		PortfolioNotifyMessagesResponse response = service.notifyTargetGain();
+		PortfolioNotifyMessagesResponse response = (PortfolioNotifyMessagesResponse)service.notifyTargetGainAll();
 
 		// then
 		assertAll(
 			() -> assertThat(response.getNotifications()).hasSize(1),
-			() -> assertThat(notificationRepository.findAllByMemberId(member.getId())).hasSize(1)
+			() -> assertThat(notificationRepository.findAllByMemberId(member.getId())).hasSize(1),
+			() -> assertThat(sentManager.hasTargetGainSendHistory(portfolio.getId())).isTrue()
 		);
 	}
 
@@ -410,6 +462,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 
 		StockTargetPrice stockTargetPrice3 = stockTargetPriceRepository.save(createStockTargetPrice(member2, stock));
 		StockTargetPrice stockTargetPrice4 = stockTargetPriceRepository.save(createStockTargetPrice(member2, stock2));
+
 		targetPriceNotificationRepository.saveAll(
 			createTargetPriceNotification(stockTargetPrice3, List.of(60000L, 70000L)));
 		targetPriceNotificationRepository.saveAll(
@@ -427,11 +480,12 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 			.collect(Collectors.toList());
 
 		// when
-		TargetPriceNotifyMessageResponse response = service.notifyTargetPriceBy(tickerSymbols);
+		NotifyMessageResponse response = service.notifyTargetPriceToAllMember(tickerSymbols);
 
 		// then
 		assertAll(
-			() -> assertThat(response.getNotifications())
+			() -> assertThat(response)
+				.extracting("notifications")
 				.asList()
 				.hasSize(4),
 			() -> assertThat(notificationRepository.findAllByMemberIds(List.of(member.getId(), member2.getId())))
@@ -461,12 +515,13 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		given(firebaseMessagingService.send(any(Message.class)))
 			.willReturn(Optional.of("messageId"));
 		// when
-		TargetPriceNotifyMessageResponse response = service.notifyTargetPriceBy(
+		NotifyMessageResponse response = service.notifyTargetPrice(
 			member.getId());
 
 		// then
 		NotificationType type = NotificationType.STOCK_TARGET_PRICE;
-		assertThat(response.getNotifications())
+		assertThat(response)
+			.extracting("notifications")
 			.asList()
 			.hasSize(2)
 			.extracting(
@@ -540,17 +595,17 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 
 		manager.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 60000L));
 		manager.addCurrentPrice(KisCurrentPrice.create(stock2.getTickerSymbol(), 10000L));
-		given(sentManager.hasTargetPriceSendHistory(sendTargetPriceNotification.getId()))
-			.willReturn(true);
+		sentManager.addTargetPriceSendHistory(sendTargetPriceNotification.getId());
 		given(firebaseMessagingService.send(any(Message.class)))
 			.willReturn(Optional.of("messageId"));
 		// when
-		TargetPriceNotifyMessageResponse response = service.notifyTargetPriceBy(
+		NotifyMessageResponse response = service.notifyTargetPriceToAllMember(
 			List.of(stock.getTickerSymbol(), stock2.getTickerSymbol()));
 
 		// then
 		NotificationType type = NotificationType.STOCK_TARGET_PRICE;
-		assertThat(response.getNotifications())
+		assertThat(response)
+			.extracting("notifications")
 			.asList()
 			.hasSize(1)
 			.extracting("title", "type", "referenceId", "messageId")
@@ -577,11 +632,12 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		given(firebaseMessagingService.send(any(Message.class)))
 			.willReturn(Optional.empty());
 		// when
-		TargetPriceNotifyMessageResponse response = service.notifyTargetPriceBy(
+		NotifyMessageResponse response = service.notifyTargetPriceToAllMember(
 			List.of(stock.getTickerSymbol()));
 
 		// then
-		assertThat(response.getNotifications())
+		assertThat(response)
+			.extracting("notifications")
 			.asList()
 			.hasSize(1);
 		assertThat(notificationRepository.findAllByMemberId(member.getId()))
@@ -606,17 +662,16 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 
 		manager.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 60000L));
 		manager.addCurrentPrice(KisCurrentPrice.create(stock2.getTickerSymbol(), 10000L));
-		given(sentManager.hasTargetPriceSendHistory(anyLong()))
-			.willReturn(false);
 		given(firebaseMessagingService.send(any(Message.class)))
 			.willReturn(Optional.of("messageId"));
 		// when
-		TargetPriceNotifyMessageResponse response = service.notifyTargetPriceBy(
+		NotifyMessageResponse response = service.notifyTargetPriceToAllMember(
 			List.of(stock.getTickerSymbol(), stock2.getTickerSymbol()));
 
 		// then
 		NotificationType type = NotificationType.STOCK_TARGET_PRICE;
-		assertThat(response.getNotifications())
+		assertThat(response)
+			.extracting("notifications")
 			.asList()
 			.hasSize(2)
 			.extracting("title", "type", "referenceId", "messageId")

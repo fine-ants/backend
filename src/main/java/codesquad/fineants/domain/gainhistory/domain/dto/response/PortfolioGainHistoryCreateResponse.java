@@ -1,9 +1,9 @@
-package codesquad.fineants.domain.portfolio_gain_history.domain.dto.response;
+package codesquad.fineants.domain.gainhistory.domain.dto.response;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-import codesquad.fineants.domain.portfolio_gain_history.domain.entity.PortfolioGainHistory;
+import codesquad.fineants.domain.gainhistory.domain.entity.PortfolioGainHistory;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

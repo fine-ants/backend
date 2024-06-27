@@ -9,6 +9,8 @@ import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import codesquad.fineants.domain.gainhistory.domain.entity.PortfolioGainHistory;
+import codesquad.fineants.domain.gainhistory.repository.PortfolioGainHistoryRepository;
 import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
 import codesquad.fineants.domain.holding.repository.PortfolioHoldingRepository;
 import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
@@ -23,8 +25,6 @@ import codesquad.fineants.domain.portfolio.domain.dto.response.PortfoliosRespons
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.repository.PortfolioPropertiesRepository;
 import codesquad.fineants.domain.portfolio.repository.PortfolioRepository;
-import codesquad.fineants.domain.portfolio_gain_history.domain.entity.PortfolioGainHistory;
-import codesquad.fineants.domain.portfolio_gain_history.repository.PortfolioGainHistoryRepository;
 import codesquad.fineants.domain.purchasehistory.repository.PurchaseHistoryRepository;
 import codesquad.fineants.global.errors.errorcode.MemberErrorCode;
 import codesquad.fineants.global.errors.errorcode.PortfolioErrorCode;
@@ -159,11 +159,12 @@ public class PortFolioService {
 		Map<Portfolio, PortfolioGainHistory> portfolioGainHistoryMap = portfolios.stream()
 			.collect(Collectors.toMap(
 				portfolio -> portfolio,
-				portfolio -> portfolioGainHistoryRepository.findFirstByPortfolioAndCreateAtIsLessThanEqualOrderByCreateAtDesc(
-						portfolio.getId(), LocalDateTime.now())
-					.stream()
-					.findFirst()
-					.orElseGet(() -> PortfolioGainHistory.empty(portfolio))
+				portfolio ->
+					portfolioGainHistoryRepository.findFirstByPortfolioAndCreateAtIsLessThanEqualOrderByCreateAtDesc(
+							portfolio.getId(), LocalDateTime.now())
+						.stream()
+						.findFirst()
+						.orElseGet(() -> PortfolioGainHistory.empty(portfolio))
 			));
 
 		return PortfoliosResponse.of(portfolios, portfolioGainHistoryMap, currentPriceRepository);

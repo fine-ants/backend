@@ -31,6 +31,7 @@ import org.springframework.web.multipart.MultipartFile;
 import codesquad.fineants.domain.common.count.Count;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.dividend.domain.entity.StockDividend;
+import codesquad.fineants.domain.gainhistory.domain.entity.PortfolioGainHistory;
 import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.notification.domain.dto.response.NotifyMessage;
@@ -40,7 +41,6 @@ import codesquad.fineants.domain.notification.domain.entity.Notification;
 import codesquad.fineants.domain.notification.domain.entity.PortfolioNotification;
 import codesquad.fineants.domain.notification.domain.entity.StockTargetPriceNotification;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
-import codesquad.fineants.domain.portfolio_gain_history.domain.entity.PortfolioGainHistory;
 import codesquad.fineants.domain.purchasehistory.domain.entity.PurchaseHistory;
 import codesquad.fineants.domain.stock.domain.entity.Market;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
@@ -195,7 +195,7 @@ public abstract class RestDocsSupport {
 	}
 
 	protected PortfolioNotification createPortfolioTargetGainNotification(Portfolio portfolio, Member member) {
-		NotifyMessage message = portfolio.getTargetGainMessage("token");
+		NotifyMessage message = portfolio.createTargetGainMessageWith("token");
 		return PortfolioNotification.newNotification(1L, message.getTitle(), message.getType(),
 			message.getReferenceId(), message.getLink(), portfolio.getName(), member);
 	}

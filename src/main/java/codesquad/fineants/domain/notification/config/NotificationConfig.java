@@ -1,11 +1,14 @@
 package codesquad.fineants.domain.notification.config;
 
+import java.util.Collections;
 import java.util.List;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
+import codesquad.fineants.domain.notification.domain.entity.policy.ConditionEvaluator;
+import codesquad.fineants.domain.notification.domain.entity.policy.TargetGainNotificationEvaluator;
 import codesquad.fineants.domain.notification.domain.entity.policy.maxloss.MaxLossAccountPreferenceCondition;
 import codesquad.fineants.domain.notification.domain.entity.policy.maxloss.MaxLossActiveCondition;
 import codesquad.fineants.domain.notification.domain.entity.policy.maxloss.MaxLossCondition;
@@ -22,6 +25,10 @@ import codesquad.fineants.domain.notification.domain.entity.policy.target_price.
 import codesquad.fineants.domain.notification.domain.entity.policy.target_price.TargetPriceNotificationPolicy;
 import codesquad.fineants.domain.notification.domain.entity.policy.target_price.TargetPriceSentHistoryCondition;
 import codesquad.fineants.domain.notification.repository.NotificationSentRepository;
+import codesquad.fineants.domain.notification.service.disptacher.NotificationDispatcher;
+import codesquad.fineants.domain.notification.service.provider.FirebaseNotificationProvider;
+import codesquad.fineants.domain.notificationpreference.domain.entity.NotificationPreference;
+import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import lombok.RequiredArgsConstructor;
 
 @Configuration
@@ -30,19 +37,31 @@ public class NotificationConfig {
 
 	private final NotificationSentRepository sentManager;
 	private final CurrentPriceRepository currentPriceRepository;
+	private final FirebaseNotificationProvider firebaseNotificationProvider;
 
 	@Bean
 	public TargetGainNotificationPolicy targetGainNotificationPolicy() {
-		return new TargetGainNotificationPolicy(
-			List.of(
-				new TargetGainCondition(),
-				new TargetGainActiveCondition(),
-				new TargetGainSentHistoryCondition(sentManager)
-			),
-			List.of(
-				new TargetGainAccountPreferenceCondition()
-			)
-		);
+		return new TargetGainNotificationPolicy(targetGainNotificationEvaluator());
+	}
+
+	@Bean
+	public TargetGainNotificationEvaluator targetGainNotificationEvaluator() {
+		return new TargetGainNotificationEvaluator(portfolioConditionEvaluator(),
+			notificationPreferenceConditionEvaluator());
+	}
+
+	@Bean
+	public ConditionEvaluator<Portfolio> portfolioConditionEvaluator() {
+		return new ConditionEvaluator<>(List.of(
+			new TargetGainCondition(),
+			new TargetGainActiveCondition(),
+			new TargetGainSentHistoryCondition(sentManager)
+		));
+	}
+
+	@Bean
+	public ConditionEvaluator<NotificationPreference> notificationPreferenceConditionEvaluator() {
+		return new ConditionEvaluator<>(List.of(new TargetGainAccountPreferenceCondition()));
 	}
 
 	@Bean
@@ -70,6 +89,13 @@ public class NotificationConfig {
 			List.of(
 				new TargetPriceAccountPreferenceCondition()
 			)
+		);
+	}
+
+	@Bean
+	public NotificationDispatcher notificationDispatcher() {
+		return new NotificationDispatcher(
+			Collections.singletonList(firebaseNotificationProvider)
 		);
 	}
 }

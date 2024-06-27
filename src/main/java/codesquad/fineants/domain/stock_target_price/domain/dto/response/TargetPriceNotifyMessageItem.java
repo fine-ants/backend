@@ -1,7 +1,8 @@
 package codesquad.fineants.domain.stock_target_price.domain.dto.response;
 
 import codesquad.fineants.domain.common.money.Money;
-import codesquad.fineants.domain.notification.domain.dto.response.TargetPriceNotificationResponse;
+import codesquad.fineants.domain.notification.domain.dto.response.NotifyMessageItem;
+import codesquad.fineants.domain.notification.domain.dto.response.TargetPriceNotificationSaveResponse;
 import codesquad.fineants.domain.notification.domain.entity.type.NotificationType;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -15,7 +16,7 @@ import lombok.ToString;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
 @ToString
-public class TargetPriceNotifyMessageItem {
+public class TargetPriceNotifyMessageItem implements NotifyMessageItem {
 	private Long notificationId;
 	private Boolean isRead;
 	private String title;
@@ -29,7 +30,7 @@ public class TargetPriceNotifyMessageItem {
 	private Money targetPrice;
 	private Long targetPriceNotificationId;
 
-	public static TargetPriceNotifyMessageItem from(TargetPriceNotificationResponse response, String messageId) {
+	public static TargetPriceNotifyMessageItem from(TargetPriceNotificationSaveResponse response, String messageId) {
 		return TargetPriceNotifyMessageItem.builder()
 			.notificationId(response.getNotificationId())
 			.isRead(response.getIsRead())

@@ -17,6 +17,8 @@ import codesquad.fineants.domain.common.money.Currency;
 import codesquad.fineants.domain.common.money.Expression;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.common.money.RateDivision;
+import codesquad.fineants.domain.gainhistory.domain.entity.PortfolioGainHistory;
+import codesquad.fineants.domain.gainhistory.repository.PortfolioGainHistoryRepository;
 import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
@@ -25,8 +27,6 @@ import codesquad.fineants.domain.portfolio.domain.dto.response.DashboardPieChart
 import codesquad.fineants.domain.portfolio.domain.dto.response.OverviewResponse;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.repository.PortfolioRepository;
-import codesquad.fineants.domain.portfolio_gain_history.domain.entity.PortfolioGainHistory;
-import codesquad.fineants.domain.portfolio_gain_history.repository.PortfolioGainHistoryRepository;
 import codesquad.fineants.global.errors.errorcode.MemberErrorCode;
 import codesquad.fineants.global.errors.exception.BadRequestException;
 import lombok.RequiredArgsConstructor;
