@@ -1,4 +1,4 @@
-package codesquad.fineants.domain.portfolio_gain_history.domain.entity;
+package codesquad.fineants.domain.gainhistory.domain.entity;
 
 import codesquad.fineants.domain.BaseEntity;
 import codesquad.fineants.domain.common.money.Money;

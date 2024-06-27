@@ -18,7 +18,6 @@ public enum PortfolioErrorCode implements ErrorCode {
 	TOTAL_INVESTMENT_PRICE_EXCEEDS_BUDGET(HttpStatus.BAD_REQUEST, "매입 실패, 현금이 부족합니다"),
 	TARGET_GAIN_IS_ZERO_WITH_NOTIFY_UPDATE(HttpStatus.BAD_REQUEST, "목표 수익금액이 0원이어서 알림을 수정할 수 없습니다"),
 	MAX_LOSS_IS_ZERO_WITH_NOTIFY_UPDATE(HttpStatus.BAD_REQUEST, "최대 손실금액이 0원이어서 알림을 수정할 수 없습니다");
-	
 	private final HttpStatus httpStatus;
 	private final String message;
 

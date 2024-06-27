@@ -54,10 +54,12 @@ public class Percentage implements Comparable<Percentage> {
 
 	@Override
 	public boolean equals(Object object) {
-		if (this == object)
+		if (this == object) {
 			return true;
-		if (object == null || getClass() != object.getClass())
+		}
+		if (object == null || getClass() != object.getClass()) {
 			return false;
+		}
 		Percentage that = (Percentage)object;
 		return compareTo(that) == 0;
 	}
@@ -68,10 +70,10 @@ public class Percentage implements Comparable<Percentage> {
 	}
 
 	@Override
-	public int compareTo(@NotNull Percentage o) {
-		BigDecimal a = amount.setScale(PERCENTAGE_SCALE, RoundingMode.HALF_UP);
-		BigDecimal b = o.amount.setScale(PERCENTAGE_SCALE, RoundingMode.HALF_UP);
-		return a.compareTo(b);
+	public int compareTo(@NotNull Percentage percentage) {
+		BigDecimal p1 = amount.setScale(PERCENTAGE_SCALE, RoundingMode.HALF_UP);
+		BigDecimal p2 = percentage.amount.setScale(PERCENTAGE_SCALE, RoundingMode.HALF_UP);
+		return p1.compareTo(p2);
 	}
 
 	static class PercentageSerializer extends JsonSerializer<Percentage> {

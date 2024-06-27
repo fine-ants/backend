@@ -1,4 +1,4 @@
-package codesquad.fineants.domain.portfolio_gain_history.service;
+package codesquad.fineants.domain.gainhistory.service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -8,12 +8,12 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import codesquad.fineants.domain.gainhistory.domain.dto.response.PortfolioGainHistoryCreateResponse;
+import codesquad.fineants.domain.gainhistory.domain.entity.PortfolioGainHistory;
+import codesquad.fineants.domain.gainhistory.repository.PortfolioGainHistoryRepository;
 import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.repository.PortfolioRepository;
-import codesquad.fineants.domain.portfolio_gain_history.domain.dto.response.PortfolioGainHistoryCreateResponse;
-import codesquad.fineants.domain.portfolio_gain_history.domain.entity.PortfolioGainHistory;
-import codesquad.fineants.domain.portfolio_gain_history.repository.PortfolioGainHistoryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -40,11 +40,12 @@ public class PortfolioGainHistoryService {
 
 		for (Portfolio portfolio : portfolios) {
 			portfolio.applyCurrentPriceAllHoldingsBy(currentPriceRepository);
-			PortfolioGainHistory latestHistory = repository.findFirstByPortfolioAndCreateAtIsLessThanEqualOrderByCreateAtDesc(
-					portfolio.getId(), LocalDateTime.now())
-				.stream()
-				.findFirst()
-				.orElseGet(() -> PortfolioGainHistory.empty(portfolio));
+			PortfolioGainHistory latestHistory =
+				repository.findFirstByPortfolioAndCreateAtIsLessThanEqualOrderByCreateAtDesc(
+						portfolio.getId(), LocalDateTime.now())
+					.stream()
+					.findFirst()
+					.orElseGet(() -> PortfolioGainHistory.empty(portfolio));
 			PortfolioGainHistory history = portfolio.createPortfolioGainHistory(latestHistory);
 			portfolioGainHistories.add(repository.save(history));
 		}

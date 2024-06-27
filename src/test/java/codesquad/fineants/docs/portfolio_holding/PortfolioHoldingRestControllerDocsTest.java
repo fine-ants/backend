@@ -27,6 +27,7 @@ import codesquad.fineants.docs.RestDocsSupport;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.common.money.Percentage;
 import codesquad.fineants.domain.dividend.domain.entity.StockDividend;
+import codesquad.fineants.domain.gainhistory.domain.entity.PortfolioGainHistory;
 import codesquad.fineants.domain.holding.controller.PortfolioHoldingRestController;
 import codesquad.fineants.domain.holding.domain.dto.request.PortfolioHoldingCreateRequest;
 import codesquad.fineants.domain.holding.domain.dto.response.PortfolioChartResponse;
@@ -41,7 +42,6 @@ import codesquad.fineants.domain.holding.service.PortfolioHoldingService;
 import codesquad.fineants.domain.holding.service.PortfolioObservableService;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
-import codesquad.fineants.domain.portfolio_gain_history.domain.entity.PortfolioGainHistory;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.global.util.ObjectMapperUtil;
 

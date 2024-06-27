@@ -4,9 +4,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
-import codesquad.fineants.domain.portfolio_gain_history.domain.entity.PortfolioGainHistory;
+import codesquad.fineants.domain.gainhistory.domain.entity.PortfolioGainHistory;
 import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
+import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

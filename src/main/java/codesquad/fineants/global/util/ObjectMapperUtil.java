@@ -3,9 +3,9 @@ package codesquad.fineants.global.util;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import codesquad.fineants.global.config.JacksonConfig;
 import codesquad.fineants.global.errors.errorcode.ObjectMapperErrorCode;
 import codesquad.fineants.global.errors.exception.ServerInternalException;
-import codesquad.fineants.global.config.JacksonConfig;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
