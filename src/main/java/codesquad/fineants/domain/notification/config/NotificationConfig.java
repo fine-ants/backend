@@ -1,5 +1,6 @@
 package codesquad.fineants.domain.notification.config;
 
+import java.util.Collections;
 import java.util.List;
 
 import org.springframework.context.annotation.Bean;
@@ -24,6 +25,8 @@ import codesquad.fineants.domain.notification.domain.entity.policy.target_price.
 import codesquad.fineants.domain.notification.domain.entity.policy.target_price.TargetPriceNotificationPolicy;
 import codesquad.fineants.domain.notification.domain.entity.policy.target_price.TargetPriceSentHistoryCondition;
 import codesquad.fineants.domain.notification.repository.NotificationSentRepository;
+import codesquad.fineants.domain.notification.service.disptacher.NotificationDispatcher;
+import codesquad.fineants.domain.notification.service.provider.FirebaseNotificationProvider;
 import codesquad.fineants.domain.notificationpreference.domain.entity.NotificationPreference;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +37,7 @@ public class NotificationConfig {
 
 	private final NotificationSentRepository sentManager;
 	private final CurrentPriceRepository currentPriceRepository;
+	private final FirebaseNotificationProvider firebaseNotificationProvider;
 
 	@Bean
 	public TargetGainNotificationPolicy targetGainNotificationPolicy() {
@@ -85,6 +89,13 @@ public class NotificationConfig {
 			List.of(
 				new TargetPriceAccountPreferenceCondition()
 			)
+		);
+	}
+
+	@Bean
+	public NotificationDispatcher notificationDispatcher() {
+		return new NotificationDispatcher(
+			Collections.singletonList(firebaseNotificationProvider)
 		);
 	}
 }

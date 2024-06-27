@@ -29,7 +29,7 @@ import codesquad.fineants.domain.notification.domain.entity.policy.target_gain.T
 import codesquad.fineants.domain.notification.domain.entity.policy.target_price.TargetPriceNotificationPolicy;
 import codesquad.fineants.domain.notification.repository.NotificationRepository;
 import codesquad.fineants.domain.notification.repository.NotificationSentRepository;
-import codesquad.fineants.domain.notification.service.provider.FirebaseNotificationProvider;
+import codesquad.fineants.domain.notification.service.disptacher.NotificationDispatcher;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.repository.PortfolioRepository;
 import codesquad.fineants.domain.stock_target_price.domain.dto.response.TargetPriceNotifyMessageResponse;
@@ -56,7 +56,7 @@ public class NotificationService {
 	private final TargetGainNotificationPolicy targetGainNotificationPolicy;
 	private final MaxLossNotificationPolicy maximumLossNotificationPolicy;
 	private final TargetPriceNotificationPolicy targetPriceNotificationPolicy;
-	private final FirebaseNotificationProvider notificationProvider;
+	private final NotificationDispatcher notificationDispatcher;
 
 	@NotNull
 	@Transactional
@@ -124,7 +124,7 @@ public class NotificationService {
 	private List<NotifyMessageItem> notifyMessage(List<Notifiable> targets,
 		NotificationPolicy<Notifiable> policy, Consumer<Long> sentFunction) {
 		// 알림 전송
-		List<SentNotifyMessage> messages = notificationProvider.sendNotification(targets, policy);
+		List<SentNotifyMessage> messages = notificationDispatcher.dispatch(targets, policy);
 
 		// 알림 저장
 		List<NotificationSaveResponse> saveResponses = this.saveNotification(messages);
