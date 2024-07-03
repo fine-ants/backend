@@ -17,6 +17,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.mockito.ArgumentMatchers;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
@@ -25,9 +26,11 @@ import codesquad.fineants.ControllerTestSupport;
 import codesquad.fineants.domain.common.count.Count;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
+import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.repository.PortfolioRepository;
 import codesquad.fineants.domain.purchasehistory.domain.dto.request.PurchaseHistoryCreateRequest;
+import codesquad.fineants.domain.purchasehistory.domain.dto.response.PurchaseHistoryCreateResponse;
 import codesquad.fineants.domain.purchasehistory.domain.entity.PurchaseHistory;
 import codesquad.fineants.domain.purchasehistory.service.PurchaseHistoryService;
 import codesquad.fineants.global.errors.errorcode.PortfolioErrorCode;
@@ -53,8 +56,11 @@ class PurchaseHistoryRestControllerTest extends ControllerTestSupport {
 	@ParameterizedTest
 	void addPurchaseHistory(Count numShares) throws Exception {
 		// given
-		Portfolio portfolio = createPortfolio(createMember());
+		Member member = createMember();
+		Portfolio portfolio = createPortfolio(member);
 		PortfolioHolding portfolioHolding = createPortfolioHolding(portfolio, createSamsungStock());
+		PurchaseHistory purchaseHistory = createPurchaseHistory(1L, LocalDateTime.of(2023, 10, 23, 10, 0, 0),
+			Count.from(3), Money.won(50000), "memo", portfolioHolding);
 		String url = String.format("/api/portfolio/%d/holdings/%d/purchaseHistory", portfolio.getId(),
 			portfolioHolding.getId());
 		Map<String, Object> requestBody = new HashMap<>();
@@ -63,6 +69,14 @@ class PurchaseHistoryRestControllerTest extends ControllerTestSupport {
 		requestBody.put("purchasePricePerShare", 50000);
 		requestBody.put("memo", "첫구매");
 
+		given(purchaseHistoryService.createPurchaseHistory(
+			ArgumentMatchers.any(PurchaseHistoryCreateRequest.class),
+			anyLong(),
+			anyLong(),
+			anyLong()
+		)).willReturn(
+			PurchaseHistoryCreateResponse.from(purchaseHistory, portfolio.getId(), member.getId())
+		);
 		given(portfolioRepository.findById(anyLong())).willReturn(Optional.of(portfolio));
 
 		// when & then
@@ -74,7 +88,9 @@ class PurchaseHistoryRestControllerTest extends ControllerTestSupport {
 			.andExpect(jsonPath("code").value(equalTo(201)))
 			.andExpect(jsonPath("status").value(equalTo("Created")))
 			.andExpect(jsonPath("message").value(equalTo("매입 이력이 추가되었습니다")))
-			.andExpect(jsonPath("data").value(equalTo(null)));
+			.andExpect(jsonPath("data.id").value(equalTo(purchaseHistory.getId().intValue())))
+			.andExpect(jsonPath("data.portfolioId").value(equalTo(portfolio.getId().intValue())))
+			.andExpect(jsonPath("data.memberId").value(equalTo(member.getId().intValue())));
 	}
 
 	@DisplayName("사용자가 매입 이력 추가시 유효하지 않은 입력으로 추가할 수 없다")

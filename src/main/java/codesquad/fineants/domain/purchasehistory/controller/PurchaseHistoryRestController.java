@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import codesquad.fineants.domain.purchasehistory.domain.dto.request.PurchaseHistoryCreateRequest;
 import codesquad.fineants.domain.purchasehistory.domain.dto.request.PurchaseHistoryUpdateRequest;
+import codesquad.fineants.domain.purchasehistory.domain.dto.response.PurchaseHistoryCreateResponse;
 import codesquad.fineants.domain.purchasehistory.domain.dto.response.PurchaseHistoryDeleteResponse;
 import codesquad.fineants.domain.purchasehistory.service.PurchaseHistoryService;
 import codesquad.fineants.global.api.ApiResponse;
@@ -32,14 +33,15 @@ public class PurchaseHistoryRestController {
 
 	@ResponseStatus(HttpStatus.CREATED)
 	@PostMapping
-	public ApiResponse<Void> createPurchaseHistory(
+	public ApiResponse<PurchaseHistoryCreateResponse> createPurchaseHistory(
 		@PathVariable Long portfolioId,
 		@MemberAuthenticationPrincipal MemberAuthentication authentication,
 		@PathVariable Long portfolioHoldingId,
 		@Valid @RequestBody PurchaseHistoryCreateRequest request) {
 		log.info("매입 내역 추가 요청 : request={}, portfolioHoldingId={}", request, portfolioHoldingId);
-		service.createPurchaseHistory(request, portfolioId, portfolioHoldingId, authentication.getId());
-		return ApiResponse.success(PurchaseHistorySuccessCode.CREATED_ADD_PURCHASE_HISTORY);
+		PurchaseHistoryCreateResponse response = service.createPurchaseHistory(request, portfolioId,
+			portfolioHoldingId, authentication.getId());
+		return ApiResponse.success(PurchaseHistorySuccessCode.CREATED_ADD_PURCHASE_HISTORY, response);
 	}
 
 	@PutMapping("/{purchaseHistoryId}")

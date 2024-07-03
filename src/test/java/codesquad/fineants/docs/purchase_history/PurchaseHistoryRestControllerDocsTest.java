@@ -1,6 +1,8 @@
 package codesquad.fineants.docs.purchase_history;
 
 import static org.hamcrest.Matchers.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.BDDMockito.*;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.*;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.*;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
@@ -13,14 +15,18 @@ import java.util.Map;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.payload.JsonFieldType;
 
 import codesquad.fineants.docs.RestDocsSupport;
 import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
+import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.purchasehistory.controller.PurchaseHistoryRestController;
+import codesquad.fineants.domain.purchasehistory.domain.dto.request.PurchaseHistoryCreateRequest;
+import codesquad.fineants.domain.purchasehistory.domain.dto.response.PurchaseHistoryCreateResponse;
 import codesquad.fineants.domain.purchasehistory.domain.entity.PurchaseHistory;
 import codesquad.fineants.domain.purchasehistory.service.PurchaseHistoryService;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
@@ -39,9 +45,11 @@ public class PurchaseHistoryRestControllerDocsTest extends RestDocsSupport {
 	@Test
 	void createPurchaseHistory() throws Exception {
 		// given
-		Portfolio portfolio = createPortfolio(createMember());
+		Member member = createMember();
+		Portfolio portfolio = createPortfolio(member);
 		Stock stock = createSamsungStock();
 		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
+		PurchaseHistory purchaseHistory = createPurchaseHistory(holding, LocalDateTime.of(2023, 10, 23, 13, 0, 0));
 
 		Map<String, Object> body = Map.of(
 			"purchaseDate", "2023-10-23T13:00:00",
@@ -49,6 +57,15 @@ public class PurchaseHistoryRestControllerDocsTest extends RestDocsSupport {
 			"purchasePricePerShare", 50000,
 			"memo", "첫구매"
 		);
+		given(service.createPurchaseHistory(
+			ArgumentMatchers.any(PurchaseHistoryCreateRequest.class),
+			anyLong(),
+			anyLong(),
+			anyLong()
+		)).willReturn(
+			PurchaseHistoryCreateResponse.from(purchaseHistory, portfolio.getId(), member.getId())
+		);
+
 		// when & then
 		mockMvc.perform(
 				post("/api/portfolio/{portfolioId}/holdings/{portfolioHoldingId}/purchaseHistory", portfolio.getId(),
@@ -60,6 +77,9 @@ public class PurchaseHistoryRestControllerDocsTest extends RestDocsSupport {
 			.andExpect(jsonPath("code").value(equalTo(201)))
 			.andExpect(jsonPath("status").value(equalTo("Created")))
 			.andExpect(jsonPath("message").value(equalTo("매입 이력이 추가되었습니다")))
+			.andExpect(jsonPath("data.id").value(equalTo(purchaseHistory.getId().intValue())))
+			.andExpect(jsonPath("data.portfolioId").value(equalTo(portfolio.getId().intValue())))
+			.andExpect(jsonPath("data.memberId").value(equalTo(member.getId().intValue())))
 			.andDo(
 				document(
 					"purchase_history-create",
@@ -82,8 +102,14 @@ public class PurchaseHistoryRestControllerDocsTest extends RestDocsSupport {
 							.description("상태"),
 						fieldWithPath("message").type(JsonFieldType.STRING)
 							.description("메시지"),
-						fieldWithPath("data").type(JsonFieldType.NULL)
-							.description("응답 데이터")
+						fieldWithPath("data").type(JsonFieldType.OBJECT)
+							.description("응답 데이터"),
+						fieldWithPath("data.id").type(JsonFieldType.NUMBER)
+							.description("매입 이력 등록번호"),
+						fieldWithPath("data.portfolioId").type(JsonFieldType.NUMBER)
+							.description("포트폴리오 등록번호"),
+						fieldWithPath("data.memberId").type(JsonFieldType.NUMBER)
+							.description("회원 등록번호")
 					)
 				)
 			);
