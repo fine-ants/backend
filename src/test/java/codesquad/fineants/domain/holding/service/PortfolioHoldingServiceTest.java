@@ -9,11 +9,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.logging.log4j.util.Strings;
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import codesquad.fineants.AbstractContainerBaseTest;
@@ -397,13 +399,14 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		PortfolioHoldingCreateRequest request = ObjectMapperUtil.deserialize(ObjectMapperUtil.serialize(requestBodyMap),
 			PortfolioHoldingCreateRequest.class);
 
+		setAuthentication(member);
 		// when
 		PortfolioStockCreateResponse response = service.createPortfolioHolding(portfolio.getId(), request);
 
 		// then
 		assertAll(
 			() -> assertThat(response)
-				.extracting("portfolioStockId")
+				.extracting("portfolioHoldingId")
 				.isNotNull(),
 			() -> assertThat(portFolioHoldingRepository.findAll()).hasSize(1)
 		);
@@ -451,16 +454,28 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		requestBodyMap.put("purchaseHistory", purchaseHistory);
 		PortfolioHoldingCreateRequest request = ObjectMapperUtil.deserialize(ObjectMapperUtil.serialize(requestBodyMap),
 			PortfolioHoldingCreateRequest.class);
+
+		setAuthentication(member);
 		// when
 		PortfolioStockCreateResponse response = service.createPortfolioHolding(portfolio.getId(), request);
 
 		// then
 		assertAll(
 			() -> assertThat(response)
-				.extracting("portfolioStockId")
+				.extracting("portfolioHoldingId")
 				.isNotNull(),
 			() -> assertThat(portFolioHoldingRepository.findAll()).hasSize(1)
 		);
+	}
+
+	private void setAuthentication(Member member) {
+		MemberAuthentication memberAuthentication = MemberAuthentication.from(member);
+		UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
+			memberAuthentication,
+			Strings.EMPTY,
+			memberAuthentication.getSimpleGrantedAuthority()
+		);
+		SecurityContextHolder.getContext().setAuthentication(authenticationToken);
 	}
 
 	@DisplayName("사용자는 포트폴리오 종목이 존재하는 상태에서 매입 이력과 같이 종목을 추가할때 매입 이력만 추가된다")
@@ -488,13 +503,15 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		requestBodyMap.put("purchaseHistory", purchaseHistory);
 		PortfolioHoldingCreateRequest request = ObjectMapperUtil.deserialize(ObjectMapperUtil.serialize(requestBodyMap),
 			PortfolioHoldingCreateRequest.class);
+
+		setAuthentication(member);
 		// when
 		PortfolioStockCreateResponse response = service.createPortfolioHolding(portfolio.getId(), request);
 
 		// then
 		assertAll(
 			() -> assertThat(response)
-				.extracting("portfolioStockId")
+				.extracting("portfolioHoldingId")
 				.isNotNull(),
 			() -> assertThat(portFolioHoldingRepository.findAll()).hasSize(1),
 			() -> assertThat(purchaseHistoryRepository.findAllByPortfolioHoldingId(holding.getId())).hasSize(2)
@@ -519,6 +536,7 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		PortfolioHoldingCreateRequest request = ObjectMapperUtil.deserialize(ObjectMapperUtil.serialize(requestBodyMap),
 			PortfolioHoldingCreateRequest.class);
 
+		setAuthentication(member);
 		// when
 		Throwable throwable = catchThrowable(() -> service.createPortfolioHolding(portfolio.getId(), request));
 
@@ -539,6 +557,7 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		PortfolioHoldingCreateRequest request = ObjectMapperUtil.deserialize(ObjectMapperUtil.serialize(requestBodyMap),
 			PortfolioHoldingCreateRequest.class);
 
+		setAuthentication(member);
 		// when
 		Throwable throwable = catchThrowable(() -> service.createPortfolioHolding(portfolio.getId(), request));
 

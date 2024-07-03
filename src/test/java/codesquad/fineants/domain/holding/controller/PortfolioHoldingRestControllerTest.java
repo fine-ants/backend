@@ -176,7 +176,7 @@ class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 		Stock stock = createSamsungStock();
 
 		PortfolioStockCreateResponse response = PortfolioStockCreateResponse.from(
-			PortfolioHolding.empty(portfolio, stock));
+			PortfolioHolding.of(1L, portfolio, stock, Money.won(50000)));
 		given(portfolioHoldingService.createPortfolioHolding(anyLong(),
 			any(PortfolioHoldingCreateRequest.class))).willReturn(response);
 
@@ -200,7 +200,7 @@ class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 			.andExpect(jsonPath("code").value(equalTo(201)))
 			.andExpect(jsonPath("status").value(equalTo("Created")))
 			.andExpect(jsonPath("message").value(equalTo("포트폴리오 종목이 추가되었습니다")))
-			.andExpect(jsonPath("data").value(equalTo(null)));
+			.andExpect(jsonPath("data.portfolioHoldingId").value(equalTo(1)));
 	}
 
 	@DisplayName("사용자는 포트폴리오에 종목만 추가한다")
@@ -211,7 +211,7 @@ class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 		Stock stock = createSamsungStock();
 
 		PortfolioStockCreateResponse response = PortfolioStockCreateResponse.from(
-			PortfolioHolding.empty(portfolio, stock));
+			PortfolioHolding.of(1L, portfolio, stock, Money.won(50000)));
 		given(portfolioHoldingService.createPortfolioHolding(anyLong(),
 			any(PortfolioHoldingCreateRequest.class))).willReturn(response);
 
@@ -228,7 +228,7 @@ class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 			.andExpect(jsonPath("code").value(equalTo(201)))
 			.andExpect(jsonPath("status").value(equalTo("Created")))
 			.andExpect(jsonPath("message").value(equalTo("포트폴리오 종목이 추가되었습니다")))
-			.andExpect(jsonPath("data").value(equalTo(null)));
+			.andExpect(jsonPath("data.portfolioHoldingId").value(equalTo(1)));
 	}
 
 	@DisplayName("사용자는 포트폴리오에 종목을 추가할때 stockId를 필수로 같이 전송해야 한다")

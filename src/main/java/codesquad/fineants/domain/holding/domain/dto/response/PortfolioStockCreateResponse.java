@@ -7,7 +7,7 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class PortfolioStockCreateResponse {
 
-	private Long portfolioStockId;
+	private Long portfolioHoldingId;
 
 	public static PortfolioStockCreateResponse from(PortfolioHolding portFolioHolding) {
 		return new PortfolioStockCreateResponse(portFolioHolding.getId());

@@ -111,8 +111,10 @@ public class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 							.description("상태"),
 						fieldWithPath("message").type(JsonFieldType.STRING)
 							.description("메시지"),
-						fieldWithPath("data").type(JsonFieldType.NULL)
-							.description("응답 데이터")
+						fieldWithPath("data").type(JsonFieldType.OBJECT)
+							.description("응답 데이터"),
+						fieldWithPath("data.portfolioHoldingId").type(JsonFieldType.NUMBER)
+							.description("포트폴리오 종목 등록번호")
 					)
 				)
 			);
