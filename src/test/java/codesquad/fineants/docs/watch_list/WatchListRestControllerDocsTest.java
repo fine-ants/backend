@@ -174,7 +174,40 @@ public class WatchListRestControllerDocsTest extends RestDocsSupport {
 					)
 				)
 			);
+	}
 
+	@DisplayName("Watchlist 단일 삭제 API")
+	@Test
+	void deleteWatchList() throws Exception {
+		// given
+
+		// when & then
+		mockMvc.perform(RestDocumentationRequestBuilders.delete("/api/watchlists/{watchlistId}", 1)
+				.cookie(createTokenCookies()))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("code").value(equalTo(200)))
+			.andExpect(jsonPath("status").value(equalTo("OK")))
+			.andExpect(jsonPath("message").value(equalTo("관심종목 목록이 삭제가 완료되었습니다")))
+			.andDo(
+				document(
+					"watchlist-one-delete",
+					preprocessRequest(prettyPrint()),
+					preprocessResponse(prettyPrint()),
+					pathParameters(
+						parameterWithName("watchlistId").description("관심종목 리스트 등록번호")
+					),
+					responseFields(
+						fieldWithPath("code").type(JsonFieldType.NUMBER)
+							.description("코드"),
+						fieldWithPath("status").type(JsonFieldType.STRING)
+							.description("상태"),
+						fieldWithPath("message").type(JsonFieldType.STRING)
+							.description("메시지"),
+						fieldWithPath("data").type(JsonFieldType.NULL)
+							.description("응답 데이터")
+					)
+				)
+			);
 	}
 
 	@DisplayName("Watchlist 조회 API")

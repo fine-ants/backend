@@ -29,6 +29,7 @@ import codesquad.fineants.domain.watchlist.repository.WatchStockRepository;
 import codesquad.fineants.global.errors.errorcode.MemberErrorCode;
 import codesquad.fineants.global.errors.errorcode.StockErrorCode;
 import codesquad.fineants.global.errors.errorcode.WatchListErrorCode;
+import codesquad.fineants.global.errors.exception.FineAntsException;
 import codesquad.fineants.global.errors.exception.ForBiddenException;
 import codesquad.fineants.global.errors.exception.NotFoundResourceException;
 import lombok.RequiredArgsConstructor;
@@ -92,6 +93,18 @@ public class WatchListService {
 			}
 			watchListRepository.deleteById(watchList.getId());
 		});
+	}
+
+	@Transactional
+	@Secured("ROLE_USER")
+	public void deleteWatchList(Long memberId, Long watchlistId) {
+		Member member = findMember(memberId);
+		WatchList watchList = watchListRepository.findById(watchlistId)
+			.orElseThrow(() -> new FineAntsException(WatchListErrorCode.NOT_FOUND_WATCH_LIST));
+		if (!watchList.getMember().getId().equals(member.getId())) {
+			throw new ForBiddenException(WatchListErrorCode.FORBIDDEN);
+		}
+		watchListRepository.deleteById(watchlistId);
 	}
 
 	@Transactional
