@@ -36,6 +36,19 @@ include::{snippets}/watchlist-multiple-delete/request-fields.adoc[]
 include::{snippets}/watchlist-multiple-delete/http-response.adoc[]
 include::{snippets}/watchlist-multiple-delete/response-fields.adoc[]
 
+[[watchlist-one-delete]]
+=== Watchlist 단일 삭제
+
+==== HTTP Request
+
+include::{snippets}/watchlist-one-delete/http-request.adoc[]
+include::{snippets}/watchlist-one-delete/path-parameters.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/watchlist-one-delete/http-response.adoc[]
+include::{snippets}/watchlist-one-delete/response-fields.adoc[]
+
 [[watchlist-one-search]]
 === Watchlist 조회
 

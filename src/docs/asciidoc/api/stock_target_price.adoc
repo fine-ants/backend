@@ -63,6 +63,19 @@ include::{snippets}/stock_target_price-update/request-fields.adoc[]
 include::{snippets}/stock_target_price-update/http-response.adoc[]
 include::{snippets}/stock_target_price-update/response-fields.adoc[]
 
+[[stock_target_price-one-delete]]
+=== 종목 지정가 단일 제거
+
+==== HTTP Request
+
+include::{snippets}/stock_target_price-one-delete/http-request.adoc[]
+include::{snippets}/stock_target_price-one-delete/path-parameters.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/stock_target_price-one-delete/http-response.adoc[]
+include::{snippets}/stock_target_price-one-delete/response-fields.adoc[]
+
 [[stock_target_price-multiple-delete]]
 === 종목 지정가 알림 전체 제거
 

@@ -84,6 +84,14 @@ public class StockTargetPriceNotificationRestController {
 		return ApiResponse.success(successCode);
 	}
 
+	@DeleteMapping("/api/stocks/target-price/{stockTargetPriceId}")
+	public ApiResponse<Void> deleteStockTargetPrice(
+		@PathVariable Long stockTargetPriceId
+	) {
+		service.deleteStockTargetPrice(stockTargetPriceId);
+		return ApiResponse.success(StockSuccessCode.OK_DELETE_STOCK_TARGET_PRICE);
+	}
+
 	// 종목 지정가 알림 전체 삭제
 	@DeleteMapping("/api/stocks/target-price/notifications")
 	public ApiResponse<Void> deleteAllStockTargetPriceNotification(

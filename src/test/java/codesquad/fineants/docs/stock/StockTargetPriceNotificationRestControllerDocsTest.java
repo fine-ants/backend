@@ -59,14 +59,16 @@ public class StockTargetPriceNotificationRestControllerDocsTest extends RestDocs
 	@Test
 	void createStockTargetPriceNotification() throws Exception {
 		// given
+		TargetPriceNotificationCreateResponse response = TargetPriceNotificationCreateResponse.builder()
+			.stockTargetPriceId(1L)
+			.targetPriceNotificationId(1L)
+			.tickerSymbol("005930")
+			.targetPrice(Money.won(60000L))
+			.build();
 		given(service.createStockTargetPriceNotification(
 			any(TargetPriceNotificationCreateRequest.class),
 			anyLong()))
-			.willReturn(TargetPriceNotificationCreateResponse.builder()
-				.targetPriceNotificationId(1L)
-				.tickerSymbol("005930")
-				.targetPrice(Money.won(60000L))
-				.build());
+			.willReturn(response);
 
 		String tickerSymbol = "005930";
 		Map<String, Object> body = Map.of(
@@ -82,7 +84,10 @@ public class StockTargetPriceNotificationRestControllerDocsTest extends RestDocs
 			.andExpect(jsonPath("code").value(equalTo(201)))
 			.andExpect(jsonPath("status").value(equalTo("Created")))
 			.andExpect(jsonPath("message").value(equalTo("해당 종목 지정가 알림을 추가했습니다")))
-			.andExpect(jsonPath("data.targetPriceNotificationId").value(equalTo(1)))
+			.andExpect(jsonPath("data.stockTargetPriceId")
+				.value(equalTo(response.getStockTargetPriceId().intValue())))
+			.andExpect(jsonPath("data.targetPriceNotificationId")
+				.value(equalTo(response.getTargetPriceNotificationId().intValue())))
 			.andExpect(jsonPath("data.tickerSymbol").value(equalTo("005930")))
 			.andExpect(jsonPath("data.targetPrice").value(equalTo(60000)))
 			.andDo(
@@ -105,6 +110,8 @@ public class StockTargetPriceNotificationRestControllerDocsTest extends RestDocs
 							.description("메시지"),
 						fieldWithPath("data").type(JsonFieldType.OBJECT)
 							.description("응답 데이터"),
+						fieldWithPath("data.stockTargetPriceId").type(JsonFieldType.NUMBER)
+							.description("종목 지정가 등록번호"),
 						fieldWithPath("data.targetPriceNotificationId").type(JsonFieldType.NUMBER)
 							.description("지정가 알림 등록번호"),
 						fieldWithPath("data.tickerSymbol").type(JsonFieldType.STRING)
@@ -306,6 +313,40 @@ public class StockTargetPriceNotificationRestControllerDocsTest extends RestDocs
 										"true", "false"
 									)
 								))
+					),
+					responseFields(
+						fieldWithPath("code").type(JsonFieldType.NUMBER)
+							.description("코드"),
+						fieldWithPath("status").type(JsonFieldType.STRING)
+							.description("상태"),
+						fieldWithPath("message").type(JsonFieldType.STRING)
+							.description("메시지"),
+						fieldWithPath("data").type(JsonFieldType.NULL)
+							.description("응답 데이터")
+					)
+				)
+			);
+	}
+
+	@DisplayName("종목 지정가 단일 제거 API")
+	@Test
+	void deleteStockTargetPrice() throws Exception {
+		// given
+
+		// when & then
+		mockMvc.perform(delete("/api/stocks/target-price/{stockTargetPriceId}", 1L)
+				.cookie(createTokenCookies()))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("code").value(equalTo(200)))
+			.andExpect(jsonPath("status").value(equalTo("OK")))
+			.andExpect(jsonPath("message").value(equalTo("해당 종목 지정가를 제거했습니다")))
+			.andDo(
+				document(
+					"stock_target_price-one-delete",
+					preprocessRequest(prettyPrint()),
+					preprocessResponse(prettyPrint()),
+					pathParameters(
+						parameterWithName("stockTargetPriceId").description("종목 지정가 등록번호")
 					),
 					responseFields(
 						fieldWithPath("code").type(JsonFieldType.NUMBER)
