@@ -30,16 +30,22 @@ import lombok.extern.slf4j.Slf4j;
 public class KrxService {
 
 	private final WebClientWrapper webClient;
+	private final StockCsvReader stockCsvReader;
 
 	// 전 종목 기본 정보 조회
 	public Set<StockDataResponse.StockInfo> fetchStockInfo() {
 		String requestUri = "http://data.krx.co.kr/comm/bldAttendant/getJsonData.cmd";
-		String responseText = webClient.post(requestUri, createHeader(), createStockInfoBody(), String.class);
-		Set<StockDataResponse.StockInfo> latestStocks = ObjectMapperUtil.deserialize(responseText,
-				StockDataResponse.class)
-			.getStockInfos();
-		log.debug("latestStocks count {}", latestStocks.size());
-		return latestStocks;
+		try {
+			String responseText = webClient.post(requestUri, createHeader(), createStockInfoBody(), String.class);
+			Set<StockDataResponse.StockInfo> latestStocks = ObjectMapperUtil.deserialize(responseText,
+					StockDataResponse.class)
+				.getStockInfos();
+			log.debug("latestStocks count {}", latestStocks.size());
+			return latestStocks;
+		} catch (Exception e) {
+			log.error("fetchStockInfo error: {}", e.getMessage());
+			return stockCsvReader.readStockCsv();
+		}
 	}
 
 	// KOSPI & KOSDAQ 섹터 정보 조회
@@ -53,25 +59,35 @@ public class KrxService {
 	// KOSPI 섹터 정보 조회
 	private Map<String, StockSectorResponse.SectorInfo> fetchKospiSector() {
 		String requestUri = "http://data.krx.co.kr/comm/bldAttendant/getJsonData.cmd";
-		String responseText = webClient.post(requestUri, createHeader(), createKospiSectorBody(), String.class);
-		Map<String, StockSectorResponse.SectorInfo> kospiSectorMap = ObjectMapperUtil.deserialize(responseText,
-				StockSectorResponse.class)
-			.getSectorInfos().parallelStream()
-			.collect(Collectors.toMap(StockSectorResponse.SectorInfo::getTickerSymbol, sectorInfo -> sectorInfo));
-		log.debug("sectorInfos count {}", kospiSectorMap.size());
-		return kospiSectorMap;
+		try {
+			String responseText = webClient.post(requestUri, createHeader(), createKospiSectorBody(), String.class);
+			Map<String, StockSectorResponse.SectorInfo> kospiSectorMap = ObjectMapperUtil.deserialize(responseText,
+					StockSectorResponse.class)
+				.getSectorInfos().parallelStream()
+				.collect(Collectors.toMap(StockSectorResponse.SectorInfo::getTickerSymbol, sectorInfo -> sectorInfo));
+			log.debug("sectorInfos count {}", kospiSectorMap.size());
+			return kospiSectorMap;
+		} catch (Exception e) {
+			log.error("fetchKospiSector error: {}", e.getMessage());
+			return stockCsvReader.readKospiCsv();
+		}
 	}
 
 	// KOSDAQ 섹터 정보 조회
 	private Map<String, StockSectorResponse.SectorInfo> fetchKosdqSector() {
 		String requestUri = "http://data.krx.co.kr/comm/bldAttendant/getJsonData.cmd";
-		String responseText = webClient.post(requestUri, createHeader(), createKosdaqSectorBody(), String.class);
-		Map<String, StockSectorResponse.SectorInfo> kosdaqSectorMap = ObjectMapperUtil.deserialize(responseText,
-				StockSectorResponse.class)
-			.getSectorInfos().parallelStream()
-			.collect(Collectors.toMap(StockSectorResponse.SectorInfo::getTickerSymbol, sectorInfo -> sectorInfo));
-		log.debug("sectorInfos count {}", kosdaqSectorMap.size());
-		return kosdaqSectorMap;
+		try {
+			String responseText = webClient.post(requestUri, createHeader(), createKosdaqSectorBody(), String.class);
+			Map<String, StockSectorResponse.SectorInfo> kosdaqSectorMap = ObjectMapperUtil.deserialize(responseText,
+					StockSectorResponse.class)
+				.getSectorInfos().parallelStream()
+				.collect(Collectors.toMap(StockSectorResponse.SectorInfo::getTickerSymbol, sectorInfo -> sectorInfo));
+			log.debug("sectorInfos count {}", kosdaqSectorMap.size());
+			return kosdaqSectorMap;
+		} catch (Exception e) {
+			log.error("fetchKosdaqSector error: {}", e.getMessage());
+			return stockCsvReader.readKosdaqCsv();
+		}
 	}
 
 	private MultiValueMap<String, String> createHeader() {
