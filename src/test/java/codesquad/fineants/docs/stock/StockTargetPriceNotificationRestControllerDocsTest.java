@@ -362,7 +362,7 @@ public class StockTargetPriceNotificationRestControllerDocsTest extends RestDocs
 			);
 	}
 
-	@DisplayName("종목 지정가 알림 전체 제거")
+	@DisplayName("종목 지정가 알림 다수 제거")
 	@Test
 	void deleteAllStockTargetPriceNotification() throws Exception {
 		// given
@@ -438,7 +438,7 @@ public class StockTargetPriceNotificationRestControllerDocsTest extends RestDocs
 			.andExpect(jsonPath("message").value(equalTo("해당 종목 지정가 알림을 제거했습니다")))
 			.andDo(
 				document(
-					"stock_target_price-one-delete",
+					"target_price_notification-one-delete",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint()),
 					pathParameters(
