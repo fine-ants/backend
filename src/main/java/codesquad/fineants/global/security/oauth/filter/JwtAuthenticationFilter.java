@@ -48,6 +48,7 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
 		// accessToken 유효 and refreshToken 유효 => nothing
 		Token token = null;
 		log.debug("requestURL : {}", ((HttpServletRequest)request).getRequestURL());
+		log.debug("accessToken : {}", accessToken);
 		if (accessToken != null && !oauthMemberRedisService.isAlreadyLogout(accessToken)) {
 			if (tokenService.isExpiredToken(accessToken)) {
 				log.debug("accessToken is Expired");
