@@ -76,7 +76,6 @@ public class StockDividendService {
 	 *   - ex) now=202404-17 => 범위를 벗어난 배당 일정은 2023-01-01 이전 or 2024-12-31 이후
 	 */
 	@Transactional
-	@Secured("ROLE_ADMIN")
 	public void refreshStockDividend(LocalDate now) {
 		// 0. 올해 말까지의 배당 일정을 조회
 		LocalDate to = now.with(TemporalAdjusters.lastDayOfYear());
@@ -162,7 +161,6 @@ public class StockDividendService {
 	 * 데이터베이스의 배당 일정을 S3에 CSV 파일로 저장
 	 */
 	@Transactional(readOnly = true)
-	@Secured("ROLE_ADMIN")
 	public void writeDividendCsvToS3() {
 		List<Dividend> dividends = stockDividendRepository.findAllStockDividends().stream()
 			.map(StockDividend::toDividend)

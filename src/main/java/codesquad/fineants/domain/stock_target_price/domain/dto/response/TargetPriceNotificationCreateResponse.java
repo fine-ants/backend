@@ -14,6 +14,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
 public class TargetPriceNotificationCreateResponse {
+	private Long stockTargetPriceId;
 	private Long targetPriceNotificationId;
 	private String tickerSymbol;
 	private Money targetPrice;
@@ -21,6 +22,7 @@ public class TargetPriceNotificationCreateResponse {
 	public static TargetPriceNotificationCreateResponse from(StockTargetPrice stockTargetPrice,
 		TargetPriceNotification targetPriceNotification) {
 		return TargetPriceNotificationCreateResponse.builder()
+			.stockTargetPriceId(stockTargetPrice.getId())
 			.targetPriceNotificationId(targetPriceNotification.getId())
 			.tickerSymbol(stockTargetPrice.getStock().getTickerSymbol())
 			.targetPrice(targetPriceNotification.getTargetPrice())

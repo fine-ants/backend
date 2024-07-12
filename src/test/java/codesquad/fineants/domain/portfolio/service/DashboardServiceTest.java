@@ -130,8 +130,8 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 					Money.won(150000L),
 					Money.won(68700L),
 					codesquad.fineants.domain.common.money.Percentage.from(0.458),
-					Money.won(3249L),
-					codesquad.fineants.domain.common.money.Percentage.from(0.0149)
+					Money.won(2166),
+					codesquad.fineants.domain.common.money.Percentage.from(0.0099)
 				)
 		);
 	}

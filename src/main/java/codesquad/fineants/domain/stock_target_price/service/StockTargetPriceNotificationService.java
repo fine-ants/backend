@@ -69,7 +69,6 @@ public class StockTargetPriceNotificationService {
 
 		Member member = findMember(memberId);
 		Stock stock = findStock(tickerSymbol);
-		saveStockTargetPrice(member, stock);
 		StockTargetPrice stockTargetPrice = saveStockTargetPrice(member, stock);
 		TargetPriceNotification targetPriceNotification = targetPriceNotificationRepository.save(
 			request.toEntity(stockTargetPrice));
@@ -160,6 +159,14 @@ public class StockTargetPriceNotificationService {
 			.allMatch(t -> t.isMatchMember(memberId))) {
 			throw new ForBiddenException(StockErrorCode.FORBIDDEN_DELETE_TARGET_PRICE_NOTIFICATION);
 		}
+	}
+
+	@Transactional
+	public void deleteStockTargetPrice(Long stockTargetPriceId) {
+		StockTargetPrice stockTargetPrice = repository.findById(stockTargetPriceId)
+			.orElseThrow(() -> new NotFoundResourceException(StockErrorCode.NOT_FOUND_STOCK_TARGET_PRICE));
+		targetPriceNotificationRepository.deleteAllByStockTargetPrices(List.of(stockTargetPrice));
+		repository.deleteById(stockTargetPriceId);
 	}
 
 	@Transactional

@@ -1,4 +1,4 @@
-package codesquad.fineants.global.security.common;
+package codesquad.fineants.global.security.common.config;
 
 import java.util.Collections;
 import java.util.List;

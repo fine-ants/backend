@@ -89,7 +89,6 @@ public class FcmService {
 		log.info("FCM 토큰 삭제 개수 : deleteCount={}", deleteCount);
 	}
 
-	@Secured(value = {"ROLE_USER", "ROLE_MANAGER", "ROLE_ADMIN"})
 	public List<String> findTokens(Long memberId) {
 		return fcmRepository.findAllByMemberId(memberId).stream()
 			.map(FcmToken::getToken)

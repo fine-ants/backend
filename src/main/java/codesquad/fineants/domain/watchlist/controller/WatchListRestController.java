@@ -56,6 +56,13 @@ public class WatchListRestController {
 		return ApiResponse.success(WatchListSuccessCode.DELETED_WATCH_LIST);
 	}
 
+	@DeleteMapping("/{watchlistId}")
+	public ApiResponse<Void> deleteWatchList(@MemberAuthenticationPrincipal MemberAuthentication authentication,
+		@PathVariable Long watchlistId) {
+		watchListService.deleteWatchList(authentication.getId(), watchlistId);
+		return ApiResponse.success(WatchListSuccessCode.DELETED_WATCH_LIST);
+	}
+
 	@GetMapping("/{watchlistId}")
 	public ApiResponse<ReadWatchListResponse> readWatchList(
 		@MemberAuthenticationPrincipal MemberAuthentication authentication,

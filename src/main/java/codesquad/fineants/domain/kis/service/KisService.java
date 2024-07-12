@@ -61,7 +61,6 @@ public class KisService {
 	}
 
 	// 회원이 가지고 있는 모든 종목에 대하여 현재가 갱신
-	@Secured(value = {"ROLE_MANAGER", "ROLE_ADMIN"})
 	public List<KisCurrentPrice> refreshAllStockCurrentPrice() {
 		List<String> tickerSymbols = portFolioHoldingRepository.findAllTickerSymbol();
 		List<KisCurrentPrice> prices = refreshStockCurrentPrice(tickerSymbols);

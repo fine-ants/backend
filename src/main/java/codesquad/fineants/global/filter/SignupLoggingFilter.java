@@ -5,8 +5,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
-import org.springframework.stereotype.Component;
-
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -17,7 +15,6 @@ import jakarta.servlet.http.Part;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@Component
 public class SignupLoggingFilter implements Filter {
 
 	@Override

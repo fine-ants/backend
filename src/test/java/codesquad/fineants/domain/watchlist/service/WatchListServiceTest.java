@@ -200,6 +200,27 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 		assertThat(watchStockRepository.findByWatchList(watchList)).hasSize(0);
 	}
 
+	@DisplayName("회원이 watchlist를 삭제한다.")
+	@Test
+	void deleteWatchList() {
+		// given
+		Stock stock = stockRepository.save(createSamsungStock());
+
+		Member member = memberRepository.save(createMember());
+
+		WatchList watchList = watchListRepository.save(createWatchList(member));
+		Long watchListId = watchList.getId();
+
+		watchStockRepository.save(createWatchStock(watchList, stock));
+
+		// when
+		watchListService.deleteWatchList(member.getId(), watchListId);
+
+		// then
+		assertThat(watchListRepository.findById(watchListId).isPresent()).isFalse();
+		assertThat(watchStockRepository.findByWatchList(watchList)).hasSize(0);
+	}
+
 	@DisplayName("회원이 watchlist에서 종목을 여러개 삭제한다.")
 	@Test
 	void deleteWatchStocks() {

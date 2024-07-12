@@ -300,6 +300,25 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 			.hasMessage(StockErrorCode.NOT_FOUND_STOCK_TARGET_PRICE.getMessage());
 	}
 
+	@DisplayName("사용자는 단일 종목 지정가를 제거합니다")
+	@Test
+	void deleteStockTargetPrice() {
+		// given
+		Member member = memberRepository.save(createMember());
+		Stock stock = stockRepository.save(createSamsungStock());
+		StockTargetPrice stockTargetPrice = repository.save(createStockTargetPrice(member, stock));
+		TargetPriceNotification targetPriceNotification = targetPriceNotificationRepository.save(
+			createTargetPriceNotification(stockTargetPrice));
+		// when
+		service.deleteStockTargetPrice(stockTargetPrice.getId());
+		// then
+		assertAll(
+			() -> assertThat(
+				targetPriceNotificationRepository.findById(targetPriceNotification.getId()).isEmpty()).isTrue(),
+			() -> assertThat(repository.findById(stockTargetPrice.getId()).isEmpty()).isTrue()
+		);
+	}
+
 	@DisplayName("사용자는 종목 지정가 알림을 제거합니다")
 	@Test
 	void deleteStockTargetPriceNotification() {

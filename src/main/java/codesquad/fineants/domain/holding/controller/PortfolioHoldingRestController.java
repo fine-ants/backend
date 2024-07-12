@@ -18,6 +18,7 @@ import codesquad.fineants.domain.holding.domain.dto.request.PortfolioHoldingCrea
 import codesquad.fineants.domain.holding.domain.dto.request.PortfolioStocksDeleteRequest;
 import codesquad.fineants.domain.holding.domain.dto.response.PortfolioChartResponse;
 import codesquad.fineants.domain.holding.domain.dto.response.PortfolioHoldingsResponse;
+import codesquad.fineants.domain.holding.domain.dto.response.PortfolioStockCreateResponse;
 import codesquad.fineants.domain.holding.service.PortfolioHoldingService;
 import codesquad.fineants.domain.holding.service.PortfolioObservableService;
 import codesquad.fineants.global.api.ApiResponse;
@@ -40,10 +41,10 @@ public class PortfolioHoldingRestController {
 	// 포트폴리오 종목 생성
 	@ResponseStatus(HttpStatus.CREATED)
 	@PostMapping("/holdings")
-	public ApiResponse<Void> createPortfolioHolding(@PathVariable Long portfolioId,
+	public ApiResponse<PortfolioStockCreateResponse> createPortfolioHolding(@PathVariable Long portfolioId,
 		@Valid @RequestBody PortfolioHoldingCreateRequest request) {
-		portfolioHoldingService.createPortfolioHolding(portfolioId, request);
-		return ApiResponse.success(PortfolioStockSuccessCode.CREATED_ADD_PORTFOLIO_STOCK);
+		PortfolioStockCreateResponse response = portfolioHoldingService.createPortfolioHolding(portfolioId, request);
+		return ApiResponse.success(PortfolioStockSuccessCode.CREATED_ADD_PORTFOLIO_STOCK, response);
 	}
 
 	// 포트폴리오 종목 조회
