@@ -20,6 +20,7 @@ import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.payload.JsonFieldType;
+import org.springframework.test.web.servlet.ResultActions;
 
 import codesquad.fineants.docs.RestDocsSupport;
 import codesquad.fineants.domain.common.money.Money;
@@ -33,6 +34,7 @@ import codesquad.fineants.domain.stock.domain.dto.request.StockSearchRequest;
 import codesquad.fineants.domain.stock.domain.dto.response.StockRefreshResponse;
 import codesquad.fineants.domain.stock.domain.dto.response.StockResponse;
 import codesquad.fineants.domain.stock.domain.dto.response.StockSearchItem;
+import codesquad.fineants.domain.stock.domain.entity.Market;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.service.StockService;
 import codesquad.fineants.global.util.ObjectMapperUtil;
@@ -103,7 +105,96 @@ public class StockRestControllerDocsTest extends RestDocsSupport {
 					)
 				)
 			);
+	}
 
+	@DisplayName("종목 스크롤 검색 API")
+	@Test
+	void scrollSearch() throws Exception {
+		// given
+		String tickerSymbol = null;
+		int size = 10;
+		String keyword = "삼성";
+		List<StockSearchItem> stockSearchItemList = createStockSearchItemList();
+		given(service.search(tickerSymbol, size, keyword))
+			.willReturn(stockSearchItemList);
+
+		// when & then
+		ResultActions resultActions = mockMvc.perform(get("/api/stocks/search")
+			.queryParam("tickerSymbol", tickerSymbol)
+			.queryParam("size", "10")
+			.queryParam("keyword", keyword)
+		);
+		resultActions
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("code").value(equalTo(200)))
+			.andExpect(jsonPath("status").value(equalTo("OK")))
+			.andExpect(jsonPath("message").value(equalTo("종목 검색이 완료되었습니다")))
+			.andExpect(jsonPath("data").isArray());
+
+		// Validate the data array content
+		for (int i = 0; i < stockSearchItemList.size(); i++) {
+			StockSearchItem expectedItem = stockSearchItemList.get(i);
+			resultActions.andExpect(jsonPath("data[" + i + "].stockCode").value(equalTo(expectedItem.getStockCode())))
+				.andExpect(jsonPath("data[" + i + "].tickerSymbol").value(equalTo(expectedItem.getTickerSymbol())))
+				.andExpect(jsonPath("data[" + i + "].companyName").value(equalTo(expectedItem.getCompanyName())))
+				.andExpect(jsonPath("data[" + i + "].companyNameEng").value(equalTo(expectedItem.getCompanyNameEng())))
+				.andExpect(jsonPath("data[" + i + "].market").value(equalTo(expectedItem.getMarket().name())));
+		}
+
+		resultActions.andDo(
+			document(
+				"stock-scroll-search",
+				preprocessRequest(prettyPrint()),
+				preprocessResponse(prettyPrint()),
+				queryParameters(
+					parameterWithName("tickerSymbol").description("종목 리스트 중 가장 마지막 종목의 tickerSymbol"),
+					parameterWithName("size").description("종목 검색시 검색할 최대 종목 개수"),
+					parameterWithName("keyword").description("종목 검색 키워드")
+				),
+				responseFields(
+					fieldWithPath("code").type(JsonFieldType.NUMBER)
+						.description("코드"),
+					fieldWithPath("status").type(JsonFieldType.STRING)
+						.description("상태"),
+					fieldWithPath("message").type(JsonFieldType.STRING)
+						.description("메시지"),
+					fieldWithPath("data").type(JsonFieldType.ARRAY)
+						.description("응답 데이터"),
+					fieldWithPath("data[].stockCode").type(JsonFieldType.STRING)
+						.description("종목 코드"),
+					fieldWithPath("data[].tickerSymbol").type(JsonFieldType.STRING)
+						.description("종목 티커 심볼"),
+					fieldWithPath("data[].companyName").type(JsonFieldType.STRING)
+						.description("종목 이름"),
+					fieldWithPath("data[].companyNameEng").type(JsonFieldType.STRING)
+						.description("종목 이름 영문"),
+					fieldWithPath("data[].market").type(JsonFieldType.STRING)
+						.description("시장 종류")
+				)
+			)
+		);
+	}
+
+	private List<StockSearchItem> createStockSearchItemList() {
+		List<Stock> stocks = List.of(
+			Stock.of("468510", "삼성기업인수목적9호", "SAMSUNG SPECIAL PURPOSE ACQUISITION 9 COMPANY", "KR7468510003", "금융",
+				Market.KOSDAQ),
+			Stock.of("448740", "삼성기업인수목적8호", "SAMSUNG SPECIAL PURPOSE ACQUISITION 8 COMPANY", "KR7448740001", "금융",
+				Market.KOSDAQ),
+			Stock.of("448730", "삼성FN리츠보통주", "SamsungFN REIT", "KR7448730002", "서비스업", Market.KOSPI),
+			Stock.of("439250", "삼성기업인수목적7호", "SAMSUNG SPECIAL PURPOSE ACQUISITION 7 COMPANY", "KR7448730002", "금융",
+				Market.KOSDAQ),
+			Stock.of("425290", "삼성기업인수목적6호", "SAMSUNG SPECIAL PURPOSE ACQUISITION 6 COMPANY", "KR7425290004", "금융",
+				Market.KOSDAQ),
+			Stock.of("207940", "삼성바이오로직스보통주", "SAMSUNG BIOLOGICS", "KR7207940008", "의약품", Market.KOSPI),
+			Stock.of("068290", "삼성출판사보통주", "SAMSUNG PUBLISHING", "KR7068290006", "서비스업", Market.KOSPI),
+			Stock.of("032830", "삼성생명보험보통주", "Samsung Life Insurance", "KR7032830002", "보험", Market.KOSPI),
+			Stock.of("029780", "삼성카드 보통주", "\\\"SAMSUNG CARD CO.", "KR7029780004", "기타금융", Market.NONE),
+			Stock.of("02826K", "삼성물산1우선주(신형)", "SAMSUNG C&T CORPORATION(1PB)", "KR702826K016", "유통업", Market.KOSPI)
+		);
+		return stocks.stream()
+			.map(StockSearchItem::from)
+			.toList();
 	}
 
 	@DisplayName("종목 최신화 API")
