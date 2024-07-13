@@ -28,7 +28,6 @@ import codesquad.fineants.domain.common.money.Percentage;
 import codesquad.fineants.domain.common.money.RateDivision;
 import codesquad.fineants.domain.dividend.domain.entity.StockDividend;
 import codesquad.fineants.domain.dividend.repository.StockDividendRepository;
-import codesquad.fineants.domain.gainhistory.repository.PortfolioGainHistoryRepository;
 import codesquad.fineants.domain.holding.domain.dto.request.PortfolioHoldingCreateRequest;
 import codesquad.fineants.domain.holding.domain.dto.request.PortfolioStocksDeleteRequest;
 import codesquad.fineants.domain.holding.domain.dto.response.PortfolioChartResponse;
@@ -84,9 +83,6 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 
 	@Autowired
 	private StockRepository stockRepository;
-
-	@Autowired
-	private PortfolioGainHistoryRepository portfolioGainHistoryRepository;
 
 	@Autowired
 	private CurrentPriceRepository currentPriceRepository;
@@ -213,6 +209,23 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 					)
 				)
 		);
+	}
+
+	@DisplayName("회원은 다른 회원의 포트폴리오 종목들을 읽을 수 없다")
+	@Test
+	void readMyPortfolioStocks_whenReadOtherMemberHolding_thenThrowException() {
+		// given
+		Member member = memberRepository.save(createMember());
+		Member hacker = createMember("hacker");
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
+
+		setAuthentication(hacker);
+		// when
+		Throwable throwable = catchThrowable(() -> service.readPortfolioHoldings(portfolio.getId()));
+		// then
+		assertThat(throwable)
+			.isInstanceOf(FineAntsException.class)
+			.hasMessage(PortfolioHoldingErrorCode.FORBIDDEN_PORTFOLIO_HOLDING.getMessage());
 	}
 
 	@DisplayName("사용자는 포트폴리오의 차트 정보를 조회한다")
