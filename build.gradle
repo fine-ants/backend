@@ -94,6 +94,12 @@ dependencies {
     // Csv Reader
     implementation 'org.apache.commons:commons-csv:1.11.0'
 
+    //QueryDsl
+    implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
+    annotationProcessor "com.querydsl:querydsl-apt:${dependencyManagement.importedProperties['querydsl.version']}:jakarta"
+    // java.lang.NoClassDefFoundError 대응을 위해 추가
+    annotationProcessor 'jakarta.annotation:jakarta.annotation-api'
+    annotationProcessor 'jakarta.persistence:jakarta.persistence-api'
 }
 
 tasks.named('test') {
@@ -144,3 +150,22 @@ bootJar {
     archiveFileName = "fineAnts_app.jar"
     copyPrivate
 }
+
+// QueryDSL configuration start
+def generated = "src/main/generated"
+
+//Querydsl Q Class 생성 위치 지정
+tasks.withType(JavaCompile).configureEach {
+    options.getGeneratedSourceOutputDirectory().set(file(generated))
+}
+
+//java source set 에 Querydsl Q Class 위치 추가
+sourceSets {
+    main.java.srcDirs += [generated]
+}
+
+//gradle clean 시, Q Class 디렉토리까지 삭제하도록 설정
+clean {
+    delete file(generated)
+}
+// QueryDSL configuration end
