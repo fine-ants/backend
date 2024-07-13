@@ -70,6 +70,17 @@ public class StockDataResponse {
 				.market(stock.getMarket().name())
 				.build();
 		}
+
+		public Stock toEntity() {
+			return Stock.of(
+				tickerSymbol,
+				companyName,
+				companyNameEng,
+				stockCode,
+				null,
+				Market.ofMarket(market)
+			);
+		}
 	}
 
 	@Getter
