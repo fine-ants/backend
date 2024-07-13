@@ -5,13 +5,12 @@ import java.util.List;
 import java.util.Set;
 
 import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
-import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import codesquad.fineants.AbstractContainerBaseTest;
@@ -20,7 +19,6 @@ import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.service.StockCsvReader;
 import lombok.extern.slf4j.Slf4j;
 
-@TestInstance(value = TestInstance.Lifecycle.PER_CLASS)
 @Slf4j
 class StockQueryRepositoryTest extends AbstractContainerBaseTest {
 
@@ -35,8 +33,8 @@ class StockQueryRepositoryTest extends AbstractContainerBaseTest {
 
 	private String lastTickerSymbol;
 
-	@BeforeAll
-	public void setup() {
+	@BeforeEach
+	void setup() {
 		Set<StockDataResponse.StockInfo> stockInfoSet = stockCsvReader.readStockCsv();
 		List<Stock> stocks = stockInfoSet.stream()
 			.map(StockDataResponse.StockInfo::toEntity)
@@ -44,8 +42,8 @@ class StockQueryRepositoryTest extends AbstractContainerBaseTest {
 		stockRepository.saveAll(stocks);
 	}
 
-	@AfterAll
-	public void tearDown() {
+	@AfterEach
+	void tearDown() {
 		stockRepository.deleteAllInBatch();
 	}
 
