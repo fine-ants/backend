@@ -111,7 +111,7 @@ public class StockRestControllerDocsTest extends RestDocsSupport {
 	@Test
 	void scrollSearch() throws Exception {
 		// given
-		String tickerSymbol = null;
+		String tickerSymbol = "";
 		int size = 10;
 		String keyword = "삼성";
 		List<StockSearchItem> stockSearchItemList = createStockSearchItemList();
@@ -147,9 +147,9 @@ public class StockRestControllerDocsTest extends RestDocsSupport {
 				preprocessRequest(prettyPrint()),
 				preprocessResponse(prettyPrint()),
 				queryParameters(
-					parameterWithName("tickerSymbol").description("종목 리스트 중 가장 마지막 종목의 tickerSymbol"),
-					parameterWithName("size").description("종목 검색시 검색할 최대 종목 개수"),
-					parameterWithName("keyword").description("종목 검색 키워드")
+					parameterWithName("tickerSymbol").description("종목 리스트 중 가장 마지막 종목의 tickerSymbol").optional(),
+					parameterWithName("size").description("종목 검색시 검색할 최대 종목 개수").optional(),
+					parameterWithName("keyword").description("종목 검색 키워드").optional()
 				),
 				responseFields(
 					fieldWithPath("code").type(JsonFieldType.NUMBER)

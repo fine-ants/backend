@@ -11,6 +11,24 @@ include::{snippets}/stock-search/request-fields.adoc[]
 include::{snippets}/stock-search/http-response.adoc[]
 include::{snippets}/stock-search/response-fields.adoc[]
 
+[[stock-scroll-search]]
+=== 종목 스크롤 검색
+
+- 추가적인 종목 검색시 **종목 리스트의 마지막 종목의 tickerSymbol을 tickerSymbol 쿼리 파라미터에 전달**합니다.
+- size 쿼리 파라미터의 기본값은 10입니다.
+- tickerSymobl, size, keyword는 모두 선택 옵션입니다.
+- keyword를 이용하여 종목코드(StockCode), 티커심볼(TickerSymbol), 회사명, 회사 영문명이 포함된 종목을 검색합니다.
+
+==== HTTP Request
+
+include::{snippets}/stock-scroll-search/http-request.adoc[]
+include::{snippets}/stock-scroll-search/query-parameters.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/stock-scroll-search/http-response.adoc[]
+include::{snippets}/stock-scroll-search/response-fields.adoc[]
+
 [[stock-refresh]]
 === 종목 최신화
 
