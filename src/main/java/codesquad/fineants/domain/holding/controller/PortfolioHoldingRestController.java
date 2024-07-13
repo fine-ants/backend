@@ -70,8 +70,9 @@ public class PortfolioHoldingRestController {
 	// 포트폴리오 종목 단일 삭제
 	@DeleteMapping("/holdings/{portfolioHoldingId}")
 	public ApiResponse<Void> deletePortfolioHolding(@PathVariable Long portfolioId,
-		@PathVariable Long portfolioHoldingId) {
-		portfolioHoldingService.deletePortfolioStock(portfolioHoldingId);
+		@PathVariable Long portfolioHoldingId,
+		@MemberAuthenticationPrincipal MemberAuthentication authentication) {
+		portfolioHoldingService.deletePortfolioStock(portfolioHoldingId, authentication.getId());
 		return ApiResponse.success(PortfolioStockSuccessCode.OK_DELETE_PORTFOLIO_STOCK);
 	}
 

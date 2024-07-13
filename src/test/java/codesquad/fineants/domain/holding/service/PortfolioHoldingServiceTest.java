@@ -120,6 +120,8 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 
 		currentPriceRepository.addCurrentPrice(KisCurrentPrice.create("005930", 60000L));
 		closingPriceRepository.addPrice("005930", 50000);
+
+		setAuthentication(member);
 		// when
 		PortfolioHoldingsResponse response = service.readPortfolioHoldings(portfolio.getId());
 
@@ -235,6 +237,7 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		currentPriceRepository.addCurrentPrice(KisCurrentPrice.create("005930", 60000L));
 		closingPriceRepository.addPrice("005930", 50000);
 
+		setAuthentication(member);
 		// when
 		PortfolioChartResponse response = service.readPortfolioCharts(portfolio.getId(), LocalDate.of(2023, 12, 15));
 
@@ -296,6 +299,7 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		stockDividends.forEach(stock::addStockDividend);
 		stockDividendRepository.saveAll(stockDividends);
 
+		setAuthentication(member);
 		// when
 		PortfolioChartResponse response = service.readPortfolioCharts(portfolio.getId(), LocalDate.of(2023, 12, 15));
 
@@ -588,7 +592,7 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 
 		Long portfolioHoldingId = portfolioHolding.getId();
 		// when
-		PortfolioStockDeleteResponse response = service.deletePortfolioStock(portfolioHoldingId);
+		PortfolioStockDeleteResponse response = service.deletePortfolioStock(portfolioHoldingId, member.getId());
 
 		// then
 		assertAll(
@@ -607,11 +611,12 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		Long portfolioStockId = 9999L;
 
 		// when
-		Throwable throwable = catchThrowable(() -> service.deletePortfolioStock(portfolioStockId));
+		Throwable throwable = catchThrowable(() -> service.deletePortfolioStock(portfolioStockId, member.getId()));
 
 		// then
-		assertThat(throwable).isInstanceOf(NotFoundResourceException.class).extracting("message")
-			.isEqualTo("포트폴리오 종목이 존재하지 않습니다");
+		assertThat(throwable)
+			.isInstanceOf(ForBiddenException.class)
+			.hasMessage(PortfolioHoldingErrorCode.FORBIDDEN_PORTFOLIO_HOLDING.getMessage());
 	}
 
 	@DisplayName("사용자는 다수의 포트폴리오 종목을 삭제할 수 있다")
