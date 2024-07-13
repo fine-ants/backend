@@ -113,4 +113,8 @@ public class PurchaseHistory extends BaseEntity {
 		return purcahseLocalDate.equals(exDividendDate)
 			|| purcahseLocalDate.isBefore(exDividendDate);
 	}
+
+	public boolean hasAuthorization(Long memberId) {
+		return this.portfolioHolding.hasAuthorization(memberId);
+	}
 }

@@ -21,6 +21,7 @@ import codesquad.fineants.global.errors.errorcode.PortfolioErrorCode;
 import codesquad.fineants.global.errors.errorcode.PortfolioHoldingErrorCode;
 import codesquad.fineants.global.errors.errorcode.PurchaseHistoryErrorCode;
 import codesquad.fineants.global.errors.exception.FineAntsException;
+import codesquad.fineants.global.errors.exception.ForBiddenException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -48,6 +49,7 @@ public class PurchaseHistoryService {
 			.filter(holding -> holding.getId().equals(portfolioHoldingId))
 			.findAny()
 			.orElseThrow(() -> new FineAntsException(PortfolioHoldingErrorCode.NOT_FOUND_PORTFOLIO_HOLDING));
+		validatePortfolioHoldingAuthorization(findHolding, memberId);
 		PurchaseHistory history = request.toEntity(findHolding);
 
 		verifyCashSufficientForPurchase(portfolio, (Money)history.calculateInvestmentAmount());
@@ -61,11 +63,17 @@ public class PurchaseHistoryService {
 		return PurchaseHistoryCreateResponse.from(newPurchaseHistory, portfolioId, memberId);
 	}
 
+	private void validatePortfolioHoldingAuthorization(PortfolioHolding findHolding, Long memberId) {
+		if (!findHolding.hasAuthorization(memberId)) {
+			throw new ForBiddenException(PortfolioHoldingErrorCode.FORBIDDEN_PORTFOLIO_HOLDING);
+		}
+	}
+
 	private Portfolio findPortfolio(Long portfolioId) {
 		return portfolioRepository.findByPortfolioIdWithAll(portfolioId)
 			.orElseThrow(() -> new FineAntsException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
 	}
-
+	
 	private void verifyCashSufficientForPurchase(Portfolio portfolio, Money investmentAmount) {
 		if (portfolio.isCashSufficientForPurchase(investmentAmount)) {
 			throw new FineAntsException(PortfolioErrorCode.TOTAL_INVESTMENT_PRICE_EXCEEDS_BUDGET);
@@ -80,6 +88,7 @@ public class PurchaseHistoryService {
 			portfolioHoldingId, purchaseHistoryId);
 		PortfolioHolding portfolioHolding = findPortfolioHolding(portfolioHoldingId, portfolioId);
 		PurchaseHistory originalPurchaseHistory = findPurchaseHistory(purchaseHistoryId);
+		validatePurchaseHistoryAuthorization(originalPurchaseHistory, memberId);
 		PurchaseHistory changePurchaseHistory = request.toEntity(portfolioHolding);
 
 		PurchaseHistory changedPurchaseHistory = originalPurchaseHistory.change(changePurchaseHistory);
@@ -93,6 +102,12 @@ public class PurchaseHistoryService {
 		return response;
 	}
 
+	private void validatePurchaseHistoryAuthorization(PurchaseHistory originalPurchaseHistory, Long memberId) {
+		if (!originalPurchaseHistory.hasAuthorization(memberId)) {
+			throw new ForBiddenException(PurchaseHistoryErrorCode.FORBIDDEN_PURCHASE_HISTORY);
+		}
+	}
+
 	@Transactional
 	@Secured("ROLE_USER")
 	public PurchaseHistoryDeleteResponse deletePurchaseHistory(Long portfolioHoldingId, Long purchaseHistoryId,
@@ -100,6 +115,7 @@ public class PurchaseHistoryService {
 		log.info("매입 내역 삭제 서비스 요청 : portfolioHoldingId={}, purchaseHistoryId={}", portfolioHoldingId,
 			purchaseHistoryId);
 		PurchaseHistory deletePurchaseHistory = findPurchaseHistory(purchaseHistoryId);
+		validatePurchaseHistoryAuthorization(deletePurchaseHistory, memberId);
 		repository.deleteById(purchaseHistoryId);
 
 		// 매입 이력 알람 이벤트를 위한 매입 이력 데이터 삭제
