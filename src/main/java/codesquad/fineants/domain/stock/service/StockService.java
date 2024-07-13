@@ -25,6 +25,7 @@ import codesquad.fineants.domain.stock.domain.dto.response.StockResponse;
 import codesquad.fineants.domain.stock.domain.dto.response.StockSearchItem;
 import codesquad.fineants.domain.stock.domain.dto.response.StockSectorResponse;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
+import codesquad.fineants.domain.stock.repository.StockQueryRepository;
 import codesquad.fineants.domain.stock.repository.StockRepository;
 import codesquad.fineants.global.errors.errorcode.StockErrorCode;
 import codesquad.fineants.global.errors.exception.NotFoundResourceException;
@@ -43,11 +44,19 @@ public class StockService {
 	private final ClosingPriceRepository closingPriceRepository;
 	private final KrxService krxService;
 	private final StockDividendService stockDividendService;
+	private final StockQueryRepository stockQueryRepository;
 
 	@Transactional(readOnly = true)
 	public List<StockSearchItem> search(StockSearchRequest request) {
 		return stockRepository.search(request.getSearchTerm())
 			.stream()
+			.map(StockSearchItem::from)
+			.collect(Collectors.toList());
+	}
+
+	@Transactional(readOnly = true)
+	public List<StockSearchItem> search(String tickerSymbol, int size, String keyword) {
+		return stockQueryRepository.getSliceOfStock(tickerSymbol, size, keyword).stream()
 			.map(StockSearchItem::from)
 			.collect(Collectors.toList());
 	}

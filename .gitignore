@@ -7,3 +7,4 @@
 /src/main/resources/application-secret.yml
 /out/
 /src/main/resources/secret/
+/src/main/generated/
