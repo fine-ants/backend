@@ -136,6 +136,27 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 			);
 	}
 
+	@DisplayName("사용자는 다른 사용자의 watchlist 단일 목록을 조회할 수 없다")
+	@Test
+	void readWatchList_whenOtherMemberRead_thenThrowError() {
+		// given
+		Member member = memberRepository.save(createMember());
+		Member hacker = memberRepository.save(createMember("hacker"));
+		Stock stock = stockRepository.save(createSamsungStock());
+		stockDividendRepository.save(createStockDividend(LocalDate.now(), LocalDate.now(), LocalDate.now(), stock));
+
+		WatchList watchList = watchListRepository.save(createWatchList("My WatchList 1", member));
+		watchStockRepository.save(createWatchStock(watchList, stock));
+
+		setAuthentication(hacker);
+		// when
+		Throwable throwable = catchThrowable(() -> watchListService.readWatchList(hacker.getId(), watchList.getId()));
+		// then
+		assertThat(throwable)
+			.isInstanceOf(FineAntsException.class)
+			.hasMessage(WatchListErrorCode.FORBIDDEN_WATCHLIST.getMessage());
+	}
+
 	@DisplayName("회원이 watchlist에 종목을 추가한다.")
 	@Test
 	void createWatchStocks() {
