@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.logging.log4j.util.Strings;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +13,8 @@ import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWeb
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.ResponseCookie;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
@@ -44,6 +47,7 @@ import codesquad.fineants.domain.watchlist.domain.entity.WatchStock;
 import codesquad.fineants.global.errors.errorcode.RoleErrorCode;
 import codesquad.fineants.global.errors.exception.FineAntsException;
 import codesquad.fineants.global.security.factory.TokenFactory;
+import codesquad.fineants.global.security.oauth.dto.MemberAuthentication;
 import codesquad.fineants.global.security.oauth.dto.Token;
 import jakarta.servlet.http.Cookie;
 import lombok.extern.slf4j.Slf4j;
@@ -338,5 +342,15 @@ public class AbstractContainerBaseTest {
 		String cookieString = cookie.toString();
 		int start = cookieString.indexOf("=") + 1;
 		return new Cookie(cookie.getName(), cookieString.substring(start));
+	}
+
+	public void setAuthentication(Member member) {
+		MemberAuthentication memberAuthentication = MemberAuthentication.from(member);
+		UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
+			memberAuthentication,
+			Strings.EMPTY,
+			memberAuthentication.getSimpleGrantedAuthority()
+		);
+		SecurityContextHolder.getContext().setAuthentication(authenticationToken);
 	}
 }

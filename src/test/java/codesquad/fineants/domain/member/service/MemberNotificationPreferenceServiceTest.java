@@ -18,6 +18,8 @@ import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
 import codesquad.fineants.domain.notificationpreference.domain.entity.NotificationPreference;
 import codesquad.fineants.domain.notificationpreference.repository.NotificationPreferenceRepository;
+import codesquad.fineants.global.errors.errorcode.MemberErrorCode;
+import codesquad.fineants.global.errors.exception.FineAntsException;
 
 class MemberNotificationPreferenceServiceTest extends AbstractContainerBaseTest {
 
@@ -182,4 +184,28 @@ class MemberNotificationPreferenceServiceTest extends AbstractContainerBaseTest 
 			() -> assertThat(fcmRepository.findAllByMemberId(member.getId()).isEmpty()).isTrue()
 		);
 	}
+
+	@DisplayName("사용자는 다른 사용자의 회원 알림 설정을 수정할 수 없습니다")
+	@Test
+	void updateNotificationPreference_whenOtherMemberModify_thenThrowException() {
+		// given
+		Member member = memberRepository.save(createMember());
+		Member hacker = memberRepository.save(createMember("hacker"));
+		MemberNotificationPreferenceRequest request = MemberNotificationPreferenceRequest.builder()
+			.browserNotify(false)
+			.targetGainNotify(true)
+			.maxLossNotify(true)
+			.targetPriceNotify(true)
+			.build();
+
+		setAuthentication(hacker);
+		// when
+		Throwable throwable = catchThrowable(() -> service.updateNotificationPreference(member.getId(), request));
+
+		// then
+		assertThat(throwable)
+			.isInstanceOf(FineAntsException.class)
+			.hasMessage(MemberErrorCode.FORBIDDEN_MEMBER.getMessage());
+	}
+
 }

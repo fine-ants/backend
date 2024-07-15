@@ -6,6 +6,8 @@ import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,8 +33,10 @@ import codesquad.fineants.domain.stock_target_price.repository.TargetPriceNotifi
 import codesquad.fineants.global.errors.errorcode.MemberErrorCode;
 import codesquad.fineants.global.errors.errorcode.StockErrorCode;
 import codesquad.fineants.global.errors.exception.BadRequestException;
+import codesquad.fineants.global.errors.exception.FineAntsException;
 import codesquad.fineants.global.errors.exception.ForBiddenException;
 import codesquad.fineants.global.errors.exception.NotFoundResourceException;
+import codesquad.fineants.global.security.oauth.dto.MemberAuthentication;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -161,12 +165,23 @@ public class StockTargetPriceNotificationService {
 		}
 	}
 
+	// 종목 지정가 단일 제거
 	@Transactional
 	public void deleteStockTargetPrice(Long stockTargetPriceId) {
 		StockTargetPrice stockTargetPrice = repository.findById(stockTargetPriceId)
 			.orElseThrow(() -> new NotFoundResourceException(StockErrorCode.NOT_FOUND_STOCK_TARGET_PRICE));
+		validateStockTargetPriceAuthorization(stockTargetPrice);
 		targetPriceNotificationRepository.deleteAllByStockTargetPrices(List.of(stockTargetPrice));
 		repository.deleteById(stockTargetPriceId);
+	}
+
+	private void validateStockTargetPriceAuthorization(StockTargetPrice stockTargetPrice) {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		Object principal = authentication.getPrincipal();
+		MemberAuthentication memberAuthentication = (MemberAuthentication)principal;
+		if (!stockTargetPrice.hasAuthorization(memberAuthentication.getId())) {
+			throw new FineAntsException(StockErrorCode.FORBIDDEN_STOCK_TARGET_PRICE);
+		}
 	}
 
 	@Transactional

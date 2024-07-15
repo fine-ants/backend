@@ -58,4 +58,8 @@ public class WatchList extends BaseEntity {
 	public void changeName(String name) {
 		this.name = name;
 	}
+
+	public boolean hasAuthorization(Long memberId) {
+		return member.hasAuthorization(memberId);
+	}
 }

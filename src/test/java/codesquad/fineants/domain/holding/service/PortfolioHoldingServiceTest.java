@@ -9,13 +9,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.logging.log4j.util.Strings;
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import codesquad.fineants.AbstractContainerBaseTest;
@@ -28,7 +26,6 @@ import codesquad.fineants.domain.common.money.Percentage;
 import codesquad.fineants.domain.common.money.RateDivision;
 import codesquad.fineants.domain.dividend.domain.entity.StockDividend;
 import codesquad.fineants.domain.dividend.repository.StockDividendRepository;
-import codesquad.fineants.domain.gainhistory.repository.PortfolioGainHistoryRepository;
 import codesquad.fineants.domain.holding.domain.dto.request.PortfolioHoldingCreateRequest;
 import codesquad.fineants.domain.holding.domain.dto.request.PortfolioStocksDeleteRequest;
 import codesquad.fineants.domain.holding.domain.dto.response.PortfolioChartResponse;
@@ -86,9 +83,6 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 	private StockRepository stockRepository;
 
 	@Autowired
-	private PortfolioGainHistoryRepository portfolioGainHistoryRepository;
-
-	@Autowired
 	private CurrentPriceRepository currentPriceRepository;
 
 	@Autowired
@@ -120,6 +114,8 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 
 		currentPriceRepository.addCurrentPrice(KisCurrentPrice.create("005930", 60000L));
 		closingPriceRepository.addPrice("005930", 50000);
+
+		setAuthentication(member);
 		// when
 		PortfolioHoldingsResponse response = service.readPortfolioHoldings(portfolio.getId());
 
@@ -213,6 +209,23 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		);
 	}
 
+	@DisplayName("회원은 다른 회원의 포트폴리오 종목들을 읽을 수 없다")
+	@Test
+	void readMyPortfolioStocks_whenReadOtherMemberHolding_thenThrowException() {
+		// given
+		Member member = memberRepository.save(createMember());
+		Member hacker = createMember("hacker");
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
+
+		setAuthentication(hacker);
+		// when
+		Throwable throwable = catchThrowable(() -> service.readPortfolioHoldings(portfolio.getId()));
+		// then
+		assertThat(throwable)
+			.isInstanceOf(FineAntsException.class)
+			.hasMessage(PortfolioHoldingErrorCode.FORBIDDEN_PORTFOLIO_HOLDING.getMessage());
+	}
+
 	@DisplayName("사용자는 포트폴리오의 차트 정보를 조회한다")
 	@Test
 	void readMyPortfolioCharts() {
@@ -235,6 +248,7 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		currentPriceRepository.addCurrentPrice(KisCurrentPrice.create("005930", 60000L));
 		closingPriceRepository.addPrice("005930", 50000);
 
+		setAuthentication(member);
 		// when
 		PortfolioChartResponse response = service.readPortfolioCharts(portfolio.getId(), LocalDate.of(2023, 12, 15));
 
@@ -296,6 +310,7 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		stockDividends.forEach(stock::addStockDividend);
 		stockDividendRepository.saveAll(stockDividends);
 
+		setAuthentication(member);
 		// when
 		PortfolioChartResponse response = service.readPortfolioCharts(portfolio.getId(), LocalDate.of(2023, 12, 15));
 
@@ -322,6 +337,35 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 				.extracting("sector", "sectorWeight")
 				.containsExactlyInAnyOrder(Tuple.tuple("현금", Percentage.zero()))
 		);
+	}
+
+	@DisplayName("회원은 다른 회원의 포트폴리오 차트를 조회할 수 없다")
+	@Test
+	void readMyPortfolioCharts_whenOtherMemberRead_thenThrowException() {
+		// given
+		Member member = memberRepository.save(createMember());
+		Member hacker = memberRepository.save(createMember("hacker"));
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
+		Stock stock = stockRepository.save(createSamsungStock());
+		List<StockDividend> stockDividends = createStockDividendWith(stock);
+		stockDividends.forEach(stock::addStockDividend);
+		stockDividendRepository.saveAll(stockDividends);
+		PortfolioHolding portfolioHolding = portFolioHoldingRepository.save(createPortfolioHolding(portfolio, stock));
+
+		LocalDateTime purchaseDate = LocalDateTime.of(2023, 9, 26, 9, 30, 0);
+		Count numShares = Count.from(3);
+		Money purchasePerShare = Money.won(50000);
+		String memo = "첫구매";
+		purchaseHistoryRepository.save(
+			createPurchaseHistory(null, purchaseDate, numShares, purchasePerShare, memo, portfolioHolding));
+		setAuthentication(hacker);
+		// when
+		Throwable throwable = catchThrowable(
+			() -> service.readPortfolioCharts(portfolio.getId(), LocalDate.of(2023, 12, 15)));
+		// then
+		assertThat(throwable)
+			.isInstanceOf(FineAntsException.class)
+			.hasMessage(PortfolioHoldingErrorCode.FORBIDDEN_PORTFOLIO_HOLDING.getMessage());
 	}
 
 	@DisplayName("사용자는 포트폴리오에 실시간 상세 데이터를 조회한다")
@@ -468,16 +512,6 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		);
 	}
 
-	private void setAuthentication(Member member) {
-		MemberAuthentication memberAuthentication = MemberAuthentication.from(member);
-		UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
-			memberAuthentication,
-			Strings.EMPTY,
-			memberAuthentication.getSimpleGrantedAuthority()
-		);
-		SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-	}
-
 	@DisplayName("사용자는 포트폴리오 종목이 존재하는 상태에서 매입 이력과 같이 종목을 추가할때 매입 이력만 추가된다")
 	@Test
 	void addPortfolioStock_whenExistHolding_thenAddPurchaseHistory() {
@@ -588,7 +622,7 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 
 		Long portfolioHoldingId = portfolioHolding.getId();
 		// when
-		PortfolioStockDeleteResponse response = service.deletePortfolioStock(portfolioHoldingId);
+		PortfolioStockDeleteResponse response = service.deletePortfolioStock(portfolioHoldingId, member.getId());
 
 		// then
 		assertAll(
@@ -607,11 +641,12 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		Long portfolioStockId = 9999L;
 
 		// when
-		Throwable throwable = catchThrowable(() -> service.deletePortfolioStock(portfolioStockId));
+		Throwable throwable = catchThrowable(() -> service.deletePortfolioStock(portfolioStockId, member.getId()));
 
 		// then
-		assertThat(throwable).isInstanceOf(NotFoundResourceException.class).extracting("message")
-			.isEqualTo("포트폴리오 종목이 존재하지 않습니다");
+		assertThat(throwable)
+			.isInstanceOf(ForBiddenException.class)
+			.hasMessage(PortfolioHoldingErrorCode.FORBIDDEN_PORTFOLIO_HOLDING.getMessage());
 	}
 
 	@DisplayName("사용자는 다수의 포트폴리오 종목을 삭제할 수 있다")

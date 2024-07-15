@@ -44,6 +44,7 @@ import codesquad.fineants.domain.purchasehistory.domain.entity.PurchaseHistory;
 import codesquad.fineants.domain.purchasehistory.repository.PurchaseHistoryRepository;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
+import codesquad.fineants.global.errors.errorcode.PortfolioErrorCode;
 import codesquad.fineants.global.errors.exception.BadRequestException;
 import codesquad.fineants.global.errors.exception.ConflictException;
 import codesquad.fineants.global.errors.exception.FineAntsException;
@@ -366,36 +367,6 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 			.hasMessage("최대 손실 금액은 예산 보다 작아야 합니다");
 	}
 
-	@DisplayName("회원이 포트폴리오를 삭제한다")
-	@Test
-	void deletePortfolio() {
-		// given
-		Member member = memberRepository.save(createMember());
-		Stock stock = stockRepository.save(createSamsungStock());
-		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
-		PortfolioGainHistory portfolioGainHistory = portfolioGainHistoryRepository.save(
-			PortfolioGainHistory.empty(portfolio));
-		PortfolioHolding portfolioHolding = portFolioHoldingRepository.save(createPortfolioHolding(portfolio, stock));
-
-		LocalDateTime purchaseDate = LocalDateTime.of(2023, 9, 26, 9, 30, 0);
-		Count numShares = Count.from(3);
-		Money purchasePerShare = Money.won(50000);
-		String memo = "첫구매";
-		PurchaseHistory purchaseHistory = purchaseHistoryRepository.save(
-			createPurchaseHistory(null, purchaseDate, numShares, purchasePerShare, memo, portfolioHolding));
-
-		// when
-		service.deletePortfolio(portfolio.getId(), member.getId());
-
-		// then
-		assertAll(
-			() -> assertThat(portfolioRepository.existsById(portfolio.getId())).isFalse(),
-			() -> assertThat(portfolioGainHistoryRepository.existsById(portfolioGainHistory.getId())).isFalse(),
-			() -> assertThat(portFolioHoldingRepository.existsById(portfolioHolding.getId())).isFalse(),
-			() -> assertThat(purchaseHistoryRepository.existsById(purchaseHistory.getId())).isFalse()
-		);
-	}
-
 	@DisplayName("사용자가 나의 포트폴리오들을 처음 조회한다")
 	@Test
 	void readMyAllPortfolio() {
@@ -458,6 +429,53 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 			));
 	}
 
+	@DisplayName("회원이 포트폴리오를 삭제한다")
+	@Test
+	void deletePortfolio() {
+		// given
+		Member member = memberRepository.save(createMember());
+		Stock stock = stockRepository.save(createSamsungStock());
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
+		PortfolioGainHistory portfolioGainHistory = portfolioGainHistoryRepository.save(
+			PortfolioGainHistory.empty(portfolio));
+		PortfolioHolding portfolioHolding = portFolioHoldingRepository.save(createPortfolioHolding(portfolio, stock));
+
+		LocalDateTime purchaseDate = LocalDateTime.of(2023, 9, 26, 9, 30, 0);
+		Count numShares = Count.from(3);
+		Money purchasePerShare = Money.won(50000);
+		String memo = "첫구매";
+		PurchaseHistory purchaseHistory = purchaseHistoryRepository.save(
+			createPurchaseHistory(null, purchaseDate, numShares, purchasePerShare, memo, portfolioHolding));
+
+		// when
+		service.deletePortfolio(portfolio.getId(), member.getId());
+
+		// then
+		assertAll(
+			() -> assertThat(portfolioRepository.existsById(portfolio.getId())).isFalse(),
+			() -> assertThat(portfolioGainHistoryRepository.existsById(portfolioGainHistory.getId())).isFalse(),
+			() -> assertThat(portFolioHoldingRepository.existsById(portfolioHolding.getId())).isFalse(),
+			() -> assertThat(purchaseHistoryRepository.existsById(purchaseHistory.getId())).isFalse()
+		);
+	}
+
+	@DisplayName("회원은 다른 회원의 포트폴리오를 삭제할 수 없다")
+	@Test
+	void deletePortfolio_whenDeleteOtherMemberPortfolio_thenThrowException() {
+		// given
+		Member member = memberRepository.save(createMember());
+		Member hacker = createMember("hacker");
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
+
+		// when
+		Throwable throwable = catchThrowable(() -> service.deletePortfolio(portfolio.getId(), hacker.getId()));
+
+		// then
+		assertThat(throwable)
+			.isInstanceOf(ForBiddenException.class)
+			.hasMessage(PortfolioErrorCode.NOT_HAVE_AUTHORIZATION.getMessage());
+	}
+
 	@DisplayName("회원이 포트폴리오들을 삭제한다")
 	@Test
 	void deletePortfolios() {
@@ -492,6 +510,26 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 		assertThat(purchaseHistoryRepository.existsById(purchaseHistory2.getId())).isFalse();
 		assertThat(portfolioGainHistoryRepository.existsById(portfolioGainHistory.getId())).isFalse();
 		assertThat(portfolioRepository.existsById(portfolio2.getId())).isFalse();
+	}
+
+	@DisplayName("회원은 다수의 포트폴리오 삭제할때 다른 회원의 포트폴리오를 삭제할 수 없다")
+	@Test
+	void deletePortfolios_whenDeleteOtherMemberPortfolio_thenThrowException() {
+		// given
+		Member member = memberRepository.save(createMember());
+		Member hacker = createMember("hacker");
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
+		Portfolio portfolio2 = portfolioRepository.save(createPortfolioWithRandomName(member));
+
+		PortfoliosDeleteRequest request = new PortfoliosDeleteRequest(List.of(portfolio.getId(), portfolio2.getId()));
+
+		// when
+		Throwable throwable = catchThrowable(() -> service.deletePortfolios(request, hacker.getId()));
+
+		// then
+		assertThat(throwable)
+			.isInstanceOf(ForBiddenException.class)
+			.hasMessage(PortfolioErrorCode.NOT_HAVE_AUTHORIZATION.getMessage());
 	}
 
 	private Portfolio createPortfolioWithRandomName(Member member) {

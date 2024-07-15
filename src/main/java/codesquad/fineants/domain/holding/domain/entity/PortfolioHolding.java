@@ -234,4 +234,8 @@ public class PortfolioHolding extends BaseEntity {
 	public Expression getLastDayClosingPrice(ClosingPriceRepository manager) {
 		return stock.getClosingPrice(manager);
 	}
+
+	public boolean hasAuthorization(Long memberId) {
+		return portfolio.hasAuthorization(memberId);
+	}
 }

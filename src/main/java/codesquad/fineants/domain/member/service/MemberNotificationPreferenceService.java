@@ -1,6 +1,8 @@
 package codesquad.fineants.domain.member.service;
 
 import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,6 +18,7 @@ import codesquad.fineants.global.errors.errorcode.MemberErrorCode;
 import codesquad.fineants.global.errors.errorcode.NotificationPreferenceErrorCode;
 import codesquad.fineants.global.errors.exception.FineAntsException;
 import codesquad.fineants.global.errors.exception.NotFoundResourceException;
+import codesquad.fineants.global.security.oauth.dto.MemberAuthentication;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -44,6 +47,7 @@ public class MemberNotificationPreferenceService {
 		MemberNotificationPreferenceRequest request) {
 		Member member = memberRepository.findById(memberId)
 			.orElseThrow(() -> new FineAntsException(MemberErrorCode.NOT_FOUND_MEMBER));
+		validateMemberAuthorization(member);
 		notificationPreferenceRepository.findByMemberId(memberId)
 			.ifPresentOrElse(
 				notificationPreference -> notificationPreference.changePreference(request.toEntity(member)),
@@ -58,5 +62,14 @@ public class MemberNotificationPreferenceService {
 			log.info("회원 알림 설정 전체 비활성화로 인한 결과 : {}", response);
 		}
 		return MemberNotificationPreferenceResponse.from(preference);
+	}
+
+	private void validateMemberAuthorization(Member member) {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		Object principal = authentication.getPrincipal();
+		MemberAuthentication memberAuthentication = (MemberAuthentication)principal;
+		if (!member.hasAuthorization(memberAuthentication.getId())) {
+			throw new FineAntsException(MemberErrorCode.FORBIDDEN_MEMBER);
+		}
 	}
 }

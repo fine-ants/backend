@@ -105,9 +105,10 @@ public class PortfolioHoldingService {
 	}
 
 	@Transactional
-	public PortfolioStockDeleteResponse deletePortfolioStock(Long portfolioHoldingId) {
+	public PortfolioStockDeleteResponse deletePortfolioStock(Long portfolioHoldingId, Long memberId) {
 		log.info("포트폴리오 종목 삭제 서비스 : portfolioHoldingId={}", portfolioHoldingId);
 
+		validateHasAuthorization(List.of(portfolioHoldingId), memberId);
 		purchaseHistoryRepository.deleteAllByPortfolioHoldingIdIn(List.of(portfolioHoldingId));
 
 		int deleted = portfolioHoldingRepository.deleteAllByIdIn(List.of(portfolioHoldingId));
@@ -171,6 +172,7 @@ public class PortfolioHoldingService {
 
 	public PortfolioHoldingsResponse readPortfolioHoldings(Long portfolioId) {
 		Portfolio portfolio = findPortfolio(portfolioId);
+		validateHasAuthorization(portfolio);
 		PortfolioDetailResponse portfolioDetail = portfolioDetailFactory.createPortfolioDetailItem(portfolio);
 		List<PortfolioHoldingItem> portfolioHoldingItems = portfolioHoldingDetailFactory.createPortfolioHoldingItems(
 			portfolio);
@@ -188,6 +190,7 @@ public class PortfolioHoldingService {
 
 	public PortfolioChartResponse readPortfolioCharts(Long portfolioId, LocalDate currentLocalDate) {
 		Portfolio portfolio = findPortfolio(portfolioId);
+		validateHasAuthorization(portfolio);
 		PortfolioDetails portfolioDetails = PortfolioDetails.from(portfolio);
 		List<PortfolioPieChartItem> pieChartItems = pieChart.createBy(portfolio);
 		List<PortfolioDividendChartItem> dividendChartItems = dividendChart.createBy(portfolio, currentLocalDate);

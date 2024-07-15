@@ -84,6 +84,7 @@ public class StockTargetPriceNotificationRestController {
 		return ApiResponse.success(successCode);
 	}
 
+	// 종목 지정가 단일 제거
 	@DeleteMapping("/api/stocks/target-price/{stockTargetPriceId}")
 	public ApiResponse<Void> deleteStockTargetPrice(
 		@PathVariable Long stockTargetPriceId
