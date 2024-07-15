@@ -345,6 +345,36 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 		);
 	}
 
+	@DisplayName("회원은 다른 회원의 매입 이력을 수정할 수 없다")
+	@Test
+	void modifyPurchaseHistory_whenOtherMemberModify_thenThrowException() {
+		// given
+		Member member = memberRepository.save(createMember());
+		Member hacker = memberRepository.save(createMember("hacker"));
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
+		Stock stock = stockRepository.save(createSamsungStock());
+		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
+		PurchaseHistory history = purchaseHistoryRepository.save(
+			createPurchaseHistory(null, LocalDateTime.of(2023, 9, 26, 9, 30, 0), Count.from(3), Money.won(50000), "첫구매",
+				holding));
+
+		PurchaseHistoryUpdateRequest request = PurchaseHistoryUpdateRequest.builder()
+			.purchaseDate(LocalDateTime.now())
+			.numShares(Count.from(4L))
+			.purchasePricePerShare(Money.won(50000.0))
+			.memo("첫구매")
+			.build();
+
+		// when
+		Throwable throwable = catchThrowable(
+			() -> service.updatePurchaseHistory(request, holding.getId(), history.getId(), portfolio.getId(),
+				hacker.getId()));
+		// then
+		assertThat(throwable)
+			.isInstanceOf(ForBiddenException.class)
+			.hasMessage(PurchaseHistoryErrorCode.FORBIDDEN_PURCHASE_HISTORY.getMessage());
+	}
+
 	@DisplayName("사용자는 매입 이력을 삭제한다")
 	@Test
 	void deletePurchaseHistory() {
@@ -436,5 +466,32 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 		assertThat(throwable)
 			.isInstanceOf(FineAntsException.class)
 			.hasMessage(PurchaseHistoryErrorCode.NOT_FOUND_PURCHASE_HISTORY.getMessage());
+	}
+
+	@DisplayName("회원은 다른 회원의 매입 이력을 삭제할 수 없다")
+	@Test
+	void deletePurchaseHistory_whenOtherMemberDelete_thenThrowException() {
+		// given
+		Member member = memberRepository.save(createMember());
+		Member hacker = memberRepository.save(createMember("hacker"));
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
+		Stock stock = stockRepository.save(createSamsungStock());
+		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
+		PurchaseHistory history = purchaseHistoryRepository.save(
+			createPurchaseHistory(null, LocalDateTime.of(2023, 9, 26, 9, 30, 0), Count.from(3), Money.won(50000), "첫구매",
+				holding));
+
+		// when
+		Throwable throwable = catchThrowable(() -> service.deletePurchaseHistory(
+			holding.getId(),
+			history.getId(),
+			portfolio.getId(),
+			hacker.getId()
+		));
+
+		// then
+		assertThat(throwable)
+			.isInstanceOf(ForBiddenException.class)
+			.hasMessage(PurchaseHistoryErrorCode.FORBIDDEN_PURCHASE_HISTORY.getMessage());
 	}
 }
