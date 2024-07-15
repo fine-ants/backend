@@ -77,9 +77,18 @@ public class FcmService {
 	@Transactional
 	@Secured("ROLE_USER")
 	public FcmDeleteResponse deleteToken(Long fcmTokenId, Long memberId) {
+		FcmToken fcmToken = fcmRepository.findById(fcmTokenId)
+			.orElseThrow(() -> new FineAntsException(FcmErrorCode.NOT_FOUND_FCM_TOKEN));
+		validateFcmTokenAuthorization(fcmToken, memberId);
 		int deleteCount = fcmRepository.deleteByFcmTokenId(fcmTokenId, memberId);
 		log.info("FCM 토큰 삭제 개수 : deleteCount={}", deleteCount);
 		return FcmDeleteResponse.from(fcmTokenId);
+	}
+
+	private void validateFcmTokenAuthorization(FcmToken fcmToken, Long memberId) {
+		if (!fcmToken.hasAuthorization(memberId)) {
+			throw new FineAntsException(FcmErrorCode.FORBIDDEN_FCM_TOKEN);
+		}
 	}
 
 	@Transactional

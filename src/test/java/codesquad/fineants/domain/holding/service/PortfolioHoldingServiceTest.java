@@ -9,13 +9,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.logging.log4j.util.Strings;
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import codesquad.fineants.AbstractContainerBaseTest;
@@ -512,16 +510,6 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 				.isNotNull(),
 			() -> assertThat(portFolioHoldingRepository.findAll()).hasSize(1)
 		);
-	}
-
-	private void setAuthentication(Member member) {
-		MemberAuthentication memberAuthentication = MemberAuthentication.from(member);
-		UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
-			memberAuthentication,
-			Strings.EMPTY,
-			memberAuthentication.getSimpleGrantedAuthority()
-		);
-		SecurityContextHolder.getContext().setAuthentication(authenticationToken);
 	}
 
 	@DisplayName("사용자는 포트폴리오 종목이 존재하는 상태에서 매입 이력과 같이 종목을 추가할때 매입 이력만 추가된다")

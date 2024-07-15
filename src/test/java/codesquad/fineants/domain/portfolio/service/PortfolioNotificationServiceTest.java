@@ -106,6 +106,25 @@ class PortfolioNotificationServiceTest extends AbstractContainerBaseTest {
 			.hasMessage(PortfolioErrorCode.TARGET_GAIN_IS_ZERO_WITH_NOTIFY_UPDATE.getMessage());
 	}
 
+	@DisplayName("회원은 다른 회원 포트폴리오의 목표 수익률 알림 상태를 변경할 수 없다")
+	@Test
+	void modifyPortfolioTargetGainNotification_whenOtherMemberModify_thenThrowException() {
+		// given
+		Member member = memberRepository.save(createMember());
+		Member hacker = memberRepository.save(createMember("hacker"));
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
+		PortfolioNotificationUpdateRequest request = PortfolioNotificationUpdateRequest.active();
+
+		setAuthentication(hacker);
+		// when
+		Throwable throwable = catchThrowable(() -> service.updateNotificationTargetGain(request, portfolio.getId()));
+
+		// then
+		assertThat(throwable)
+			.isInstanceOf(FineAntsException.class)
+			.hasMessage(PortfolioErrorCode.FORBIDDEN_PORTFOLIO.getMessage());
+	}
+
 	@DisplayName("사용자는 포트폴리오 최대손실금액 알림을 활성화한다")
 	@Test
 	void modifyPortfolioMaximumLossNotification() throws JsonProcessingException {
