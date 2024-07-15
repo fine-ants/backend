@@ -175,4 +175,24 @@ class PortfolioNotificationServiceTest extends AbstractContainerBaseTest {
 			.isInstanceOf(FineAntsException.class)
 			.hasMessage(PortfolioErrorCode.MAX_LOSS_IS_ZERO_WITH_NOTIFY_UPDATE.getMessage());
 	}
+
+	@DisplayName("회원은 다른 회원 포트포리오의 최대손실금액 알림 상태를 수정할 수 없다")
+	@Test
+	void updateNotificationMaximumLoss_whenOtherMemberModify_thenThrowException() {
+		// given
+		Member member = memberRepository.save(createMember());
+		Member hacker = memberRepository.save(createMember("hacker"));
+		Portfolio portfolio = portfolioRepository.save(
+			createPortfolio(member, "내 꿈은 워렌버핏", Money.won(1000000L), Money.won(1500000L), Money.won(900000L)));
+
+		setAuthentication(hacker);
+		PortfolioNotificationUpdateRequest request = PortfolioNotificationUpdateRequest.active();
+		// when
+		Throwable throwable = catchThrowable(() -> service.updateNotificationMaximumLoss(request, portfolio.getId()));
+
+		// then
+		assertThat(throwable)
+			.isInstanceOf(FineAntsException.class)
+			.hasMessage(PortfolioErrorCode.FORBIDDEN_PORTFOLIO.getMessage());
+	}
 }
