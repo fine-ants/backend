@@ -80,4 +80,8 @@ public class StockTargetPrice extends BaseEntity {
 	public Expression getCurrentPrice(CurrentPriceRepository manager) {
 		return stock.getCurrentPrice(manager);
 	}
+
+	public boolean hasAuthorization(Long memberId) {
+		return member.hasAuthorization(memberId);
+	}
 }
