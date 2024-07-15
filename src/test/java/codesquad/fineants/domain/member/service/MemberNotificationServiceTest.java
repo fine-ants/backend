@@ -22,7 +22,9 @@ import codesquad.fineants.domain.member.repository.MemberRepository;
 import codesquad.fineants.domain.notification.domain.entity.Notification;
 import codesquad.fineants.domain.notification.domain.entity.NotificationBody;
 import codesquad.fineants.domain.notification.repository.NotificationRepository;
+import codesquad.fineants.global.errors.errorcode.MemberErrorCode;
 import codesquad.fineants.global.errors.errorcode.NotificationErrorCode;
+import codesquad.fineants.global.errors.exception.FineAntsException;
 import codesquad.fineants.global.errors.exception.NotFoundResourceException;
 
 class MemberNotificationServiceTest extends AbstractContainerBaseTest {
@@ -80,6 +82,24 @@ class MemberNotificationServiceTest extends AbstractContainerBaseTest {
 					.referenceId(notifications.get(0).getReferenceId())
 					.build()
 			);
+	}
+
+	@DisplayName("사용자는 다른 사용자의 알림 메시지들을 조회할 수 없습니다.")
+	@Test
+	void fetchNotifications_whenOtherMemberFetch_thenThrowException() {
+		// given
+		Member member = memberRepository.save(createMember());
+		Member hacker = memberRepository.save(createMember("hacker"));
+		notificationRepository.saveAll(createNotifications(member));
+
+		setAuthentication(hacker);
+		// when
+		Throwable throwable = catchThrowable(() -> notificationService.fetchNotifications(member.getId()));
+
+		// then
+		assertThat(throwable)
+			.isInstanceOf(FineAntsException.class)
+			.hasMessage(MemberErrorCode.FORBIDDEN_MEMBER.getMessage());
 	}
 
 	@DisplayName("사용자는 알림 모두 읽습니다")
@@ -169,6 +189,28 @@ class MemberNotificationServiceTest extends AbstractContainerBaseTest {
 		assertThat(throwable)
 			.isInstanceOf(NotFoundResourceException.class)
 			.hasMessage(NotificationErrorCode.NOT_FOUND_NOTIFICATION.getMessage());
+	}
+
+	@DisplayName("사용자는 다른 사용자의 알림 메시지를 제거할 수 없습니다")
+	@Test
+	void deleteAllNotifications_whenOtherMemberDelete_thenThrowException() {
+		// given
+		Member member = memberRepository.save(createMember());
+		Member hacker = memberRepository.save(createMember("hacker"));
+		List<Notification> notifications = notificationRepository.saveAll(createNotifications(member));
+		List<Long> notificationIds = notifications.stream()
+			.map(Notification::getId)
+			.collect(Collectors.toList());
+
+		setAuthentication(hacker);
+		// when
+		Throwable throwable = catchThrowable(
+			() -> notificationService.deleteAllNotifications(member.getId(), notificationIds));
+
+		// then
+		assertThat(throwable)
+			.isInstanceOf(FineAntsException.class)
+			.hasMessage(MemberErrorCode.FORBIDDEN_MEMBER.getMessage());
 	}
 
 	private List<Notification> createNotifications(Member member) {
