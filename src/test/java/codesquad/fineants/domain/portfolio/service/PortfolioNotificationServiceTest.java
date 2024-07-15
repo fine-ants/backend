@@ -75,9 +75,9 @@ class PortfolioNotificationServiceTest extends AbstractContainerBaseTest {
 		PortfolioNotificationUpdateRequest request = objectMapper.readValue(
 			objectMapper.writeValueAsString(requestBodyMap), PortfolioNotificationUpdateRequest.class);
 
+		setAuthentication(member);
 		// when
-		PortfolioNotificationUpdateResponse response = service.updateNotificationTargetGain(request,
-			portfolio.getId());
+		PortfolioNotificationUpdateResponse response = service.updateNotificationTargetGain(request, portfolio.getId());
 
 		// then
 		assertAll(
@@ -96,6 +96,7 @@ class PortfolioNotificationServiceTest extends AbstractContainerBaseTest {
 		Portfolio portfolio = portfolioRepository.save(
 			createPortfolio(member, "내꿈은 워렌버핏", Money.won(1000000L), Money.zero(), Money.zero()));
 
+		setAuthentication(member);
 		PortfolioNotificationUpdateRequest request = PortfolioNotificationUpdateRequest.active();
 		// when
 		Throwable throwable = catchThrowable(() -> service.updateNotificationTargetGain(request, portfolio.getId()));
@@ -146,9 +147,9 @@ class PortfolioNotificationServiceTest extends AbstractContainerBaseTest {
 		PortfolioNotificationUpdateRequest request = objectMapper.readValue(
 			objectMapper.writeValueAsString(requestBodyMap), PortfolioNotificationUpdateRequest.class);
 
+		setAuthentication(member);
 		// when
-		PortfolioNotificationUpdateResponse response = service.updateNotificationMaximumLoss(
-			request, portfolioId);
+		PortfolioNotificationUpdateResponse response = service.updateNotificationMaximumLoss(request, portfolioId);
 
 		// then
 		assertAll(
@@ -166,6 +167,7 @@ class PortfolioNotificationServiceTest extends AbstractContainerBaseTest {
 		Portfolio portfolio = portfolioRepository.save(
 			createPortfolio(member, "내 꿈은 워렌버핏", Money.won(1000000L), Money.won(1500000L), Money.zero()));
 
+		setAuthentication(member);
 		PortfolioNotificationUpdateRequest request = PortfolioNotificationUpdateRequest.active();
 		// when
 		Throwable throwable = catchThrowable(() -> service.updateNotificationMaximumLoss(request, portfolio.getId()));
