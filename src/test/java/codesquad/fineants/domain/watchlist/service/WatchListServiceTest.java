@@ -179,6 +179,30 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 			tickerSymbol);
 	}
 
+	@DisplayName("사용자는 다른 사용자의 watchList에 종목을 추가할 수 없습니다")
+	@Test
+	void createWatchStocks_whenOtherMemberCreate_thenThrowException() {
+		// given
+		String tickerSymbol = "005930";
+		stockRepository.save(createSamsungStock());
+
+		Member member = memberRepository.save(createMember());
+		Member hacker = memberRepository.save(createMember("hacker"));
+		CreateWatchStockRequest request = new CreateWatchStockRequest(List.of(tickerSymbol));
+
+		WatchList watchList = watchListRepository.save(createWatchList(member));
+		Long watchListId = watchList.getId();
+
+		setAuthentication(hacker);
+		// when
+		Throwable throwable = catchThrowable(
+			() -> watchListService.createWatchStocks(hacker.getId(), watchListId, request));
+		// then
+		assertThat(throwable)
+			.isInstanceOf(FineAntsException.class)
+			.hasMessage(WatchListErrorCode.FORBIDDEN_WATCHLIST.getMessage());
+	}
+
 	@DisplayName("사용자는 한 관심 종목에 이미 추가된 종목을 추가할 수 없다")
 	@Test
 	void createWatchStocks_whenAlreadyStock_thenNotSaveStock() {
@@ -221,17 +245,35 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 		assertThat(watchStockRepository.findByWatchList(watchList)).hasSize(0);
 	}
 
+	@DisplayName("사용자는 다른 사용자의 watchlists를 삭제할 수 없습니다")
+	@Test
+	void deleteWatchLists_whenOtherMemberDelete_thenThrowException() {
+		// given
+		Member member = memberRepository.save(createMember());
+		Member hacker = memberRepository.save(createMember("hacker"));
+		Stock stock = stockRepository.save(createSamsungStock());
+		WatchList watchList = watchListRepository.save(createWatchList(member));
+		Long watchListId = watchList.getId();
+		watchStockRepository.save(createWatchStock(watchList, stock));
+
+		setAuthentication(hacker);
+		// when
+		Throwable throwable = catchThrowable(() -> watchListService.deleteWatchLists(hacker.getId(),
+			new DeleteWatchListsRequests(List.of(watchListId))));
+		// then
+		assertThat(throwable)
+			.isInstanceOf(FineAntsException.class)
+			.hasMessage(WatchListErrorCode.FORBIDDEN_WATCHLIST.getMessage());
+	}
+
 	@DisplayName("회원이 watchlist를 삭제한다.")
 	@Test
 	void deleteWatchList() {
 		// given
 		Stock stock = stockRepository.save(createSamsungStock());
-
 		Member member = memberRepository.save(createMember());
-
 		WatchList watchList = watchListRepository.save(createWatchList(member));
 		Long watchListId = watchList.getId();
-
 		watchStockRepository.save(createWatchStock(watchList, stock));
 
 		// when
@@ -242,20 +284,37 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 		assertThat(watchStockRepository.findByWatchList(watchList)).hasSize(0);
 	}
 
+	@DisplayName("사용자는 다른 사용자의 WatchList를 삭제할 수 없다")
+	@Test
+	void deleteWatchList_whenOtherMemberWatchList_thenThrowException() {
+		// given
+		Stock stock = stockRepository.save(createSamsungStock());
+		Member member = memberRepository.save(createMember());
+		Member hacker = memberRepository.save(createMember("hacker"));
+		WatchList watchList = watchListRepository.save(createWatchList(member));
+		Long watchListId = watchList.getId();
+		watchStockRepository.save(createWatchStock(watchList, stock));
+
+		setAuthentication(hacker);
+		// when
+		Throwable throwable = catchThrowable(() -> watchListService.deleteWatchList(hacker.getId(), watchListId));
+
+		// then
+		assertThat(throwable)
+			.isInstanceOf(FineAntsException.class)
+			.hasMessage(WatchListErrorCode.FORBIDDEN_WATCHLIST.getMessage());
+	}
+
 	@DisplayName("회원이 watchlist에서 종목을 여러개 삭제한다.")
 	@Test
 	void deleteWatchStocks() {
 		// given
 		Stock stock = stockRepository.save(createSamsungStock());
-
 		Member member = memberRepository.save(createMember());
-
 		WatchList watchList = watchListRepository.save(createWatchList(member));
 		Long watchListId = watchList.getId();
-
 		WatchStock watchStock = watchStockRepository.save(createWatchStock(watchList, stock));
 		Long watchStockId = watchStock.getId();
-
 		DeleteWatchStocksRequest request = new DeleteWatchStocksRequest(
 			List.of(watchStock.getStock().getTickerSymbol()));
 
@@ -266,17 +325,37 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 		assertThat(watchStockRepository.findById(watchStockId).isPresent()).isFalse();
 	}
 
+	@DisplayName("사용자는 다른 사용자의 watchList의 종목을 삭제할 수 없다")
+	@Test
+	void deleteWatchStocks_whenOtherMemberDelete_thenThrowException() {
+		// given
+		Stock stock = stockRepository.save(createSamsungStock());
+		Member member = memberRepository.save(createMember());
+		Member hacker = memberRepository.save(createMember("hacker"));
+		WatchList watchList = watchListRepository.save(createWatchList(member));
+		Long watchListId = watchList.getId();
+		WatchStock watchStock = watchStockRepository.save(createWatchStock(watchList, stock));
+		DeleteWatchStocksRequest request = new DeleteWatchStocksRequest(
+			List.of(watchStock.getStock().getTickerSymbol()));
+
+		setAuthentication(hacker);
+		// when
+		Throwable throwable = catchThrowable(
+			() -> watchListService.deleteWatchStocks(hacker.getId(), watchListId, request));
+		// then
+		assertThat(throwable)
+			.isInstanceOf(FineAntsException.class)
+			.hasMessage(WatchListErrorCode.FORBIDDEN_WATCHLIST.getMessage());
+	}
+
 	@DisplayName("회원이 watchlist에서 종목을 삭제한다.")
 	@Test
 	void deleteWatchStock() {
 		// given
 		Stock stock = stockRepository.save(createSamsungStock());
-
 		Member member = memberRepository.save(createMember());
-
 		WatchList watchList = watchListRepository.save(createWatchList(member));
 		Long watchListId = watchList.getId();
-
 		WatchStock watchStock = watchStockRepository.save(createWatchStock(watchList, stock));
 		Long watchStockId = watchStock.getId();
 
@@ -287,15 +366,35 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 		assertThat(watchStockRepository.findById(watchStockId).isPresent()).isFalse();
 	}
 
+	@SuppressWarnings("checkstyle:NoWhitespaceBefore")
+	@DisplayName("사용자는 다른 사용자의 관심 종목을 삭제할 수 없다")
+	@Test
+	void deleteWatchStock_whenOtherMemberDelete_thenThrowException() {
+		// given
+		Stock stock = stockRepository.save(createSamsungStock());
+		Member member = memberRepository.save(createMember());
+		Member hacker = memberRepository.save(createMember("hacker"));
+		WatchList watchList = watchListRepository.save(createWatchList(member));
+		Long watchListId = watchList.getId();
+		watchStockRepository.save(createWatchStock(watchList, stock));
+
+		setAuthentication(hacker);
+		// when
+		Throwable throwable = catchThrowable(
+			() -> watchListService.deleteWatchStock(hacker.getId(), watchListId, stock.getTickerSymbol()));
+		// then
+		assertThat(throwable)
+			.isInstanceOf(FineAntsException.class)
+			.hasMessage(WatchListErrorCode.FORBIDDEN_WATCHLIST.getMessage());
+	}
+
 	@DisplayName("회원이 watchlist의 이름을 수정한다.")
 	@Test
 	void changeWatchListName() {
 		// given
 		Member member = memberRepository.save(createMember());
-
 		WatchList watchList = watchListRepository.save(createWatchList(member));
 		Long watchListId = watchList.getId();
-
 		String name = "New Name";
 		ChangeWatchListNameRequest request = new ChangeWatchListNameRequest(name);
 
@@ -305,6 +404,27 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 		// then
 		WatchList findWatchList = watchListRepository.findById(watchListId).orElseThrow();
 		assertThat(findWatchList.getName()).isEqualTo(name);
+	}
+
+	@DisplayName("사용자는 다른 사용자의 WatchList의 이름을 수정할 수 없다")
+	@Test
+	void changeWatchListName_whenOtherMemberModify_thenThrowException() {
+		// given
+		Member member = memberRepository.save(createMember());
+		Member hacker = memberRepository.save(createMember("hacker"));
+		WatchList watchList = watchListRepository.save(createWatchList(member));
+		Long watchListId = watchList.getId();
+		String name = "New Name";
+		ChangeWatchListNameRequest request = new ChangeWatchListNameRequest(name);
+
+		setAuthentication(hacker);
+		// when
+		Throwable throwable = catchThrowable(
+			() -> watchListService.changeWatchListName(hacker.getId(), watchListId, request));
+		//then
+		assertThat(throwable)
+			.isInstanceOf(FineAntsException.class)
+			.hasMessage(WatchListErrorCode.FORBIDDEN_WATCHLIST.getMessage());
 	}
 
 	@DisplayName("회원이 watchlist들이 주식을 포함하고 있는지 조회한다.")

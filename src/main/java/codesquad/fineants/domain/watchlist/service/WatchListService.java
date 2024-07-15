@@ -83,13 +83,10 @@ public class WatchListService {
 	@Transactional
 	@Secured("ROLE_USER")
 	public void deleteWatchLists(Long memberId, DeleteWatchListsRequests deleteWatchListsRequests) {
-		Member member = findMember(memberId);
 		List<WatchList> watchLists = watchListRepository.findAllById(deleteWatchListsRequests.getWatchlistIds());
 
 		watchLists.forEach(watchList -> {
-			if (!watchList.getMember().getId().equals(member.getId())) {
-				throw new ForBiddenException(WatchListErrorCode.FORBIDDEN_WATCHLIST);
-			}
+			validateWatchListAuthorization(watchList, memberId);
 			watchListRepository.deleteById(watchList.getId());
 		});
 	}
@@ -106,11 +103,10 @@ public class WatchListService {
 	@Transactional
 	@Secured("ROLE_USER")
 	public void createWatchStocks(Long memberId, Long watchListId, CreateWatchStockRequest request) {
-		Member member = findMember(memberId);
 		WatchList watchList = watchListRepository.findById(watchListId)
 			.orElseThrow(() -> new NotFoundResourceException(WatchListErrorCode.NOT_FOUND_WATCH_LIST));
 
-		validateWatchListAuthorization(watchList, member.getId());
+		validateWatchListAuthorization(watchList, memberId);
 		validateAlreadyExistWatchStocks(watchList, request.getTickerSymbols());
 
 		request.getTickerSymbols().stream()
@@ -134,10 +130,9 @@ public class WatchListService {
 	@Transactional
 	@Secured("ROLE_USER")
 	public void deleteWatchStocks(Long memberId, Long watchListId, DeleteWatchStocksRequest request) {
-		Member member = findMember(memberId);
 		WatchList watchList = watchListRepository.findById(watchListId)
 			.orElseThrow(() -> new NotFoundResourceException(WatchListErrorCode.NOT_FOUND_WATCH_LIST));
-		validateWatchListAuthorization(watchList, member.getId());
+		validateWatchListAuthorization(watchList, memberId);
 
 		watchStockRepository.deleteByWatchListAndStock_TickerSymbolIn(watchList, request.getTickerSymbols());
 	}
@@ -145,10 +140,9 @@ public class WatchListService {
 	@Transactional
 	@Secured("ROLE_USER")
 	public void deleteWatchStock(Long memberId, Long watchListId, String tickerSymbol) {
-		Member member = findMember(memberId);
 		WatchList watchList = watchListRepository.findById(watchListId)
 			.orElseThrow(() -> new NotFoundResourceException(WatchListErrorCode.NOT_FOUND_WATCH_LIST));
-		validateWatchListAuthorization(watchList, member.getId());
+		validateWatchListAuthorization(watchList, memberId);
 
 		watchStockRepository.deleteByWatchListAndStock_TickerSymbolIn(watchList, List.of(tickerSymbol));
 	}
