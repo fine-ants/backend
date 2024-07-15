@@ -310,6 +310,8 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 		StockTargetPrice stockTargetPrice = repository.save(createStockTargetPrice(member, stock));
 		TargetPriceNotification targetPriceNotification = targetPriceNotificationRepository.save(
 			createTargetPriceNotification(stockTargetPrice));
+
+		setAuthentication(member);
 		// when
 		service.deleteStockTargetPrice(stockTargetPrice.getId());
 		// then

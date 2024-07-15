@@ -83,6 +83,7 @@ class MemberNotificationPreferenceServiceTest extends AbstractContainerBaseTest 
 			.targetPriceNotify(true)
 			.build();
 
+		setAuthentication(member);
 		// when
 		MemberNotificationPreferenceResponse response = service.updateNotificationPreference(
 			member.getId(), request);
@@ -111,6 +112,7 @@ class MemberNotificationPreferenceServiceTest extends AbstractContainerBaseTest 
 			.targetPriceNotify(false)
 			.build();
 
+		setAuthentication(member);
 		// when
 		MemberNotificationPreferenceResponse response = service.updateNotificationPreference(member.getId(), request);
 
@@ -140,6 +142,7 @@ class MemberNotificationPreferenceServiceTest extends AbstractContainerBaseTest 
 			.fcmTokenId(fcmToken.getId())
 			.build();
 
+		setAuthentication(member);
 		// when
 		MemberNotificationPreferenceResponse response = service.updateNotificationPreference(member.getId(), request);
 
@@ -169,6 +172,7 @@ class MemberNotificationPreferenceServiceTest extends AbstractContainerBaseTest 
 			.fcmTokenId(null)
 			.build();
 
+		setAuthentication(member);
 		// when
 		MemberNotificationPreferenceResponse response = service.updateNotificationPreference(member.getId(), request);
 

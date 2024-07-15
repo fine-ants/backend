@@ -45,6 +45,7 @@ class MemberNotificationServiceTest extends AbstractContainerBaseTest {
 		Member member = memberRepository.save(createMember());
 		List<Notification> notifications = notificationRepository.saveAll(createNotifications(member));
 
+		setAuthentication(member);
 		// when
 		MemberNotificationResponse response = notificationService.fetchNotifications(member.getId());
 
@@ -112,6 +113,7 @@ class MemberNotificationServiceTest extends AbstractContainerBaseTest {
 			.map(Notification::getId)
 			.collect(Collectors.toList());
 
+		setAuthentication(member);
 		// when
 		List<Long> readNotificationIds = notificationService.readAllNotifications(member.getId(), notificationIds);
 
@@ -140,6 +142,7 @@ class MemberNotificationServiceTest extends AbstractContainerBaseTest {
 		Long notExistNotificationId = 9999L;
 		notificationIds.add(notExistNotificationId);
 
+		setAuthentication(member);
 		// when
 		Throwable throwable = catchThrowable(
 			() -> notificationService.readAllNotifications(member.getId(), notificationIds));
@@ -160,6 +163,7 @@ class MemberNotificationServiceTest extends AbstractContainerBaseTest {
 			.map(Notification::getId)
 			.collect(Collectors.toList());
 
+		setAuthentication(member);
 		// when
 		List<Long> deletedAllNotifications = notificationService.deleteAllNotifications(member.getId(),
 			notificationIds);
@@ -181,6 +185,7 @@ class MemberNotificationServiceTest extends AbstractContainerBaseTest {
 			.collect(Collectors.toList());
 		notificationIds.add(9999L);
 
+		setAuthentication(member);
 		// when
 		Throwable throwable = catchThrowable(() -> notificationService.deleteAllNotifications(member.getId(),
 			notificationIds));
