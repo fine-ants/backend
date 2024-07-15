@@ -35,6 +35,7 @@ import codesquad.fineants.domain.stock_target_price.repository.StockTargetPriceR
 import codesquad.fineants.domain.stock_target_price.repository.TargetPriceNotificationRepository;
 import codesquad.fineants.global.errors.errorcode.StockErrorCode;
 import codesquad.fineants.global.errors.exception.BadRequestException;
+import codesquad.fineants.global.errors.exception.FineAntsException;
 import codesquad.fineants.global.errors.exception.ForBiddenException;
 import codesquad.fineants.global.errors.exception.NotFoundResourceException;
 
@@ -317,6 +318,24 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 				targetPriceNotificationRepository.findById(targetPriceNotification.getId()).isEmpty()).isTrue(),
 			() -> assertThat(repository.findById(stockTargetPrice.getId()).isEmpty()).isTrue()
 		);
+	}
+
+	@DisplayName("사용자는 다른 사용자의 종목 지정가를 제거할 수 없습니다")
+	@Test
+	void deleteStockTargetPrice_whenOtherMemberDelete_thenThrowException() {
+		Member member = memberRepository.save(createMember());
+		Member hacker = memberRepository.save(createMember("hacker"));
+		Stock stock = stockRepository.save(createSamsungStock());
+		StockTargetPrice stockTargetPrice = repository.save(createStockTargetPrice(member, stock));
+		targetPriceNotificationRepository.save(createTargetPriceNotification(stockTargetPrice));
+
+		setAuthentication(hacker);
+		// when
+		Throwable throwable = catchThrowable(() -> service.deleteStockTargetPrice(stockTargetPrice.getId()));
+		// then
+		assertThat(throwable)
+			.isInstanceOf(FineAntsException.class)
+			.hasMessage(StockErrorCode.FORBIDDEN_STOCK_TARGET_PRICE.getMessage());
 	}
 
 	@DisplayName("사용자는 종목 지정가 알림을 제거합니다")

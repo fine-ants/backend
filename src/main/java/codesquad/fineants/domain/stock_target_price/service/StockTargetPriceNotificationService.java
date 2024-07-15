@@ -179,7 +179,7 @@ public class StockTargetPriceNotificationService {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		Object principal = authentication.getPrincipal();
 		MemberAuthentication memberAuthentication = (MemberAuthentication)principal;
-		if (stockTargetPrice.hasAuthorization(memberAuthentication.getId())) {
+		if (!stockTargetPrice.hasAuthorization(memberAuthentication.getId())) {
 			throw new FineAntsException(StockErrorCode.FORBIDDEN_STOCK_TARGET_PRICE);
 		}
 	}
