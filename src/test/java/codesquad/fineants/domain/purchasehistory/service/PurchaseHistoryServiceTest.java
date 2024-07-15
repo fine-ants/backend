@@ -32,7 +32,6 @@ import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
 import codesquad.fineants.domain.notification.repository.NotificationRepository;
 import codesquad.fineants.domain.notification.repository.NotificationSentRepository;
-import codesquad.fineants.domain.notificationpreference.repository.NotificationPreferenceRepository;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.repository.PortfolioRepository;
 import codesquad.fineants.domain.purchasehistory.domain.dto.request.PurchaseHistoryCreateRequest;
@@ -45,8 +44,10 @@ import codesquad.fineants.domain.purchasehistory.repository.PurchaseHistoryRepos
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
 import codesquad.fineants.global.errors.errorcode.PortfolioErrorCode;
+import codesquad.fineants.global.errors.errorcode.PortfolioHoldingErrorCode;
 import codesquad.fineants.global.errors.errorcode.PurchaseHistoryErrorCode;
 import codesquad.fineants.global.errors.exception.FineAntsException;
+import codesquad.fineants.global.errors.exception.ForBiddenException;
 
 class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 
@@ -70,9 +71,6 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 
 	@Autowired
 	private NotificationRepository notificationRepository;
-
-	@Autowired
-	private NotificationPreferenceRepository notificationPreferenceRepository;
 
 	@Autowired
 	private FcmRepository fcmRepository;
@@ -236,6 +234,33 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 		assertThat(throwable)
 			.isInstanceOf(FineAntsException.class)
 			.hasMessage(PortfolioErrorCode.TOTAL_INVESTMENT_PRICE_EXCEEDS_BUDGET.getMessage());
+	}
+
+	@DisplayName("회원은 다른 회원의 포트폴리오에 매입 이력을 추가할 수 없다")
+	@Test
+	void createPurchaseHistory_whenOtherMemberCreate_thenThrowException() {
+		// given
+		Member member = memberRepository.save(createMember());
+		Member hacker = memberRepository.save(createMember("hacker"));
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
+		Stock stock = stockRepository.save(createSamsungStock());
+		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
+
+		LocalDateTime now = LocalDateTime.now();
+		Money money = Money.won(50000.0);
+		PurchaseHistoryCreateRequest request = PurchaseHistoryCreateRequest.builder()
+			.purchaseDate(now)
+			.numShares(Count.from(3))
+			.purchasePricePerShare(money)
+			.memo("첫구매")
+			.build();
+		// when
+		Throwable throwable = catchThrowable(
+			() -> service.createPurchaseHistory(request, portfolio.getId(), holding.getId(), hacker.getId()));
+		// then
+		assertThat(throwable)
+			.isInstanceOf(ForBiddenException.class)
+			.hasMessage(PortfolioHoldingErrorCode.FORBIDDEN_PORTFOLIO_HOLDING.getMessage());
 	}
 
 	@DisplayName("사용자는 매입 이력을 수정한다")
