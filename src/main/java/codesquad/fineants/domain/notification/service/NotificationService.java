@@ -134,6 +134,8 @@ public class NotificationService {
 		// 전송 내역 저장
 		saveResponses.stream()
 			.map(NotificationSaveResponse::getIdToSentHistory)
+			.map(id -> id.split(":")[1])
+			.map(Long::valueOf)
 			.forEach(sentFunction);
 
 		// Response 생성
@@ -157,7 +159,7 @@ public class NotificationService {
 	private Map<String, String> getMessageIdMap(List<SentNotifyMessage> sentNotifyMessages) {
 		Map<String, String> result = new HashMap<>();
 		for (SentNotifyMessage target : sentNotifyMessages) {
-			result.put(target.getNotifyMessage().getReferenceId(), target.getMessageId());
+			result.put(target.getNotifyMessage().getIdToSentHistory(), target.getMessageId());
 		}
 		return result;
 	}

@@ -49,8 +49,8 @@ public class TargetPriceNotificationSaveResponse implements NotificationSaveResp
 	}
 
 	@Override
-	public Long getIdToSentHistory() {
-		return targetPriceNotificationId;
+	public String getIdToSentHistory() {
+		return String.format("targetPriceNotification:%d", targetPriceNotificationId);
 	}
 
 	@Override

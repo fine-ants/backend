@@ -585,8 +585,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		given(firebaseMessagingService.send(any(Message.class)))
 			.willReturn(Optional.of("messageId"));
 		// when
-		NotifyMessageResponse response = service.notifyTargetPrice(
-			member.getId());
+		NotifyMessageResponse response = service.notifyTargetPrice(member.getId());
 
 		// then
 		NotificationType type = NotificationType.STOCK_TARGET_PRICE;

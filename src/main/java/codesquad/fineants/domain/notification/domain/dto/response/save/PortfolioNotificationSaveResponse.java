@@ -42,8 +42,8 @@ public class PortfolioNotificationSaveResponse implements NotificationSaveRespon
 	}
 
 	@Override
-	public Long getIdToSentHistory() {
-		return Long.valueOf(referenceId);
+	public String getIdToSentHistory() {
+		return String.format("portfolioNotification:%d", notificationId);
 	}
 
 	@Override
