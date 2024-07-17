@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.BDDMockito.*;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -13,7 +14,9 @@ import java.util.stream.Stream;
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestFactory;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -491,6 +494,73 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 			() -> assertThat(notificationRepository.findAllByMemberIds(List.of(member.getId(), member2.getId())))
 				.asList()
 				.hasSize(4)
+		);
+	}
+
+	@DisplayName("종목 지정가 알림 발송 시나리오")
+	@TestFactory
+	Collection<DynamicTest> createNotifyTargetPriceDynamicTest() {
+		return List.of(
+			DynamicTest.dynamicTest("종목 지정가 알림을 전송한다", () -> {
+				// given
+				Member member = memberRepository.save(createMember("네모네모", "dragonbead95@naver.com"));
+				fcmRepository.save(createFcmToken("token1", member));
+				Stock stock = stockRepository.save(createSamsungStock());
+
+				StockTargetPrice stockTargetPrice1 = stockTargetPriceRepository.save(
+					createStockTargetPrice(member, stock));
+				targetPriceNotificationRepository.saveAll(
+					createTargetPriceNotification(stockTargetPrice1, List.of(60000L, 70000L)));
+
+				manager.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 60000L));
+				given(kisService.fetchCurrentPrice(stock.getTickerSymbol()))
+					.willReturn(Mono.just(KisCurrentPrice.create(stock.getTickerSymbol(), 10000L)));
+				given(firebaseMessagingService.send(any(Message.class)))
+					.willReturn(Optional.of("messageId"));
+
+				List<String> tickerSymbols = Stream.of(stock)
+					.map(Stock::getTickerSymbol)
+					.collect(Collectors.toList());
+
+				// when
+				NotifyMessageResponse response = service.notifyTargetPriceToAllMember(tickerSymbols);
+
+				// then
+				assertAll(
+					() -> assertThat(response)
+						.extracting("notifications")
+						.asList()
+						.hasSize(1),
+					() -> assertThat(
+						notificationRepository.findAllByMemberIds(List.of(member.getId())))
+						.asList()
+						.hasSize(1)
+				);
+			}),
+			DynamicTest.dynamicTest("전송 이력이 있어서 알림을 받지 않는다", () -> {
+				// given
+				Member member = memberRepository.findMemberByEmailAndProvider("dragonbead95@naver.com", "local")
+					.orElseThrow();
+				Stock stock = createSamsungStock();
+				List<String> tickerSymbols = Stream.of(stock)
+					.map(Stock::getTickerSymbol)
+					.collect(Collectors.toList());
+
+				// when
+				NotifyMessageResponse response = service.notifyTargetPriceToAllMember(tickerSymbols);
+
+				// then
+				assertAll(
+					() -> assertThat(response)
+						.extracting("notifications")
+						.asList()
+						.hasSize(0),
+					() -> assertThat(
+						notificationRepository.findAllByMemberIds(List.of(member.getId())))
+						.asList()
+						.hasSize(1)
+				);
+			})
 		);
 	}
 
