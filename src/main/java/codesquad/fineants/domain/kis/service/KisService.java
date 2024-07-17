@@ -2,8 +2,10 @@ package codesquad.fineants.domain.kis.service;
 
 import java.time.Duration;
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
@@ -27,7 +29,10 @@ import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
 import codesquad.fineants.domain.kis.repository.HolidayRepository;
 import codesquad.fineants.domain.kis.repository.KisAccessTokenRepository;
 import codesquad.fineants.domain.notification.event.publisher.PortfolioPublisher;
+import codesquad.fineants.domain.stock.domain.entity.Stock;
+import codesquad.fineants.domain.stock_target_price.domain.entity.StockTargetPrice;
 import codesquad.fineants.domain.stock_target_price.event.publisher.StockTargetPricePublisher;
+import codesquad.fineants.domain.stock_target_price.repository.StockTargetPriceRepository;
 import codesquad.fineants.global.errors.exception.KisException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -48,6 +53,7 @@ public class KisService {
 	private final HolidayRepository holidayRepository;
 	private final StockTargetPricePublisher stockTargetPricePublisher;
 	private final PortfolioPublisher portfolioPublisher;
+	private final StockTargetPriceRepository stockTargetPriceRepository;
 
 	// 평일 9am ~ 15:59pm 5초마다 현재가 갱신 수행
 	@Profile(value = "production")
@@ -62,9 +68,16 @@ public class KisService {
 
 	// 회원이 가지고 있는 모든 종목에 대하여 현재가 갱신
 	public List<KisCurrentPrice> refreshAllStockCurrentPrice() {
-		List<String> tickerSymbols = portFolioHoldingRepository.findAllTickerSymbol();
-		List<KisCurrentPrice> prices = refreshStockCurrentPrice(tickerSymbols);
-		stockTargetPricePublisher.publishEvent(tickerSymbols);
+		Set<String> totalTickerSymbol = new HashSet<>();
+		totalTickerSymbol.addAll(portFolioHoldingRepository.findAllTickerSymbol());
+		totalTickerSymbol.addAll(stockTargetPriceRepository.findAll().stream()
+			.map(StockTargetPrice::getStock)
+			.map(Stock::getTickerSymbol)
+			.collect(Collectors.toSet()));
+		List<String> totalTickerSymbolList = totalTickerSymbol.stream().toList();
+
+		List<KisCurrentPrice> prices = refreshStockCurrentPrice(totalTickerSymbolList);
+		stockTargetPricePublisher.publishEvent(totalTickerSymbolList);
 		portfolioPublisher.publishCurrentPriceEvent();
 		return prices;
 	}

@@ -92,7 +92,6 @@ public class FcmService {
 	}
 
 	@Transactional
-	@Secured(value = {"ROLE_USER", "ROLE_MANAGER", "ROLE_ADMIN"})
 	public void deleteToken(String token) {
 		int deleteCount = fcmRepository.deleteAllByToken(token);
 		log.info("FCM 토큰 삭제 개수 : deleteCount={}", deleteCount);

@@ -49,6 +49,11 @@ public class TargetPriceNotificationSaveResponse implements NotificationSaveResp
 	}
 
 	@Override
+	public Long getIdToSentHistory() {
+		return targetPriceNotificationId;
+	}
+
+	@Override
 	public NotifyMessageItem toNotifyMessageItemWith(String messageId) {
 		return TargetPriceNotifyMessageItem.from(this, messageId);
 	}
