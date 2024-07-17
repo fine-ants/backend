@@ -70,4 +70,6 @@ public abstract class NotifyMessage {
 			return StockNotificationSaveRequest.from(this);
 		}
 	}
+
+	public abstract String getIdToSentHistory();
 }

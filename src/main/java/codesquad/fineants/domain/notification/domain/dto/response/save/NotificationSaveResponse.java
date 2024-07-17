@@ -5,5 +5,7 @@ import codesquad.fineants.domain.notification.domain.dto.response.NotifyMessageI
 public interface NotificationSaveResponse {
 	String getReferenceId();
 
+	String getIdToSentHistory();
+
 	NotifyMessageItem toNotifyMessageItemWith(String messageId);
 }

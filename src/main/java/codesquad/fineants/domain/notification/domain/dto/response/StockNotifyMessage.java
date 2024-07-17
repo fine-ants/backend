@@ -39,4 +39,9 @@ public class StockNotifyMessage extends NotifyMessage {
 			.targetPriceNotificationId(targetPriceNotificationId)
 			.build();
 	}
+
+	@Override
+	public String getIdToSentHistory() {
+		return String.format("targetPriceNotification:%d", targetPriceNotificationId);
+	}
 }

@@ -42,6 +42,11 @@ public class PortfolioNotificationSaveResponse implements NotificationSaveRespon
 	}
 
 	@Override
+	public String getIdToSentHistory() {
+		return String.format("portfolioNotification:%d", notificationId);
+	}
+
+	@Override
 	public NotifyMessageItem toNotifyMessageItemWith(String messageId) {
 		return PortfolioNotifyMessageItem.create(
 			notificationId,

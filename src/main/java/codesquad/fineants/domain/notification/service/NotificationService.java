@@ -125,13 +125,16 @@ public class NotificationService {
 		NotificationPolicy<Notifiable> policy, Consumer<Long> sentFunction) {
 		// 알림 전송
 		List<SentNotifyMessage> messages = notificationDispatcher.dispatch(targets, policy);
+		log.debug("알림 전송 결과: {}", messages);
 
 		// 알림 저장
 		List<NotificationSaveResponse> saveResponses = this.saveNotification(messages);
+		log.debug("db 알림 저장 결과 : {}", saveResponses);
 
 		// 전송 내역 저장
 		saveResponses.stream()
-			.map(NotificationSaveResponse::getReferenceId)
+			.map(NotificationSaveResponse::getIdToSentHistory)
+			.map(id -> id.split(":")[1])
 			.map(Long::valueOf)
 			.forEach(sentFunction);
 
@@ -147,7 +150,7 @@ public class NotificationService {
 
 		return notificationSaveResponses.stream()
 			.map(response -> {
-				String messageId = messageIdMap.getOrDefault(response.getReferenceId(), Strings.EMPTY);
+				String messageId = messageIdMap.getOrDefault(response.getIdToSentHistory(), Strings.EMPTY);
 				return response.toNotifyMessageItemWith(messageId);
 			})
 			.toList();
@@ -156,7 +159,7 @@ public class NotificationService {
 	private Map<String, String> getMessageIdMap(List<SentNotifyMessage> sentNotifyMessages) {
 		Map<String, String> result = new HashMap<>();
 		for (SentNotifyMessage target : sentNotifyMessages) {
-			result.put(target.getNotifyMessage().getReferenceId(), target.getMessageId());
+			result.put(target.getNotifyMessage().getIdToSentHistory(), target.getMessageId());
 		}
 		return result;
 	}
@@ -200,11 +203,15 @@ public class NotificationService {
 	 */
 	@Transactional
 	public NotifyMessageResponse notifyTargetPriceToAllMember(List<String> tickerSymbols) {
+		log.debug("tickerSymbols : {}", tickerSymbols);
+
 		List<Notifiable> targetPrices = stockTargetPriceRepository.findAllByTickerSymbols(tickerSymbols)
 			.stream()
 			.map(StockTargetPrice::getTargetPriceNotifications)
 			.flatMap(Collection::stream)
 			.collect(Collectors.toList());
+		log.debug("targetPrices : {}", targetPrices);
+
 		Consumer<Long> sentFunction = sentManager::addTargetPriceSendHistory;
 		return TargetPriceNotifyMessageResponse.create(
 			notifyMessage(targetPrices, targetPriceNotificationPolicy, sentFunction)

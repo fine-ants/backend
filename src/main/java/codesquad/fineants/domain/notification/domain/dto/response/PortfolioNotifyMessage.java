@@ -30,4 +30,9 @@ public class PortfolioNotifyMessage extends NotifyMessage {
 			.name(name)
 			.build();
 	}
+
+	@Override
+	public String getIdToSentHistory() {
+		return String.format("portfolioNotification:%s", getReferenceId());
+	}
 }
