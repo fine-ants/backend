@@ -26,6 +26,7 @@ import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.repository.PortfolioPropertiesRepository;
 import codesquad.fineants.domain.portfolio.repository.PortfolioRepository;
 import codesquad.fineants.domain.purchasehistory.repository.PurchaseHistoryRepository;
+import codesquad.fineants.global.common.authorized.Authorized;
 import codesquad.fineants.global.errors.errorcode.MemberErrorCode;
 import codesquad.fineants.global.errors.errorcode.PortfolioErrorCode;
 import codesquad.fineants.global.errors.exception.BadRequestException;
@@ -79,6 +80,7 @@ public class PortFolioService {
 	}
 
 	@Transactional
+	@Authorized
 	@Secured("ROLE_USER")
 	public PortfolioModifyResponse updatePortfolio(PortfolioModifyRequest request, Long portfolioId, Long memberId) {
 		log.info("포트폴리오 수정 서비스 요청 : request={}, portfolioId={}, memberId={}", request, portfolioId, memberId);
@@ -86,7 +88,6 @@ public class PortFolioService {
 		Portfolio originalPortfolio = findPortfolio(portfolioId);
 		Portfolio changePortfolio = request.toEntity(member);
 
-		validatePortfolioAuthorization(originalPortfolio, memberId);
 		if (!originalPortfolio.isSameName(changePortfolio)) {
 			validateUniquePortfolioName(changePortfolio.getName(), member);
 		}
