@@ -140,7 +140,8 @@ public class PortFolioService implements AuthorizeService<Portfolio> {
 	}
 
 	@Secured("ROLE_USER")
-	public Portfolio findPortfolio(Long portfolioId) {
+	@Authorized
+	public Portfolio findPortfolio(@ResourceId Long portfolioId) {
 		return portfolioRepository.findById(portfolioId)
 			.orElseThrow(() -> new NotFoundResourceException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
 	}
