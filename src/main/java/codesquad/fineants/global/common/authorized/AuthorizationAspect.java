@@ -31,10 +31,10 @@ public class AuthorizationAspect {
 
 	private final ResourceIdAspect resourceIdAspect;
 
-	@Before(value = "@annotation(Authorized) && args(..)")
-	public void validatePortfolioAuthorization(JoinPoint joinPoint) {
-		Object target = joinPoint.getTarget();
-		AuthorizeService<?> service = (AuthorizeService<?>)applicationContext.getBean(target.getClass());
+	@Before(value = "@annotation(authorized) && args(..)")
+	public void validatePortfolioAuthorization(JoinPoint joinPoint, Authorized authorized) {
+		AuthorizeService<?> service = (AuthorizeService<?>)applicationContext.getBean(authorized.serviceName());
+
 		List<Long> resourceIds = getResourceId((ProceedingJoinPoint)joinPoint);
 		List<?> resources = service.findResourceAllBy(resourceIds);
 		Long memberId = getLoggedInMemberId();

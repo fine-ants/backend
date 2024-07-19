@@ -25,7 +25,6 @@ import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.repository.PortfolioPropertiesRepository;
 import codesquad.fineants.domain.portfolio.repository.PortfolioRepository;
 import codesquad.fineants.domain.purchasehistory.repository.PurchaseHistoryRepository;
-import codesquad.fineants.global.common.authorized.AuthorizeService;
 import codesquad.fineants.global.common.authorized.Authorized;
 import codesquad.fineants.global.common.resource.ResourceId;
 import codesquad.fineants.global.common.resource.ResourceIds;
@@ -41,7 +40,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 @Service
-public class PortFolioService implements AuthorizeService<Portfolio> {
+public class PortFolioService {
 
 	private final PortfolioRepository portfolioRepository;
 	private final MemberRepository memberRepository;
@@ -81,7 +80,7 @@ public class PortFolioService implements AuthorizeService<Portfolio> {
 	}
 
 	@Transactional
-	@Authorized
+	@Authorized(serviceName = "portfolioAuthorizeService")
 	@Secured("ROLE_USER")
 	public PortfolioModifyResponse updatePortfolio(PortfolioModifyRequest request, @ResourceId Long portfolioId,
 		Long memberId) {
@@ -100,7 +99,7 @@ public class PortFolioService implements AuthorizeService<Portfolio> {
 	}
 
 	@Transactional
-	@Authorized
+	@Authorized(serviceName = "portfolioAuthorizeService")
 	@Secured("ROLE_USER")
 	public void deletePortfolio(@ResourceId Long portfolioId, Long memberId) {
 		log.info("포트폴리오 삭제 서비스 요청 : portfolioId={}, memberId={}", portfolioId, memberId);
@@ -124,7 +123,7 @@ public class PortFolioService implements AuthorizeService<Portfolio> {
 	}
 
 	@Transactional
-	@Authorized
+	@Authorized(serviceName = "portfolioAuthorizeService")
 	@Secured("ROLE_USER")
 	public void deletePortfolios(@ResourceIds List<Long> portfolioIds) {
 		for (Long portfolioId : portfolioIds) {
@@ -140,7 +139,7 @@ public class PortFolioService implements AuthorizeService<Portfolio> {
 	}
 
 	@Secured("ROLE_USER")
-	@Authorized
+	@Authorized(serviceName = "portfolioAuthorizeService")
 	public Portfolio findPortfolio(@ResourceId Long portfolioId) {
 		return portfolioRepository.findById(portfolioId)
 			.orElseThrow(() -> new NotFoundResourceException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
@@ -161,15 +160,5 @@ public class PortFolioService implements AuthorizeService<Portfolio> {
 			));
 
 		return PortfoliosResponse.of(portfolios, portfolioGainHistoryMap, currentPriceRepository);
-	}
-
-	@Override
-	public List<Portfolio> findResourceAllBy(List<Long> ids) {
-		return portfolioRepository.findAllById(ids);
-	}
-
-	@Override
-	public boolean isAuthorized(Object resource, Long memberId) {
-		return ((Portfolio)resource).hasAuthorization(memberId);
 	}
 }

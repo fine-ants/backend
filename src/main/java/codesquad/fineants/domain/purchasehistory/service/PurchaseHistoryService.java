@@ -1,7 +1,5 @@
 package codesquad.fineants.domain.purchasehistory.service;
 
-import java.util.List;
-
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,7 +17,6 @@ import codesquad.fineants.domain.purchasehistory.domain.dto.response.PurchaseHis
 import codesquad.fineants.domain.purchasehistory.domain.entity.PurchaseHistory;
 import codesquad.fineants.domain.purchasehistory.event.publisher.PurchaseHistoryEventPublisher;
 import codesquad.fineants.domain.purchasehistory.repository.PurchaseHistoryRepository;
-import codesquad.fineants.global.common.authorized.AuthorizeService;
 import codesquad.fineants.global.common.authorized.Authorized;
 import codesquad.fineants.global.common.resource.ResourceId;
 import codesquad.fineants.global.errors.errorcode.PortfolioErrorCode;
@@ -34,14 +31,14 @@ import lombok.extern.slf4j.Slf4j;
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 @Service
-public class PurchaseHistoryService implements AuthorizeService<PortfolioHolding> {
+public class PurchaseHistoryService {
 	private final PurchaseHistoryRepository repository;
 	private final PortfolioHoldingRepository portfolioHoldingRepository;
 	private final PurchaseHistoryEventPublisher purchaseHistoryEventPublisher;
 	private final PortfolioRepository portfolioRepository;
 
 	@Transactional
-	@Authorized
+	@Authorized(serviceName = "portfolioHoldingAuthorizeService")
 	@Secured("ROLE_USER")
 	public PurchaseHistoryCreateResponse createPurchaseHistory(
 		PurchaseHistoryCreateRequest request,
@@ -137,15 +134,5 @@ public class PurchaseHistoryService implements AuthorizeService<PortfolioHolding
 	private PurchaseHistory findPurchaseHistory(Long purchaseHistoryId) {
 		return repository.findById(purchaseHistoryId)
 			.orElseThrow(() -> new FineAntsException(PurchaseHistoryErrorCode.NOT_FOUND_PURCHASE_HISTORY));
-	}
-
-	@Override
-	public List<PortfolioHolding> findResourceAllBy(List<Long> ids) {
-		return portfolioHoldingRepository.findAllById(ids);
-	}
-
-	@Override
-	public boolean isAuthorized(Object resource, Long memberId) {
-		return ((PortfolioHolding)resource).hasAuthorization(memberId);
 	}
 }

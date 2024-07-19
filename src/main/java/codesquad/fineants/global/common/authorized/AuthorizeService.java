@@ -1,9 +1,14 @@
 package codesquad.fineants.global.common.authorized;
 
+import java.util.Collections;
 import java.util.List;
 
 public interface AuthorizeService<T> {
-	List<T> findResourceAllBy(List<Long> ids);
+	default List<T> findResourceAllBy(List<Long> ids) {
+		return Collections.emptyList();
+	}
 
-	boolean isAuthorized(Object resource, Long memberId);
+	default boolean isAuthorized(Object resource, Long memberId) {
+		return false;
+	}
 }

@@ -38,7 +38,6 @@ import codesquad.fineants.domain.purchasehistory.domain.entity.PurchaseHistory;
 import codesquad.fineants.domain.purchasehistory.repository.PurchaseHistoryRepository;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
-import codesquad.fineants.global.common.authorized.AuthorizeService;
 import codesquad.fineants.global.common.authorized.Authorized;
 import codesquad.fineants.global.common.resource.ResourceId;
 import codesquad.fineants.global.errors.errorcode.PortfolioErrorCode;
@@ -55,7 +54,7 @@ import lombok.extern.slf4j.Slf4j;
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 @Service
-public class PortfolioHoldingService implements AuthorizeService<Portfolio> {
+public class PortfolioHoldingService {
 	private final PortfolioRepository portfolioRepository;
 	private final StockRepository stockRepository;
 	private final PortfolioHoldingRepository portfolioHoldingRepository;
@@ -68,7 +67,7 @@ public class PortfolioHoldingService implements AuthorizeService<Portfolio> {
 	private final PortfolioHoldingEventPublisher publisher;
 
 	@Transactional
-	@Authorized
+	@Authorized(serviceName = "portfolioAuthorizeService")
 	public PortfolioStockCreateResponse createPortfolioHolding(@ResourceId Long portfolioId,
 		PortfolioHoldingCreateRequest request) {
 		log.info("포트폴리오 종목 추가 서비스 요청 : portfolioId={}, request={}", portfolioId, request);
@@ -157,7 +156,7 @@ public class PortfolioHoldingService implements AuthorizeService<Portfolio> {
 	}
 
 	@Transactional(readOnly = true)
-	@Authorized
+	@Authorized(serviceName = "portfolioAuthorizeService")
 	public PortfolioHoldingsResponse readPortfolioHoldings(@ResourceId Long portfolioId) {
 		Portfolio portfolio = findPortfolio(portfolioId);
 		PortfolioDetailResponse portfolioDetail = portfolioDetailFactory.createPortfolioDetailItem(portfolio);
@@ -182,7 +181,7 @@ public class PortfolioHoldingService implements AuthorizeService<Portfolio> {
 	}
 
 	@Transactional(readOnly = true)
-	@Authorized
+	@Authorized(serviceName = "portfolioAuthorizeService")
 	public PortfolioChartResponse readPortfolioCharts(@ResourceId Long portfolioId, LocalDate currentLocalDate) {
 		Portfolio portfolio = findPortfolio(portfolioId);
 		PortfolioDetails portfolioDetails = PortfolioDetails.from(portfolio);
@@ -190,15 +189,5 @@ public class PortfolioHoldingService implements AuthorizeService<Portfolio> {
 		List<PortfolioDividendChartItem> dividendChartItems = dividendChart.createBy(portfolio, currentLocalDate);
 		List<PortfolioSectorChartItem> sectorChartItems = sectorChart.createBy(portfolio);
 		return PortfolioChartResponse.create(portfolioDetails, pieChartItems, dividendChartItems, sectorChartItems);
-	}
-
-	@Override
-	public List<Portfolio> findResourceAllBy(List<Long> portfolioIds) {
-		return portfolioRepository.findAllById(portfolioIds);
-	}
-
-	@Override
-	public boolean isAuthorized(Object resource, Long memberId) {
-		return ((Portfolio)resource).hasAuthorization(memberId);
 	}
 }
