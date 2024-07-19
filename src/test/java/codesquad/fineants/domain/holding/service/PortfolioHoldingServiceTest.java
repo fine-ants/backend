@@ -51,6 +51,7 @@ import codesquad.fineants.domain.purchasehistory.domain.entity.PurchaseHistory;
 import codesquad.fineants.domain.purchasehistory.repository.PurchaseHistoryRepository;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
+import codesquad.fineants.global.errors.errorcode.MemberErrorCode;
 import codesquad.fineants.global.errors.errorcode.PortfolioHoldingErrorCode;
 import codesquad.fineants.global.errors.exception.FineAntsException;
 import codesquad.fineants.global.errors.exception.ForBiddenException;
@@ -214,7 +215,7 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 	void readMyPortfolioStocks_whenReadOtherMemberHolding_thenThrowException() {
 		// given
 		Member member = memberRepository.save(createMember());
-		Member hacker = createMember("hacker");
+		Member hacker = memberRepository.save(createMember("hacker"));
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 
 		setAuthentication(hacker);
@@ -223,7 +224,7 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		// then
 		assertThat(throwable)
 			.isInstanceOf(FineAntsException.class)
-			.hasMessage(PortfolioHoldingErrorCode.FORBIDDEN_PORTFOLIO_HOLDING.getMessage());
+			.hasMessage(MemberErrorCode.FORBIDDEN_MEMBER.getMessage());
 	}
 
 	@DisplayName("사용자는 포트폴리오의 차트 정보를 조회한다")
@@ -365,7 +366,7 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		// then
 		assertThat(throwable)
 			.isInstanceOf(FineAntsException.class)
-			.hasMessage(PortfolioHoldingErrorCode.FORBIDDEN_PORTFOLIO_HOLDING.getMessage());
+			.hasMessage(MemberErrorCode.FORBIDDEN_MEMBER.getMessage());
 	}
 
 	@DisplayName("사용자는 포트폴리오에 실시간 상세 데이터를 조회한다")
@@ -477,7 +478,7 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		// then
 		assertThat(throwable)
 			.isInstanceOf(FineAntsException.class)
-			.hasMessage(PortfolioHoldingErrorCode.FORBIDDEN_PORTFOLIO_HOLDING.getMessage());
+			.hasMessage(MemberErrorCode.FORBIDDEN_MEMBER.getMessage());
 	}
 
 	@DisplayName("사용자는 포트폴리오에 종목과 매입이력을 추가한다")
