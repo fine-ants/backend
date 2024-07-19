@@ -3,6 +3,7 @@ package codesquad.fineants.domain.portfolio.service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.security.access.annotation.Secured;
@@ -26,7 +27,9 @@ import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.repository.PortfolioPropertiesRepository;
 import codesquad.fineants.domain.portfolio.repository.PortfolioRepository;
 import codesquad.fineants.domain.purchasehistory.repository.PurchaseHistoryRepository;
+import codesquad.fineants.global.common.authorized.AuthorizeService;
 import codesquad.fineants.global.common.authorized.Authorized;
+import codesquad.fineants.global.common.resource.ResourceId;
 import codesquad.fineants.global.errors.errorcode.MemberErrorCode;
 import codesquad.fineants.global.errors.errorcode.PortfolioErrorCode;
 import codesquad.fineants.global.errors.exception.BadRequestException;
@@ -40,7 +43,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 @Service
-public class PortFolioService {
+public class PortFolioService implements AuthorizeService<Portfolio> {
 
 	private final PortfolioRepository portfolioRepository;
 	private final MemberRepository memberRepository;
@@ -82,7 +85,8 @@ public class PortFolioService {
 	@Transactional
 	@Authorized
 	@Secured("ROLE_USER")
-	public PortfolioModifyResponse updatePortfolio(PortfolioModifyRequest request, Long portfolioId, Long memberId) {
+	public PortfolioModifyResponse updatePortfolio(PortfolioModifyRequest request, @ResourceId Long portfolioId,
+		Long memberId) {
 		log.info("포트폴리오 수정 서비스 요청 : request={}, portfolioId={}, memberId={}", request, portfolioId, memberId);
 		Member member = findMember(memberId);
 		Portfolio originalPortfolio = findPortfolio(portfolioId);
@@ -104,13 +108,12 @@ public class PortFolioService {
 	}
 
 	@Transactional
+	@Authorized
 	@Secured("ROLE_USER")
-	public void deletePortfolio(Long portfolioId, Long memberId) {
+	public void deletePortfolio(@ResourceId Long portfolioId, Long memberId) {
 		log.info("포트폴리오 삭제 서비스 요청 : portfolioId={}, memberId={}", portfolioId, memberId);
 
 		Portfolio findPortfolio = findPortfolio(portfolioId);
-		validatePortfolioAuthorization(findPortfolio, memberId);
-
 		List<Long> portfolioHoldingIds = portfolioHoldingRepository.findAllByPortfolio(findPortfolio).stream()
 			.map(PortfolioHolding::getId)
 			.collect(Collectors.toList());
@@ -169,5 +172,15 @@ public class PortFolioService {
 			));
 
 		return PortfoliosResponse.of(portfolios, portfolioGainHistoryMap, currentPriceRepository);
+	}
+
+	@Override
+	public Optional<Portfolio> findResourceById(Long id) {
+		return portfolioRepository.findById(id);
+	}
+
+	@Override
+	public boolean isAuthorized(Object resource, Long memberId) {
+		return ((Portfolio)resource).hasAuthorization(memberId);
 	}
 }

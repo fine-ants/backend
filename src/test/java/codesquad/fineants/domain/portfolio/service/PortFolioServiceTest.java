@@ -44,6 +44,7 @@ import codesquad.fineants.domain.purchasehistory.domain.entity.PurchaseHistory;
 import codesquad.fineants.domain.purchasehistory.repository.PurchaseHistoryRepository;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
+import codesquad.fineants.global.errors.errorcode.MemberErrorCode;
 import codesquad.fineants.global.errors.errorcode.PortfolioErrorCode;
 import codesquad.fineants.global.errors.exception.BadRequestException;
 import codesquad.fineants.global.errors.exception.ConflictException;
@@ -216,6 +217,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 			PortfolioModifyRequest.class);
 		Long portfolioId = originPortfolio.getId();
 
+		setAuthentication(member);
 		// when
 		service.updatePortfolio(request, portfolioId, member.getId());
 
@@ -242,6 +244,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 			PortfolioModifyRequest.class);
 		Long portfolioId = originPortfolio.getId();
 
+		setAuthentication(member);
 		// when
 		service.updatePortfolio(request, portfolioId, member.getId());
 
@@ -277,6 +280,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 			PortfolioModifyRequest.class);
 		Long portfolioId = originPortfolio.getId();
 
+		setAuthentication(member);
 		// when
 		Throwable throwable = catchThrowable(
 			() -> service.updatePortfolio(request, portfolioId, member.getId()));
@@ -301,6 +305,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 		Long portfolioId = originPortfolio.getId();
 
 		Member hacker = memberRepository.save(createMember("hacker1234", "hack1234@naver.com"));
+		setAuthentication(hacker);
 		// when
 		Throwable throwable = catchThrowable(
 			() -> service.updatePortfolio(request, portfolioId, hacker.getId()));
@@ -308,7 +313,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 		// then
 		assertThat(throwable)
 			.isInstanceOf(ForBiddenException.class)
-			.hasMessage("포트폴리오에 대한 권한이 없습니다");
+			.hasMessage(MemberErrorCode.FORBIDDEN_MEMBER.getMessage());
 	}
 
 	@DisplayName("회원이 포트폴리오 정보 수정시 예산이 목표수익금액보다 같거나 작게 수정할 수 없다")
@@ -329,6 +334,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 			PortfolioModifyRequest.class);
 		Long portfolioId = originPortfolio.getId();
 
+		setAuthentication(member);
 		// when
 		Throwable throwable = catchThrowable(
 			() -> service.updatePortfolio(request, portfolioId, member.getId()));
@@ -357,6 +363,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 			PortfolioModifyRequest.class);
 		Long portfolioId = originPortfolio.getId();
 
+		setAuthentication(member);
 		// when
 		Throwable throwable = catchThrowable(
 			() -> service.updatePortfolio(request, portfolioId, member.getId()));
@@ -447,6 +454,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 		PurchaseHistory purchaseHistory = purchaseHistoryRepository.save(
 			createPurchaseHistory(null, purchaseDate, numShares, purchasePerShare, memo, portfolioHolding));
 
+		setAuthentication(member);
 		// when
 		service.deletePortfolio(portfolio.getId(), member.getId());
 
@@ -464,16 +472,17 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 	void deletePortfolio_whenDeleteOtherMemberPortfolio_thenThrowException() {
 		// given
 		Member member = memberRepository.save(createMember());
-		Member hacker = createMember("hacker");
+		Member hacker = memberRepository.save(createMember("hacker"));
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 
+		setAuthentication(hacker);
 		// when
 		Throwable throwable = catchThrowable(() -> service.deletePortfolio(portfolio.getId(), hacker.getId()));
 
 		// then
 		assertThat(throwable)
 			.isInstanceOf(ForBiddenException.class)
-			.hasMessage(PortfolioErrorCode.NOT_HAVE_AUTHORIZATION.getMessage());
+			.hasMessage(MemberErrorCode.FORBIDDEN_MEMBER.getMessage());
 	}
 
 	@DisplayName("회원이 포트폴리오들을 삭제한다")
