@@ -1,5 +1,7 @@
 package codesquad.fineants.domain.purchasehistory.service;
 
+import java.util.List;
+
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,6 +19,9 @@ import codesquad.fineants.domain.purchasehistory.domain.dto.response.PurchaseHis
 import codesquad.fineants.domain.purchasehistory.domain.entity.PurchaseHistory;
 import codesquad.fineants.domain.purchasehistory.event.publisher.PurchaseHistoryEventPublisher;
 import codesquad.fineants.domain.purchasehistory.repository.PurchaseHistoryRepository;
+import codesquad.fineants.global.common.authorized.AuthorizeService;
+import codesquad.fineants.global.common.authorized.Authorized;
+import codesquad.fineants.global.common.resource.ResourceId;
 import codesquad.fineants.global.errors.errorcode.PortfolioErrorCode;
 import codesquad.fineants.global.errors.errorcode.PortfolioHoldingErrorCode;
 import codesquad.fineants.global.errors.errorcode.PurchaseHistoryErrorCode;
@@ -29,18 +34,19 @@ import lombok.extern.slf4j.Slf4j;
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 @Service
-public class PurchaseHistoryService {
+public class PurchaseHistoryService implements AuthorizeService<PortfolioHolding> {
 	private final PurchaseHistoryRepository repository;
 	private final PortfolioHoldingRepository portfolioHoldingRepository;
 	private final PurchaseHistoryEventPublisher purchaseHistoryEventPublisher;
 	private final PortfolioRepository portfolioRepository;
 
 	@Transactional
+	@Authorized
 	@Secured("ROLE_USER")
 	public PurchaseHistoryCreateResponse createPurchaseHistory(
 		PurchaseHistoryCreateRequest request,
 		Long portfolioId,
-		Long portfolioHoldingId,
+		@ResourceId Long portfolioHoldingId,
 		Long memberId) {
 		log.info("매입이력 추가 서비스 요청 : request={}, portfolioHoldingId={}", request, portfolioHoldingId);
 
@@ -49,7 +55,6 @@ public class PurchaseHistoryService {
 			.filter(holding -> holding.getId().equals(portfolioHoldingId))
 			.findAny()
 			.orElseThrow(() -> new FineAntsException(PortfolioHoldingErrorCode.NOT_FOUND_PORTFOLIO_HOLDING));
-		validatePortfolioHoldingAuthorization(findHolding, memberId);
 		PurchaseHistory history = request.toEntity(findHolding);
 
 		verifyCashSufficientForPurchase(portfolio, (Money)history.calculateInvestmentAmount());
@@ -63,17 +68,11 @@ public class PurchaseHistoryService {
 		return PurchaseHistoryCreateResponse.from(newPurchaseHistory, portfolioId, memberId);
 	}
 
-	private void validatePortfolioHoldingAuthorization(PortfolioHolding findHolding, Long memberId) {
-		if (!findHolding.hasAuthorization(memberId)) {
-			throw new ForBiddenException(PortfolioHoldingErrorCode.FORBIDDEN_PORTFOLIO_HOLDING);
-		}
-	}
-
 	private Portfolio findPortfolio(Long portfolioId) {
 		return portfolioRepository.findByPortfolioIdWithAll(portfolioId)
 			.orElseThrow(() -> new FineAntsException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
 	}
-	
+
 	private void verifyCashSufficientForPurchase(Portfolio portfolio, Money investmentAmount) {
 		if (portfolio.isCashSufficientForPurchase(investmentAmount)) {
 			throw new FineAntsException(PortfolioErrorCode.TOTAL_INVESTMENT_PRICE_EXCEEDS_BUDGET);
@@ -138,5 +137,15 @@ public class PurchaseHistoryService {
 	private PurchaseHistory findPurchaseHistory(Long purchaseHistoryId) {
 		return repository.findById(purchaseHistoryId)
 			.orElseThrow(() -> new FineAntsException(PurchaseHistoryErrorCode.NOT_FOUND_PURCHASE_HISTORY));
+	}
+
+	@Override
+	public List<PortfolioHolding> findResourceAllBy(List<Long> ids) {
+		return portfolioHoldingRepository.findAllById(ids);
+	}
+
+	@Override
+	public boolean isAuthorized(Object resource, Long memberId) {
+		return ((PortfolioHolding)resource).hasAuthorization(memberId);
 	}
 }

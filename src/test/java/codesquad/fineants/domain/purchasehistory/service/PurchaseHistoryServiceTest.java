@@ -43,8 +43,8 @@ import codesquad.fineants.domain.purchasehistory.domain.entity.PurchaseHistory;
 import codesquad.fineants.domain.purchasehistory.repository.PurchaseHistoryRepository;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
+import codesquad.fineants.global.errors.errorcode.MemberErrorCode;
 import codesquad.fineants.global.errors.errorcode.PortfolioErrorCode;
-import codesquad.fineants.global.errors.errorcode.PortfolioHoldingErrorCode;
 import codesquad.fineants.global.errors.errorcode.PurchaseHistoryErrorCode;
 import codesquad.fineants.global.errors.exception.FineAntsException;
 import codesquad.fineants.global.errors.exception.ForBiddenException;
@@ -107,6 +107,8 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 			.memo("첫구매")
 			.build();
 		currentPriceRepository.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L));
+
+		setAuthentication(member);
 		// when
 		PurchaseHistoryCreateResponse response = service.createPurchaseHistory(
 			request,
@@ -157,6 +159,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 		given(firebaseMessagingService.send(any(Message.class)))
 			.willReturn(Optional.of("messageId"));
 
+		setAuthentication(member);
 		// when
 		PurchaseHistoryCreateResponse response = service.createPurchaseHistory(
 			request,
@@ -195,6 +198,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 		given(firebaseMessagingService.send(any(Message.class)))
 			.willReturn(Optional.of("messageId"));
 
+		setAuthentication(member);
 		// when
 		PurchaseHistoryCreateResponse response = service.createPurchaseHistory(
 			request,
@@ -226,6 +230,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 			.memo("첫구매")
 			.build();
 
+		setAuthentication(member);
 		// when
 		Throwable throwable = catchThrowable(() ->
 			service.createPurchaseHistory(request, portfolio.getId(), holding.getId(), member.getId()));
@@ -254,13 +259,15 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 			.purchasePricePerShare(money)
 			.memo("첫구매")
 			.build();
+
+		setAuthentication(hacker);
 		// when
 		Throwable throwable = catchThrowable(
 			() -> service.createPurchaseHistory(request, portfolio.getId(), holding.getId(), hacker.getId()));
 		// then
 		assertThat(throwable)
-			.isInstanceOf(ForBiddenException.class)
-			.hasMessage(PortfolioHoldingErrorCode.FORBIDDEN_PORTFOLIO_HOLDING.getMessage());
+			.isInstanceOf(FineAntsException.class)
+			.hasMessage(MemberErrorCode.FORBIDDEN_MEMBER.getMessage());
 	}
 
 	@DisplayName("사용자는 매입 이력을 수정한다")
@@ -283,6 +290,8 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 			.build();
 
 		currentPriceRepository.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L));
+
+		setAuthentication(member);
 		// when
 		PurchaseHistoryUpdateResponse response = service.updatePurchaseHistory(
 			request,
@@ -326,6 +335,8 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 			.willReturn(false);
 		given(firebaseMessagingService.send(any(Message.class)))
 			.willReturn(Optional.of("messageId"));
+
+		setAuthentication(member);
 		// when
 		PurchaseHistoryUpdateResponse response = service.updatePurchaseHistory(
 			request,
@@ -365,6 +376,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 			.memo("첫구매")
 			.build();
 
+		setAuthentication(hacker);
 		// when
 		Throwable throwable = catchThrowable(
 			() -> service.updatePurchaseHistory(request, holding.getId(), history.getId(), portfolio.getId(),
@@ -387,6 +399,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 			createPurchaseHistory(null, LocalDateTime.of(2023, 9, 26, 9, 30, 0), Count.from(3), Money.won(50000), "첫구매",
 				holding));
 
+		setAuthentication(member);
 		// when
 		PurchaseHistoryDeleteResponse response = service.deletePurchaseHistory(
 			holding.getId(),
@@ -423,6 +436,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 		given(firebaseMessagingService.send(any(Message.class)))
 			.willReturn(Optional.of("messageId"));
 
+		setAuthentication(member);
 		// when
 		PurchaseHistoryDeleteResponse response = service.deletePurchaseHistory(
 			holding.getId(),
@@ -453,6 +467,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 
 		Long purchaseHistoryId = 9999L;
 
+		setAuthentication(member);
 		// when
 		Throwable throwable = catchThrowable(
 			() -> service.deletePurchaseHistory(
@@ -481,6 +496,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 			createPurchaseHistory(null, LocalDateTime.of(2023, 9, 26, 9, 30, 0), Count.from(3), Money.won(50000), "첫구매",
 				holding));
 
+		setAuthentication(hacker);
 		// when
 		Throwable throwable = catchThrowable(() -> service.deletePurchaseHistory(
 			holding.getId(),
