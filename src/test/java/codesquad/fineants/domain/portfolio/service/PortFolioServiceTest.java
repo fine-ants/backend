@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,7 +36,6 @@ import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
 import codesquad.fineants.domain.portfolio.domain.dto.request.PortfolioCreateRequest;
 import codesquad.fineants.domain.portfolio.domain.dto.request.PortfolioModifyRequest;
-import codesquad.fineants.domain.portfolio.domain.dto.request.PortfoliosDeleteRequest;
 import codesquad.fineants.domain.portfolio.domain.dto.response.PortFolioCreateResponse;
 import codesquad.fineants.domain.portfolio.domain.dto.response.PortfoliosResponse;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
@@ -45,7 +45,6 @@ import codesquad.fineants.domain.purchasehistory.repository.PurchaseHistoryRepos
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
 import codesquad.fineants.global.errors.errorcode.MemberErrorCode;
-import codesquad.fineants.global.errors.errorcode.PortfolioErrorCode;
 import codesquad.fineants.global.errors.exception.BadRequestException;
 import codesquad.fineants.global.errors.exception.ConflictException;
 import codesquad.fineants.global.errors.exception.FineAntsException;
@@ -507,10 +506,10 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 			PortfolioGainHistory.empty(portfolio));
 		Portfolio portfolio2 = portfolioRepository.save(createPortfolioWithRandomName(member));
 
-		PortfoliosDeleteRequest request = new PortfoliosDeleteRequest(List.of(portfolio.getId(), portfolio2.getId()));
-
+		List<Long> portfolioIds = Arrays.asList(portfolio.getId(), portfolio2.getId());
+		setAuthentication(member);
 		// when
-		service.deletePortfolios(request, member.getId());
+		service.deletePortfolios(portfolioIds);
 
 		// then
 		assertThat(portfolioRepository.existsById(portfolio.getId())).isFalse();
@@ -526,19 +525,19 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 	void deletePortfolios_whenDeleteOtherMemberPortfolio_thenThrowException() {
 		// given
 		Member member = memberRepository.save(createMember());
-		Member hacker = createMember("hacker");
+		Member hacker = memberRepository.save(createMember("hacker"));
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Portfolio portfolio2 = portfolioRepository.save(createPortfolioWithRandomName(member));
+		List<Long> portfolioIds = Arrays.asList(portfolio.getId(), portfolio2.getId());
 
-		PortfoliosDeleteRequest request = new PortfoliosDeleteRequest(List.of(portfolio.getId(), portfolio2.getId()));
-
+		setAuthentication(hacker);
 		// when
-		Throwable throwable = catchThrowable(() -> service.deletePortfolios(request, hacker.getId()));
+		Throwable throwable = catchThrowable(() -> service.deletePortfolios(portfolioIds));
 
 		// then
 		assertThat(throwable)
-			.isInstanceOf(ForBiddenException.class)
-			.hasMessage(PortfolioErrorCode.NOT_HAVE_AUTHORIZATION.getMessage());
+			.isInstanceOf(FineAntsException.class)
+			.hasMessage(MemberErrorCode.FORBIDDEN_MEMBER.getMessage());
 	}
 
 	private Portfolio createPortfolioWithRandomName(Member member) {

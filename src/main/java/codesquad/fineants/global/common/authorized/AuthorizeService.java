@@ -1,9 +1,9 @@
 package codesquad.fineants.global.common.authorized;
 
-import java.util.Optional;
+import java.util.List;
 
 public interface AuthorizeService<T> {
-	Optional<T> findResourceById(Long id);
+	List<T> findResourceAllBy(List<Long> ids);
 
 	boolean isAuthorized(Object resource, Long memberId);
 }

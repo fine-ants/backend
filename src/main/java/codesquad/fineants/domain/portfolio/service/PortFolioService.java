@@ -3,7 +3,6 @@ package codesquad.fineants.domain.portfolio.service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.security.access.annotation.Secured;
@@ -19,7 +18,6 @@ import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
 import codesquad.fineants.domain.portfolio.domain.dto.request.PortfolioCreateRequest;
 import codesquad.fineants.domain.portfolio.domain.dto.request.PortfolioModifyRequest;
-import codesquad.fineants.domain.portfolio.domain.dto.request.PortfoliosDeleteRequest;
 import codesquad.fineants.domain.portfolio.domain.dto.response.PortFolioCreateResponse;
 import codesquad.fineants.domain.portfolio.domain.dto.response.PortfolioModifyResponse;
 import codesquad.fineants.domain.portfolio.domain.dto.response.PortfoliosResponse;
@@ -30,11 +28,11 @@ import codesquad.fineants.domain.purchasehistory.repository.PurchaseHistoryRepos
 import codesquad.fineants.global.common.authorized.AuthorizeService;
 import codesquad.fineants.global.common.authorized.Authorized;
 import codesquad.fineants.global.common.resource.ResourceId;
+import codesquad.fineants.global.common.resource.ResourceIds;
 import codesquad.fineants.global.errors.errorcode.MemberErrorCode;
 import codesquad.fineants.global.errors.errorcode.PortfolioErrorCode;
 import codesquad.fineants.global.errors.exception.BadRequestException;
 import codesquad.fineants.global.errors.exception.ConflictException;
-import codesquad.fineants.global.errors.exception.ForBiddenException;
 import codesquad.fineants.global.errors.exception.NotFoundResourceException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -101,12 +99,6 @@ public class PortFolioService implements AuthorizeService<Portfolio> {
 		return PortfolioModifyResponse.from(changePortfolio);
 	}
 
-	private void validatePortfolioAuthorization(Portfolio portfolio, Long memberId) {
-		if (!portfolio.hasAuthorization(memberId)) {
-			throw new ForBiddenException(PortfolioErrorCode.NOT_HAVE_AUTHORIZATION);
-		}
-	}
-
 	@Transactional
 	@Authorized
 	@Secured("ROLE_USER")
@@ -132,14 +124,10 @@ public class PortFolioService implements AuthorizeService<Portfolio> {
 	}
 
 	@Transactional
+	@Authorized
 	@Secured("ROLE_USER")
-	public void deletePortfolios(PortfoliosDeleteRequest request, Long memberId) {
-		for (Long portfolioId : request.getPortfolioIds()) {
-			Portfolio portfolio = findPortfolio(portfolioId);
-			validatePortfolioAuthorization(portfolio, memberId);
-		}
-
-		for (Long portfolioId : request.getPortfolioIds()) {
+	public void deletePortfolios(@ResourceIds List<Long> portfolioIds) {
+		for (Long portfolioId : portfolioIds) {
 			Portfolio portfolio = findPortfolio(portfolioId);
 			List<Long> portfolioStockIds = portfolioHoldingRepository.findAllByPortfolio(portfolio).stream()
 				.map(PortfolioHolding::getId)
@@ -175,8 +163,8 @@ public class PortFolioService implements AuthorizeService<Portfolio> {
 	}
 
 	@Override
-	public Optional<Portfolio> findResourceById(Long id) {
-		return portfolioRepository.findById(id);
+	public List<Portfolio> findResourceAllBy(List<Long> ids) {
+		return portfolioRepository.findAllById(ids);
 	}
 
 	@Override

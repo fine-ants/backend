@@ -1,5 +1,7 @@
 package codesquad.fineants.global.common.authorized;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import org.aspectj.lang.JoinPoint;
@@ -33,25 +35,25 @@ public class AuthorizationAspect {
 	public void validatePortfolioAuthorization(JoinPoint joinPoint) {
 		Object target = joinPoint.getTarget();
 		AuthorizeService<?> service = (AuthorizeService<?>)applicationContext.getBean(target.getClass());
-		Long resourceId = getResourceId((ProceedingJoinPoint)joinPoint);
-		Optional<?> resource = service.findResourceById(resourceId);
+		List<Long> resourceIds = getResourceId((ProceedingJoinPoint)joinPoint);
+		List<?> resources = service.findResourceAllBy(resourceIds);
 		Long memberId = getLoggedInMemberId();
-		Class<?> resourceClass = resource.filter(r -> service.isAuthorized(r, memberId))
-			.map(Object::getClass)
-			.orElseThrow(() -> {
-				log.error("User with memberId {} have invalid authorization for resourceId {}", memberId, resourceId);
-				return new ForBiddenException(MemberErrorCode.FORBIDDEN_MEMBER);
+
+		resources.stream()
+			.filter(resource -> !service.isAuthorized(resource, memberId))
+			.forEach(resource -> {
+				log.error("User with memberId {} have invalid authorization for resourceIds {}", memberId, resourceIds);
+				throw new ForBiddenException(MemberErrorCode.FORBIDDEN_MEMBER);
 			});
-		log.info("User with memberId {} has valid authorization for resourceId {} of type {}.", memberId, resourceId,
-			resourceClass.getSimpleName());
+		log.info("User with memberId {} has valid authorization for resourceIds {}.", memberId, resourceIds);
 	}
 
-	private Long getResourceId(ProceedingJoinPoint joinPoint) {
+	private List<Long> getResourceId(ProceedingJoinPoint joinPoint) {
 		try {
 			return resourceIdAspect.around(joinPoint);
 		} catch (Throwable e) {
 			log.error(e.getMessage());
-			return 0L;
+			return Collections.emptyList();
 		}
 	}
 
