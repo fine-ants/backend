@@ -106,15 +106,13 @@ public class StockTargetPriceNotificationRestController {
 		return ApiResponse.success(StockSuccessCode.OK_DELETE_TARGET_PRICE_NOTIFICATIONS);
 	}
 
-	// 종목 지정가 알림 특정 삭제
+	// 종목 지정가 알림 단일 삭제
 	@DeleteMapping("/api/stocks/target-price/notifications/{targetPriceNotificationId}")
 	public ApiResponse<Void> deleteStockTargetPriceNotification(
-		@PathVariable Long targetPriceNotificationId,
-		@MemberAuthenticationPrincipal MemberAuthentication authentication
+		@PathVariable Long targetPriceNotificationId
 	) {
 		TargetPriceNotificationDeleteResponse response = service.deleteStockTargetPriceNotification(
-			targetPriceNotificationId,
-			authentication.getId());
+			targetPriceNotificationId);
 		log.info("종목 지정가 알림 제거 결과 : {}", response);
 		return ApiResponse.success(StockSuccessCode.OK_DELETE_TARGET_PRICE_NOTIFICATIONS);
 	}

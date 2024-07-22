@@ -65,11 +65,7 @@ public class TargetPriceNotification extends BaseEntity implements Notifiable {
 		StockTargetPrice stockTargetPrice) {
 		return new TargetPriceNotification(LocalDateTime.now(), null, id, targetPrice, stockTargetPrice);
 	}
-
-	public boolean isMatchMember(Long memberId) {
-		return stockTargetPrice.getMember().hasAuthorization(memberId);
-	}
-
+	
 	public String getReferenceId() {
 		return stockTargetPrice.getStock().getTickerSymbol();
 	}
@@ -127,5 +123,9 @@ public class TargetPriceNotification extends BaseEntity implements Notifiable {
 			targetPrice,
 			id
 		);
+	}
+
+	public boolean hasAuthorization(Long memberId) {
+		return stockTargetPrice.hasAuthorization(memberId);
 	}
 }
