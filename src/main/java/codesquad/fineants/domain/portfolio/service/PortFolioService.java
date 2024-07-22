@@ -26,6 +26,7 @@ import codesquad.fineants.domain.portfolio.repository.PortfolioPropertiesReposit
 import codesquad.fineants.domain.portfolio.repository.PortfolioRepository;
 import codesquad.fineants.domain.purchasehistory.repository.PurchaseHistoryRepository;
 import codesquad.fineants.global.common.authorized.Authorized;
+import codesquad.fineants.global.common.authorized.service.PortfolioAuthorizedService;
 import codesquad.fineants.global.common.resource.ResourceId;
 import codesquad.fineants.global.common.resource.ResourceIds;
 import codesquad.fineants.global.errors.errorcode.MemberErrorCode;

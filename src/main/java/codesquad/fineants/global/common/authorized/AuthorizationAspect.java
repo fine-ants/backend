@@ -13,6 +13,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
+import codesquad.fineants.global.common.authorized.service.AuthorizedService;
 import codesquad.fineants.global.common.resource.ResourceIdAspect;
 import codesquad.fineants.global.errors.errorcode.MemberErrorCode;
 import codesquad.fineants.global.errors.exception.FineAntsException;

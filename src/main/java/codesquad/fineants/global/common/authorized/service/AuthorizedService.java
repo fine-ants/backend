@@ -1,4 +1,4 @@
-package codesquad.fineants.global.common.authorized;
+package codesquad.fineants.global.common.authorized.service;
 
 import java.util.List;
 

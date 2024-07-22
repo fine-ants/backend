@@ -1,4 +1,4 @@
-package codesquad.fineants.domain.holding.service;
+package codesquad.fineants.global.common.authorized.service;
 
 import java.util.List;
 
@@ -7,7 +7,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
 import codesquad.fineants.domain.holding.repository.PortfolioHoldingRepository;
-import codesquad.fineants.global.common.authorized.AuthorizedService;
 import lombok.RequiredArgsConstructor;
 
 @Service

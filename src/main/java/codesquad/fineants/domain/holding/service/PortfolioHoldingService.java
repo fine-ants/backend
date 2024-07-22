@@ -33,12 +33,13 @@ import codesquad.fineants.domain.holding.event.publisher.PortfolioHoldingEventPu
 import codesquad.fineants.domain.holding.repository.PortfolioHoldingRepository;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.repository.PortfolioRepository;
-import codesquad.fineants.domain.portfolio.service.PortfolioAuthorizedService;
 import codesquad.fineants.domain.purchasehistory.domain.entity.PurchaseHistory;
 import codesquad.fineants.domain.purchasehistory.repository.PurchaseHistoryRepository;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
 import codesquad.fineants.global.common.authorized.Authorized;
+import codesquad.fineants.global.common.authorized.service.PortfolioAuthorizedService;
+import codesquad.fineants.global.common.authorized.service.PortfolioHoldingAuthorizedService;
 import codesquad.fineants.global.common.resource.ResourceId;
 import codesquad.fineants.global.common.resource.ResourceIds;
 import codesquad.fineants.global.errors.errorcode.PortfolioErrorCode;

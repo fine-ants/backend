@@ -1,4 +1,4 @@
-package codesquad.fineants.domain.purchasehistory.service;
+package codesquad.fineants.global.common.authorized.service;
 
 import java.util.List;
 
@@ -7,7 +7,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import codesquad.fineants.domain.purchasehistory.domain.entity.PurchaseHistory;
 import codesquad.fineants.domain.purchasehistory.repository.PurchaseHistoryRepository;
-import codesquad.fineants.global.common.authorized.AuthorizedService;
 import lombok.RequiredArgsConstructor;
 
 @Service
