@@ -31,6 +31,7 @@ import codesquad.fineants.domain.fcm.repository.FcmRepository;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
 import codesquad.fineants.global.errors.errorcode.FcmErrorCode;
+import codesquad.fineants.global.errors.errorcode.MemberErrorCode;
 import codesquad.fineants.global.errors.exception.FineAntsException;
 
 class FcmServiceTest extends AbstractContainerBaseTest {
@@ -152,8 +153,9 @@ class FcmServiceTest extends AbstractContainerBaseTest {
 		Member member = memberRepository.save(createMember());
 		FcmToken fcmToken = fcmRepository.save(createFcmToken("fcmToken", member));
 
+		setAuthentication(member);
 		// when
-		FcmDeleteResponse response = fcmService.deleteToken(fcmToken.getId(), member.getId());
+		FcmDeleteResponse response = fcmService.deleteToken(fcmToken.getId());
 
 		// then
 		Assertions.assertAll(
@@ -162,5 +164,22 @@ class FcmServiceTest extends AbstractContainerBaseTest {
 				.isEqualTo(fcmToken.getId()),
 			() -> assertThat(fcmRepository.findById(fcmToken.getId()).isEmpty()).isTrue()
 		);
+	}
+
+	@DisplayName("사용자는 다른 사용자의 FCM 토큰을 삭제할 수 없다")
+	@Test
+	void deleteToken_whenOtherMemberRequest_thenThrowException() {
+		// given
+		Member member = memberRepository.save(createMember());
+		Member hacker = memberRepository.save(createMember("hacker"));
+		FcmToken fcmToken = fcmRepository.save(createFcmToken("fcmToken", member));
+
+		setAuthentication(hacker);
+		// when
+		Throwable throwable = catchThrowable(() -> fcmService.deleteToken(fcmToken.getId()));
+		// then
+		assertThat(throwable)
+			.isInstanceOf(FineAntsException.class)
+			.hasMessage(MemberErrorCode.FORBIDDEN_MEMBER.getMessage());
 	}
 }

@@ -28,6 +28,7 @@ import codesquad.fineants.domain.portfolio.repository.PortfolioRepository;
 import codesquad.fineants.domain.purchasehistory.repository.PurchaseHistoryRepository;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
+import codesquad.fineants.global.errors.errorcode.MemberErrorCode;
 import codesquad.fineants.global.errors.errorcode.PortfolioErrorCode;
 import codesquad.fineants.global.errors.exception.FineAntsException;
 
@@ -123,7 +124,7 @@ class PortfolioNotificationServiceTest extends AbstractContainerBaseTest {
 		// then
 		assertThat(throwable)
 			.isInstanceOf(FineAntsException.class)
-			.hasMessage(PortfolioErrorCode.FORBIDDEN_PORTFOLIO.getMessage());
+			.hasMessage(MemberErrorCode.FORBIDDEN_MEMBER.getMessage());
 	}
 
 	@DisplayName("사용자는 포트폴리오 최대손실금액 알림을 활성화한다")
@@ -195,6 +196,6 @@ class PortfolioNotificationServiceTest extends AbstractContainerBaseTest {
 		// then
 		assertThat(throwable)
 			.isInstanceOf(FineAntsException.class)
-			.hasMessage(PortfolioErrorCode.FORBIDDEN_PORTFOLIO.getMessage());
+			.hasMessage(MemberErrorCode.FORBIDDEN_MEMBER.getMessage());
 	}
 }

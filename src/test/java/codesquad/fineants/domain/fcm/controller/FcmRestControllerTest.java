@@ -78,7 +78,7 @@ class FcmRestControllerTest extends ControllerTestSupport {
 	void deleteToken() throws Exception {
 		// given
 		Long fcmTokenId = 1L;
-		given(fcmService.deleteToken(ArgumentMatchers.anyLong(), ArgumentMatchers.anyLong()))
+		given(fcmService.deleteToken(ArgumentMatchers.anyLong()))
 			.willReturn(FcmDeleteResponse.builder()
 				.fcmTokenId(fcmTokenId)
 				.build());
