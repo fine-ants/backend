@@ -24,7 +24,6 @@ import codesquad.fineants.global.errors.errorcode.PortfolioErrorCode;
 import codesquad.fineants.global.errors.errorcode.PortfolioHoldingErrorCode;
 import codesquad.fineants.global.errors.errorcode.PurchaseHistoryErrorCode;
 import codesquad.fineants.global.errors.exception.FineAntsException;
-import codesquad.fineants.global.errors.exception.ForBiddenException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -78,14 +77,14 @@ public class PurchaseHistoryService {
 	}
 
 	@Transactional
+	@Authorized(serviceClass = PurchaseHistoryAuthorizeService.class)
 	@Secured("ROLE_USER")
 	public PurchaseHistoryUpdateResponse updatePurchaseHistory(PurchaseHistoryUpdateRequest request,
-		Long portfolioHoldingId, Long purchaseHistoryId, Long portfolioId, Long memberId) {
+		Long portfolioHoldingId, @ResourceId Long purchaseHistoryId, Long portfolioId, Long memberId) {
 		log.info("매입 내역 수정 서비스 요청 : request={}, portfolioHoldingId={}, purchaseHistoryId={}", request,
 			portfolioHoldingId, purchaseHistoryId);
 		PortfolioHolding portfolioHolding = findPortfolioHolding(portfolioHoldingId, portfolioId);
 		PurchaseHistory originalPurchaseHistory = findPurchaseHistory(purchaseHistoryId);
-		validatePurchaseHistoryAuthorization(originalPurchaseHistory, memberId);
 		PurchaseHistory changePurchaseHistory = request.toEntity(portfolioHolding);
 
 		PurchaseHistory changedPurchaseHistory = originalPurchaseHistory.change(changePurchaseHistory);
@@ -99,20 +98,15 @@ public class PurchaseHistoryService {
 		return response;
 	}
 
-	private void validatePurchaseHistoryAuthorization(PurchaseHistory originalPurchaseHistory, Long memberId) {
-		if (!originalPurchaseHistory.hasAuthorization(memberId)) {
-			throw new ForBiddenException(PurchaseHistoryErrorCode.FORBIDDEN_PURCHASE_HISTORY);
-		}
-	}
-
 	@Transactional
+	@Authorized(serviceClass = PurchaseHistoryAuthorizeService.class)
 	@Secured("ROLE_USER")
-	public PurchaseHistoryDeleteResponse deletePurchaseHistory(Long portfolioHoldingId, Long purchaseHistoryId,
+	public PurchaseHistoryDeleteResponse deletePurchaseHistory(Long portfolioHoldingId,
+		@ResourceId Long purchaseHistoryId,
 		Long portfolioId, Long memberId) {
 		log.info("매입 내역 삭제 서비스 요청 : portfolioHoldingId={}, purchaseHistoryId={}", portfolioHoldingId,
 			purchaseHistoryId);
 		PurchaseHistory deletePurchaseHistory = findPurchaseHistory(purchaseHistoryId);
-		validatePurchaseHistoryAuthorization(deletePurchaseHistory, memberId);
 		repository.deleteById(purchaseHistoryId);
 
 		// 매입 이력 알람 이벤트를 위한 매입 이력 데이터 삭제
