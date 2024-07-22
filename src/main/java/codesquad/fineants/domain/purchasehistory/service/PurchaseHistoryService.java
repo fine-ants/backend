@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
 import codesquad.fineants.domain.holding.repository.PortfolioHoldingRepository;
+import codesquad.fineants.domain.holding.service.PortfolioHoldingAuthorizeService;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.repository.PortfolioRepository;
 import codesquad.fineants.domain.purchasehistory.domain.dto.request.PurchaseHistoryCreateRequest;
@@ -38,7 +39,7 @@ public class PurchaseHistoryService {
 	private final PortfolioRepository portfolioRepository;
 
 	@Transactional
-	@Authorized(serviceName = "portfolioHoldingAuthorizeService")
+	@Authorized(serviceClass = PortfolioHoldingAuthorizeService.class)
 	@Secured("ROLE_USER")
 	public PurchaseHistoryCreateResponse createPurchaseHistory(
 		PurchaseHistoryCreateRequest request,

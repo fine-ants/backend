@@ -33,6 +33,7 @@ import codesquad.fineants.domain.holding.event.publisher.PortfolioHoldingEventPu
 import codesquad.fineants.domain.holding.repository.PortfolioHoldingRepository;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.repository.PortfolioRepository;
+import codesquad.fineants.domain.portfolio.service.PortfolioAuthorizeService;
 import codesquad.fineants.domain.purchasehistory.domain.entity.PurchaseHistory;
 import codesquad.fineants.domain.purchasehistory.repository.PurchaseHistoryRepository;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
@@ -66,7 +67,7 @@ public class PortfolioHoldingService {
 	private final PortfolioHoldingEventPublisher publisher;
 
 	@Transactional
-	@Authorized(serviceName = "portfolioAuthorizeService")
+	@Authorized(serviceClass = PortfolioAuthorizeService.class)
 	public PortfolioStockCreateResponse createPortfolioHolding(@ResourceId Long portfolioId,
 		PortfolioHoldingCreateRequest request) {
 		log.info("포트폴리오 종목 추가 서비스 요청 : portfolioId={}, request={}", portfolioId, request);
@@ -94,7 +95,7 @@ public class PortfolioHoldingService {
 	}
 
 	@Transactional
-	@Authorized(serviceName = "portfolioHoldingAuthorizeService")
+	@Authorized(serviceClass = PortfolioHoldingAuthorizeService.class)
 	public PortfolioStockDeleteResponse deletePortfolioStock(@ResourceId Long portfolioHoldingId) {
 		log.info("포트폴리오 종목 삭제 서비스 : portfolioHoldingId={}", portfolioHoldingId);
 		purchaseHistoryRepository.deleteAllByPortfolioHoldingIdIn(List.of(portfolioHoldingId));
@@ -107,7 +108,7 @@ public class PortfolioHoldingService {
 	}
 
 	@Transactional
-	@Authorized(serviceName = "portfolioHoldingAuthorizeService")
+	@Authorized(serviceClass = PortfolioHoldingAuthorizeService.class)
 	public PortfolioStockDeletesResponse deletePortfolioHoldings(Long portfolioId, Long memberId,
 		@ResourceIds List<Long> portfolioHoldingIds) {
 		log.info("포트폴리오 종목 다수 삭제 서비스 : portfolioId={}, memberId={}, portfolioHoldingIds={}", portfolioId, memberId,
@@ -145,7 +146,7 @@ public class PortfolioHoldingService {
 	}
 
 	@Transactional(readOnly = true)
-	@Authorized(serviceName = "portfolioAuthorizeService")
+	@Authorized(serviceClass = PortfolioAuthorizeService.class)
 	public PortfolioHoldingsResponse readPortfolioHoldings(@ResourceId Long portfolioId) {
 		Portfolio portfolio = findPortfolio(portfolioId);
 		PortfolioDetailResponse portfolioDetail = portfolioDetailFactory.createPortfolioDetailItem(portfolio);
@@ -170,7 +171,7 @@ public class PortfolioHoldingService {
 	}
 
 	@Transactional(readOnly = true)
-	@Authorized(serviceName = "portfolioAuthorizeService")
+	@Authorized(serviceClass = PortfolioAuthorizeService.class)
 	public PortfolioChartResponse readPortfolioCharts(@ResourceId Long portfolioId, LocalDate currentLocalDate) {
 		Portfolio portfolio = findPortfolio(portfolioId);
 		PortfolioDetails portfolioDetails = PortfolioDetails.from(portfolio);

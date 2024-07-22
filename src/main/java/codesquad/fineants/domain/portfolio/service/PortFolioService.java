@@ -80,7 +80,7 @@ public class PortFolioService {
 	}
 
 	@Transactional
-	@Authorized(serviceName = "portfolioAuthorizeService")
+	@Authorized(serviceClass = PortfolioAuthorizeService.class)
 	@Secured("ROLE_USER")
 	public PortfolioModifyResponse updatePortfolio(PortfolioModifyRequest request, @ResourceId Long portfolioId,
 		Long memberId) {
@@ -99,7 +99,7 @@ public class PortFolioService {
 	}
 
 	@Transactional
-	@Authorized(serviceName = "portfolioAuthorizeService")
+	@Authorized(serviceClass = PortfolioAuthorizeService.class)
 	@Secured("ROLE_USER")
 	public void deletePortfolio(@ResourceId Long portfolioId, Long memberId) {
 		log.info("포트폴리오 삭제 서비스 요청 : portfolioId={}, memberId={}", portfolioId, memberId);
@@ -123,7 +123,7 @@ public class PortFolioService {
 	}
 
 	@Transactional
-	@Authorized(serviceName = "portfolioAuthorizeService")
+	@Authorized(serviceClass = PortfolioAuthorizeService.class)
 	@Secured("ROLE_USER")
 	public void deletePortfolios(@ResourceIds List<Long> portfolioIds) {
 		for (Long portfolioId : portfolioIds) {
@@ -139,7 +139,7 @@ public class PortFolioService {
 	}
 
 	@Secured("ROLE_USER")
-	@Authorized(serviceName = "portfolioAuthorizeService")
+	@Authorized(serviceClass = PortfolioAuthorizeService.class)
 	public Portfolio findPortfolio(@ResourceId Long portfolioId) {
 		return portfolioRepository.findById(portfolioId)
 			.orElseThrow(() -> new NotFoundResourceException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
