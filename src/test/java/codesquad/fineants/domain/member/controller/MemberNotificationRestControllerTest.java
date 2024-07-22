@@ -50,7 +50,7 @@ class MemberNotificationRestControllerTest extends ControllerTestSupport {
 		Member member = createMember();
 
 		List<MemberNotification> mockNotifications = createNotifications();
-		given(notificationService.fetchNotifications(anyLong()))
+		given(notificationService.searchMemberNotifications(anyLong()))
 			.willReturn(MemberNotificationResponse.create(mockNotifications));
 
 		// when & then
@@ -72,7 +72,7 @@ class MemberNotificationRestControllerTest extends ControllerTestSupport {
 		Member member = createMember();
 
 		List<MemberNotification> mockNotifications = createNotifications();
-		given(notificationService.readAllNotifications(anyLong(), anyList()))
+		given(notificationService.fetchMemberNotifications(anyLong(), anyList()))
 			.willReturn(
 				List.of(
 					mockNotifications.get(0).getNotificationId(),
@@ -100,7 +100,7 @@ class MemberNotificationRestControllerTest extends ControllerTestSupport {
 		Member member = createMember();
 
 		List<MemberNotification> mockNotifications = createNotifications();
-		given(notificationService.readAllNotifications(anyLong(), anyList()))
+		given(notificationService.fetchMemberNotifications(anyLong(), anyList()))
 			.willReturn(
 				List.of(
 					mockNotifications.get(0).getNotificationId(),
@@ -126,7 +126,7 @@ class MemberNotificationRestControllerTest extends ControllerTestSupport {
 		Member member = createMember();
 
 		List<MemberNotification> mockNotifications = createNotifications();
-		given(notificationService.readAllNotifications(anyLong(), anyList()))
+		given(notificationService.fetchMemberNotifications(anyLong(), anyList()))
 			.willReturn(
 				List.of(
 					mockNotifications.get(0).getNotificationId(),
@@ -156,7 +156,7 @@ class MemberNotificationRestControllerTest extends ControllerTestSupport {
 		List<Long> notificationIds = mockNotifications.stream()
 			.map(MemberNotification::getNotificationId)
 			.collect(Collectors.toList());
-		given(notificationService.readAllNotifications(anyLong(), anyList()))
+		given(notificationService.fetchMemberNotifications(anyLong(), anyList()))
 			.willReturn(notificationIds);
 
 		// when & then
@@ -185,7 +185,7 @@ class MemberNotificationRestControllerTest extends ControllerTestSupport {
 			.type(PORTFOLIO_MAX_LOSS.getCategory())
 			.referenceId("2")
 			.build();
-		given(notificationService.deleteAllNotifications(anyLong(), anyList()))
+		given(notificationService.deleteMemberNotifications(anyLong(), anyList()))
 			.willReturn(List.of(mockNotification.getNotificationId()));
 
 		// when & then

@@ -20,6 +20,9 @@ import codesquad.fineants.domain.fcm.domain.entity.FcmToken;
 import codesquad.fineants.domain.fcm.repository.FcmRepository;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
+import codesquad.fineants.global.common.authorized.Authorized;
+import codesquad.fineants.global.common.authorized.service.FcmAuthorizedService;
+import codesquad.fineants.global.common.resource.ResourceId;
 import codesquad.fineants.global.errors.errorcode.FcmErrorCode;
 import codesquad.fineants.global.errors.errorcode.MemberErrorCode;
 import codesquad.fineants.global.errors.exception.FineAntsException;
@@ -75,20 +78,12 @@ public class FcmService {
 	}
 
 	@Transactional
+	@Authorized(serviceClass = FcmAuthorizedService.class)
 	@Secured("ROLE_USER")
-	public FcmDeleteResponse deleteToken(Long fcmTokenId, Long memberId) {
-		FcmToken fcmToken = fcmRepository.findById(fcmTokenId)
-			.orElseThrow(() -> new FineAntsException(FcmErrorCode.NOT_FOUND_FCM_TOKEN));
-		validateFcmTokenAuthorization(fcmToken, memberId);
-		int deleteCount = fcmRepository.deleteByFcmTokenId(fcmTokenId, memberId);
+	public FcmDeleteResponse deleteToken(@ResourceId Long fcmTokenId) {
+		int deleteCount = fcmRepository.deleteByFcmTokenId(fcmTokenId);
 		log.info("FCM 토큰 삭제 개수 : deleteCount={}", deleteCount);
 		return FcmDeleteResponse.from(fcmTokenId);
-	}
-
-	private void validateFcmTokenAuthorization(FcmToken fcmToken, Long memberId) {
-		if (!fcmToken.hasAuthorization(memberId)) {
-			throw new FineAntsException(FcmErrorCode.FORBIDDEN_FCM_TOKEN);
-		}
 	}
 
 	@Transactional

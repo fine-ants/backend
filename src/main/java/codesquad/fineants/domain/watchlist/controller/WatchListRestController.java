@@ -49,20 +49,6 @@ public class WatchListRestController {
 			watchListService.readWatchLists(authentication.getId()));
 	}
 
-	@DeleteMapping
-	public ApiResponse<Void> deleteWatchLists(@MemberAuthenticationPrincipal MemberAuthentication authentication,
-		@RequestBody DeleteWatchListsRequests deleteWatchListsRequests) {
-		watchListService.deleteWatchLists(authentication.getId(), deleteWatchListsRequests);
-		return ApiResponse.success(WatchListSuccessCode.DELETED_WATCH_LIST);
-	}
-
-	@DeleteMapping("/{watchlistId}")
-	public ApiResponse<Void> deleteWatchList(@MemberAuthenticationPrincipal MemberAuthentication authentication,
-		@PathVariable Long watchlistId) {
-		watchListService.deleteWatchList(authentication.getId(), watchlistId);
-		return ApiResponse.success(WatchListSuccessCode.DELETED_WATCH_LIST);
-	}
-
 	@GetMapping("/{watchlistId}")
 	public ApiResponse<ReadWatchListResponse> readWatchList(
 		@MemberAuthenticationPrincipal MemberAuthentication authentication,
@@ -71,11 +57,33 @@ public class WatchListRestController {
 			watchListService.readWatchList(authentication.getId(), watchlistId));
 	}
 
+	@GetMapping("/stockExists/{tickerSymbol}")
+	public ApiResponse<List<WatchListHasStockResponse>> watchListHasStock(
+		@MemberAuthenticationPrincipal MemberAuthentication authentication,
+		@PathVariable String tickerSymbol) {
+		return ApiResponse.success(WatchListSuccessCode.HAS_STOCK,
+			watchListService.hasStock(authentication.getId(), tickerSymbol));
+	}
+
 	@PutMapping("/{watchlistId}")
 	public ApiResponse<Void> changeWatchListName(@MemberAuthenticationPrincipal MemberAuthentication authentication,
 		@PathVariable Long watchlistId, @RequestBody ChangeWatchListNameRequest request) {
 		watchListService.changeWatchListName(authentication.getId(), watchlistId, request);
 		return ApiResponse.success(WatchListSuccessCode.CHANGE_WATCH_LIST_NAME);
+	}
+
+	@DeleteMapping
+	public ApiResponse<Void> deleteWatchLists(@MemberAuthenticationPrincipal MemberAuthentication authentication,
+		@RequestBody DeleteWatchListsRequests deleteWatchListsRequests) {
+		watchListService.deleteWatchLists(authentication.getId(), deleteWatchListsRequests.getWatchlistIds());
+		return ApiResponse.success(WatchListSuccessCode.DELETED_WATCH_LIST);
+	}
+
+	@DeleteMapping("/{watchlistId}")
+	public ApiResponse<Void> deleteWatchList(@MemberAuthenticationPrincipal MemberAuthentication authentication,
+		@PathVariable Long watchlistId) {
+		watchListService.deleteWatchList(authentication.getId(), watchlistId);
+		return ApiResponse.success(WatchListSuccessCode.DELETED_WATCH_LIST);
 	}
 
 	@PostMapping("/{watchlistId}/stock")
@@ -97,13 +105,5 @@ public class WatchListRestController {
 		@PathVariable("watchlistId") Long watchListId, @PathVariable("tickerSymbol") String tickerSymbol) {
 		watchListService.deleteWatchStock(authentication.getId(), watchListId, tickerSymbol);
 		return ApiResponse.success(WatchListSuccessCode.DELETED_WATCH_STOCK);
-	}
-
-	@GetMapping("/stockExists/{tickerSymbol}")
-	public ApiResponse<List<WatchListHasStockResponse>> watchListHasStock(
-		@MemberAuthenticationPrincipal MemberAuthentication authentication,
-		@PathVariable String tickerSymbol) {
-		return ApiResponse.success(WatchListSuccessCode.HAS_STOCK,
-			watchListService.hasStock(authentication.getId(), tickerSymbol));
 	}
 }

@@ -87,7 +87,7 @@ public class FcmRestControllerDocsTest extends RestDocsSupport {
 	void deleteToken() throws Exception {
 		// given
 		Long fcmTokenId = 1L;
-		BDDMockito.given(fcmService.deleteToken(anyLong(), anyLong()))
+		BDDMockito.given(fcmService.deleteToken(anyLong()))
 			.willReturn(FcmDeleteResponse.builder()
 				.fcmTokenId(fcmTokenId)
 				.build());

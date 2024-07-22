@@ -40,14 +40,14 @@ class MemberNotificationServiceTest extends AbstractContainerBaseTest {
 
 	@DisplayName("사용자는 회원 알림 목록을 조회합니다")
 	@Test
-	void fetchNotifications() {
+	void searchMemberNotifications() {
 		// given
 		Member member = memberRepository.save(createMember());
 		List<Notification> notifications = notificationRepository.saveAll(createNotifications(member));
 
 		setAuthentication(member);
 		// when
-		MemberNotificationResponse response = notificationService.fetchNotifications(member.getId());
+		MemberNotificationResponse response = notificationService.searchMemberNotifications(member.getId());
 
 		// then
 		assertThat(response)
@@ -87,7 +87,7 @@ class MemberNotificationServiceTest extends AbstractContainerBaseTest {
 
 	@DisplayName("사용자는 다른 사용자의 알림 메시지들을 조회할 수 없습니다.")
 	@Test
-	void fetchNotifications_whenOtherMemberFetch_thenThrowException() {
+	void searchMemberNotifications_whenOtherMemberFetch_thenThrowException() {
 		// given
 		Member member = memberRepository.save(createMember());
 		Member hacker = memberRepository.save(createMember("hacker"));
@@ -95,7 +95,7 @@ class MemberNotificationServiceTest extends AbstractContainerBaseTest {
 
 		setAuthentication(hacker);
 		// when
-		Throwable throwable = catchThrowable(() -> notificationService.fetchNotifications(member.getId()));
+		Throwable throwable = catchThrowable(() -> notificationService.searchMemberNotifications(member.getId()));
 
 		// then
 		assertThat(throwable)
@@ -105,7 +105,7 @@ class MemberNotificationServiceTest extends AbstractContainerBaseTest {
 
 	@DisplayName("사용자는 알림 모두 읽습니다")
 	@Test
-	void readAllNotifications() {
+	void fetchMemberNotifications() {
 		// given
 		Member member = memberRepository.save(createMember());
 		List<Notification> notifications = notificationRepository.saveAll(createNotifications(member));
@@ -115,7 +115,7 @@ class MemberNotificationServiceTest extends AbstractContainerBaseTest {
 
 		setAuthentication(member);
 		// when
-		List<Long> readNotificationIds = notificationService.readAllNotifications(member.getId(), notificationIds);
+		List<Long> readNotificationIds = notificationService.fetchMemberNotifications(member.getId(), notificationIds);
 
 		// then
 		assertAll(
@@ -131,7 +131,7 @@ class MemberNotificationServiceTest extends AbstractContainerBaseTest {
 
 	@DisplayName("사용자는 존재하지 않는 알람을 읽음 처리할 수 없다")
 	@Test
-	void readAllNotifications_whenNotExistNotificationIds_thenThrow404Error() {
+	void fetchMemberNotifications_whenNotExistNotificationIds_thenThrow404Error() {
 		// given
 		Member member = memberRepository.save(createMember());
 		List<Notification> notifications = notificationRepository.saveAll(createNotifications(member));
@@ -145,12 +145,34 @@ class MemberNotificationServiceTest extends AbstractContainerBaseTest {
 		setAuthentication(member);
 		// when
 		Throwable throwable = catchThrowable(
-			() -> notificationService.readAllNotifications(member.getId(), notificationIds));
+			() -> notificationService.fetchMemberNotifications(member.getId(), notificationIds));
 
 		// then
 		assertThat(throwable)
 			.isInstanceOf(NotFoundResourceException.class)
 			.hasMessage(NotificationErrorCode.NOT_FOUND_NOTIFICATION.getMessage());
+	}
+
+	@DisplayName("사용자는 다른 사용자의 알림을 읽음 처리할 수 없다")
+	@Test
+	void fetchMemberNotifications_whenOtherMemberRequest_thenThrowException() {
+		Member member = memberRepository.save(createMember());
+		Member hacker = memberRepository.save(createMember("hacker"));
+
+		List<Notification> notifications = notificationRepository.saveAll(createNotifications(member));
+		List<Long> notificationIds = notifications.stream()
+			.map(Notification::getId)
+			.collect(Collectors.toList());
+
+		setAuthentication(hacker);
+		// when
+		Throwable throwable = catchThrowable(
+			() -> notificationService.fetchMemberNotifications(hacker.getId(), notificationIds));
+
+		// then
+		assertThat(throwable)
+			.isInstanceOf(FineAntsException.class)
+			.hasMessage(MemberErrorCode.FORBIDDEN_MEMBER.getMessage());
 	}
 
 	@DisplayName("사용자는 알림을 전체 삭제합니다")
@@ -165,7 +187,7 @@ class MemberNotificationServiceTest extends AbstractContainerBaseTest {
 
 		setAuthentication(member);
 		// when
-		List<Long> deletedAllNotifications = notificationService.deleteAllNotifications(member.getId(),
+		List<Long> deletedAllNotifications = notificationService.deleteMemberNotifications(member.getId(),
 			notificationIds);
 
 		// then
@@ -187,7 +209,7 @@ class MemberNotificationServiceTest extends AbstractContainerBaseTest {
 
 		setAuthentication(member);
 		// when
-		Throwable throwable = catchThrowable(() -> notificationService.deleteAllNotifications(member.getId(),
+		Throwable throwable = catchThrowable(() -> notificationService.deleteMemberNotifications(member.getId(),
 			notificationIds));
 
 		// then
@@ -210,7 +232,7 @@ class MemberNotificationServiceTest extends AbstractContainerBaseTest {
 		setAuthentication(hacker);
 		// when
 		Throwable throwable = catchThrowable(
-			() -> notificationService.deleteAllNotifications(member.getId(), notificationIds));
+			() -> notificationService.deleteMemberNotifications(member.getId(), notificationIds));
 
 		// then
 		assertThat(throwable)

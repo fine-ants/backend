@@ -39,11 +39,8 @@ public class FcmRestController {
 	}
 
 	@DeleteMapping("/{fcmTokenId}")
-	public ApiResponse<Void> deleteToken(
-		@PathVariable Long fcmTokenId,
-		@MemberAuthenticationPrincipal MemberAuthentication authentication
-	) {
-		FcmDeleteResponse response = fcmService.deleteToken(fcmTokenId, authentication.getId());
+	public ApiResponse<Void> deleteToken(@PathVariable Long fcmTokenId) {
+		FcmDeleteResponse response = fcmService.deleteToken(fcmTokenId);
 		log.info("FCM 토큰 삭제 결과 : response={}", response);
 		return ApiResponse.success(FcmSuccessCode.OK_DELETE_FCM);
 	}

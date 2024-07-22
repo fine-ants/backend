@@ -211,5 +211,4 @@ class MemberNotificationPreferenceServiceTest extends AbstractContainerBaseTest 
 			.isInstanceOf(FineAntsException.class)
 			.hasMessage(MemberErrorCode.FORBIDDEN_MEMBER.getMessage());
 	}
-
 }

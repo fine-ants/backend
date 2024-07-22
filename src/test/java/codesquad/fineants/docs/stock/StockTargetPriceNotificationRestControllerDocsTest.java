@@ -422,7 +422,6 @@ public class StockTargetPriceNotificationRestControllerDocsTest extends RestDocs
 		TargetPriceNotification targetPriceNotification = createTargetPriceNotification(stockTargetPrice);
 
 		given(service.deleteStockTargetPriceNotification(
-			anyLong(),
 			anyLong()
 		)).willReturn(TargetPriceNotificationDeleteResponse.from(
 			List.of(1L)

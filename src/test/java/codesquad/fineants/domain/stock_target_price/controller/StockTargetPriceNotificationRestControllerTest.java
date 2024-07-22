@@ -238,7 +238,6 @@ class StockTargetPriceNotificationRestControllerTest extends ControllerTestSuppo
 	void deleteAllStockTargetPriceNotification() throws Exception {
 		// given
 		given(service.deleteStockTargetPriceNotification(
-			anyLong(),
 			anyLong()))
 			.willReturn(TargetPriceNotificationDeleteResponse.builder()
 				.deletedIds(List.of(1L, 2L))
@@ -287,7 +286,6 @@ class StockTargetPriceNotificationRestControllerTest extends ControllerTestSuppo
 	void deleteStockTargetPriceNotification() throws Exception {
 		// given
 		given(service.deleteStockTargetPriceNotification(
-			anyLong(),
 			anyLong()))
 			.willReturn(TargetPriceNotificationDeleteResponse.builder()
 				.deletedIds(List.of(1L))

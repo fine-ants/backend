@@ -35,7 +35,6 @@ import codesquad.fineants.domain.holding.domain.chart.DividendChart;
 import codesquad.fineants.domain.holding.domain.chart.PieChart;
 import codesquad.fineants.domain.holding.domain.chart.SectorChart;
 import codesquad.fineants.domain.holding.domain.dto.request.PortfolioHoldingCreateRequest;
-import codesquad.fineants.domain.holding.domain.dto.request.PortfolioStocksDeleteRequest;
 import codesquad.fineants.domain.holding.domain.dto.response.PortfolioChartResponse;
 import codesquad.fineants.domain.holding.domain.dto.response.PortfolioDetails;
 import codesquad.fineants.domain.holding.domain.dto.response.PortfolioDividendChartItem;
@@ -289,8 +288,8 @@ class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 		String body = ObjectMapperUtil.serialize(requestBodyMap);
 
 		PortfolioStockDeletesResponse mockResponse = new PortfolioStockDeletesResponse(delPortfolioHoldingIds);
-		given(portfolioHoldingService.deletePortfolioHoldings(anyLong(), anyLong(),
-			any(PortfolioStocksDeleteRequest.class))).willReturn(mockResponse);
+		given(portfolioHoldingService.deletePortfolioHoldings(anyLong(), anyLong(), anyList())).willReturn(
+			mockResponse);
 		// when & then
 		mockMvc.perform(delete("/api/portfolio/{portfolioId}/holdings", portfolio.getId())
 				.contentType(MediaType.APPLICATION_JSON)

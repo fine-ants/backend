@@ -33,10 +33,10 @@ import codesquad.fineants.domain.stock_target_price.domain.entity.StockTargetPri
 import codesquad.fineants.domain.stock_target_price.domain.entity.TargetPriceNotification;
 import codesquad.fineants.domain.stock_target_price.repository.StockTargetPriceRepository;
 import codesquad.fineants.domain.stock_target_price.repository.TargetPriceNotificationRepository;
+import codesquad.fineants.global.errors.errorcode.MemberErrorCode;
 import codesquad.fineants.global.errors.errorcode.StockErrorCode;
 import codesquad.fineants.global.errors.exception.BadRequestException;
 import codesquad.fineants.global.errors.exception.FineAntsException;
-import codesquad.fineants.global.errors.exception.ForBiddenException;
 import codesquad.fineants.global.errors.exception.NotFoundResourceException;
 
 class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest {
@@ -337,7 +337,7 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 		// then
 		assertThat(throwable)
 			.isInstanceOf(FineAntsException.class)
-			.hasMessage(StockErrorCode.FORBIDDEN_STOCK_TARGET_PRICE.getMessage());
+			.hasMessage(MemberErrorCode.FORBIDDEN_MEMBER.getMessage());
 	}
 
 	@DisplayName("사용자는 종목 지정가 알림을 제거합니다")
@@ -351,11 +351,10 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 			createTargetPriceNotification(stockTargetPrice));
 
 		Long id = targetPriceNotification.getId();
+
+		setAuthentication(member);
 		// when
-		TargetPriceNotificationDeleteResponse response = service.deleteStockTargetPriceNotification(
-			id,
-			member.getId()
-		);
+		TargetPriceNotificationDeleteResponse response = service.deleteStockTargetPriceNotification(id);
 
 		// then
 		assertAll(
@@ -379,12 +378,9 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 
 		Long id = 9999L;
 
+		setAuthentication(member);
 		// when
-		Throwable throwable = catchThrowable(() -> service.deleteStockTargetPriceNotification(
-				id,
-				member.getId()
-			)
-		);
+		Throwable throwable = catchThrowable(() -> service.deleteStockTargetPriceNotification(id));
 
 		// then
 		assertThat(throwable)
@@ -404,14 +400,15 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 
 		Member hacker = memberRepository.save(createMember("일개미4567", "kim2@gmail.com"));
 
+		setAuthentication(hacker);
 		// when
 		Throwable throwable = catchThrowable(
-			() -> service.deleteStockTargetPriceNotification(targetPriceNotification.getId(), hacker.getId()));
+			() -> service.deleteStockTargetPriceNotification(targetPriceNotification.getId()));
 
 		// then
 		assertThat(throwable)
-			.isInstanceOf(ForBiddenException.class)
-			.hasMessage(StockErrorCode.FORBIDDEN_DELETE_TARGET_PRICE_NOTIFICATION.getMessage());
+			.isInstanceOf(FineAntsException.class)
+			.hasMessage(MemberErrorCode.FORBIDDEN_MEMBER.getMessage());
 	}
 
 	@DisplayName("사용자는 종목 지정가 알림 전체를 삭제합니다")
@@ -427,6 +424,8 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 		List<Long> ids = targetPriceNotifications.stream()
 			.map(TargetPriceNotification::getId)
 			.collect(Collectors.toList());
+
+		setAuthentication(member);
 		// when
 		TargetPriceNotificationDeleteResponse response = service.deleteAllStockTargetPriceNotification(
 			ids,
@@ -460,6 +459,7 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 			.collect(Collectors.toList());
 		ids.add(9999L);
 
+		setAuthentication(member);
 		// when
 		Throwable throwable = catchThrowable(() -> service.deleteAllStockTargetPriceNotification(
 			ids,
@@ -487,6 +487,7 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 			.map(TargetPriceNotification::getId)
 			.collect(Collectors.toList());
 
+		setAuthentication(member);
 		// when
 		Throwable throwable = catchThrowable(() -> service.deleteAllStockTargetPriceNotification(
 			ids,
@@ -505,6 +506,7 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 	void deleteAllStockTargetPriceNotification_whenForbiddenTargetPriceNotifications_thenThrow403Error() {
 		// given
 		Member member = memberRepository.save(createMember());
+		Member hacker = memberRepository.save(createMember("hacker"));
 		Stock stock = stockRepository.save(createSamsungStock());
 		StockTargetPrice stockTargetPrice = repository.save(createStockTargetPrice(member, stock));
 		List<TargetPriceNotification> targetPriceNotifications = targetPriceNotificationRepository.saveAll(
@@ -514,8 +516,7 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 			.map(TargetPriceNotification::getId)
 			.collect(Collectors.toList());
 
-		Member hacker = createMember("일개미4567", "kim2@gmail.com");
-
+		setAuthentication(hacker);
 		// when
 		Throwable throwable = catchThrowable(() -> service.deleteAllStockTargetPriceNotification(
 			ids,
@@ -525,7 +526,7 @@ class StockTargetPriceNotificationServiceTest extends AbstractContainerBaseTest 
 
 		// then
 		assertThat(throwable)
-			.isInstanceOf(ForBiddenException.class)
-			.hasMessage(StockErrorCode.FORBIDDEN_DELETE_TARGET_PRICE_NOTIFICATION.getMessage());
+			.isInstanceOf(FineAntsException.class)
+			.hasMessage(MemberErrorCode.FORBIDDEN_MEMBER.getMessage());
 	}
 }

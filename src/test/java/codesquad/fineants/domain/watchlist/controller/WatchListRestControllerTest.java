@@ -25,7 +25,6 @@ import codesquad.fineants.domain.common.money.Percentage;
 import codesquad.fineants.domain.watchlist.domain.dto.request.ChangeWatchListNameRequest;
 import codesquad.fineants.domain.watchlist.domain.dto.request.CreateWatchListRequest;
 import codesquad.fineants.domain.watchlist.domain.dto.request.CreateWatchStockRequest;
-import codesquad.fineants.domain.watchlist.domain.dto.request.DeleteWatchListsRequests;
 import codesquad.fineants.domain.watchlist.domain.dto.request.DeleteWatchStocksRequest;
 import codesquad.fineants.domain.watchlist.domain.dto.response.CreateWatchListResponse;
 import codesquad.fineants.domain.watchlist.domain.dto.response.ReadWatchListResponse;
@@ -160,7 +159,7 @@ class WatchListRestControllerTest extends ControllerTestSupport {
 		requestBodyMap.put("watchlistIds", watchListIds);
 		String body = objectMapper.writeValueAsString(requestBodyMap);
 
-		doNothing().when(watchListService).deleteWatchLists(anyLong(), any(DeleteWatchListsRequests.class));
+		doNothing().when(watchListService).deleteWatchLists(anyLong(), anyList());
 
 		// when & then
 		mockMvc.perform(delete("/api/watchlists")

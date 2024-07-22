@@ -6,8 +6,6 @@ import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 import org.springframework.security.access.annotation.Secured;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,13 +28,15 @@ import codesquad.fineants.domain.stock_target_price.domain.entity.StockTargetPri
 import codesquad.fineants.domain.stock_target_price.domain.entity.TargetPriceNotification;
 import codesquad.fineants.domain.stock_target_price.repository.StockTargetPriceRepository;
 import codesquad.fineants.domain.stock_target_price.repository.TargetPriceNotificationRepository;
+import codesquad.fineants.global.common.authorized.Authorized;
+import codesquad.fineants.global.common.authorized.service.StockTargetPriceAuthorizedService;
+import codesquad.fineants.global.common.authorized.service.TargetPriceNotificationAuthorizedService;
+import codesquad.fineants.global.common.resource.ResourceId;
+import codesquad.fineants.global.common.resource.ResourceIds;
 import codesquad.fineants.global.errors.errorcode.MemberErrorCode;
 import codesquad.fineants.global.errors.errorcode.StockErrorCode;
 import codesquad.fineants.global.errors.exception.BadRequestException;
-import codesquad.fineants.global.errors.exception.FineAntsException;
-import codesquad.fineants.global.errors.exception.ForBiddenException;
 import codesquad.fineants.global.errors.exception.NotFoundResourceException;
-import codesquad.fineants.global.security.oauth.dto.MemberAuthentication;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -120,16 +120,14 @@ public class StockTargetPriceNotificationService {
 
 	// 종목 지정가 알림 단일 제거
 	@Transactional
+	@Authorized(serviceClass = TargetPriceNotificationAuthorizedService.class)
 	@Secured("ROLE_USER")
 	public TargetPriceNotificationDeleteResponse deleteStockTargetPriceNotification(
-		Long targetPriceNotificationId,
-		Long memberId
+		@ResourceId Long targetPriceNotificationId
 	) {
 		List<Long> targetPriceNotificationIds = List.of(targetPriceNotificationId);
 		// 삭제하고자 하는 종목 지정가가 존재하는지 검증
 		verifyExistTargetPriceById(targetPriceNotificationIds);
-		// 삭제 권한이 있는지 검증
-		verifyHasDeleteAuthorization(targetPriceNotificationIds, memberId);
 
 		TargetPriceNotification targetPriceNotification = findTargetPriceNotification(targetPriceNotificationId);
 		int deletedTargetPriceNotificationCount = deleteAllTargetPriceNotification(targetPriceNotificationIds);
@@ -157,37 +155,22 @@ public class StockTargetPriceNotificationService {
 		}
 	}
 
-	// 지정가 알림 삭제 권한 검증
-	private void verifyHasDeleteAuthorization(List<Long> targetPriceNotificationIds, Long memberId) {
-		if (!targetPriceNotificationRepository.findAllById(targetPriceNotificationIds).stream()
-			.allMatch(t -> t.isMatchMember(memberId))) {
-			throw new ForBiddenException(StockErrorCode.FORBIDDEN_DELETE_TARGET_PRICE_NOTIFICATION);
-		}
-	}
-
 	// 종목 지정가 단일 제거
 	@Transactional
-	public void deleteStockTargetPrice(Long stockTargetPriceId) {
+	@Authorized(serviceClass = StockTargetPriceAuthorizedService.class)
+	public void deleteStockTargetPrice(@ResourceId Long stockTargetPriceId) {
 		StockTargetPrice stockTargetPrice = repository.findById(stockTargetPriceId)
 			.orElseThrow(() -> new NotFoundResourceException(StockErrorCode.NOT_FOUND_STOCK_TARGET_PRICE));
-		validateStockTargetPriceAuthorization(stockTargetPrice);
 		targetPriceNotificationRepository.deleteAllByStockTargetPrices(List.of(stockTargetPrice));
 		repository.deleteById(stockTargetPriceId);
 	}
 
-	private void validateStockTargetPriceAuthorization(StockTargetPrice stockTargetPrice) {
-		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-		Object principal = authentication.getPrincipal();
-		MemberAuthentication memberAuthentication = (MemberAuthentication)principal;
-		if (!stockTargetPrice.hasAuthorization(memberAuthentication.getId())) {
-			throw new FineAntsException(StockErrorCode.FORBIDDEN_STOCK_TARGET_PRICE);
-		}
-	}
-
+	// 종목 지정가 알림 다수 제거
 	@Transactional
+	@Authorized(serviceClass = TargetPriceNotificationAuthorizedService.class)
 	@Secured("ROLE_USER")
 	public TargetPriceNotificationDeleteResponse deleteAllStockTargetPriceNotification(
-		List<Long> targetPriceNotificationIds,
+		@ResourceIds List<Long> targetPriceNotificationIds,
 		String tickerSymbol,
 		Long memberId
 	) {
@@ -195,8 +178,6 @@ public class StockTargetPriceNotificationService {
 		verifyExistStock(tickerSymbol);
 		// 존재하지 않는 종목 지정가가 있는지 검증
 		verifyExistTargetPriceById(targetPriceNotificationIds);
-		// 지정가 알림 삭제 권한 검증
-		verifyHasDeleteAuthorization(targetPriceNotificationIds, memberId);
 
 		int deletedCount = deleteAllTargetPriceNotification(targetPriceNotificationIds);
 		int deletedStockTargetPriceCount = deleteStockTargetPrice(tickerSymbol, memberId);

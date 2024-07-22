@@ -98,4 +98,8 @@ public class NotificationPreference extends BaseEntity {
 	public boolean isPossibleStockTargetPriceNotification() {
 		return this.browserNotify && this.targetPriceNotify;
 	}
+
+	public boolean hasAuthorization(Long memberId) {
+		return member.hasAuthorization(memberId);
+	}
 }

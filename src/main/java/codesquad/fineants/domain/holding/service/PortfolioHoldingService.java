@@ -4,8 +4,6 @@ import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,7 +12,6 @@ import codesquad.fineants.domain.holding.domain.chart.DividendChart;
 import codesquad.fineants.domain.holding.domain.chart.PieChart;
 import codesquad.fineants.domain.holding.domain.chart.SectorChart;
 import codesquad.fineants.domain.holding.domain.dto.request.PortfolioHoldingCreateRequest;
-import codesquad.fineants.domain.holding.domain.dto.request.PortfolioStocksDeleteRequest;
 import codesquad.fineants.domain.holding.domain.dto.response.PortfolioChartResponse;
 import codesquad.fineants.domain.holding.domain.dto.response.PortfolioDetailRealTimeItem;
 import codesquad.fineants.domain.holding.domain.dto.response.PortfolioDetailResponse;
@@ -40,14 +37,17 @@ import codesquad.fineants.domain.purchasehistory.domain.entity.PurchaseHistory;
 import codesquad.fineants.domain.purchasehistory.repository.PurchaseHistoryRepository;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
+import codesquad.fineants.global.common.authorized.Authorized;
+import codesquad.fineants.global.common.authorized.service.PortfolioAuthorizedService;
+import codesquad.fineants.global.common.authorized.service.PortfolioHoldingAuthorizedService;
+import codesquad.fineants.global.common.resource.ResourceId;
+import codesquad.fineants.global.common.resource.ResourceIds;
 import codesquad.fineants.global.errors.errorcode.PortfolioErrorCode;
 import codesquad.fineants.global.errors.errorcode.PortfolioHoldingErrorCode;
 import codesquad.fineants.global.errors.errorcode.PurchaseHistoryErrorCode;
 import codesquad.fineants.global.errors.errorcode.StockErrorCode;
 import codesquad.fineants.global.errors.exception.FineAntsException;
-import codesquad.fineants.global.errors.exception.ForBiddenException;
 import codesquad.fineants.global.errors.exception.NotFoundResourceException;
-import codesquad.fineants.global.security.oauth.dto.MemberAuthentication;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -68,12 +68,12 @@ public class PortfolioHoldingService {
 	private final PortfolioHoldingEventPublisher publisher;
 
 	@Transactional
-	public PortfolioStockCreateResponse createPortfolioHolding(Long portfolioId,
+	@Authorized(serviceClass = PortfolioAuthorizedService.class)
+	public PortfolioStockCreateResponse createPortfolioHolding(@ResourceId Long portfolioId,
 		PortfolioHoldingCreateRequest request) {
 		log.info("포트폴리오 종목 추가 서비스 요청 : portfolioId={}, request={}", portfolioId, request);
 
 		Portfolio portfolio = findPortfolio(portfolioId);
-		validateHasAuthorization(portfolio);
 
 		Stock stock = stockRepository.findByTickerSymbol(request.getTickerSymbol())
 			.orElseThrow(() -> new NotFoundResourceException(StockErrorCode.NOT_FOUND_STOCK));
@@ -95,37 +95,26 @@ public class PortfolioHoldingService {
 		return PortfolioStockCreateResponse.from(saveHolding);
 	}
 
-	private void validateHasAuthorization(Portfolio portfolio) {
-		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-		Object principal = authentication.getPrincipal();
-		MemberAuthentication memberAuthentication = (MemberAuthentication)principal;
-		if (!portfolio.hasAuthorization(memberAuthentication.getId())) {
-			throw new FineAntsException(PortfolioHoldingErrorCode.FORBIDDEN_PORTFOLIO_HOLDING);
-		}
-	}
-
 	@Transactional
-	public PortfolioStockDeleteResponse deletePortfolioStock(Long portfolioHoldingId, Long memberId) {
+	@Authorized(serviceClass = PortfolioHoldingAuthorizedService.class)
+	public PortfolioStockDeleteResponse deletePortfolioStock(@ResourceId Long portfolioHoldingId) {
 		log.info("포트폴리오 종목 삭제 서비스 : portfolioHoldingId={}", portfolioHoldingId);
-
-		validateHasAuthorization(List.of(portfolioHoldingId), memberId);
 		purchaseHistoryRepository.deleteAllByPortfolioHoldingIdIn(List.of(portfolioHoldingId));
 
 		int deleted = portfolioHoldingRepository.deleteAllByIdIn(List.of(portfolioHoldingId));
 		if (deleted == 0) {
-			throw new NotFoundResourceException(PortfolioHoldingErrorCode.NOT_FOUND_PORTFOLIO_HOLDING);
+			throw new FineAntsException(PortfolioHoldingErrorCode.NOT_FOUND_PORTFOLIO_HOLDING);
 		}
 		return new PortfolioStockDeleteResponse(portfolioHoldingId);
 	}
 
 	@Transactional
+	@Authorized(serviceClass = PortfolioHoldingAuthorizedService.class)
 	public PortfolioStockDeletesResponse deletePortfolioHoldings(Long portfolioId, Long memberId,
-		PortfolioStocksDeleteRequest request) {
-		log.info("포트폴리오 종목 다수 삭제 서비스 : portfolioId={}, memberId={}, request={}", portfolioId, memberId, request);
-
-		List<Long> portfolioHoldingIds = request.getPortfolioHoldingIds();
+		@ResourceIds List<Long> portfolioHoldingIds) {
+		log.info("포트폴리오 종목 다수 삭제 서비스 : portfolioId={}, memberId={}, portfolioHoldingIds={}", portfolioId, memberId,
+			portfolioHoldingIds);
 		validateExistPortfolioHolding(portfolioHoldingIds);
-		validateHasAuthorization(portfolioHoldingIds, memberId);
 
 		purchaseHistoryRepository.deleteAllByPortfolioHoldingIdIn(portfolioHoldingIds);
 		try {
@@ -136,13 +125,8 @@ public class PortfolioHoldingService {
 		return new PortfolioStockDeletesResponse(portfolioHoldingIds);
 	}
 
-	public Portfolio findPortfolio(Long portfolioId) {
+	private Portfolio findPortfolio(Long portfolioId) {
 		return portfolioRepository.findById(portfolioId)
-			.orElseThrow(() -> new NotFoundResourceException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
-	}
-
-	public Portfolio findPortfolioUsingFetchJoin(Long portfolioId) {
-		return portfolioRepository.findByPortfolioIdWithAll(portfolioId)
 			.orElseThrow(() -> new NotFoundResourceException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
 	}
 
@@ -162,23 +146,17 @@ public class PortfolioHoldingService {
 			});
 	}
 
-	private void validateHasAuthorization(List<Long> portfolioHoldingIds, Long memberId) {
-		for (Long portfolioHoldingId : portfolioHoldingIds) {
-			if (!portfolioHoldingRepository.existsByIdAndMemberId(portfolioHoldingId, memberId)) {
-				throw new ForBiddenException(PortfolioHoldingErrorCode.FORBIDDEN_PORTFOLIO_HOLDING);
-			}
-		}
-	}
-
-	public PortfolioHoldingsResponse readPortfolioHoldings(Long portfolioId) {
+	@Transactional(readOnly = true)
+	@Authorized(serviceClass = PortfolioAuthorizedService.class)
+	public PortfolioHoldingsResponse readPortfolioHoldings(@ResourceId Long portfolioId) {
 		Portfolio portfolio = findPortfolio(portfolioId);
-		validateHasAuthorization(portfolio);
 		PortfolioDetailResponse portfolioDetail = portfolioDetailFactory.createPortfolioDetailItem(portfolio);
 		List<PortfolioHoldingItem> portfolioHoldingItems = portfolioHoldingDetailFactory.createPortfolioHoldingItems(
 			portfolio);
 		return PortfolioHoldingsResponse.of(portfolioDetail, portfolioHoldingItems);
 	}
 
+	@Transactional(readOnly = true)
 	public PortfolioHoldingsRealTimeResponse readMyPortfolioStocksInRealTime(Long portfolioId) {
 		Portfolio portfolio = findPortfolioUsingFetchJoin(portfolioId);
 		PortfolioDetailRealTimeItem portfolioDetail = portfolioDetailFactory.createPortfolioDetailRealTimeItem(
@@ -188,9 +166,15 @@ public class PortfolioHoldingService {
 		return PortfolioHoldingsRealTimeResponse.of(portfolioDetail, portfolioHoldingDetails);
 	}
 
-	public PortfolioChartResponse readPortfolioCharts(Long portfolioId, LocalDate currentLocalDate) {
+	private Portfolio findPortfolioUsingFetchJoin(Long portfolioId) {
+		return portfolioRepository.findByPortfolioIdWithAll(portfolioId)
+			.orElseThrow(() -> new NotFoundResourceException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
+	}
+
+	@Transactional(readOnly = true)
+	@Authorized(serviceClass = PortfolioAuthorizedService.class)
+	public PortfolioChartResponse readPortfolioCharts(@ResourceId Long portfolioId, LocalDate currentLocalDate) {
 		Portfolio portfolio = findPortfolio(portfolioId);
-		validateHasAuthorization(portfolio);
 		PortfolioDetails portfolioDetails = PortfolioDetails.from(portfolio);
 		List<PortfolioPieChartItem> pieChartItems = pieChart.createBy(portfolio);
 		List<PortfolioDividendChartItem> dividendChartItems = dividendChart.createBy(portfolio, currentLocalDate);
