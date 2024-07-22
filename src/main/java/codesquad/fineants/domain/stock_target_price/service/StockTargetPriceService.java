@@ -108,18 +108,8 @@ public class StockTargetPriceService {
 			.orElseThrow(() -> new NotFoundResourceException(StockErrorCode.NOT_FOUND_STOCK));
 	}
 
-	// 종목 지정가 단일 제거
-	@Transactional
-	@Authorized(serviceClass = StockTargetPriceAuthorizedService.class)
-	public void deleteStockTargetPrice(@ResourceId Long stockTargetPriceId) {
-		StockTargetPrice stockTargetPrice = repository.findById(stockTargetPriceId)
-			.orElseThrow(() -> new NotFoundResourceException(StockErrorCode.NOT_FOUND_STOCK_TARGET_PRICE));
-		targetPriceNotificationRepository.deleteAllByStockTargetPrices(List.of(stockTargetPrice));
-		repository.deleteById(stockTargetPriceId);
-	}
-
 	@Secured("ROLE_USER")
-	public TargetPriceNotificationSearchResponse searchStockTargetPriceNotification(Long memberId) {
+	public TargetPriceNotificationSearchResponse searchStockTargetPrices(Long memberId) {
 		List<StockTargetPrice> stockTargetPrices = repository.findAllByMemberId(memberId);
 		List<TargetPriceNotificationSearchItem> stocks = stockTargetPrices.stream()
 			.map(stockTargetPrice -> TargetPriceNotificationSearchItem.from(stockTargetPrice, manager))
@@ -127,19 +117,8 @@ public class StockTargetPriceService {
 		return TargetPriceNotificationSearchResponse.from(stocks);
 	}
 
-	@Transactional
 	@Secured("ROLE_USER")
-	public TargetPriceNotificationUpdateResponse updateStockTargetPriceNotification(
-		TargetPriceNotificationUpdateRequest request, Long memberId) {
-		StockTargetPrice stockTargetPrice = repository.findByTickerSymbolAndMemberId(request.getTickerSymbol(),
-				memberId)
-			.orElseThrow(() -> new NotFoundResourceException(StockErrorCode.NOT_FOUND_STOCK_TARGET_PRICE));
-		stockTargetPrice.changeIsActive(request.getIsActive());
-		return TargetPriceNotificationUpdateResponse.from(stockTargetPrice);
-	}
-
-	@Secured("ROLE_USER")
-	public TargetPriceNotificationSpecifiedSearchResponse searchTargetPriceNotifications(
+	public TargetPriceNotificationSpecifiedSearchResponse searchStockTargetPrice(
 		String tickerSymbol,
 		Long memberId
 	) {
@@ -154,5 +133,26 @@ public class StockTargetPriceService {
 		);
 		log.info("특정 종목의 지정가 알림들 조회 결과 : response={}", response);
 		return response;
+	}
+
+	@Transactional
+	@Secured("ROLE_USER")
+	public TargetPriceNotificationUpdateResponse updateStockTargetPrice(
+		TargetPriceNotificationUpdateRequest request, Long memberId) {
+		StockTargetPrice stockTargetPrice = repository.findByTickerSymbolAndMemberId(request.getTickerSymbol(),
+				memberId)
+			.orElseThrow(() -> new NotFoundResourceException(StockErrorCode.NOT_FOUND_STOCK_TARGET_PRICE));
+		stockTargetPrice.changeIsActive(request.getIsActive());
+		return TargetPriceNotificationUpdateResponse.from(stockTargetPrice);
+	}
+
+	// 종목 지정가 단일 제거
+	@Transactional
+	@Authorized(serviceClass = StockTargetPriceAuthorizedService.class)
+	public void deleteStockTargetPrice(@ResourceId Long stockTargetPriceId) {
+		StockTargetPrice stockTargetPrice = repository.findById(stockTargetPriceId)
+			.orElseThrow(() -> new NotFoundResourceException(StockErrorCode.NOT_FOUND_STOCK_TARGET_PRICE));
+		targetPriceNotificationRepository.deleteAllByStockTargetPrices(List.of(stockTargetPrice));
+		repository.deleteById(stockTargetPriceId);
 	}
 }

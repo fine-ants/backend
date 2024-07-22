@@ -148,7 +148,7 @@ class StockTargetPriceServiceTest extends AbstractContainerBaseTest {
 		manager.addPrice(KisClosingPrice.create(stock.getTickerSymbol(), 50000L));
 		manager.addPrice(KisClosingPrice.create(stock2.getTickerSymbol(), 50000L));
 		// when
-		TargetPriceNotificationSearchResponse response = service.searchStockTargetPriceNotification(member.getId());
+		TargetPriceNotificationSearchResponse response = service.searchStockTargetPrices(member.getId());
 
 		// then
 		assertAll(
@@ -194,7 +194,7 @@ class StockTargetPriceServiceTest extends AbstractContainerBaseTest {
 		manager.addPrice(KisClosingPrice.create(stock.getTickerSymbol(), 50000L));
 
 		// when
-		TargetPriceNotificationSpecifiedSearchResponse response = service.searchTargetPriceNotifications(
+		TargetPriceNotificationSpecifiedSearchResponse response = service.searchStockTargetPrice(
 			stock.getTickerSymbol(), member.getId());
 
 		// then
@@ -217,7 +217,7 @@ class StockTargetPriceServiceTest extends AbstractContainerBaseTest {
 		Stock stock = stockRepository.save(createSamsungStock());
 
 		// when
-		TargetPriceNotificationSpecifiedSearchResponse response = service.searchTargetPriceNotifications(
+		TargetPriceNotificationSpecifiedSearchResponse response = service.searchStockTargetPrice(
 			stock.getTickerSymbol(), member.getId());
 
 		// then
@@ -246,7 +246,7 @@ class StockTargetPriceServiceTest extends AbstractContainerBaseTest {
 			.build();
 
 		// when
-		TargetPriceNotificationUpdateResponse response = service.updateStockTargetPriceNotification(
+		TargetPriceNotificationUpdateResponse response = service.updateStockTargetPrice(
 			request, member.getId());
 
 		// then
@@ -279,7 +279,7 @@ class StockTargetPriceServiceTest extends AbstractContainerBaseTest {
 			.build();
 
 		// when
-		Throwable throwable = catchThrowable(() -> service.updateStockTargetPriceNotification(request, member.getId()));
+		Throwable throwable = catchThrowable(() -> service.updateStockTargetPrice(request, member.getId()));
 
 		// then
 		assertThat(throwable)

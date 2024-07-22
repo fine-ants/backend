@@ -1,4 +1,4 @@
-package codesquad.fineants.docs.stock;
+package codesquad.fineants.docs.target_price_notification;
 
 import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -38,9 +38,9 @@ public class TargetPriceNotificationRestControllerDocsTest extends RestDocsSuppo
 		return new TargetPriceNotificationRestController(service);
 	}
 
-	@DisplayName("종목 지정가 알림 다수 제거")
+	@DisplayName("지정가 알림 다수 제거")
 	@Test
-	void deleteAllStockTargetPriceNotification() throws Exception {
+	void deleteTargetPriceNotifications() throws Exception {
 		// given
 		given(service.deleteAllStockTargetPriceNotification(
 			anyList(),
@@ -66,7 +66,7 @@ public class TargetPriceNotificationRestControllerDocsTest extends RestDocsSuppo
 			.andExpect(jsonPath("message").value(equalTo("해당 종목 지정가 알림을 제거했습니다")))
 			.andDo(
 				document(
-					"stock_target_price-multiple-delete",
+					"target_price_notification-multiple-delete",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint()),
 					requestFields(
@@ -88,9 +88,9 @@ public class TargetPriceNotificationRestControllerDocsTest extends RestDocsSuppo
 			);
 	}
 
-	@DisplayName("종목 지정가 알림 단일 제거")
+	@DisplayName("지정가 알림 단일 제거")
 	@Test
-	void deleteStockTargetPriceNotification() throws Exception {
+	void deleteTargetPriceNotification() throws Exception {
 		// given
 		Member member = createMember();
 		Stock stock = createSamsungStock();

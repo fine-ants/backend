@@ -1,4 +1,4 @@
-package codesquad.fineants.docs.stock;
+package codesquad.fineants.docs.stock_target_price;
 
 import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -53,9 +53,9 @@ public class StockTargetPriceRestControllerDocsTest extends RestDocsSupport {
 		return new StockTargetPriceRestController(service);
 	}
 
-	@DisplayName("종목 지정가 알림 추가 API")
+	@DisplayName("종목 지정가 추가 API")
 	@Test
-	void createStockTargetPriceNotification() throws Exception {
+	void createStockTargetPrice() throws Exception {
 		// given
 		TargetPriceNotificationCreateResponse response = TargetPriceNotificationCreateResponse.builder()
 			.stockTargetPriceId(1L)
@@ -121,13 +121,13 @@ public class StockTargetPriceRestControllerDocsTest extends RestDocsSupport {
 			);
 	}
 
-	@DisplayName("종목 지정가 알림 목록 조회 API")
+	@DisplayName("종목 지정가 목록 조회 API")
 	@Test
-	void searchStockTargetPriceNotification() throws Exception {
+	void searchStockTargetPrices() throws Exception {
 		// given
 		Stock stock = createSamsungStock();
 		LocalDateTime now = LocalDateTime.now();
-		given(service.searchStockTargetPriceNotification(anyLong()))
+		given(service.searchStockTargetPrices(anyLong()))
 			.willReturn(TargetPriceNotificationSearchResponse.builder()
 				.stocks(List.of(TargetPriceNotificationSearchItem.builder()
 					.companyName(stock.getCompanyName())
@@ -207,13 +207,13 @@ public class StockTargetPriceRestControllerDocsTest extends RestDocsSupport {
 			);
 	}
 
-	@DisplayName("종목 지정가 알림 특정 조회 API")
+	@DisplayName("종목 지정가 특정 조회 API")
 	@Test
-	void searchTargetPriceNotifications() throws Exception {
+	void searchTargetPrice() throws Exception {
 		// given
 		Stock stock = createSamsungStock();
 		LocalDateTime now = LocalDateTime.now();
-		given(service.searchTargetPriceNotifications(anyString(), anyLong()))
+		given(service.searchStockTargetPrice(anyString(), anyLong()))
 			.willReturn(TargetPriceNotificationSpecifiedSearchResponse.builder()
 				.targetPrices(List.of(
 					TargetPriceNotificationSpecificItem.builder()
@@ -271,14 +271,14 @@ public class StockTargetPriceRestControllerDocsTest extends RestDocsSupport {
 			);
 	}
 
-	@DisplayName("종목 지정가 알림 설정 수정 API")
+	@DisplayName("종목 지정가 설정 수정 API")
 	@Test
-	void updateStockTargetPriceNotification() throws Exception {
+	void updateStockTargetPrice() throws Exception {
 		// given
 		Member member = createMember();
 		Stock stock = createSamsungStock();
 		StockTargetPrice stockTargetPrice = createStockTargetPrice(member, stock);
-		given(service.updateStockTargetPriceNotification(
+		given(service.updateStockTargetPrice(
 			any(TargetPriceNotificationUpdateRequest.class),
 			anyLong()))
 			.willReturn(TargetPriceNotificationUpdateResponse.from(stockTargetPrice));

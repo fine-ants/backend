@@ -107,7 +107,7 @@ class StockTargetPriceRestControllerTest extends ControllerTestSupport {
 		// given
 		Stock stock = createSamsungStock();
 		LocalDateTime now = LocalDateTime.now();
-		given(service.searchStockTargetPriceNotification(anyLong()))
+		given(service.searchStockTargetPrices(anyLong()))
 			.willReturn(TargetPriceNotificationSearchResponse.builder()
 				.stocks(List.of(TargetPriceNotificationSearchItem.builder()
 					.companyName(stock.getCompanyName())
@@ -155,7 +155,7 @@ class StockTargetPriceRestControllerTest extends ControllerTestSupport {
 		// given
 		Stock stock = createSamsungStock();
 		LocalDateTime now = LocalDateTime.now();
-		given(service.searchTargetPriceNotifications(anyString(), anyLong()))
+		given(service.searchStockTargetPrice(anyString(), anyLong()))
 			.willReturn(TargetPriceNotificationSpecifiedSearchResponse.builder()
 				.targetPrices(List.of(
 					TargetPriceNotificationSpecificItem.builder()
@@ -195,7 +195,7 @@ class StockTargetPriceRestControllerTest extends ControllerTestSupport {
 			"isActive", false
 		);
 
-		given(service.updateStockTargetPriceNotification(any(TargetPriceNotificationUpdateRequest.class), anyLong()))
+		given(service.updateStockTargetPrice(any(TargetPriceNotificationUpdateRequest.class), anyLong()))
 			.willReturn(TargetPriceNotificationUpdateResponse.builder()
 				.stockTargetPriceId(1L)
 				.tickerSymbol(stock.getTickerSymbol())

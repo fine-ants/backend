@@ -1,5 +1,5 @@
 [[stock_target_price-create]]
-=== 종목 지정가 알림 추가
+=== 종목 지정가 추가
 
 ==== HTTP Request
 
@@ -11,22 +11,8 @@ include::{snippets}/stock_target_price-create/request-fields.adoc[]
 include::{snippets}/stock_target_price-create/http-response.adoc[]
 include::{snippets}/stock_target_price-create/response-fields.adoc[]
 
-[[stock_target_price-notification-notify]]
-=== 종목 지정가 알림 발송
-
-해당 API는 관리자 또는 매니저 권한이 요구됩니다.
-
-==== HTTP Request
-
-include::{snippets}/stock_target_price-notification-notify/http-request.adoc[]
-
-==== HTTP Response
-
-include::{snippets}/stock_target_price-notification-notify/http-response.adoc[]
-include::{snippets}/stock_target_price-notification-notify/response-fields.adoc[]
-
 [[stock_target_price-list-search]]
-=== 종목 지정가 알림 목록 조회
+=== 종목 지정가 목록 조회
 
 ==== HTTP Request
 
@@ -38,7 +24,7 @@ include::{snippets}/stock_target_price-list-search/http-response.adoc[]
 include::{snippets}/stock_target_price-list-search/response-fields.adoc[]
 
 [[stock_target_price-one-search]]
-=== 종목 지정가 알림 특정 조회
+=== 종목 지정가 특정 조회
 
 ==== HTTP Request
 
@@ -51,7 +37,7 @@ include::{snippets}/stock_target_price-one-search/http-response.adoc[]
 include::{snippets}/stock_target_price-one-search/response-fields.adoc[]
 
 [[stock_target_price-update]]
-=== 종목 지정가 알림 설정 수정
+=== 종목 지정가 설정 수정
 
 ==== HTTP Request
 
@@ -76,28 +62,16 @@ include::{snippets}/stock_target_price-one-delete/path-parameters.adoc[]
 include::{snippets}/stock_target_price-one-delete/http-response.adoc[]
 include::{snippets}/stock_target_price-one-delete/response-fields.adoc[]
 
-[[stock_target_price-multiple-delete]]
-=== 종목 지정가 알림 전체 제거
+[[stock_target_price-notification-notify]]
+=== 종목 지정가 알림 발송
+
+해당 API는 관리자 또는 매니저 권한이 요구됩니다.
 
 ==== HTTP Request
 
-include::{snippets}/stock_target_price-multiple-delete/http-request.adoc[]
-include::{snippets}/stock_target_price-multiple-delete/request-fields.adoc[]
+include::{snippets}/stock_target_price-notification-notify/http-request.adoc[]
 
 ==== HTTP Response
 
-include::{snippets}/stock_target_price-multiple-delete/http-response.adoc[]
-include::{snippets}/stock_target_price-multiple-delete/response-fields.adoc[]
-
-[[target_price_notification-one-delete]]
-=== 종목 지정가 알림 단일 제거
-
-==== HTTP Request
-
-include::{snippets}/target_price_notification-one-delete/http-request.adoc[]
-include::{snippets}/target_price_notification-one-delete/path-parameters.adoc[]
-
-==== HTTP Response
-
-include::{snippets}/target_price_notification-one-delete/http-response.adoc[]
-include::{snippets}/target_price_notification-one-delete/response-fields.adoc[]
+include::{snippets}/stock_target_price-notification-notify/http-response.adoc[]
+include::{snippets}/stock_target_price-notification-notify/response-fields.adoc[]

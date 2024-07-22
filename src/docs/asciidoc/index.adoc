@@ -54,9 +54,13 @@ include::api/watchlist.adoc[]
 
 include::api/fcm.adoc[]
 
-== 종목 지정가 알림
+== 종목 지정가
 
 include::api/stock_target_price.adoc[]
+
+== 지정가 알림
+
+include::api/target_price_notification.adoc[]
 
 == 알림
 

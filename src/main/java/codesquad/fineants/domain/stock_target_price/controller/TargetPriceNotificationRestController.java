@@ -25,7 +25,7 @@ public class TargetPriceNotificationRestController {
 
 	// 종목 지정가 알림 전체 삭제
 	@DeleteMapping("/api/stocks/target-price/notifications")
-	public ApiResponse<Void> deleteAllStockTargetPriceNotification(
+	public ApiResponse<Void> deleteTargetPriceNotifications(
 		@Valid @RequestBody TargetPriceNotificationDeleteRequest request,
 		@MemberAuthenticationPrincipal MemberAuthentication authentication) {
 		TargetPriceNotificationDeleteResponse response = service.deleteAllStockTargetPriceNotification(
@@ -38,7 +38,7 @@ public class TargetPriceNotificationRestController {
 
 	// 종목 지정가 알림 단일 삭제
 	@DeleteMapping("/api/stocks/target-price/notifications/{targetPriceNotificationId}")
-	public ApiResponse<Void> deleteStockTargetPriceNotification(
+	public ApiResponse<Void> deleteTargetPriceNotification(
 		@PathVariable Long targetPriceNotificationId
 	) {
 		TargetPriceNotificationDeleteResponse response = service.deleteStockTargetPriceNotification(

@@ -49,7 +49,7 @@ public class StockTargetPriceRestController {
 	public ApiResponse<TargetPriceNotificationSearchResponse> searchStockTargetPriceNotification(
 		@MemberAuthenticationPrincipal MemberAuthentication authentication
 	) {
-		TargetPriceNotificationSearchResponse response = service.searchStockTargetPriceNotification(
+		TargetPriceNotificationSearchResponse response = service.searchStockTargetPrices(
 			authentication.getId());
 		log.info("종목 지정가 알림 검색 결과 : {}", response);
 		return ApiResponse.success(StockSuccessCode.OK_SEARCH_TARGET_PRICE_NOTIFICATIONS, response);
@@ -61,7 +61,7 @@ public class StockTargetPriceRestController {
 		@PathVariable String tickerSymbol,
 		@MemberAuthenticationPrincipal MemberAuthentication authentication
 	) {
-		TargetPriceNotificationSpecifiedSearchResponse response = service.searchTargetPriceNotifications(tickerSymbol,
+		TargetPriceNotificationSpecifiedSearchResponse response = service.searchStockTargetPrice(tickerSymbol,
 			authentication.getId());
 		log.info("특정 종목 지정가 알림 리스트 조회 결과 : {}", response);
 		return ApiResponse.success(StockSuccessCode.OK_SEARCH_SPECIFIC_TARGET_PRICE_NOTIFICATIONS, response);
@@ -73,7 +73,7 @@ public class StockTargetPriceRestController {
 		@Valid @RequestBody TargetPriceNotificationUpdateRequest request,
 		@MemberAuthenticationPrincipal MemberAuthentication authentication
 	) {
-		TargetPriceNotificationUpdateResponse response = service.updateStockTargetPriceNotification(request,
+		TargetPriceNotificationUpdateResponse response = service.updateStockTargetPrice(request,
 			authentication.getId());
 		log.info("종목 지정가 알림 수정 결과 : {}", response);
 		StockSuccessCode successCode =
