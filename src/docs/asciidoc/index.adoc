@@ -42,10 +42,6 @@ include::api/purchase_history.adoc[]
 
 include::api/stock.adoc[]
 
-== 배당금
-
-include::api/dividend.adoc[]
-
 == 관심 종목
 
 include::api/watchlist.adoc[]
@@ -62,17 +58,30 @@ include::api/stock_target_price.adoc[]
 
 include::api/target_price_notification.adoc[]
 
-== 알림
-
-include::api/notification.adoc[]
-
 == 대시보드
 
 include::api/dashboard.adoc[]
 
+= 관리
 == 한국투자증권(KIS)
 
 include::api/kis.adoc[]
+
+== 종목 지정가 알림
+
+include::api/stock_target_price_notification.adoc[]
+
+== 포트폴리오 알림
+
+include::api/portfolio_notification.adoc[]
+
+== 종목
+
+include::api/stock_admin.adoc[]
+
+== 배당
+
+include::api/dividend.adoc[]
 
 == 환율
 

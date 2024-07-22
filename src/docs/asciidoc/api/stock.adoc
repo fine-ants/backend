@@ -29,20 +29,6 @@ include::{snippets}/stock-scroll-search/query-parameters.adoc[]
 include::{snippets}/stock-scroll-search/http-response.adoc[]
 include::{snippets}/stock-scroll-search/response-fields.adoc[]
 
-[[stock-refresh]]
-=== 종목 최신화
-
-해당 API는 관리자 또는 매니저 권한이 요구됩니다.
-
-==== HTTP Request
-
-include::{snippets}/stock-refresh/http-request.adoc[]
-
-==== HTTP Response
-
-include::{snippets}/stock-refresh/http-response.adoc[]
-include::{snippets}/stock-refresh/response-fields.adoc[]
-
 [[stock-detail-search]]
 === 종목 상세 검색
 
