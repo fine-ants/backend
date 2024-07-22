@@ -3,12 +3,16 @@ package codesquad.fineants.domain.watchlist.service;
 import static org.assertj.core.api.Assertions.*;
 
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.transaction.annotation.Transactional;
 
 import codesquad.fineants.AbstractContainerBaseTest;
 import codesquad.fineants.domain.common.money.Money;
@@ -26,7 +30,6 @@ import codesquad.fineants.domain.stock.repository.StockRepository;
 import codesquad.fineants.domain.watchlist.domain.dto.request.ChangeWatchListNameRequest;
 import codesquad.fineants.domain.watchlist.domain.dto.request.CreateWatchListRequest;
 import codesquad.fineants.domain.watchlist.domain.dto.request.CreateWatchStockRequest;
-import codesquad.fineants.domain.watchlist.domain.dto.request.DeleteWatchListsRequests;
 import codesquad.fineants.domain.watchlist.domain.dto.request.DeleteWatchStocksRequest;
 import codesquad.fineants.domain.watchlist.domain.dto.response.CreateWatchListResponse;
 import codesquad.fineants.domain.watchlist.domain.dto.response.ReadWatchListResponse;
@@ -111,6 +114,7 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 		currentPriceRepository.addCurrentPrice(KisCurrentPrice.create("005930", 77000L));
 		closingPriceRepository.addPrice(KisClosingPrice.create("005930", 77000L));
 
+		setAuthentication(member);
 		// when
 		ReadWatchListResponse response = watchListService.readWatchList(member.getId(), watchList.getId());
 
@@ -170,6 +174,7 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 		WatchList watchList = watchListRepository.save(createWatchList(member));
 		Long watchListId = watchList.getId();
 
+		setAuthentication(member);
 		// when
 		watchListService.createWatchStocks(member.getId(), watchListId, request);
 
@@ -203,25 +208,48 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 			.hasMessage(WatchListErrorCode.FORBIDDEN_WATCHLIST.getMessage());
 	}
 
-	@DisplayName("사용자는 한 관심 종목에 이미 추가된 종목을 추가할 수 없다")
-	@Test
-	void createWatchStocks_whenAlreadyStock_thenNotSaveStock() {
-		// given
-		Member member = memberRepository.save(createMember());
-		stockRepository.save(createSamsungStock());
+	@DisplayName("관심 종목 중복 추가 예외 케이스 시나리오")
+	@TestFactory
+	@Transactional
+	Collection<DynamicTest> createWatchStocks_whenAlreadyStock_thenNotSaveStock() {
+		return List.of(
+			DynamicTest.dynamicTest("사용자는 관심 종목을 추가한다", () -> {
+				// given
+				Member member = memberRepository.save(createMember());
+				stockRepository.save(createSamsungStock());
 
-		CreateWatchListResponse watchlist1 = watchListService.createWatchList(member.getId(),
-			new CreateWatchListRequest("watchlist1"));
-		CreateWatchStockRequest request = new CreateWatchStockRequest(List.of("005930"));
-		watchListService.createWatchStocks(member.getId(), watchlist1.getWatchlistId(), request);
-		// when
-		Throwable throwable = catchThrowable(
-			() -> watchListService.createWatchStocks(member.getId(), watchlist1.getWatchlistId(), request));
+				CreateWatchListResponse watchlist1 = watchListService.createWatchList(member.getId(),
+					new CreateWatchListRequest("watchlist1"));
+				CreateWatchStockRequest request = new CreateWatchStockRequest(List.of("005930"));
+				setAuthentication(member);
+				// when
+				watchListService.createWatchStocks(member.getId(), watchlist1.getWatchlistId(), request);
 
-		// then
-		assertThat(throwable)
-			.isInstanceOf(FineAntsException.class)
-			.hasMessage(WatchListErrorCode.ALREADY_WATCH_STOCK.getMessage());
+				// then
+				assertThat(watchStockRepository.findAllById(List.of(watchlist1.getWatchlistId()))).hasSize(1);
+			}),
+			DynamicTest.dynamicTest("사용자는 관심 종목이 이미 존재하여 추가할 수 없다", () -> {
+				// given
+				Member member = memberRepository.findMemberByEmailAndProvider("dragonbead95@naver.com", "local")
+					.orElseThrow();
+
+				Long watchListId = watchListRepository.findByMember(member).stream()
+					.findAny()
+					.orElseThrow()
+					.getId();
+				CreateWatchStockRequest request = new CreateWatchStockRequest(List.of("005930"));
+
+				setAuthentication(member);
+				// when
+				Throwable throwable = catchThrowable(
+					() -> watchListService.createWatchStocks(member.getId(), watchListId, request));
+
+				// then
+				assertThat(throwable)
+					.isInstanceOf(FineAntsException.class)
+					.hasMessage(WatchListErrorCode.ALREADY_WATCH_STOCK.getMessage());
+			})
+		);
 	}
 
 	@DisplayName("회원이 watchlist를 삭제한다.")
@@ -237,8 +265,9 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 
 		watchStockRepository.save(createWatchStock(watchList, stock));
 
+		setAuthentication(member);
 		// when
-		watchListService.deleteWatchLists(member.getId(), new DeleteWatchListsRequests(List.of(watchListId)));
+		watchListService.deleteWatchLists(member.getId(), List.of(watchListId));
 
 		// then
 		assertThat(watchListRepository.findById(watchListId).isPresent()).isFalse();
@@ -258,8 +287,8 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 
 		setAuthentication(hacker);
 		// when
-		Throwable throwable = catchThrowable(() -> watchListService.deleteWatchLists(hacker.getId(),
-			new DeleteWatchListsRequests(List.of(watchListId))));
+		Throwable throwable = catchThrowable(
+			() -> watchListService.deleteWatchLists(hacker.getId(), List.of(watchListId)));
 		// then
 		assertThat(throwable)
 			.isInstanceOf(FineAntsException.class)
@@ -276,6 +305,7 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 		Long watchListId = watchList.getId();
 		watchStockRepository.save(createWatchStock(watchList, stock));
 
+		setAuthentication(member);
 		// when
 		watchListService.deleteWatchList(member.getId(), watchListId);
 
@@ -318,6 +348,7 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 		DeleteWatchStocksRequest request = new DeleteWatchStocksRequest(
 			List.of(watchStock.getStock().getTickerSymbol()));
 
+		setAuthentication(member);
 		// when
 		watchListService.deleteWatchStocks(member.getId(), watchListId, request);
 
@@ -359,6 +390,7 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 		WatchStock watchStock = watchStockRepository.save(createWatchStock(watchList, stock));
 		Long watchStockId = watchStock.getId();
 
+		setAuthentication(member);
 		// when
 		watchListService.deleteWatchStock(member.getId(), watchListId, stock.getTickerSymbol());
 
@@ -398,6 +430,7 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 		String name = "New Name";
 		ChangeWatchListNameRequest request = new ChangeWatchListNameRequest(name);
 
+		setAuthentication(member);
 		// when
 		watchListService.changeWatchListName(member.getId(), watchListId, request);
 
