@@ -30,29 +30,27 @@ import codesquad.fineants.docs.RestDocsSupport;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
-import codesquad.fineants.domain.stock_target_price.controller.StockTargetPriceNotificationRestController;
+import codesquad.fineants.domain.stock_target_price.controller.StockTargetPriceRestController;
 import codesquad.fineants.domain.stock_target_price.domain.dto.request.TargetPriceNotificationCreateRequest;
 import codesquad.fineants.domain.stock_target_price.domain.dto.request.TargetPriceNotificationUpdateRequest;
 import codesquad.fineants.domain.stock_target_price.domain.dto.response.TargetPriceItem;
 import codesquad.fineants.domain.stock_target_price.domain.dto.response.TargetPriceNotificationCreateResponse;
-import codesquad.fineants.domain.stock_target_price.domain.dto.response.TargetPriceNotificationDeleteResponse;
 import codesquad.fineants.domain.stock_target_price.domain.dto.response.TargetPriceNotificationSearchItem;
 import codesquad.fineants.domain.stock_target_price.domain.dto.response.TargetPriceNotificationSearchResponse;
 import codesquad.fineants.domain.stock_target_price.domain.dto.response.TargetPriceNotificationSpecificItem;
 import codesquad.fineants.domain.stock_target_price.domain.dto.response.TargetPriceNotificationSpecifiedSearchResponse;
 import codesquad.fineants.domain.stock_target_price.domain.dto.response.TargetPriceNotificationUpdateResponse;
 import codesquad.fineants.domain.stock_target_price.domain.entity.StockTargetPrice;
-import codesquad.fineants.domain.stock_target_price.domain.entity.TargetPriceNotification;
-import codesquad.fineants.domain.stock_target_price.service.StockTargetPriceNotificationService;
+import codesquad.fineants.domain.stock_target_price.service.StockTargetPriceService;
 import codesquad.fineants.global.util.ObjectMapperUtil;
 
-public class StockTargetPriceNotificationRestControllerDocsTest extends RestDocsSupport {
+public class StockTargetPriceRestControllerDocsTest extends RestDocsSupport {
 
-	private final StockTargetPriceNotificationService service = Mockito.mock(StockTargetPriceNotificationService.class);
+	private final StockTargetPriceService service = Mockito.mock(StockTargetPriceService.class);
 
 	@Override
 	protected Object initController() {
-		return new StockTargetPriceNotificationRestController(service);
+		return new StockTargetPriceRestController(service);
 	}
 
 	@DisplayName("종목 지정가 알림 추가 API")
@@ -65,7 +63,7 @@ public class StockTargetPriceNotificationRestControllerDocsTest extends RestDocs
 			.tickerSymbol("005930")
 			.targetPrice(Money.won(60000L))
 			.build();
-		given(service.createStockTargetPriceNotification(
+		given(service.createStockTargetPrice(
 			any(TargetPriceNotificationCreateRequest.class),
 			anyLong()))
 			.willReturn(response);
@@ -347,101 +345,6 @@ public class StockTargetPriceNotificationRestControllerDocsTest extends RestDocs
 					preprocessResponse(prettyPrint()),
 					pathParameters(
 						parameterWithName("stockTargetPriceId").description("종목 지정가 등록번호")
-					),
-					responseFields(
-						fieldWithPath("code").type(JsonFieldType.NUMBER)
-							.description("코드"),
-						fieldWithPath("status").type(JsonFieldType.STRING)
-							.description("상태"),
-						fieldWithPath("message").type(JsonFieldType.STRING)
-							.description("메시지"),
-						fieldWithPath("data").type(JsonFieldType.NULL)
-							.description("응답 데이터")
-					)
-				)
-			);
-	}
-
-	@DisplayName("종목 지정가 알림 다수 제거")
-	@Test
-	void deleteAllStockTargetPriceNotification() throws Exception {
-		// given
-		given(service.deleteAllStockTargetPriceNotification(
-			anyList(),
-			anyString(),
-			anyLong()
-		)).willReturn(TargetPriceNotificationDeleteResponse.from(
-			List.of(1L, 2L)
-		));
-
-		Map<String, Object> body = Map.of(
-			"tickerSymbol", "005930",
-			"targetPriceNotificationIds", List.of(1, 2)
-		);
-
-		// when & then
-		mockMvc.perform(delete("/api/stocks/target-price/notifications")
-				.cookie(createTokenCookies())
-				.contentType(MediaType.APPLICATION_JSON)
-				.content(ObjectMapperUtil.serialize(body)))
-			.andExpect(status().isOk())
-			.andExpect(jsonPath("code").value(equalTo(200)))
-			.andExpect(jsonPath("status").value(equalTo("OK")))
-			.andExpect(jsonPath("message").value(equalTo("해당 종목 지정가 알림을 제거했습니다")))
-			.andDo(
-				document(
-					"stock_target_price-multiple-delete",
-					preprocessRequest(prettyPrint()),
-					preprocessResponse(prettyPrint()),
-					requestFields(
-						fieldWithPath("tickerSymbol").type(JsonFieldType.STRING).description("종목 티커 심볼"),
-						fieldWithPath("targetPriceNotificationIds").type(JsonFieldType.ARRAY)
-							.description("지정가 알림 등록 번호")
-					),
-					responseFields(
-						fieldWithPath("code").type(JsonFieldType.NUMBER)
-							.description("코드"),
-						fieldWithPath("status").type(JsonFieldType.STRING)
-							.description("상태"),
-						fieldWithPath("message").type(JsonFieldType.STRING)
-							.description("메시지"),
-						fieldWithPath("data").type(JsonFieldType.NULL)
-							.description("응답 데이터")
-					)
-				)
-			);
-	}
-
-	@DisplayName("종목 지정가 알림 단일 제거")
-	@Test
-	void deleteStockTargetPriceNotification() throws Exception {
-		// given
-		Member member = createMember();
-		Stock stock = createSamsungStock();
-		StockTargetPrice stockTargetPrice = createStockTargetPrice(member, stock);
-		TargetPriceNotification targetPriceNotification = createTargetPriceNotification(stockTargetPrice);
-
-		given(service.deleteStockTargetPriceNotification(
-			anyLong()
-		)).willReturn(TargetPriceNotificationDeleteResponse.from(
-			List.of(1L)
-		));
-
-		// when & then
-		mockMvc.perform(delete("/api/stocks/target-price/notifications/{targetPriceNotificationId}",
-				targetPriceNotification.getId())
-				.cookie(createTokenCookies()))
-			.andExpect(status().isOk())
-			.andExpect(jsonPath("code").value(equalTo(200)))
-			.andExpect(jsonPath("status").value(equalTo("OK")))
-			.andExpect(jsonPath("message").value(equalTo("해당 종목 지정가 알림을 제거했습니다")))
-			.andDo(
-				document(
-					"target_price_notification-one-delete",
-					preprocessRequest(prettyPrint()),
-					preprocessResponse(prettyPrint()),
-					pathParameters(
-						parameterWithName("targetPriceNotificationId").description("지정가 알림 등록번호")
 					),
 					responseFields(
 						fieldWithPath("code").type(JsonFieldType.NUMBER)

@@ -9,7 +9,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,31 +30,30 @@ import codesquad.fineants.domain.stock_target_price.domain.dto.request.TargetPri
 import codesquad.fineants.domain.stock_target_price.domain.dto.request.TargetPriceNotificationUpdateRequest;
 import codesquad.fineants.domain.stock_target_price.domain.dto.response.TargetPriceItem;
 import codesquad.fineants.domain.stock_target_price.domain.dto.response.TargetPriceNotificationCreateResponse;
-import codesquad.fineants.domain.stock_target_price.domain.dto.response.TargetPriceNotificationDeleteResponse;
 import codesquad.fineants.domain.stock_target_price.domain.dto.response.TargetPriceNotificationSearchItem;
 import codesquad.fineants.domain.stock_target_price.domain.dto.response.TargetPriceNotificationSearchResponse;
 import codesquad.fineants.domain.stock_target_price.domain.dto.response.TargetPriceNotificationSpecificItem;
 import codesquad.fineants.domain.stock_target_price.domain.dto.response.TargetPriceNotificationSpecifiedSearchResponse;
 import codesquad.fineants.domain.stock_target_price.domain.dto.response.TargetPriceNotificationUpdateResponse;
-import codesquad.fineants.domain.stock_target_price.service.StockTargetPriceNotificationService;
+import codesquad.fineants.domain.stock_target_price.service.StockTargetPriceService;
 import codesquad.fineants.global.util.ObjectMapperUtil;
 
-@WebMvcTest(controllers = StockTargetPriceNotificationRestController.class)
-class StockTargetPriceNotificationRestControllerTest extends ControllerTestSupport {
+@WebMvcTest(controllers = StockTargetPriceRestController.class)
+class StockTargetPriceRestControllerTest extends ControllerTestSupport {
 
 	@MockBean
-	private StockTargetPriceNotificationService service;
+	private StockTargetPriceService service;
 
 	@Override
 	protected Object initController() {
-		return new StockTargetPriceNotificationRestController(service);
+		return new StockTargetPriceRestController(service);
 	}
 
 	@DisplayName("사용자는 종목 지정가 알림을 추가합니다")
 	@Test
 	void createStockTargetPriceNotification() throws Exception {
 		// given
-		given(service.createStockTargetPriceNotification(
+		given(service.createStockTargetPrice(
 			any(TargetPriceNotificationCreateRequest.class),
 			anyLong()))
 			.willReturn(TargetPriceNotificationCreateResponse.builder()
@@ -233,89 +231,9 @@ class StockTargetPriceNotificationRestControllerTest extends ControllerTestSuppo
 			.andExpect(jsonPath("data").isArray());
 	}
 
-	@DisplayName("사용자는 종목 지정가 알림들을 삭제합니다")
-	@Test
-	void deleteAllStockTargetPriceNotification() throws Exception {
-		// given
-		given(service.deleteStockTargetPriceNotification(
-			anyLong()))
-			.willReturn(TargetPriceNotificationDeleteResponse.builder()
-				.deletedIds(List.of(1L, 2L))
-				.build());
-
-		Map<String, Object> body = new HashMap<>();
-		body.put("tickerSymbol", "005930");
-		body.put("targetPriceNotificationIds", List.of(1L, 2L));
-
-		// when & then
-		mockMvc.perform(delete("/api/stocks/target-price/notifications")
-				.contentType(MediaType.APPLICATION_JSON)
-				.content(ObjectMapperUtil.serialize(body)))
-			.andExpect(status().isOk())
-			.andExpect(jsonPath("code").value(equalTo(200)))
-			.andExpect(jsonPath("status").value(equalTo("OK")))
-			.andExpect(jsonPath("message").value(equalTo("해당 종목 지정가 알림을 제거했습니다")))
-			.andExpect(jsonPath("data").value(equalTo(null)));
-	}
-
-	@DisplayName("사용자는 유효하지 않은 입력 형식으로 종목 지정가를 삭제할 수 없다")
-	@MethodSource(value = "invalidTargetPriceNotificationIds")
-	@ParameterizedTest
-	void deleteAllStockTargetPriceNotification_whenInvalidTargetPriceNotificationIds_thenResponse400Error(
-		String tickerSymbol,
-		List<Long> targetPriceNotificationIds)
-		throws Exception {
-		// given
-		Map<String, Object> body = new HashMap<>();
-		body.put("tickerSymbol", tickerSymbol);
-		body.put("targetPriceNotificationIds", targetPriceNotificationIds);
-
-		// when & then
-		mockMvc.perform(delete("/api/stocks/target-price/notifications")
-				.contentType(MediaType.APPLICATION_JSON)
-				.content(ObjectMapperUtil.serialize(body)))
-			.andExpect(status().isBadRequest())
-			.andExpect(jsonPath("code").value(equalTo(400)))
-			.andExpect(jsonPath("status").value(equalTo("Bad Request")))
-			.andExpect(jsonPath("message").value(equalTo("잘못된 입력형식입니다")))
-			.andExpect(jsonPath("data").isArray());
-	}
-
-	@DisplayName("사용자는 종목 지정가 알림을 삭제합니다")
-	@Test
-	void deleteStockTargetPriceNotification() throws Exception {
-		// given
-		given(service.deleteStockTargetPriceNotification(
-			anyLong()))
-			.willReturn(TargetPriceNotificationDeleteResponse.builder()
-				.deletedIds(List.of(1L))
-				.build());
-
-		Long targetPriceNotificationId = 1L;
-		Map<String, Object> body = Map.of("tickerSymbol", "005930");
-		// when & then
-		mockMvc.perform(
-				delete("/api/stocks/target-price/notifications/{targetPriceNotificationId}",
-					targetPriceNotificationId)
-					.contentType(MediaType.APPLICATION_JSON)
-					.content(ObjectMapperUtil.serialize(body)))
-			.andExpect(status().isOk())
-			.andExpect(jsonPath("code").value(equalTo(200)))
-			.andExpect(jsonPath("status").value(equalTo("OK")))
-			.andExpect(jsonPath("message").value(equalTo("해당 종목 지정가 알림을 제거했습니다")))
-			.andExpect(jsonPath("data").value(equalTo(null)));
-	}
-
 	public static Stream<Arguments> invalidTargetPrice() {
 		return Stream.of(
 			Arguments.of(null, -1L),
-			Arguments.of(null, null)
-		);
-	}
-
-	public static Stream<Arguments> invalidTargetPriceNotificationIds() {
-		return Stream.of(
-			Arguments.of(null, Collections.emptyList()),
 			Arguments.of(null, null)
 		);
 	}

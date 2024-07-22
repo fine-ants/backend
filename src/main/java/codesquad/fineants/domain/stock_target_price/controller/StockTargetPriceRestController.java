@@ -11,14 +11,12 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import codesquad.fineants.domain.stock_target_price.domain.dto.request.TargetPriceNotificationCreateRequest;
-import codesquad.fineants.domain.stock_target_price.domain.dto.request.TargetPriceNotificationDeleteRequest;
 import codesquad.fineants.domain.stock_target_price.domain.dto.request.TargetPriceNotificationUpdateRequest;
 import codesquad.fineants.domain.stock_target_price.domain.dto.response.TargetPriceNotificationCreateResponse;
-import codesquad.fineants.domain.stock_target_price.domain.dto.response.TargetPriceNotificationDeleteResponse;
 import codesquad.fineants.domain.stock_target_price.domain.dto.response.TargetPriceNotificationSearchResponse;
 import codesquad.fineants.domain.stock_target_price.domain.dto.response.TargetPriceNotificationSpecifiedSearchResponse;
 import codesquad.fineants.domain.stock_target_price.domain.dto.response.TargetPriceNotificationUpdateResponse;
-import codesquad.fineants.domain.stock_target_price.service.StockTargetPriceNotificationService;
+import codesquad.fineants.domain.stock_target_price.service.StockTargetPriceService;
 import codesquad.fineants.global.api.ApiResponse;
 import codesquad.fineants.global.security.oauth.dto.MemberAuthentication;
 import codesquad.fineants.global.security.oauth.resolver.MemberAuthenticationPrincipal;
@@ -30,9 +28,9 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-public class StockTargetPriceNotificationRestController {
+public class StockTargetPriceRestController {
 
-	private final StockTargetPriceNotificationService service;
+	private final StockTargetPriceService service;
 
 	// 종목 지정가 알림 데이터 생성
 	@ResponseStatus(HttpStatus.CREATED)
@@ -40,7 +38,7 @@ public class StockTargetPriceNotificationRestController {
 	public ApiResponse<TargetPriceNotificationCreateResponse> createStockTargetPriceNotification(
 		@Valid @RequestBody TargetPriceNotificationCreateRequest request,
 		@MemberAuthenticationPrincipal MemberAuthentication authentication) {
-		TargetPriceNotificationCreateResponse response = service.createStockTargetPriceNotification(request,
+		TargetPriceNotificationCreateResponse response = service.createStockTargetPrice(request,
 			authentication.getId());
 		log.info("종목 지정가 알림 추가 결과 : {}", response);
 		return ApiResponse.success(StockSuccessCode.OK_CREATE_TARGET_PRICE_NOTIFICATION, response);
@@ -91,29 +89,5 @@ public class StockTargetPriceNotificationRestController {
 	) {
 		service.deleteStockTargetPrice(stockTargetPriceId);
 		return ApiResponse.success(StockSuccessCode.OK_DELETE_STOCK_TARGET_PRICE);
-	}
-
-	// 종목 지정가 알림 전체 삭제
-	@DeleteMapping("/api/stocks/target-price/notifications")
-	public ApiResponse<Void> deleteAllStockTargetPriceNotification(
-		@Valid @RequestBody TargetPriceNotificationDeleteRequest request,
-		@MemberAuthenticationPrincipal MemberAuthentication authentication) {
-		TargetPriceNotificationDeleteResponse response = service.deleteAllStockTargetPriceNotification(
-			request.getTargetPriceNotificationIds(),
-			request.getTickerSymbol(),
-			authentication.getId());
-		log.info("종목 지정가 알림 제거 결과 : {}", response);
-		return ApiResponse.success(StockSuccessCode.OK_DELETE_TARGET_PRICE_NOTIFICATIONS);
-	}
-
-	// 종목 지정가 알림 단일 삭제
-	@DeleteMapping("/api/stocks/target-price/notifications/{targetPriceNotificationId}")
-	public ApiResponse<Void> deleteStockTargetPriceNotification(
-		@PathVariable Long targetPriceNotificationId
-	) {
-		TargetPriceNotificationDeleteResponse response = service.deleteStockTargetPriceNotification(
-			targetPriceNotificationId);
-		log.info("종목 지정가 알림 제거 결과 : {}", response);
-		return ApiResponse.success(StockSuccessCode.OK_DELETE_TARGET_PRICE_NOTIFICATIONS);
 	}
 }
