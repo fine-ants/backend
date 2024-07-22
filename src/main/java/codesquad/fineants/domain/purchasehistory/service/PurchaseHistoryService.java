@@ -7,7 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
 import codesquad.fineants.domain.holding.repository.PortfolioHoldingRepository;
-import codesquad.fineants.domain.holding.service.PortfolioHoldingAuthorizeService;
+import codesquad.fineants.domain.holding.service.PortfolioHoldingAuthorizedService;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.repository.PortfolioRepository;
 import codesquad.fineants.domain.purchasehistory.domain.dto.request.PurchaseHistoryCreateRequest;
@@ -38,7 +38,7 @@ public class PurchaseHistoryService {
 	private final PortfolioRepository portfolioRepository;
 
 	@Transactional
-	@Authorized(serviceClass = PortfolioHoldingAuthorizeService.class)
+	@Authorized(serviceClass = PortfolioHoldingAuthorizedService.class)
 	@Secured("ROLE_USER")
 	public PurchaseHistoryCreateResponse createPurchaseHistory(
 		PurchaseHistoryCreateRequest request,
@@ -77,7 +77,7 @@ public class PurchaseHistoryService {
 	}
 
 	@Transactional
-	@Authorized(serviceClass = PurchaseHistoryAuthorizeService.class)
+	@Authorized(serviceClass = PurchaseHistoryAuthorizedService.class)
 	@Secured("ROLE_USER")
 	public PurchaseHistoryUpdateResponse updatePurchaseHistory(PurchaseHistoryUpdateRequest request,
 		Long portfolioHoldingId, @ResourceId Long purchaseHistoryId, Long portfolioId, Long memberId) {
@@ -99,7 +99,7 @@ public class PurchaseHistoryService {
 	}
 
 	@Transactional
-	@Authorized(serviceClass = PurchaseHistoryAuthorizeService.class)
+	@Authorized(serviceClass = PurchaseHistoryAuthorizedService.class)
 	@Secured("ROLE_USER")
 	public PurchaseHistoryDeleteResponse deletePurchaseHistory(Long portfolioHoldingId,
 		@ResourceId Long purchaseHistoryId,

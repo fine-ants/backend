@@ -7,13 +7,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
 import codesquad.fineants.domain.holding.repository.PortfolioHoldingRepository;
-import codesquad.fineants.global.common.authorized.AuthorizeService;
+import codesquad.fineants.global.common.authorized.AuthorizedService;
 import lombok.RequiredArgsConstructor;
 
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
-public class PortfolioHoldingAuthorizeService implements AuthorizeService<PortfolioHolding> {
+public class PortfolioHoldingAuthorizedService implements AuthorizedService<PortfolioHolding> {
 
 	private final PortfolioHoldingRepository repository;
 
