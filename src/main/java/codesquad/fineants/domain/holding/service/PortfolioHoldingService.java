@@ -12,7 +12,6 @@ import codesquad.fineants.domain.holding.domain.chart.DividendChart;
 import codesquad.fineants.domain.holding.domain.chart.PieChart;
 import codesquad.fineants.domain.holding.domain.chart.SectorChart;
 import codesquad.fineants.domain.holding.domain.dto.request.PortfolioHoldingCreateRequest;
-import codesquad.fineants.domain.holding.domain.dto.request.PortfolioStocksDeleteRequest;
 import codesquad.fineants.domain.holding.domain.dto.response.PortfolioChartResponse;
 import codesquad.fineants.domain.holding.domain.dto.response.PortfolioDetailRealTimeItem;
 import codesquad.fineants.domain.holding.domain.dto.response.PortfolioDetailResponse;
@@ -40,12 +39,12 @@ import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
 import codesquad.fineants.global.common.authorized.Authorized;
 import codesquad.fineants.global.common.resource.ResourceId;
+import codesquad.fineants.global.common.resource.ResourceIds;
 import codesquad.fineants.global.errors.errorcode.PortfolioErrorCode;
 import codesquad.fineants.global.errors.errorcode.PortfolioHoldingErrorCode;
 import codesquad.fineants.global.errors.errorcode.PurchaseHistoryErrorCode;
 import codesquad.fineants.global.errors.errorcode.StockErrorCode;
 import codesquad.fineants.global.errors.exception.FineAntsException;
-import codesquad.fineants.global.errors.exception.ForBiddenException;
 import codesquad.fineants.global.errors.exception.NotFoundResourceException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -95,27 +94,25 @@ public class PortfolioHoldingService {
 	}
 
 	@Transactional
-	public PortfolioStockDeleteResponse deletePortfolioStock(Long portfolioHoldingId, Long memberId) {
+	@Authorized(serviceName = "portfolioHoldingAuthorizeService")
+	public PortfolioStockDeleteResponse deletePortfolioStock(@ResourceId Long portfolioHoldingId) {
 		log.info("포트폴리오 종목 삭제 서비스 : portfolioHoldingId={}", portfolioHoldingId);
-
-		validateHasAuthorization(List.of(portfolioHoldingId), memberId);
 		purchaseHistoryRepository.deleteAllByPortfolioHoldingIdIn(List.of(portfolioHoldingId));
 
 		int deleted = portfolioHoldingRepository.deleteAllByIdIn(List.of(portfolioHoldingId));
 		if (deleted == 0) {
-			throw new NotFoundResourceException(PortfolioHoldingErrorCode.NOT_FOUND_PORTFOLIO_HOLDING);
+			throw new FineAntsException(PortfolioHoldingErrorCode.NOT_FOUND_PORTFOLIO_HOLDING);
 		}
 		return new PortfolioStockDeleteResponse(portfolioHoldingId);
 	}
 
 	@Transactional
+	@Authorized(serviceName = "portfolioHoldingAuthorizeService")
 	public PortfolioStockDeletesResponse deletePortfolioHoldings(Long portfolioId, Long memberId,
-		PortfolioStocksDeleteRequest request) {
-		log.info("포트폴리오 종목 다수 삭제 서비스 : portfolioId={}, memberId={}, request={}", portfolioId, memberId, request);
-
-		List<Long> portfolioHoldingIds = request.getPortfolioHoldingIds();
+		@ResourceIds List<Long> portfolioHoldingIds) {
+		log.info("포트폴리오 종목 다수 삭제 서비스 : portfolioId={}, memberId={}, portfolioHoldingIds={}", portfolioId, memberId,
+			portfolioHoldingIds);
 		validateExistPortfolioHolding(portfolioHoldingIds);
-		validateHasAuthorization(portfolioHoldingIds, memberId);
 
 		purchaseHistoryRepository.deleteAllByPortfolioHoldingIdIn(portfolioHoldingIds);
 		try {
@@ -145,14 +142,6 @@ public class PortfolioHoldingService {
 			.forEach(portfolioHoldingId -> {
 				throw new NotFoundResourceException(PortfolioHoldingErrorCode.NOT_FOUND_PORTFOLIO_HOLDING);
 			});
-	}
-
-	private void validateHasAuthorization(List<Long> portfolioHoldingIds, Long memberId) {
-		for (Long portfolioHoldingId : portfolioHoldingIds) {
-			if (!portfolioHoldingRepository.existsByIdAndMemberId(portfolioHoldingId, memberId)) {
-				throw new ForBiddenException(PortfolioHoldingErrorCode.FORBIDDEN_PORTFOLIO_HOLDING);
-			}
-		}
 	}
 
 	@Transactional(readOnly = true)

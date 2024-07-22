@@ -27,7 +27,6 @@ import codesquad.fineants.domain.common.money.RateDivision;
 import codesquad.fineants.domain.dividend.domain.entity.StockDividend;
 import codesquad.fineants.domain.dividend.repository.StockDividendRepository;
 import codesquad.fineants.domain.holding.domain.dto.request.PortfolioHoldingCreateRequest;
-import codesquad.fineants.domain.holding.domain.dto.request.PortfolioStocksDeleteRequest;
 import codesquad.fineants.domain.holding.domain.dto.response.PortfolioChartResponse;
 import codesquad.fineants.domain.holding.domain.dto.response.PortfolioDetailResponse;
 import codesquad.fineants.domain.holding.domain.dto.response.PortfolioHoldingsRealTimeResponse;
@@ -54,7 +53,6 @@ import codesquad.fineants.domain.stock.repository.StockRepository;
 import codesquad.fineants.global.errors.errorcode.MemberErrorCode;
 import codesquad.fineants.global.errors.errorcode.PortfolioHoldingErrorCode;
 import codesquad.fineants.global.errors.exception.FineAntsException;
-import codesquad.fineants.global.errors.exception.ForBiddenException;
 import codesquad.fineants.global.errors.exception.NotFoundResourceException;
 import codesquad.fineants.global.security.ajax.token.AjaxAuthenticationToken;
 import codesquad.fineants.global.security.oauth.dto.MemberAuthentication;
@@ -622,8 +620,9 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 			createPurchaseHistory(null, purchaseDate, numShares, purchasePerShare, memo, portfolioHolding));
 
 		Long portfolioHoldingId = portfolioHolding.getId();
+		setAuthentication(member);
 		// when
-		PortfolioStockDeleteResponse response = service.deletePortfolioStock(portfolioHoldingId, member.getId());
+		PortfolioStockDeleteResponse response = service.deletePortfolioStock(portfolioHoldingId);
 
 		// then
 		assertAll(
@@ -641,13 +640,14 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		portfolioRepository.save(createPortfolio(member));
 		Long portfolioStockId = 9999L;
 
+		setAuthentication(member);
 		// when
-		Throwable throwable = catchThrowable(() -> service.deletePortfolioStock(portfolioStockId, member.getId()));
+		Throwable throwable = catchThrowable(() -> service.deletePortfolioStock(portfolioStockId));
 
 		// then
 		assertThat(throwable)
-			.isInstanceOf(ForBiddenException.class)
-			.hasMessage(PortfolioHoldingErrorCode.FORBIDDEN_PORTFOLIO_HOLDING.getMessage());
+			.isInstanceOf(FineAntsException.class)
+			.hasMessage(PortfolioHoldingErrorCode.NOT_FOUND_PORTFOLIO_HOLDING.getMessage());
 	}
 
 	@DisplayName("사용자는 다수의 포트폴리오 종목을 삭제할 수 있다")
@@ -669,15 +669,12 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 			createPurchaseHistory(null, purchaseDate, numShares, purchasePerShare, memo, portfolioHolding1));
 		PurchaseHistory purchaseHistory2 = purchaseHistoryRepository.save(
 			createPurchaseHistory(null, purchaseDate, numShares, purchasePerShare, memo, portfolioHolding2));
+		List<Long> portfolioHoldingIds = List.of(portfolioHolding1.getId(), portfolioHolding2.getId());
 
-		Map<String, Object> requestBodyMap = new HashMap<>();
-		requestBodyMap.put("portfolioHoldingIds", List.of(portfolioHolding1.getId(), portfolioHolding2.getId()));
-		PortfolioStocksDeleteRequest request = ObjectMapperUtil.deserialize(
-			ObjectMapperUtil.serialize(requestBodyMap), PortfolioStocksDeleteRequest.class);
-
+		setAuthentication(member);
 		// when
 		PortfolioStockDeletesResponse response = service.deletePortfolioHoldings(portfolio.getId(), member.getId(),
-			request);
+			portfolioHoldingIds);
 
 		// then
 		assertAll(
@@ -707,15 +704,12 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		String memo = "첫구매";
 		PurchaseHistory purchaseHistory = purchaseHistoryRepository.save(
 			createPurchaseHistory(null, purchaseDate, numShares, purchasePerShare, memo, portfolioHolding));
+		List<Long> portfolioHoldingIds = List.of(portfolioHolding.getId(), 9999L);
 
-		Map<String, Object> requestBodyMap = new HashMap<>();
-		requestBodyMap.put("portfolioHoldingIds", List.of(portfolioHolding.getId(), 9999L));
-		PortfolioStocksDeleteRequest request = ObjectMapperUtil.deserialize(
-			ObjectMapperUtil.serialize(requestBodyMap), PortfolioStocksDeleteRequest.class);
-
+		setAuthentication(member);
 		// when
 		Throwable throwable = catchThrowable(
-			() -> service.deletePortfolioHoldings(portfolio.getId(), member.getId(), request));
+			() -> service.deletePortfolioHoldings(portfolio.getId(), member.getId(), portfolioHoldingIds));
 
 		// then
 		assertThat(throwable)
@@ -745,20 +739,17 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		Portfolio portfolio2 = portfolioRepository.save(createPortfolio(member2));
 		PortfolioHolding portfolioHolding2 = portFolioHoldingRepository.save(
 			createPortfolioHolding(portfolio2, stock1));
+		List<Long> portfolioHoldingIds = List.of(portfolioHolding.getId(), portfolioHolding2.getId());
 
-		Map<String, Object> requestBodyMap = new HashMap<>();
-		requestBodyMap.put("portfolioHoldingIds", List.of(portfolioHolding.getId(), portfolioHolding2.getId()));
-		PortfolioStocksDeleteRequest request = ObjectMapperUtil.deserialize(
-			ObjectMapperUtil.serialize(requestBodyMap), PortfolioStocksDeleteRequest.class);
-
+		setAuthentication(member);
 		// when
 		Throwable throwable = catchThrowable(
-			() -> service.deletePortfolioHoldings(portfolio.getId(), member.getId(), request));
+			() -> service.deletePortfolioHoldings(portfolio.getId(), member.getId(), portfolioHoldingIds));
 
 		// then
 		assertThat(throwable)
-			.isInstanceOf(ForBiddenException.class)
-			.hasMessage("해당 포트폴리오 종목들에 대한 권한이 없습니다");
+			.isInstanceOf(FineAntsException.class)
+			.hasMessage(MemberErrorCode.FORBIDDEN_MEMBER.getMessage());
 		assertThat(portFolioHoldingRepository.findById(portfolioHolding.getId()).isPresent()).isTrue();
 		assertThat(portFolioHoldingRepository.findById(portfolioHolding2.getId()).isPresent()).isTrue();
 		assertThat(purchaseHistoryRepository.findById(purchaseHistory.getId()).isPresent()).isTrue();
