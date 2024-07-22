@@ -61,7 +61,7 @@ public class MemberNotificationRestControllerDocsTest extends RestDocsSupport {
 			targetPriceNotification, member);
 		MemberNotification memberNotification2 = MemberNotification.from(stockTargetPriceNotification);
 
-		given(service.fetchNotifications(member.getId()))
+		given(service.searchMemberNotifications(member.getId()))
 			.willReturn(MemberNotificationResponse.create(List.of(
 				memberNotification,
 				memberNotification2

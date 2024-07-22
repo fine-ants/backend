@@ -37,7 +37,7 @@ public class MemberNotificationRestController {
 	@GetMapping("/notifications")
 	public ApiResponse<MemberNotificationResponse> fetchNotifications(@PathVariable Long memberId) {
 		return ApiResponse.success(MemberSuccessCode.OK_READ_NOTIFICATIONS,
-			notificationService.fetchNotifications(memberId));
+			notificationService.searchMemberNotifications(memberId));
 	}
 
 	// 회원 알림 설정 수정
@@ -56,7 +56,7 @@ public class MemberNotificationRestController {
 	public ApiResponse<Void> deleteAllNotifications(
 		@PathVariable Long memberId,
 		@Valid @RequestBody MemberNotificationAllDeleteRequest request) {
-		List<Long> deletedNotificationIds = notificationService.deleteAllNotifications(memberId,
+		List<Long> deletedNotificationIds = notificationService.deleteMemberNotifications(memberId,
 			request.getNotificationIds());
 		log.info("회원 알림 모두 삭제 처리 결과 : memberId={}, 삭제한 알림 등록 번호={}", memberId, deletedNotificationIds);
 		return ApiResponse.success(MemberSuccessCode.OK_DELETED_ALL_NOTIFICATIONS);
@@ -67,7 +67,7 @@ public class MemberNotificationRestController {
 	public ApiResponse<Void> deleteNotification(
 		@PathVariable Long memberId,
 		@PathVariable Long notificationId) {
-		List<Long> deletedNotificationIds = notificationService.deleteAllNotifications(
+		List<Long> deletedNotificationIds = notificationService.deleteMemberNotifications(
 			memberId,
 			List.of(notificationId)
 		);
@@ -80,7 +80,8 @@ public class MemberNotificationRestController {
 	public ApiResponse<Void> readAllNotifications(
 		@PathVariable Long memberId,
 		@Valid @RequestBody MemberNotificationAllReadRequest request) {
-		List<Long> notificationIds = notificationService.readAllNotifications(memberId, request.getNotificationIds());
+		List<Long> notificationIds = notificationService.fetchMemberNotifications(memberId,
+			request.getNotificationIds());
 		log.info("회원 알림 모두 읽기 처리 결과 : memberId={}, 읽은 알림 등록 번호={}", memberId, notificationIds);
 		return ApiResponse.success(MemberSuccessCode.OK_FETCH_ALL_NOTIFICATIONS);
 	}
