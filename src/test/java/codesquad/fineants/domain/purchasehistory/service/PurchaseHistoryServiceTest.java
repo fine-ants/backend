@@ -47,7 +47,6 @@ import codesquad.fineants.global.errors.errorcode.MemberErrorCode;
 import codesquad.fineants.global.errors.errorcode.PortfolioErrorCode;
 import codesquad.fineants.global.errors.errorcode.PurchaseHistoryErrorCode;
 import codesquad.fineants.global.errors.exception.FineAntsException;
-import codesquad.fineants.global.errors.exception.ForBiddenException;
 
 class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 
@@ -383,8 +382,8 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 				hacker.getId()));
 		// then
 		assertThat(throwable)
-			.isInstanceOf(ForBiddenException.class)
-			.hasMessage(PurchaseHistoryErrorCode.FORBIDDEN_PURCHASE_HISTORY.getMessage());
+			.isInstanceOf(FineAntsException.class)
+			.hasMessage(MemberErrorCode.FORBIDDEN_MEMBER.getMessage());
 	}
 
 	@DisplayName("사용자는 매입 이력을 삭제한다")
@@ -507,7 +506,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 
 		// then
 		assertThat(throwable)
-			.isInstanceOf(ForBiddenException.class)
-			.hasMessage(PurchaseHistoryErrorCode.FORBIDDEN_PURCHASE_HISTORY.getMessage());
+			.isInstanceOf(FineAntsException.class)
+			.hasMessage(MemberErrorCode.FORBIDDEN_MEMBER.getMessage());
 	}
 }
