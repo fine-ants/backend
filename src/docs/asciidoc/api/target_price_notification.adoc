@@ -1,0 +1,25 @@
+[[target_price_notification-multiple-delete]]
+=== 지정가 알림 다수 제거
+
+==== HTTP Request
+
+include::{snippets}/target_price_notification-multiple-delete/http-request.adoc[]
+include::{snippets}/target_price_notification-multiple-delete/request-fields.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/target_price_notification-multiple-delete/http-response.adoc[]
+include::{snippets}/target_price_notification-multiple-delete/response-fields.adoc[]
+
+[[target_price_notification-one-delete]]
+=== 지정가 알림 단일 제거
+
+==== HTTP Request
+
+include::{snippets}/target_price_notification-one-delete/http-request.adoc[]
+include::{snippets}/target_price_notification-one-delete/path-parameters.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/target_price_notification-one-delete/http-response.adoc[]
+include::{snippets}/target_price_notification-one-delete/response-fields.adoc[]
