@@ -2,8 +2,8 @@ spring:
   profiles:
     group:
       local: local, secret
-      dev: dev, secret
       release: release, secret
+      production: production, secret
       test: test, secret
     default: local
   main:
