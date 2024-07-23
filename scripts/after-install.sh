@@ -9,3 +9,5 @@ if [ "$DEPLOYMENT_GROUP_NAME" == "production" ]
 then
     cp -R /home/ec2-user/build/temp/* /home/ec2-user/build/production
 fi
+# Clean Up
+sudo rm -rf /home/ec2-user/build/temp
