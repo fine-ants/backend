@@ -1,0 +1,7 @@
+member:
+  nickname:
+    prefix: 일개미
+    len: 7
+  verifyCode:
+    len: 6
+    limit: 1000000

@@ -1,28 +1,23 @@
-buildscript {
-    ext {
-        queryDslVersion = "5.0.0"
-    }
-}
-
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '2.7.16'
+    id 'org.springframework.boot' version '3.1.11'
     id 'io.spring.dependency-management' version '1.0.15.RELEASE'
-    // QueryDSL
-    id 'com.ewerk.gradle.plugins.querydsl' version '1.0.10'
+    // asciidoctor
+    id 'org.asciidoctor.jvm.convert' version '3.3.2'
 }
 
 group = 'codesquad.fineants'
 version = '0.0.1-SNAPSHOT'
 
 java {
-    sourceCompatibility = '11'
+    sourceCompatibility = '17'
 }
 
 configurations {
     compileOnly {
         extendsFrom annotationProcessor
     }
+    asciidoctorExt
 }
 
 repositories {
@@ -30,6 +25,7 @@ repositories {
 }
 
 dependencies {
+    // spring
     implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
@@ -39,6 +35,9 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-devtools'
     implementation 'org.springframework.boot:spring-boot-starter-aop'
     implementation 'org.springframework.boot:spring-boot-starter-mail'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    testImplementation 'org.springframework.security:spring-security-test'
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
 
     // websocket
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
@@ -48,9 +47,24 @@ dependencies {
     implementation 'io.jsonwebtoken:jjwt-impl:0.11.5'
     implementation 'io.jsonwebtoken:jjwt-jackson:0.11.5'
 
-    // QueryDSL
-    implementation "com.querydsl:querydsl-jpa:${queryDslVersion}"
-    annotationProcessor "com.querydsl:querydsl-apt:${queryDslVersion}"
+    // JWT 서명 검증 라이브러리
+    implementation 'com.auth0:java-jwt:3.19.0'
+    implementation 'com.auth0:jwks-rsa:0.21.1'
+
+    // AWS S3
+    implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
+
+    //encoder 추가
+    implementation 'org.springframework.security:spring-security-crypto'
+
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+
+    // mockWebserver
+    testImplementation 'com.squareup.okhttp3:okhttp:4.12.0'
+    testImplementation 'com.squareup.okhttp3:mockwebserver:4.12.0'
+
+    // firebase
+    implementation 'com.google.firebase:firebase-admin:9.1.1'
 
     compileOnly 'org.projectlombok:lombok'
     runtimeOnly 'com.mysql:mysql-connector-j'
@@ -58,33 +72,100 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'io.projectreactor:reactor-test'
     testImplementation 'org.projectlombok:lombok'
+    // final class mocking
+    testImplementation 'org.mockito:mockito-inline:2.13.0'
     testAnnotationProcessor 'org.projectlombok:lombok'
+
+    // test container
+    testImplementation 'org.testcontainers:junit-jupiter:1.19.7'
+    testImplementation 'org.testcontainers:mysql:1.19.7'
+    implementation 'org.testcontainers:localstack:1.19.7'
+
+    // Rest Docs
+    asciidoctorExt 'org.springframework.restdocs:spring-restdocs-asciidoctor'
+    testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
+
+    // RxJava
+    implementation 'io.reactivex.rxjava3:rxjava:3.1.8'
+
+    // Rest-Assured
+    testImplementation 'io.rest-assured:rest-assured'
+
+    // Csv Reader
+    implementation 'org.apache.commons:commons-csv:1.11.0'
+
+    //QueryDsl
+    implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
+    annotationProcessor "com.querydsl:querydsl-apt:${dependencyManagement.importedProperties['querydsl.version']}:jakarta"
+    // java.lang.NoClassDefFoundError 대응을 위해 추가
+    annotationProcessor 'jakarta.annotation:jakarta.annotation-api'
+    annotationProcessor 'jakarta.persistence:jakarta.persistence-api'
 }
 
 tasks.named('test') {
     useJUnitPlatform()
 }
 
-/** QueryDSL start **/
-def querydslDir = "build/generated/querydsl"
-
-querydsl {
-    jpa = true
-    querydslSourcesDir = querydslDir
+task copyPrivate(type: Copy) {
+    copy {
+        from './secret'
+        include "*.yml"
+        into 'src/main/resources/secret'
+    }
+    copy {
+        from './secret'
+        include "*.json"
+        into 'src/main/resources/secret/firebase'
+    }
 }
+
+// Rest Docs configuration start
+ext { // 전역변수
+    snippetsDir = file('build/generated-snippets')
+}
+
+test {
+    outputs.dir snippetsDir
+}
+
+asciidoctor {
+    inputs.dir snippetsDir
+    configurations 'asciidoctorExt'
+
+    sources { // 특정 파일만 html로 만든다
+        include("**/index.adoc")
+    }
+    baseDirFollowsSourceFile() // 다른 adoc 파일을 include 할때 경로를 baseDir로 맞춘다
+    dependsOn test
+}
+// Rest Docs configuration end
+
+bootJar {
+    // Rest Docs
+    dependsOn asciidoctor
+    from("${asciidoctor.outputDir}") {
+        into 'static/docs'
+    }
+
+    archiveFileName = "fineAnts_app.jar"
+    copyPrivate
+}
+
+// QueryDSL configuration start
+def generated = "src/main/generated"
+
+//Querydsl Q Class 생성 위치 지정
+tasks.withType(JavaCompile).configureEach {
+    options.getGeneratedSourceOutputDirectory().set(file(generated))
+}
+
+//java source set 에 Querydsl Q Class 위치 추가
 sourceSets {
-    main.java.srcDir querydslDir
-}
-configurations {
-    querydsl.extendsFrom compileClasspath
-}
-compileQuerydsl {
-    options.annotationProcessorPath = configurations.querydsl
-}
-/** QueryDSL end **/
-
-// executable jar만 생성하도록 설정
-jar {
-    enabled = false
+    main.java.srcDirs += [generated]
 }
 
+//gradle clean 시, Q Class 디렉토리까지 삭제하도록 설정
+clean {
+    delete file(generated)
+}
+// QueryDSL configuration end

@@ -1,0 +1,9 @@
+==== Request Fields
+|===
+|Path|Optional|Description
+{{#requestParts}}
+    |{{#tableCellContent}}`+{{name}}+`{{/tableCellContent}}
+    |{{#tableCellContent}}{{#optional}}Y{{/optional}}{{^optional}}N{{/optional}}{{/tableCellContent}}
+    |{{#tableCellContent}}{{description}}{{/tableCellContent}}
+{{/requestParts}}
+|===

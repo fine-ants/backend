@@ -1,19 +1,11 @@
 spring:
   profiles:
     group:
-      local: local, secret, s3
-      dev: dev, secret, s3
-      test: test, secret, s3
+      local: local, secret
+      release: release, secret
+      production: production, secret
+      test: test, secret
     default: local
-
-  jackson:
-    visibility:
-      field: any
-      is-getter: none
-      getter: none
-      setter: none
-      creator: none
-
   main:
     allow-bean-definition-overriding: true
   mail:
@@ -28,100 +20,20 @@ spring:
           timeout: 5000
           starttls:
             enable: true
----
-spring:
-  config:
-    activate:
-      on-profile: local
-  datasource:
-    url: ${db.local.datasource.url}
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    username: ${db.local.datasource.username}
-    password: ${db.local.datasource.password}
   jpa:
-    database: mysql
-    database-platform: org.hibernate.dialect.MySQL8Dialect
-    hibernate:
-      ddl-auto: create
-    properties:
-      hibernate:
-        format_sql: true
-        dialect: org.hibernate.dialect.MySQL8Dialect
-    defer-datasource-initialization: true
-    show-sql: true
-  redis:
-    host: localhost
-    port: 6379
-  sql:
-    init:
-      mode: always
-      data-locations: classpath*:db/mysql/data.sql
-
-logging:
-  level:
-    codesquad: debug
----
-
-spring:
+    open-in-view: false
+  servlet:
+    multipart:
+      max-file-size: 10MB
   config:
-    activate:
-      on-profile: dev
-  datasource:
-    url: ${db.dev.datasource.url}
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    username: ${db.dev.datasource.username}
-    password: ${db.dev.datasource.password}
-  jpa:
-    database: mysql
-    database-platform: org.hibernate.dialect.MySQL8Dialect
-    hibernate:
-      ddl-auto: none
-    properties:
-      hibernate:
-        format_sql: true
-        dialect: org.hibernate.dialect.MySQL8Dialect
-  redis:
-    host: redis
-    port: 6379
-
-logging:
-  level:
-    codesquard: info
----
-spring:
-  config:
-    activate:
-      on-profile: test
-  datasource:
-    url: ${db.local.datasource.url}
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    username: ${db.local.datasource.username}
-    password: ${db.local.datasource.password}
-  jpa:
-    database: mysql
-    database-platform: org.hibernate.dialect.MySQL8Dialect
-    hibernate:
-      ddl-auto: create
-    properties:
-      hibernate:
-        format_sql: true
-        dialect: org.hibernate.dialect.MySQL8Dialect
-    defer-datasource-initialization: true
-    show-sql: true
-  redis:
-    host: localhost
-    port: 6379
-
-logging:
-  level:
-    codesquard: info
----
-
-spring:
-  config:
-    activate:
-      on-profile: s3
-
+    import:
+      - ./secret/application-secret.yml
+      - ./secret/application-oauth.yml
+      - ./member.yml
+portfolio:
+  securities-firm: BNK투자증권,부국증권,케이프투자증권,대신증권,다올투자증권,DB금융투자,이베스트투자증권,유진투자증권,하나증권,한화투자증권,하이투자증권
+    ,현대차증권,IBK투자증권,카카오페이증권,KB증권,키움증권,한국투자증권,한국포스증권,교보증권,메리츠증권,미래에셋증권,나무증권,삼성증권,상상인증권,신한투자증권
+    ,신영증권,SK증권,토스증권,유안타증권,FineAnts
 cloud:
   aws:
     credentials:
@@ -133,3 +45,8 @@ cloud:
       auto: false
     s3:
       bucket: ${aws.s3.bucket}
+      dividend-bucket: ${aws.s3.dividend-bucket}
+logging:
+  level:
+    com.zaxxer.hikari.HikariConfig: DEBUG
+    com.zaxxer.hikari: TRACE

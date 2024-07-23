@@ -1,0 +1,77 @@
+[[holding-create]]
+=== 포트폴리오 종목 생성
+
+==== HTTP Request
+
+include::{snippets}/holding-create/http-request.adoc[]
+include::{snippets}/holding-create/path-parameters.adoc[]
+include::{snippets}/holding-create/request-fields.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/holding-create/http-response.adoc[]
+include::{snippets}/holding-create/response-fields.adoc[]
+
+[[holding-search]]
+=== 포트폴리오 종목 조회
+
+==== HTTP Request
+
+include::{snippets}/holding-search/http-request.adoc[]
+include::{snippets}/holding-search/path-parameters.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/holding-search/http-response.adoc[]
+include::{snippets}/holding-search/response-fields.adoc[]
+
+[[holding_real_time-search]]
+=== 포트폴리오 종목 실시간 조회
+
+==== HTTP Request
+
+include::{snippets}/holding_real_time-search/http-request.adoc[]
+include::{snippets}/holding_real_time-search/path-parameters.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/holding_real_time-search/http-response.adoc[]
+
+[[holding-one-delete]]
+=== 포트폴리오 종목 단일 삭제
+
+==== HTTP Request
+
+include::{snippets}/holding-one-delete/http-request.adoc[]
+include::{snippets}/holding-one-delete/path-parameters.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/holding-one-delete/http-response.adoc[]
+include::{snippets}/holding-one-delete/response-fields.adoc[]
+
+[[holding-multiple-delete]]
+=== 포트폴리오 종목 다수 삭제
+
+==== HTTP Request
+
+include::{snippets}/holding-multiple-delete/http-request.adoc[]
+include::{snippets}/holding-multiple-delete/path-parameters.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/holding-multiple-delete/http-response.adoc[]
+include::{snippets}/holding-multiple-delete/response-fields.adoc[]
+
+[[portfolio_charts-search]]
+=== 포트폴리오 차트 조회
+
+==== HTTP Request
+
+include::{snippets}/portfolio_charts-search/http-request.adoc[]
+include::{snippets}/portfolio_charts-search/path-parameters.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/portfolio_charts-search/http-response.adoc[]
+include::{snippets}/portfolio_charts-search/response-fields.adoc[]

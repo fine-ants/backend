@@ -1,0 +1,88 @@
+ifndef::snippets[]
+:snippets: ../../build/generated-snippets
+endif::[]
+= FineAnts REST API 문서
+:doctype: book
+:icons: font
+:source-highlighter: highlightjs
+:toc: left
+:toclevels: 2
+:sectlinks:
+
+[[Product-API]]
+== 인증
+
+include::api/authentication.adoc[]
+
+== 회원 가입
+
+include::api/signup.adoc[]
+
+== 회원
+
+include::api/member.adoc[]
+
+== 회원 알림
+
+include::api/member_notification.adoc[]
+
+== 포트폴리오
+
+include::api/portfolio.adoc[]
+
+== 포트폴리오 종목
+
+include::api/holding.adoc[]
+
+== 매입 이력
+
+include::api/purchase_history.adoc[]
+
+== 종목
+
+include::api/stock.adoc[]
+
+== 관심 종목
+
+include::api/watchlist.adoc[]
+
+== FCM 토큰
+
+include::api/fcm.adoc[]
+
+== 종목 지정가
+
+include::api/stock_target_price.adoc[]
+
+== 지정가 알림
+
+include::api/target_price_notification.adoc[]
+
+== 대시보드
+
+include::api/dashboard.adoc[]
+
+= 관리
+== 한국투자증권(KIS)
+
+include::api/kis.adoc[]
+
+== 종목 지정가 알림
+
+include::api/stock_target_price_notification.adoc[]
+
+== 포트폴리오 알림
+
+include::api/portfolio_notification.adoc[]
+
+== 종목
+
+include::api/stock_admin.adoc[]
+
+== 배당
+
+include::api/dividend.adoc[]
+
+== 환율
+
+include::api/exchange_rate.adoc[]

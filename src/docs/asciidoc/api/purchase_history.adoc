@@ -1,0 +1,40 @@
+[[purchase_history-create]]
+=== 매입 이력 생성
+
+==== HTTP Request
+
+include::{snippets}/purchase_history-create/http-request.adoc[]
+include::{snippets}/purchase_history-create/path-parameters.adoc[]
+include::{snippets}/purchase_history-create/request-fields.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/purchase_history-create/http-response.adoc[]
+include::{snippets}/purchase_history-create/response-fields.adoc[]
+
+[[purchase_history-update]]
+=== 매입 이력 수정
+
+==== HTTP Request
+
+include::{snippets}/purchase_history-update/http-request.adoc[]
+include::{snippets}/purchase_history-update/path-parameters.adoc[]
+include::{snippets}/purchase_history-update/request-fields.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/purchase_history-update/http-response.adoc[]
+include::{snippets}/purchase_history-update/response-fields.adoc[]
+
+[[purchase_history-delete]]
+=== 매입 이력 삭제
+
+==== HTTP Request
+
+include::{snippets}/purchase_history-delete/http-request.adoc[]
+include::{snippets}/purchase_history-delete/path-parameters.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/purchase_history-delete/http-response.adoc[]
+include::{snippets}/purchase_history-delete/response-fields.adoc[]

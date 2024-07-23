@@ -1,0 +1,71 @@
+[[exchange-rate-create]]
+=== 통화 환율 추가
+
+해당 API는 관리자 권한이 요구됩니다.
+
+==== HTTP Request
+
+include::{snippets}/exchange-rate-create/http-request.adoc[]
+include::{snippets}/exchange-rate-create/request-fields.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/exchange-rate-create/http-response.adoc[]
+include::{snippets}/exchange-rate-create/response-fields.adoc[]
+
+[[exchange-rate-read]]
+=== 통화 환율 목록 조회
+
+해당 API는 관리자 또는 매니저 권한이 요구됩니다.
+
+==== HTTP Request
+
+include::{snippets}/exchange-rate-read/http-request.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/exchange-rate-read/http-response.adoc[]
+include::{snippets}/exchange-rate-read/response-fields.adoc[]
+
+[[exchange-rate-update]]
+=== 통화 환율 업데이트
+
+해당 API는 관리자 또는 매니저 권한이 요구됩니다.
+
+==== HTTP Request
+
+include::{snippets}/exchange-rate-update/http-request.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/exchange-rate-update/http-response.adoc[]
+include::{snippets}/exchange-rate-update/response-fields.adoc[]
+
+[[exchange-rate-patch-base]]
+=== 기준 통화 변경
+
+해당 API는 관리자 권한이 요구됩니다.
+
+==== HTTP Request
+
+include::{snippets}/exchange-rate-patch-base/http-request.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/exchange-rate-patch-base/http-response.adoc[]
+include::{snippets}/exchange-rate-patch-base/response-fields.adoc[]
+
+[[exchange-rate-delete]]
+=== 통화 환율 삭제
+
+해당 API는 관리자 권한이 요구됩니다.
+
+==== HTTP Request
+
+include::{snippets}/exchange-rate-delete/http-request.adoc[]
+include::{snippets}/exchange-rate-delete/request-fields.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/exchange-rate-delete/http-response.adoc[]
+include::{snippets}/exchange-rate-delete/response-fields.adoc[]

@@ -1,0 +1,28 @@
+version: "3.8"
+services:
+  app:
+    container_name: fineAnts_app_release
+    build: .
+    restart: always
+    ports:
+      - "444:444"
+    environment:
+      PROFILE: release
+      TZ: Asia/Seoul
+    depends_on:
+      - redis
+    networks:
+      - spring-net-release
+  redis:
+    container_name: fineAnts_redis_release
+    image: redis:latest
+    restart: always
+    volumes:
+      - ./redis.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf
+    ports:
+      - "6380:6379"
+    networks:
+      - spring-net-release
+networks:
+  spring-net-release:

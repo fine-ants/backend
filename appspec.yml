@@ -2,7 +2,7 @@ version: 0.0
 os: linux
 files:
   - source: /
-    destination: /home/ec2-user/action
+    destination: /home/ec2-user/build/temp
     overwrite: yes
 
 permissions:
@@ -12,7 +12,14 @@ permissions:
     group: ec2-user
 
 hooks:
+  BeforeInstall:
+    - location: scripts/stop.sh
+      timeout: 300
+      runas: ec2-user
+  AfterInstall:
+    - location: scripts/after-install.sh
+      runas: root
   ApplicationStart:
-    - location: scripts/deploy.sh
+    - location: scripts/start.sh
       timeout: 60
       runas: ec2-user

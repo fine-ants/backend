@@ -1,0 +1,35 @@
+[[dashboard_overview-search]]
+=== 오버뷰 조회
+
+==== HTTP Request
+
+include::{snippets}/dashboard_overview-search/http-request.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/dashboard_overview-search/http-response.adoc[]
+include::{snippets}/dashboard_overview-search/response-fields.adoc[]
+
+[[dashboard_portfolio_pie_chart-search]]
+=== 포트폴리오 파이 차트 조회
+
+==== HTTP Request
+
+include::{snippets}/dashboard_portfolio_pie_chart-search/http-request.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/dashboard_portfolio_pie_chart-search/http-response.adoc[]
+include::{snippets}/dashboard_portfolio_pie_chart-search/response-fields.adoc[]
+
+[[dashboard_line_chart-search]]
+=== 라인 차트 조회
+
+==== HTTP Request
+
+include::{snippets}/dashboard_line_chart-search/http-request.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/dashboard_line_chart-search/http-response.adoc[]
+include::{snippets}/dashboard_line_chart-search/response-fields.adoc[]
