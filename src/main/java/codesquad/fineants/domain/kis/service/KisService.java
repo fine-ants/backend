@@ -16,7 +16,6 @@ import java.util.stream.Collectors;
 
 import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Service;
 
 import codesquad.fineants.domain.holding.repository.PortfolioHoldingRepository;
@@ -83,7 +82,6 @@ public class KisService {
 	}
 
 	// 주식 현재가 갱신
-	@Secured(value = {"ROLE_USER", "ROLE_MANAGER", "ROLE_ADMIN"})
 	public List<KisCurrentPrice> refreshStockCurrentPrice(List<String> tickerSymbols) {
 		List<CompletableFuture<KisCurrentPrice>> futures = tickerSymbols.stream()
 			.map(this::submitCurrentPriceFuture)
@@ -135,7 +133,6 @@ public class KisService {
 		};
 	}
 
-	@Secured(value = {"ROLE_MANAGER", "ROLE_ADMIN"})
 	public Mono<KisCurrentPrice> fetchCurrentPrice(String tickerSymbol) {
 		return kisClient.fetchCurrentPrice(tickerSymbol, manager.createAuthorization());
 	}
@@ -151,14 +148,12 @@ public class KisService {
 	}
 
 	// 종목 종가 모두 갱신
-	@Secured(value = {"ROLE_MANAGER", "ROLE_ADMIN"})
 	public List<KisClosingPrice> refreshAllLastDayClosingPrice() {
 		List<String> tickerSymbols = portFolioHoldingRepository.findAllTickerSymbol();
 		return refreshLastDayClosingPrice(tickerSymbols);
 	}
 
 	// 종목 종가 일부 갱신
-	@Secured(value = {"ROLE_USER", "ROLE_MANAGER", "ROLE_ADMIN"})
 	public List<KisClosingPrice> refreshLastDayClosingPrice(List<String> tickerSymbols) {
 		List<KisClosingPrice> lastDayClosingPrices = readLastDayClosingPriceResponses(tickerSymbols);
 		lastDayClosingPrices.forEach(closingPriceRepository::addPrice);
