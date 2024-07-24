@@ -47,6 +47,9 @@ class StockServiceTest extends AbstractContainerBaseTest {
 	@Autowired
 	private StockDividendRepository stockDividendRepository;
 
+	@Autowired
+	private StockCsvReader stockCsvReader;
+
 	@MockBean
 	private KrxService krxService;
 
@@ -215,6 +218,24 @@ class StockServiceTest extends AbstractContainerBaseTest {
 					Percentage.from(0.0217)
 				)
 		);
+	}
 
+	@DisplayName("서버는 종목들을 최신화한다")
+	@Test
+	void scheduledRefreshStocks() {
+		// given
+		saveStocks();
+		// when
+		stockService.scheduledRefreshStocks();
+		// then
+		assertThat(stockRepository.findByTickerSymbol("123456").isPresent()).isTrue();
+	}
+
+	private void saveStocks() {
+		Set<StockDataResponse.StockInfo> stockInfoSet = stockCsvReader.readStockCsv();
+		List<Stock> stocks = stockInfoSet.stream()
+			.map(StockDataResponse.StockInfo::toEntity)
+			.toList();
+		stockRepository.saveAll(stocks);
 	}
 }

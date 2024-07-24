@@ -2,6 +2,7 @@ package codesquad.fineants.domain.kis.service;
 
 import java.time.Duration;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -23,11 +24,14 @@ import codesquad.fineants.domain.kis.client.KisClient;
 import codesquad.fineants.domain.kis.client.KisCurrentPrice;
 import codesquad.fineants.domain.kis.domain.dto.response.KisClosingPrice;
 import codesquad.fineants.domain.kis.domain.dto.response.KisDividend;
+import codesquad.fineants.domain.kis.domain.dto.response.KisIpo;
+import codesquad.fineants.domain.kis.domain.dto.response.KisSearchStockInfo;
 import codesquad.fineants.domain.kis.repository.ClosingPriceRepository;
 import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
 import codesquad.fineants.domain.kis.repository.HolidayRepository;
 import codesquad.fineants.domain.kis.repository.KisAccessTokenRepository;
 import codesquad.fineants.domain.notification.event.publisher.PortfolioPublisher;
+import codesquad.fineants.domain.stock.domain.dto.response.StockDataResponse;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock_target_price.domain.entity.StockTargetPrice;
 import codesquad.fineants.domain.stock_target_price.event.publisher.StockTargetPricePublisher;
@@ -204,6 +208,41 @@ public class KisService {
 	public List<KisDividend> fetchDividendAll(LocalDate from, LocalDate to) {
 		return kisClient.fetchDividendAll(from, to, manager.createAuthorization()).stream()
 			.sorted()
+			.collect(Collectors.toList());
+	}
+
+	/**
+	 * 상장된 종목들의 정보 조회
+	 * @return 종목 정보 리스트
+	 */
+	public List<StockDataResponse.StockInfo> fetchStockInfoInRangedIpo() {
+		LocalDate today = LocalDate.now();
+		LocalDate yesterday = today.minusDays(1);
+		List<KisIpo> data = kisClient.fetchIpo(yesterday, today, manager.createAuthorization())
+			.getDatas().stream()
+			.filter(kisIpo -> !kisIpo.isEmpty())
+			.toList();
+		data.forEach(item -> log.info("상장된 종목 정보 KisIpo : {}", item));
+
+		Set<String> tickerSymbols = data.stream()
+			.map(KisIpo::getShtCd)
+			.collect(Collectors.toSet());
+		log.info("상장된 종목의 tickerSymbol: {}", tickerSymbols);
+
+		List<KisSearchStockInfo> kisSearchStockInfos = new ArrayList<>();
+
+		tickerSymbols
+			.forEach(tickerSymbol -> {
+				KisSearchStockInfo kisSearchStockInfo = kisClient.fetchSearchStockInfo(tickerSymbol,
+					manager.createAuthorization());
+				if (kisSearchStockInfo != null) {
+					kisSearchStockInfos.add(kisSearchStockInfo);
+				}
+				log.info("kisSearchStockInfo : {}", kisSearchStockInfo);
+			});
+		return kisSearchStockInfos.stream()
+			.map(KisSearchStockInfo::toEntity)
+			.map(StockDataResponse.StockInfo::from)
 			.collect(Collectors.toList());
 	}
 }

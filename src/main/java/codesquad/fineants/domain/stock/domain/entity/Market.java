@@ -11,4 +11,16 @@ public enum Market {
 			.findAny()
 			.orElse(NONE);
 	}
+
+	public static Market valueOf(String kospi200ItemYn, String mketIdCd) {
+		Market market = NONE;
+		if ("Y".equals(kospi200ItemYn)) {
+			market = Market.KOSPI;
+		} else if ("KSQ".equals(mketIdCd)) {
+			market = Market.KOSDAQ;
+		} else if ("KNX".equals(mketIdCd)) {
+			market = Market.KONEX;
+		}
+		return market;
+	}
 }

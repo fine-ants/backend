@@ -1,11 +1,19 @@
 package codesquad.fineants.domain.kis.client;
 
+import static org.assertj.core.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.*;
+
 import java.io.IOException;
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
+import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,6 +24,8 @@ import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import codesquad.fineants.AbstractContainerBaseTest;
+import codesquad.fineants.domain.kis.domain.dto.response.KisIPOResponse;
+import codesquad.fineants.domain.kis.domain.dto.response.KisIpo;
 import codesquad.fineants.domain.kis.properties.OauthKisProperties;
 import codesquad.fineants.global.util.ObjectMapperUtil;
 import okhttp3.mockwebserver.MockResponse;
@@ -47,7 +57,9 @@ class KisClientTest extends AbstractContainerBaseTest {
 			"otkenURI",
 			"currentPriceURI",
 			"lastDayClosingPriceURI",
-			"dividendURI"
+			"dividendURI",
+			"ipoURI",
+			"searchStockInfoURI"
 		);
 		String baseUrl = String.format("http://localhost:%s", mockWebServer.getPort());
 		this.kisClient = new KisClient(
@@ -79,6 +91,44 @@ class KisClientTest extends AbstractContainerBaseTest {
 			.expectNextMatches(expectedKisAccessToken::equals)
 			.expectComplete()
 			.verify();
+	}
+
+	@DisplayName("어제부터 오늘까지 상장된 종목들을 조회한다")
+	@Test
+	void fetchIpo() {
+		// given
+		Map<String, Object> responseBodyMap = new HashMap<>();
+		List<Map<String, String>> output1 = new ArrayList<>();
+		Map<String, String> stock1 = new HashMap<>();
+		stock1.put("list_dt", "20240326");
+		stock1.put("sht_cd", "034220");
+		stock1.put("isin_name", "LG디스플레이");
+		stock1.put("stk_kind", "보통");
+		stock1.put("issue_type", "유상증자");
+		stock1.put("issue_stk_qty", "142184300");
+		stock1.put("tot_issue_stk_qty", "500000000");
+		stock1.put("issue_price", "9090");
+
+		output1.add(stock1);
+		responseBodyMap.put("output1", output1);
+		mockWebServer.enqueue(new MockResponse().setResponseCode(200)
+			.setBody(ObjectMapperUtil.serialize(responseBodyMap))
+			.addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON));
+
+		LocalDate today = LocalDate.now();
+		LocalDate yesterday = today.minusDays(1);
+		KisAccessToken kisAccessToken = createKisAccessToken();
+		// when
+		KisIPOResponse response = kisClient.fetchIpo(yesterday, today, kisAccessToken.createAuthorization());
+
+		// then
+		assertAll(
+			() -> assertThat(response).isNotNull(),
+			() -> assertThat(Objects.requireNonNull(response).getDatas())
+				.hasSize(1)
+				.extracting(KisIpo::getListDt, KisIpo::getShtCd, KisIpo::getIsinName)
+				.containsExactlyInAnyOrder(Tuple.tuple("20240326", "034220", "LG디스플레이"))
+		);
 	}
 
 	private Map<String, String> createError() {

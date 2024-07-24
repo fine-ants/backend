@@ -80,6 +80,7 @@ public class StockService {
 	// 최신 종목을 조회하고 데이터베이스의 종목 데이터들을 최신화한다
 	@Transactional
 	public StockRefreshResponse refreshStocks() {
+		// TODO: kis 서버를 이용하여 상장된 종목과 폐지된 종목을 조회한다
 		CompletableFuture<Set<StockDataResponse.StockIntegrationInfo>> future = CompletableFuture.supplyAsync(
 			krxService::fetchStockInfo
 		).thenCombine(CompletableFuture.supplyAsync(krxService::fetchSectorInfo),

@@ -14,6 +14,7 @@ import codesquad.fineants.domain.kis.client.KisCurrentPrice;
 import codesquad.fineants.domain.kis.domain.dto.request.StockPriceRefreshRequest;
 import codesquad.fineants.domain.kis.domain.dto.response.KisClosingPrice;
 import codesquad.fineants.domain.kis.service.KisService;
+import codesquad.fineants.domain.stock.domain.dto.response.StockDataResponse;
 import codesquad.fineants.global.api.ApiResponse;
 import codesquad.fineants.global.success.KisSuccessCode;
 import lombok.RequiredArgsConstructor;
@@ -70,5 +71,13 @@ public class KisRestController {
 	) {
 		List<KisClosingPrice> responses = service.refreshLastDayClosingPrice(request.getTickerSymbols());
 		return ApiResponse.success(KisSuccessCode.OK_REFRESH_LAST_DAY_CLOSING_PRICE, responses);
+	}
+
+	// 상장된 종목 정보 조회
+	@GetMapping("/ipo/search-stock-info")
+	@Secured(value = {"ROLE_MANAGER", "ROLE_ADMIN"})
+	public ApiResponse<List<StockDataResponse.StockInfo>> fetchStockInfoInRangedIpo() {
+		List<StockDataResponse.StockInfo> stockInfoList = service.fetchStockInfoInRangedIpo();
+		return ApiResponse.success(KisSuccessCode.OK_FETCH_IPO_SEARCh_STOCK_INFO, stockInfoList);
 	}
 }

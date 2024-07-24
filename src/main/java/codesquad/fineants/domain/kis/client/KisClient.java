@@ -22,6 +22,8 @@ import org.springframework.web.reactive.function.client.WebClient;
 import codesquad.fineants.domain.kis.domain.dto.response.KisClosingPrice;
 import codesquad.fineants.domain.kis.domain.dto.response.KisDividend;
 import codesquad.fineants.domain.kis.domain.dto.response.KisDividendWrapper;
+import codesquad.fineants.domain.kis.domain.dto.response.KisIPOResponse;
+import codesquad.fineants.domain.kis.domain.dto.response.KisSearchStockInfo;
 import codesquad.fineants.domain.kis.properties.OauthKisProperties;
 import codesquad.fineants.global.errors.exception.KisException;
 import lombok.extern.slf4j.Slf4j;
@@ -157,6 +159,58 @@ public class KisClient {
 			realWebClient
 		).block(TIMEOUT);
 		return Objects.requireNonNull(result).getKisDividends();
+	}
+
+	public KisIPOResponse fetchIpo(LocalDate from, LocalDate to, String authorization) {
+		MultiValueMap<String, String> headerMap = new LinkedMultiValueMap<>();
+		headerMap.add("content-type", "application/json; charset=utf-8");
+		headerMap.add("authorization", authorization);
+		headerMap.add("appkey", oauthKisProperties.getAppkey());
+		headerMap.add("appsecret", oauthKisProperties.getSecretkey());
+		headerMap.add("tr_id", "HHKDB669107C0");
+		headerMap.add("custtype", "P");
+
+		MultiValueMap<String, String> queryParamMap = new LinkedMultiValueMap<>();
+		queryParamMap.add("SHT_CD", Strings.EMPTY);
+		queryParamMap.add("T_DT", to.format(DateTimeFormatter.BASIC_ISO_DATE));
+		queryParamMap.add("F_DT", from.format(DateTimeFormatter.BASIC_ISO_DATE));
+		queryParamMap.add("CTS", Strings.EMPTY);
+
+		return performGet(
+			oauthKisProperties.getIpoUrl(),
+			headerMap,
+			queryParamMap,
+			KisIPOResponse.class,
+			realWebClient
+		).block(TIMEOUT);
+	}
+
+	public KisSearchStockInfo fetchSearchStockInfo(String tickerSymbol, String authorization) {
+		MultiValueMap<String, String> headerMap = new LinkedMultiValueMap<>();
+		headerMap.add("content-type", "application/json; charset=utf-8");
+		headerMap.add("authorization", authorization);
+		headerMap.add("appkey", oauthKisProperties.getAppkey());
+		headerMap.add("appsecret", oauthKisProperties.getSecretkey());
+		headerMap.add("tr_id", "CTPF1002R");
+		headerMap.add("custtype", "P");
+
+		MultiValueMap<String, String> queryParamMap = new LinkedMultiValueMap<>();
+		queryParamMap.add("PRDT_TYPE_CD", "300");
+		queryParamMap.add("PDNO", tickerSymbol);
+
+		KisSearchStockInfo kisSearchStockInfo;
+		try {
+			kisSearchStockInfo = performGet(
+				oauthKisProperties.getSearchStockInfoUrl(),
+				headerMap,
+				queryParamMap,
+				KisSearchStockInfo.class,
+				realWebClient)
+				.block(Duration.ofSeconds(5));
+		} catch (Exception e) {
+			kisSearchStockInfo = null;
+		}
+		return kisSearchStockInfo;
 	}
 
 	private <T> Mono<T> performGet(String uri, MultiValueMap<String, String> headerMap,
