@@ -216,22 +216,16 @@ public class KisService {
 	 * @return 종목 정보 리스트
 	 */
 	public List<StockDataResponse.StockInfo> fetchStockInfoInRangedIpo() {
+		List<KisSearchStockInfo> kisSearchStockInfos = new ArrayList<>();
 		LocalDate today = LocalDate.now();
 		LocalDate yesterday = today.minusDays(1);
-		List<KisIpo> data = kisClient.fetchIpo(yesterday, today, manager.createAuthorization())
-			.getDatas().stream()
+		kisClient.fetchIpo(yesterday, today, manager.createAuthorization())
+			.blockOptional(Duration.ofMinutes(10))
+			.orElseThrow()
+			.getKisIpos().stream()
 			.filter(kisIpo -> !kisIpo.isEmpty())
-			.toList();
-		data.forEach(item -> log.info("상장된 종목 정보 KisIpo : {}", item));
-
-		Set<String> tickerSymbols = data.stream()
 			.map(KisIpo::getShtCd)
-			.collect(Collectors.toSet());
-		log.info("상장된 종목의 tickerSymbol: {}", tickerSymbols);
-
-		List<KisSearchStockInfo> kisSearchStockInfos = new ArrayList<>();
-
-		tickerSymbols
+			.collect(Collectors.toSet())
 			.forEach(tickerSymbol -> {
 				KisSearchStockInfo kisSearchStockInfo = kisClient.fetchSearchStockInfo(tickerSymbol,
 					manager.createAuthorization());
@@ -240,9 +234,10 @@ public class KisService {
 				}
 				log.info("kisSearchStockInfo : {}", kisSearchStockInfo);
 			});
+
 		return kisSearchStockInfos.stream()
 			.map(KisSearchStockInfo::toEntity)
 			.map(StockDataResponse.StockInfo::from)
-			.collect(Collectors.toList());
+			.toList();
 	}
 }

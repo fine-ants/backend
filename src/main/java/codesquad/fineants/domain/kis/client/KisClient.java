@@ -22,7 +22,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import codesquad.fineants.domain.kis.domain.dto.response.KisClosingPrice;
 import codesquad.fineants.domain.kis.domain.dto.response.KisDividend;
 import codesquad.fineants.domain.kis.domain.dto.response.KisDividendWrapper;
-import codesquad.fineants.domain.kis.domain.dto.response.KisIPOResponse;
+import codesquad.fineants.domain.kis.domain.dto.response.KisIpoResponse;
 import codesquad.fineants.domain.kis.domain.dto.response.KisSearchStockInfo;
 import codesquad.fineants.domain.kis.properties.OauthKisProperties;
 import codesquad.fineants.global.errors.exception.KisException;
@@ -131,7 +131,7 @@ public class KisClient {
 			queryParamMap,
 			String.class,
 			realWebClient
-		).block();
+		).block(TIMEOUT);
 	}
 
 	public List<KisDividend> fetchDividendAll(LocalDate from, LocalDate to, String authorization) {
@@ -161,7 +161,7 @@ public class KisClient {
 		return Objects.requireNonNull(result).getKisDividends();
 	}
 
-	public KisIPOResponse fetchIpo(LocalDate from, LocalDate to, String authorization) {
+	public Mono<KisIpoResponse> fetchIpo(LocalDate from, LocalDate to, String authorization) {
 		MultiValueMap<String, String> headerMap = new LinkedMultiValueMap<>();
 		headerMap.add("content-type", "application/json; charset=utf-8");
 		headerMap.add("authorization", authorization);
@@ -180,9 +180,9 @@ public class KisClient {
 			oauthKisProperties.getIpoUrl(),
 			headerMap,
 			queryParamMap,
-			KisIPOResponse.class,
+			KisIpoResponse.class,
 			realWebClient
-		).block(TIMEOUT);
+		);
 	}
 
 	public KisSearchStockInfo fetchSearchStockInfo(String tickerSymbol, String authorization) {
@@ -205,8 +205,7 @@ public class KisClient {
 				headerMap,
 				queryParamMap,
 				KisSearchStockInfo.class,
-				realWebClient)
-				.block(Duration.ofSeconds(5));
+				realWebClient).block(TIMEOUT);
 		} catch (Exception e) {
 			kisSearchStockInfo = null;
 		}
