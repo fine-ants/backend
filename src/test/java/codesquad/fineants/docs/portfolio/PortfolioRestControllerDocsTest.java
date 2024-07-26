@@ -19,6 +19,7 @@ import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
 import org.springframework.restdocs.payload.JsonFieldType;
@@ -41,6 +42,7 @@ import codesquad.fineants.domain.portfolio.domain.dto.response.PortfolioModifyRe
 import codesquad.fineants.domain.portfolio.domain.dto.response.PortfoliosResponse;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.service.PortFolioService;
+import codesquad.fineants.global.success.PortfolioSuccessCode;
 import codesquad.fineants.global.util.ObjectMapperUtil;
 
 public class PortfolioRestControllerDocsTest extends RestDocsSupport {
@@ -57,29 +59,28 @@ public class PortfolioRestControllerDocsTest extends RestDocsSupport {
 	void createPortfolio() throws Exception {
 		// given
 		Member member = createMember();
+		PortfolioCreateRequest request = PortfolioCreateRequest.create(
+			"내꿈은 워렌버핏",
+			"토스",
+			Money.won(1000000),
+			Money.won(1500000L),
+			Money.won(900000L)
+		);
 		given(portFolioService.createPortfolio(any(PortfolioCreateRequest.class), anyLong()))
 			.willReturn(PortFolioCreateResponse.from(createPortfolio(member)));
-
-		Map<String, Object> body = new HashMap<>();
-		body.put("name", "내꿈은 워렌버핏");
-		body.put("securitiesFirm", "토스");
-		body.put("budget", 1000000L);
-		body.put("targetGain", 1500000L);
-		body.put("maximumLoss", 900000L);
 
 		// when & then
 		mockMvc.perform(RestDocumentationRequestBuilders.post("/api/portfolios")
 				.cookie(createTokenCookies())
 				.contentType(MediaType.APPLICATION_JSON)
-				.content(ObjectMapperUtil.serialize(body)))
+				.content(ObjectMapperUtil.serialize(request)))
 			.andExpect(status().isCreated())
-			.andExpect(jsonPath("code").value(equalTo(201)))
-			.andExpect(jsonPath("status").value(equalTo("Created")))
-			.andExpect(jsonPath("message").value(equalTo("포트폴리오가 추가되었습니다")))
+			.andExpect(jsonPath("code").value(equalTo(HttpStatus.CREATED.value())))
+			.andExpect(jsonPath("status").value(equalTo(HttpStatus.CREATED.getReasonPhrase())))
+			.andExpect(jsonPath("message").value(equalTo(PortfolioSuccessCode.CREATED_ADD_PORTFOLIO.getMessage())))
 			.andExpect(jsonPath("data.portfolioId").value(equalTo(1)))
 			.andDo(
-				document(
-					"portfolio-create",
+				document("portfolio-create",
 					preprocessRequest(prettyPrint()),
 					preprocessResponse(prettyPrint()),
 					requestFields(
@@ -90,16 +91,11 @@ public class PortfolioRestControllerDocsTest extends RestDocsSupport {
 						fieldWithPath("maximumLoss").type(JsonFieldType.NUMBER).description("최대 손실 금액")
 					),
 					responseFields(
-						fieldWithPath("code").type(JsonFieldType.NUMBER)
-							.description("코드"),
-						fieldWithPath("status").type(JsonFieldType.STRING)
-							.description("상태"),
-						fieldWithPath("message").type(JsonFieldType.STRING)
-							.description("메시지"),
-						fieldWithPath("data").type(JsonFieldType.OBJECT)
-							.description("응답 데이터"),
-						fieldWithPath("data.portfolioId").type(JsonFieldType.NUMBER)
-							.description("포트폴리오 등록번호")
+						fieldWithPath("code").type(JsonFieldType.NUMBER).description("코드"),
+						fieldWithPath("status").type(JsonFieldType.STRING).description("상태"),
+						fieldWithPath("message").type(JsonFieldType.STRING).description("메시지"),
+						fieldWithPath("data").type(JsonFieldType.OBJECT).description("응답 데이터"),
+						fieldWithPath("data.portfolioId").type(JsonFieldType.NUMBER).description("포트폴리오 등록번호")
 					)
 				)
 			);
