@@ -78,7 +78,7 @@ public class StockDividendService {
 	 *   - ex) now=202404-17 => 범위를 벗어난 배당 일정은 2023-01-01 이전 or 2024-12-31 이후
 	 */
 	@Transactional
-	public void refreshStockDividend() {
+	public void reloadStockDividend() {
 		// 0. 올해 말까지의 배당 일정을 조회
 		LocalDate now = localDateTimeService.getLocalDateWithNow();
 		LocalDate to = now.with(TemporalAdjusters.lastDayOfYear());

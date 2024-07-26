@@ -142,7 +142,7 @@ class StockDividendServiceTest extends AbstractContainerBaseTest {
 		));
 		given(localDateTimeService.getLocalDateWithNow()).willReturn(LocalDate.of(2024, 4, 17));
 		// when
-		stockDividendService.refreshStockDividend();
+		stockDividendService.reloadStockDividend();
 
 		// then
 		List<StockDividend> stockDividends = stockDividendRepository.findAllStockDividends();

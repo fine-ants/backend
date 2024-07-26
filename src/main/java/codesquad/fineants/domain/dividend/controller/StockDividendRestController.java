@@ -27,7 +27,7 @@ public class StockDividendRestController {
 	@PostMapping("/refresh")
 	@Secured("ROLE_ADMIN")
 	public ApiResponse<Void> refreshStockDividend() {
-		service.refreshStockDividend();
+		service.reloadStockDividend();
 		return ApiResponse.success(StockDividendSuccessCode.OK_REFRESH_DIVIDENDS);
 	}
 

@@ -61,20 +61,24 @@ public class StockService {
 	public void scheduledReloadStocks() {
 		StockRefreshResponse response = this.reloadStocks();
 		log.info("refreshStocks response : {}", response);
-		stockDividendService.refreshStockDividend();
+		stockDividendService.reloadStockDividend();
 		stockDividendService.writeDividendCsvToS3();
 	}
 
-	// 최신 종목을 조회하고 데이터베이스의 종목 데이터들을 최신화한다
+	// 상장된 종목을 한국투자증권 서버로부터 조회하고 저장한다
 	@Transactional
 	public StockRefreshResponse reloadStocks() {
-		// 상장 종목 조회 후 저장
-		List<String> newlyAddedTickerSymbols = stockRepository.saveAll(kisService.fetchStockInfoInRangedIpo().stream()
-				.map(StockDataResponse.StockIntegrationInfo::toEntity)
-				.toList()).stream()
+		// 상장된 종목 조회
+		List<Stock> stocks = kisService.fetchStockInfoInRangedIpo().stream()
+			.map(StockDataResponse.StockIntegrationInfo::toEntity)
+			.toList();
+		stocks.forEach(stock -> log.info("newlyAdded Stock : {}", stock));
+
+		// 상장된 종목 저장
+		List<String> newlyAddedTickerSymbols = stockRepository.saveAll(stocks).stream()
 			.map(Stock::getTickerSymbol)
 			.toList();
-		log.debug("newlyAddedTickerSymbols count {}", newlyAddedTickerSymbols.size());
+		newlyAddedTickerSymbols.forEach(ticker -> log.info("Save the item in the database and ticker : {}", ticker));
 		return StockRefreshResponse.create(newlyAddedTickerSymbols);
 	}
 }
