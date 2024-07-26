@@ -118,6 +118,11 @@ public class StockDataResponse {
 				.build();
 		}
 
+		public static StockIntegrationInfo create(String tickerSymbol, String companyName, String companyNameEng,
+			String stockCode, String sector, Market market) {
+			return new StockIntegrationInfo(tickerSymbol, companyName, companyNameEng, stockCode, sector, market);
+		}
+
 		public Stock toEntity() {
 			return Stock.of(tickerSymbol, companyName, companyNameEng, stockCode, sector, market);
 		}

@@ -6,6 +6,7 @@ import static org.mockito.BDDMockito.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.AfterEach;
@@ -209,16 +210,16 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		given(client.fetchSearchStockInfo(anyString(), anyString()))
 			.willReturn(Mono.just(kisSearchStockInfo));
 		// when
-		List<StockDataResponse.StockInfo> stocks = kisService.fetchStockInfoInRangedIpo();
+		Set<StockDataResponse.StockIntegrationInfo> stocks = kisService.fetchStockInfoInRangedIpo();
 		// then
 		assertThat(stocks)
 			.hasSize(1)
 			.extracting(
-				StockDataResponse.StockInfo::getStockCode,
-				StockDataResponse.StockInfo::getTickerSymbol,
-				StockDataResponse.StockInfo::getCompanyName,
-				StockDataResponse.StockInfo::getCompanyNameEng,
-				StockDataResponse.StockInfo::getMarket
-			).containsExactly(tuple("KR7000660001", "000660", "에스케이하이닉스보통주", "SK hynix", Market.KOSPI.name()));
+				StockDataResponse.StockIntegrationInfo::getStockCode,
+				StockDataResponse.StockIntegrationInfo::getTickerSymbol,
+				StockDataResponse.StockIntegrationInfo::getCompanyName,
+				StockDataResponse.StockIntegrationInfo::getCompanyNameEng,
+				StockDataResponse.StockIntegrationInfo::getMarket
+			).containsExactly(tuple("KR7000660001", "000660", "에스케이하이닉스보통주", "SK hynix", Market.KOSPI));
 	}
 }

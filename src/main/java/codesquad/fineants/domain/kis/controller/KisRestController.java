@@ -1,6 +1,7 @@
 package codesquad.fineants.domain.kis.controller;
 
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -76,8 +77,8 @@ public class KisRestController {
 	// 상장된 종목 정보 조회
 	@GetMapping("/ipo/search-stock-info")
 	@Secured(value = {"ROLE_MANAGER", "ROLE_ADMIN"})
-	public ApiResponse<List<StockDataResponse.StockInfo>> fetchStockInfoInRangedIpo() {
-		List<StockDataResponse.StockInfo> stockInfoList = service.fetchStockInfoInRangedIpo();
-		return ApiResponse.success(KisSuccessCode.OK_FETCH_IPO_SEARCh_STOCK_INFO, stockInfoList);
+	public ApiResponse<Set<StockDataResponse.StockIntegrationInfo>> fetchStockInfoInRangedIpo() {
+		Set<StockDataResponse.StockIntegrationInfo> result = service.fetchStockInfoInRangedIpo();
+		return ApiResponse.success(KisSuccessCode.OK_FETCH_IPO_SEARCh_STOCK_INFO, result);
 	}
 }

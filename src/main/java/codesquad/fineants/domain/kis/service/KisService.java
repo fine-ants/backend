@@ -208,7 +208,7 @@ public class KisService {
 	public List<KisDividend> fetchDividendAll(LocalDate from, LocalDate to) {
 		return kisClient.fetchDividendAll(from, to, manager.createAuthorization()).stream()
 			.sorted()
-			.collect(Collectors.toList());
+			.toList();
 	}
 
 	/**
@@ -216,7 +216,7 @@ public class KisService {
 	 * 하루전부터 오늘까지의 상장된 종목들의 정보를 조회한다.
 	 * @return 종목 정보 리스트
 	 */
-	public List<StockDataResponse.StockInfo> fetchStockInfoInRangedIpo() {
+	public Set<StockDataResponse.StockIntegrationInfo> fetchStockInfoInRangedIpo() {
 		List<KisSearchStockInfo> kisSearchStockInfos = new ArrayList<>();
 		LocalDate today = LocalDate.now();
 		LocalDate yesterday = today.minusDays(1);
@@ -234,7 +234,7 @@ public class KisService {
 			);
 		return kisSearchStockInfos.stream()
 			.map(KisSearchStockInfo::toEntity)
-			.map(StockDataResponse.StockInfo::from)
-			.toList();
+			.map(StockDataResponse.StockIntegrationInfo::from)
+			.collect(Collectors.toUnmodifiableSet());
 	}
 }
