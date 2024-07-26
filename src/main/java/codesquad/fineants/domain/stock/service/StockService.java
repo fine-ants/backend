@@ -1,6 +1,5 @@
 package codesquad.fineants.domain.stock.service;
 
-import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.scheduling.annotation.Scheduled;
@@ -62,7 +61,7 @@ public class StockService {
 	public void scheduledReloadStocks() {
 		StockRefreshResponse response = this.reloadStocks();
 		log.info("refreshStocks response : {}", response);
-		stockDividendService.refreshStockDividend(LocalDate.now());
+		stockDividendService.refreshStockDividend();
 		stockDividendService.writeDividendCsvToS3();
 	}
 

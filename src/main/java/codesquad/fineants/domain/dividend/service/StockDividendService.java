@@ -18,6 +18,7 @@ import codesquad.fineants.domain.kis.domain.dto.response.KisDividend;
 import codesquad.fineants.domain.kis.service.KisService;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
+import codesquad.fineants.global.common.time.LocalDateTimeService;
 import codesquad.fineants.infra.s3.dto.Dividend;
 import codesquad.fineants.infra.s3.service.AmazonS3DividendService;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +33,7 @@ public class StockDividendService {
 	private final StockRepository stockRepository;
 	private final StockDividendRepository stockDividendRepository;
 	private final KisService kisService;
+	private final LocalDateTimeService localDateTimeService;
 
 	/**
 	 * 배당일정(StockDividend) 엔티티 데이터를 초기화합니다.
@@ -61,7 +63,7 @@ public class StockDividendService {
 				Stock stock = dividend.getStockBy(stockMap);
 				return dividend.toEntity(stock);
 			})
-			.collect(Collectors.toList());
+			.toList();
 
 		// 배당 일정 저장
 		List<StockDividend> saveStockDividends = stockDividendRepository.saveAll(stockDividends);
@@ -76,8 +78,9 @@ public class StockDividendService {
 	 *   - ex) now=202404-17 => 범위를 벗어난 배당 일정은 2023-01-01 이전 or 2024-12-31 이후
 	 */
 	@Transactional
-	public void refreshStockDividend(LocalDate now) {
+	public void refreshStockDividend() {
 		// 0. 올해 말까지의 배당 일정을 조회
+		LocalDate now = localDateTimeService.getLocalDateWithNow();
 		LocalDate to = now.with(TemporalAdjusters.lastDayOfYear());
 		List<KisDividend> kisDividends = kisService.fetchDividendAll(now, to);
 
@@ -97,7 +100,7 @@ public class StockDividendService {
 	private Map<String, Stock> getStockMapBy(List<KisDividend> kisDividends) {
 		List<String> tickerSymbols = kisDividends.stream()
 			.map(KisDividend::getTickerSymbol)
-			.collect(Collectors.toList());
+			.toList();
 		return stockRepository.findAllWithDividends(tickerSymbols)
 			.stream()
 			.collect(Collectors.toMap(Stock::getTickerSymbol, stock -> stock));
@@ -122,7 +125,7 @@ public class StockDividendService {
 				return stockDividend;
 			})
 			.filter(Objects::nonNull)
-			.collect(Collectors.toList());
+			.toList();
 		log.info("changedStockDividends : {}", changedStockDividends);
 		stockDividendRepository.saveAll(changedStockDividends);
 	}
@@ -133,7 +136,7 @@ public class StockDividendService {
 			.filter(kisDividend -> kisDividend.containsFrom(stockMap))
 			.filter(kisDividend -> !kisDividend.matchTickerSymbolAndRecordDateFrom(stockMap))
 			.map(kisDividend -> kisDividend.toEntity(kisDividend.getStockBy(stockMap)))
-			.collect(Collectors.toList());
+			.toList();
 
 		// 탐색된 데이터들 배당 일정 추가
 		stockDividendRepository.saveAll(addStockDividends);
@@ -152,7 +155,7 @@ public class StockDividendService {
 		List<StockDividend> deleteStockDividends = stockMap.values().stream()
 			.map(stock -> stock.getStockDividendNotInRange(from, to))
 			.flatMap(Collection::stream)
-			.collect(Collectors.toList());
+			.toList();
 		stockDividendRepository.deleteAllInBatch(deleteStockDividends);
 		log.info("deleteStockDividends : {}", deleteStockDividends);
 	}
@@ -164,7 +167,7 @@ public class StockDividendService {
 	public void writeDividendCsvToS3() {
 		List<Dividend> dividends = stockDividendRepository.findAllStockDividends().stream()
 			.map(StockDividend::toDividend)
-			.collect(Collectors.toList());
+			.toList();
 		amazonS3DividendService.writeDividend(dividends);
 		log.info("write dividend csv to s3, size={}", dividends.size());
 	}

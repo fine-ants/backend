@@ -1,7 +1,5 @@
 package codesquad.fineants.domain.dividend.controller;
 
-import java.time.LocalDate;
-
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -29,7 +27,7 @@ public class StockDividendRestController {
 	@PostMapping("/refresh")
 	@Secured("ROLE_ADMIN")
 	public ApiResponse<Void> refreshStockDividend() {
-		service.refreshStockDividend(LocalDate.now());
+		service.refreshStockDividend();
 		return ApiResponse.success(StockDividendSuccessCode.OK_REFRESH_DIVIDENDS);
 	}
 

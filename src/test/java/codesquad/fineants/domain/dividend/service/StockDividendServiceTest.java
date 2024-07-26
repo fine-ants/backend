@@ -23,6 +23,7 @@ import codesquad.fineants.domain.kis.repository.KisAccessTokenRepository;
 import codesquad.fineants.domain.kis.service.KisService;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
+import codesquad.fineants.global.common.time.LocalDateTimeService;
 import codesquad.fineants.infra.s3.dto.Dividend;
 import codesquad.fineants.infra.s3.service.AmazonS3DividendService;
 import lombok.extern.slf4j.Slf4j;
@@ -47,6 +48,9 @@ class StockDividendServiceTest extends AbstractContainerBaseTest {
 
 	@Autowired
 	private KisAccessTokenRepository kisAccessTokenRepository;
+
+	@MockBean
+	private LocalDateTimeService localDateTimeService;
 
 	@AfterEach
 	void tearDown() {
@@ -136,12 +140,12 @@ class StockDividendServiceTest extends AbstractContainerBaseTest {
 				null
 			)
 		));
+		given(localDateTimeService.getLocalDateWithNow()).willReturn(LocalDate.of(2024, 4, 17));
 		// when
-		stockDividendService.refreshStockDividend(LocalDate.of(2024, 4, 17));
+		stockDividendService.refreshStockDividend();
 
 		// then
 		List<StockDividend> stockDividends = stockDividendRepository.findAllStockDividends();
-		log.debug("stockDividends: {}", stockDividends);
 		assertThat(stockDividends)
 			.hasSize(7)
 			.map(StockDividend::parse)
