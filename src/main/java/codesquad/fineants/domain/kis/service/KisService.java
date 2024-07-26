@@ -46,7 +46,7 @@ import reactor.core.publisher.Mono;
 @Service
 public class KisService {
 	private static final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
-	public static final Duration TIMEOUT = Duration.ofMinutes(1L);
+	public static final Duration TIMEOUT = Duration.ofMinutes(10L);
 
 	private final KisClient kisClient;
 	private final PortfolioHoldingRepository portFolioHoldingRepository;
@@ -100,7 +100,7 @@ public class KisService {
 				}
 			})
 			.filter(Objects::nonNull)
-			.collect(Collectors.toList());
+			.toList();
 
 		prices.forEach(currentPriceRepository::addCurrentPrice);
 
@@ -179,7 +179,7 @@ public class KisService {
 				}
 			})
 			.filter(Objects::nonNull)
-			.collect(Collectors.toList());
+			.toList();
 	}
 
 	private CompletableFuture<KisClosingPrice> createClosingPriceFuture(
@@ -213,6 +213,7 @@ public class KisService {
 
 	/**
 	 * 상장된 종목들의 정보 조회
+	 * 하루전부터 오늘까지의 상장된 종목들의 정보를 조회한다.
 	 * @return 종목 정보 리스트
 	 */
 	public List<StockDataResponse.StockInfo> fetchStockInfoInRangedIpo() {
@@ -220,7 +221,7 @@ public class KisService {
 		LocalDate today = LocalDate.now();
 		LocalDate yesterday = today.minusDays(1);
 		kisClient.fetchIpo(yesterday, today, manager.createAuthorization())
-			.blockOptional(Duration.ofMinutes(10))
+			.blockOptional(TIMEOUT)
 			.orElseThrow()
 			.getKisIpos().stream()
 			.filter(kisIpo -> !kisIpo.isEmpty())
@@ -228,10 +229,9 @@ public class KisService {
 			.collect(Collectors.toSet())
 			.forEach(tickerSymbol -> kisClient.fetchSearchStockInfo(tickerSymbol,
 					manager.createAuthorization())
-				.blockOptional(Duration.ofMinutes(10))
+				.blockOptional(TIMEOUT)
 				.ifPresent(kisSearchStockInfos::add)
 			);
-
 		return kisSearchStockInfos.stream()
 			.map(KisSearchStockInfo::toEntity)
 			.map(StockDataResponse.StockInfo::from)

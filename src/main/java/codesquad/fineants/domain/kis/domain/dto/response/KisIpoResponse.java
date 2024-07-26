@@ -23,6 +23,10 @@ import lombok.NoArgsConstructor;
 public class KisIpoResponse {
 	private List<KisIpo> kisIpos;
 
+	public static KisIpoResponse create(List<KisIpo> kisIpos) {
+		return new KisIpoResponse(Collections.unmodifiableList(kisIpos));
+	}
+
 	public static KisIpoResponse empty() {
 		return new KisIpoResponse(Collections.emptyList());
 	}

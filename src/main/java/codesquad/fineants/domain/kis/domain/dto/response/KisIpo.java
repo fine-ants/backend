@@ -27,6 +27,10 @@ public class KisIpo {
 	private String shtCd; // 종목 코드 (tickerSymbol)
 	private String isinName; // 종목명
 
+	public static KisIpo create(String listDt, String shtCd, String isinName) {
+		return new KisIpo(listDt, shtCd, isinName);
+	}
+
 	public boolean isEmpty() {
 		return Strings.isEmpty(shtCd);
 	}
