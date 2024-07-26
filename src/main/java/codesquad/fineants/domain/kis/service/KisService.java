@@ -226,14 +226,11 @@ public class KisService {
 			.filter(kisIpo -> !kisIpo.isEmpty())
 			.map(KisIpo::getShtCd)
 			.collect(Collectors.toSet())
-			.forEach(tickerSymbol -> {
-				KisSearchStockInfo kisSearchStockInfo = kisClient.fetchSearchStockInfo(tickerSymbol,
-					manager.createAuthorization());
-				if (kisSearchStockInfo != null) {
-					kisSearchStockInfos.add(kisSearchStockInfo);
-				}
-				log.info("kisSearchStockInfo : {}", kisSearchStockInfo);
-			});
+			.forEach(tickerSymbol -> kisClient.fetchSearchStockInfo(tickerSymbol,
+					manager.createAuthorization())
+				.blockOptional(Duration.ofMinutes(10))
+				.ifPresent(kisSearchStockInfos::add)
+			);
 
 		return kisSearchStockInfos.stream()
 			.map(KisSearchStockInfo::toEntity)

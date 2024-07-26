@@ -185,7 +185,7 @@ public class KisClient {
 		);
 	}
 
-	public KisSearchStockInfo fetchSearchStockInfo(String tickerSymbol, String authorization) {
+	public Mono<KisSearchStockInfo> fetchSearchStockInfo(String tickerSymbol, String authorization) {
 		MultiValueMap<String, String> headerMap = new LinkedMultiValueMap<>();
 		headerMap.add("content-type", "application/json; charset=utf-8");
 		headerMap.add("authorization", authorization);
@@ -198,18 +198,12 @@ public class KisClient {
 		queryParamMap.add("PRDT_TYPE_CD", "300");
 		queryParamMap.add("PDNO", tickerSymbol);
 
-		KisSearchStockInfo kisSearchStockInfo;
-		try {
-			kisSearchStockInfo = performGet(
-				oauthKisProperties.getSearchStockInfoUrl(),
-				headerMap,
-				queryParamMap,
-				KisSearchStockInfo.class,
-				realWebClient).block(TIMEOUT);
-		} catch (Exception e) {
-			kisSearchStockInfo = null;
-		}
-		return kisSearchStockInfo;
+		return performGet(
+			oauthKisProperties.getSearchStockInfoUrl(),
+			headerMap,
+			queryParamMap,
+			KisSearchStockInfo.class,
+			realWebClient);
 	}
 
 	private <T> Mono<T> performGet(String uri, MultiValueMap<String, String> headerMap,

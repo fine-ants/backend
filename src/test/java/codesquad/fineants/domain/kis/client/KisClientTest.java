@@ -26,6 +26,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import codesquad.fineants.AbstractContainerBaseTest;
 import codesquad.fineants.domain.kis.domain.dto.response.KisIpo;
 import codesquad.fineants.domain.kis.domain.dto.response.KisIpoResponse;
+import codesquad.fineants.domain.kis.domain.dto.response.KisSearchStockInfo;
 import codesquad.fineants.domain.kis.properties.OauthKisProperties;
 import codesquad.fineants.global.util.ObjectMapperUtil;
 import okhttp3.mockwebserver.MockResponse;
@@ -173,6 +174,45 @@ class KisClientTest extends AbstractContainerBaseTest {
 		// then
 		assertThat(response).isNotNull();
 		assertThat(response.getKisIpos()).hasSize(1);
+	}
+
+	@DisplayName("서버는 한국투자증권 서버에 요청하여 종목의 상세 정보를 조회한다")
+	@Test
+	void fetchSearchStockInfo() {
+		// given
+		String tickerSymbol = "034220";
+		String accessToken = createKisAccessToken().getAccessToken();
+
+		Map<String, Object> okResponseBody = new HashMap<>();
+		KisSearchStockInfo output = KisSearchStockInfo.create(
+			"KR7000660001",
+			"00000A000660",
+			"에스케이하이닉스보통주",
+			"SK hynix",
+			"STK",
+			"Y",
+			"전기,전자"
+		);
+		okResponseBody.put("output", output);
+
+		mockWebServer.enqueue(new MockResponse().setResponseCode(200)
+			.setBody(ObjectMapperUtil.serialize(okResponseBody))
+			.addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON));
+		// when
+		KisSearchStockInfo kisSearchStockInfo = kisClient.fetchSearchStockInfo(tickerSymbol, accessToken)
+			.blockOptional(Duration.ofMinutes(10))
+			.orElse(null);
+		// then
+		assertThat(kisSearchStockInfo).isNotNull();
+		assertThat(kisSearchStockInfo).extracting(
+			KisSearchStockInfo::getStdPdno,
+			KisSearchStockInfo::getPdno,
+			KisSearchStockInfo::getPrdtName,
+			KisSearchStockInfo::getPrdtEngName,
+			KisSearchStockInfo::getMketIdCd,
+			KisSearchStockInfo::getKospi200ItemYn,
+			KisSearchStockInfo::getIdxBztpSclsCdName
+		).containsExactly("KR7000660001", "000660", "에스케이하이닉스보통주", "SK hynix", "STK", "Y", "전기,전자");
 	}
 
 	private Map<String, String> createError() {
