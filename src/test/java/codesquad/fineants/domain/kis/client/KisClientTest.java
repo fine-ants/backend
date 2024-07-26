@@ -24,8 +24,8 @@ import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import codesquad.fineants.AbstractContainerBaseTest;
-import codesquad.fineants.domain.kis.domain.dto.response.KisIPOResponse;
 import codesquad.fineants.domain.kis.domain.dto.response.KisIpo;
+import codesquad.fineants.domain.kis.domain.dto.response.KisIpoResponse;
 import codesquad.fineants.domain.kis.properties.OauthKisProperties;
 import codesquad.fineants.global.util.ObjectMapperUtil;
 import okhttp3.mockwebserver.MockResponse;
@@ -119,16 +119,60 @@ class KisClientTest extends AbstractContainerBaseTest {
 		LocalDate yesterday = today.minusDays(1);
 		KisAccessToken kisAccessToken = createKisAccessToken();
 		// when
-		KisIPOResponse response = kisClient.fetchIpo(yesterday, today, kisAccessToken.createAuthorization());
+		KisIpoResponse response = kisClient.fetchIpo(yesterday, today, kisAccessToken.createAuthorization())
+			.block(Duration.ofSeconds(1));
 
 		// then
 		assertAll(
 			() -> assertThat(response).isNotNull(),
-			() -> assertThat(Objects.requireNonNull(response).getDatas())
+			() -> assertThat(Objects.requireNonNull(response).getKisIpos())
 				.hasSize(1)
 				.extracting(KisIpo::getListDt, KisIpo::getShtCd, KisIpo::getIsinName)
 				.containsExactlyInAnyOrder(Tuple.tuple("20240326", "034220", "LG디스플레이"))
 		);
+	}
+
+	@DisplayName("서버는 첫 요청시 초당 거래 횟수를 초과하여 두번째 재요청에 응답을 받는다")
+	@Test
+	void fetchIpo_whenOverLimit_thenRetryAndReceiveResponse() {
+		// given
+		Map<String, String> badRequestBody = new HashMap<>();
+		badRequestBody.put("rt_cd", "1");
+		badRequestBody.put("msg_cd", "EGW00201");
+		badRequestBody.put("msg1", "초당 거래건수를 초과하였습니다.");
+
+		Map<String, Object> okResponseBody = new HashMap<>();
+		List<Map<String, String>> output1 = new ArrayList<>();
+		Map<String, String> stock1 = new HashMap<>();
+		stock1.put("list_dt", "20240326");
+		stock1.put("sht_cd", "034220");
+		stock1.put("isin_name", "LG디스플레이");
+		stock1.put("stk_kind", "보통");
+		stock1.put("issue_type", "유상증자");
+		stock1.put("issue_stk_qty", "142184300");
+		stock1.put("tot_issue_stk_qty", "500000000");
+		stock1.put("issue_price", "9090");
+		output1.add(stock1);
+		okResponseBody.put("output1", output1);
+
+		mockWebServer.enqueue(new MockResponse().setResponseCode(400)
+			.setBody(ObjectMapperUtil.serialize(badRequestBody))
+			.addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON));
+		mockWebServer.enqueue(new MockResponse().setResponseCode(200)
+			.setBody(ObjectMapperUtil.serialize(okResponseBody))
+			.addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON));
+
+		LocalDate today = LocalDate.now();
+		LocalDate yesterday = today.minusDays(1);
+		KisAccessToken kisAccessToken = createKisAccessToken();
+		// when
+		KisIpoResponse response = kisClient.fetchIpo(yesterday, today, kisAccessToken.createAuthorization())
+			.blockOptional(Duration.ofMinutes(10))
+			.orElseThrow();
+
+		// then
+		assertThat(response).isNotNull();
+		assertThat(response.getKisIpos()).hasSize(1);
 	}
 
 	private Map<String, String> createError() {
