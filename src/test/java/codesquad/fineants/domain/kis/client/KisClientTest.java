@@ -109,10 +109,10 @@ class KisClientTest extends AbstractContainerBaseTest {
 		stock1.put("issue_stk_qty", "142184300");
 		stock1.put("tot_issue_stk_qty", "500000000");
 		stock1.put("issue_price", "9090");
-
 		output1.add(stock1);
 		responseBodyMap.put("output1", output1);
-		mockWebServer.enqueue(new MockResponse().setResponseCode(200)
+		mockWebServer.enqueue(new MockResponse()
+			.setResponseCode(200)
 			.setBody(ObjectMapperUtil.serialize(responseBodyMap))
 			.addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON));
 
@@ -141,6 +141,10 @@ class KisClientTest extends AbstractContainerBaseTest {
 		badRequestBody.put("rt_cd", "1");
 		badRequestBody.put("msg_cd", "EGW00201");
 		badRequestBody.put("msg1", "초당 거래건수를 초과하였습니다.");
+		mockWebServer.enqueue(new MockResponse()
+			.setResponseCode(400)
+			.setBody(ObjectMapperUtil.serialize(badRequestBody))
+			.addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON));
 
 		Map<String, Object> okResponseBody = new HashMap<>();
 		List<Map<String, String>> output1 = new ArrayList<>();
@@ -155,11 +159,8 @@ class KisClientTest extends AbstractContainerBaseTest {
 		stock1.put("issue_price", "9090");
 		output1.add(stock1);
 		okResponseBody.put("output1", output1);
-
-		mockWebServer.enqueue(new MockResponse().setResponseCode(400)
-			.setBody(ObjectMapperUtil.serialize(badRequestBody))
-			.addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON));
-		mockWebServer.enqueue(new MockResponse().setResponseCode(200)
+		mockWebServer.enqueue(new MockResponse()
+			.setResponseCode(200)
 			.setBody(ObjectMapperUtil.serialize(okResponseBody))
 			.addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON));
 
@@ -195,9 +196,58 @@ class KisClientTest extends AbstractContainerBaseTest {
 		);
 		okResponseBody.put("output", output);
 
-		mockWebServer.enqueue(new MockResponse().setResponseCode(200)
+		mockWebServer.enqueue(new MockResponse()
+			.setResponseCode(200)
 			.setBody(ObjectMapperUtil.serialize(okResponseBody))
 			.addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON));
+		// when
+		KisSearchStockInfo kisSearchStockInfo = kisClient.fetchSearchStockInfo(tickerSymbol, accessToken)
+			.blockOptional(Duration.ofMinutes(10))
+			.orElse(null);
+		// then
+		assertThat(kisSearchStockInfo).isNotNull();
+		assertThat(kisSearchStockInfo).extracting(
+			KisSearchStockInfo::getStdPdno,
+			KisSearchStockInfo::getPdno,
+			KisSearchStockInfo::getPrdtName,
+			KisSearchStockInfo::getPrdtEngName,
+			KisSearchStockInfo::getMketIdCd,
+			KisSearchStockInfo::getKospi200ItemYn,
+			KisSearchStockInfo::getIdxBztpSclsCdName
+		).containsExactly("KR7000660001", "000660", "에스케이하이닉스보통주", "SK hynix", "STK", "Y", "전기,전자");
+	}
+
+	@DisplayName("서버는 한국투자증권 서버에 요청하여 첫번째 요청은 실패하고 두번째 요청에 응답을 받는다")
+	@Test
+	void fetchSearchStockInfo_whenOverLimit_thenRetryRequest() {
+		// given
+		Map<String, String> badRequestBody = new HashMap<>();
+		badRequestBody.put("rt_cd", "1");
+		badRequestBody.put("msg_cd", "EGW00201");
+		badRequestBody.put("msg1", "초당 거래건수를 초과하였습니다.");
+		mockWebServer.enqueue(new MockResponse()
+			.setResponseCode(400)
+			.setBody(ObjectMapperUtil.serialize(badRequestBody))
+			.addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON));
+
+		Map<String, Object> okResponseBody = new HashMap<>();
+		KisSearchStockInfo output = KisSearchStockInfo.create(
+			"KR7000660001",
+			"00000A000660",
+			"에스케이하이닉스보통주",
+			"SK hynix",
+			"STK",
+			"Y",
+			"전기,전자"
+		);
+		okResponseBody.put("output", output);
+		mockWebServer.enqueue(new MockResponse()
+			.setResponseCode(200)
+			.setBody(ObjectMapperUtil.serialize(okResponseBody))
+			.addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON));
+
+		String tickerSymbol = "034220";
+		String accessToken = createKisAccessToken().getAccessToken();
 		// when
 		KisSearchStockInfo kisSearchStockInfo = kisClient.fetchSearchStockInfo(tickerSymbol, accessToken)
 			.blockOptional(Duration.ofMinutes(10))
