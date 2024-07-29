@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 env:
-  S3_BUCKET_NAME: fineants
+  S3_BUCKET_NAME: fineants2024
   AWS_REGION: ap-northeast-2
   CODEDEPLOY_NAME: fineAnts
   CODEDEPLOY_GROUP: release
@@ -18,7 +18,7 @@ env:
 jobs:
   build-image:
     runs-on: ubuntu-latest
-    environment: aws
+    environment: aws2024
     defaults:
       run:
         shell: bash
