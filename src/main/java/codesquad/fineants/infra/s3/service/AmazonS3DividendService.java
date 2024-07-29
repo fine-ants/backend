@@ -28,14 +28,17 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @RequiredArgsConstructor
 public class AmazonS3DividendService {
-	private static final String CSV_FILE_PATH = "dividend/dividends.csv";
 	public static final String CSV_SEPARATOR = ",";
 	private final AmazonS3 amazonS3;
-	@Value("${aws.s3.dividend-bucket}")
+	@Value("${aws.s3.bucket}")
 	private String bucketName;
+	@Value("${aws.s3.dividend-csv-path}")
+	private String dividendPath;
 
 	public List<Dividend> fetchDividend() {
-		S3Object s3Object = amazonS3.getObject(new GetObjectRequest(bucketName, CSV_FILE_PATH));
+		log.debug("bucketName : {}", bucketName);
+		log.debug("dividendPath : {}", dividendPath);
+		S3Object s3Object = amazonS3.getObject(new GetObjectRequest(bucketName, dividendPath));
 
 		try (BufferedReader br = new BufferedReader(
 			new InputStreamReader(s3Object.getObjectContent(), StandardCharsets.UTF_8))) {
@@ -51,7 +54,7 @@ public class AmazonS3DividendService {
 	}
 
 	public void writeDividend(List<Dividend> dividends) {
-		writeDividend(dividends, CSV_FILE_PATH);
+		writeDividend(dividends, dividendPath);
 	}
 
 	/**
