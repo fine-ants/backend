@@ -201,6 +201,7 @@ class StockServiceTest extends AbstractContainerBaseTest {
 		// then
 		assertThat(response).isNotNull();
 		assertThat(response.getAddedStocks()).hasSize(1);
+		assertThat(response.getDeletedStocks()).hasSize(1);
 	}
 
 	@DisplayName("서버는 종목들을 최신화한다")

@@ -202,7 +202,7 @@ public class StockRestControllerDocsTest extends RestDocsSupport {
 	void refreshStocks() throws Exception {
 		// given
 		given(service.reloadStocks())
-			.willReturn(StockRefreshResponse.create(List.of("123456", "234567")));
+			.willReturn(StockRefreshResponse.create(List.of("123456", "234567"), List.of("222222", "333333")));
 
 		// when & then
 		mockMvc.perform(post("/api/stocks/refresh")
@@ -212,6 +212,7 @@ public class StockRestControllerDocsTest extends RestDocsSupport {
 			.andExpect(jsonPath("status").value(equalTo("OK")))
 			.andExpect(jsonPath("message").value(equalTo("종목 최신화가 완료되었습니다")))
 			.andExpect(jsonPath("data.addedStocks").value(equalTo(List.of("123456", "234567"))))
+			.andExpect(jsonPath("data.deletedStocks").value(equalTo(List.of("222222", "333333"))))
 			.andDo(
 				document(
 					"stock-refresh",
@@ -227,7 +228,9 @@ public class StockRestControllerDocsTest extends RestDocsSupport {
 						fieldWithPath("data").type(JsonFieldType.OBJECT)
 							.description("응답 데이터"),
 						fieldWithPath("data.addedStocks").type(JsonFieldType.ARRAY)
-							.description("상장된 종목 티커 심볼 리스트")
+							.description("상장된 종목 티커 심볼 리스트"),
+						fieldWithPath("data.deletedStocks").type(JsonFieldType.ARRAY)
+							.description("폐지된 종목 티커 심볼 리스트")
 					)
 				)
 			);
