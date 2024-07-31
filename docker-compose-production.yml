@@ -9,12 +9,6 @@ services:
     environment:
       PROFILE: production
       TZ: Asia/Seoul
-    logging:
-      driver: awslogs
-      options:
-        awslogs-group: "fineAnts/app"
-        awslogs-region: "ap-northeast-2"
-        awslogs-stream: "production/web/info"
     depends_on:
       - redis
     networks:
