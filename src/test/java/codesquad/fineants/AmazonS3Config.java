@@ -23,8 +23,10 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class AmazonS3Config {
 
-	@Value("${aws.s3.dividend-bucket}")
+	@Value("${aws.s3.bucket}")
 	private String bucketName;
+	@Value("${aws.s3.dividend-csv-path}")
+	private String dividendPath;
 
 	@Bean
 	public AmazonS3 amazonS3() {
@@ -57,7 +59,7 @@ public class AmazonS3Config {
 		try {
 			amazonS3.putObject(new PutObjectRequest(
 					bucketName,
-					"dividend/dividends.csv",
+					dividendPath,
 					new ClassPathResource("dividends.csv").getFile()
 				)
 			);

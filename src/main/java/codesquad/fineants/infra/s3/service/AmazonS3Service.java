@@ -28,13 +28,15 @@ public class AmazonS3Service {
 	private final AmazonS3 amazonS3;
 	@Value("${aws.s3.bucket}")
 	private String bucketName;
+	@Value("${aws.s3.profile-path}")
+	private String profilePath;
 
 	@Transactional
 	public String upload(MultipartFile multipartFile) {
 		File file = convertMultiPartFileToFile(multipartFile).orElseThrow(
 			() -> new BadRequestException(MemberErrorCode.PROFILE_IMAGE_UPLOAD_FAIL));
 		// random file name
-		String key = UUID.randomUUID() + file.getName();
+		String key = profilePath + UUID.randomUUID() + file.getName();
 		// put S3
 		amazonS3.putObject(new PutObjectRequest(bucketName, key, file).withCannedAcl(
 			CannedAccessControlList.PublicRead));
