@@ -3,8 +3,6 @@ name: ci-cd
 on:
   push:
     branches: [ release ]
-  pull_request:
-    types: [ labeled, opened, synchronize ]
 
 permissions:
   contents: read
