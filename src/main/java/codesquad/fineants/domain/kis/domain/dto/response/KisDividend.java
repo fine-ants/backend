@@ -6,6 +6,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.Optional;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.TreeNode;
 import com.fasterxml.jackson.databind.DeserializationContext;
@@ -67,7 +69,7 @@ public class KisDividend implements Comparable<KisDividend> {
 	 * equal to, or greater than the specified object.
 	 */
 	@Override
-	public int compareTo(KisDividend dividend) {
+	public int compareTo(@NotNull KisDividend dividend) {
 		return this.tickerSymbol.compareTo(dividend.tickerSymbol) == 0
 			? this.recordDate.compareTo(dividend.recordDate) : this.tickerSymbol.compareTo(dividend.tickerSymbol);
 	}

@@ -3,6 +3,7 @@ package codesquad.fineants.domain.stock.service;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.BDDMockito.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
@@ -11,12 +12,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.BDDMockito;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.ValueOperations;
 
 import codesquad.fineants.AbstractContainerBaseTest;
 import codesquad.fineants.domain.common.money.Money;
@@ -26,6 +23,9 @@ import codesquad.fineants.domain.kis.client.KisAccessToken;
 import codesquad.fineants.domain.kis.client.KisClient;
 import codesquad.fineants.domain.kis.client.KisCurrentPrice;
 import codesquad.fineants.domain.kis.domain.dto.response.KisClosingPrice;
+import codesquad.fineants.domain.kis.domain.dto.response.KisSearchStockInfo;
+import codesquad.fineants.domain.kis.repository.ClosingPriceRepository;
+import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
 import codesquad.fineants.domain.kis.repository.KisAccessTokenRepository;
 import codesquad.fineants.domain.kis.service.KisService;
 import codesquad.fineants.domain.stock.domain.dto.response.StockDataResponse;
@@ -53,8 +53,11 @@ class StockServiceTest extends AbstractContainerBaseTest {
 	@Autowired
 	private KisAccessTokenRepository kisAccessTokenRepository;
 
-	@MockBean
-	private RedisTemplate<String, String> redisTemplate;
+	@Autowired
+	private CurrentPriceRepository currentPriceRepository;
+
+	@Autowired
+	private ClosingPriceRepository closingPriceRepository;
 
 	@MockBean
 	private KisClient kisClient;
@@ -75,13 +78,8 @@ class StockServiceTest extends AbstractContainerBaseTest {
 		Stock stock = stockRepository.save(createSamsungStock());
 		stockDividendRepository.saveAll(createStockDividendWith(stock));
 
-		ValueOperations valueOperationMock = Mockito.mock(ValueOperations.class);
-		given(redisTemplate.opsForValue())
-			.willReturn(valueOperationMock);
-		given(valueOperationMock.get("cp:005930"))
-			.willReturn("50000");
-		given(valueOperationMock.get("lastDayClosingPrice:005930"))
-			.willReturn("49000");
+		currentPriceRepository.addCurrentPrice(KisCurrentPrice.create("005930", 50000L));
+		closingPriceRepository.addPrice(KisClosingPrice.create("005930", 49000L));
 		given(kisClient.fetchAccessToken())
 			.willReturn(
 				Mono.just(new KisAccessToken("accessToken", "Bearer", LocalDateTime.now().plusSeconds(86400), 86400)));
@@ -129,18 +127,9 @@ class StockServiceTest extends AbstractContainerBaseTest {
 		Stock stock = stockRepository.save(createSamsungStock());
 		stockDividendRepository.saveAll(createStockDividendWith(stock));
 
-		ValueOperations valueOperationMock = Mockito.mock(ValueOperations.class);
-		given(redisTemplate.opsForValue())
-			.willReturn(valueOperationMock);
-		given(valueOperationMock.get("cp:005930"))
-			.willReturn(null)
-			.willReturn("50000");
-		given(valueOperationMock.get("lastDayClosingPrice:005930"))
-			.willReturn(null)
-			.willReturn("49000");
 		given(kisClient.fetchAccessToken())
-			.willReturn(Mono.just(
-				new KisAccessToken("accessToken", "Bearer", LocalDateTime.now().plusDays(1), 3600 * 24)));
+			.willReturn(
+				Mono.just(new KisAccessToken("accessToken", "Bearer", LocalDateTime.now().plusDays(1), 3600 * 24)));
 		given(kisClient.fetchCurrentPrice(anyString(), anyString()))
 			.willReturn(Mono.just(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L)));
 		given(kisClient.fetchClosingPrice(anyString(), anyString()))
@@ -186,30 +175,49 @@ class StockServiceTest extends AbstractContainerBaseTest {
 	@Test
 	void reloadStocks() {
 		// given
+		Stock nokwon = stockRepository.save(createNokwonCI());
+
 		kisAccessTokenRepository.refreshAccessToken(createKisAccessToken());
-		StockDataResponse.StockIntegrationInfo stock = StockDataResponse.StockIntegrationInfo.create(
+		StockDataResponse.StockIntegrationInfo hynix = StockDataResponse.StockIntegrationInfo.create(
 			"000660",
 			"에스케이하이닉스보통주",
 			"SK hynix",
 			"KR7000660001",
 			"전기,전자",
 			Market.KOSPI);
-		BDDMockito.given(kisService.fetchStockInfoInRangedIpo())
-			.willReturn(Set.of(stock));
+		given(kisService.fetchStockInfoInRangedIpo())
+			.willReturn(Set.of(hynix));
+		given(kisService.fetchSearchStockInfo(hynix.getTickerSymbol()))
+			.willReturn(Mono.just(KisSearchStockInfo.listedStock(
+					"KR7000660001",
+					"000660",
+					"에스케이하이닉스보통주",
+					"SK hynix",
+					"STK",
+					"전기,전자")
+				)
+			);
+		given(kisService.fetchSearchStockInfo(nokwon.getTickerSymbol()))
+			.willReturn(Mono.just(
+				KisSearchStockInfo.delistedStock("KR7065560005", "065560", "녹원씨엔아이",
+					"Nokwon Commercials & Industries, Inc.",
+					"KSQ", "소프트웨어", LocalDate.of(2024, 7, 29))));
 		// when
 		StockRefreshResponse response = stockService.reloadStocks();
 		// then
 		assertThat(response).isNotNull();
 		assertThat(response.getAddedStocks()).hasSize(1);
 		assertThat(response.getDeletedStocks()).hasSize(1);
+
+		Stock deletedStock = stockRepository.findByTickerSymbol(nokwon.getTickerSymbol()).orElseThrow();
+		assertThat(deletedStock.isDeleted()).isTrue();
 	}
 
 	@DisplayName("서버는 종목들을 최신화한다")
 	@Test
 	void scheduledRefreshStocks() {
 		// given
-		saveStocks();
-
+		List<Stock> stocks = saveStocks();
 		StockDataResponse.StockIntegrationInfo stock = StockDataResponse.StockIntegrationInfo.create(
 			"000660",
 			"에스케이하이닉스보통주",
@@ -217,19 +225,29 @@ class StockServiceTest extends AbstractContainerBaseTest {
 			"KR7000660001",
 			"전기,전자",
 			Market.KOSPI);
-		BDDMockito.given(kisService.fetchStockInfoInRangedIpo())
+		given(kisService.fetchStockInfoInRangedIpo())
 			.willReturn(Set.of(stock));
+		given(kisService.fetchSearchStockInfo(stock.getTickerSymbol()))
+			.willReturn(Mono.just(
+				KisSearchStockInfo.listedStock(stock.getStockCode(), stock.getTickerSymbol(), stock.getCompanyName(),
+					stock.getCompanyNameEng(), "STK", "전기,전자")));
+		stocks.forEach(s ->
+			given(kisService.fetchSearchStockInfo(s.getTickerSymbol()))
+				.willReturn(Mono.just(
+					KisSearchStockInfo.listedStock(s.getStockCode(), s.getTickerSymbol(), s.getCompanyName(),
+						s.getCompanyNameEng(), "STK", s.getSector()))
+				));
 		// when
 		stockService.scheduledReloadStocks();
 		// then
 		assertThat(stockRepository.findByTickerSymbol("000660")).isPresent();
 	}
 
-	private void saveStocks() {
+	private List<Stock> saveStocks() {
 		Set<StockDataResponse.StockInfo> stockInfoSet = stockCsvReader.readStockCsv();
 		List<Stock> stocks = stockInfoSet.stream()
 			.map(StockDataResponse.StockInfo::toEntity)
 			.toList();
-		stockRepository.saveAll(stocks);
+		return stockRepository.saveAll(stocks);
 	}
 }

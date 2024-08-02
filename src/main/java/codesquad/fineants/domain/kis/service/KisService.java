@@ -24,6 +24,7 @@ import codesquad.fineants.domain.kis.client.KisClient;
 import codesquad.fineants.domain.kis.client.KisCurrentPrice;
 import codesquad.fineants.domain.kis.domain.dto.response.KisClosingPrice;
 import codesquad.fineants.domain.kis.domain.dto.response.KisDividend;
+import codesquad.fineants.domain.kis.domain.dto.response.KisDividendWrapper;
 import codesquad.fineants.domain.kis.domain.dto.response.KisIpo;
 import codesquad.fineants.domain.kis.domain.dto.response.KisSearchStockInfo;
 import codesquad.fineants.domain.kis.repository.ClosingPriceRepository;
@@ -201,14 +202,33 @@ public class KisService {
 		return kisClient.fetchClosingPrice(tickerSymbol, manager.createAuthorization());
 	}
 
-	public String fetchDividend(String tickerSymbol) {
-		return kisClient.fetchDividend(tickerSymbol, manager.createAuthorization());
+	/**
+	 * tickerSymbol에 해당하는 종목의 배당 일정을 조회합니다.
+	 * 종목이 상장 폐지된 경우 KisDividend.isDelisted 필드의 상태값을 true인 객체를 반환한다
+	 * @param tickerSymbol 종목 단축 코드
+	 * @return 종목의 배당 일정 정보
+	 */
+	public List<KisDividend> fetchDividend(String tickerSymbol) {
+		Mono<KisDividendWrapper> mono = kisClient.fetchDividendThisYear(tickerSymbol, manager.createAuthorization());
+		// TODO: mono를 이용하여 상장 폐지된 종목인 경우 핸들링하여 폐지된 KisDividend 객체 반환, 정상 조회된 경우 KisDividend 반환
+		return mono.blockOptional(TIMEOUT)
+			.orElseGet(KisDividendWrapper::empty)
+			.getKisDividends();
 	}
 
 	public List<KisDividend> fetchDividendAll(LocalDate from, LocalDate to) {
 		return kisClient.fetchDividendAll(from, to, manager.createAuthorization()).stream()
 			.sorted()
 			.toList();
+	}
+
+	/**
+	 * 종목 기본 조회
+	 * @param tickerSymbol 종목 티커 심볼
+	 * @return 종목 정보
+	 */
+	public Mono<KisSearchStockInfo> fetchSearchStockInfo(String tickerSymbol) {
+		return kisClient.fetchSearchStockInfo(tickerSymbol, manager.createAuthorization());
 	}
 
 	/**

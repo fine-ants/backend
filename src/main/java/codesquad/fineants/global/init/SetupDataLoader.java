@@ -67,7 +67,6 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
 		kisService.refreshCurrentPrice();
 		kisService.refreshClosingPrice();
 		log.info("애플리케이션 시작시 종목 현재가 및 종가 초기화 종료");
-		stockService.reloadStocks();
 		stockDividendService.initializeStockDividend();
 
 		alreadySetup = true;

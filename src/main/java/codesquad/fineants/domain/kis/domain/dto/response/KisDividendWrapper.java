@@ -2,6 +2,7 @@ package codesquad.fineants.domain.kis.domain.dto.response;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import com.fasterxml.jackson.core.JsonParser;
@@ -11,14 +12,22 @@ import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Getter
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @JsonDeserialize(using = KisDividendWrapper.KissDividendWrapperDeserializer.class)
 public class KisDividendWrapper {
 	private List<KisDividend> kisDividends;
+
+	public static KisDividendWrapper empty() {
+		return new KisDividendWrapper(Collections.emptyList());
+	}
 
 	static class KissDividendWrapperDeserializer extends JsonDeserializer<KisDividendWrapper> {
 		@Override

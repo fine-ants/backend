@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import codesquad.fineants.domain.kis.client.KisCurrentPrice;
 import codesquad.fineants.domain.kis.domain.dto.request.StockPriceRefreshRequest;
 import codesquad.fineants.domain.kis.domain.dto.response.KisClosingPrice;
+import codesquad.fineants.domain.kis.domain.dto.response.KisDividend;
 import codesquad.fineants.domain.kis.service.KisService;
 import codesquad.fineants.domain.stock.domain.dto.response.StockDataResponse;
 import codesquad.fineants.global.api.ApiResponse;
@@ -80,5 +81,12 @@ public class KisRestController {
 	public ApiResponse<Set<StockDataResponse.StockIntegrationInfo>> fetchStockInfoInRangedIpo() {
 		Set<StockDataResponse.StockIntegrationInfo> result = service.fetchStockInfoInRangedIpo();
 		return ApiResponse.success(KisSuccessCode.OK_FETCH_IPO_SEARCh_STOCK_INFO, result);
+	}
+
+	// 배당 일정 조회
+	@GetMapping("/dividend/{tickerSymbol}")
+	@Secured(value = {"ROLE_MANAGER", "ROLE_ADMIN"})
+	public ApiResponse<List<KisDividend>> fetchDividend(@PathVariable String tickerSymbol) {
+		return ApiResponse.success(KisSuccessCode.OK_FETCH_DIVIDEND, service.fetchDividend(tickerSymbol));
 	}
 }

@@ -1,6 +1,6 @@
 package codesquad.fineants.domain.stock.domain.dto.response;
 
-import java.util.List;
+import java.util.Set;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -13,10 +13,10 @@ import lombok.ToString;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @ToString
 public class StockRefreshResponse {
-	private List<String> addedStocks;
-	private List<String> deletedStocks;
+	private Set<String> addedStocks;
+	private Set<String> deletedStocks;
 
-	public static StockRefreshResponse create(List<String> addedStocks, List<String> deletedStocks) {
+	public static StockRefreshResponse create(Set<String> addedStocks, Set<String> deletedStocks) {
 		return new StockRefreshResponse(addedStocks, deletedStocks);
 	}
 }

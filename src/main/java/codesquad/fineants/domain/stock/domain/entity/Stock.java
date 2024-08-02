@@ -42,6 +42,7 @@ public class Stock extends BaseEntity {
 	private String sector;
 	@Convert(converter = MarketConverter.class)
 	private Market market;
+	private boolean isDeleted;
 
 	@OneToMany(mappedBy = "stock", fetch = FetchType.LAZY)
 	private final List<StockDividend> stockDividends = new ArrayList<>();

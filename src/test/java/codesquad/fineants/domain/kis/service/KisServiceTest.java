@@ -198,13 +198,12 @@ class KisServiceTest extends AbstractContainerBaseTest {
 			anyString()))
 			.willReturn(Mono.just(kisIpoResponse));
 
-		KisSearchStockInfo kisSearchStockInfo = KisSearchStockInfo.create(
+		KisSearchStockInfo kisSearchStockInfo = KisSearchStockInfo.listedStock(
 			"KR7000660001",
 			"000660",
 			"에스케이하이닉스보통주",
 			"SK hynix",
 			"STK",
-			"Y",
 			"전기,전자"
 		);
 		given(client.fetchSearchStockInfo(anyString(), anyString()))

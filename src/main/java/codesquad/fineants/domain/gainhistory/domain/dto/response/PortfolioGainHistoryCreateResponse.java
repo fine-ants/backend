@@ -1,7 +1,6 @@
 package codesquad.fineants.domain.gainhistory.domain.dto.response;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import codesquad.fineants.domain.gainhistory.domain.entity.PortfolioGainHistory;
 import lombok.AccessLevel;
@@ -16,7 +15,7 @@ public class PortfolioGainHistoryCreateResponse {
 	public static PortfolioGainHistoryCreateResponse from(List<PortfolioGainHistory> histories) {
 		List<Long> ids = histories.stream()
 			.map(PortfolioGainHistory::getId)
-			.collect(Collectors.toList());
+			.toList();
 		return new PortfolioGainHistoryCreateResponse(ids);
 	}
 }

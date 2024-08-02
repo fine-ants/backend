@@ -5,6 +5,7 @@ import static codesquad.fineants.domain.kis.service.KisService.*;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAdjusters;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -107,8 +108,24 @@ public class KisClient {
 		);
 	}
 
-	// 배당금 조회
-	public String fetchDividend(String tickerSymbol, String authorization) {
+	/**
+	 * tickerSymbol에 해당하는 종목의 배당 일정을 조회합니다.
+	 * 해당 년도 범위에 대한 배당 일정을 조회합니다.
+	 * @param tickerSymbol 종목의 단축코드
+	 * @param authorization 인가 코드
+	 * @return 종목의 배당 일정 정보
+	 */
+	public Mono<KisDividendWrapper> fetchDividendThisYear(String tickerSymbol, String authorization) {
+		LocalDate today = LocalDate.now();
+		// 해당 년도 첫일
+		LocalDate from = today.with(TemporalAdjusters.firstDayOfYear());
+		// 해당 년도 마지막일
+		LocalDate to = today.with(TemporalAdjusters.lastDayOfYear());
+		return fetchDividend(tickerSymbol, from, to, authorization);
+	}
+
+	public Mono<KisDividendWrapper> fetchDividend(String tickerSymbol, LocalDate from, LocalDate to,
+		String authorization) {
 		MultiValueMap<String, String> headerMap = new LinkedMultiValueMap<>();
 		headerMap.add("content-type", "application/json; charset=utf-8");
 		headerMap.add("authorization", authorization);
@@ -117,21 +134,22 @@ public class KisClient {
 		headerMap.add("tr_id", "HHKDB669102C0");
 		headerMap.add("custtype", "P");
 
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
 		MultiValueMap<String, String> queryParamMap = new LinkedMultiValueMap<>();
 		queryParamMap.add("HIGH_GB", Strings.EMPTY);
 		queryParamMap.add("CTS", Strings.EMPTY);
 		queryParamMap.add("GB1", "0");
-		queryParamMap.add("F_DT", "20230101");
-		queryParamMap.add("T_DT", "20231231");
+		queryParamMap.add("F_DT", from.format(formatter));
+		queryParamMap.add("T_DT", to.format(formatter));
 		queryParamMap.add("SHT_CD", tickerSymbol);
 
 		return performGet(
 			oauthKisProperties.getDividendUrl(),
 			headerMap,
 			queryParamMap,
-			String.class,
+			KisDividendWrapper.class,
 			realWebClient
-		).block(TIMEOUT);
+		);
 	}
 
 	public List<KisDividend> fetchDividendAll(LocalDate from, LocalDate to, String authorization) {

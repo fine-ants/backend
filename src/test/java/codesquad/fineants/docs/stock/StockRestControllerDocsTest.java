@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -202,7 +203,7 @@ public class StockRestControllerDocsTest extends RestDocsSupport {
 	void refreshStocks() throws Exception {
 		// given
 		given(service.reloadStocks())
-			.willReturn(StockRefreshResponse.create(List.of("123456", "234567"), List.of("222222", "333333")));
+			.willReturn(StockRefreshResponse.create(Set.of("123456", "234567"), Set.of("222222", "333333")));
 
 		// when & then
 		mockMvc.perform(post("/api/stocks/refresh")
@@ -211,8 +212,10 @@ public class StockRestControllerDocsTest extends RestDocsSupport {
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
 			.andExpect(jsonPath("message").value(equalTo("종목 최신화가 완료되었습니다")))
-			.andExpect(jsonPath("data.addedStocks").value(equalTo(List.of("123456", "234567"))))
-			.andExpect(jsonPath("data.deletedStocks").value(equalTo(List.of("222222", "333333"))))
+			.andExpect(jsonPath("data.addedStocks").value(hasItem("123456")))
+			.andExpect(jsonPath("data.addedStocks").value(hasItem("234567")))
+			.andExpect(jsonPath("data.deletedStocks").value(hasItem("222222")))
+			.andExpect(jsonPath("data.deletedStocks").value(hasItem("333333")))
 			.andDo(
 				document(
 					"stock-refresh",

@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import org.apache.logging.log4j.util.Strings;
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -24,6 +25,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import codesquad.fineants.AbstractContainerBaseTest;
+import codesquad.fineants.domain.kis.domain.dto.response.KisDividendWrapper;
 import codesquad.fineants.domain.kis.domain.dto.response.KisIpo;
 import codesquad.fineants.domain.kis.domain.dto.response.KisIpoResponse;
 import codesquad.fineants.domain.kis.domain.dto.response.KisSearchStockInfo;
@@ -185,13 +187,12 @@ class KisClientTest extends AbstractContainerBaseTest {
 		String accessToken = createKisAccessToken().getAccessToken();
 
 		Map<String, Object> okResponseBody = new HashMap<>();
-		KisSearchStockInfo output = KisSearchStockInfo.create(
+		KisSearchStockInfo output = KisSearchStockInfo.listedStock(
 			"KR7000660001",
 			"00000A000660",
 			"에스케이하이닉스보통주",
 			"SK hynix",
 			"STK",
-			"Y",
 			"전기,전자"
 		);
 		okResponseBody.put("output", output);
@@ -207,14 +208,13 @@ class KisClientTest extends AbstractContainerBaseTest {
 		// then
 		assertThat(kisSearchStockInfo).isNotNull();
 		assertThat(kisSearchStockInfo).extracting(
-			KisSearchStockInfo::getStdPdno,
-			KisSearchStockInfo::getPdno,
-			KisSearchStockInfo::getPrdtName,
-			KisSearchStockInfo::getPrdtEngName,
-			KisSearchStockInfo::getMketIdCd,
-			KisSearchStockInfo::getKospi200ItemYn,
-			KisSearchStockInfo::getIdxBztpSclsCdName
-		).containsExactly("KR7000660001", "000660", "에스케이하이닉스보통주", "SK hynix", "STK", "Y", "전기,전자");
+			KisSearchStockInfo::getStockCode,
+			KisSearchStockInfo::getTickerSymbol,
+			KisSearchStockInfo::getCompanyName,
+			KisSearchStockInfo::getCompanyEngName,
+			KisSearchStockInfo::getMarketIdCode,
+			KisSearchStockInfo::getSector
+		).containsExactly("KR7000660001", "000660", "에스케이하이닉스보통주", "SK hynix", "STK", "전기,전자");
 	}
 
 	@DisplayName("서버는 한국투자증권 서버에 요청하여 첫번째 요청은 실패하고 두번째 요청에 응답을 받는다")
@@ -231,13 +231,12 @@ class KisClientTest extends AbstractContainerBaseTest {
 			.addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON));
 
 		Map<String, Object> okResponseBody = new HashMap<>();
-		KisSearchStockInfo output = KisSearchStockInfo.create(
+		KisSearchStockInfo output = KisSearchStockInfo.listedStock(
 			"KR7000660001",
 			"00000A000660",
 			"에스케이하이닉스보통주",
 			"SK hynix",
 			"STK",
-			"Y",
 			"전기,전자"
 		);
 		okResponseBody.put("output", output);
@@ -255,14 +254,47 @@ class KisClientTest extends AbstractContainerBaseTest {
 		// then
 		assertThat(kisSearchStockInfo).isNotNull();
 		assertThat(kisSearchStockInfo).extracting(
-			KisSearchStockInfo::getStdPdno,
-			KisSearchStockInfo::getPdno,
-			KisSearchStockInfo::getPrdtName,
-			KisSearchStockInfo::getPrdtEngName,
-			KisSearchStockInfo::getMketIdCd,
-			KisSearchStockInfo::getKospi200ItemYn,
-			KisSearchStockInfo::getIdxBztpSclsCdName
-		).containsExactly("KR7000660001", "000660", "에스케이하이닉스보통주", "SK hynix", "STK", "Y", "전기,전자");
+			KisSearchStockInfo::getStockCode,
+			KisSearchStockInfo::getTickerSymbol,
+			KisSearchStockInfo::getCompanyName,
+			KisSearchStockInfo::getCompanyEngName,
+			KisSearchStockInfo::getMarketIdCode,
+			KisSearchStockInfo::getSector
+		).containsExactly("KR7000660001", "000660", "에스케이하이닉스보통주", "SK hynix", "STK", "전기,전자");
+	}
+
+	@DisplayName("사용자는 종목의 배당 일정을 조회한다")
+	@Test
+	void fetchDividend() {
+		// given
+		String tickerSymbol = "000720";
+		KisAccessToken kisAccessToken = createKisAccessToken();
+		Map<String, Object> output = Map.ofEntries(
+			Map.entry("output1",
+				List.of(
+					Map.of("sht_cd", "000720",
+						"per_sto_divi_amt", "000000000600",
+						"record_date", "20240326",
+						"divi_pay_dt", Strings.EMPTY),
+					Map.of("sht_cd", "000720",
+						"per_sto_divi_amt", "000000000600",
+						"record_date", "20240630",
+						"divi_pay_dt", Strings.EMPTY)
+				)
+			)
+		);
+		mockWebServer.enqueue(new MockResponse()
+			.setResponseCode(200)
+			.setBody(ObjectMapperUtil.serialize(output))
+			.addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON));
+		// when
+		Mono<KisDividendWrapper> mono = kisClient.fetchDividendThisYear(tickerSymbol,
+			kisAccessToken.createAuthorization());
+		KisDividendWrapper wrapper = mono
+			.blockOptional(Duration.ofSeconds(1)).orElse(null);
+		// then
+		assertThat(wrapper).isNotNull();
+		assertThat(wrapper.getKisDividends()).hasSize(2);
 	}
 
 	private Map<String, String> createError() {

@@ -1,6 +1,7 @@
 package codesquad.fineants.domain.dividend.repository;
 
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -16,5 +17,9 @@ public interface StockDividendRepository extends JpaRepository<StockDividend, Lo
 
 	@Modifying
 	@Query("delete from StockDividend sd where sd.stock.tickerSymbol in :tickerSymbols")
-	int deleteByTickerSymbols(@Param("tickerSymbols") List<String> tickerSymbols);
+	int deleteByTickerSymbols(@Param("tickerSymbols") Set<String> tickerSymbols);
+
+	@Modifying
+	@Query("delete from StockDividend sd where sd.stock.stockCode in :stockCodes")
+	int deleteByStockCodes(@Param("stockCodes") Set<String> stockCodes);
 }

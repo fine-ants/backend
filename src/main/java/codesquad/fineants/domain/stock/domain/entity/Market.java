@@ -12,15 +12,12 @@ public enum Market {
 			.orElse(NONE);
 	}
 
-	public static Market valueOf(String kospi200ItemYn, String mketIdCd) {
-		Market market = NONE;
-		if ("Y".equals(kospi200ItemYn)) {
-			market = Market.KOSPI;
-		} else if ("KSQ".equals(mketIdCd)) {
-			market = Market.KOSDAQ;
-		} else if ("KNX".equals(mketIdCd)) {
-			market = Market.KONEX;
-		}
-		return market;
+	public static Market valueByMarketIdCode(String marketIdCode) {
+		return switch (marketIdCode) {
+			case "STK" -> KOSPI;
+			case "KSQ" -> KOSDAQ;
+			case "KNX" -> KONEX;
+			default -> NONE;
+		};
 	}
 }
