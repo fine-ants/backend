@@ -2,6 +2,7 @@ package codesquad.fineants.domain.stock.service;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -11,8 +12,10 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import codesquad.fineants.domain.dividend.domain.entity.StockDividend;
 import codesquad.fineants.domain.dividend.repository.StockDividendRepository;
 import codesquad.fineants.domain.dividend.service.StockDividendService;
+import codesquad.fineants.domain.kis.domain.dto.response.KisDividend;
 import codesquad.fineants.domain.kis.domain.dto.response.KisSearchStockInfo;
 import codesquad.fineants.domain.kis.repository.ClosingPriceRepository;
 import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
@@ -26,6 +29,7 @@ import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockQueryRepository;
 import codesquad.fineants.domain.stock.repository.StockRepository;
 import codesquad.fineants.global.errors.errorcode.StockErrorCode;
+import codesquad.fineants.global.errors.exception.FineAntsException;
 import codesquad.fineants.global.errors.exception.NotFoundResourceException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -78,11 +82,12 @@ public class StockService {
 	 * - 새로 상장된 종목 추가
 	 * - 상장 폐지된 종목 삭제
 	 * - 배당 일정 수정
+	 * TODO: 전체 종목에 대해서 배당 일정을 조회하고 배당 일정을 저장한다
 	 * @return 상장 종목 및 폐지 종목 응답
 	 */
 	@Transactional
 	public StockRefreshResponse reloadStocks() {
-		// 상장된 종목 조회
+		// 신규 상장 종목 조회
 		List<Stock> stocks = kisService.fetchStockInfoInRangedIpo().stream()
 			.map(StockDataResponse.StockIntegrationInfo::toEntity)
 			.toList();
@@ -94,7 +99,6 @@ public class StockService {
 			.collect(Collectors.toUnmodifiableSet());
 		newlyAddedTickerSymbols.forEach(ticker -> log.info("Save the item in the database and ticker : {}", ticker));
 
-		// TODO: 전체 종목에 대해서 배당 일정을 조회하고 배당 일정을 저장한다
 		// 1. 종목 전체 조회 및 티커 심볼 집합으로 변환
 		Set<String> tickerSymbols = stockRepository.findAll()
 			.stream()
@@ -107,10 +111,10 @@ public class StockService {
 		for (String tickerSymbol : tickerSymbols) {
 			Mono<KisSearchStockInfo> mono = kisService.fetchSearchStockInfo(tickerSymbol);
 			Optional<KisSearchStockInfo> stockInfo = mono.blockOptional(Duration.ofMinutes(1));
-			// // 폐지된 종목이면 리스트에 추가
+			// 폐지된 종목이면 리스트에 추가
 			stockInfo.filter(KisSearchStockInfo::isDelisted)
 				.ifPresent(delistedStocks::add);
-			// // 상장중인 종목이면 별도 리스트에 추가
+			// 상장중인 종목이면 별도 리스트에 추가
 			stockInfo.filter(KisSearchStockInfo::isListed)
 				.ifPresent(currentStocks::add);
 		}
@@ -125,6 +129,21 @@ public class StockService {
 		// 4. 상장 폐지된 종목 소프트 제거
 		int deleted = stockRepository.deleteAllByStockCodes(deletedStockCode);
 		log.info("delete stocks for TickerSymbols : {}, deleted={}", deletedStockCode, deleted);
+
+		// 5. 상장된 종목들을 대상으로 이번년도 배당 일정 조회
+		List<KisDividend> dividends = currentStocks.stream()
+			.map(KisSearchStockInfo::getTickerSymbol)
+			.map(kisService::fetchDividend)
+			.flatMap(Collection::stream)
+			.toList();
+
+		// 6. 배당 일정 저장
+		for (KisDividend dividend : dividends) {
+			Stock stock = stockRepository.findByTickerSymbol(dividend.getTickerSymbol())
+				.orElseThrow(() -> new FineAntsException(StockErrorCode.NOT_FOUND_STOCK));
+			StockDividend stockDividend = dividend.toEntity(stock);
+			dividendRepository.save(stockDividend);
+		}
 
 		return StockRefreshResponse.create(newlyAddedTickerSymbols, deletedStockCode);
 	}
