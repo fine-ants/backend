@@ -15,9 +15,8 @@ public interface StockDividendRepository extends JpaRepository<StockDividend, Lo
 	@Query("select sd from StockDividend sd join fetch sd.stock s order by s.tickerSymbol, sd.recordDate")
 	List<StockDividend> findAllStockDividends();
 
-	@Modifying
-	@Query("delete from StockDividend sd where sd.stock.tickerSymbol in :tickerSymbols")
-	int deleteByTickerSymbols(@Param("tickerSymbols") Set<String> tickerSymbols);
+	@Query("select sd from StockDividend sd join fetch sd.stock s where s.tickerSymbol = :tickerSymbol order by s.tickerSymbol, sd.recordDate")
+	List<StockDividend> findStockDividendsByTickerSymbol(@Param("tickerSymbol") String tickerSymbol);
 
 	@Modifying
 	@Query("delete from StockDividend sd where sd.stock.stockCode in :stockCodes")

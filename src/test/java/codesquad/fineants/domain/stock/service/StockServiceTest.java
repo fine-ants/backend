@@ -5,9 +5,12 @@ import static org.mockito.BDDMockito.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -18,11 +21,13 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import codesquad.fineants.AbstractContainerBaseTest;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.common.money.Percentage;
+import codesquad.fineants.domain.dividend.domain.entity.StockDividend;
 import codesquad.fineants.domain.dividend.repository.StockDividendRepository;
 import codesquad.fineants.domain.kis.client.KisAccessToken;
 import codesquad.fineants.domain.kis.client.KisClient;
 import codesquad.fineants.domain.kis.client.KisCurrentPrice;
 import codesquad.fineants.domain.kis.domain.dto.response.KisClosingPrice;
+import codesquad.fineants.domain.kis.domain.dto.response.KisDividend;
 import codesquad.fineants.domain.kis.domain.dto.response.KisSearchStockInfo;
 import codesquad.fineants.domain.kis.repository.ClosingPriceRepository;
 import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
@@ -197,11 +202,25 @@ class StockServiceTest extends AbstractContainerBaseTest {
 					"전기,전자")
 				)
 			);
+		given(kisService.fetchDividend(hynix.getTickerSymbol()))
+			.willReturn(Collections.emptyList());
 		given(kisService.fetchSearchStockInfo(nokwon.getTickerSymbol()))
 			.willReturn(Mono.just(
 				KisSearchStockInfo.delistedStock("KR7065560005", "065560", "녹원씨엔아이",
 					"Nokwon Commercials & Industries, Inc.",
 					"KSQ", "소프트웨어", LocalDate.of(2024, 7, 29))));
+		DateTimeFormatter dtf = DateTimeFormatter.BASIC_ISO_DATE;
+		given(kisService.fetchDividend(hynix.getTickerSymbol()))
+			.willReturn(List.of(
+				KisDividend.create(hynix.getTickerSymbol(),
+					Money.won(300),
+					LocalDate.parse("20240331", dtf),
+					LocalDate.parse("20240514", dtf)),
+				KisDividend.create(hynix.getTickerSymbol(),
+					Money.won(300),
+					LocalDate.parse("20240630", dtf),
+					LocalDate.parse("20240814", dtf))
+			));
 		// when
 		StockRefreshResponse response = stockService.reloadStocks();
 		// then
@@ -211,6 +230,28 @@ class StockServiceTest extends AbstractContainerBaseTest {
 
 		Stock deletedStock = stockRepository.findByTickerSymbol(nokwon.getTickerSymbol()).orElseThrow();
 		assertThat(deletedStock.isDeleted()).isTrue();
+
+		List<StockDividend> hynixDividends = stockDividendRepository.findStockDividendsByTickerSymbol(
+			hynix.getTickerSymbol());
+		assertThat(hynixDividends)
+			.hasSize(2)
+			.extracting(StockDividend::getDividend, StockDividend::getRecordDate, StockDividend::getExDividendDate,
+				StockDividend::getPaymentDate)
+			.usingComparatorForType(Money::compareTo, Money.class)
+			.containsExactly(
+				Tuple.tuple(
+					Money.won(300),
+					LocalDate.parse("20240331", dtf),
+					LocalDate.parse("20240329", dtf),
+					LocalDate.parse("20240514", dtf)
+				),
+				Tuple.tuple(
+					Money.won(300),
+					LocalDate.parse("20240630", dtf),
+					LocalDate.parse("20240628", dtf),
+					LocalDate.parse("20240814", dtf)
+				)
+			);
 	}
 
 	@DisplayName("서버는 종목들을 최신화한다")
