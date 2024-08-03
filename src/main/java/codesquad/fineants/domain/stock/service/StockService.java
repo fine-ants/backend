@@ -1,10 +1,10 @@
 package codesquad.fineants.domain.stock.service;
 
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -33,6 +33,7 @@ import codesquad.fineants.global.errors.exception.FineAntsException;
 import codesquad.fineants.global.errors.exception.NotFoundResourceException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Slf4j
@@ -81,8 +82,7 @@ public class StockService {
 	 * 종목 및 배당 일정을 최신화
 	 * - 새로 상장된 종목 추가
 	 * - 상장 폐지된 종목 삭제
-	 * - 배당 일정 수정
-	 * TODO: 전체 종목에 대해서 배당 일정을 조회하고 배당 일정을 저장한다
+	 * - 이번 년도 종목의 배당 일정 조회 후 저장
 	 * @return 상장 종목 및 폐지 종목 응답
 	 */
 	@Transactional
@@ -106,18 +106,19 @@ public class StockService {
 			.collect(Collectors.toUnmodifiableSet());
 
 		// 2. 모든 종목의 현재가를 조회하여 폐지된 종목이 있는지 조회
-		List<KisSearchStockInfo> currentStocks = new ArrayList<>(); // 상장 중인 종목
-		List<KisSearchStockInfo> delistedStocks = new ArrayList<>();
-		for (String tickerSymbol : tickerSymbols) {
-			Mono<KisSearchStockInfo> mono = kisService.fetchSearchStockInfo(tickerSymbol);
-			Optional<KisSearchStockInfo> stockInfo = mono.blockOptional(Duration.ofMinutes(1));
-			// 폐지된 종목이면 리스트에 추가
-			stockInfo.filter(KisSearchStockInfo::isDelisted)
-				.ifPresent(delistedStocks::add);
-			// 상장중인 종목이면 별도 리스트에 추가
-			stockInfo.filter(KisSearchStockInfo::isListed)
-				.ifPresent(currentStocks::add);
-		}
+		// Map<Boolean, List<KisSearchStockInfo>> partitionedStocks = tickerSymbols.stream()
+		// 	.map(kisService::fetchSearchStockInfo)
+		// 	.map(mono -> mono.blockOptional(Duration.ofMinutes(1)))
+		// 	.map(optional -> optional.orElse(null))
+		// 	.filter(Objects::nonNull)
+		// 	.collect(Collectors.partitioningBy(KisSearchStockInfo::isDelisted));
+		Map<Boolean, List<KisSearchStockInfo>> partitionedStocks = fetchAllStockInfo(tickerSymbols)
+			.blockOptional()
+			.orElse(Collections.emptyList())
+			.stream()
+			.collect(Collectors.partitioningBy(KisSearchStockInfo::isDelisted));
+		List<KisSearchStockInfo> delistedStocks = partitionedStocks.get(true); // 상장 폐지 종목
+		List<KisSearchStockInfo> currentStocks = partitionedStocks.get(false); // 상장 종목
 
 		// 3. 상장 폐지된 종목의 배당금 제거
 		Set<String> deletedStockCode = delistedStocks.stream()
@@ -146,5 +147,13 @@ public class StockService {
 		}
 
 		return StockRefreshResponse.create(newlyAddedTickerSymbols, deletedStockCode);
+	}
+
+	private Mono<List<KisSearchStockInfo>> fetchAllStockInfo(Set<String> tickerSymbols) {
+		return Flux.fromIterable(tickerSymbols)
+			.delayElements(Duration.ofMillis(50)) // 1초 20건 처리 (1000ms / 20 = 50ms)
+			.flatMap(tickerSymbol -> kisService.fetchSearchStockInfo(tickerSymbol)
+				.onErrorResume(e -> Mono.empty()))
+			.collectList();
 	}
 }

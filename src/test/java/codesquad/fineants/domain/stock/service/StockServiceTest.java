@@ -3,6 +3,7 @@ package codesquad.fineants.domain.stock.service;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.BDDMockito.*;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -202,8 +203,6 @@ class StockServiceTest extends AbstractContainerBaseTest {
 					"전기,전자")
 				)
 			);
-		given(kisService.fetchDividend(hynix.getTickerSymbol()))
-			.willReturn(Collections.emptyList());
 		given(kisService.fetchSearchStockInfo(nokwon.getTickerSymbol()))
 			.willReturn(Mono.just(
 				KisSearchStockInfo.delistedStock("KR7065560005", "065560", "녹원씨엔아이",
@@ -252,6 +251,75 @@ class StockServiceTest extends AbstractContainerBaseTest {
 					LocalDate.parse("20240814", dtf)
 				)
 			);
+	}
+
+	@DisplayName("csv 파일에 있는 종목들을 기반으로 종목과 배당일정을 최신화를 한다")
+	@Test
+	void reloadStocksWithCsvFile() {
+		// given
+		List<Stock> stocks = saveStocks();
+		Stock nokwon = stockRepository.save(createNokwonCI());
+		kisAccessTokenRepository.refreshAccessToken(createKisAccessToken());
+		StockDataResponse.StockIntegrationInfo hynix = StockDataResponse.StockIntegrationInfo.create(
+			"000660",
+			"에스케이하이닉스보통주",
+			"SK hynix",
+			"KR7000660001",
+			"전기,전자",
+			Market.KOSPI);
+		given(kisService.fetchStockInfoInRangedIpo())
+			.willReturn(Set.of(hynix));
+		given(kisService.fetchSearchStockInfo(hynix.getTickerSymbol()))
+			.willReturn(Mono.just(KisSearchStockInfo.listedStock(
+					"KR7000660001",
+					"000660",
+					"에스케이하이닉스보통주",
+					"SK hynix",
+					"STK",
+					"전기,전자")
+				)
+			);
+		stocks.forEach(stock -> given(kisService.fetchSearchStockInfo(stock.getTickerSymbol()))
+			.willReturn(Mono.just(KisSearchStockInfo.listedStock(
+					stock.getStockCode(),
+					stock.getTickerSymbol(),
+					stock.getCompanyName(),
+					stock.getCompanyNameEng(),
+					stock.getMarket().getMarketIdCode(),
+					stock.getSector())
+				)
+			)
+		);
+		given(kisService.fetchSearchStockInfo(nokwon.getTickerSymbol()))
+			.willReturn(Mono.just(KisSearchStockInfo.delistedStock(
+					"KR7065560005",
+					"065560",
+					"녹원씨엔아이",
+					"Nokwon Commercials & Industries, Inc.",
+					"KSQ",
+					"소프트웨어",
+					LocalDate.of(2024, 7, 29))
+				).delayElement(Duration.ofSeconds(1))
+			);
+		DateTimeFormatter dtf = DateTimeFormatter.BASIC_ISO_DATE;
+		stocks.forEach(stock -> given(kisService.fetchDividend(stock.getTickerSymbol()))
+			.willReturn(Collections.emptyList()));
+		given(kisService.fetchDividend(hynix.getTickerSymbol()))
+			.willReturn(List.of(
+				KisDividend.create(hynix.getTickerSymbol(),
+					Money.won(300),
+					LocalDate.parse("20240331", dtf),
+					LocalDate.parse("20240514", dtf)),
+				KisDividend.create(hynix.getTickerSymbol(),
+					Money.won(300),
+					LocalDate.parse("20240630", dtf),
+					LocalDate.parse("20240814", dtf))
+			));
+		// when
+		StockRefreshResponse response = stockService.reloadStocks();
+		// then
+		assertThat(response.getAddedStocks()).hasSize(1);
+		assertThat(response.getDeletedStocks()).hasSize(1);
 	}
 
 	@DisplayName("서버는 종목들을 최신화한다")
