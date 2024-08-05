@@ -1,10 +1,9 @@
 package codesquad.fineants.domain.stock.service;
 
 import java.time.Duration;
-import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -33,7 +32,9 @@ import codesquad.fineants.global.errors.exception.FineAntsException;
 import codesquad.fineants.global.errors.exception.NotFoundResourceException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.util.retry.Retry;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -105,13 +106,17 @@ public class StockService {
 			.collect(Collectors.toUnmodifiableSet());
 
 		// 2. 모든 종목의 현재가를 조회하여 폐지된 종목이 있는지 조회
-		Map<Boolean, List<KisSearchStockInfo>> partitionedStocks = tickerSymbols.stream()
-			.map(kisService::fetchSearchStockInfo)
-			.map(mono -> mono.onErrorResume(e -> Mono.empty()))
-			.map(mono -> mono.blockOptional(Duration.ofMinutes(10)))
-			.map(optional -> optional.orElse(null))
-			.filter(Objects::nonNull)
-			.collect(Collectors.partitioningBy(KisSearchStockInfo::isDelisted));
+		Flux<KisSearchStockInfo> flux = Flux.fromIterable(tickerSymbols)
+			.flatMap(tickerSymbol -> kisService.fetchSearchStockInfo(tickerSymbol)
+				.doOnSuccess(response -> log.info("fetchSearchStockInfo ticker is {}", response.getTickerSymbol()))
+				.retryWhen(Retry.fixedDelay(Long.MAX_VALUE, Duration.ofSeconds(5)))
+				.onErrorResume(e -> Mono.empty()), 20)
+			.delayElements(Duration.ofMillis(50));
+
+		Map<Boolean, List<KisSearchStockInfo>> partitionedStocks = flux.collectList()
+			.blockOptional(Duration.ofMinutes(10))
+			.map(list -> list.stream().collect(Collectors.partitioningBy(KisSearchStockInfo::isDelisted)))
+			.orElseGet(() -> Map.of(true, Collections.emptyList(), false, Collections.emptyList()));
 		List<KisSearchStockInfo> delistedStocks = partitionedStocks.get(true); // 상장 폐지 종목
 		List<KisSearchStockInfo> currentStocks = partitionedStocks.get(false); // 상장 종목
 
@@ -127,11 +132,17 @@ public class StockService {
 		log.info("delete stocks for TickerSymbols : {}, deleted={}", deletedStockCode, deleted);
 
 		// 5. 상장된 종목들을 대상으로 이번년도 배당 일정 조회
-		List<KisDividend> dividends = currentStocks.stream()
+		List<KisDividend> dividends = Flux.fromIterable(currentStocks)
 			.map(KisSearchStockInfo::getTickerSymbol)
-			.map(kisService::fetchDividend)
-			.flatMap(Collection::stream)
-			.toList();
+			.flatMap(ticker -> kisService.fetchDividend(ticker)
+				.doOnSuccess(response -> log.info("fetchDividend list is {}", response.size()))
+				.retryWhen(Retry.fixedDelay(Long.MAX_VALUE, Duration.ofSeconds(5)))
+				.onErrorResume(e -> Mono.empty())
+				.flatMapMany(Flux::fromIterable), 20)
+			.delayElements(Duration.ofMillis(50))
+			.collectList()
+			.blockOptional(Duration.ofMinutes(10))
+			.orElseGet(Collections::emptyList);
 
 		// 6. 배당 일정 저장
 		List<StockDividend> stockDividends = dividends.stream()
@@ -140,7 +151,13 @@ public class StockService {
 					.orElseThrow(() -> new FineAntsException(StockErrorCode.NOT_FOUND_STOCK));
 				return dividend.toEntity(stock);
 			}).toList();
-		dividendRepository.saveAll(stockDividends);
+		stockDividends.forEach(stockDividend -> {
+			try {
+				dividendRepository.save(stockDividend);
+			} catch (Exception e) {
+				log.error("Error saving stock dividend: {}", stockDividend, e);
+			}
+		});
 		return StockRefreshResponse.create(newlyAddedTickerSymbols, deletedStockCode);
 	}
 }

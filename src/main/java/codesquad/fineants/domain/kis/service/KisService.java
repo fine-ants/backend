@@ -209,11 +209,9 @@ public class KisService {
 	 * @param tickerSymbol 종목 단축 코드
 	 * @return 종목의 배당 일정 정보
 	 */
-	public List<KisDividend> fetchDividend(String tickerSymbol) {
-		Mono<KisDividendWrapper> mono = kisClient.fetchDividendThisYear(tickerSymbol, manager.createAuthorization());
-		return mono.blockOptional(TIMEOUT)
-			.orElseGet(KisDividendWrapper::empty)
-			.getKisDividends();
+	public Mono<List<KisDividend>> fetchDividend(String tickerSymbol) {
+		return kisClient.fetchDividendThisYear(tickerSymbol, manager.createAuthorization())
+			.map(KisDividendWrapper::getKisDividends);
 	}
 
 	public List<KisDividend> fetchDividendAll(LocalDate from, LocalDate to) {

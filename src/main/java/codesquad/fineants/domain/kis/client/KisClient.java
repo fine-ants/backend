@@ -149,7 +149,7 @@ public class KisClient {
 			queryParamMap,
 			KisDividendWrapper.class,
 			realWebClient
-		);
+		).retryWhen(Retry.fixedDelay(Long.MAX_VALUE, Duration.ofSeconds(5)));
 	}
 
 	public List<KisDividend> fetchDividendAll(LocalDate from, LocalDate to, String authorization) {
@@ -175,7 +175,8 @@ public class KisClient {
 			queryParamMap,
 			KisDividendWrapper.class,
 			realWebClient
-		).block(TIMEOUT);
+		).retryWhen(Retry.fixedDelay(Long.MAX_VALUE, Duration.ofSeconds(5)))
+			.block(TIMEOUT);
 		return Objects.requireNonNull(result).getKisDividends();
 	}
 
@@ -200,7 +201,7 @@ public class KisClient {
 			queryParamMap,
 			KisIpoResponse.class,
 			realWebClient
-		).retry(0);
+		).retryWhen(Retry.fixedDelay(Long.MAX_VALUE, Duration.ofSeconds(5)));
 	}
 
 	public Mono<KisSearchStockInfo> fetchSearchStockInfo(String tickerSymbol, String authorization) {
@@ -240,8 +241,7 @@ public class KisClient {
 			.headers(httpHeaders -> httpHeaders.addAll(headerMap))
 			.retrieve()
 			.onStatus(HttpStatusCode::isError, this::handleError)
-			.bodyToMono(responseType)
-			.retryWhen(Retry.fixedDelay(Long.MAX_VALUE, Duration.ofSeconds(5)));
+			.bodyToMono(responseType);
 	}
 
 	private Mono<? extends Throwable> handleError(ClientResponse clientResponse) {

@@ -15,6 +15,7 @@ import java.util.Objects;
 
 import org.apache.logging.log4j.util.Strings;
 import org.assertj.core.groups.Tuple;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -76,12 +77,8 @@ class KisClientTest extends AbstractContainerBaseTest {
 	void accessToken_whenIssueAccessToken_thenRetryOnAccessTokenFailure() {
 		// given
 		KisAccessToken expectedKisAccessToken = createKisAccessToken();
-		mockWebServer.enqueue(new MockResponse().setResponseCode(403)
-			.setBody(ObjectMapperUtil.serialize(createError()))
-			.addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON));
-		mockWebServer.enqueue(new MockResponse().setResponseCode(200)
-			.setBody(ObjectMapperUtil.serialize(expectedKisAccessToken))
-			.addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON));
+		mockWebServer.enqueue(createResponse(403, ObjectMapperUtil.serialize(createError())));
+		mockWebServer.enqueue(createResponse(200, ObjectMapperUtil.serialize(expectedKisAccessToken)));
 
 		// when
 		Mono<KisAccessToken> responseMono = this.kisClient.fetchAccessToken();
@@ -113,10 +110,7 @@ class KisClientTest extends AbstractContainerBaseTest {
 		stock1.put("issue_price", "9090");
 		output1.add(stock1);
 		responseBodyMap.put("output1", output1);
-		mockWebServer.enqueue(new MockResponse()
-			.setResponseCode(200)
-			.setBody(ObjectMapperUtil.serialize(responseBodyMap))
-			.addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON));
+		mockWebServer.enqueue(createResponse(200, ObjectMapperUtil.serialize(responseBodyMap)));
 
 		LocalDate today = LocalDate.now();
 		LocalDate yesterday = today.minusDays(1);
@@ -143,10 +137,7 @@ class KisClientTest extends AbstractContainerBaseTest {
 		badRequestBody.put("rt_cd", "1");
 		badRequestBody.put("msg_cd", "EGW00201");
 		badRequestBody.put("msg1", "초당 거래건수를 초과하였습니다.");
-		mockWebServer.enqueue(new MockResponse()
-			.setResponseCode(400)
-			.setBody(ObjectMapperUtil.serialize(badRequestBody))
-			.addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON));
+		mockWebServer.enqueue(createResponse(400, ObjectMapperUtil.serialize(badRequestBody)));
 
 		Map<String, Object> okResponseBody = new HashMap<>();
 		List<Map<String, String>> output1 = new ArrayList<>();
@@ -161,10 +152,7 @@ class KisClientTest extends AbstractContainerBaseTest {
 		stock1.put("issue_price", "9090");
 		output1.add(stock1);
 		okResponseBody.put("output1", output1);
-		mockWebServer.enqueue(new MockResponse()
-			.setResponseCode(200)
-			.setBody(ObjectMapperUtil.serialize(okResponseBody))
-			.addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON));
+		mockWebServer.enqueue(createResponse(200, ObjectMapperUtil.serialize(okResponseBody)));
 
 		LocalDate today = LocalDate.now();
 		LocalDate yesterday = today.minusDays(1);
@@ -197,10 +185,7 @@ class KisClientTest extends AbstractContainerBaseTest {
 		);
 		okResponseBody.put("output", output);
 
-		mockWebServer.enqueue(new MockResponse()
-			.setResponseCode(200)
-			.setBody(ObjectMapperUtil.serialize(okResponseBody))
-			.addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON));
+		mockWebServer.enqueue(createResponse(200, ObjectMapperUtil.serialize(okResponseBody)));
 		// when
 		KisSearchStockInfo kisSearchStockInfo = kisClient.fetchSearchStockInfo(tickerSymbol, accessToken)
 			.blockOptional(Duration.ofMinutes(10))
@@ -225,10 +210,7 @@ class KisClientTest extends AbstractContainerBaseTest {
 		badRequestBody.put("rt_cd", "1");
 		badRequestBody.put("msg_cd", "EGW00201");
 		badRequestBody.put("msg1", "초당 거래건수를 초과하였습니다.");
-		mockWebServer.enqueue(new MockResponse()
-			.setResponseCode(400)
-			.setBody(ObjectMapperUtil.serialize(badRequestBody))
-			.addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON));
+		mockWebServer.enqueue(createResponse(400, ObjectMapperUtil.serialize(badRequestBody)));
 
 		Map<String, Object> okResponseBody = new HashMap<>();
 		KisSearchStockInfo output = KisSearchStockInfo.listedStock(
@@ -240,16 +222,14 @@ class KisClientTest extends AbstractContainerBaseTest {
 			"전기,전자"
 		);
 		okResponseBody.put("output", output);
-		mockWebServer.enqueue(new MockResponse()
-			.setResponseCode(200)
-			.setBody(ObjectMapperUtil.serialize(okResponseBody))
-			.addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON));
+		mockWebServer.enqueue(createResponse(200, ObjectMapperUtil.serialize(okResponseBody)));
 
 		String tickerSymbol = "034220";
 		String accessToken = createKisAccessToken().getAccessToken();
 		// when
 		KisSearchStockInfo kisSearchStockInfo = kisClient.fetchSearchStockInfo(tickerSymbol, accessToken)
-			.blockOptional(Duration.ofMinutes(10))
+			.retry(1)
+			.blockOptional()
 			.orElse(null);
 		// then
 		assertThat(kisSearchStockInfo).isNotNull();
@@ -283,10 +263,7 @@ class KisClientTest extends AbstractContainerBaseTest {
 				)
 			)
 		);
-		mockWebServer.enqueue(new MockResponse()
-			.setResponseCode(200)
-			.setBody(ObjectMapperUtil.serialize(output))
-			.addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON));
+		mockWebServer.enqueue(createResponse(200, ObjectMapperUtil.serialize(output)));
 		// when
 		Mono<KisDividendWrapper> mono = kisClient.fetchDividendThisYear(tickerSymbol,
 			kisAccessToken.createAuthorization());
@@ -295,6 +272,14 @@ class KisClientTest extends AbstractContainerBaseTest {
 		// then
 		assertThat(wrapper).isNotNull();
 		assertThat(wrapper.getKisDividends()).hasSize(2);
+	}
+
+	@NotNull
+	private static MockResponse createResponse(int code, String body) {
+		return new MockResponse()
+			.setResponseCode(code)
+			.setBody(body)
+			.addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
 	}
 
 	private Map<String, String> createError() {
