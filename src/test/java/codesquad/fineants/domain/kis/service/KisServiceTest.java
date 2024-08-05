@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -36,9 +37,11 @@ import codesquad.fineants.domain.stock.domain.dto.response.StockDataResponse;
 import codesquad.fineants.domain.stock.domain.entity.Market;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
+import codesquad.fineants.domain.stock.service.StockCsvReader;
 import codesquad.fineants.global.errors.exception.KisException;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 @Slf4j
 class KisServiceTest extends AbstractContainerBaseTest {
@@ -63,6 +66,9 @@ class KisServiceTest extends AbstractContainerBaseTest {
 
 	@Autowired
 	private KisAccessTokenRepository kisAccessTokenRepository;
+
+	@Autowired
+	private StockCsvReader stockCsvReader;
 
 	@MockBean
 	private HolidayRepository holidayRepository;
@@ -220,5 +226,49 @@ class KisServiceTest extends AbstractContainerBaseTest {
 				StockDataResponse.StockIntegrationInfo::getCompanyNameEng,
 				StockDataResponse.StockIntegrationInfo::getMarket
 			).containsExactly(tuple("KR7000660001", "000660", "에스케이하이닉스보통주", "SK hynix", Market.KOSPI));
+	}
+
+	@DisplayName("사용자는 db에 저장된 종목을 각각 조회한다")
+	@Test
+	void fetchSearchStockInfo() {
+		// given
+		List<Stock> stocks = saveStocks();
+		List<String> tickerSymbols = stocks.stream()
+			.map(Stock::getTickerSymbol)
+			.toList();
+
+		KisAccessToken kisAccessToken = createKisAccessToken();
+		kisAccessTokenRepository.refreshAccessToken(kisAccessToken);
+		String accessToken = kisAccessToken.createAuthorization();
+		stocks.forEach(s ->
+			given(client.fetchSearchStockInfo(s.getTickerSymbol(), accessToken))
+				.willReturn(Mono.just(
+					KisSearchStockInfo.listedStock(
+						s.getStockCode(),
+						s.getTickerSymbol(),
+						s.getCompanyName(),
+						s.getCompanyNameEng(),
+						"STK",
+						s.getSector()
+					)
+				)));
+		// when & then
+		for (String tickerSymbol : tickerSymbols) {
+			StepVerifier.create(kisService.fetchSearchStockInfo(tickerSymbol))
+				.expectNextMatches(stockInfo -> {
+					Assertions.assertThat(stockInfo).isNotNull();
+					Assertions.assertThat(tickerSymbol).isEqualTo(stockInfo.getTickerSymbol());
+					return true;
+				})
+				.verifyComplete();
+		}
+	}
+
+	private List<Stock> saveStocks() {
+		Set<StockDataResponse.StockInfo> stockInfoSet = stockCsvReader.readStockCsv();
+		List<Stock> stocks = stockInfoSet.stream()
+			.map(StockDataResponse.StockInfo::toEntity)
+			.toList();
+		return stockRepository.saveAll(stocks);
 	}
 }

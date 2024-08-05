@@ -200,7 +200,7 @@ public class KisClient {
 			queryParamMap,
 			KisIpoResponse.class,
 			realWebClient
-		);
+		).retry(0);
 	}
 
 	public Mono<KisSearchStockInfo> fetchSearchStockInfo(String tickerSymbol, String authorization) {

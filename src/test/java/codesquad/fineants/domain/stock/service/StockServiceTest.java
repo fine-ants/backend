@@ -343,8 +343,15 @@ class StockServiceTest extends AbstractContainerBaseTest {
 		stocks.forEach(s ->
 			given(kisService.fetchSearchStockInfo(s.getTickerSymbol()))
 				.willReturn(Mono.just(
-					KisSearchStockInfo.listedStock(s.getStockCode(), s.getTickerSymbol(), s.getCompanyName(),
-						s.getCompanyNameEng(), "STK", s.getSector()))
+						KisSearchStockInfo.listedStock(
+							s.getStockCode(),
+							s.getTickerSymbol(),
+							s.getCompanyName(),
+							s.getCompanyNameEng(),
+							"STK",
+							s.getSector()
+						)
+					)
 				));
 		// when
 		stockService.scheduledReloadStocks();
