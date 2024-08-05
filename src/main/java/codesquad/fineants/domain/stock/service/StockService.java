@@ -147,17 +147,16 @@ public class StockService {
 		// 6. 배당 일정 저장
 		List<StockDividend> stockDividends = dividends.stream()
 			.map(dividend -> {
-				Stock stock = stockRepository.findByTickerSymbol(dividend.getTickerSymbol())
-					.orElseThrow(() -> new FineAntsException(StockErrorCode.NOT_FOUND_STOCK));
-				return dividend.toEntity(stock);
+				StockDividend existStockDividend = dividendRepository.findByTickerSymbolAndRecordDate(
+					dividend.getTickerSymbol(), dividend.getRecordDate()).orElse(null);
+				if (existStockDividend == null) {
+					Stock stock = stockRepository.findByTickerSymbol(dividend.getTickerSymbol())
+						.orElseThrow(() -> new FineAntsException(StockErrorCode.NOT_FOUND_STOCK));
+					return dividend.toEntity(stock);
+				}
+				return dividend.toEntity(existStockDividend.getId(), existStockDividend.getStock());
 			}).toList();
-		stockDividends.forEach(stockDividend -> {
-			try {
-				dividendRepository.save(stockDividend);
-			} catch (Exception e) {
-				log.error("Error saving stock dividend: {}", stockDividend, e);
-			}
-		});
+		dividendRepository.saveAll(stockDividends);
 		return StockRefreshResponse.create(newlyAddedTickerSymbols, deletedStockCode);
 	}
 }

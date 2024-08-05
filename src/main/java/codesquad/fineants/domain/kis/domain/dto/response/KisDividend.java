@@ -43,6 +43,10 @@ public class KisDividend implements Comparable<KisDividend> {
 		return StockDividend.create(dividend, recordDate, paymentDate, stock);
 	}
 
+	public StockDividend toEntity(Long id, Stock stock) {
+		return StockDividend.create(id, dividend, recordDate, paymentDate, stock);
+	}
+
 	public boolean containsFrom(Map<String, Stock> stockMap) {
 		return stockMap.containsKey(tickerSymbol);
 	}
