@@ -54,6 +54,7 @@ class PortfolioGainHistoryServiceTest extends AbstractContainerBaseTest {
 	@Autowired
 	private CurrentPriceRepository currentPriceRepository;
 
+	// TODO: Kis 접근 토큰 모킹 처리
 	@DisplayName("모든 포트폴리오의 손익 내역을 추가한다")
 	@Test
 	void addPortfolioGainHistory() {

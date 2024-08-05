@@ -71,10 +71,6 @@ public class KisSearchStockInfo {
 		return delistedDate != null;
 	}
 
-	public boolean isListed() {
-		return delistedDate == null;
-	}
-
 	static class KisSearchStockInfoSerializer extends JsonSerializer<KisSearchStockInfo> {
 		@Override
 		public void serialize(KisSearchStockInfo value, JsonGenerator gen, SerializerProvider serializers) throws

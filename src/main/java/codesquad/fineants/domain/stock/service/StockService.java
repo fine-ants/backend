@@ -2,9 +2,9 @@ package codesquad.fineants.domain.stock.service;
 
 import java.time.Duration;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -33,7 +33,6 @@ import codesquad.fineants.global.errors.exception.FineAntsException;
 import codesquad.fineants.global.errors.exception.NotFoundResourceException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Slf4j
@@ -106,16 +105,12 @@ public class StockService {
 			.collect(Collectors.toUnmodifiableSet());
 
 		// 2. 모든 종목의 현재가를 조회하여 폐지된 종목이 있는지 조회
-		// Map<Boolean, List<KisSearchStockInfo>> partitionedStocks = tickerSymbols.stream()
-		// 	.map(kisService::fetchSearchStockInfo)
-		// 	.map(mono -> mono.blockOptional(Duration.ofMinutes(1)))
-		// 	.map(optional -> optional.orElse(null))
-		// 	.filter(Objects::nonNull)
-		// 	.collect(Collectors.partitioningBy(KisSearchStockInfo::isDelisted));
-		Map<Boolean, List<KisSearchStockInfo>> partitionedStocks = fetchAllStockInfo(tickerSymbols)
-			.blockOptional()
-			.orElse(Collections.emptyList())
-			.stream()
+		Map<Boolean, List<KisSearchStockInfo>> partitionedStocks = tickerSymbols.stream()
+			.map(kisService::fetchSearchStockInfo)
+			.map(mono -> mono.onErrorResume(e -> Mono.empty()))
+			.map(mono -> mono.blockOptional(Duration.ofMinutes(10)))
+			.map(optional -> optional.orElse(null))
+			.filter(Objects::nonNull)
 			.collect(Collectors.partitioningBy(KisSearchStockInfo::isDelisted));
 		List<KisSearchStockInfo> delistedStocks = partitionedStocks.get(true); // 상장 폐지 종목
 		List<KisSearchStockInfo> currentStocks = partitionedStocks.get(false); // 상장 종목
@@ -139,21 +134,13 @@ public class StockService {
 			.toList();
 
 		// 6. 배당 일정 저장
-		for (KisDividend dividend : dividends) {
-			Stock stock = stockRepository.findByTickerSymbol(dividend.getTickerSymbol())
-				.orElseThrow(() -> new FineAntsException(StockErrorCode.NOT_FOUND_STOCK));
-			StockDividend stockDividend = dividend.toEntity(stock);
-			dividendRepository.save(stockDividend);
-		}
-
+		List<StockDividend> stockDividends = dividends.stream()
+			.map(dividend -> {
+				Stock stock = stockRepository.findByTickerSymbol(dividend.getTickerSymbol())
+					.orElseThrow(() -> new FineAntsException(StockErrorCode.NOT_FOUND_STOCK));
+				return dividend.toEntity(stock);
+			}).toList();
+		dividendRepository.saveAll(stockDividends);
 		return StockRefreshResponse.create(newlyAddedTickerSymbols, deletedStockCode);
-	}
-
-	private Mono<List<KisSearchStockInfo>> fetchAllStockInfo(Set<String> tickerSymbols) {
-		return Flux.fromIterable(tickerSymbols)
-			.delayElements(Duration.ofMillis(50)) // 1초 20건 처리 (1000ms / 20 = 50ms)
-			.flatMap(tickerSymbol -> kisService.fetchSearchStockInfo(tickerSymbol)
-				.onErrorResume(e -> Mono.empty()))
-			.collectList();
 	}
 }
