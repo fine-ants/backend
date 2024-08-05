@@ -25,6 +25,6 @@ public interface StockRepository extends JpaRepository<Stock, Long> {
 	List<Stock> search(@Param("keyword") String keyword);
 
 	@Modifying
-	@Query("update Stock s set s.isDeleted = true where s.stockCode in :stockCodes")
-	int deleteAllByStockCodes(@Param("stockCodes") Set<String> stockCodes);
+	@Query("update Stock s set s.isDeleted = true where s.tickerSymbol in :tickerSymbols")
+	int deleteAllByTickerSymbols(@Param("tickerSymbols") Set<String> tickerSymbols);
 }

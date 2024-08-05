@@ -121,15 +121,15 @@ public class StockService {
 		List<KisSearchStockInfo> currentStocks = partitionedStocks.get(false); // 상장 종목
 
 		// 3. 상장 폐지된 종목의 배당금 제거
-		Set<String> deletedStockCode = delistedStocks.stream()
-			.map(KisSearchStockInfo::getStockCode)
+		Set<String> deletedTickerSymbols = delistedStocks.stream()
+			.map(KisSearchStockInfo::getTickerSymbol)
 			.collect(Collectors.toUnmodifiableSet());
-		dividendRepository.deleteByStockCodes(deletedStockCode);
-		log.info("delete dividends for StockCodes : {}", deletedStockCode);
+		dividendRepository.deleteByTickerSymbols(deletedTickerSymbols);
+		log.info("delete dividends for StockCodes : {}", deletedTickerSymbols);
 
 		// 4. 상장 폐지된 종목 소프트 제거
-		int deleted = stockRepository.deleteAllByStockCodes(deletedStockCode);
-		log.info("delete stocks for TickerSymbols : {}, deleted={}", deletedStockCode, deleted);
+		int deleted = stockRepository.deleteAllByTickerSymbols(deletedTickerSymbols);
+		log.info("delete stocks for TickerSymbols : {}, deleted={}", deletedTickerSymbols, deleted);
 
 		// 5. 상장된 종목들을 대상으로 이번년도 배당 일정 조회
 		List<KisDividend> dividends = Flux.fromIterable(currentStocks)
@@ -157,6 +157,6 @@ public class StockService {
 				return dividend.toEntity(existStockDividend.getId(), existStockDividend.getStock());
 			}).toList();
 		dividendRepository.saveAll(stockDividends);
-		return StockRefreshResponse.create(newlyAddedTickerSymbols, deletedStockCode);
+		return StockRefreshResponse.create(newlyAddedTickerSymbols, deletedTickerSymbols);
 	}
 }

@@ -25,6 +25,6 @@ public interface StockDividendRepository extends JpaRepository<StockDividend, Lo
 		@Param("recordDate") LocalDate recordDate);
 
 	@Modifying
-	@Query("delete from StockDividend sd where sd.stock.stockCode in :stockCodes")
-	int deleteByStockCodes(@Param("stockCodes") Set<String> stockCodes);
+	@Query("delete from StockDividend sd where sd.stock.tickerSymbol in :tickerSymbols")
+	int deleteByTickerSymbols(@Param("tickerSymbols") Set<String> tickerSymbols);
 }
