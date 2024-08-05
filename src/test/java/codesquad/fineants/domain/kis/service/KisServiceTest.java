@@ -243,25 +243,61 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		stocks.forEach(s ->
 			given(client.fetchSearchStockInfo(s.getTickerSymbol(), accessToken))
 				.willReturn(Mono.just(
-					KisSearchStockInfo.listedStock(
-						s.getStockCode(),
-						s.getTickerSymbol(),
-						s.getCompanyName(),
-						s.getCompanyNameEng(),
-						"STK",
-						s.getSector()
+						KisSearchStockInfo.listedStock(
+							s.getStockCode(),
+							s.getTickerSymbol(),
+							s.getCompanyName(),
+							s.getCompanyNameEng(),
+							"STK",
+							s.getSector()
+						)
 					)
-				)));
+				)
+		);
+
 		// when & then
-		for (String tickerSymbol : tickerSymbols) {
-			StepVerifier.create(kisService.fetchSearchStockInfo(tickerSymbol))
-				.expectNextMatches(stockInfo -> {
-					Assertions.assertThat(stockInfo).isNotNull();
-					Assertions.assertThat(tickerSymbol).isEqualTo(stockInfo.getTickerSymbol());
-					return true;
-				})
-				.verifyComplete();
-		}
+		tickerSymbols.stream()
+			.map(kisService::fetchSearchStockInfo)
+			.forEach(mono ->
+				StepVerifier.create(mono)
+					.expectNextMatches(stockInfo -> {
+						Assertions.assertThat(stockInfo).isNotNull();
+						return true;
+					})
+					.verifyComplete()
+			);
+	}
+
+	@DisplayName("사용자는 종목 정보 조회시 에러 응답을 받으면 처리한다")
+	@Test
+	void fetchSearchStockInfo_whenError_thenHandling() {
+		// given
+		List<Stock> stocks = saveStocks();
+		List<String> tickerSymbols = stocks.stream()
+			.map(Stock::getTickerSymbol)
+			.toList();
+
+		KisAccessToken kisAccessToken = createKisAccessToken();
+		kisAccessTokenRepository.refreshAccessToken(kisAccessToken);
+		String accessToken = kisAccessToken.createAuthorization();
+		stocks.forEach(s ->
+			given(client.fetchSearchStockInfo(s.getTickerSymbol(), accessToken))
+				.willReturn(Mono.error(new KisException("요청 건수 초과")))
+		);
+
+		// when & then
+		tickerSymbols.stream()
+			.map(kisService::fetchSearchStockInfo)
+			.forEach(mono ->
+				StepVerifier.create(mono)
+					.expectErrorMatches(throwable -> {
+						Assertions.assertThat(throwable)
+							.isInstanceOf(KisException.class)
+							.hasMessage("요청 건수 초과");
+						return true;
+					})
+					.verify()
+			);
 	}
 
 	private List<Stock> saveStocks() {
