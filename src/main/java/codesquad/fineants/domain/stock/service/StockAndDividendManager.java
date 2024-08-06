@@ -13,11 +13,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import codesquad.fineants.domain.dividend.domain.entity.StockDividend;
 import codesquad.fineants.domain.dividend.repository.StockDividendRepository;
+import codesquad.fineants.domain.kis.domain.dto.response.DividendItem;
 import codesquad.fineants.domain.kis.domain.dto.response.KisDividend;
 import codesquad.fineants.domain.kis.domain.dto.response.KisSearchStockInfo;
 import codesquad.fineants.domain.kis.service.KisService;
 import codesquad.fineants.domain.stock.domain.dto.response.StockDataResponse;
-import codesquad.fineants.domain.stock.domain.dto.response.StockRefreshResponse;
+import codesquad.fineants.domain.stock.domain.dto.response.StockReloadResponse;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
 import codesquad.fineants.global.errors.errorcode.StockErrorCode;
@@ -48,7 +49,7 @@ public class StockAndDividendManager {
 	 * @return StockRefreshResponse - 신규 상장 종목, 상장 페지 종목, 올해 신규 배당 일정
 	 */
 	@Transactional
-	public StockRefreshResponse reloadStocks() {
+	public StockReloadResponse reloadStocks() {
 		// 신규 상장 종목 저장
 		Set<String> newlyAddedTickerSymbols = saveIpoStock();
 
@@ -68,7 +69,10 @@ public class StockAndDividendManager {
 		List<StockDividend> savedStockDividends = reloadDividend(listedTickerSymbols);
 		log.info("reloadStocks savedStockDividends={}", savedStockDividends.size());
 
-		return StockRefreshResponse.create(newlyAddedTickerSymbols, deletedTickerSymbols);
+		Set<DividendItem> addedDividends = savedStockDividends.stream()
+			.map(DividendItem::from)
+			.collect(Collectors.toUnmodifiableSet());
+		return StockReloadResponse.create(newlyAddedTickerSymbols, deletedTickerSymbols, addedDividends);
 	}
 
 	/**

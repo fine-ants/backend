@@ -10,7 +10,7 @@ import codesquad.fineants.domain.dividend.service.StockDividendService;
 import codesquad.fineants.domain.kis.repository.ClosingPriceRepository;
 import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
 import codesquad.fineants.domain.stock.domain.dto.request.StockSearchRequest;
-import codesquad.fineants.domain.stock.domain.dto.response.StockRefreshResponse;
+import codesquad.fineants.domain.stock.domain.dto.response.StockReloadResponse;
 import codesquad.fineants.domain.stock.domain.dto.response.StockResponse;
 import codesquad.fineants.domain.stock.domain.dto.response.StockSearchItem;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
@@ -57,13 +57,13 @@ public class StockService {
 	@Scheduled(cron = "0 0 8 * * ?") // 매일 오전 8시 (초, 분, 시간)
 	@Transactional
 	public void scheduledReloadStocks() {
-		StockRefreshResponse response = stockAndDividendManager.reloadStocks();
+		StockReloadResponse response = stockAndDividendManager.reloadStocks();
 		log.info("refreshStocks response : {}", response);
 		stockDividendService.writeDividendCsvToS3();
 	}
 
 	@Transactional
-	public StockRefreshResponse reloadStocks() {
+	public StockReloadResponse reloadStocks() {
 		return stockAndDividendManager.reloadStocks();
 	}
 }

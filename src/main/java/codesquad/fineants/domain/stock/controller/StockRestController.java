@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import codesquad.fineants.domain.stock.domain.dto.request.StockSearchRequest;
-import codesquad.fineants.domain.stock.domain.dto.response.StockRefreshResponse;
+import codesquad.fineants.domain.stock.domain.dto.response.StockReloadResponse;
 import codesquad.fineants.domain.stock.domain.dto.response.StockResponse;
 import codesquad.fineants.domain.stock.domain.dto.response.StockSearchItem;
 import codesquad.fineants.domain.stock.service.StockService;
@@ -45,7 +45,7 @@ public class StockRestController {
 
 	@PostMapping("/refresh")
 	@Secured(value = {"ROLE_MANAGER", "ROLE_ADMIN"})
-	public ApiResponse<StockRefreshResponse> refreshStocks() {
+	public ApiResponse<StockReloadResponse> refreshStocks() {
 		return ApiResponse.success(StockSuccessCode.OK_REFRESH_STOCKS, stockService.reloadStocks());
 	}
 

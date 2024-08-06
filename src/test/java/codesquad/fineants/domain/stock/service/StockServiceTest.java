@@ -34,7 +34,7 @@ import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
 import codesquad.fineants.domain.kis.repository.KisAccessTokenRepository;
 import codesquad.fineants.domain.kis.service.KisService;
 import codesquad.fineants.domain.stock.domain.dto.response.StockDataResponse;
-import codesquad.fineants.domain.stock.domain.dto.response.StockRefreshResponse;
+import codesquad.fineants.domain.stock.domain.dto.response.StockReloadResponse;
 import codesquad.fineants.domain.stock.domain.dto.response.StockResponse;
 import codesquad.fineants.domain.stock.domain.entity.Market;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
@@ -220,7 +220,7 @@ class StockServiceTest extends AbstractContainerBaseTest {
 					LocalDate.parse("20240814", dtf))
 			)));
 		// when
-		StockRefreshResponse response = stockService.reloadStocks();
+		StockReloadResponse response = stockService.reloadStocks();
 		// then
 		assertThat(response).isNotNull();
 		assertThat(response.getAddedStocks()).hasSize(1);
