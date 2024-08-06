@@ -3,7 +3,6 @@ package codesquad.fineants.domain.stock.service;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.BDDMockito.*;
 
-import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -79,7 +78,7 @@ class StockServiceTest extends AbstractContainerBaseTest {
 
 	@DisplayName("사용자는 종목 정보를 상세 조회합니다")
 	@Test
-	void getStock() {
+	void getDetailedStock() {
 		// given
 		Stock stock = stockRepository.save(createSamsungStock());
 		stockDividendRepository.saveAll(createStockDividendWith(stock));
@@ -92,7 +91,7 @@ class StockServiceTest extends AbstractContainerBaseTest {
 
 		String tickerSymbol = "005930";
 		// when
-		StockResponse response = stockService.getStock(tickerSymbol);
+		StockResponse response = stockService.getDetailedStock(tickerSymbol);
 		// then
 		Assertions.assertAll(
 			() -> assertThat(response)
@@ -128,7 +127,7 @@ class StockServiceTest extends AbstractContainerBaseTest {
 
 	@DisplayName("사용자가 종목 상세 정보 조회시 종목의 현재가 및 종가가 없는 경우 서버로부터 조회하여 가져온다")
 	@Test
-	void getStock_whenPriceIsNotExist_thenFetchCurrentPrice() {
+	void getDetailedStock_whenPriceIsNotExist_thenFetchCurrentPrice() {
 		// given
 		Stock stock = stockRepository.save(createSamsungStock());
 		stockDividendRepository.saveAll(createStockDividendWith(stock));
@@ -143,7 +142,7 @@ class StockServiceTest extends AbstractContainerBaseTest {
 
 		String tickerSymbol = "005930";
 		// when
-		StockResponse response = stockService.getStock(tickerSymbol);
+		StockResponse response = stockService.getDetailedStock(tickerSymbol);
 		// then
 		Assertions.assertAll(
 			() -> assertThat(response)
@@ -210,7 +209,7 @@ class StockServiceTest extends AbstractContainerBaseTest {
 					"KSQ", "소프트웨어", LocalDate.of(2024, 7, 29))));
 		DateTimeFormatter dtf = DateTimeFormatter.BASIC_ISO_DATE;
 		given(kisService.fetchDividend(hynix.getTickerSymbol()))
-			.willReturn(List.of(
+			.willReturn(Mono.just(List.of(
 				KisDividend.create(hynix.getTickerSymbol(),
 					Money.won(300),
 					LocalDate.parse("20240331", dtf),
@@ -219,7 +218,7 @@ class StockServiceTest extends AbstractContainerBaseTest {
 					Money.won(300),
 					LocalDate.parse("20240630", dtf),
 					LocalDate.parse("20240814", dtf))
-			));
+			)));
 		// when
 		StockRefreshResponse response = stockService.reloadStocks();
 		// then
@@ -253,75 +252,6 @@ class StockServiceTest extends AbstractContainerBaseTest {
 			);
 	}
 
-	@DisplayName("csv 파일에 있는 종목들을 기반으로 종목과 배당일정을 최신화를 한다")
-	@Test
-	void reloadStocksWithCsvFile() {
-		// given
-		List<Stock> stocks = saveStocks();
-		Stock nokwon = stockRepository.save(createNokwonCI());
-		kisAccessTokenRepository.refreshAccessToken(createKisAccessToken());
-		StockDataResponse.StockIntegrationInfo hynix = StockDataResponse.StockIntegrationInfo.create(
-			"000660",
-			"에스케이하이닉스보통주",
-			"SK hynix",
-			"KR7000660001",
-			"전기,전자",
-			Market.KOSPI);
-		given(kisService.fetchStockInfoInRangedIpo())
-			.willReturn(Set.of(hynix));
-		given(kisService.fetchSearchStockInfo(hynix.getTickerSymbol()))
-			.willReturn(Mono.just(KisSearchStockInfo.listedStock(
-					"KR7000660001",
-					"000660",
-					"에스케이하이닉스보통주",
-					"SK hynix",
-					"STK",
-					"전기,전자")
-				)
-			);
-		stocks.forEach(stock -> given(kisService.fetchSearchStockInfo(stock.getTickerSymbol()))
-			.willReturn(Mono.just(KisSearchStockInfo.listedStock(
-					stock.getStockCode(),
-					stock.getTickerSymbol(),
-					stock.getCompanyName(),
-					stock.getCompanyNameEng(),
-					stock.getMarket().getMarketIdCode(),
-					stock.getSector())
-				)
-			)
-		);
-		given(kisService.fetchSearchStockInfo(nokwon.getTickerSymbol()))
-			.willReturn(Mono.just(KisSearchStockInfo.delistedStock(
-					"KR7065560005",
-					"065560",
-					"녹원씨엔아이",
-					"Nokwon Commercials & Industries, Inc.",
-					"KSQ",
-					"소프트웨어",
-					LocalDate.of(2024, 7, 29))
-				).delayElement(Duration.ofSeconds(1))
-			);
-		DateTimeFormatter dtf = DateTimeFormatter.BASIC_ISO_DATE;
-		stocks.forEach(stock -> given(kisService.fetchDividend(stock.getTickerSymbol()))
-			.willReturn(Collections.emptyList()));
-		given(kisService.fetchDividend(hynix.getTickerSymbol()))
-			.willReturn(List.of(
-				KisDividend.create(hynix.getTickerSymbol(),
-					Money.won(300),
-					LocalDate.parse("20240331", dtf),
-					LocalDate.parse("20240514", dtf)),
-				KisDividend.create(hynix.getTickerSymbol(),
-					Money.won(300),
-					LocalDate.parse("20240630", dtf),
-					LocalDate.parse("20240814", dtf))
-			));
-		// when
-		StockRefreshResponse response = stockService.reloadStocks();
-		// then
-		assertThat(response.getAddedStocks()).hasSize(1);
-		assertThat(response.getDeletedStocks()).hasSize(1);
-	}
-
 	@DisplayName("서버는 종목들을 최신화한다")
 	@Test
 	void scheduledRefreshStocks() {
@@ -340,19 +270,20 @@ class StockServiceTest extends AbstractContainerBaseTest {
 			.willReturn(Mono.just(
 				KisSearchStockInfo.listedStock(stock.getStockCode(), stock.getTickerSymbol(), stock.getCompanyName(),
 					stock.getCompanyNameEng(), "STK", "전기,전자")));
-		stocks.forEach(s ->
-			given(kisService.fetchSearchStockInfo(s.getTickerSymbol()))
-				.willReturn(Mono.just(
-						KisSearchStockInfo.listedStock(
-							s.getStockCode(),
-							s.getTickerSymbol(),
-							s.getCompanyName(),
-							s.getCompanyNameEng(),
-							"STK",
-							s.getSector()
-						)
+		stocks.forEach(s -> given(kisService.fetchSearchStockInfo(s.getTickerSymbol()))
+			.willReturn(Mono.just(
+					KisSearchStockInfo.listedStock(
+						s.getStockCode(),
+						s.getTickerSymbol(),
+						s.getCompanyName(),
+						s.getCompanyNameEng(),
+						"STK",
+						s.getSector()
 					)
-				));
+				)
+			));
+		given(kisService.fetchDividend(anyString()))
+			.willReturn(Mono.just(Collections.emptyList()));
 		// when
 		stockService.scheduledReloadStocks();
 		// then

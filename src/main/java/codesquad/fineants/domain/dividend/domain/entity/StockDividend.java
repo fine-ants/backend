@@ -180,4 +180,11 @@ public class StockDividend extends BaseEntity {
 	public Dividend toDividend() {
 		return Dividend.create(recordDate, paymentDate, stock.getTickerSymbol(), stock.getCompanyName(), dividend);
 	}
+
+	public boolean equalPaymentDate(LocalDate paymentDate) {
+		if (this.paymentDate == null || paymentDate == null) {
+			return false;
+		}
+		return this.paymentDate.equals(paymentDate);
+	}
 }

@@ -41,6 +41,7 @@ import codesquad.fineants.global.errors.exception.KisException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
+import reactor.util.retry.Retry;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -211,7 +212,10 @@ public class KisService {
 	 */
 	public Mono<List<KisDividend>> fetchDividend(String tickerSymbol) {
 		return kisClient.fetchDividendThisYear(tickerSymbol, manager.createAuthorization())
-			.map(KisDividendWrapper::getKisDividends);
+			.map(KisDividendWrapper::getKisDividends)
+			.doOnSuccess(response -> log.debug("fetchDividend list is {}", response.size()))
+			.retryWhen(Retry.fixedDelay(Long.MAX_VALUE, Duration.ofSeconds(5)))
+			.onErrorResume(e -> Mono.empty());
 	}
 
 	public List<KisDividend> fetchDividendAll(LocalDate from, LocalDate to) {
@@ -226,7 +230,10 @@ public class KisService {
 	 * @return 종목 정보
 	 */
 	public Mono<KisSearchStockInfo> fetchSearchStockInfo(String tickerSymbol) {
-		return kisClient.fetchSearchStockInfo(tickerSymbol, manager.createAuthorization());
+		return kisClient.fetchSearchStockInfo(tickerSymbol, manager.createAuthorization())
+			.doOnSuccess(response -> log.debug("fetchSearchStockInfo ticker is {}", response.getTickerSymbol()))
+			.retryWhen(Retry.fixedDelay(Long.MAX_VALUE, Duration.ofSeconds(5)))
+			.onErrorResume(e -> Mono.empty());
 	}
 
 	/**

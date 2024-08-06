@@ -50,7 +50,7 @@ public class StockRestControllerTest extends ControllerTestSupport {
 			.annualDividendYield(Percentage.from(0.1))
 			.dividendMonths(List.of(1, 4))
 			.build();
-		given(stockService.getStock(anyString())).willReturn(response);
+		given(stockService.getDetailedStock(anyString())).willReturn(response);
 
 		// when & then
 		mockMvc.perform(get("/api/stocks/{tickerSymbol}", tickerSymbol)
