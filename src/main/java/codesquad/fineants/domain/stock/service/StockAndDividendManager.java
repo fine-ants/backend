@@ -119,17 +119,15 @@ public class StockAndDividendManager {
 			.map(Stock::getTickerSymbol)
 			.collect(Collectors.toUnmodifiableSet());
 
-		// 한국 투자 증권에 종목 정보 조회
+		// 한국 투자 증권에 종목 정보 조회 후 상장 폐지 종목 분할
 		int concurrency = 20;
-		Flux<KisSearchStockInfo> flux = Flux.fromIterable(tickerSymbols)
+		return Flux.fromIterable(tickerSymbols)
 			.flatMap(kisService::fetchSearchStockInfo, concurrency)
-			.delayElements(DELAY);
-
-		// 상장 폐지 종목 분할
-		return flux.collectList()
+			.delayElements(DELAY)
+			.collectList()
 			.blockOptional(TIMEOUT)
-			.map(list -> list.stream().collect(Collectors.partitioningBy(KisSearchStockInfo::isDelisted)))
-			.orElseGet(() -> Map.of(true, Collections.emptyList(), false, Collections.emptyList()));
+			.orElseGet(Collections::emptyList).stream()
+			.collect(Collectors.partitioningBy(KisSearchStockInfo::isDelisted));
 	}
 
 	/**

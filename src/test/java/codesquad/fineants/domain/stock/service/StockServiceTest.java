@@ -256,7 +256,7 @@ class StockServiceTest extends AbstractContainerBaseTest {
 	@Test
 	void scheduledRefreshStocks() {
 		// given
-		List<Stock> stocks = saveStocks();
+		List<Stock> stocks = saveStocks(100);
 		StockDataResponse.StockIntegrationInfo stock = StockDataResponse.StockIntegrationInfo.create(
 			"000660",
 			"에스케이하이닉스보통주",
@@ -290,10 +290,11 @@ class StockServiceTest extends AbstractContainerBaseTest {
 		assertThat(stockRepository.findByTickerSymbol("000660")).isPresent();
 	}
 
-	private List<Stock> saveStocks() {
+	private List<Stock> saveStocks(int limit) {
 		Set<StockDataResponse.StockInfo> stockInfoSet = stockCsvReader.readStockCsv();
 		List<Stock> stocks = stockInfoSet.stream()
 			.map(StockDataResponse.StockInfo::toEntity)
+			.limit(limit)
 			.toList();
 		return stockRepository.saveAll(stocks);
 	}

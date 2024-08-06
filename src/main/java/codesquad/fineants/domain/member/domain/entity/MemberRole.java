@@ -1,6 +1,6 @@
 package codesquad.fineants.domain.member.domain.entity;
 
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.GrantedAuthority;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -46,7 +46,7 @@ public class MemberRole {
 	}
 	//** 연관 관계 메서드 종료 **//
 
-	public SimpleGrantedAuthority toSimpleGrantedAuthority() {
+	public GrantedAuthority toSimpleGrantedAuthority() {
 		return role.toSimpleGrantedAuthority();
 	}
 

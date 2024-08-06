@@ -2,7 +2,7 @@ package codesquad.fineants.domain.kis.service;
 
 import java.time.Duration;
 import java.time.LocalDate;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -40,6 +40,7 @@ import codesquad.fineants.domain.stock_target_price.repository.StockTargetPriceR
 import codesquad.fineants.global.errors.exception.KisException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
 
@@ -48,6 +49,7 @@ import reactor.util.retry.Retry;
 @Service
 public class KisService {
 	private static final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
+	public static final Duration DELAY = Duration.ofMillis(50L);
 	public static final Duration TIMEOUT = Duration.ofMinutes(10L);
 
 	private final KisClient kisClient;
@@ -205,8 +207,6 @@ public class KisService {
 
 	/**
 	 * tickerSymbol에 해당하는 종목의 배당 일정을 조회합니다.
-	 * 종목이 상장 폐지된 경우 KisDividend.isDelisted 필드의 상태값을 true인 객체를 반환한다
-	 * TODO: mono를 이용하여 상장 폐지된 종목인 경우 핸들링하여 폐지된 KisDividend 객체 반환, 정상 조회된 경우 KisDividend 반환
 	 * @param tickerSymbol 종목 단축 코드
 	 * @return 종목의 배당 일정 정보
 	 */
@@ -237,27 +237,28 @@ public class KisService {
 	}
 
 	/**
-	 * 상장된 종목들의 정보 조회
+	 * 상장된 종목 조회
 	 * 하루전부터 오늘까지의 상장된 종목들의 정보를 조회한다.
 	 * @return 종목 정보 리스트
 	 */
 	public Set<StockDataResponse.StockIntegrationInfo> fetchStockInfoInRangedIpo() {
-		List<KisSearchStockInfo> kisSearchStockInfos = new ArrayList<>();
 		LocalDate today = LocalDate.now();
 		LocalDate yesterday = today.minusDays(1);
-		kisClient.fetchIpo(yesterday, today, manager.createAuthorization())
+		Set<String> tickerSymbols = kisClient.fetchIpo(yesterday, today, manager.createAuthorization())
 			.blockOptional(TIMEOUT)
 			.orElseThrow()
 			.getKisIpos().stream()
 			.filter(kisIpo -> !kisIpo.isEmpty())
 			.map(KisIpo::getShtCd)
-			.collect(Collectors.toSet())
-			.forEach(tickerSymbol -> kisClient.fetchSearchStockInfo(tickerSymbol,
-					manager.createAuthorization())
-				.blockOptional(TIMEOUT)
-				.ifPresent(kisSearchStockInfos::add)
-			);
-		return kisSearchStockInfos.stream()
+			.collect(Collectors.toSet());
+
+		int concurrency = 20;
+		return Flux.fromIterable(tickerSymbols)
+			.flatMap(this::fetchSearchStockInfo, concurrency)
+			.delayElements(DELAY)
+			.collectList()
+			.blockOptional(TIMEOUT)
+			.orElseGet(Collections::emptyList).stream()
 			.map(KisSearchStockInfo::toEntity)
 			.map(StockDataResponse.StockIntegrationInfo::from)
 			.collect(Collectors.toUnmodifiableSet());

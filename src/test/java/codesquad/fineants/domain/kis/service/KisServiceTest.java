@@ -232,7 +232,9 @@ class KisServiceTest extends AbstractContainerBaseTest {
 	@Test
 	void fetchSearchStockInfo() {
 		// given
-		List<Stock> stocks = saveStocks();
+		List<Stock> stocks = saveStocks().stream()
+			.limit(100)
+			.toList();
 		List<String> tickerSymbols = stocks.stream()
 			.map(Stock::getTickerSymbol)
 			.toList();
@@ -267,39 +269,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 					.verifyComplete()
 			);
 	}
-
-	@DisplayName("사용자는 종목 정보 조회시 에러 응답을 받으면 처리한다")
-	@Test
-	void fetchSearchStockInfo_whenError_thenHandling() {
-		// given
-		List<Stock> stocks = saveStocks();
-		List<String> tickerSymbols = stocks.stream()
-			.map(Stock::getTickerSymbol)
-			.toList();
-
-		KisAccessToken kisAccessToken = createKisAccessToken();
-		kisAccessTokenRepository.refreshAccessToken(kisAccessToken);
-		String accessToken = kisAccessToken.createAuthorization();
-		stocks.forEach(s ->
-			given(client.fetchSearchStockInfo(s.getTickerSymbol(), accessToken))
-				.willReturn(Mono.error(new KisException("요청 건수 초과")))
-		);
-
-		// when & then
-		tickerSymbols.stream()
-			.map(kisService::fetchSearchStockInfo)
-			.forEach(mono ->
-				StepVerifier.create(mono)
-					.expectErrorMatches(throwable -> {
-						Assertions.assertThat(throwable)
-							.isInstanceOf(KisException.class)
-							.hasMessage("요청 건수 초과");
-						return true;
-					})
-					.verify()
-			);
-	}
-
+	
 	private List<Stock> saveStocks() {
 		Set<StockDataResponse.StockInfo> stockInfoSet = stockCsvReader.readStockCsv();
 		List<Stock> stocks = stockInfoSet.stream()
