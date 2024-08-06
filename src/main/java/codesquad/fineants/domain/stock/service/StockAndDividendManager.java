@@ -78,12 +78,12 @@ public class StockAndDividendManager {
 	 */
 	private void deleteStocks(Set<String> tickerSymbols) {
 		// 종목의 배당금 삭제
-		int deleteCount = dividendRepository.deleteByTickerSymbols(tickerSymbols);
-		log.info("delete dividends for TickerSymbols : {}, deleteCount={}", tickerSymbols, deleteCount);
+		int deletedDividendCount = dividendRepository.deleteByTickerSymbols(tickerSymbols);
+		log.info("delete dividends for TickerSymbols : {}, deleteCount={}", tickerSymbols, deletedDividendCount);
 
 		// 종목 삭제
-		deleteCount = stockRepository.deleteAllByTickerSymbols(tickerSymbols);
-		log.info("delete stocks for TickerSymbols : {}, deleteCount={}", tickerSymbols, deleteCount);
+		int deletedStockCount = stockRepository.deleteAllByTickerSymbols(tickerSymbols);
+		log.info("delete stocks for TickerSymbols : {}, deleteCount={}", tickerSymbols, deletedStockCount);
 	}
 
 	/**
