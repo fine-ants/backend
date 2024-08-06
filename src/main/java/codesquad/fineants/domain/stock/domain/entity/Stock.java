@@ -1,13 +1,11 @@
 package codesquad.fineants.domain.stock.domain.entity;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import codesquad.fineants.domain.BaseEntity;
 import codesquad.fineants.domain.common.money.Expression;
@@ -47,21 +45,20 @@ public class Stock extends BaseEntity {
 	@OneToMany(mappedBy = "stock", fetch = FetchType.LAZY)
 	private final List<StockDividend> stockDividends = new ArrayList<>();
 
-	private Stock(LocalDateTime createAt, LocalDateTime modifiedAt, String tickerSymbol,
-		String companyName, String companyNameEng, String stockCode, String sector, Market market) {
-		super(createAt, modifiedAt);
+	private Stock(String tickerSymbol, String companyName, String companyNameEng, String stockCode, String sector,
+		Market market) {
 		this.tickerSymbol = tickerSymbol;
 		this.companyName = companyName;
 		this.companyNameEng = companyNameEng;
 		this.stockCode = stockCode;
 		this.sector = sector;
 		this.market = market;
+		this.isDeleted = false;
 	}
 
 	public static Stock of(String tickerSymbol, String companyName, String companyNameEng, String stockCode,
 		String sector, Market market) {
-		return new Stock(LocalDateTime.now(), null, tickerSymbol, companyName, companyNameEng, stockCode, sector,
-			market);
+		return new Stock(tickerSymbol, companyName, companyNameEng, stockCode, sector, market);
 	}
 
 	public void addStockDividend(StockDividend stockDividend) {
@@ -73,17 +70,15 @@ public class Stock extends BaseEntity {
 	public List<StockDividend> getCurrentMonthDividends() {
 		LocalDate today = LocalDate.now();
 		return stockDividends.stream()
-			.filter(dividend -> dividend.getPaymentDate() != null)
-			.filter(dividend -> dividend.getPaymentDate().getYear() == today.getYear() &&
-				dividend.getPaymentDate().getMonth() == today.getMonth())
-			.collect(Collectors.toList());
+			.filter(dividend -> dividend.equalPaymentDate(today))
+			.toList();
 	}
 
 	public List<StockDividend> getCurrentYearDividends() {
 		LocalDate today = LocalDate.now();
 		return stockDividends.stream()
 			.filter(dividend -> dividend.isCurrentYearPaymentDate(today))
-			.collect(Collectors.toList());
+			.toList();
 	}
 
 	public Map<Integer, Expression> createMonthlyDividends(List<PurchaseHistory> purchaseHistories,
@@ -120,7 +115,7 @@ public class Stock extends BaseEntity {
 		// 0. 현재년도에 해당하는 배당금 정보를 필터링하여 별도 저장합니다.
 		List<StockDividend> currentYearStockDividends = stockDividends.stream()
 			.filter(stockDividend -> stockDividend.isCurrentYearRecordDate(currentLocalDate))
-			.collect(Collectors.toList());
+			.toList();
 
 		// 1. 배당금 데이터 중에서 현금지급일자가 작년도에 해당하는 배당금 정보를 필터링합니다.
 		// 2. 1단계에서 필터링한 배당금 데이터들중 0단계에서 별도 저장한 현재년도의 분기 배당금과 중복되는 배당금 정보를 필터링합니다.
@@ -143,7 +138,7 @@ public class Stock extends BaseEntity {
 		return stockDividends.stream()
 			.filter(dividend -> dividend.isCurrentYearPaymentDate(LocalDate.now()))
 			.map(StockDividend::getDividend)
-			.map(money -> (Expression)money)
+			.map(Expression.class::cast)
 			.reduce(Money.zero(), Expression::plus);
 	}
 
@@ -151,7 +146,7 @@ public class Stock extends BaseEntity {
 		Expression dividends = stockDividends.stream()
 			.filter(dividend -> dividend.isSatisfiedPaymentDateEqualYearBy(LocalDate.now()))
 			.map(StockDividend::getDividend)
-			.map(money -> (Expression)money)
+			.map(Expression.class::cast)
 			.reduce(Money.zero(), Expression::plus);
 		return dividends.divide(getCurrentPrice(manager));
 	}
@@ -185,7 +180,7 @@ public class Stock extends BaseEntity {
 		return stockDividends.stream()
 			.filter(dividend -> dividend.isCurrentYearPaymentDate(LocalDate.now()))
 			.map(dividend -> dividend.getPaymentDate().getMonthValue())
-			.collect(Collectors.toList());
+			.toList();
 	}
 
 	// ticker 및 recordDate 기준으로 KisDividend가 매치되어 있는지 확인
@@ -209,6 +204,6 @@ public class Stock extends BaseEntity {
 	public List<StockDividend> getStockDividendNotInRange(LocalDate from, LocalDate to) {
 		return stockDividends.stream()
 			.filter(stockDividend -> !stockDividend.hasInRange(from, to))
-			.collect(Collectors.toList());
+			.toList();
 	}
 }
