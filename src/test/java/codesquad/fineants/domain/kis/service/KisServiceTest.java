@@ -7,7 +7,6 @@ import static org.mockito.BDDMockito.*;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
@@ -115,7 +114,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 
 		List<String> tickerSymbols = stocks.stream()
 			.map(Stock::getTickerSymbol)
-			.collect(Collectors.toList());
+			.toList();
 		// when
 		kisService.refreshStockCurrentPrice(tickerSymbols);
 
@@ -141,7 +140,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 
 		List<String> tickerSymbols = stocks.stream()
 			.map(Stock::getTickerSymbol)
-			.collect(Collectors.toList());
+			.toList();
 		// when
 		List<KisCurrentPrice> prices = kisService.refreshStockCurrentPrice(tickerSymbols);
 
@@ -169,7 +168,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 
 		List<String> tickerSymbols = stocks.stream()
 			.map(Stock::getTickerSymbol)
-			.collect(Collectors.toList());
+			.toList();
 		// when
 		kisService.refreshLastDayClosingPrice(tickerSymbols);
 
@@ -269,7 +268,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 					.verifyComplete()
 			);
 	}
-	
+
 	private List<Stock> saveStocks() {
 		Set<StockDataResponse.StockInfo> stockInfoSet = stockCsvReader.readStockCsv();
 		List<Stock> stocks = stockInfoSet.stream()
