@@ -11,6 +11,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.util.Strings;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -83,9 +84,9 @@ public class AmazonS3DividendService {
 	 * @param dividends 배당일정
 	 */
 	public void writeDividend(List<Dividend> dividends, String path) {
-		String title = String.join(CSV_SEPARATOR, "배정기준일", "현금배당지급일", "종목코드", "종목명", "주당배당금");
+		String title = csvTitle();
 		String data = dividends.stream()
-			.map(Dividend::toCsv)
+			.map(Dividend::toCsvLineString)
 			.collect(Collectors.joining(Strings.LINE_SEPARATOR));
 		String csvData = String.join(Strings.LINE_SEPARATOR, title, data);
 		InputStream inputStream = new ByteArrayInputStream(csvData.getBytes(StandardCharsets.UTF_8));
@@ -97,7 +98,12 @@ public class AmazonS3DividendService {
 		log.debug("putObjectResult : {}", putObjectResult);
 	}
 
+	@NotNull
+	private static String csvTitle() {
+		return String.join(CSV_SEPARATOR, "recordDate", "paymentDate", "stockCode", "companyName", "amount");
+	}
+
 	public void writeDividends(List<StockDividend> dividends) {
-		
+
 	}
 }
