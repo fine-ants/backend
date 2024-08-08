@@ -3,17 +3,25 @@ package codesquad.fineants.infra.s3.service;
 import static java.nio.charset.StandardCharsets.*;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
+import org.apache.logging.log4j.util.Strings;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.GetObjectRequest;
+import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.amazonaws.services.s3.model.PutObjectResult;
 import com.amazonaws.services.s3.model.S3Object;
 
 import codesquad.fineants.domain.stock.domain.entity.Stock;
@@ -61,4 +69,39 @@ public class AmazonS3StockService {
 			return Optional.empty();
 		}
 	}
+
+	public void writeStocks(List<Stock> stocks) {
+		String title = csvTitle();
+		String lines = csvLines(stocks);
+		String data = String.join(Strings.LINE_SEPARATOR, title, lines);
+		PutObjectResult result = putStockData(data);
+		log.info("writeStocks result : {}", result);
+	}
+
+	@NotNull
+	private String csvTitle() {
+		return String.join(CSV_SEPARATOR, "stockCode", "tickerSymbol", "companyName", "companyNameEng",
+			"market", "sector");
+	}
+
+	@NotNull
+	private String csvLines(List<Stock> stocks) {
+		return stocks.stream()
+			.map(Stock::toCsvLineString)
+			.collect(Collectors.joining(Strings.LINE_SEPARATOR));
+	}
+
+	private PutObjectResult putStockData(String data) {
+		InputStream inputStream = new ByteArrayInputStream(data.getBytes(UTF_8));
+		PutObjectRequest request = new PutObjectRequest(bucketName, stockPath, inputStream, createObjectMetadata());
+		return amazonS3.putObject(request);
+	}
+
+	@NotNull
+	private ObjectMetadata createObjectMetadata() {
+		ObjectMetadata metadata = new ObjectMetadata();
+		metadata.setContentType("text/csv");
+		return metadata;
+	}
+
 }

@@ -68,7 +68,7 @@ public class Stock extends BaseEntity {
 		String tickerSymbol = data[1];
 		String companyName = data[2];
 		String companyNameEng = data[3];
-		Market market = Market.valueOf(data[4]);
+		Market market = Market.ofMarket(data[4]);
 		String sector = data[5];
 		return new Stock(tickerSymbol, companyName, companyNameEng, stockCode, sector, market);
 	}
@@ -217,5 +217,15 @@ public class Stock extends BaseEntity {
 		return stockDividends.stream()
 			.filter(stockDividend -> !stockDividend.hasInRange(from, to))
 			.toList();
+	}
+
+	public String toCsvLineString() {
+		return String.join(",",
+			stockCode,
+			tickerSymbol,
+			companyName,
+			companyNameEng,
+			market.name(),
+			sector);
 	}
 }

@@ -18,6 +18,7 @@ import codesquad.fineants.domain.stock.repository.StockQueryRepository;
 import codesquad.fineants.domain.stock.repository.StockRepository;
 import codesquad.fineants.global.errors.errorcode.StockErrorCode;
 import codesquad.fineants.global.errors.exception.NotFoundResourceException;
+import codesquad.fineants.infra.s3.service.AmazonS3StockService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -28,6 +29,7 @@ public class StockService {
 	private final StockRepository stockRepository;
 	private final CurrentPriceRepository currentPriceRepository;
 	private final ClosingPriceRepository closingPriceRepository;
+	private final AmazonS3StockService amazonS3StockService;
 	private final StockDividendService stockDividendService;
 	private final StockQueryRepository stockQueryRepository;
 	private final StockAndDividendManager stockAndDividendManager;
@@ -59,6 +61,7 @@ public class StockService {
 	public void scheduledReloadStocks() {
 		StockReloadResponse response = stockAndDividendManager.reloadStocks();
 		log.info("refreshStocks response : {}", response);
+		amazonS3StockService.writeStocks(stockRepository.findAll());
 	}
 
 	@Transactional
