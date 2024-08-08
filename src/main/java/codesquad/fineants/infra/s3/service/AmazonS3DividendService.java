@@ -2,18 +2,19 @@ package codesquad.fineants.infra.s3.service;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
@@ -40,8 +41,21 @@ public class AmazonS3DividendService {
 	public List<Dividend> fetchDividend() {
 		log.debug("bucketName : {}", bucketName);
 		log.debug("dividendPath : {}", dividendPath);
-		S3Object s3Object = amazonS3.getObject(new GetObjectRequest(bucketName, dividendPath));
+		return getS3Object()
+			.map(this::parseDividends)
+			.orElseGet(Collections::emptyList);
+	}
 
+	private Optional<S3Object> getS3Object() {
+		try {
+			return Optional.ofNullable(amazonS3.getObject(new GetObjectRequest(bucketName, dividendPath)));
+		} catch (AmazonServiceException e) {
+			log.error(e.getMessage());
+			return Optional.empty();
+		}
+	}
+
+	private List<Dividend> parseDividends(S3Object s3Object) {
 		try (BufferedReader br = new BufferedReader(
 			new InputStreamReader(s3Object.getObjectContent(), StandardCharsets.UTF_8))) {
 			return br.lines()
@@ -49,9 +63,10 @@ public class AmazonS3DividendService {
 				.map(line -> line.split(CSV_SEPARATOR))
 				.map(Dividend::parse)
 				.distinct()
-				.collect(Collectors.toList());
-		} catch (IOException e) {
-			throw new RuntimeException(e);
+				.toList();
+		} catch (Exception e) {
+			log.error(e.getMessage());
+			return Collections.emptyList();
 		}
 	}
 
