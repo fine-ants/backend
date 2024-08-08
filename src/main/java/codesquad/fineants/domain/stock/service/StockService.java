@@ -6,7 +6,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import codesquad.fineants.domain.dividend.service.StockDividendService;
+import codesquad.fineants.domain.dividend.repository.StockDividendRepository;
 import codesquad.fineants.domain.kis.repository.ClosingPriceRepository;
 import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
 import codesquad.fineants.domain.stock.domain.dto.request.StockSearchRequest;
@@ -18,6 +18,7 @@ import codesquad.fineants.domain.stock.repository.StockQueryRepository;
 import codesquad.fineants.domain.stock.repository.StockRepository;
 import codesquad.fineants.global.errors.errorcode.StockErrorCode;
 import codesquad.fineants.global.errors.exception.NotFoundResourceException;
+import codesquad.fineants.infra.s3.service.AmazonS3DividendService;
 import codesquad.fineants.infra.s3.service.AmazonS3StockService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,9 +31,10 @@ public class StockService {
 	private final CurrentPriceRepository currentPriceRepository;
 	private final ClosingPriceRepository closingPriceRepository;
 	private final AmazonS3StockService amazonS3StockService;
-	private final StockDividendService stockDividendService;
+	private final AmazonS3DividendService amazonS3DividendService;
 	private final StockQueryRepository stockQueryRepository;
 	private final StockAndDividendManager stockAndDividendManager;
+	private final StockDividendRepository stockDividendRepository;
 
 	@Transactional(readOnly = true)
 	public List<StockSearchItem> search(StockSearchRequest request) {
@@ -62,6 +64,7 @@ public class StockService {
 		StockReloadResponse response = stockAndDividendManager.reloadStocks();
 		log.info("refreshStocks response : {}", response);
 		amazonS3StockService.writeStocks(stockRepository.findAll());
+		amazonS3DividendService.writeDividends(stockDividendRepository.findAll());
 	}
 
 	@Transactional

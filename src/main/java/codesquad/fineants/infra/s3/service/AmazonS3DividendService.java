@@ -96,4 +96,8 @@ public class AmazonS3DividendService {
 			new PutObjectRequest(bucketName, path, inputStream, metadata));
 		log.debug("putObjectResult : {}", putObjectResult);
 	}
+
+	public void writeDividends(List<StockDividend> dividends) {
+		
+	}
 }
