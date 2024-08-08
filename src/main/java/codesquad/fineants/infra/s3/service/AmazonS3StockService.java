@@ -1,10 +1,12 @@
 package codesquad.fineants.infra.s3.service;
 
+import static java.nio.charset.StandardCharsets.*;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
@@ -29,16 +31,13 @@ public class AmazonS3StockService {
 	private final String stockPath = "local/stock/stocks.csv";
 
 	public List<Stock> fetchStocks() {
-		S3Object s3Object;
-		try {
-			s3Object = amazonS3.getObject(new GetObjectRequest(bucketName, stockPath));
-		} catch (AmazonServiceException e) {
-			log.error(e.getMessage());
-			return Collections.emptyList();
-		}
+		return getS3Object()
+			.map(this::parseStocks)
+			.orElseGet(Collections::emptyList);
+	}
 
-		try (BufferedReader br = new BufferedReader(
-			new InputStreamReader(s3Object.getObjectContent(), StandardCharsets.UTF_8))) {
+	private List<Stock> parseStocks(S3Object s3Object) {
+		try (BufferedReader br = new BufferedReader(new InputStreamReader(s3Object.getObjectContent(), UTF_8))) {
 			return br.lines()
 				.skip(1) // skip title
 				.map(line -> line.split(CSV_SEPARATOR))
@@ -48,6 +47,15 @@ public class AmazonS3StockService {
 		} catch (Exception e) {
 			log.error(e.getMessage());
 			return Collections.emptyList();
+		}
+	}
+
+	private Optional<S3Object> getS3Object() {
+		try {
+			return Optional.ofNullable(amazonS3.getObject(new GetObjectRequest(bucketName, stockPath)));
+		} catch (AmazonServiceException e) {
+			log.error(e.getMessage());
+			return Optional.empty();
 		}
 	}
 }
