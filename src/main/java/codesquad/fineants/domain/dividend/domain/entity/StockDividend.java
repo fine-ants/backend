@@ -208,4 +208,8 @@ public class StockDividend extends BaseEntity {
 		}
 		return localDate.format(DateTimeFormatter.BASIC_ISO_DATE);
 	}
+
+	public static StockDividend parseCsvLine(String[] data) {
+		return null;
+	}
 }

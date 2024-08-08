@@ -70,10 +70,6 @@ public class AmazonS3DividendService {
 		}
 	}
 
-	public List<StockDividend> fetchDividends() {
-		return Collections.emptyList();
-	}
-
 	public void writeDividend(List<Dividend> dividends) {
 		writeDividend(dividends, dividendPath);
 	}
@@ -113,6 +109,27 @@ public class AmazonS3DividendService {
 	@NotNull
 	private static String csvTitle() {
 		return String.join(CSV_SEPARATOR, "recordDate", "paymentDate", "stockCode", "companyName", "amount");
+	}
+
+	public List<StockDividend> fetchDividends() {
+		return getS3Object()
+			.map(this::parseStockDividends)
+			.orElseGet(Collections::emptyList);
+	}
+
+	private List<StockDividend> parseStockDividends(S3Object s3Object) {
+		try (BufferedReader br = new BufferedReader(
+			new InputStreamReader(s3Object.getObjectContent(), UTF_8))) {
+			return br.lines()
+				.skip(1) // skip title
+				.map(line -> line.split(CSV_SEPARATOR))
+				.map(StockDividend::parseCsvLine)
+				.distinct()
+				.toList();
+		} catch (Exception e) {
+			log.error(e.getMessage());
+			return Collections.emptyList();
+		}
 	}
 
 	public void writeDividends(List<StockDividend> dividends) {
