@@ -86,7 +86,7 @@ public class AmazonS3DividendService {
 	 */
 	public void writeDividend(List<Dividend> dividends, String path) {
 		String title = csvTitle();
-		String lines = csvLines(dividends);
+		String lines = csvLinesFor(dividends);
 		String data = String.join(Strings.LINE_SEPARATOR, title, lines);
 		PutObjectResult result = putDividendData(data, path);
 		log.debug("writeDividend result : {}", result);
@@ -106,7 +106,7 @@ public class AmazonS3DividendService {
 	}
 
 	@NotNull
-	private static String csvLines(List<Dividend> dividends) {
+	private String csvLinesFor(List<Dividend> dividends) {
 		return dividends.stream()
 			.map(Dividend::toCsvLineString)
 			.collect(Collectors.joining(Strings.LINE_SEPARATOR));
@@ -118,6 +118,16 @@ public class AmazonS3DividendService {
 	}
 
 	public void writeDividends(List<StockDividend> dividends) {
+		String title = csvTitle();
+		String lines = csvLines(dividends);
+		String data = String.join(Strings.LINE_SEPARATOR, title, lines);
+		PutObjectResult result = putDividendData(data, dividendPath);
+		log.debug("writeDividend result : {}", result);
+	}
 
+	private String csvLines(List<StockDividend> dividends) {
+		return dividends.stream()
+			.map(StockDividend::toCsvLineString)
+			.collect(Collectors.joining(Strings.LINE_SEPARATOR));
 	}
 }

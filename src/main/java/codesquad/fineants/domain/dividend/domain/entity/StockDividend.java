@@ -2,6 +2,7 @@ package codesquad.fineants.domain.dividend.domain.entity;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import codesquad.fineants.domain.BaseEntity;
@@ -26,6 +27,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
@@ -33,6 +35,7 @@ import lombok.ToString;
 @ToString(exclude = {"stock"})
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@EqualsAndHashCode(of = {"recordDate", "stock"}, callSuper = false)
 @Table(name = "stock_dividend", uniqueConstraints = {
 	@UniqueConstraint(columnNames = {"ticker_symbol", "record_date"})
 })
@@ -186,5 +189,16 @@ public class StockDividend extends BaseEntity {
 			return false;
 		}
 		return this.paymentDate.equals(paymentDate);
+	}
+
+	public String toCsvLineString() {
+		String recordDate = this.recordDate.format(DateTimeFormatter.BASIC_ISO_DATE);
+		String paymentDate = this.paymentDate == null ? "" : this.paymentDate.format(DateTimeFormatter.BASIC_ISO_DATE);
+		return String.join(",",
+			recordDate,
+			paymentDate,
+			getStock().getTickerSymbol(),
+			getStock().getCompanyName(),
+			dividend.toString());
 	}
 }
