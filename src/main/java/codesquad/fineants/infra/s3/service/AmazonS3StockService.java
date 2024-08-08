@@ -8,6 +8,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
@@ -28,7 +29,13 @@ public class AmazonS3StockService {
 	private final String stockPath = "local/stock/stocks.csv";
 
 	public List<Stock> fetchStocks() {
-		S3Object s3Object = amazonS3.getObject(new GetObjectRequest(bucketName, stockPath));
+		S3Object s3Object;
+		try {
+			s3Object = amazonS3.getObject(new GetObjectRequest(bucketName, stockPath));
+		} catch (AmazonServiceException e) {
+			log.error(e.getMessage());
+			return Collections.emptyList();
+		}
 
 		try (BufferedReader br = new BufferedReader(
 			new InputStreamReader(s3Object.getObjectContent(), StandardCharsets.UTF_8))) {
