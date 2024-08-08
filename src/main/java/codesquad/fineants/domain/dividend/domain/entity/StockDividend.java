@@ -192,11 +192,11 @@ public class StockDividend extends BaseEntity {
 
 	public String toCsvLineString() {
 		return String.join(",",
+			id.toString(),
+			dividend.toString(),
 			basicIso(this.recordDate),
 			basicIso(this.paymentDate),
-			getStock().getTickerSymbol(),
-			getStock().getCompanyName(),
-			dividend.toString());
+			getStock().getStockCode());
 	}
 
 	private String basicIso(LocalDate localDate) {

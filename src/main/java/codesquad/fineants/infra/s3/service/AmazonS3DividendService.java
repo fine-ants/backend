@@ -108,7 +108,7 @@ public class AmazonS3DividendService {
 
 	@NotNull
 	private static String csvTitle() {
-		return String.join(CSV_SEPARATOR, "recordDate", "paymentDate", "stockCode", "companyName", "amount");
+		return String.join(CSV_SEPARATOR, "id", "dividend", "recordDate", "paymentDate", "stockCode");
 	}
 
 	public List<StockDividend> fetchDividends() {
