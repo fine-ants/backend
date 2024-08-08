@@ -59,7 +59,6 @@ public class StockService {
 	public void scheduledReloadStocks() {
 		StockReloadResponse response = stockAndDividendManager.reloadStocks();
 		log.info("refreshStocks response : {}", response);
-		stockDividendService.writeDividendCsvToS3();
 	}
 
 	@Transactional
