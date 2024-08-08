@@ -71,7 +71,7 @@ class StockDividendServiceTest extends AbstractContainerBaseTest {
 		// when
 		stockDividendService.initializeStockDividend();
 		// then
-		assertThat(stockDividendRepository.count()).isEqualTo(9);
+		assertThat(stockDividendRepository.findAllStockDividends()).hasSize(9);
 	}
 
 	@WithMockUser(roles = "ADMIN")

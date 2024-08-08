@@ -10,22 +10,32 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import codesquad.fineants.AbstractContainerBaseTest;
 import codesquad.fineants.domain.dividend.domain.entity.StockDividend;
+import codesquad.fineants.domain.dividend.repository.StockDividendRepository;
+import codesquad.fineants.domain.stock.domain.entity.Stock;
+import codesquad.fineants.domain.stock.repository.StockRepository;
 
 class AmazonS3DividendServiceTest extends AbstractContainerBaseTest {
 
 	@Autowired
 	private AmazonS3DividendService service;
 
+	@Autowired
+	private StockRepository stockRepository;
+
+	@Autowired
+	private StockDividendRepository stockDividendRepository;
+
 	@DisplayName("배당금 데이터를 읽어온다")
 	@Test
 	void fetchDividend() {
 		// given
-
+		Stock samsung = stockRepository.save(createSamsungStock());
+		List<StockDividend> stockDividends = stockDividendRepository.saveAll(createStockDividendWith(samsung));
+		service.writeDividends(stockDividends);
 		// when
 		List<StockDividend> dividends = service.fetchDividends();
 		// then
-		Assertions.assertThat(dividends)
-			.hasSize(3271);
+		Assertions.assertThat(dividends).hasSize(7);
 	}
 
 	@DisplayName("dividends.csv 파일에 배당 일정을 작성한다")

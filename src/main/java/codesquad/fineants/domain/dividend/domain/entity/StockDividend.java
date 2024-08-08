@@ -5,7 +5,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import org.apache.logging.log4j.util.Strings;
-import org.jetbrains.annotations.NotNull;
 
 import codesquad.fineants.domain.BaseEntity;
 import codesquad.fineants.domain.common.count.Count;
@@ -220,8 +219,10 @@ public class StockDividend extends BaseEntity {
 		return create(id, dividend, recordDate, paymentDate, stock);
 	}
 
-	@NotNull
 	private static LocalDate basicIso(String localDateString) {
+		if (Strings.isBlank(localDateString)) {
+			return null;
+		}
 		return LocalDate.parse(localDateString, DateTimeFormatter.BASIC_ISO_DATE);
 	}
 }

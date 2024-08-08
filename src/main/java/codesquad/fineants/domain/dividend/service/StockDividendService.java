@@ -47,7 +47,8 @@ public class StockDividendService {
 		stockDividendRepository.deleteAllInBatch();
 
 		// S3에 저장된 종목 배당금으로 초기화
-		List<StockDividend> saveStockDividends = stockDividendRepository.saveAll(s3DividendService.fetchDividends());
+		List<StockDividend> stockDividends = s3DividendService.fetchDividends();
+		List<StockDividend> saveStockDividends = stockDividendRepository.saveAll(stockDividends);
 		log.info("save StockDividends size : {}", saveStockDividends.size());
 	}
 

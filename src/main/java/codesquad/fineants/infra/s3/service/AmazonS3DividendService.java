@@ -77,7 +77,7 @@ public class AmazonS3DividendService {
 		String title = csvTitle();
 		String lines = csvLines(dividends);
 		String data = String.join(Strings.LINE_SEPARATOR, title, lines);
-		PutObjectResult result = putDividendData(data, dividendPath);
+		PutObjectResult result = putDividendData(data);
 		log.debug("writeDividend result : {}", result);
 	}
 
@@ -92,9 +92,9 @@ public class AmazonS3DividendService {
 			.collect(Collectors.joining(Strings.LINE_SEPARATOR));
 	}
 
-	private PutObjectResult putDividendData(String data, String path) {
+	private PutObjectResult putDividendData(String data) {
 		InputStream inputStream = new ByteArrayInputStream(data.getBytes(UTF_8));
-		PutObjectRequest request = new PutObjectRequest(bucketName, path, inputStream, createObjectMetadata());
+		PutObjectRequest request = new PutObjectRequest(bucketName, dividendPath, inputStream, createObjectMetadata());
 		return amazonS3.putObject(request);
 	}
 
