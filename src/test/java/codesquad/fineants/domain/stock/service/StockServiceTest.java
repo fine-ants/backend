@@ -6,6 +6,7 @@ import static org.mockito.BDDMockito.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -288,6 +289,11 @@ class StockServiceTest extends AbstractContainerBaseTest {
 		stockService.scheduledReloadStocks();
 		// then
 		assertThat(stockRepository.findByTickerSymbol("000660")).isPresent();
+		List<Stock> actualS3Stocks = new ArrayList<>();
+		List<Stock> expectedStocks = stockRepository.findAll();
+		assertThat(actualS3Stocks)
+			.as("Verify that the stock information in the stocks.csv file stored in s3 matches the items in the database")
+			.containsExactlyInAnyOrderElementsOf(expectedStocks);
 	}
 
 	private List<Stock> saveStocks(int limit) {
