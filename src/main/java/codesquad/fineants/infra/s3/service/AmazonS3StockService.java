@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.amazonaws.AmazonServiceException;
@@ -27,8 +28,10 @@ public class AmazonS3StockService {
 	public static final String CSV_SEPARATOR = ",";
 
 	private final AmazonS3 amazonS3;
-	private final String bucketName = "fineants2024";
-	private final String stockPath = "local/stock/stocks.csv";
+	@Value("${aws.s3.bucket}")
+	private String bucketName;
+	@Value("${aws.s3.stock-path}")
+	private String stockPath;
 
 	public List<Stock> fetchStocks() {
 		return getS3Object()
