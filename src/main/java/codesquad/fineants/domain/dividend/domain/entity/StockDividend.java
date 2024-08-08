@@ -3,6 +3,7 @@ package codesquad.fineants.domain.dividend.domain.entity;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.logging.log4j.util.Strings;
 
@@ -15,9 +16,6 @@ import codesquad.fineants.domain.dividend.domain.calculator.ExDividendDateCalcul
 import codesquad.fineants.domain.dividend.domain.reader.HolidayFileReader;
 import codesquad.fineants.domain.kis.repository.HolidayRepository;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
-import codesquad.fineants.domain.stock.repository.StockRepository;
-import codesquad.fineants.global.errors.errorcode.StockErrorCode;
-import codesquad.fineants.global.errors.exception.FineAntsException;
 import codesquad.fineants.infra.s3.dto.Dividend;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
@@ -209,13 +207,12 @@ public class StockDividend extends BaseEntity {
 		return localDate.format(DateTimeFormatter.BASIC_ISO_DATE);
 	}
 
-	public static StockDividend parseCsvLine(String[] data, StockRepository stockRepository) {
+	public static StockDividend parseCsvLine(String[] data, Map<String, Stock> stockMap) {
 		Long id = Long.parseLong(data[0]);
 		Money dividend = Money.won(Long.parseLong(data[1]));
 		LocalDate recordDate = basicIso(data[2]);
 		LocalDate paymentDate = basicIso(data[3]);
-		Stock stock = stockRepository.findByStockCode(data[4])
-			.orElseThrow(() -> new FineAntsException(StockErrorCode.NOT_FOUND_STOCK));
+		Stock stock = stockMap.get(data[4]);
 		return create(id, dividend, recordDate, paymentDate, stock);
 	}
 

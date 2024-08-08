@@ -8,6 +8,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -26,6 +27,7 @@ import com.amazonaws.services.s3.model.PutObjectResult;
 import com.amazonaws.services.s3.model.S3Object;
 
 import codesquad.fineants.domain.dividend.domain.entity.StockDividend;
+import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -61,10 +63,12 @@ public class AmazonS3DividendService {
 	private List<StockDividend> parseStockDividends(S3Object s3Object) {
 		try (BufferedReader br = new BufferedReader(
 			new InputStreamReader(s3Object.getObjectContent(), UTF_8))) {
+			Map<String, Stock> stockMap = stockRepository.findAll().stream()
+				.collect(Collectors.toMap(Stock::getStockCode, stock -> stock));
 			return br.lines()
 				.skip(1) // skip title
 				.map(line -> line.split(CSV_SEPARATOR))
-				.map(columns -> StockDividend.parseCsvLine(columns, stockRepository))
+				.map(columns -> StockDividend.parseCsvLine(columns, stockMap))
 				.distinct()
 				.toList();
 		} catch (Exception e) {
