@@ -5,6 +5,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import org.apache.logging.log4j.util.Strings;
+import org.jetbrains.annotations.NotNull;
 
 import codesquad.fineants.domain.BaseEntity;
 import codesquad.fineants.domain.common.count.Count;
@@ -15,6 +16,9 @@ import codesquad.fineants.domain.dividend.domain.calculator.ExDividendDateCalcul
 import codesquad.fineants.domain.dividend.domain.reader.HolidayFileReader;
 import codesquad.fineants.domain.kis.repository.HolidayRepository;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
+import codesquad.fineants.domain.stock.repository.StockRepository;
+import codesquad.fineants.global.errors.errorcode.StockErrorCode;
+import codesquad.fineants.global.errors.exception.FineAntsException;
 import codesquad.fineants.infra.s3.dto.Dividend;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
@@ -206,7 +210,18 @@ public class StockDividend extends BaseEntity {
 		return localDate.format(DateTimeFormatter.BASIC_ISO_DATE);
 	}
 
-	public static StockDividend parseCsvLine(String[] data) {
-		return null;
+	public static StockDividend parseCsvLine(String[] data, StockRepository stockRepository) {
+		Long id = Long.parseLong(data[0]);
+		Money dividend = Money.won(Long.parseLong(data[1]));
+		LocalDate recordDate = basicIso(data[2]);
+		LocalDate paymentDate = basicIso(data[3]);
+		Stock stock = stockRepository.findByStockCode(data[4])
+			.orElseThrow(() -> new FineAntsException(StockErrorCode.NOT_FOUND_STOCK));
+		return create(id, dividend, recordDate, paymentDate, stock);
+	}
+
+	@NotNull
+	private static LocalDate basicIso(String localDateString) {
+		return LocalDate.parse(localDateString, DateTimeFormatter.BASIC_ISO_DATE);
 	}
 }
