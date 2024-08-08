@@ -61,6 +61,16 @@ public class Stock extends BaseEntity {
 		return new Stock(tickerSymbol, companyName, companyNameEng, stockCode, sector, market);
 	}
 
+	public static Stock parse(String[] data) {
+		String stockCode = data[0];
+		String tickerSymbol = data[1];
+		String companyName = data[2];
+		String companyNameEng = data[3];
+		Market market = Market.valueOf(data[4]);
+		String sector = data[5];
+		return new Stock(tickerSymbol, companyName, companyNameEng, stockCode, sector, market);
+	}
+
 	public void addStockDividend(StockDividend stockDividend) {
 		if (!stockDividends.contains(stockDividend)) {
 			stockDividends.add(stockDividend);
@@ -182,8 +192,8 @@ public class Stock extends BaseEntity {
 			.map(dividend -> dividend.getPaymentDate().getMonthValue())
 			.toList();
 	}
-
 	// ticker 및 recordDate 기준으로 KisDividend가 매치되어 있는지 확인
+
 	public boolean matchByTickerSymbolAndRecordDate(String tickerSymbol, LocalDate recordDate) {
 		if (!this.tickerSymbol.equals(tickerSymbol)) {
 			return false;
