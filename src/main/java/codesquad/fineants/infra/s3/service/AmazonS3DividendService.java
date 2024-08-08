@@ -41,8 +41,6 @@ public class AmazonS3DividendService {
 	private String dividendPath;
 
 	public List<Dividend> fetchDividend() {
-		log.debug("bucketName : {}", bucketName);
-		log.debug("dividendPath : {}", dividendPath);
 		return getS3Object()
 			.map(this::parseDividends)
 			.orElseGet(Collections::emptyList);
