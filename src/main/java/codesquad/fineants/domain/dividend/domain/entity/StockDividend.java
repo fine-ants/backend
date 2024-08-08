@@ -5,6 +5,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+import org.apache.logging.log4j.util.Strings;
+
 import codesquad.fineants.domain.BaseEntity;
 import codesquad.fineants.domain.common.count.Count;
 import codesquad.fineants.domain.common.money.Expression;
@@ -192,13 +194,18 @@ public class StockDividend extends BaseEntity {
 	}
 
 	public String toCsvLineString() {
-		String recordDate = this.recordDate.format(DateTimeFormatter.BASIC_ISO_DATE);
-		String paymentDate = this.paymentDate == null ? "" : this.paymentDate.format(DateTimeFormatter.BASIC_ISO_DATE);
 		return String.join(",",
-			recordDate,
-			paymentDate,
+			basicIso(this.recordDate),
+			basicIso(this.paymentDate),
 			getStock().getTickerSymbol(),
 			getStock().getCompanyName(),
 			dividend.toString());
+	}
+
+	private String basicIso(LocalDate localDate) {
+		if (localDate == null) {
+			return Strings.EMPTY;
+		}
+		return localDate.format(DateTimeFormatter.BASIC_ISO_DATE);
 	}
 }
