@@ -1,10 +1,11 @@
 package codesquad.fineants.infra.s3.service;
 
+import static java.nio.charset.StandardCharsets.*;
+
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -58,7 +59,7 @@ public class AmazonS3DividendService {
 
 	private List<Dividend> parseDividends(S3Object s3Object) {
 		try (BufferedReader br = new BufferedReader(
-			new InputStreamReader(s3Object.getObjectContent(), StandardCharsets.UTF_8))) {
+			new InputStreamReader(s3Object.getObjectContent(), UTF_8))) {
 			return br.lines()
 				.skip(1) // skip title
 				.map(line -> line.split(CSV_SEPARATOR))
@@ -85,17 +86,30 @@ public class AmazonS3DividendService {
 	 */
 	public void writeDividend(List<Dividend> dividends, String path) {
 		String title = csvTitle();
-		String data = dividends.stream()
-			.map(Dividend::toCsvLineString)
-			.collect(Collectors.joining(Strings.LINE_SEPARATOR));
-		String csvData = String.join(Strings.LINE_SEPARATOR, title, data);
-		InputStream inputStream = new ByteArrayInputStream(csvData.getBytes(StandardCharsets.UTF_8));
+		String lines = csvLines(dividends);
+		String data = String.join(Strings.LINE_SEPARATOR, title, lines);
+		PutObjectResult result = putDividendData(data, path);
+		log.debug("writeDividend result : {}", result);
+	}
 
+	private PutObjectResult putDividendData(String data, String path) {
+		InputStream inputStream = new ByteArrayInputStream(data.getBytes(UTF_8));
+		PutObjectRequest request = new PutObjectRequest(bucketName, path, inputStream, createObjectMetadata());
+		return amazonS3.putObject(request);
+	}
+
+	@NotNull
+	private static ObjectMetadata createObjectMetadata() {
 		ObjectMetadata metadata = new ObjectMetadata();
 		metadata.setContentType("text/csv");
-		PutObjectResult putObjectResult = amazonS3.putObject(
-			new PutObjectRequest(bucketName, path, inputStream, metadata));
-		log.debug("putObjectResult : {}", putObjectResult);
+		return metadata;
+	}
+
+	@NotNull
+	private static String csvLines(List<Dividend> dividends) {
+		return dividends.stream()
+			.map(Dividend::toCsvLineString)
+			.collect(Collectors.joining(Strings.LINE_SEPARATOR));
 	}
 
 	@NotNull
