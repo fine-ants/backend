@@ -308,7 +308,7 @@ class StockServiceTest extends AbstractContainerBaseTest {
 			.containsExactlyInAnyOrderElementsOf(stockRepository.findAll());
 		assertThat(amazonS3DividendService.fetchDividends())
 			.as("Verify that the dividend information in the dividends.csv file stored in s3 matches the items in the database")
-			.containsExactlyInAnyOrderElementsOf(stockDividendRepository.findAll());
+			.containsExactlyInAnyOrderElementsOf(stockDividendRepository.findAllStockDividends());
 	}
 
 	private List<Stock> saveStocks() {

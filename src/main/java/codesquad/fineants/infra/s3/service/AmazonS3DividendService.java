@@ -15,6 +15,7 @@ import org.apache.logging.log4j.util.Strings;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.s3.AmazonS3;
@@ -25,6 +26,7 @@ import com.amazonaws.services.s3.model.PutObjectResult;
 import com.amazonaws.services.s3.model.S3Object;
 
 import codesquad.fineants.domain.dividend.domain.entity.StockDividend;
+import codesquad.fineants.domain.stock.repository.StockRepository;
 import codesquad.fineants.infra.s3.dto.Dividend;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,6 +41,7 @@ public class AmazonS3DividendService {
 	private String bucketName;
 	@Value("${aws.s3.dividend-csv-path}")
 	private String dividendPath;
+	private final StockRepository stockRepository;
 
 	public List<Dividend> fetchDividend() {
 		return getS3Object()
@@ -111,6 +114,7 @@ public class AmazonS3DividendService {
 		return String.join(CSV_SEPARATOR, "id", "dividend", "recordDate", "paymentDate", "stockCode");
 	}
 
+	@Transactional(readOnly = true)
 	public List<StockDividend> fetchDividends() {
 		return getS3Object()
 			.map(this::parseStockDividends)
@@ -123,7 +127,7 @@ public class AmazonS3DividendService {
 			return br.lines()
 				.skip(1) // skip title
 				.map(line -> line.split(CSV_SEPARATOR))
-				.map(StockDividend::parseCsvLine)
+				.map(columns -> StockDividend.parseCsvLine(columns, stockRepository))
 				.distinct()
 				.toList();
 		} catch (Exception e) {
