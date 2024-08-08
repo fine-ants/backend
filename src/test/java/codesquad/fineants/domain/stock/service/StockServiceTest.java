@@ -290,8 +290,15 @@ class StockServiceTest extends AbstractContainerBaseTest {
 					)
 				)
 			));
-		given(kisService.fetchDividend(anyString()))
-			.willReturn(Mono.just(Collections.emptyList()));
+		stocks.forEach(s -> given(kisService.fetchDividend(anyString()))
+			.willReturn(Mono.just(Collections.emptyList())));
+		stocks.forEach(s -> given(kisService.fetchDividend(s.getTickerSymbol()))
+			.willReturn(Mono.just(List.of(
+				KisDividend.create(s.getTickerSymbol(), Money.won(300), LocalDate.of(2024, 3, 1),
+					LocalDate.of(2024, 5, 1)),
+				KisDividend.create(s.getTickerSymbol(), Money.won(300), LocalDate.of(2024, 5, 1),
+					LocalDate.of(2024, 7, 1)))))
+		);
 		// when
 		stockService.scheduledReloadStocks();
 		// then
