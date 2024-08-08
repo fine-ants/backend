@@ -1,7 +1,6 @@
 package codesquad.fineants.domain.dividend.domain.entity;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -57,15 +56,14 @@ public class StockDividend extends BaseEntity {
 	@Column(name = "payment_date")
 	private LocalDate paymentDate;
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "ticker_symbol", referencedColumnName = "tickerSymbol")
+	@JoinColumn(name = "ticker_symbol")
 	private Stock stock;
 
 	private static final ExDividendDateCalculator EX_DIVIDEND_DATE_CALCULATOR = new ExDividendDateCalculator(
 		new HolidayRepository(new HolidayFileReader()));
 
-	private StockDividend(LocalDateTime createAt, LocalDateTime modifiedAt, Long id, Money dividend,
-		LocalDate recordDate, LocalDate exDividendDate, LocalDate paymentDate, Stock stock) {
-		super(createAt, modifiedAt);
+	private StockDividend(Long id, Money dividend, LocalDate recordDate, LocalDate exDividendDate,
+		LocalDate paymentDate, Stock stock) {
 		this.id = id;
 		this.dividend = dividend;
 		this.recordDate = recordDate;
@@ -93,8 +91,7 @@ public class StockDividend extends BaseEntity {
 
 	public static StockDividend create(Long id, Money dividend, LocalDate recordDate, LocalDate exDividendDate,
 		LocalDate paymentDate, Stock stock) {
-		return new StockDividend(LocalDateTime.now(), null, id, dividend, recordDate, exDividendDate, paymentDate,
-			stock);
+		return new StockDividend(id, dividend, recordDate, exDividendDate, paymentDate, stock);
 	}
 
 	// 주식 개수에 따른 배당금 합계 계산
