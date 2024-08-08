@@ -27,7 +27,6 @@ import com.amazonaws.services.s3.model.S3Object;
 
 import codesquad.fineants.domain.dividend.domain.entity.StockDividend;
 import codesquad.fineants.domain.stock.repository.StockRepository;
-import codesquad.fineants.infra.s3.dto.Dividend;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -43,9 +42,10 @@ public class AmazonS3DividendService {
 	private String dividendPath;
 	private final StockRepository stockRepository;
 
-	public List<Dividend> fetchDividend() {
+	@Transactional(readOnly = true)
+	public List<StockDividend> fetchDividends() {
 		return getS3Object()
-			.map(this::parseDividends)
+			.map(this::parseStockDividends)
 			.orElseGet(Collections::emptyList);
 	}
 
@@ -56,69 +56,6 @@ public class AmazonS3DividendService {
 			log.error(e.getMessage());
 			return Optional.empty();
 		}
-	}
-
-	private List<Dividend> parseDividends(S3Object s3Object) {
-		try (BufferedReader br = new BufferedReader(
-			new InputStreamReader(s3Object.getObjectContent(), UTF_8))) {
-			return br.lines()
-				.skip(1) // skip title
-				.map(line -> line.split(CSV_SEPARATOR))
-				.map(Dividend::parse)
-				.distinct()
-				.toList();
-		} catch (Exception e) {
-			log.error(e.getMessage());
-			return Collections.emptyList();
-		}
-	}
-
-	public void writeDividend(List<Dividend> dividends) {
-		writeDividend(dividends, dividendPath);
-	}
-
-	/**
-	 * S3 dividends.csv 파일에 현재 배당일정을 작성한다
-	 * @param dividends 배당일정
-	 */
-	public void writeDividend(List<Dividend> dividends, String path) {
-		String title = csvTitle();
-		String lines = csvLinesFor(dividends);
-		String data = String.join(Strings.LINE_SEPARATOR, title, lines);
-		PutObjectResult result = putDividendData(data, path);
-		log.debug("writeDividend result : {}", result);
-	}
-
-	private PutObjectResult putDividendData(String data, String path) {
-		InputStream inputStream = new ByteArrayInputStream(data.getBytes(UTF_8));
-		PutObjectRequest request = new PutObjectRequest(bucketName, path, inputStream, createObjectMetadata());
-		return amazonS3.putObject(request);
-	}
-
-	@NotNull
-	private static ObjectMetadata createObjectMetadata() {
-		ObjectMetadata metadata = new ObjectMetadata();
-		metadata.setContentType("text/csv");
-		return metadata;
-	}
-
-	@NotNull
-	private String csvLinesFor(List<Dividend> dividends) {
-		return dividends.stream()
-			.map(Dividend::toCsvLineString)
-			.collect(Collectors.joining(Strings.LINE_SEPARATOR));
-	}
-
-	@NotNull
-	private static String csvTitle() {
-		return String.join(CSV_SEPARATOR, "id", "dividend", "recordDate", "paymentDate", "stockCode");
-	}
-
-	@Transactional(readOnly = true)
-	public List<StockDividend> fetchDividends() {
-		return getS3Object()
-			.map(this::parseStockDividends)
-			.orElseGet(Collections::emptyList);
 	}
 
 	private List<StockDividend> parseStockDividends(S3Object s3Object) {
@@ -144,9 +81,27 @@ public class AmazonS3DividendService {
 		log.debug("writeDividend result : {}", result);
 	}
 
+	@NotNull
+	private static String csvTitle() {
+		return String.join(CSV_SEPARATOR, "id", "dividend", "recordDate", "paymentDate", "stockCode");
+	}
+
 	private String csvLines(List<StockDividend> dividends) {
 		return dividends.stream()
 			.map(StockDividend::toCsvLineString)
 			.collect(Collectors.joining(Strings.LINE_SEPARATOR));
+	}
+
+	private PutObjectResult putDividendData(String data, String path) {
+		InputStream inputStream = new ByteArrayInputStream(data.getBytes(UTF_8));
+		PutObjectRequest request = new PutObjectRequest(bucketName, path, inputStream, createObjectMetadata());
+		return amazonS3.putObject(request);
+	}
+
+	@NotNull
+	private static ObjectMetadata createObjectMetadata() {
+		ObjectMetadata metadata = new ObjectMetadata();
+		metadata.setContentType("text/csv");
+		return metadata;
 	}
 }

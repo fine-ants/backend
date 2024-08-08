@@ -19,7 +19,6 @@ import codesquad.fineants.domain.kis.service.KisService;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
 import codesquad.fineants.global.common.time.LocalDateTimeService;
-import codesquad.fineants.infra.s3.dto.Dividend;
 import codesquad.fineants.infra.s3.service.AmazonS3DividendService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,7 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class StockDividendService {
 
-	private final AmazonS3DividendService amazonS3DividendService;
+	private final AmazonS3DividendService s3DividendService;
 	private final StockRepository stockRepository;
 	private final StockDividendRepository stockDividendRepository;
 	private final KisService kisService;
@@ -48,25 +47,7 @@ public class StockDividendService {
 		stockDividendRepository.deleteAllInBatch();
 
 		// S3에 저장된 종목 배당금으로 초기화
-		initializeStockDividendFromS3();
-	}
-
-	private void initializeStockDividendFromS3() {
-		// 종목 조회
-		Map<String, Stock> stockMap = stockRepository.findAll().stream()
-			.collect(Collectors.toMap(Stock::getTickerSymbol, stock -> stock));
-
-		// 종목에 해당하는 배당 일정 엔티티 생성
-		List<StockDividend> stockDividends = amazonS3DividendService.fetchDividend().stream()
-			.filter(dividend -> dividend.containsBy(stockMap))
-			.map(dividend -> {
-				Stock stock = dividend.getStockBy(stockMap);
-				return dividend.toEntity(stock);
-			})
-			.toList();
-
-		// 배당 일정 저장
-		List<StockDividend> saveStockDividends = stockDividendRepository.saveAll(stockDividends);
+		List<StockDividend> saveStockDividends = stockDividendRepository.saveAll(s3DividendService.fetchDividends());
 		log.info("save StockDividends size : {}", saveStockDividends.size());
 	}
 
@@ -160,15 +141,8 @@ public class StockDividendService {
 		log.info("deleteStockDividends : {}", deleteStockDividends);
 	}
 
-	/**
-	 * 데이터베이스의 배당 일정을 S3에 CSV 파일로 저장
-	 */
 	@Transactional(readOnly = true)
-	public void writeDividendCsvToS3() {
-		List<Dividend> dividends = stockDividendRepository.findAllStockDividends().stream()
-			.map(StockDividend::toDividend)
-			.toList();
-		amazonS3DividendService.writeDividend(dividends);
-		log.info("write dividend csv to s3, size={}", dividends.size());
+	public List<StockDividend> findAllStockDividends() {
+		return stockDividendRepository.findAllStockDividends();
 	}
 }

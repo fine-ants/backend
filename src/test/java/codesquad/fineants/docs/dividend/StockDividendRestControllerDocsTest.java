@@ -16,15 +16,15 @@ import codesquad.fineants.docs.RestDocsSupport;
 import codesquad.fineants.domain.dividend.controller.StockDividendRestController;
 import codesquad.fineants.domain.dividend.service.StockDividendService;
 import codesquad.fineants.global.success.StockDividendSuccessCode;
+import codesquad.fineants.infra.s3.service.AmazonS3DividendService;
 
-public class StockDividendRestControllerDocsTest extends RestDocsSupport {
-
-	private StockDividendService service;
+class StockDividendRestControllerDocsTest extends RestDocsSupport {
 
 	@Override
 	protected Object initController() {
-		service = Mockito.mock(StockDividendService.class);
-		return new StockDividendRestController(service);
+		StockDividendService service = Mockito.mock(StockDividendService.class);
+		AmazonS3DividendService s3DividendService = Mockito.mock(AmazonS3DividendService.class);
+		return new StockDividendRestController(service, s3DividendService);
 	}
 
 	@DisplayName("관리자는 배당일정을 초기화한다")

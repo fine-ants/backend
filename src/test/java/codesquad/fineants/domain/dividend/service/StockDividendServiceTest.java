@@ -24,7 +24,6 @@ import codesquad.fineants.domain.kis.service.KisService;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
 import codesquad.fineants.global.common.time.LocalDateTimeService;
-import codesquad.fineants.infra.s3.dto.Dividend;
 import codesquad.fineants.infra.s3.service.AmazonS3DividendService;
 import lombok.extern.slf4j.Slf4j;
 
@@ -66,11 +65,13 @@ class StockDividendServiceTest extends AbstractContainerBaseTest {
 	@Test
 	void initializeStockDividend() {
 		// given
-		stockRepository.save(this.createSamsungStock());
+		Stock samsung = stockRepository.save(this.createSamsungStock());
+		List<StockDividend> stockDividends = stockDividendRepository.saveAll(createSamsungDividends(samsung));
+		amazonS3DividendService.writeDividends(stockDividends);
 		// when
 		stockDividendService.initializeStockDividend();
 		// then
-		assertThat(stockDividendRepository.count()).isEqualTo(5);
+		assertThat(stockDividendRepository.count()).isEqualTo(9);
 	}
 
 	@WithMockUser(roles = "ADMIN")
@@ -158,22 +159,6 @@ class StockDividendServiceTest extends AbstractContainerBaseTest {
 				"005930:361:2024-06-30:2024-06-28:null",
 				"035720:61:2024-02-29:2024-02-28:null"
 			);
-	}
-
-	@WithMockUser(roles = "ADMIN")
-	@DisplayName("S3 저장소에 배당 일정 csv 파일을 작성한다")
-	@Test
-	void writeDividendCsvToS3() {
-		// given
-		stockRepository.save(createSamsungStock());
-		stockRepository.save(createKakaoStock());
-		stockDividendService.initializeStockDividend();
-		// when
-		stockDividendService.writeDividendCsvToS3();
-		// then
-		List<Dividend> dividends = amazonS3DividendService.fetchDividend();
-		assertThat(dividends)
-			.hasSize(6);
 	}
 
 	private List<StockDividend> createSamsungDividends(Stock stock) {

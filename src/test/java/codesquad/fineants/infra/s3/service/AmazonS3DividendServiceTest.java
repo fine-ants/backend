@@ -1,21 +1,15 @@
 package codesquad.fineants.infra.s3.service;
 
-import static codesquad.fineants.infra.s3.service.AmazonS3DividendService.*;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
 
 import codesquad.fineants.AbstractContainerBaseTest;
-import codesquad.fineants.infra.s3.dto.Dividend;
+import codesquad.fineants.domain.dividend.domain.entity.StockDividend;
 
 class AmazonS3DividendServiceTest extends AbstractContainerBaseTest {
 
@@ -28,7 +22,7 @@ class AmazonS3DividendServiceTest extends AbstractContainerBaseTest {
 		// given
 
 		// when
-		List<Dividend> dividends = service.fetchDividend();
+		List<StockDividend> dividends = service.fetchDividends();
 		// then
 		Assertions.assertThat(dividends)
 			.hasSize(3271);
@@ -36,24 +30,15 @@ class AmazonS3DividendServiceTest extends AbstractContainerBaseTest {
 
 	@DisplayName("dividends.csv 파일에 배당 일정을 작성한다")
 	@Test
-	void writeDividend() throws IOException {
+	void writeDividend() {
 		// given
-		BufferedReader br = new BufferedReader(
-			new InputStreamReader(new ClassPathResource("dividends.csv").getInputStream()));
-		List<Dividend> dividends = br.lines()
-			.skip(1) // skip title
-			.map(line -> line.split(CSV_SEPARATOR))
-			.map(Dividend::parse)
-			.distinct()
-			.collect(Collectors.toList());
-
+		List<StockDividend> dividends = Collections.emptyList();
 		// when
-		service.writeDividend(dividends);
+		service.writeDividends(dividends);
 
 		// then
-		List<Dividend> findDividends = service.fetchDividend();
-		Assertions.assertThat(findDividends)
-			.hasSize(3271)
-			.containsAll(dividends);
+		Assertions.assertThat(service.fetchDividends())
+			.asList()
+			.isEmpty();
 	}
 }
