@@ -6,7 +6,6 @@ import static org.mockito.BDDMockito.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -40,6 +39,7 @@ import codesquad.fineants.domain.stock.domain.dto.response.StockResponse;
 import codesquad.fineants.domain.stock.domain.entity.Market;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
+import codesquad.fineants.infra.s3.service.AmazonS3StockService;
 import reactor.core.publisher.Mono;
 
 class StockServiceTest extends AbstractContainerBaseTest {
@@ -64,6 +64,9 @@ class StockServiceTest extends AbstractContainerBaseTest {
 
 	@Autowired
 	private ClosingPriceRepository closingPriceRepository;
+
+	@Autowired
+	private AmazonS3StockService amazonS3StockService;
 
 	@MockBean
 	private KisClient kisClient;
@@ -289,7 +292,7 @@ class StockServiceTest extends AbstractContainerBaseTest {
 		stockService.scheduledReloadStocks();
 		// then
 		assertThat(stockRepository.findByTickerSymbol("000660")).isPresent();
-		List<Stock> actualS3Stocks = new ArrayList<>();
+		List<Stock> actualS3Stocks = amazonS3StockService.fetchStocks();
 		List<Stock> expectedStocks = stockRepository.findAll();
 		assertThat(actualS3Stocks)
 			.as("Verify that the stock information in the stocks.csv file stored in s3 matches the items in the database")
