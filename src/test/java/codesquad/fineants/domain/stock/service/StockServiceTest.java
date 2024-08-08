@@ -39,6 +39,7 @@ import codesquad.fineants.domain.stock.domain.dto.response.StockResponse;
 import codesquad.fineants.domain.stock.domain.entity.Market;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
+import codesquad.fineants.infra.s3.service.AmazonS3DividendService;
 import codesquad.fineants.infra.s3.service.AmazonS3StockService;
 import reactor.core.publisher.Mono;
 
@@ -67,6 +68,9 @@ class StockServiceTest extends AbstractContainerBaseTest {
 
 	@Autowired
 	private AmazonS3StockService amazonS3StockService;
+
+	@Autowired
+	private AmazonS3DividendService amazonS3DividendService;
 
 	@MockBean
 	private KisClient kisClient;
@@ -295,6 +299,9 @@ class StockServiceTest extends AbstractContainerBaseTest {
 		assertThat(amazonS3StockService.fetchStocks())
 			.as("Verify that the stock information in the stocks.csv file stored in s3 matches the items in the database")
 			.containsExactlyInAnyOrderElementsOf(stockRepository.findAll());
+		assertThat(amazonS3DividendService.fetchDividends())
+			.as("Verify that the dividend information in the dividends.csv file stored in s3 matches the items in the database")
+			.containsExactlyInAnyOrderElementsOf(stockDividendRepository.findAll());
 	}
 
 	private List<Stock> saveStocks() {
