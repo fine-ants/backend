@@ -135,20 +135,17 @@ public class StockAndDividendManager {
 	 */
 	private Map<Boolean, List<Stock>> fetchPartitionedStocksForDelisted() {
 		final int concurrency = 20;
-		Map<Boolean, List<KisSearchStockInfo>> map = Flux.fromIterable(findAllTickerSymbols())
+		return Flux.fromIterable(findAllTickerSymbols())
 			.flatMap(kisService::fetchSearchStockInfo, concurrency)
 			.delayElements(delayManager.getDelay())
 			.collectList()
 			.blockOptional(TIMEOUT)
 			.orElseGet(Collections::emptyList).stream()
-			.collect(Collectors.partitioningBy(KisSearchStockInfo::isDelisted));
-		List<Stock> delistedStocks = map.get(true).stream()
-			.map(KisSearchStockInfo::toEntity)
-			.toList();
-		List<Stock> listedStocks = map.get(false).stream()
-			.map(KisSearchStockInfo::toEntity)
-			.toList();
-		return Map.ofEntries(Map.entry(true, delistedStocks), Map.entry(false, listedStocks));
+			.collect(Collectors.partitioningBy(
+					KisSearchStockInfo::isDelisted,
+					Collectors.mapping(KisSearchStockInfo::toEntity, Collectors.toList())
+				)
+			);
 	}
 
 	@NotNull
