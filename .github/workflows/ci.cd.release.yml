@@ -34,7 +34,7 @@ jobs:
           distribution: 'temurin'
       # gradle caching - 빌드 시간 향상
       - name: Gradle Caching
-        uses: actions/cache@v3
+        uses: actions/cache@v4.0.2
         with:
           # 캐시할 디렉토리 경로를 지정합니다.
           path: |
