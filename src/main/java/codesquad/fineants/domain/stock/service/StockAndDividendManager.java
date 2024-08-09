@@ -57,7 +57,7 @@ public class StockAndDividendManager {
 		Set<String> ipoTickerSymbols = saveIpoStocks();
 
 		// 상장 폐지 종목 조회
-		Map<Boolean, List<KisSearchStockInfo>> delistedPartitionStockMap = fetchDelistedStocks();
+		Map<Boolean, List<KisSearchStockInfo>> delistedPartitionStockMap = fetchPartitionedStocksForDelisted();
 
 		// 상장 폐지 종목 및 종목의 배당 일정 삭제
 		Set<String> deletedStocks = deleteStocks(mapTickerSymbols(delistedPartitionStockMap.get(true)));
@@ -127,24 +127,29 @@ public class StockAndDividendManager {
 
 	/**
 	 * 상장 폐지 종목 조회
+	 * 수행 과정
+	 * - 종목 티커 전체 조회
+	 * - 한국 투자 증권에 종목 조회
+	 * - 상장 폐지 종목 분할하여 반환
 	 * @return 상장 폐지 종목 분할 맵
 	 */
-	private Map<Boolean, List<KisSearchStockInfo>> fetchDelistedStocks() {
-		// 종목 전체 조회
-		Set<String> tickerSymbols = stockRepository.findAll()
-			.stream()
-			.map(Stock::getTickerSymbol)
-			.collect(Collectors.toUnmodifiableSet());
-
-		// 한국 투자 증권에 종목 정보 조회 후 상장 폐지 종목 분할
-		int concurrency = 20;
-		return Flux.fromIterable(tickerSymbols)
+	private Map<Boolean, List<KisSearchStockInfo>> fetchPartitionedStocksForDelisted() {
+		final int concurrency = 20;
+		return Flux.fromIterable(findAllTickerSymbols())
 			.flatMap(kisService::fetchSearchStockInfo, concurrency)
 			.delayElements(delayManager.getDelay())
 			.collectList()
 			.blockOptional(TIMEOUT)
 			.orElseGet(Collections::emptyList).stream()
 			.collect(Collectors.partitioningBy(KisSearchStockInfo::isDelisted));
+	}
+
+	@NotNull
+	private Set<String> findAllTickerSymbols() {
+		return stockRepository.findAll()
+			.stream()
+			.map(Stock::getTickerSymbol)
+			.collect(Collectors.toUnmodifiableSet());
 	}
 
 	/**
