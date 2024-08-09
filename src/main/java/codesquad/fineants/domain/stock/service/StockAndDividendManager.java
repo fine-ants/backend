@@ -61,17 +61,31 @@ public class StockAndDividendManager {
 		Map<Boolean, List<Stock>> partitionedStocksForDelisted = fetchPartitionedStocksForDelisted();
 
 		// 상장 폐지 종목 및 종목의 배당 일정 삭제
-		Set<String> deletedStocks = deleteStocks(mapTickerSymbols(partitionedStocksForDelisted.get(true)));
+		Set<String> deletedStocks = deleteStocks(partitionedStocksForDelisted.get(true));
 
 		// 올해 신규 배당 일정 저장
-		Set<DividendItem> addedDividends = Stream.of(partitionedStocksForDelisted.get(false))
+		Set<DividendItem> addedDividends = reloadDividends(partitionedStocksForDelisted.get(false));
+
+		return StockReloadResponse.create(ipoTickerSymbols, deletedStocks, addedDividends);
+	}
+
+	@NotNull
+	private Set<DividendItem> reloadDividends(List<Stock> stocks) {
+		return Stream.of(stocks)
 			.map(this::mapTickerSymbols)
 			.map(this::reloadDividend)
 			.map(this::mapDividendItems)
 			.flatMap(Collection::stream)
 			.collect(Collectors.toUnmodifiableSet());
+	}
 
-		return StockReloadResponse.create(ipoTickerSymbols, deletedStocks, addedDividends);
+	@NotNull
+	private Set<String> deleteStocks(List<Stock> stocks) {
+		return Stream.of(stocks)
+			.map(this::mapTickerSymbols)
+			.map(this::deleteStocks)
+			.flatMap(Collection::stream)
+			.collect(Collectors.toUnmodifiableSet());
 	}
 
 	/**
