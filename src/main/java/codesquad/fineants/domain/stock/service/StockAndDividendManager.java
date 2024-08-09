@@ -21,6 +21,7 @@ import codesquad.fineants.domain.stock.domain.dto.response.StockDataResponse;
 import codesquad.fineants.domain.stock.domain.dto.response.StockReloadResponse;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
+import codesquad.fineants.global.common.delay.DelayManager;
 import codesquad.fineants.global.errors.errorcode.StockErrorCode;
 import codesquad.fineants.global.errors.exception.FineAntsException;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +39,7 @@ public class StockAndDividendManager {
 	private final StockRepository stockRepository;
 	private final StockDividendRepository dividendRepository;
 	private final KisService kisService;
+	private final DelayManager delayManager;
 
 	/**
 	 * 한국 투자 증권 서버에 조회 후 종목 및 배당 일정 최신화 수행
