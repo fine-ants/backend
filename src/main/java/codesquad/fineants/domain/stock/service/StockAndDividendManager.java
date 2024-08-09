@@ -57,13 +57,13 @@ public class StockAndDividendManager {
 		Set<String> ipoTickerSymbols = saveIpoStocks();
 
 		// 상장 폐지 종목 조회
-		Map<Boolean, List<KisSearchStockInfo>> delistedPartitionStockMap = fetchPartitionedStocksForDelisted();
+		Map<Boolean, List<KisSearchStockInfo>> partitionedStocksForDelisted = fetchPartitionedStocksForDelisted();
 
 		// 상장 폐지 종목 및 종목의 배당 일정 삭제
-		Set<String> deletedStocks = deleteStocks(mapTickerSymbols(delistedPartitionStockMap.get(true)));
+		Set<String> deletedStocks = deleteStocks(mapTickerSymbols(partitionedStocksForDelisted.get(true)));
 
 		// 올해 신규 배당 일정 저장
-		Set<DividendItem> addedDividends = Stream.of(delistedPartitionStockMap.get(false))
+		Set<DividendItem> addedDividends = Stream.of(partitionedStocksForDelisted.get(false))
 			.map(this::mapTickerSymbols)
 			.map(this::reloadDividend)
 			.map(this::mapDividendItems)
