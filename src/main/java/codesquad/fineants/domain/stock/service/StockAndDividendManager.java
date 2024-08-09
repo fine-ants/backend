@@ -61,8 +61,9 @@ public class StockAndDividendManager {
 		Set<String> deletedStocks = deleteStocks(mapTickerSymbols(delistedPartitionStockMap.get(true)));
 
 		// 올해 신규 배당 일정 저장
-		Set<String> listedTickerSymbols = mapTickerSymbols(delistedPartitionStockMap.get(false));
-		List<StockDividend> savedStockDividends = reloadDividend(listedTickerSymbols);
+		List<StockDividend> savedStockDividends = reloadDividend(
+			mapTickerSymbols(delistedPartitionStockMap.get(false))
+		);
 		log.info("reloadStocks savedStockDividends={}", savedStockDividends.size());
 
 		Set<DividendItem> addedDividends = savedStockDividends.stream()
