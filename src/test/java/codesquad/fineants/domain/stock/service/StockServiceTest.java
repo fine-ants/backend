@@ -3,6 +3,7 @@ package codesquad.fineants.domain.stock.service;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.BDDMockito.*;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -39,6 +40,7 @@ import codesquad.fineants.domain.stock.domain.dto.response.StockResponse;
 import codesquad.fineants.domain.stock.domain.entity.Market;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
+import codesquad.fineants.global.common.delay.DelayManager;
 import codesquad.fineants.infra.s3.service.AmazonS3DividendService;
 import codesquad.fineants.infra.s3.service.AmazonS3StockService;
 import reactor.core.publisher.Mono;
@@ -77,6 +79,9 @@ class StockServiceTest extends AbstractContainerBaseTest {
 
 	@MockBean
 	private KisService kisService;
+
+	@MockBean
+	private DelayManager delayManager;
 
 	@AfterEach
 	void tearDown() {
@@ -227,6 +232,7 @@ class StockServiceTest extends AbstractContainerBaseTest {
 					LocalDate.parse("20240630", dtf),
 					LocalDate.parse("20240814", dtf))
 			)));
+		given(delayManager.getDelay()).willReturn(Duration.ZERO);
 		// when
 		StockReloadResponse response = stockService.reloadStocks();
 		// then
@@ -259,7 +265,7 @@ class StockServiceTest extends AbstractContainerBaseTest {
 				)
 			);
 	}
-	
+
 	@DisplayName("서버는 종목들을 최신화한다")
 	@Test
 	void scheduledRefreshStocks() {
@@ -299,6 +305,7 @@ class StockServiceTest extends AbstractContainerBaseTest {
 				KisDividend.create(s.getTickerSymbol(), Money.won(300), LocalDate.of(2024, 5, 1),
 					LocalDate.of(2024, 7, 1)))))
 		);
+		given(delayManager.getDelay()).willReturn(Duration.ZERO);
 		// when
 		stockService.scheduledReloadStocks();
 		// then
