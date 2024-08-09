@@ -33,7 +33,6 @@ import reactor.core.publisher.Flux;
 @Slf4j
 public class StockAndDividendManager {
 
-	private static final Duration DELAY = Duration.ofMillis(50);
 	private static final Duration TIMEOUT = Duration.ofMinutes(10);
 
 	private final StockRepository stockRepository;
@@ -125,7 +124,7 @@ public class StockAndDividendManager {
 		int concurrency = 20;
 		return Flux.fromIterable(tickerSymbols)
 			.flatMap(kisService::fetchSearchStockInfo, concurrency)
-			.delayElements(DELAY)
+			.delayElements(delayManager.getDelay())
 			.collectList()
 			.blockOptional(TIMEOUT)
 			.orElseGet(Collections::emptyList).stream()
@@ -142,7 +141,7 @@ public class StockAndDividendManager {
 		int concurrency = 20;
 		List<KisDividend> dividends = Flux.fromIterable(tickerSymbols)
 			.flatMap(ticker -> kisService.fetchDividend(ticker).flatMapMany(Flux::fromIterable), concurrency)
-			.delayElements(DELAY)
+			.delayElements(delayManager.getDelay())
 			.collectList()
 			.blockOptional(TIMEOUT)
 			.orElseGet(Collections::emptyList);
