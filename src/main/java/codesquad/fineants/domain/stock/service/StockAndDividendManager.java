@@ -58,12 +58,10 @@ public class StockAndDividendManager {
 		Map<Boolean, List<KisSearchStockInfo>> delistedPartitionStockMap = fetchDelistedStocks();
 
 		// 상장 폐지 종목 및 종목의 배당 일정 삭제
-		Set<String> deletedStocks = deleteStocks(mapDelistedTickerSymbols(delistedPartitionStockMap.get(true)));
+		Set<String> deletedStocks = deleteStocks(mapTickerSymbols(delistedPartitionStockMap.get(true)));
 
 		// 올해 신규 배당 일정 저장
-		Set<String> listedTickerSymbols = delistedPartitionStockMap.get(false).stream()
-			.map(KisSearchStockInfo::getTickerSymbol)
-			.collect(Collectors.toUnmodifiableSet());
+		Set<String> listedTickerSymbols = mapTickerSymbols(delistedPartitionStockMap.get(false));
 		List<StockDividend> savedStockDividends = reloadDividend(listedTickerSymbols);
 		log.info("reloadStocks savedStockDividends={}", savedStockDividends.size());
 
@@ -74,7 +72,7 @@ public class StockAndDividendManager {
 	}
 
 	@NotNull
-	private Set<String> mapDelistedTickerSymbols(List<KisSearchStockInfo> stocks) {
+	private Set<String> mapTickerSymbols(List<KisSearchStockInfo> stocks) {
 		return stocks.stream()
 			.map(KisSearchStockInfo::getTickerSymbol)
 			.collect(Collectors.toUnmodifiableSet());
