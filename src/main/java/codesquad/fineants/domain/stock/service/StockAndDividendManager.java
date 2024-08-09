@@ -75,20 +75,24 @@ public class StockAndDividendManager {
 
 	/**
 	 * 신규 상장 종목 저장
-	 * @return 신규 상장 종목들의 티커 심볼 집합
+	 * 수행과정은 다음과 같습니다.
+	 * - 신규 상장 종목 조회
+	 * - 신규 상장 종목 저장
+	 * @return 신규 상장 종목 티커 심볼
 	 */
 	@NotNull
 	private Set<String> saveIpoStocks() {
-		// 신규 상장 종목 조회
-		List<Stock> stocks = kisService.fetchStockInfoInRangedIpo().stream()
-			.map(StockDataResponse.StockIntegrationInfo::toEntity)
-			.toList();
-		stocks.forEach(stock -> log.info("ipo Stock : {}", stock));
-
-		// 상장된 종목 저장
-		return stockRepository.saveAll(stocks).stream()
+		return stockRepository.saveAll(fetchIpoStocks()).stream()
+			.peek(stock -> log.info("save ipoStock is {}", stock))
 			.map(Stock::getTickerSymbol)
 			.collect(Collectors.toUnmodifiableSet());
+	}
+
+	@NotNull
+	private List<Stock> fetchIpoStocks() {
+		return kisService.fetchStockInfoInRangedIpo().stream()
+			.map(StockDataResponse.StockIntegrationInfo::toEntity)
+			.toList();
 	}
 
 	private Set<DividendItem> mapDividendItems(List<StockDividend> stockDividends) {
