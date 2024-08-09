@@ -166,25 +166,26 @@ public class StockAndDividendManager {
 	 */
 	private List<StockDividend> reloadDividend(Set<String> tickerSymbols) {
 		// 올해 배당 일정 조회
-		List<StockDividend> stockDividends = fetchDividends(tickerSymbols).stream()
-			.map(this::mapStockDividend)
-			.toList();
+		List<StockDividend> stockDividends = fetchDividends(tickerSymbols);
 		// 배당 일정 저장
 		return dividendRepository.saveAll(stockDividends);
 	}
 
 	@NotNull
-	private List<KisDividend> fetchDividends(Set<String> tickerSymbols) {
+	private List<StockDividend> fetchDividends(Set<String> tickerSymbols) {
 		final int concurrency = 20;
 		return Flux.fromIterable(tickerSymbols)
 			.flatMap(ticker -> kisService.fetchDividend(ticker).flatMapMany(Flux::fromIterable), concurrency)
 			.delayElements(delayManager.getDelay())
 			.collectList()
 			.blockOptional(TIMEOUT)
-			.orElseGet(Collections::emptyList);
+			.orElseGet(Collections::emptyList).stream()
+			.map(this::mapStockDividend)
+			.toList();
 	}
 
 	// 조회한 배당금을 엔티티 종목의 배당금으로 매핑
+	// TODO: 리팩토링 필요함
 	private StockDividend mapStockDividend(KisDividend dividend) {
 		StockDividend existStockDividend = dividendRepository.findByTickerSymbolAndRecordDate(
 			dividend.getTickerSymbol(), dividend.getRecordDate()).orElse(null);
