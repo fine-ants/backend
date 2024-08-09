@@ -54,7 +54,7 @@ public class StockAndDividendManager {
 	@Transactional
 	public StockReloadResponse reloadStocks() {
 		// 신규 상장 종목 저장
-		Set<String> newlyAddedTickerSymbols = saveIpoStocks();
+		Set<String> ipoTickerSymbols = saveIpoStocks();
 
 		// 상장 폐지 종목 조회
 		Map<Boolean, List<KisSearchStockInfo>> delistedPartitionStockMap = fetchDelistedStocks();
@@ -70,7 +70,7 @@ public class StockAndDividendManager {
 			.flatMap(Collection::stream)
 			.collect(Collectors.toUnmodifiableSet());
 
-		return StockReloadResponse.create(newlyAddedTickerSymbols, deletedStocks, addedDividends);
+		return StockReloadResponse.create(ipoTickerSymbols, deletedStocks, addedDividends);
 	}
 
 	/**
