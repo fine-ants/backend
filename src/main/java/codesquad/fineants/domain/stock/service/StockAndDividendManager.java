@@ -54,7 +54,7 @@ public class StockAndDividendManager {
 	@Transactional
 	public StockReloadResponse reloadStocks() {
 		// 신규 상장 종목 저장
-		Set<String> newlyAddedTickerSymbols = saveIpoStock();
+		Set<String> newlyAddedTickerSymbols = saveIpoStocks();
 
 		// 상장 폐지 종목 조회
 		Map<Boolean, List<KisSearchStockInfo>> delistedPartitionStockMap = fetchDelistedStocks();
@@ -71,6 +71,24 @@ public class StockAndDividendManager {
 			.collect(Collectors.toUnmodifiableSet());
 
 		return StockReloadResponse.create(newlyAddedTickerSymbols, deletedStocks, addedDividends);
+	}
+
+	/**
+	 * 신규 상장 종목 저장
+	 * @return 신규 상장 종목들의 티커 심볼 집합
+	 */
+	@NotNull
+	private Set<String> saveIpoStocks() {
+		// 신규 상장 종목 조회
+		List<Stock> stocks = kisService.fetchStockInfoInRangedIpo().stream()
+			.map(StockDataResponse.StockIntegrationInfo::toEntity)
+			.toList();
+		stocks.forEach(stock -> log.info("ipo Stock : {}", stock));
+
+		// 상장된 종목 저장
+		return stockRepository.saveAll(stocks).stream()
+			.map(Stock::getTickerSymbol)
+			.collect(Collectors.toUnmodifiableSet());
 	}
 
 	private Set<DividendItem> mapDividendItems(List<StockDividend> stockDividends) {
@@ -101,24 +119,6 @@ public class StockAndDividendManager {
 		log.info("delete stocks for TickerSymbols : {}, deleteCount={}", tickerSymbols, deletedStockCount);
 
 		return tickerSymbols;
-	}
-
-	/**
-	 * 신규 상장 종목 저장
-	 * @return 신규 상장 종목들의 티커 심볼 집합
-	 */
-	@NotNull
-	private Set<String> saveIpoStock() {
-		// 신규 상장 종목 조회
-		List<Stock> stocks = kisService.fetchStockInfoInRangedIpo().stream()
-			.map(StockDataResponse.StockIntegrationInfo::toEntity)
-			.toList();
-		stocks.forEach(stock -> log.info("ipo Stock : {}", stock));
-
-		// 상장된 종목 저장
-		return stockRepository.saveAll(stocks).stream()
-			.map(Stock::getTickerSymbol)
-			.collect(Collectors.toUnmodifiableSet());
 	}
 
 	/**
