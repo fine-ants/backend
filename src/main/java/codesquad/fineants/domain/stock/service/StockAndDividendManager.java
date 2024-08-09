@@ -185,15 +185,13 @@ public class StockAndDividendManager {
 	}
 
 	// 조회한 배당금을 엔티티 종목의 배당금으로 매핑
-	// TODO: 리팩토링 필요함
 	private StockDividend mapStockDividend(KisDividend dividend) {
-		StockDividend existStockDividend = dividendRepository.findByTickerSymbolAndRecordDate(
-			dividend.getTickerSymbol(), dividend.getRecordDate()).orElse(null);
-		if (existStockDividend == null) {
-			Stock stock = stockRepository.findByTickerSymbol(dividend.getTickerSymbol())
-				.orElseThrow(() -> new FineAntsException(StockErrorCode.NOT_FOUND_STOCK));
-			return dividend.toEntity(stock);
-		}
-		return dividend.toEntity(existStockDividend.getId(), existStockDividend.getStock());
+		return dividendRepository.findByTickerSymbolAndRecordDate(dividend.getTickerSymbol(), dividend.getRecordDate())
+			.map(existStockDividend -> dividend.toEntity(existStockDividend.getId(), existStockDividend.getStock()))
+			.orElseGet(() -> {
+				Stock stock = stockRepository.findByTickerSymbol(dividend.getTickerSymbol())
+					.orElseThrow(() -> new FineAntsException(StockErrorCode.NOT_FOUND_STOCK));
+				return dividend.toEntity(stock);
+			});
 	}
 }
