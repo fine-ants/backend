@@ -110,7 +110,7 @@ public class StockAndDividendManager {
 
 	/**
 	 * 종목 삭제
-	 * 종목 삭제시 종목에 해당하는 배당 일정을 사전에 제거한다
+	 * 종목 삭제시 종목에 포함된 배당 일정을 사전에 제거해야 한다
 	 * @param tickerSymbols 삭제할 종목의 티커 심볼
 	 */
 	private Set<String> deleteStocks(Set<String> tickerSymbols) {
@@ -158,31 +158,41 @@ public class StockAndDividendManager {
 
 	/**
 	 * 신규 배당 일정 저장
+	 * 수행과정
+	 * - 배당 일정 조회
+	 * - 배당 일정 저장
 	 * @param tickerSymbols 배당 일정을 조회할 종목의 티커 심볼
 	 * @return 저장된 배당 일정
 	 */
 	private List<StockDividend> reloadDividend(Set<String> tickerSymbols) {
 		// 올해 배당 일정 조회
-		int concurrency = 20;
-		List<KisDividend> dividends = Flux.fromIterable(tickerSymbols)
+		List<StockDividend> stockDividends = fetchDividends(tickerSymbols).stream()
+			.map(this::mapStockDividend)
+			.toList();
+		// 배당 일정 저장
+		return dividendRepository.saveAll(stockDividends);
+	}
+
+	@NotNull
+	private List<KisDividend> fetchDividends(Set<String> tickerSymbols) {
+		final int concurrency = 20;
+		return Flux.fromIterable(tickerSymbols)
 			.flatMap(ticker -> kisService.fetchDividend(ticker).flatMapMany(Flux::fromIterable), concurrency)
 			.delayElements(delayManager.getDelay())
 			.collectList()
 			.blockOptional(TIMEOUT)
 			.orElseGet(Collections::emptyList);
+	}
 
-		// 배당 일정 저장
-		List<StockDividend> stockDividends = dividends.stream()
-			.map(dividend -> {
-				StockDividend existStockDividend = dividendRepository.findByTickerSymbolAndRecordDate(
-					dividend.getTickerSymbol(), dividend.getRecordDate()).orElse(null);
-				if (existStockDividend == null) {
-					Stock stock = stockRepository.findByTickerSymbol(dividend.getTickerSymbol())
-						.orElseThrow(() -> new FineAntsException(StockErrorCode.NOT_FOUND_STOCK));
-					return dividend.toEntity(stock);
-				}
-				return dividend.toEntity(existStockDividend.getId(), existStockDividend.getStock());
-			}).toList();
-		return dividendRepository.saveAll(stockDividends);
+	// 조회한 배당금을 엔티티 종목의 배당금으로 매핑
+	private StockDividend mapStockDividend(KisDividend dividend) {
+		StockDividend existStockDividend = dividendRepository.findByTickerSymbolAndRecordDate(
+			dividend.getTickerSymbol(), dividend.getRecordDate()).orElse(null);
+		if (existStockDividend == null) {
+			Stock stock = stockRepository.findByTickerSymbol(dividend.getTickerSymbol())
+				.orElseThrow(() -> new FineAntsException(StockErrorCode.NOT_FOUND_STOCK));
+			return dividend.toEntity(stock);
+		}
+		return dividend.toEntity(existStockDividend.getId(), existStockDividend.getStock());
 	}
 }
