@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -188,10 +189,16 @@ public class StockAndDividendManager {
 	private StockDividend mapStockDividend(KisDividend dividend) {
 		return dividendRepository.findByTickerSymbolAndRecordDate(dividend.getTickerSymbol(), dividend.getRecordDate())
 			.map(existStockDividend -> dividend.toEntity(existStockDividend.getId(), existStockDividend.getStock()))
-			.orElseGet(() -> {
-				Stock stock = stockRepository.findByTickerSymbol(dividend.getTickerSymbol())
-					.orElseThrow(() -> new FineAntsException(StockErrorCode.NOT_FOUND_STOCK));
-				return dividend.toEntity(stock);
-			});
+			.orElseGet(supplierNewStockDividend(dividend));
+	}
+
+	@NotNull
+	private Supplier<StockDividend> supplierNewStockDividend(KisDividend dividend) {
+		return () -> dividend.toEntity(findStockBy(dividend.getTickerSymbol()));
+	}
+
+	private Stock findStockBy(String tickerSymbol) {
+		return stockRepository.findByTickerSymbol(tickerSymbol)
+			.orElseThrow(() -> new FineAntsException(StockErrorCode.NOT_FOUND_STOCK));
 	}
 }
