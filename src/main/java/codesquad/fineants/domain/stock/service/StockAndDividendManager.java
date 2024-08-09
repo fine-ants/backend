@@ -58,8 +58,7 @@ public class StockAndDividendManager {
 		Map<Boolean, List<KisSearchStockInfo>> delistedPartitionStockMap = fetchDelistedStocks();
 
 		// 상장 폐지 종목 및 종목의 배당 일정 삭제
-		Set<String> deletedTickerSymbols = filterDelistedStock(delistedPartitionStockMap.get(true));
-		deleteStocks(deletedTickerSymbols);
+		Set<String> deletedStocks = deleteStocks(filterDelistedStock(delistedPartitionStockMap.get(true)));
 
 		// 올해 신규 배당 일정 저장
 		Set<String> listedTickerSymbols = delistedPartitionStockMap.get(false).stream()
@@ -71,7 +70,7 @@ public class StockAndDividendManager {
 		Set<DividendItem> addedDividends = savedStockDividends.stream()
 			.map(DividendItem::from)
 			.collect(Collectors.toUnmodifiableSet());
-		return StockReloadResponse.create(newlyAddedTickerSymbols, deletedTickerSymbols, addedDividends);
+		return StockReloadResponse.create(newlyAddedTickerSymbols, deletedStocks, addedDividends);
 	}
 
 	@NotNull
@@ -86,7 +85,7 @@ public class StockAndDividendManager {
 	 * 종목 삭제시 종목에 해당하는 배당 일정을 사전에 제거한다
 	 * @param tickerSymbols 삭제할 종목의 티커 심볼
 	 */
-	private void deleteStocks(Set<String> tickerSymbols) {
+	private Set<String> deleteStocks(Set<String> tickerSymbols) {
 		// 종목의 배당금 삭제
 		int deletedDividendCount = dividendRepository.deleteByTickerSymbols(tickerSymbols);
 		log.info("delete dividends for TickerSymbols : {}, deleteCount={}", tickerSymbols, deletedDividendCount);
@@ -94,6 +93,8 @@ public class StockAndDividendManager {
 		// 종목 삭제
 		int deletedStockCount = stockRepository.deleteAllByTickerSymbols(tickerSymbols);
 		log.info("delete stocks for TickerSymbols : {}, deleteCount={}", tickerSymbols, deletedStockCount);
+		
+		return tickerSymbols;
 	}
 
 	/**
