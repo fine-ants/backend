@@ -1,11 +1,13 @@
 package codesquad.fineants.domain.stock.service;
 
 import java.time.Duration;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
@@ -61,15 +63,20 @@ public class StockAndDividendManager {
 		Set<String> deletedStocks = deleteStocks(mapTickerSymbols(delistedPartitionStockMap.get(true)));
 
 		// 올해 신규 배당 일정 저장
-		List<StockDividend> savedStockDividends = reloadDividend(
-			mapTickerSymbols(delistedPartitionStockMap.get(false))
-		);
-		log.info("reloadStocks savedStockDividends={}", savedStockDividends.size());
+		Set<DividendItem> addedDividends = Stream.of(delistedPartitionStockMap.get(false))
+			.map(this::mapTickerSymbols)
+			.map(this::reloadDividend)
+			.map(this::mapDividendItems)
+			.flatMap(Collection::stream)
+			.collect(Collectors.toUnmodifiableSet());
 
-		Set<DividendItem> addedDividends = savedStockDividends.stream()
+		return StockReloadResponse.create(newlyAddedTickerSymbols, deletedStocks, addedDividends);
+	}
+
+	private Set<DividendItem> mapDividendItems(List<StockDividend> stockDividends) {
+		return stockDividends.stream()
 			.map(DividendItem::from)
 			.collect(Collectors.toUnmodifiableSet());
-		return StockReloadResponse.create(newlyAddedTickerSymbols, deletedStocks, addedDividends);
 	}
 
 	@NotNull
