@@ -15,15 +15,19 @@ public class OauthKisProperties {
 	private final String currentPriceUrl;
 	private final String closingPriceUrl;
 	private final String dividendUrl;
+	private final String ipoUrl;
+	private final String searchStockInfoUrl;
 
 	@ConstructorBinding
 	public OauthKisProperties(String appkey, String secretkey, String tokenUrl, String currentPriceUrl,
-		String closingPriceUrl, String dividendUrl) {
+		String closingPriceUrl, String dividendUrl, String ipoUrl, String searchStockInfoUrl) {
 		this.appkey = appkey;
 		this.secretkey = secretkey;
 		this.tokenUrl = tokenUrl;
 		this.currentPriceUrl = currentPriceUrl;
 		this.closingPriceUrl = closingPriceUrl;
 		this.dividendUrl = dividendUrl;
+		this.ipoUrl = ipoUrl;
+		this.searchStockInfoUrl = searchStockInfoUrl;
 	}
 }

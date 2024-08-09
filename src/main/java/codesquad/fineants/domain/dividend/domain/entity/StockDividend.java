@@ -1,8 +1,11 @@
 package codesquad.fineants.domain.dividend.domain.entity;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
+
+import org.apache.logging.log4j.util.Strings;
 
 import codesquad.fineants.domain.BaseEntity;
 import codesquad.fineants.domain.common.count.Count;
@@ -26,6 +29,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
@@ -33,6 +37,7 @@ import lombok.ToString;
 @ToString(exclude = {"stock"})
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@EqualsAndHashCode(of = {"recordDate", "stock"}, callSuper = false)
 @Table(name = "stock_dividend", uniqueConstraints = {
 	@UniqueConstraint(columnNames = {"ticker_symbol", "record_date"})
 })
@@ -52,15 +57,14 @@ public class StockDividend extends BaseEntity {
 	@Column(name = "payment_date")
 	private LocalDate paymentDate;
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "ticker_symbol", referencedColumnName = "tickerSymbol")
+	@JoinColumn(name = "ticker_symbol")
 	private Stock stock;
 
 	private static final ExDividendDateCalculator EX_DIVIDEND_DATE_CALCULATOR = new ExDividendDateCalculator(
 		new HolidayRepository(new HolidayFileReader()));
 
-	private StockDividend(LocalDateTime createAt, LocalDateTime modifiedAt, Long id, Money dividend,
-		LocalDate recordDate, LocalDate exDividendDate, LocalDate paymentDate, Stock stock) {
-		super(createAt, modifiedAt);
+	private StockDividend(Long id, Money dividend, LocalDate recordDate, LocalDate exDividendDate,
+		LocalDate paymentDate, Stock stock) {
 		this.id = id;
 		this.dividend = dividend;
 		this.recordDate = recordDate;
@@ -72,13 +76,23 @@ public class StockDividend extends BaseEntity {
 	public static StockDividend create(Money dividend, LocalDate recordDate,
 		LocalDate paymentDate, Stock stock) {
 		LocalDate exDividendDate = EX_DIVIDEND_DATE_CALCULATOR.calculate(recordDate);
-		return create(dividend, recordDate, exDividendDate, paymentDate, stock);
+		return create(null, dividend, recordDate, exDividendDate, paymentDate, stock);
 	}
 
 	public static StockDividend create(Money dividend, LocalDate recordDate, LocalDate exDividendDate,
 		LocalDate paymentDate, Stock stock) {
-		return new StockDividend(LocalDateTime.now(), null, null, dividend, recordDate, exDividendDate, paymentDate,
-			stock);
+		return create(null, dividend, recordDate, exDividendDate, paymentDate, stock);
+	}
+
+	public static StockDividend create(Long id, Money dividend, LocalDate recordDate,
+		LocalDate paymentDate, Stock stock) {
+		LocalDate exDividendDate = EX_DIVIDEND_DATE_CALCULATOR.calculate(recordDate);
+		return create(id, dividend, recordDate, exDividendDate, paymentDate, stock);
+	}
+
+	public static StockDividend create(Long id, Money dividend, LocalDate recordDate, LocalDate exDividendDate,
+		LocalDate paymentDate, Stock stock) {
+		return new StockDividend(id, dividend, recordDate, exDividendDate, paymentDate, stock);
 	}
 
 	// 주식 개수에 따른 배당금 합계 계산
@@ -168,5 +182,44 @@ public class StockDividend extends BaseEntity {
 
 	public Dividend toDividend() {
 		return Dividend.create(recordDate, paymentDate, stock.getTickerSymbol(), stock.getCompanyName(), dividend);
+	}
+
+	public boolean equalPaymentDate(LocalDate paymentDate) {
+		if (this.paymentDate == null || paymentDate == null) {
+			return false;
+		}
+		return this.paymentDate.equals(paymentDate);
+	}
+
+	public String toCsvLineString() {
+		return String.join(",",
+			this.id.toString(),
+			this.dividend.toString(),
+			basicIso(this.recordDate),
+			basicIso(this.paymentDate),
+			this.stock.getStockCode());
+	}
+
+	private String basicIso(LocalDate localDate) {
+		if (localDate == null) {
+			return Strings.EMPTY;
+		}
+		return localDate.format(DateTimeFormatter.BASIC_ISO_DATE);
+	}
+
+	public static StockDividend parseCsvLine(String[] data, Map<String, Stock> stockMap) {
+		Long id = Long.parseLong(data[0]);
+		Money dividend = Money.won(Long.parseLong(data[1]));
+		LocalDate recordDate = basicIso(data[2]);
+		LocalDate paymentDate = basicIso(data[3]);
+		Stock stock = stockMap.get(data[4]);
+		return create(id, dividend, recordDate, paymentDate, stock);
+	}
+
+	private static LocalDate basicIso(String localDateString) {
+		if (Strings.isBlank(localDateString)) {
+			return null;
+		}
+		return LocalDate.parse(localDateString, DateTimeFormatter.BASIC_ISO_DATE);
 	}
 }

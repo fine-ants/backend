@@ -6,8 +6,9 @@ import static org.mockito.BDDMockito.*;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Set;
 
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -18,20 +19,28 @@ import org.springframework.security.test.context.support.WithMockUser;
 
 import codesquad.fineants.AbstractContainerBaseTest;
 import codesquad.fineants.domain.holding.repository.PortfolioHoldingRepository;
+import codesquad.fineants.domain.kis.client.KisAccessToken;
 import codesquad.fineants.domain.kis.client.KisClient;
 import codesquad.fineants.domain.kis.client.KisCurrentPrice;
 import codesquad.fineants.domain.kis.domain.dto.response.KisClosingPrice;
+import codesquad.fineants.domain.kis.domain.dto.response.KisIpo;
+import codesquad.fineants.domain.kis.domain.dto.response.KisIpoResponse;
+import codesquad.fineants.domain.kis.domain.dto.response.KisSearchStockInfo;
 import codesquad.fineants.domain.kis.repository.HolidayRepository;
 import codesquad.fineants.domain.kis.repository.KisAccessTokenRepository;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.repository.PortfolioRepository;
+import codesquad.fineants.domain.stock.domain.dto.response.StockDataResponse;
+import codesquad.fineants.domain.stock.domain.entity.Market;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
+import codesquad.fineants.domain.stock.service.StockCsvReader;
 import codesquad.fineants.global.errors.exception.KisException;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 @Slf4j
 class KisServiceTest extends AbstractContainerBaseTest {
@@ -56,6 +65,9 @@ class KisServiceTest extends AbstractContainerBaseTest {
 
 	@Autowired
 	private KisAccessTokenRepository kisAccessTokenRepository;
+
+	@Autowired
+	private StockCsvReader stockCsvReader;
 
 	@MockBean
 	private HolidayRepository holidayRepository;
@@ -102,7 +114,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 
 		List<String> tickerSymbols = stocks.stream()
 			.map(Stock::getTickerSymbol)
-			.collect(Collectors.toList());
+			.toList();
 		// when
 		kisService.refreshStockCurrentPrice(tickerSymbols);
 
@@ -128,7 +140,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 
 		List<String> tickerSymbols = stocks.stream()
 			.map(Stock::getTickerSymbol)
-			.collect(Collectors.toList());
+			.toList();
 		// when
 		List<KisCurrentPrice> prices = kisService.refreshStockCurrentPrice(tickerSymbols);
 
@@ -156,7 +168,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 
 		List<String> tickerSymbols = stocks.stream()
 			.map(Stock::getTickerSymbol)
-			.collect(Collectors.toList());
+			.toList();
 		// when
 		kisService.refreshLastDayClosingPrice(tickerSymbols);
 
@@ -173,5 +185,95 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		kisService.refreshCurrentPrice();
 		// then
 		verify(holidayRepository, times(1)).isHoliday(any(LocalDate.class));
+	}
+
+	@DisplayName("한국투자증권에 상장된 종목 정보를 조회한다")
+	@Test
+	void fetchStockInfoInRangedIpo() {
+		// given
+		KisAccessToken kisAccessToken = createKisAccessToken();
+		kisAccessTokenRepository.refreshAccessToken(kisAccessToken);
+
+		KisIpoResponse kisIpoResponse = KisIpoResponse.create(
+			List.of(KisIpo.create("20240326", "000660", "에스케이하이닉스보통주"))
+		);
+		given(client.fetchIpo(
+			any(LocalDate.class),
+			any(LocalDate.class),
+			anyString()))
+			.willReturn(Mono.just(kisIpoResponse));
+
+		KisSearchStockInfo kisSearchStockInfo = KisSearchStockInfo.listedStock(
+			"KR7000660001",
+			"000660",
+			"에스케이하이닉스보통주",
+			"SK hynix",
+			"STK",
+			"전기,전자"
+		);
+		given(client.fetchSearchStockInfo(anyString(), anyString()))
+			.willReturn(Mono.just(kisSearchStockInfo));
+		// when
+		Set<StockDataResponse.StockIntegrationInfo> stocks = kisService.fetchStockInfoInRangedIpo();
+		// then
+		assertThat(stocks)
+			.hasSize(1)
+			.extracting(
+				StockDataResponse.StockIntegrationInfo::getStockCode,
+				StockDataResponse.StockIntegrationInfo::getTickerSymbol,
+				StockDataResponse.StockIntegrationInfo::getCompanyName,
+				StockDataResponse.StockIntegrationInfo::getCompanyNameEng,
+				StockDataResponse.StockIntegrationInfo::getMarket
+			).containsExactly(tuple("KR7000660001", "000660", "에스케이하이닉스보통주", "SK hynix", Market.KOSPI));
+	}
+
+	@DisplayName("사용자는 db에 저장된 종목을 각각 조회한다")
+	@Test
+	void fetchSearchStockInfo() {
+		// given
+		List<Stock> stocks = saveStocks().stream()
+			.limit(100)
+			.toList();
+		List<String> tickerSymbols = stocks.stream()
+			.map(Stock::getTickerSymbol)
+			.toList();
+
+		KisAccessToken kisAccessToken = createKisAccessToken();
+		kisAccessTokenRepository.refreshAccessToken(kisAccessToken);
+		String accessToken = kisAccessToken.createAuthorization();
+		stocks.forEach(s ->
+			given(client.fetchSearchStockInfo(s.getTickerSymbol(), accessToken))
+				.willReturn(Mono.just(
+						KisSearchStockInfo.listedStock(
+							s.getStockCode(),
+							s.getTickerSymbol(),
+							s.getCompanyName(),
+							s.getCompanyNameEng(),
+							"STK",
+							s.getSector()
+						)
+					)
+				)
+		);
+
+		// when & then
+		tickerSymbols.stream()
+			.map(kisService::fetchSearchStockInfo)
+			.forEach(mono ->
+				StepVerifier.create(mono)
+					.expectNextMatches(stockInfo -> {
+						Assertions.assertThat(stockInfo).isNotNull();
+						return true;
+					})
+					.verifyComplete()
+			);
+	}
+
+	private List<Stock> saveStocks() {
+		Set<StockDataResponse.StockInfo> stockInfoSet = stockCsvReader.readStockCsv();
+		List<Stock> stocks = stockInfoSet.stream()
+			.map(StockDataResponse.StockInfo::toEntity)
+			.toList();
+		return stockRepository.saveAll(stocks);
 	}
 }

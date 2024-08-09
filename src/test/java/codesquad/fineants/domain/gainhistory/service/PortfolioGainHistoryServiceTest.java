@@ -13,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import codesquad.fineants.AbstractContainerBaseTest;
 import codesquad.fineants.domain.common.count.Count;
 import codesquad.fineants.domain.common.money.Money;
-import codesquad.fineants.domain.dividend.repository.StockDividendRepository;
 import codesquad.fineants.domain.gainhistory.domain.dto.response.PortfolioGainHistoryCreateResponse;
 import codesquad.fineants.domain.gainhistory.domain.entity.PortfolioGainHistory;
 import codesquad.fineants.domain.gainhistory.repository.PortfolioGainHistoryRepository;
@@ -53,11 +52,9 @@ class PortfolioGainHistoryServiceTest extends AbstractContainerBaseTest {
 	private PurchaseHistoryRepository purchaseHistoryRepository;
 
 	@Autowired
-	private StockDividendRepository stockDividendRepository;
-
-	@Autowired
 	private CurrentPriceRepository currentPriceRepository;
 
+	// TODO: Kis 접근 토큰 모킹 처리
 	@DisplayName("모든 포트폴리오의 손익 내역을 추가한다")
 	@Test
 	void addPortfolioGainHistory() {
@@ -76,6 +73,7 @@ class PortfolioGainHistoryServiceTest extends AbstractContainerBaseTest {
 			createPurchaseHistory(null, purchaseDate, numShares, purchasePricePerShare, memo, portfolioHolding));
 
 		currentPriceRepository.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 60000L));
+
 		// when
 		PortfolioGainHistoryCreateResponse response = service.addPortfolioGainHistory();
 

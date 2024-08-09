@@ -27,17 +27,11 @@ public class KisCurrentPrice {
 	private Long price;
 
 	public static KisCurrentPrice empty(String tickerSymbol) {
-		return KisCurrentPrice.builder()
-			.tickerSymbol(tickerSymbol)
-			.price(0L)
-			.build();
+		return new KisCurrentPrice(tickerSymbol, 0L);
 	}
 
 	public static KisCurrentPrice create(String tickerSymbol, Long price) {
-		return KisCurrentPrice.builder()
-			.tickerSymbol(tickerSymbol)
-			.price(price)
-			.build();
+		return new KisCurrentPrice(tickerSymbol, price);
 	}
 
 	static class KisCurrentPriceDeserializer extends JsonDeserializer<KisCurrentPrice> {
