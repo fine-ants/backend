@@ -86,7 +86,7 @@ public class AmazonS3DividendService {
 	}
 
 	@NotNull
-	private static String csvTitle() {
+	private String csvTitle() {
 		return String.join(CSV_SEPARATOR, "id", "dividend", "recordDate", "paymentDate", "stockCode");
 	}
 
@@ -103,7 +103,7 @@ public class AmazonS3DividendService {
 	}
 
 	@NotNull
-	private static ObjectMetadata createObjectMetadata() {
+	private ObjectMetadata createObjectMetadata() {
 		ObjectMetadata metadata = new ObjectMetadata();
 		metadata.setContentType("text/csv");
 		return metadata;
