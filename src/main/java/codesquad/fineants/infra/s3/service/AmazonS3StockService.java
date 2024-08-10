@@ -33,7 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class AmazonS3StockService {
 
-	public static final String CSV_SEPARATOR = ",";
+	public static final String CSV_SEPARATOR = ":";
 
 	private final AmazonS3 amazonS3;
 	@Value("${aws.s3.bucket}")

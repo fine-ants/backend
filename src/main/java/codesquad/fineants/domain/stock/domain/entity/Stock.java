@@ -16,6 +16,7 @@ import codesquad.fineants.domain.kis.repository.ClosingPriceRepository;
 import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
 import codesquad.fineants.domain.purchasehistory.domain.entity.PurchaseHistory;
 import codesquad.fineants.domain.stock.converter.MarketConverter;
+import codesquad.fineants.infra.s3.service.AmazonS3StockService;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -220,7 +221,7 @@ public class Stock extends BaseEntity {
 	}
 
 	public String toCsvLineString() {
-		return String.join(",",
+		return String.join(AmazonS3StockService.CSV_SEPARATOR,
 			stockCode,
 			tickerSymbol,
 			companyName,

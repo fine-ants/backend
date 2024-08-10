@@ -61,14 +61,15 @@ public class StockService {
 	@Scheduled(cron = "0 0 8 * * ?") // 매일 오전 8시 (초, 분, 시간)
 	@Transactional
 	public void scheduledReloadStocks() {
-		StockReloadResponse response = stockAndDividendManager.reloadStocks();
-		log.info("refreshStocks response : {}", response);
-		amazonS3StockService.writeStocks(stockRepository.findAll());
-		amazonS3DividendService.writeDividends(stockDividendRepository.findAll());
+		reloadStocks();
 	}
 
 	@Transactional
 	public StockReloadResponse reloadStocks() {
-		return stockAndDividendManager.reloadStocks();
+		StockReloadResponse response = stockAndDividendManager.reloadStocks();
+		log.info("refreshStocks response : {}", response);
+		amazonS3StockService.writeStocks(stockRepository.findAll());
+		amazonS3DividendService.writeDividends(stockDividendRepository.findAll());
+		return response;
 	}
 }
