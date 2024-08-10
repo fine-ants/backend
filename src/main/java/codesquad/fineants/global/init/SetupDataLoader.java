@@ -103,14 +103,20 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
 
 	private void createMemberIfNotFound(String email, String nickname, String password,
 		Set<Role> roleSet) {
-		Member member = memberRepository.findMemberByEmailAndProvider(email, "local")
-			.orElseGet(supplierNewMember(email, nickname, password, roleSet));
+		Member member = memberRepository.save(findOrCreateNewMember(email, nickname, password, roleSet));
+		initializeNotificationPreferenceIfNotExists(member);
+	}
 
-		Member saveMember = memberRepository.save(member);
+	private Member findOrCreateNewMember(String email, String nickname, String password, Set<Role> roleSet) {
+		return memberRepository.findMemberByEmailAndProvider(email, "local")
+			.orElseGet(supplierNewMember(email, nickname, password, roleSet));
+	}
+
+	private void initializeNotificationPreferenceIfNotExists(Member member) {
 		NotificationPreference preference = member.getNotificationPreference();
 		if (preference == null) {
-			NotificationPreference newPreference = NotificationPreference.allActive(saveMember);
-			saveMember.setNotificationPreference(newPreference);
+			NotificationPreference newPreference = NotificationPreference.allActive(member);
+			member.setNotificationPreference(newPreference);
 			notificationPreferenceRepository.save(newPreference);
 		}
 	}
