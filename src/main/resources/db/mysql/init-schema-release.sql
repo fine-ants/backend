@@ -111,7 +111,7 @@ create table if not exists fineAnts_release.portfolio_gain_history
         foreign key (portfolio_id) references fineAnts_release.portfolio (id)
 );
 
-create table if not exists fineAnts_release.role
+create table if not exists fineAnts_release.roleProperty
 (
     role_id          bigint auto_increment
         primary key,
@@ -128,7 +128,7 @@ create table if not exists fineAnts_release.member_role
     constraint FK34g7epqlcxqloewku3aoqhhmg
         foreign key (member_id) references fineAnts_release.member (id),
     constraint FK8ro2tn5n8wkfy1nyjdqxocwpo
-        foreign key (role_role_id) references fineAnts_release.role (role_id)
+        foreign key (role_role_id) references fineAnts_release.roleProperty (role_id)
 );
 
 create table if not exists fineAnts_release.stock

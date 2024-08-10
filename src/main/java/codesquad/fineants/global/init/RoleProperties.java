@@ -5,66 +5,40 @@ import java.util.List;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.bind.ConstructorBinding;
 
+import codesquad.fineants.domain.member.domain.entity.Role;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
-@Getter
 @ConfigurationProperties(prefix = "role")
 public class RoleProperties {
 
-	private final Role admin;
-	private final Role manager;
-	private final Role user;
+	private final RoleProperty admin;
+	private final RoleProperty manager;
+	private final RoleProperty user;
 
 	@ConstructorBinding
-	public RoleProperties(Role admin, Role manager, Role user) {
+	public RoleProperties(RoleProperty admin, RoleProperty manager, RoleProperty user) {
 		this.admin = admin;
 		this.manager = manager;
 		this.user = user;
 	}
 
 	@Getter
-	@RequiredArgsConstructor
-	public static class Role {
-		private String roleName;
-		private String roleDesc;
+	public static class RoleProperty {
+		private final String roleName;
+		private final String roleDesc;
 
 		@ConstructorBinding
-		public Role(String roleName, String roleDesc) {
+		public RoleProperty(String roleName, String roleDesc) {
 			this.roleName = roleName;
 			this.roleDesc = roleDesc;
 		}
 
-		public codesquad.fineants.domain.member.domain.entity.Role toRoleEntity() {
-			return codesquad.fineants.domain.member.domain.entity.Role.create(roleName, roleDesc);
+		public Role toRoleEntity() {
+			return Role.create(roleName, roleDesc);
 		}
 	}
 
-	public List<Role> getRoles() {
+	public List<RoleProperty> getRoles() {
 		return List.of(admin, manager, user);
-	}
-
-	public String getAdminRoleName() {
-		return getAdmin().getRoleName();
-	}
-
-	public String getAdminRoleDesc() {
-		return getAdmin().getRoleDesc();
-	}
-
-	public String getManagerRoleName() {
-		return getManager().getRoleName();
-	}
-
-	public String getManagerRoleDesc() {
-		return getManager().getRoleDesc();
-	}
-
-	public String getUserRoleName() {
-		return getUser().getRoleName();
-	}
-
-	public String getUserRoleDesc() {
-		return getUser().getRoleDesc();
 	}
 }

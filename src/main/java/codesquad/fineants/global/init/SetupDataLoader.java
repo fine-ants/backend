@@ -66,14 +66,14 @@ public class SetupDataLoader {
 		roleProperties.getRoles().forEach(this::saveRoleIfNotFound);
 	}
 
-	private void saveRoleIfNotFound(RoleProperties.Role role) {
-		roleRepository.save(findOrCreateRole(role));
+	private void saveRoleIfNotFound(RoleProperties.RoleProperty roleProperty) {
+		roleRepository.save(findOrCreateRole(roleProperty));
 	}
 
 	@NotNull
-	private Role findOrCreateRole(RoleProperties.Role role) {
-		return roleRepository.findRoleByRoleName(role.getRoleName())
-			.orElseGet(role::toRoleEntity);
+	private Role findOrCreateRole(RoleProperties.RoleProperty roleProperty) {
+		return roleRepository.findRoleByRoleName(roleProperty.getRoleName())
+			.orElseGet(roleProperty::toRoleEntity);
 	}
 
 	private void setupMemberResources() {
