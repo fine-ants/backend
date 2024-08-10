@@ -5,19 +5,15 @@ import java.util.Collections;
 import java.util.List;
 
 import org.aspectj.lang.ProceedingJoinPoint;
-import org.aspectj.lang.annotation.Around;
-import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.stereotype.Component;
 
 import lombok.extern.slf4j.Slf4j;
 
-@Aspect
 @Component
 @Slf4j
-public class ResourceIdAspect {
-	@Around("@annotation(org.springframework.web.bind.annotation.RequestMapping)")
-	public List<Long> around(ProceedingJoinPoint joinPoint) throws Throwable {
+public class ResourceIdParser {
+	public List<Long> getResourceList(ProceedingJoinPoint joinPoint) {
 		MethodSignature methodSignature = (MethodSignature)joinPoint.getSignature();
 		Annotation[][] parameterAnnotations = methodSignature.getMethod().getParameterAnnotations();
 		Object[] args = joinPoint.getArgs();
