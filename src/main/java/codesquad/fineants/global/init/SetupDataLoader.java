@@ -47,6 +47,7 @@ public class SetupDataLoader {
 	private final ExchangeRateService exchangeRateService;
 	private final AdminProperties adminProperties;
 	private final ManagerProperties managerProperties;
+	private final RoleProperties roleProperties;
 
 	@Transactional
 	public void setupResources() {
@@ -62,7 +63,7 @@ public class SetupDataLoader {
 	}
 
 	private void setupSecurityResources() {
-		saveRoleIfNotFound("ROLE_ADMIN", "관리자");
+		saveRoleIfNotFound(roleProperties.getAdminRoleName(), roleProperties.getAdminRoleDesc());
 		saveRoleIfNotFound("ROLE_MANAGER", "매니저");
 		saveRoleIfNotFound("ROLE_USER", "회원");
 	}

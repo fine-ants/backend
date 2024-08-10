@@ -8,10 +8,11 @@ import codesquad.fineants.domain.kis.properties.OauthKisProperties;
 import codesquad.fineants.domain.portfolio.properties.PortfolioProperties;
 import codesquad.fineants.global.init.AdminProperties;
 import codesquad.fineants.global.init.ManagerProperties;
+import codesquad.fineants.global.init.RoleProperties;
 
 @EnableAspectJAutoProxy
 @EnableConfigurationProperties(value = {PortfolioProperties.class, AdminProperties.class, ManagerProperties.class,
-	OauthKisProperties.class})
+	OauthKisProperties.class, RoleProperties.class})
 @Configuration
 public class SpringConfig {
 }
