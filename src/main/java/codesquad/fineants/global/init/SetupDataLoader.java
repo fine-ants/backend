@@ -108,8 +108,8 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
 			createExchangeRateIfNotFound(ExchangeRate.base("KRW")),
 			createExchangeRateIfNotFound(ExchangeRate.zero("USD", false))
 		);
-		exchangeRateService.updateExchangeRates();
 		log.info("환율 생성 : {}", rates);
+		exchangeRateService.updateExchangeRates();
 	}
 
 	private ExchangeRate createExchangeRateIfNotFound(ExchangeRate exchangeRate) {
