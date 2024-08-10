@@ -8,18 +8,15 @@ import org.springframework.boot.context.properties.bind.ConstructorBinding;
 import codesquad.fineants.domain.member.domain.entity.Role;
 import lombok.Getter;
 
+@Getter
 @ConfigurationProperties(prefix = "role")
 public class RoleProperties {
 
-	private final RoleProperty admin;
-	private final RoleProperty manager;
-	private final RoleProperty user;
+	private final List<RoleProperty> rolePropertyList;
 
 	@ConstructorBinding
 	public RoleProperties(RoleProperty admin, RoleProperty manager, RoleProperty user) {
-		this.admin = admin;
-		this.manager = manager;
-		this.user = user;
+		this.rolePropertyList = List.of(admin, manager, user);
 	}
 
 	@Getter
@@ -36,9 +33,5 @@ public class RoleProperties {
 		public Role toRoleEntity() {
 			return Role.create(roleName, roleDesc);
 		}
-	}
-
-	public List<RoleProperty> getRoles() {
-		return List.of(admin, manager, user);
 	}
 }

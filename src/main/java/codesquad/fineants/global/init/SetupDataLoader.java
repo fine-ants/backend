@@ -63,7 +63,7 @@ public class SetupDataLoader {
 	}
 
 	private void setupSecurityResources() {
-		roleProperties.getRoles().forEach(this::saveRoleIfNotFound);
+		roleProperties.getRolePropertyList().forEach(this::saveRoleIfNotFound);
 	}
 
 	private void saveRoleIfNotFound(RoleProperties.RoleProperty roleProperty) {
