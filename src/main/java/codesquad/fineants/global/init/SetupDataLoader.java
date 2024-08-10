@@ -69,22 +69,15 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
 		alreadySetup = true;
 	}
 
-	private void setAdminAuthentication() {
-		Member admin = memberRepository.findMemberByEmailAndProvider("admin@admin.com", "local")
-			.orElseThrow(() -> new FineAntsException(MemberErrorCode.NOT_FOUND_MEMBER));
-		MemberAuthentication memberAuthentication = MemberAuthentication.from(admin);
-		UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
-			memberAuthentication,
-			Strings.EMPTY,
-			memberAuthentication.getSimpleGrantedAuthority()
-		);
-		SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-	}
-
 	private void setupSecurityResources() {
 		createRoleIfNotFound("ROLE_ADMIN", "관리자");
 		createRoleIfNotFound("ROLE_MANAGER", "매니저");
 		createRoleIfNotFound("ROLE_USER", "회원");
+	}
+
+	private void createRoleIfNotFound(String roleName, String roleDesc) {
+		Role role = roleRepository.findRoleByRoleName(roleName).orElseGet(() -> Role.create(roleName, roleDesc));
+		roleRepository.save(role);
 	}
 
 	private void setupMemberResources() {
@@ -95,31 +88,9 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
 		Role adminRole = roleRepository.findRoleByRoleName("ROLE_ADMIN")
 			.orElseThrow(() -> new FineAntsException(RoleErrorCode.NOT_EXIST_ROLE));
 
-		createMemberIfNotFound("dragonbead95@naver.com", "일개미1111", "nemo1234@",
-			Set.of(userRole));
-		createOauthMemberIfNotFound("dragonbead95@naver.com", "일개미1112", "naver",
-			Set.of(userRole));
+		createMemberIfNotFound("dragonbead95@naver.com", "일개미1111", "nemo1234@", Set.of(userRole));
 		createMemberIfNotFound("admin@admin.com", "admin", password, Set.of(adminRole));
 		createMemberIfNotFound("manager@manager.com", "manager", password, Set.of(managerRole));
-	}
-
-	private void setupExchangeRateResources() {
-		List<ExchangeRate> rates = List.of(
-			createExchangeRateIfNotFound(ExchangeRate.base("KRW")),
-			createExchangeRateIfNotFound(ExchangeRate.zero("USD", false))
-		);
-		log.info("환율 생성 : {}", rates);
-		exchangeRateService.updateExchangeRates();
-	}
-
-	private ExchangeRate createExchangeRateIfNotFound(ExchangeRate exchangeRate) {
-		return exchangeRateRepository.save(exchangeRate);
-	}
-
-	private void createRoleIfNotFound(String roleName, String roleDesc) {
-		Role role = roleRepository.findRoleByRoleName(roleName)
-			.orElseGet(() -> Role.create(roleName, roleDesc));
-		roleRepository.save(role);
 	}
 
 	private void createMemberIfNotFound(String email, String nickname, String password,
@@ -145,25 +116,28 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
 		}
 	}
 
-	private void createOauthMemberIfNotFound(String email, String nickname, String provider, Set<Role> roleSet) {
-		Member member = memberRepository.findMemberByEmailAndProvider(email, provider)
-			.orElse(null);
+	private void setAdminAuthentication() {
+		Member admin = memberRepository.findMemberByEmailAndProvider("admin@admin.com", "local")
+			.orElseThrow(() -> new FineAntsException(MemberErrorCode.NOT_FOUND_MEMBER));
+		MemberAuthentication memberAuthentication = MemberAuthentication.from(admin);
+		UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
+			memberAuthentication,
+			Strings.EMPTY,
+			memberAuthentication.getSimpleGrantedAuthority()
+		);
+		SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+	}
 
-		if (member == null) {
-			member = Member.oauthMember(email, nickname, provider, null);
-			Set<MemberRole> memberRoleSet = new HashSet<>();
-			for (Role r : roleSet) {
-				MemberRole memberRole = MemberRole.create(member, r);
-				memberRoleSet.add(memberRole);
-			}
-			member.setMemberRoleSet(memberRoleSet);
-		}
-		Member saveMember = memberRepository.save(member);
-		NotificationPreference preference = member.getNotificationPreference();
-		if (preference == null) {
-			NotificationPreference newPreference = NotificationPreference.allActive(saveMember);
-			saveMember.setNotificationPreference(newPreference);
-			notificationPreferenceRepository.save(newPreference);
-		}
+	private void setupExchangeRateResources() {
+		List<ExchangeRate> rates = List.of(
+			createExchangeRateIfNotFound(ExchangeRate.base("KRW")),
+			createExchangeRateIfNotFound(ExchangeRate.zero("USD", false))
+		);
+		log.info("환율 생성 : {}", rates);
+		exchangeRateService.updateExchangeRates();
+	}
+
+	private ExchangeRate createExchangeRateIfNotFound(ExchangeRate exchangeRate) {
+		return exchangeRateRepository.save(exchangeRate);
 	}
 }
