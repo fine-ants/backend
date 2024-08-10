@@ -15,7 +15,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import codesquad.fineants.domain.dividend.service.StockDividendService;
 import codesquad.fineants.domain.exchangerate.domain.entity.ExchangeRate;
 import codesquad.fineants.domain.exchangerate.repository.ExchangeRateRepository;
 import codesquad.fineants.domain.kis.service.KisService;
@@ -41,7 +40,6 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
 
 	private boolean alreadySetup = false;
 	private final KisService kisService;
-	private final StockDividendService stockDividendService;
 	private final RoleRepository roleRepository;
 	private final MemberRepository memberRepository;
 	private final NotificationPreferenceRepository notificationPreferenceRepository;
@@ -80,15 +78,13 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
 		SecurityContextHolder.getContext().setAuthentication(authenticationToken);
 	}
 
-	@Transactional
-	public void setupSecurityResources() {
+	private void setupSecurityResources() {
 		createRoleIfNotFound("ROLE_ADMIN", "관리자");
 		createRoleIfNotFound("ROLE_MANAGER", "매니저");
 		createRoleIfNotFound("ROLE_USER", "회원");
 	}
 
-	@Transactional
-	public void setupMemberResources() {
+	private void setupMemberResources() {
 		Role userRole = roleRepository.findRoleByRoleName("ROLE_USER")
 			.orElseThrow(() -> new FineAntsException(RoleErrorCode.NOT_EXIST_ROLE));
 		Role managerRole = roleRepository.findRoleByRoleName("ROLE_MANAGER")
@@ -104,8 +100,7 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
 		createMemberIfNotFound("manager@manager.com", "manager", password, Set.of(managerRole));
 	}
 
-	@Transactional
-	public void setupExchangeRateResources() {
+	private void setupExchangeRateResources() {
 		ExchangeRate exchangeRate = createExchangeRateIfNotFound("KRW");
 		log.info("환율 생성 : {}", exchangeRate);
 	}
@@ -116,15 +111,13 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
 		return exchangeRateRepository.save(exchangeRate);
 	}
 
-	@Transactional
-	public void createRoleIfNotFound(String roleName, String roleDesc) {
+	private void createRoleIfNotFound(String roleName, String roleDesc) {
 		Role role = roleRepository.findRoleByRoleName(roleName)
 			.orElseGet(() -> Role.create(roleName, roleDesc));
 		roleRepository.save(role);
 	}
 
-	@Transactional
-	public void createMemberIfNotFound(String email, String nickname, String password,
+	private void createMemberIfNotFound(String email, String nickname, String password,
 		Set<Role> roleSet) {
 		Member member = memberRepository.findMemberByEmailAndProvider(email, "local")
 			.orElse(null);
@@ -147,8 +140,7 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
 		}
 	}
 
-	@Transactional
-	public void createOauthMemberIfNotFound(String email, String nickname, String provider, Set<Role> roleSet) {
+	private void createOauthMemberIfNotFound(String email, String nickname, String provider, Set<Role> roleSet) {
 		Member member = memberRepository.findMemberByEmailAndProvider(email, provider)
 			.orElse(null);
 
