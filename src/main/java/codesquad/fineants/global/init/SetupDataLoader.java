@@ -1,8 +1,9 @@
 package codesquad.fineants.global.init;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.util.Strings;
 import org.jetbrains.annotations.NotNull;
@@ -103,17 +104,8 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
 	private void createMemberIfNotFound(String email, String nickname, String password,
 		Set<Role> roleSet) {
 		Member member = memberRepository.findMemberByEmailAndProvider(email, "local")
-			.orElse(null);
+			.orElseGet(supplierNewMember(email, nickname, password, roleSet));
 
-		if (member == null) {
-			member = Member.localMember(email, nickname, passwordEncoder.encode(password));
-			Set<MemberRole> memberRoleSet = new HashSet<>();
-			for (Role r : roleSet) {
-				MemberRole memberRole = MemberRole.create(member, r);
-				memberRoleSet.add(memberRole);
-			}
-			member.setMemberRoleSet(memberRoleSet);
-		}
 		Member saveMember = memberRepository.save(member);
 		NotificationPreference preference = member.getNotificationPreference();
 		if (preference == null) {
@@ -121,6 +113,18 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
 			saveMember.setNotificationPreference(newPreference);
 			notificationPreferenceRepository.save(newPreference);
 		}
+	}
+
+	@NotNull
+	private Supplier<Member> supplierNewMember(String email, String nickname, String password, Set<Role> roleSet) {
+		return () -> {
+			Member newMember = Member.localMember(email, nickname, passwordEncoder.encode(password));
+			Set<MemberRole> memberRoles = roleSet.stream()
+				.map(r -> MemberRole.create(newMember, r))
+				.collect(Collectors.toUnmodifiableSet());
+			newMember.setMemberRoleSet(memberRoles);
+			return newMember;
+		};
 	}
 
 	private void setAdminAuthentication() {
