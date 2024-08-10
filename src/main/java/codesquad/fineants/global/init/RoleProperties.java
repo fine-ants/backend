@@ -41,4 +41,20 @@ public class RoleProperties {
 	public String getAdminRoleDesc() {
 		return getAdmin().getRoleDesc();
 	}
+
+	public String getManagerRoleName() {
+		return getManager().getRoleName();
+	}
+
+	public String getManagerRoleDesc() {
+		return getManager().getRoleDesc();
+	}
+
+	public String getUserRoleName() {
+		return getUser().getRoleName();
+	}
+
+	public String getUserRoleDesc() {
+		return getUser().getRoleDesc();
+	}
 }

@@ -64,8 +64,8 @@ public class SetupDataLoader {
 
 	private void setupSecurityResources() {
 		saveRoleIfNotFound(roleProperties.getAdminRoleName(), roleProperties.getAdminRoleDesc());
-		saveRoleIfNotFound("ROLE_MANAGER", "매니저");
-		saveRoleIfNotFound("ROLE_USER", "회원");
+		saveRoleIfNotFound(roleProperties.getManagerRoleName(), roleProperties.getManagerRoleDesc());
+		saveRoleIfNotFound(roleProperties.getUserRoleName(), roleProperties.getUserRoleDesc());
 	}
 
 	private void saveRoleIfNotFound(String roleName, String roleDesc) {
