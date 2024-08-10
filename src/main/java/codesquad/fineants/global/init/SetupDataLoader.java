@@ -70,12 +70,12 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
 	}
 
 	private void setupSecurityResources() {
-		createRoleIfNotFound("ROLE_ADMIN", "관리자");
-		createRoleIfNotFound("ROLE_MANAGER", "매니저");
-		createRoleIfNotFound("ROLE_USER", "회원");
+		saveRoleIfNotFound("ROLE_ADMIN", "관리자");
+		saveRoleIfNotFound("ROLE_MANAGER", "매니저");
+		saveRoleIfNotFound("ROLE_USER", "회원");
 	}
 
-	private void createRoleIfNotFound(String roleName, String roleDesc) {
+	private void saveRoleIfNotFound(String roleName, String roleDesc) {
 		Role role = roleRepository.findRoleByRoleName(roleName).orElseGet(() -> Role.create(roleName, roleDesc));
 		roleRepository.save(role);
 	}
@@ -113,8 +113,7 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
 	}
 
 	private void initializeNotificationPreferenceIfNotExists(Member member) {
-		NotificationPreference preference = member.getNotificationPreference();
-		if (preference == null) {
+		if (member.getNotificationPreference() == null) {
 			NotificationPreference newPreference = NotificationPreference.allActive(member);
 			member.setNotificationPreference(newPreference);
 			notificationPreferenceRepository.save(newPreference);
