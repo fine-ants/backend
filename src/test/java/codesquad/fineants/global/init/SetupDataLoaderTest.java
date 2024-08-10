@@ -79,5 +79,6 @@ class SetupDataLoaderTest extends AbstractContainerBaseTest {
 			.map(GrantedAuthority::getAuthority)
 			.collect(Collectors.toUnmodifiableSet()))
 			.containsExactlyElementsOf(memberAuthentication.getRoleSet());
+		// TODO: 환율 검증문 추가
 	}
 }
