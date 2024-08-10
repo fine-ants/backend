@@ -38,7 +38,7 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class SetupDataLoader implements ApplicationListener<ContextRefreshedEvent> {
+public class SetupDataLoaderListener implements ApplicationListener<ContextRefreshedEvent> {
 
 	private boolean alreadySetup = false;
 	private final KisService kisService;
