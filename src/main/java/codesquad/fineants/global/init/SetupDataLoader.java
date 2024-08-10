@@ -6,7 +6,6 @@ import java.util.Set;
 
 import org.apache.logging.log4j.util.Strings;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -48,8 +47,8 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
 	private final PasswordEncoder passwordEncoder;
 	private final ExchangeRateRepository exchangeRateRepository;
 	private final ExchangeRateService exchangeRateService;
-	@Value("${member.admin.password}")
-	private String adminPassword;
+	private final AdminProperties adminProperties;
+	private final ManagerProperties managerProperties;
 
 	@Override
 	@Transactional
@@ -89,8 +88,16 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
 			.orElseThrow(() -> new FineAntsException(RoleErrorCode.NOT_EXIST_ROLE));
 
 		createMemberIfNotFound("dragonbead95@naver.com", "일개미1111", "nemo1234@", Set.of(userRole));
-		createMemberIfNotFound(adminEmail, adminNickname, adminPassword, Set.of(adminRole));
-		createMemberIfNotFound(managerEmail, managerNickname, managerPassword, Set.of(managerRole));
+		createMemberIfNotFound(
+			adminProperties.getEmail(),
+			adminProperties.getNickname(),
+			adminProperties.getPassword(),
+			Set.of(adminRole));
+		createMemberIfNotFound(
+			managerProperties.getEmail(),
+			managerProperties.getNickname(),
+			managerProperties.getPassword(),
+			Set.of(managerRole));
 	}
 
 	private void createMemberIfNotFound(String email, String nickname, String password,
