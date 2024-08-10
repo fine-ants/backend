@@ -26,3 +26,6 @@ spring:
 logging:
   level:
     codesquad: debug
+cron:
+  expression:
+    reload-stocks: '0 0 8 * * ?'
