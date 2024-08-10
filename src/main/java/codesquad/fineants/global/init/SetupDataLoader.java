@@ -1,6 +1,7 @@
 package codesquad.fineants.global.init;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.logging.log4j.util.Strings;
@@ -17,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import codesquad.fineants.domain.exchangerate.domain.entity.ExchangeRate;
 import codesquad.fineants.domain.exchangerate.repository.ExchangeRateRepository;
+import codesquad.fineants.domain.exchangerate.service.ExchangeRateService;
 import codesquad.fineants.domain.kis.service.KisService;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.domain.entity.MemberRole;
@@ -45,6 +47,7 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
 	private final NotificationPreferenceRepository notificationPreferenceRepository;
 	private final PasswordEncoder passwordEncoder;
 	private final ExchangeRateRepository exchangeRateRepository;
+	private final ExchangeRateService exchangeRateService;
 	@Value("${member.admin.password}")
 	private String password;
 
@@ -101,13 +104,15 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
 	}
 
 	private void setupExchangeRateResources() {
-		ExchangeRate exchangeRate = createExchangeRateIfNotFound("KRW");
-		log.info("환율 생성 : {}", exchangeRate);
+		List<ExchangeRate> rates = List.of(
+			createExchangeRateIfNotFound(ExchangeRate.base("KRW")),
+			createExchangeRateIfNotFound(ExchangeRate.zero("USD", false))
+		);
+		exchangeRateService.updateExchangeRates();
+		log.info("환율 생성 : {}", rates);
 	}
 
-	private ExchangeRate createExchangeRateIfNotFound(String code) {
-		ExchangeRate exchangeRate = exchangeRateRepository.findByCode(code)
-			.orElseGet(() -> ExchangeRate.base(code));
+	private ExchangeRate createExchangeRateIfNotFound(ExchangeRate exchangeRate) {
 		return exchangeRateRepository.save(exchangeRate);
 	}
 
