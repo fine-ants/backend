@@ -46,7 +46,7 @@ public class SetupDataLoader {
 	private final ExchangeRateService exchangeRateService;
 	private final AdminProperties adminProperties;
 	private final ManagerProperties managerProperties;
-	
+
 	@Transactional
 	public void setupResources() {
 		setupSecurityResources();
@@ -78,11 +78,11 @@ public class SetupDataLoader {
 
 	private void setupMemberResources() {
 		Role userRole = roleRepository.findRoleByRoleName("ROLE_USER")
-			.orElseThrow(() -> new FineAntsException(RoleErrorCode.NOT_EXIST_ROLE));
+			.orElseThrow(supplierNotFoundRoleException());
 		Role managerRole = roleRepository.findRoleByRoleName("ROLE_MANAGER")
-			.orElseThrow(() -> new FineAntsException(RoleErrorCode.NOT_EXIST_ROLE));
+			.orElseThrow(supplierNotFoundRoleException());
 		Role adminRole = roleRepository.findRoleByRoleName("ROLE_ADMIN")
-			.orElseThrow(() -> new FineAntsException(RoleErrorCode.NOT_EXIST_ROLE));
+			.orElseThrow(supplierNotFoundRoleException());
 
 		createMemberIfNotFound("dragonbead95@naver.com", "일개미1111", "nemo1234@", Set.of(userRole));
 		createMemberIfNotFound(
@@ -95,6 +95,11 @@ public class SetupDataLoader {
 			managerProperties.getNickname(),
 			managerProperties.getPassword(),
 			Set.of(managerRole));
+	}
+
+	@NotNull
+	private static Supplier<FineAntsException> supplierNotFoundRoleException() {
+		return () -> new FineAntsException(RoleErrorCode.NOT_EXIST_ROLE);
 	}
 
 	private void createMemberIfNotFound(String email, String nickname, String password,
