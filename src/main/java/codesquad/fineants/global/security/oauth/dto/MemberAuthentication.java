@@ -10,11 +10,13 @@ import codesquad.fineants.domain.member.domain.entity.MemberRole;
 import codesquad.fineants.domain.member.domain.entity.Role;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 
 @Getter
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
+@EqualsAndHashCode(of = {"email", "nickname", "provider"})
 @ToString
 public class MemberAuthentication {
 	private Long id;
