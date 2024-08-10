@@ -1,5 +1,7 @@
 package codesquad.fineants.global.init;
 
+import java.util.List;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.bind.ConstructorBinding;
 
@@ -32,6 +34,14 @@ public class RoleProperties {
 			this.roleName = roleName;
 			this.roleDesc = roleDesc;
 		}
+
+		public codesquad.fineants.domain.member.domain.entity.Role toRoleEntity() {
+			return codesquad.fineants.domain.member.domain.entity.Role.create(roleName, roleDesc);
+		}
+	}
+
+	public List<Role> getRoles() {
+		return List.of(admin, manager, user);
 	}
 
 	public String getAdminRoleName() {

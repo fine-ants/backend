@@ -63,19 +63,17 @@ public class SetupDataLoader {
 	}
 
 	private void setupSecurityResources() {
-		saveRoleIfNotFound(roleProperties.getAdminRoleName(), roleProperties.getAdminRoleDesc());
-		saveRoleIfNotFound(roleProperties.getManagerRoleName(), roleProperties.getManagerRoleDesc());
-		saveRoleIfNotFound(roleProperties.getUserRoleName(), roleProperties.getUserRoleDesc());
+		roleProperties.getRoles().forEach(this::saveRoleIfNotFound);
 	}
 
-	private void saveRoleIfNotFound(String roleName, String roleDesc) {
-		roleRepository.save(findOrCreateRole(roleName, roleDesc));
+	private void saveRoleIfNotFound(RoleProperties.Role role) {
+		roleRepository.save(findOrCreateRole(role));
 	}
 
 	@NotNull
-	private Role findOrCreateRole(String roleName, String roleDesc) {
-		return roleRepository.findRoleByRoleName(roleName)
-			.orElseGet(() -> Role.create(roleName, roleDesc));
+	private Role findOrCreateRole(RoleProperties.Role role) {
+		return roleRepository.findRoleByRoleName(role.getRoleName())
+			.orElseGet(role::toRoleEntity);
 	}
 
 	private void setupMemberResources() {
