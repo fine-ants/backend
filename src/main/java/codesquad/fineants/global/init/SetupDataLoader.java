@@ -51,8 +51,8 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
 	private final AdminProperties adminProperties;
 	private final ManagerProperties managerProperties;
 
-	@Override
 	@Transactional
+	@Override
 	public void onApplicationEvent(@NotNull ContextRefreshedEvent event) {
 		if (alreadySetup) {
 			return;
