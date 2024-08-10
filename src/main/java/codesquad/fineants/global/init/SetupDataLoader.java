@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.logging.log4j.util.Strings;
 import org.jetbrains.annotations.NotNull;
@@ -150,10 +151,9 @@ public class SetupDataLoader {
 	}
 
 	private void setupExchangeRateResources() {
-		List<ExchangeRate> rates = List.of(
-			saveExchangeRateIfNotFound(ExchangeRate.base("KRW")),
-			saveExchangeRateIfNotFound(ExchangeRate.zero("USD", false))
-		);
+		List<ExchangeRate> rates = Stream.of(ExchangeRate.base("KRW"), ExchangeRate.zero("USD", false))
+			.map(this::saveExchangeRateIfNotFound)
+			.toList();
 		log.info("환율 생성 : {}", rates);
 		exchangeRateService.updateExchangeRates();
 	}
