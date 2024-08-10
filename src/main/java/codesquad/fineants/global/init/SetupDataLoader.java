@@ -76,8 +76,13 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
 	}
 
 	private void saveRoleIfNotFound(String roleName, String roleDesc) {
-		Role role = roleRepository.findRoleByRoleName(roleName).orElseGet(() -> Role.create(roleName, roleDesc));
-		roleRepository.save(role);
+		roleRepository.save(findOrCreateRole(roleName, roleDesc));
+	}
+
+	@NotNull
+	private Role findOrCreateRole(String roleName, String roleDesc) {
+		return roleRepository.findRoleByRoleName(roleName)
+			.orElseGet(() -> Role.create(roleName, roleDesc));
 	}
 
 	private void setupMemberResources() {
