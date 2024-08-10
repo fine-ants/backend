@@ -49,7 +49,7 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
 	private final ExchangeRateRepository exchangeRateRepository;
 	private final ExchangeRateService exchangeRateService;
 	@Value("${member.admin.password}")
-	private String password;
+	private String adminPassword;
 
 	@Override
 	@Transactional
@@ -89,8 +89,8 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
 			.orElseThrow(() -> new FineAntsException(RoleErrorCode.NOT_EXIST_ROLE));
 
 		createMemberIfNotFound("dragonbead95@naver.com", "일개미1111", "nemo1234@", Set.of(userRole));
-		createMemberIfNotFound("admin@admin.com", "admin", password, Set.of(adminRole));
-		createMemberIfNotFound("manager@manager.com", "manager", password, Set.of(managerRole));
+		createMemberIfNotFound(adminEmail, adminNickname, adminPassword, Set.of(adminRole));
+		createMemberIfNotFound(managerEmail, managerNickname, managerPassword, Set.of(managerRole));
 	}
 
 	private void createMemberIfNotFound(String email, String nickname, String password,
