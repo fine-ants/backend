@@ -58,7 +58,7 @@ public class StockService {
 		return StockResponse.of(stock, currentPriceRepository, closingPriceRepository);
 	}
 
-	@Scheduled(cron = "0 0 8 * * ?") // 매일 오전 8시 (초, 분, 시간)
+	@Scheduled(cron = "${cron.expression.reload-stocks:0 0 8 * * ?}") // 매일 오전 8시 (초, 분, 시간)
 	@Transactional
 	public void scheduledReloadStocks() {
 		reloadStocks();

@@ -22,3 +22,6 @@ logging:
     codesquad: debug
 server:
   port: 444
+cron:
+  expression:
+    reload-stocks: '0 0 7 * * ?'
