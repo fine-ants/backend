@@ -9,10 +9,12 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.*;
 import static org.springframework.restdocs.request.RequestDocumentation.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -26,12 +28,13 @@ import codesquad.fineants.docs.RestDocsSupport;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.common.money.Percentage;
 import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
+import codesquad.fineants.domain.kis.domain.dto.response.DividendItem;
 import codesquad.fineants.domain.kis.repository.ClosingPriceRepository;
 import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.stock.controller.StockRestController;
 import codesquad.fineants.domain.stock.domain.dto.request.StockSearchRequest;
-import codesquad.fineants.domain.stock.domain.dto.response.StockRefreshResponse;
+import codesquad.fineants.domain.stock.domain.dto.response.StockReloadResponse;
 import codesquad.fineants.domain.stock.domain.dto.response.StockResponse;
 import codesquad.fineants.domain.stock.domain.dto.response.StockSearchItem;
 import codesquad.fineants.domain.stock.domain.entity.Market;
@@ -201,12 +204,20 @@ public class StockRestControllerDocsTest extends RestDocsSupport {
 	@Test
 	void refreshStocks() throws Exception {
 		// given
-		Stock stock = createSamsungStock();
-		given(service.refreshStocks())
-			.willReturn(StockRefreshResponse.create(
-				List.of("123456", "234567"),
-				List.of("345678", "456789")
-			));
+		Set<String> addedStocks = Set.of("123456", "234567");
+		Set<String> deletedStocks = Set.of("222222", "333333");
+		Set<DividendItem> addedDividends = Set.of(
+			DividendItem.create(
+				1L,
+				"123456",
+				Money.won(300),
+				LocalDate.of(2024, 2, 1),
+				LocalDate.of(2024, 1, 31),
+				LocalDate.of(2024, 5, 1)
+			)
+		);
+		given(service.reloadStocks())
+			.willReturn(StockReloadResponse.create(addedStocks, deletedStocks, addedDividends));
 
 		// when & then
 		mockMvc.perform(post("/api/stocks/refresh")
@@ -215,8 +226,16 @@ public class StockRestControllerDocsTest extends RestDocsSupport {
 			.andExpect(jsonPath("code").value(equalTo(200)))
 			.andExpect(jsonPath("status").value(equalTo("OK")))
 			.andExpect(jsonPath("message").value(equalTo("종목 최신화가 완료되었습니다")))
-			.andExpect(jsonPath("data.addedStocks").value(equalTo(List.of("123456", "234567"))))
-			.andExpect(jsonPath("data.deletedStocks").value(equalTo(List.of("345678", "456789"))))
+			.andExpect(jsonPath("data.addedStocks").value(hasItem("123456")))
+			.andExpect(jsonPath("data.addedStocks").value(hasItem("234567")))
+			.andExpect(jsonPath("data.deletedStocks").value(hasItem("222222")))
+			.andExpect(jsonPath("data.deletedStocks").value(hasItem("333333")))
+			.andExpect(jsonPath("data.addedDividends[0].id").value(equalTo(1)))
+			.andExpect(jsonPath("data.addedDividends[0].tickerSymbol").value(equalTo("123456")))
+			.andExpect(jsonPath("data.addedDividends[0].dividend").value(equalTo(300)))
+			.andExpect(jsonPath("data.addedDividends[0].recordDate").value(equalTo("2024-02-01")))
+			.andExpect(jsonPath("data.addedDividends[0].exDividendDate").value(equalTo("2024-01-31")))
+			.andExpect(jsonPath("data.addedDividends[0].paymentDate").value(equalTo("2024-05-01")))
 			.andDo(
 				document(
 					"stock-refresh",
@@ -234,7 +253,21 @@ public class StockRestControllerDocsTest extends RestDocsSupport {
 						fieldWithPath("data.addedStocks").type(JsonFieldType.ARRAY)
 							.description("상장된 종목 티커 심볼 리스트"),
 						fieldWithPath("data.deletedStocks").type(JsonFieldType.ARRAY)
-							.description("폐지된 종목 티커 심볼 리스트")
+							.description("폐지된 종목 티커 심볼 리스트"),
+						fieldWithPath("data.addedDividends").type(JsonFieldType.ARRAY)
+							.description("신규 배당 일정"),
+						fieldWithPath("data.addedDividends[].id").type(JsonFieldType.NUMBER)
+							.description("배당 일정 등록 번호"),
+						fieldWithPath("data.addedDividends[].tickerSymbol").type(JsonFieldType.STRING)
+							.description("배당 일정 종목의 티커 심볼"),
+						fieldWithPath("data.addedDividends[].dividend").type(JsonFieldType.NUMBER)
+							.description("배당 금액"),
+						fieldWithPath("data.addedDividends[].recordDate").type(JsonFieldType.STRING)
+							.description("배정 일자"),
+						fieldWithPath("data.addedDividends[].exDividendDate").type(JsonFieldType.STRING)
+							.description("배당락 일자"),
+						fieldWithPath("data.addedDividends[].paymentDate").type(JsonFieldType.STRING)
+							.description("현금 지급 일자")
 					)
 				)
 			);
@@ -259,7 +292,7 @@ public class StockRestControllerDocsTest extends RestDocsSupport {
 			.willReturn(Optional.of(currentPrice));
 		given(closingPriceRepository.getClosingPrice(stock.getTickerSymbol()))
 			.willReturn(Optional.of(closingPrice));
-		given(service.getStock(stock.getTickerSymbol()))
+		given(service.getDetailedStock(stock.getTickerSymbol()))
 			.willReturn(StockResponse.create(
 				stock.getStockCode(),
 				stock.getTickerSymbol(),

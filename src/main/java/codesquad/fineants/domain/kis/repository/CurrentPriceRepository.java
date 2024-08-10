@@ -2,6 +2,7 @@ package codesquad.fineants.domain.kis.repository;
 
 import static codesquad.fineants.domain.kis.service.KisService.*;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.redis.core.RedisTemplate;
@@ -23,9 +24,13 @@ public class CurrentPriceRepository {
 	private final AccessTokenAspect accessTokenAspect;
 
 	public void addCurrentPrice(KisCurrentPrice currentPrice) {
-		redisTemplate.opsForValue()
-			.set(String.format(format, currentPrice.getTickerSymbol()),
-				String.valueOf(currentPrice.getPrice()));
+		addCurrentPrice(List.of(currentPrice));
+	}
+
+	public void addCurrentPrice(List<KisCurrentPrice> currentPrices) {
+		currentPrices.forEach(currentPrice ->
+			redisTemplate.opsForValue()
+				.set(String.format(format, currentPrice.getTickerSymbol()), String.valueOf(currentPrice.getPrice())));
 	}
 
 	public Optional<Money> getCurrentPrice(String tickerSymbol) {

@@ -26,7 +26,6 @@ import codesquad.fineants.domain.member.repository.MemberRepository;
 import codesquad.fineants.domain.member.repository.RoleRepository;
 import codesquad.fineants.domain.notificationpreference.domain.entity.NotificationPreference;
 import codesquad.fineants.domain.notificationpreference.repository.NotificationPreferenceRepository;
-import codesquad.fineants.domain.stock.service.StockService;
 import codesquad.fineants.global.errors.errorcode.MemberErrorCode;
 import codesquad.fineants.global.errors.errorcode.RoleErrorCode;
 import codesquad.fineants.global.errors.exception.FineAntsException;
@@ -42,7 +41,6 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
 
 	private boolean alreadySetup = false;
 	private final KisService kisService;
-	private final StockService stockService;
 	private final StockDividendService stockDividendService;
 	private final RoleRepository roleRepository;
 	private final MemberRepository memberRepository;
@@ -67,9 +65,6 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
 		kisService.refreshCurrentPrice();
 		kisService.refreshClosingPrice();
 		log.info("애플리케이션 시작시 종목 현재가 및 종가 초기화 종료");
-		stockService.refreshStocks();
-		stockDividendService.initializeStockDividend();
-
 		alreadySetup = true;
 	}
 

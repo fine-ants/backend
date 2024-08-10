@@ -11,4 +11,22 @@ public enum Market {
 			.findAny()
 			.orElse(NONE);
 	}
+
+	public static Market valueByMarketIdCode(String marketIdCode) {
+		return switch (marketIdCode) {
+			case "STK" -> KOSPI;
+			case "KSQ" -> KOSDAQ;
+			case "KNX" -> KONEX;
+			default -> NONE;
+		};
+	}
+
+	public String getMarketIdCode() {
+		return switch (this) {
+			case KOSPI -> "STK";
+			case KOSDAQ -> "KSQ";
+			case KONEX -> "KNX";
+			default -> "";
+		};
+	}
 }

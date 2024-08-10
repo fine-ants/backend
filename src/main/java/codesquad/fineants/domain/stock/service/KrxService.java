@@ -7,7 +7,6 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.http.MediaType;
@@ -17,7 +16,6 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import codesquad.fineants.domain.member.service.WebClientWrapper;
-import codesquad.fineants.domain.stock.domain.dto.response.StockDataResponse;
 import codesquad.fineants.domain.stock.domain.dto.response.StockSectorResponse;
 import codesquad.fineants.global.util.ObjectMapperUtil;
 import lombok.RequiredArgsConstructor;
@@ -31,22 +29,6 @@ public class KrxService {
 
 	private final WebClientWrapper webClient;
 	private final StockCsvReader stockCsvReader;
-
-	// 전 종목 기본 정보 조회
-	public Set<StockDataResponse.StockInfo> fetchStockInfo() {
-		String requestUri = "http://data.krx.co.kr/comm/bldAttendant/getJsonData.cmd";
-		try {
-			String responseText = webClient.post(requestUri, createHeader(), createStockInfoBody(), String.class);
-			Set<StockDataResponse.StockInfo> latestStocks = ObjectMapperUtil.deserialize(responseText,
-					StockDataResponse.class)
-				.getStockInfos();
-			log.debug("latestStocks count {}", latestStocks.size());
-			return latestStocks;
-		} catch (Exception e) {
-			log.error("fetchStockInfo error: {}", e.getMessage());
-			return stockCsvReader.readStockCsv();
-		}
-	}
 
 	// KOSPI & KOSDAQ 섹터 정보 조회
 	public Map<String, StockSectorResponse.SectorInfo> fetchSectorInfo() {
@@ -97,17 +79,7 @@ public class KrxService {
 		result.add(ACCEPT_CHARSET, StandardCharsets.UTF_8.name());
 		return result;
 	}
-
-	private MultiValueMap<String, String> createStockInfoBody() {
-		MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-		formData.add("bld", "dbms/MDC/STAT/standard/MDCSTAT01901");
-		formData.add("locale", "ko_KR");
-		formData.add("mktId", "ALL");
-		formData.add("share", "1");
-		formData.add("csvxls_isNo", "false");
-		return formData;
-	}
-
+	
 	private MultiValueMap<String, String> createKospiSectorBody() {
 		MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
 		formData.add("bld", "dbms/MDC/STAT/standard/MDCSTAT03901");

@@ -15,33 +15,35 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 @Getter
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-@JsonDeserialize(using = KisDividendWrapper.KissDividendWrapperDeserializer.class)
-public class KisDividendWrapper {
-	private List<KisDividend> kisDividends;
+@JsonDeserialize(using = KisIpoResponse.KisIpoResponseDeserializer.class)
+public class KisIpoResponse {
+	private List<KisIpo> kisIpos;
 
-	public static KisDividendWrapper empty() {
-		return new KisDividendWrapper(Collections.emptyList());
+	public static KisIpoResponse create(List<KisIpo> kisIpos) {
+		return new KisIpoResponse(Collections.unmodifiableList(kisIpos));
 	}
 
-	static class KissDividendWrapperDeserializer extends JsonDeserializer<KisDividendWrapper> {
+	public static KisIpoResponse empty() {
+		return new KisIpoResponse(Collections.emptyList());
+	}
+
+	static class KisIpoResponseDeserializer extends JsonDeserializer<KisIpoResponse> {
 		@Override
-		public KisDividendWrapper deserialize(JsonParser parser, DeserializationContext context) throws
+		public KisIpoResponse deserialize(JsonParser parser, DeserializationContext context) throws
 			IOException {
 			TreeNode rootNode = parser.readValueAsTree();
 			TreeNode treeNode = rootNode.get("output1");
-			KisDividendWrapper wrapper = new KisDividendWrapper();
-			List<KisDividend> kisDividends = new ArrayList<>();
+			KisIpoResponse response = new KisIpoResponse();
+			List<KisIpo> data = new ArrayList<>();
 			for (int i = 0; i < treeNode.size(); i++) {
-				kisDividends.add(parser.getCodec().treeToValue(treeNode.get(i), KisDividend.class));
+				data.add(parser.getCodec().treeToValue(treeNode.get(i), KisIpo.class));
 			}
-			wrapper.kisDividends = kisDividends;
-			return wrapper;
+			response.kisIpos = data;
+			return response;
 		}
 	}
 }

@@ -1,6 +1,9 @@
 package codesquad.fineants.domain.dividend.repository;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -14,7 +17,14 @@ public interface StockDividendRepository extends JpaRepository<StockDividend, Lo
 	@Query("select sd from StockDividend sd join fetch sd.stock s order by s.tickerSymbol, sd.recordDate")
 	List<StockDividend> findAllStockDividends();
 
+	@Query("select sd from StockDividend sd join fetch sd.stock s where s.tickerSymbol = :tickerSymbol order by s.tickerSymbol, sd.recordDate")
+	List<StockDividend> findStockDividendsByTickerSymbol(@Param("tickerSymbol") String tickerSymbol);
+
+	@Query("select sd from StockDividend sd join fetch sd.stock s where s.tickerSymbol = :tickerSymbol and sd.recordDate = :recordDate order by s.tickerSymbol, sd.recordDate")
+	Optional<StockDividend> findByTickerSymbolAndRecordDate(@Param("tickerSymbol") String tickerSymbol,
+		@Param("recordDate") LocalDate recordDate);
+
 	@Modifying
 	@Query("delete from StockDividend sd where sd.stock.tickerSymbol in :tickerSymbols")
-	int deleteByTickerSymbols(@Param("tickerSymbols") List<String> tickerSymbols);
+	int deleteByTickerSymbols(@Param("tickerSymbols") Set<String> tickerSymbols);
 }

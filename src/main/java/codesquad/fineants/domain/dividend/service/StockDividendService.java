@@ -18,7 +18,7 @@ import codesquad.fineants.domain.kis.domain.dto.response.KisDividend;
 import codesquad.fineants.domain.kis.service.KisService;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
-import codesquad.fineants.infra.s3.dto.Dividend;
+import codesquad.fineants.global.common.time.LocalDateTimeService;
 import codesquad.fineants.infra.s3.service.AmazonS3DividendService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,10 +28,11 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class StockDividendService {
 
-	private final AmazonS3DividendService amazonS3DividendService;
+	private final AmazonS3DividendService s3DividendService;
 	private final StockRepository stockRepository;
 	private final StockDividendRepository stockDividendRepository;
 	private final KisService kisService;
+	private final LocalDateTimeService localDateTimeService;
 
 	/**
 	 * 배당일정(StockDividend) 엔티티 데이터를 초기화합니다.
@@ -46,24 +47,7 @@ public class StockDividendService {
 		stockDividendRepository.deleteAllInBatch();
 
 		// S3에 저장된 종목 배당금으로 초기화
-		initializeStockDividendFromS3();
-	}
-
-	private void initializeStockDividendFromS3() {
-		// 종목 조회
-		Map<String, Stock> stockMap = stockRepository.findAll().stream()
-			.collect(Collectors.toMap(Stock::getTickerSymbol, stock -> stock));
-
-		// 종목에 해당하는 배당 일정 엔티티 생성
-		List<StockDividend> stockDividends = amazonS3DividendService.fetchDividend().stream()
-			.filter(dividend -> dividend.containsBy(stockMap))
-			.map(dividend -> {
-				Stock stock = dividend.getStockBy(stockMap);
-				return dividend.toEntity(stock);
-			})
-			.collect(Collectors.toList());
-
-		// 배당 일정 저장
+		List<StockDividend> stockDividends = s3DividendService.fetchDividends();
 		List<StockDividend> saveStockDividends = stockDividendRepository.saveAll(stockDividends);
 		log.info("save StockDividends size : {}", saveStockDividends.size());
 	}
@@ -76,8 +60,9 @@ public class StockDividendService {
 	 *   - ex) now=202404-17 => 범위를 벗어난 배당 일정은 2023-01-01 이전 or 2024-12-31 이후
 	 */
 	@Transactional
-	public void refreshStockDividend(LocalDate now) {
+	public void reloadStockDividend() {
 		// 0. 올해 말까지의 배당 일정을 조회
+		LocalDate now = localDateTimeService.getLocalDateWithNow();
 		LocalDate to = now.with(TemporalAdjusters.lastDayOfYear());
 		List<KisDividend> kisDividends = kisService.fetchDividendAll(now, to);
 
@@ -97,7 +82,7 @@ public class StockDividendService {
 	private Map<String, Stock> getStockMapBy(List<KisDividend> kisDividends) {
 		List<String> tickerSymbols = kisDividends.stream()
 			.map(KisDividend::getTickerSymbol)
-			.collect(Collectors.toList());
+			.toList();
 		return stockRepository.findAllWithDividends(tickerSymbols)
 			.stream()
 			.collect(Collectors.toMap(Stock::getTickerSymbol, stock -> stock));
@@ -122,7 +107,7 @@ public class StockDividendService {
 				return stockDividend;
 			})
 			.filter(Objects::nonNull)
-			.collect(Collectors.toList());
+			.toList();
 		log.info("changedStockDividends : {}", changedStockDividends);
 		stockDividendRepository.saveAll(changedStockDividends);
 	}
@@ -133,7 +118,7 @@ public class StockDividendService {
 			.filter(kisDividend -> kisDividend.containsFrom(stockMap))
 			.filter(kisDividend -> !kisDividend.matchTickerSymbolAndRecordDateFrom(stockMap))
 			.map(kisDividend -> kisDividend.toEntity(kisDividend.getStockBy(stockMap)))
-			.collect(Collectors.toList());
+			.toList();
 
 		// 탐색된 데이터들 배당 일정 추가
 		stockDividendRepository.saveAll(addStockDividends);
@@ -152,20 +137,13 @@ public class StockDividendService {
 		List<StockDividend> deleteStockDividends = stockMap.values().stream()
 			.map(stock -> stock.getStockDividendNotInRange(from, to))
 			.flatMap(Collection::stream)
-			.collect(Collectors.toList());
+			.toList();
 		stockDividendRepository.deleteAllInBatch(deleteStockDividends);
 		log.info("deleteStockDividends : {}", deleteStockDividends);
 	}
 
-	/**
-	 * 데이터베이스의 배당 일정을 S3에 CSV 파일로 저장
-	 */
 	@Transactional(readOnly = true)
-	public void writeDividendCsvToS3() {
-		List<Dividend> dividends = stockDividendRepository.findAllStockDividends().stream()
-			.map(StockDividend::toDividend)
-			.collect(Collectors.toList());
-		amazonS3DividendService.writeDividend(dividends);
-		log.info("write dividend csv to s3, size={}", dividends.size());
+	public List<StockDividend> findAllStockDividends() {
+		return stockDividendRepository.findAllStockDividends();
 	}
 }

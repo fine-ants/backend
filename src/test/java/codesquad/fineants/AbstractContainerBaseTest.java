@@ -227,6 +227,15 @@ public class AbstractContainerBaseTest {
 			Market.KOSDAQ);
 	}
 
+	/**
+	 * 해당 종목은 상장 폐지된 종목입니다.
+	 * @return 상장 폐지된 종목
+	 */
+	protected Stock createNokwonCI() {
+		return Stock.of("065560", "녹원씨엔아이", "Nokwon Commercials & Industries, Inc.", "KR7065560005", "소프트웨어",
+			Market.KOSDAQ);
+	}
+
 	protected Stock createKakaoStock() {
 		return createStock(
 			"035720",

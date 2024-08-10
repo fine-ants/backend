@@ -22,19 +22,19 @@ jobs:
         shell: bash
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4.1.7
         with:
           submodules: true
           token: ${{ secrets.GIT_TOKEN }}
       ## JDK 설정
       - name: Set up JDK 17
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4.2.2
         with:
           java-version: '17'
           distribution: 'temurin'
       # gradle caching - 빌드 시간 향상
       - name: Gradle Caching
-        uses: actions/cache@v3
+        uses: actions/cache@v4.0.2
         with:
           # 캐시할 디렉토리 경로를 지정합니다.
           path: |
@@ -61,7 +61,7 @@ jobs:
         run: zip -r ./$GITHUB_SHA.zip .
       # AWS 인증정보 설정
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

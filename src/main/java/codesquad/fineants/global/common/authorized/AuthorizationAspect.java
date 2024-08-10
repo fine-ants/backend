@@ -14,7 +14,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import codesquad.fineants.global.common.authorized.service.AuthorizedService;
-import codesquad.fineants.global.common.resource.ResourceIdAspect;
+import codesquad.fineants.global.common.resource.ResourceIdParser;
 import codesquad.fineants.global.errors.errorcode.MemberErrorCode;
 import codesquad.fineants.global.errors.exception.FineAntsException;
 import codesquad.fineants.global.errors.exception.ForBiddenException;
@@ -30,7 +30,7 @@ public class AuthorizationAspect {
 
 	private final ApplicationContext applicationContext;
 
-	private final ResourceIdAspect resourceIdAspect;
+	private final ResourceIdParser resourceIdParser;
 
 	@Before(value = "@annotation(authorized) && args(..)")
 	public void validatePortfolioAuthorization(JoinPoint joinPoint, Authorized authorized) {
@@ -51,7 +51,7 @@ public class AuthorizationAspect {
 
 	private List<Long> getResourceId(ProceedingJoinPoint joinPoint) {
 		try {
-			return resourceIdAspect.around(joinPoint);
+			return resourceIdParser.getResourceList(joinPoint);
 		} catch (Throwable e) {
 			log.error(e.getMessage());
 			return Collections.emptyList();
