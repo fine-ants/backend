@@ -3,12 +3,15 @@ package codesquad.fineants.global.init;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.BDDMockito.*;
 
+import java.util.stream.Collectors;
+
 import org.apache.logging.log4j.util.Strings;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -72,5 +75,9 @@ class SetupDataLoaderTest extends AbstractContainerBaseTest {
 		assertThat(authentication)
 			.extracting(Authentication::getPrincipal, Authentication::getCredentials)
 			.containsExactly(memberAuthentication, Strings.EMPTY);
+		assertThat(authentication.getAuthorities().stream()
+			.map(GrantedAuthority::getAuthority)
+			.collect(Collectors.toUnmodifiableSet()))
+			.containsExactlyElementsOf(memberAuthentication.getRoleSet());
 	}
 }

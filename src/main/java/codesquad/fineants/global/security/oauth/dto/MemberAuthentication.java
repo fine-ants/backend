@@ -44,14 +44,10 @@ public class MemberAuthentication {
 				.collect(Collectors.toSet())
 		);
 	}
-
-	public static MemberAuthentication admin() {
-		return new MemberAuthentication(null, null, null, null, null, Set.of("ROLE_ADMIN"));
-	}
-
+	
 	public Set<SimpleGrantedAuthority> getSimpleGrantedAuthority() {
 		return roleSet.stream()
 			.map(SimpleGrantedAuthority::new)
-			.collect(Collectors.toSet());
+			.collect(Collectors.toUnmodifiableSet());
 	}
 }
