@@ -139,7 +139,7 @@ public class SetupDataLoader {
 	}
 
 	private void setAdminAuthentication() {
-		Member admin = memberRepository.findMemberByEmailAndProvider("admin@admin.com", "local")
+		Member admin = memberRepository.findMemberByEmailAndProvider(adminProperties.getEmail(), "local")
 			.orElseThrow(() -> new FineAntsException(MemberErrorCode.NOT_FOUND_MEMBER));
 		MemberAuthentication memberAuthentication = MemberAuthentication.from(admin);
 		UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
@@ -154,7 +154,7 @@ public class SetupDataLoader {
 		List<ExchangeRate> rates = Stream.of(ExchangeRate.base("KRW"), ExchangeRate.zero("USD", false))
 			.map(this::saveExchangeRateIfNotFound)
 			.toList();
-		log.info("환율 생성 : {}", rates);
+		log.info("create the exchange rates : {}", rates);
 		exchangeRateService.updateExchangeRates();
 	}
 
