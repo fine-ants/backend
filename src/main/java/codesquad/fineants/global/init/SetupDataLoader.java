@@ -84,7 +84,11 @@ public class SetupDataLoader {
 		Role adminRole = roleRepository.findRoleByRoleName("ROLE_ADMIN")
 			.orElseThrow(supplierNotFoundRoleException());
 
-		createMemberIfNotFound("dragonbead95@naver.com", "일개미1111", "nemo1234@", Set.of(userRole));
+		createMemberIfNotFound(
+			"dragonbead95@naver.com",
+			"일개미1111",
+			"nemo1234@",
+			Set.of(userRole));
 		createMemberIfNotFound(
 			adminProperties.getEmail(),
 			adminProperties.getNickname(),
@@ -147,14 +151,14 @@ public class SetupDataLoader {
 
 	private void setupExchangeRateResources() {
 		List<ExchangeRate> rates = List.of(
-			createExchangeRateIfNotFound(ExchangeRate.base("KRW")),
-			createExchangeRateIfNotFound(ExchangeRate.zero("USD", false))
+			saveExchangeRateIfNotFound(ExchangeRate.base("KRW")),
+			saveExchangeRateIfNotFound(ExchangeRate.zero("USD", false))
 		);
 		log.info("환율 생성 : {}", rates);
 		exchangeRateService.updateExchangeRates();
 	}
 
-	private ExchangeRate createExchangeRateIfNotFound(ExchangeRate exchangeRate) {
+	private ExchangeRate saveExchangeRateIfNotFound(ExchangeRate exchangeRate) {
 		return exchangeRateRepository.save(exchangeRate);
 	}
 }
