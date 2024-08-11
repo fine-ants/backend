@@ -3,6 +3,7 @@ package codesquad.fineants.global.init;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.BDDMockito.*;
 
+import java.util.List;
 import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.util.Strings;
@@ -16,6 +17,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 
 import codesquad.fineants.AbstractContainerBaseTest;
+import codesquad.fineants.domain.dividend.repository.StockDividendRepository;
 import codesquad.fineants.domain.exchangerate.domain.entity.ExchangeRate;
 import codesquad.fineants.domain.exchangerate.repository.ExchangeRateRepository;
 import codesquad.fineants.domain.exchangerate.service.ExchangeRateService;
@@ -24,7 +26,13 @@ import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.domain.entity.Role;
 import codesquad.fineants.domain.member.repository.MemberRepository;
 import codesquad.fineants.domain.member.repository.RoleRepository;
+import codesquad.fineants.domain.stock.domain.dto.response.StockDataResponse;
+import codesquad.fineants.domain.stock.domain.entity.Stock;
+import codesquad.fineants.domain.stock.repository.StockRepository;
+import codesquad.fineants.domain.stock.service.StockCsvReader;
 import codesquad.fineants.global.security.oauth.dto.MemberAuthentication;
+import codesquad.fineants.infra.s3.service.AmazonS3DividendService;
+import codesquad.fineants.infra.s3.service.AmazonS3StockService;
 
 class SetupDataLoaderTest extends AbstractContainerBaseTest {
 
@@ -46,6 +54,21 @@ class SetupDataLoaderTest extends AbstractContainerBaseTest {
 	@Autowired
 	private ExchangeRateRepository exchangeRateRepository;
 
+	@Autowired
+	private AmazonS3StockService amazonS3StockService;
+
+	@Autowired
+	private StockCsvReader stockCsvReader;
+
+	@Autowired
+	private StockRepository stockRepository;
+
+	@Autowired
+	private AmazonS3DividendService amazonS3DividendService;
+
+	@Autowired
+	private StockDividendRepository stockDividendRepository;
+
 	@MockBean
 	private ExchangeRateService exchangeRateService;
 
@@ -57,6 +80,8 @@ class SetupDataLoaderTest extends AbstractContainerBaseTest {
 	@Test
 	void setupResources() {
 		// given
+		List<Stock> stocks = writeStocks();
+
 		doNothing().when(exchangeRateService).updateExchangeRates();
 		doNothing().when(kisService).refreshCurrentPrice();
 		doNothing().when(kisService).refreshClosingPrice();
@@ -93,5 +118,15 @@ class SetupDataLoaderTest extends AbstractContainerBaseTest {
 		assertThat(exchangeRateRepository.findAll())
 			.hasSize(2)
 			.containsExactly(ExchangeRate.base("KRW"), ExchangeRate.noneBase("USD", 0.0007316));
+		assertThat(stockRepository.findAll())
+			.containsExactlyInAnyOrderElementsOf(stocks);
+	}
+
+	private List<Stock> writeStocks() {
+		List<Stock> stocks = stockCsvReader.readStockCsv().stream()
+			.map(StockDataResponse.StockInfo::toEntity)
+			.toList();
+		amazonS3StockService.writeStocks(stocks);
+		return stocks;
 	}
 }

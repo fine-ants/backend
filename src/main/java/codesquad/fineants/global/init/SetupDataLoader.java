@@ -25,10 +25,12 @@ import codesquad.fineants.domain.member.repository.MemberRepository;
 import codesquad.fineants.domain.member.repository.RoleRepository;
 import codesquad.fineants.domain.notificationpreference.domain.entity.NotificationPreference;
 import codesquad.fineants.domain.notificationpreference.repository.NotificationPreferenceRepository;
+import codesquad.fineants.domain.stock.repository.StockRepository;
 import codesquad.fineants.global.errors.errorcode.MemberErrorCode;
 import codesquad.fineants.global.errors.errorcode.RoleErrorCode;
 import codesquad.fineants.global.errors.exception.FineAntsException;
 import codesquad.fineants.global.security.oauth.dto.MemberAuthentication;
+import codesquad.fineants.infra.s3.service.AmazonS3StockService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -46,6 +48,8 @@ public class SetupDataLoader {
 	private final AdminProperties adminProperties;
 	private final ManagerProperties managerProperties;
 	private final RoleProperties roleProperties;
+	private final AmazonS3StockService amazonS3StockService;
+	private final StockRepository stockRepository;
 
 	@Transactional
 	public void setupResources() {
@@ -53,6 +57,7 @@ public class SetupDataLoader {
 		setupMemberResources();
 		setAdminAuthentication();
 		setupExchangeRateResources();
+		setupStockResources();
 
 		log.info("애플리케이션 시작시 종목 현재가 및 종가 초기화 시작");
 		kisService.refreshCurrentPrice();
@@ -157,5 +162,9 @@ public class SetupDataLoader {
 
 	private ExchangeRate saveExchangeRateIfNotFound(ExchangeRate exchangeRate) {
 		return exchangeRateRepository.save(exchangeRate);
+	}
+
+	private void setupStockResources() {
+		stockRepository.saveAll(amazonS3StockService.fetchStocks());
 	}
 }
