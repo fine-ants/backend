@@ -57,8 +57,8 @@ import lombok.extern.slf4j.Slf4j;
 @Import(value = {AmazonS3Config.class})
 @AutoConfigureWebTestClient
 @Testcontainers
-@WithMockUser(username = "dragonbead95@naver.com", roles = {"USER"})
-public class AbstractContainerBaseTest {
+@WithMockUser(username = "dragonbead95@naver.com")
+public abstract class AbstractContainerBaseTest {
 	private static final String REDIS_IMAGE = "redis:7-alpine";
 	private static final int REDIS_PORT = 6379;
 
@@ -146,15 +146,15 @@ public class AbstractContainerBaseTest {
 		return member;
 	}
 
-	protected Member createOauthMember(String nickname, String email, String provider, String profileUrl) {
+	protected Member createOauthMember() {
 		Role userRole = roleRepository.findRoleByRoleName("ROLE_USER")
 			.orElseThrow(() -> new FineAntsException(RoleErrorCode.NOT_EXIST_ROLE));
 		// 회원 생성
 		Member member = Member.oauthMember(
-			email,
-			nickname,
-			provider,
-			profileUrl
+			"fineants1234@gmail.com",
+			"fineants1234",
+			"google",
+			"profileUrl1"
 		);
 		// 역할 설정
 		member.addMemberRole(MemberRole.create(member, userRole));
@@ -238,7 +238,7 @@ public class AbstractContainerBaseTest {
 	protected Stock createKakaoStock() {
 		return Stock.of("035720", "카카오보통주", "Kakao", "KR7035720002", "서비스업", Market.KOSPI);
 	}
-	
+
 	protected PortfolioHolding createPortfolioHolding(Portfolio portfolio, Stock stock) {
 		return PortfolioHolding.of(portfolio, stock);
 	}
