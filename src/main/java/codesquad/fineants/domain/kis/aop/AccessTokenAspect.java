@@ -1,5 +1,6 @@
 package codesquad.fineants.domain.kis.aop;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
@@ -13,6 +14,8 @@ import codesquad.fineants.domain.kis.client.KisAccessToken;
 import codesquad.fineants.domain.kis.client.KisClient;
 import codesquad.fineants.domain.kis.repository.KisAccessTokenRepository;
 import codesquad.fineants.domain.kis.service.KisAccessTokenRedisService;
+import codesquad.fineants.global.errors.errorcode.KisErrorCode;
+import codesquad.fineants.global.errors.exception.FineAntsException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -76,6 +79,22 @@ public class AccessTokenAspect {
 
 	@Before(value = "@annotation(CheckedKisAccessToken) && args(..)")
 	public void zzCheckAccessTokenExpiration() {
-		log.debug("call zzCheckAccessTokenExpiration");
+		LocalDateTime now = LocalDateTime.now();
+		if (manager.isAccessTokenExpired(now)) {
+			redisService.getAccessTokenMap()
+				.ifPresentOrElse(manager::refreshAccessToken, () ->
+					handleNewAccessToken().ifPresentOrElse(newKisAccessToken -> {
+						redisService.setAccessTokenMap(newKisAccessToken, now);
+						manager.refreshAccessToken(newKisAccessToken);
+						log.info("complete the newKisAccessToken");
+					}, () -> {
+						throw new FineAntsException(KisErrorCode.ACCESS_TOKEN_ISSUE_FAIL);
+					}));
+		}
+	}
+
+	private Optional<KisAccessToken> handleNewAccessToken() {
+		return client.fetchAccessToken()
+			.blockOptional(Duration.ofMinutes(10));
 	}
 }
