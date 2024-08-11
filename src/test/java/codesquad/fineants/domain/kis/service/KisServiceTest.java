@@ -40,6 +40,8 @@ import codesquad.fineants.domain.stock.domain.entity.Market;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
 import codesquad.fineants.domain.stock.service.StockCsvReader;
+import codesquad.fineants.global.errors.errorcode.KisErrorCode;
+import codesquad.fineants.global.errors.exception.FineAntsException;
 import codesquad.fineants.global.errors.exception.KisException;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
@@ -320,6 +322,27 @@ class KisServiceTest extends AbstractContainerBaseTest {
 			.usingComparatorForType(Money::compareTo, Money.class)
 			.containsExactlyInAnyOrder(
 				tuple("005930", Money.won(300), LocalDate.of(2024, 3, 1), LocalDate.of(2024, 5, 1)));
+	}
+
+	@DisplayName("사용자는 새로운 한국투자증권의 액세스 토큰 발급이 실패하여 실행되지 않는다")
+	@Test
+	void fetchDividend_whenAccessTokenExpired_thenThrowException() {
+		// given
+		String tickerSymbol = "005930";
+		kisAccessTokenRepository.refreshAccessToken(null);
+		KisAccessToken newKisAccessToken = createKisAccessToken();
+		given(client.fetchAccessToken())
+			.willReturn(Mono.error(new KisException("요청 건수 초과")));
+		given(client.fetchDividendThisYear(tickerSymbol, newKisAccessToken.createAuthorization()))
+			.willReturn(Mono.just(KisDividendWrapper.create(List.of(
+				KisDividend.create(tickerSymbol, Money.won(300), LocalDate.of(2024, 3, 1),
+					LocalDate.of(2024, 5, 1))))));
+		// when
+		Throwable throwable = catchThrowable(() -> kisService.fetchDividend(tickerSymbol).block());
+		// then
+		assertThat(throwable)
+			.isInstanceOf(FineAntsException.class)
+			.hasMessage(KisErrorCode.ACCESS_TOKEN_ISSUE_FAIL.getMessage());
 	}
 
 	private List<Stock> saveStocks() {

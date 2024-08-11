@@ -19,6 +19,7 @@ import codesquad.fineants.global.errors.errorcode.KisErrorCode;
 import codesquad.fineants.global.errors.exception.FineAntsException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Mono;
 
 @Aspect
 @Component
@@ -97,6 +98,7 @@ public class AccessTokenAspect {
 
 	private Optional<KisAccessToken> handleNewAccessToken() {
 		return client.fetchAccessToken()
+			.onErrorResume(throwable -> Mono.empty())
 			.blockOptional(Duration.ofMinutes(10));
 	}
 }
