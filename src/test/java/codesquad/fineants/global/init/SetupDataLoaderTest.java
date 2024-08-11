@@ -81,8 +81,9 @@ class SetupDataLoaderTest extends AbstractContainerBaseTest {
 	@Test
 	void setupResources() {
 		// given
-		List<Stock> stocks = writeStocks();
-		List<StockDividend> stockDividends = writeStockDividends();
+		int limit = 100;
+		List<Stock> stocks = writeStocks(limit);
+		List<StockDividend> stockDividends = writeStockDividends(stocks, limit);
 
 		doNothing().when(exchangeRateService).updateExchangeRates();
 		doNothing().when(kisService).refreshCurrentPrice();
@@ -123,19 +124,23 @@ class SetupDataLoaderTest extends AbstractContainerBaseTest {
 		assertThat(stockRepository.findAll())
 			.containsExactlyInAnyOrderElementsOf(stocks);
 		assertThat(stockDividendRepository.findAll())
+			.hasSizeGreaterThanOrEqualTo(1)
 			.containsExactlyInAnyOrderElementsOf(stockDividends);
 	}
 
-	private List<Stock> writeStocks() {
+	private List<Stock> writeStocks(int limit) {
 		List<Stock> stocks = stockCsvReader.readStockCsv().stream()
 			.map(StockDataResponse.StockInfo::toEntity)
+			.limit(limit)
 			.toList();
 		amazonS3StockService.writeStocks(stocks);
 		return stocks;
 	}
 
-	private List<StockDividend> writeStockDividends() {
-		List<StockDividend> stockDividends = stockCsvReader.readDividendCsv();
+	private List<StockDividend> writeStockDividends(List<Stock> stocks, int limit) {
+		List<StockDividend> stockDividends = stockCsvReader.readDividendCsv(stocks).stream()
+			.limit(limit)
+			.toList();
 		amazonS3DividendService.writeDividends(stockDividends);
 		return stockDividends;
 	}

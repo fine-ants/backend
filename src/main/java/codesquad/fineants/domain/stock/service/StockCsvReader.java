@@ -1,6 +1,8 @@
 package codesquad.fineants.domain.stock.service;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.time.LocalDate;
@@ -11,6 +13,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -22,14 +25,12 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.dividend.domain.entity.StockDividend;
 import codesquad.fineants.domain.stock.domain.dto.response.StockDataResponse;
 import codesquad.fineants.domain.stock.domain.dto.response.StockSectorResponse;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
-import codesquad.fineants.domain.stock.repository.StockRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -37,8 +38,6 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Slf4j
 public class StockCsvReader {
-
-	private final StockRepository stockRepository;
 
 	public Set<StockDataResponse.StockInfo> readStockCsv() {
 		Resource resource = new ClassPathResource("stocks.csv");
@@ -130,18 +129,18 @@ public class StockCsvReader {
 		return result;
 	}
 
-	@Transactional(readOnly = true)
-	public List<StockDividend> readDividendCsv() {
-		Resource resource = new ClassPathResource("dividends.csv");
-
+	public List<StockDividend> readDividendCsv(List<Stock> stocks) {
+		ClassLoader classLoader = getClass().getClassLoader();
+		File file = new File(Objects.requireNonNull(classLoader.getResource("dividends.csv")).getFile());
+		
 		List<StockDividend> result = new ArrayList<>();
-		try (BufferedReader reader = new BufferedReader(new InputStreamReader(resource.getInputStream()))) {
+		try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
 			Iterable<CSVRecord> records = CSVFormat.DEFAULT
 				.withHeader("id", "dividend", "recordDate", "paymentDate", "stockCode")
 				.withSkipHeaderRecord()
 				.parse(reader);
 
-			Map<String, Stock> stockMap = stockRepository.findAll().stream()
+			Map<String, Stock> stockMap = stocks.stream()
 				.collect(Collectors.toMap(Stock::getStockCode, stock -> stock));
 			for (CSVRecord record : records) {
 				Stock stock = stockMap.get(record.get("stockCode"));

@@ -14,6 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import codesquad.fineants.domain.dividend.repository.StockDividendRepository;
 import codesquad.fineants.domain.exchangerate.domain.entity.ExchangeRate;
 import codesquad.fineants.domain.exchangerate.repository.ExchangeRateRepository;
 import codesquad.fineants.domain.exchangerate.service.ExchangeRateService;
@@ -30,6 +31,7 @@ import codesquad.fineants.global.errors.errorcode.MemberErrorCode;
 import codesquad.fineants.global.errors.errorcode.RoleErrorCode;
 import codesquad.fineants.global.errors.exception.FineAntsException;
 import codesquad.fineants.global.security.oauth.dto.MemberAuthentication;
+import codesquad.fineants.infra.s3.service.AmazonS3DividendService;
 import codesquad.fineants.infra.s3.service.AmazonS3StockService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -50,6 +52,8 @@ public class SetupDataLoader {
 	private final RoleProperties roleProperties;
 	private final AmazonS3StockService amazonS3StockService;
 	private final StockRepository stockRepository;
+	private final StockDividendRepository stockDividendRepository;
+	private final AmazonS3DividendService amazonS3DividendService;
 
 	@Transactional
 	public void setupResources() {
@@ -58,6 +62,7 @@ public class SetupDataLoader {
 		setAdminAuthentication();
 		setupExchangeRateResources();
 		setupStockResources();
+		setupStockDividendResources();
 
 		log.info("애플리케이션 시작시 종목 현재가 및 종가 초기화 시작");
 		kisService.refreshCurrentPrice();
@@ -166,5 +171,9 @@ public class SetupDataLoader {
 
 	private void setupStockResources() {
 		stockRepository.saveAll(amazonS3StockService.fetchStocks());
+	}
+
+	private void setupStockDividendResources() {
+		stockDividendRepository.saveAll(amazonS3DividendService.fetchDividends());
 	}
 }
