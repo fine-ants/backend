@@ -2,6 +2,7 @@ package codesquad.fineants.domain.stock.domain.entity;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -65,13 +66,17 @@ public class Stock extends BaseEntity {
 	}
 
 	public static Stock parse(String[] data) {
-		String stockCode = data[0];
-		String tickerSymbol = data[1];
-		String companyName = data[2];
-		String companyNameEng = data[3];
-		Market market = Market.ofMarket(data[4]);
-		String sector = data[5];
-		return new Stock(tickerSymbol, companyName, companyNameEng, stockCode, sector, market);
+		try {
+			String stockCode = data[0];
+			String tickerSymbol = data[1];
+			String companyName = data[2];
+			String companyNameEng = data[3];
+			Market market = Market.ofMarket(data[4]);
+			String sector = data[5];
+			return new Stock(tickerSymbol, companyName, companyNameEng, stockCode, sector, market);
+		} catch (ArrayIndexOutOfBoundsException e) {
+			throw new ArrayIndexOutOfBoundsException("out of index, data:" + Arrays.toString(data));
+		}
 	}
 
 	public void addStockDividend(StockDividend stockDividend) {
