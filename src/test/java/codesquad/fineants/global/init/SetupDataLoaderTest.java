@@ -53,6 +53,9 @@ class SetupDataLoaderTest extends AbstractContainerBaseTest {
 	private ManagerProperties managerProperties;
 
 	@Autowired
+	private UserProperties userProperties;
+
+	@Autowired
 	private ExchangeRateRepository exchangeRateRepository;
 
 	@Autowired
@@ -105,7 +108,8 @@ class SetupDataLoaderTest extends AbstractContainerBaseTest {
 					adminProperties.getPassword()),
 				Member.localMember(managerProperties.getEmail(), managerProperties.getNickname(),
 					managerProperties.getPassword()),
-				Member.localMember("dragonbead95@naver.com", "일개미1111", "nemo1234@")
+				Member.localMember(userProperties.getEmail(), userProperties.getNickname(),
+					userProperties.getPassword())
 			);
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		MemberAuthentication memberAuthentication = MemberAuthentication.from(

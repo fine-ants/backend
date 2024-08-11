@@ -49,6 +49,7 @@ public class SetupDataLoader {
 	private final ExchangeRateService exchangeRateService;
 	private final AdminProperties adminProperties;
 	private final ManagerProperties managerProperties;
+	private final UserProperties userProperties;
 	private final RoleProperties roleProperties;
 	private final AmazonS3StockService amazonS3StockService;
 	private final StockRepository stockRepository;
@@ -93,9 +94,9 @@ public class SetupDataLoader {
 			.orElseThrow(supplierNotFoundRoleException());
 
 		createMemberIfNotFound(
-			"dragonbead95@naver.com",
-			"일개미1111",
-			"nemo1234@",
+			userProperties.getEmail(),
+			userProperties.getNickname(),
+			userProperties.getPassword(),
 			Set.of(userRole));
 		createMemberIfNotFound(
 			adminProperties.getEmail(),
