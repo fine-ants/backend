@@ -51,7 +51,7 @@ public class AccessTokenAspect {
 		}
 	}
 
-	private void handleNewAccessToken(LocalDateTime now) {
+	private void handleNewAccessToken(LocalDateTime now) throws InterruptedException {
 		CountDownLatch latch = new CountDownLatch(1);
 		client.fetchAccessToken()
 			.subscribe(accessToken -> {
@@ -65,7 +65,8 @@ public class AccessTokenAspect {
 		try {
 			latch.await();
 		} catch (InterruptedException e) {
-			throw new RuntimeException(e);
+			log.error(e.getMessage());
+			throw new InterruptedException(e.getMessage());
 		}
 	}
 }
