@@ -3,7 +3,6 @@ package codesquad.fineants;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.util.Strings;
 import org.junit.jupiter.api.AfterEach;
@@ -237,20 +236,9 @@ public class AbstractContainerBaseTest {
 	}
 
 	protected Stock createKakaoStock() {
-		return createStock(
-			"035720",
-			"카카오보통주",
-			"Kakao",
-			"KR7035720002",
-			"서비스업"
-		);
+		return Stock.of("035720", "카카오보통주", "Kakao", "KR7035720002", "서비스업", Market.KOSPI);
 	}
-
-	protected Stock createStock(String tickerSymbol, String companyName, String companyNameEng, String stockCode,
-		String sector) {
-		return Stock.of(tickerSymbol, companyName, companyNameEng, stockCode, sector, Market.KOSPI);
-	}
-
+	
 	protected PortfolioHolding createPortfolioHolding(Portfolio portfolio, Stock stock) {
 		return PortfolioHolding.of(portfolio, stock);
 	}
@@ -303,7 +291,7 @@ public class AbstractContainerBaseTest {
 		return targetPrices.stream()
 			.map(targetPrice -> TargetPriceNotification.newTargetPriceNotification(Money.won(targetPrice),
 				stockTargetPrice))
-			.collect(Collectors.toList());
+			.toList();
 	}
 
 	protected List<StockDividend> createStockDividendWith(Stock stock) {
