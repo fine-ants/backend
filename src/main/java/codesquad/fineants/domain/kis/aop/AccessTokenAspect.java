@@ -16,10 +16,10 @@ import codesquad.fineants.domain.kis.service.KisAccessTokenRedisService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
-@RequiredArgsConstructor
 @Aspect
 @Component
+@RequiredArgsConstructor
+@Slf4j
 public class AccessTokenAspect {
 
 	private final KisAccessTokenRepository manager;
@@ -72,5 +72,10 @@ public class AccessTokenAspect {
 			log.error(e.getMessage());
 			throw new InterruptedException(e.getMessage());
 		}
+	}
+
+	@Before(value = "@annotation(CheckedKisAccessToken) && args(..)")
+	public void zzCheckAccessTokenExpiration() {
+		log.debug("call zzCheckAccessTokenExpiration");
 	}
 }

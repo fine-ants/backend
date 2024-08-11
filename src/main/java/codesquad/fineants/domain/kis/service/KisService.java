@@ -20,6 +20,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import codesquad.fineants.domain.holding.repository.PortfolioHoldingRepository;
+import codesquad.fineants.domain.kis.aop.CheckedKisAccessToken;
 import codesquad.fineants.domain.kis.client.KisClient;
 import codesquad.fineants.domain.kis.client.KisCurrentPrice;
 import codesquad.fineants.domain.kis.domain.dto.response.KisClosingPrice;
@@ -210,6 +211,7 @@ public class KisService {
 	 * @param tickerSymbol 종목 단축 코드
 	 * @return 종목의 배당 일정 정보
 	 */
+	@CheckedKisAccessToken
 	public Mono<List<KisDividend>> fetchDividend(String tickerSymbol) {
 		return kisClient.fetchDividendThisYear(tickerSymbol, manager.createAuthorization())
 			.map(KisDividendWrapper::getKisDividends)
