@@ -28,8 +28,8 @@ import org.springframework.stereotype.Component;
 
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.dividend.domain.entity.StockDividend;
-import codesquad.fineants.domain.stock.domain.dto.response.StockDataResponse;
 import codesquad.fineants.domain.stock.domain.dto.response.StockSectorResponse;
+import codesquad.fineants.domain.stock.domain.entity.Market;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,10 +39,10 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class StockCsvReader {
 
-	public Set<StockDataResponse.StockInfo> readStockCsv() {
-		Resource resource = new ClassPathResource("stocks.txt");
+	public Set<Stock> readStockCsv() {
+		Resource resource = new ClassPathResource("stocks.csv");
 
-		Set<StockDataResponse.StockInfo> result = new HashSet<>();
+		Set<Stock> result = new HashSet<>();
 		try (BufferedReader reader = new BufferedReader(new InputStreamReader(resource.getInputStream()))) {
 			Iterable<CSVRecord> records = CSVFormat.DEFAULT
 				.withHeader("stockCode", "tickerSymbol", "companyName", "companyNameEng", "market", "sector")
@@ -50,14 +50,15 @@ public class StockCsvReader {
 				.parse(reader);
 
 			for (CSVRecord record : records) {
-				StockDataResponse.StockInfo stockInfo = StockDataResponse.StockInfo.of(
-					record.get("stockCode"),
+				Stock stock = Stock.of(
 					record.get("tickerSymbol"),
 					record.get("companyName"),
 					record.get("companyNameEng"),
-					record.get("market")
+					record.get("stockCode"),
+					record.get("sector"),
+					Market.ofMarket(record.get("market"))
 				);
-				result.add(stockInfo);
+				result.add(stock);
 			}
 		} catch (IOException e) {
 			return Collections.emptySet();

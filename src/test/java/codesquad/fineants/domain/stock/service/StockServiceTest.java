@@ -311,7 +311,7 @@ class StockServiceTest extends AbstractContainerBaseTest {
 		// then
 		assertThat(stockRepository.findByTickerSymbol("000660")).isPresent();
 		assertThat(amazonS3StockService.fetchStocks())
-			.as("Verify that the stock information in the stocks.txt file stored in s3 matches the items in the database")
+			.as("Verify that the stock information in the stocks.csv file stored in s3 matches the items in the database")
 			.containsExactlyInAnyOrderElementsOf(stockRepository.findAll());
 		assertThat(amazonS3DividendService.fetchDividends())
 			.as("Verify that the dividend information in the dividends.csv file stored in s3 matches the items in the database")
@@ -319,9 +319,7 @@ class StockServiceTest extends AbstractContainerBaseTest {
 	}
 
 	private List<Stock> saveStocks() {
-		Set<StockDataResponse.StockInfo> stockInfoSet = stockCsvReader.readStockCsv();
-		List<Stock> stocks = stockInfoSet.stream()
-			.map(StockDataResponse.StockInfo::toEntity)
+		List<Stock> stocks = stockCsvReader.readStockCsv().stream()
 			.limit(100)
 			.toList();
 		return stockRepository.saveAll(stocks);

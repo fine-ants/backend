@@ -27,7 +27,6 @@ import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.domain.entity.Role;
 import codesquad.fineants.domain.member.repository.MemberRepository;
 import codesquad.fineants.domain.member.repository.RoleRepository;
-import codesquad.fineants.domain.stock.domain.dto.response.StockDataResponse;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
 import codesquad.fineants.domain.stock.service.StockCsvReader;
@@ -137,7 +136,6 @@ class SetupDataLoaderTest extends AbstractContainerBaseTest {
 
 	private List<Stock> writeStocks(int limit) {
 		List<Stock> stocks = stockCsvReader.readStockCsv().stream()
-			.map(StockDataResponse.StockInfo::toEntity)
 			.limit(limit)
 			.toList();
 		amazonS3StockService.writeStocks(stocks);
