@@ -16,6 +16,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 
 import codesquad.fineants.AbstractContainerBaseTest;
+import codesquad.fineants.domain.exchangerate.domain.entity.ExchangeRate;
+import codesquad.fineants.domain.exchangerate.repository.ExchangeRateRepository;
 import codesquad.fineants.domain.exchangerate.service.ExchangeRateService;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.domain.entity.Role;
@@ -39,6 +41,9 @@ class SetupDataLoaderTest extends AbstractContainerBaseTest {
 
 	@Autowired
 	private ManagerProperties managerProperties;
+
+	@Autowired
+	private ExchangeRateRepository exchangeRateRepository;
 
 	@MockBean
 	private ExchangeRateService exchangeRateService;
@@ -79,6 +84,8 @@ class SetupDataLoaderTest extends AbstractContainerBaseTest {
 			.map(GrantedAuthority::getAuthority)
 			.collect(Collectors.toUnmodifiableSet()))
 			.containsExactlyElementsOf(memberAuthentication.getRoleSet());
-		// TODO: 환율 검증문 추가
+		assertThat(exchangeRateRepository.findAll())
+			.hasSize(2)
+			.containsExactly(ExchangeRate.base("KRW"), ExchangeRate.noneBase("USD", 0.0007316));
 	}
 }
