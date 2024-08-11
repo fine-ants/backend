@@ -36,7 +36,7 @@ public class AmazonS3StockService {
 
 	public static final String CSV_SEPARATOR = ",";
 	// 정규식 패턴: 큰따옴표로 묶인 텍스트 또는 쉼표로 구분된 텍스트를 매칭
-	private static final Pattern CSV_SEPARATOR_PATTERN = Pattern.compile(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)");
+	public static final Pattern CSV_SEPARATOR_PATTERN = Pattern.compile(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)");
 
 	private final AmazonS3 amazonS3;
 	@Value("${aws.s3.bucket}")
