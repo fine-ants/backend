@@ -39,12 +39,8 @@ public class AccessTokenAspect {
 	@Pointcut("execution(* codesquad.fineants.domain.kis.service.KisService.refreshClosingPrice())")
 	public void refreshClosingPrice() {
 	}
-
-	@Pointcut("execution(* codesquad.fineants.domain.kis.service.KisService.fetchDividend())")
-	public void fetchDividend() {
-	}
-
-	@Before(value = "refreshCurrentPrice() || refreshClosingPrice() || fetchDividend()")
+	
+	@Before(value = "refreshCurrentPrice() || refreshClosingPrice()")
 	public void checkAccessTokenExpiration() {
 		LocalDateTime now = LocalDateTime.now();
 		if (manager.isAccessTokenExpired(now)) {
@@ -91,6 +87,7 @@ public class AccessTokenAspect {
 						manager.refreshAccessToken(newKisAccessToken);
 						log.info("complete the newKisAccessToken");
 					}, () -> {
+						log.error("fail to newKisAccessToken");
 						throw new FineAntsException(KisErrorCode.ACCESS_TOKEN_ISSUE_FAIL);
 					}));
 		}
