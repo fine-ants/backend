@@ -1,4 +1,4 @@
-package codesquad.fineants.global.init;
+package codesquad.fineants.global.init.properties;
 
 import java.util.List;
 

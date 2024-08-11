@@ -6,10 +6,10 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 
 import codesquad.fineants.domain.kis.properties.OauthKisProperties;
 import codesquad.fineants.domain.portfolio.properties.PortfolioProperties;
-import codesquad.fineants.global.init.AdminProperties;
-import codesquad.fineants.global.init.ManagerProperties;
-import codesquad.fineants.global.init.RoleProperties;
-import codesquad.fineants.global.init.UserProperties;
+import codesquad.fineants.global.init.properties.AdminProperties;
+import codesquad.fineants.global.init.properties.ManagerProperties;
+import codesquad.fineants.global.init.properties.RoleProperties;
+import codesquad.fineants.global.init.properties.UserProperties;
 
 @EnableAspectJAutoProxy
 @EnableConfigurationProperties(value = {PortfolioProperties.class, AdminProperties.class, ManagerProperties.class,
