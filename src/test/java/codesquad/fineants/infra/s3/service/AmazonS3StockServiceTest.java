@@ -20,7 +20,7 @@ class AmazonS3StockServiceTest extends AbstractContainerBaseTest {
 	@Test
 	void writeStocks() {
 		// given
-		Stock stock = Stock.of("000370", "한화손해보험보통주", "Hanwha General Insurance Co.,Ltd.", "KR7000370007", "보험",
+		Stock stock = Stock.of("000370", "한화손해보험보통주", "\"Hanwha General Insurance Co.,Ltd.\"", "KR7000370007", "보험",
 			Market.KOSPI);
 		// when
 		amazonS3StockService.writeStocks(List.of(stock));
@@ -31,7 +31,7 @@ class AmazonS3StockServiceTest extends AbstractContainerBaseTest {
 		Assertions.assertThat(findStock)
 			.extracting(Stock::getTickerSymbol, Stock::getCompanyName, Stock::getCompanyNameEng, Stock::getStockCode,
 				Stock::getSector, Stock::getMarket)
-			.containsExactly("000370", "한화손해보험보통주", "Hanwha General Insurance Co.,Ltd.", "KR7000370007", "보험",
+			.containsExactly("000370", "한화손해보험보통주", "\"Hanwha General Insurance Co.,Ltd.\"", "KR7000370007", "보험",
 				Market.KOSPI);
 	}
 }

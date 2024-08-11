@@ -72,7 +72,7 @@ public class Stock extends BaseEntity {
 			String companyName = data[2];
 			String companyNameEng = data[3];
 			Market market = Market.ofMarket(data[4]);
-			String sector = null;
+			String sector = "none";
 			if (data.length >= 6) {
 				sector = data[5];
 			}
