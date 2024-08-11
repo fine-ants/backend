@@ -270,10 +270,6 @@ class KisServiceTest extends AbstractContainerBaseTest {
 	}
 
 	private List<Stock> saveStocks() {
-		Set<StockDataResponse.StockInfo> stockInfoSet = stockCsvReader.readStockCsv();
-		List<Stock> stocks = stockInfoSet.stream()
-			.map(StockDataResponse.StockInfo::toEntity)
-			.toList();
-		return stockRepository.saveAll(stocks);
+		return stockRepository.saveAll(stockCsvReader.readStockCsv());
 	}
 }

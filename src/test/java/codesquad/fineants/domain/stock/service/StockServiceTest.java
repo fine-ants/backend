@@ -319,9 +319,7 @@ class StockServiceTest extends AbstractContainerBaseTest {
 	}
 
 	private List<Stock> saveStocks() {
-		Set<StockDataResponse.StockInfo> stockInfoSet = stockCsvReader.readStockCsv();
-		List<Stock> stocks = stockInfoSet.stream()
-			.map(StockDataResponse.StockInfo::toEntity)
+		List<Stock> stocks = stockCsvReader.readStockCsv().stream()
 			.limit(100)
 			.toList();
 		return stockRepository.saveAll(stocks);
