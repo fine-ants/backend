@@ -40,7 +40,7 @@ import lombok.extern.slf4j.Slf4j;
 public class StockCsvReader {
 
 	public Set<StockDataResponse.StockInfo> readStockCsv() {
-		Resource resource = new ClassPathResource("stocks.csv");
+		Resource resource = new ClassPathResource("stocks.txt");
 
 		Set<StockDataResponse.StockInfo> result = new HashSet<>();
 		try (BufferedReader reader = new BufferedReader(new InputStreamReader(resource.getInputStream()))) {
@@ -132,7 +132,7 @@ public class StockCsvReader {
 	public List<StockDividend> readDividendCsv(List<Stock> stocks) {
 		ClassLoader classLoader = getClass().getClassLoader();
 		File file = new File(Objects.requireNonNull(classLoader.getResource("dividends.csv")).getFile());
-		
+
 		List<StockDividend> result = new ArrayList<>();
 		try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
 			Iterable<CSVRecord> records = CSVFormat.DEFAULT

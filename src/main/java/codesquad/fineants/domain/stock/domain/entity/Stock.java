@@ -72,7 +72,10 @@ public class Stock extends BaseEntity {
 			String companyName = data[2];
 			String companyNameEng = data[3];
 			Market market = Market.ofMarket(data[4]);
-			String sector = data[5];
+			String sector = null;
+			if (data.length >= 6) {
+				sector = data[5];
+			}
 			return new Stock(tickerSymbol, companyName, companyNameEng, stockCode, sector, market);
 		} catch (ArrayIndexOutOfBoundsException e) {
 			throw new ArrayIndexOutOfBoundsException("out of index, data:" + Arrays.toString(data));
