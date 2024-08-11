@@ -29,6 +29,10 @@ public class KisDividendWrapper {
 		return new KisDividendWrapper(Collections.emptyList());
 	}
 
+	public static KisDividendWrapper create(List<KisDividend> kisDividends) {
+		return new KisDividendWrapper(kisDividends);
+	}
+
 	static class KissDividendWrapperDeserializer extends JsonDeserializer<KisDividendWrapper> {
 		@Override
 		public KisDividendWrapper deserialize(JsonParser parser, DeserializationContext context) throws

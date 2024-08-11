@@ -18,11 +18,14 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
 
 import codesquad.fineants.AbstractContainerBaseTest;
+import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.holding.repository.PortfolioHoldingRepository;
 import codesquad.fineants.domain.kis.client.KisAccessToken;
 import codesquad.fineants.domain.kis.client.KisClient;
 import codesquad.fineants.domain.kis.client.KisCurrentPrice;
 import codesquad.fineants.domain.kis.domain.dto.response.KisClosingPrice;
+import codesquad.fineants.domain.kis.domain.dto.response.KisDividend;
+import codesquad.fineants.domain.kis.domain.dto.response.KisDividendWrapper;
 import codesquad.fineants.domain.kis.domain.dto.response.KisIpo;
 import codesquad.fineants.domain.kis.domain.dto.response.KisIpoResponse;
 import codesquad.fineants.domain.kis.domain.dto.response.KisSearchStockInfo;
@@ -267,6 +270,30 @@ class KisServiceTest extends AbstractContainerBaseTest {
 					})
 					.verifyComplete()
 			);
+	}
+
+	@DisplayName("사용자는 삼성전자의 올해 배당일정을 조회한다")
+	@Test
+	void fetchDividend() {
+		// given
+		String tickerSymbol = "005930";
+		KisAccessToken kisAccessToken = createKisAccessToken();
+		kisAccessTokenRepository.refreshAccessToken(kisAccessToken);
+		given(client.fetchDividendThisYear(tickerSymbol, kisAccessToken.createAuthorization()))
+			.willReturn(Mono.just(KisDividendWrapper.create(List.of(
+				KisDividend.create(tickerSymbol, Money.won(300), LocalDate.of(2024, 3, 1),
+					LocalDate.of(2024, 5, 1))))));
+		// when
+		List<KisDividend> dividends = kisService.fetchDividend(tickerSymbol)
+			.block();
+		// then
+		Assertions.assertThat(dividends)
+			.hasSize(1)
+			.extracting(KisDividend::getTickerSymbol, KisDividend::getDividend, KisDividend::getRecordDate,
+				KisDividend::getPaymentDate)
+			.usingComparatorForType(Money::compareTo, Money.class)
+			.containsExactlyInAnyOrder(
+				tuple("005930", Money.won(300), LocalDate.of(2024, 3, 1), LocalDate.of(2024, 5, 1)));
 	}
 
 	private List<Stock> saveStocks() {
