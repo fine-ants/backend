@@ -22,3 +22,6 @@ logging:
     codesquad: info
 server:
   port: 443
+cron:
+  expression:
+    reload-stocks: '0 0 8 * * ?'

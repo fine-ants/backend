@@ -10,7 +10,8 @@ import org.springframework.data.repository.query.Param;
 import codesquad.fineants.domain.member.domain.entity.Member;
 
 public interface MemberRepository extends JpaRepository<Member, Long> {
-	Optional<Member> findMemberByEmailAndProvider(String email, String provider);
+	@Query("select distinct m from Member m join fetch m.roles where m.email = :email and m.provider = :provider")
+	Optional<Member> findMemberByEmailAndProvider(@Param("email") String email, @Param("provider") String provider);
 
 	@Query("select m from Member m where m.nickname = :nickname and m.id != :memberId")
 	Optional<Member> findMemberByNicknameAndNotMemberId(@Param("nickname") String nickname,

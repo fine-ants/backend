@@ -10,11 +10,13 @@ import codesquad.fineants.domain.member.domain.entity.MemberRole;
 import codesquad.fineants.domain.member.domain.entity.Role;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 
 @Getter
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
+@EqualsAndHashCode(of = {"email", "nickname", "provider"})
 @ToString
 public class MemberAuthentication {
 	private Long id;
@@ -42,14 +44,10 @@ public class MemberAuthentication {
 				.collect(Collectors.toSet())
 		);
 	}
-
-	public static MemberAuthentication admin() {
-		return new MemberAuthentication(null, null, null, null, null, Set.of("ROLE_ADMIN"));
-	}
-
+	
 	public Set<SimpleGrantedAuthority> getSimpleGrantedAuthority() {
 		return roleSet.stream()
 			.map(SimpleGrantedAuthority::new)
-			.collect(Collectors.toSet());
+			.collect(Collectors.toUnmodifiableSet());
 	}
 }

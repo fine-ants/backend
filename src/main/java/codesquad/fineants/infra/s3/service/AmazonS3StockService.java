@@ -9,6 +9,7 @@ import java.io.InputStreamReader;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.util.Strings;
@@ -33,7 +34,9 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class AmazonS3StockService {
 
-	public static final String CSV_SEPARATOR = ":";
+	public static final String CSV_SEPARATOR = ",";
+	// 정규식 패턴: 큰따옴표로 묶인 텍스트 또는 쉼표로 구분된 텍스트를 매칭
+	public static final Pattern CSV_SEPARATOR_PATTERN = Pattern.compile(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)");
 
 	private final AmazonS3 amazonS3;
 	@Value("${aws.s3.bucket}")
@@ -51,7 +54,7 @@ public class AmazonS3StockService {
 		try (BufferedReader br = new BufferedReader(new InputStreamReader(s3Object.getObjectContent(), UTF_8))) {
 			return br.lines()
 				.skip(1) // skip title
-				.map(line -> line.split(CSV_SEPARATOR))
+				.map(CSV_SEPARATOR_PATTERN::split)
 				.map(Stock::parse)
 				.distinct()
 				.toList();

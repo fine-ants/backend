@@ -1,23 +1,23 @@
 package codesquad.fineants.global.init;
 
-import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.logging.log4j.util.Strings;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationListener;
-import org.springframework.context.annotation.Profile;
-import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import codesquad.fineants.domain.dividend.service.StockDividendService;
+import codesquad.fineants.domain.dividend.repository.StockDividendRepository;
 import codesquad.fineants.domain.exchangerate.domain.entity.ExchangeRate;
 import codesquad.fineants.domain.exchangerate.repository.ExchangeRateRepository;
+import codesquad.fineants.domain.exchangerate.service.ExchangeRateService;
 import codesquad.fineants.domain.kis.service.KisService;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.domain.entity.MemberRole;
@@ -26,50 +26,132 @@ import codesquad.fineants.domain.member.repository.MemberRepository;
 import codesquad.fineants.domain.member.repository.RoleRepository;
 import codesquad.fineants.domain.notificationpreference.domain.entity.NotificationPreference;
 import codesquad.fineants.domain.notificationpreference.repository.NotificationPreferenceRepository;
+import codesquad.fineants.domain.stock.repository.StockRepository;
 import codesquad.fineants.global.errors.errorcode.MemberErrorCode;
 import codesquad.fineants.global.errors.errorcode.RoleErrorCode;
 import codesquad.fineants.global.errors.exception.FineAntsException;
+import codesquad.fineants.global.init.properties.AdminProperties;
+import codesquad.fineants.global.init.properties.ManagerProperties;
+import codesquad.fineants.global.init.properties.RoleProperties;
+import codesquad.fineants.global.init.properties.UserProperties;
 import codesquad.fineants.global.security.oauth.dto.MemberAuthentication;
+import codesquad.fineants.infra.s3.service.AmazonS3DividendService;
+import codesquad.fineants.infra.s3.service.AmazonS3StockService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-@Profile(value = {"local", "dev", "release", "production"})
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class SetupDataLoader implements ApplicationListener<ContextRefreshedEvent> {
-
-	private boolean alreadySetup = false;
+public class SetupDataLoader {
 	private final KisService kisService;
-	private final StockDividendService stockDividendService;
 	private final RoleRepository roleRepository;
 	private final MemberRepository memberRepository;
 	private final NotificationPreferenceRepository notificationPreferenceRepository;
 	private final PasswordEncoder passwordEncoder;
 	private final ExchangeRateRepository exchangeRateRepository;
-	@Value("${member.admin.password}")
-	private String password;
+	private final ExchangeRateService exchangeRateService;
+	private final AdminProperties adminProperties;
+	private final ManagerProperties managerProperties;
+	private final UserProperties userProperties;
+	private final RoleProperties roleProperties;
+	private final AmazonS3StockService amazonS3StockService;
+	private final StockRepository stockRepository;
+	private final StockDividendRepository stockDividendRepository;
+	private final AmazonS3DividendService amazonS3DividendService;
 
-	@Override
 	@Transactional
-	public void onApplicationEvent(@NotNull ContextRefreshedEvent event) {
-		if (alreadySetup) {
-			return;
-		}
+	public void setupResources() {
 		setupSecurityResources();
 		setupMemberResources();
 		setAdminAuthentication();
 		setupExchangeRateResources();
+		setupStockResources();
+		setupStockDividendResources();
 
 		log.info("애플리케이션 시작시 종목 현재가 및 종가 초기화 시작");
 		kisService.refreshCurrentPrice();
 		kisService.refreshClosingPrice();
 		log.info("애플리케이션 시작시 종목 현재가 및 종가 초기화 종료");
-		alreadySetup = true;
+	}
+
+	private void setupSecurityResources() {
+		roleProperties.getRolePropertyList().forEach(this::saveRoleIfNotFound);
+	}
+
+	private void saveRoleIfNotFound(RoleProperties.RoleProperty roleProperty) {
+		roleRepository.save(findOrCreateRole(roleProperty));
+	}
+
+	@NotNull
+	private Role findOrCreateRole(RoleProperties.RoleProperty roleProperty) {
+		return roleRepository.findRoleByRoleName(roleProperty.getRoleName())
+			.orElseGet(roleProperty::toRoleEntity);
+	}
+
+	private void setupMemberResources() {
+		Role userRole = roleRepository.findRoleByRoleName("ROLE_USER")
+			.orElseThrow(supplierNotFoundRoleException());
+		Role managerRole = roleRepository.findRoleByRoleName("ROLE_MANAGER")
+			.orElseThrow(supplierNotFoundRoleException());
+		Role adminRole = roleRepository.findRoleByRoleName("ROLE_ADMIN")
+			.orElseThrow(supplierNotFoundRoleException());
+
+		createMemberIfNotFound(
+			userProperties.getEmail(),
+			userProperties.getNickname(),
+			userProperties.getPassword(),
+			Set.of(userRole));
+		createMemberIfNotFound(
+			adminProperties.getEmail(),
+			adminProperties.getNickname(),
+			adminProperties.getPassword(),
+			Set.of(adminRole));
+		createMemberIfNotFound(
+			managerProperties.getEmail(),
+			managerProperties.getNickname(),
+			managerProperties.getPassword(),
+			Set.of(managerRole));
+	}
+
+	@NotNull
+	private static Supplier<FineAntsException> supplierNotFoundRoleException() {
+		return () -> new FineAntsException(RoleErrorCode.NOT_EXIST_ROLE);
+	}
+
+	private void createMemberIfNotFound(String email, String nickname, String password,
+		Set<Role> roleSet) {
+		Member member = memberRepository.save(findOrCreateNewMember(email, nickname, password, roleSet));
+		initializeNotificationPreferenceIfNotExists(member);
+	}
+
+	private Member findOrCreateNewMember(String email, String nickname, String password, Set<Role> roleSet) {
+		return memberRepository.findMemberByEmailAndProvider(email, "local")
+			.orElseGet(supplierNewMember(email, nickname, password, roleSet));
+	}
+
+	private void initializeNotificationPreferenceIfNotExists(Member member) {
+		if (member.getNotificationPreference() == null) {
+			NotificationPreference newPreference = NotificationPreference.allActive(member);
+			member.setNotificationPreference(newPreference);
+			notificationPreferenceRepository.save(newPreference);
+		}
+	}
+
+	@NotNull
+	private Supplier<Member> supplierNewMember(String email, String nickname, String password, Set<Role> roleSet) {
+		return () -> {
+			Member newMember = Member.localMember(email, nickname, passwordEncoder.encode(password));
+			Set<MemberRole> memberRoles = roleSet.stream()
+				.map(r -> MemberRole.create(newMember, r))
+				.collect(Collectors.toUnmodifiableSet());
+			newMember.setMemberRoleSet(memberRoles);
+			return newMember;
+		};
 	}
 
 	private void setAdminAuthentication() {
-		Member admin = memberRepository.findMemberByEmailAndProvider("admin@admin.com", "local")
+		Member admin = memberRepository.findMemberByEmailAndProvider(adminProperties.getEmail(), "local")
 			.orElseThrow(() -> new FineAntsException(MemberErrorCode.NOT_FOUND_MEMBER));
 		MemberAuthentication memberAuthentication = MemberAuthentication.from(admin);
 		UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
@@ -80,93 +162,23 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
 		SecurityContextHolder.getContext().setAuthentication(authenticationToken);
 	}
 
-	@Transactional
-	public void setupSecurityResources() {
-		createRoleIfNotFound("ROLE_ADMIN", "관리자");
-		createRoleIfNotFound("ROLE_MANAGER", "매니저");
-		createRoleIfNotFound("ROLE_USER", "회원");
+	private void setupExchangeRateResources() {
+		List<ExchangeRate> rates = Stream.of(ExchangeRate.base("KRW"), ExchangeRate.zero("USD", false))
+			.map(this::saveExchangeRateIfNotFound)
+			.toList();
+		log.info("create the exchange rates : {}", rates);
+		exchangeRateService.updateExchangeRates();
 	}
 
-	@Transactional
-	public void setupMemberResources() {
-		Role userRole = roleRepository.findRoleByRoleName("ROLE_USER")
-			.orElseThrow(() -> new FineAntsException(RoleErrorCode.NOT_EXIST_ROLE));
-		Role managerRole = roleRepository.findRoleByRoleName("ROLE_MANAGER")
-			.orElseThrow(() -> new FineAntsException(RoleErrorCode.NOT_EXIST_ROLE));
-		Role adminRole = roleRepository.findRoleByRoleName("ROLE_ADMIN")
-			.orElseThrow(() -> new FineAntsException(RoleErrorCode.NOT_EXIST_ROLE));
-
-		createMemberIfNotFound("dragonbead95@naver.com", "일개미1111", "nemo1234@",
-			Set.of(userRole));
-		createOauthMemberIfNotFound("dragonbead95@naver.com", "일개미1112", "naver",
-			Set.of(userRole));
-		createMemberIfNotFound("admin@admin.com", "admin", password, Set.of(adminRole));
-		createMemberIfNotFound("manager@manager.com", "manager", password, Set.of(managerRole));
-	}
-
-	@Transactional
-	public void setupExchangeRateResources() {
-		ExchangeRate exchangeRate = createExchangeRateIfNotFound("KRW");
-		log.info("환율 생성 : {}", exchangeRate);
-	}
-
-	private ExchangeRate createExchangeRateIfNotFound(String code) {
-		ExchangeRate exchangeRate = exchangeRateRepository.findByCode(code)
-			.orElseGet(() -> ExchangeRate.base(code));
+	private ExchangeRate saveExchangeRateIfNotFound(ExchangeRate exchangeRate) {
 		return exchangeRateRepository.save(exchangeRate);
 	}
 
-	@Transactional
-	public void createRoleIfNotFound(String roleName, String roleDesc) {
-		Role role = roleRepository.findRoleByRoleName(roleName)
-			.orElseGet(() -> Role.create(roleName, roleDesc));
-		roleRepository.save(role);
+	private void setupStockResources() {
+		stockRepository.saveAll(amazonS3StockService.fetchStocks());
 	}
 
-	@Transactional
-	public void createMemberIfNotFound(String email, String nickname, String password,
-		Set<Role> roleSet) {
-		Member member = memberRepository.findMemberByEmailAndProvider(email, "local")
-			.orElse(null);
-
-		if (member == null) {
-			member = Member.localMember(email, nickname, passwordEncoder.encode(password));
-			Set<MemberRole> memberRoleSet = new HashSet<>();
-			for (Role r : roleSet) {
-				MemberRole memberRole = MemberRole.create(member, r);
-				memberRoleSet.add(memberRole);
-			}
-			member.setMemberRoleSet(memberRoleSet);
-		}
-		Member saveMember = memberRepository.save(member);
-		NotificationPreference preference = member.getNotificationPreference();
-		if (preference == null) {
-			NotificationPreference newPreference = NotificationPreference.allActive(saveMember);
-			saveMember.setNotificationPreference(newPreference);
-			notificationPreferenceRepository.save(newPreference);
-		}
-	}
-
-	@Transactional
-	public void createOauthMemberIfNotFound(String email, String nickname, String provider, Set<Role> roleSet) {
-		Member member = memberRepository.findMemberByEmailAndProvider(email, provider)
-			.orElse(null);
-
-		if (member == null) {
-			member = Member.oauthMember(email, nickname, provider, null);
-			Set<MemberRole> memberRoleSet = new HashSet<>();
-			for (Role r : roleSet) {
-				MemberRole memberRole = MemberRole.create(member, r);
-				memberRoleSet.add(memberRole);
-			}
-			member.setMemberRoleSet(memberRoleSet);
-		}
-		Member saveMember = memberRepository.save(member);
-		NotificationPreference preference = member.getNotificationPreference();
-		if (preference == null) {
-			NotificationPreference newPreference = NotificationPreference.allActive(saveMember);
-			saveMember.setNotificationPreference(newPreference);
-			notificationPreferenceRepository.save(newPreference);
-		}
+	private void setupStockDividendResources() {
+		stockDividendRepository.saveAll(amazonS3DividendService.fetchDividends());
 	}
 }
