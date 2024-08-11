@@ -14,6 +14,7 @@ import codesquad.fineants.domain.kis.client.KisAccessToken;
 import codesquad.fineants.domain.kis.client.KisClient;
 import codesquad.fineants.domain.kis.repository.KisAccessTokenRepository;
 import codesquad.fineants.domain.kis.service.KisAccessTokenRedisService;
+import codesquad.fineants.global.common.time.LocalDateTimeService;
 import codesquad.fineants.global.errors.errorcode.KisErrorCode;
 import codesquad.fineants.global.errors.exception.FineAntsException;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,7 @@ public class AccessTokenAspect {
 	private final KisAccessTokenRepository manager;
 	private final KisClient client;
 	private final KisAccessTokenRedisService redisService;
+	private final LocalDateTimeService localDateTimeService;
 
 	@Pointcut("execution(* codesquad.fineants.domain.kis.service.KisService.refreshCurrentPrice())")
 	public void refreshCurrentPrice() {
@@ -79,7 +81,7 @@ public class AccessTokenAspect {
 
 	@Before(value = "@annotation(CheckedKisAccessToken) && args(..)")
 	public void zzCheckAccessTokenExpiration() {
-		LocalDateTime now = LocalDateTime.now();
+		LocalDateTime now = localDateTimeService.getLocalDateTimeWithNow();
 		if (manager.isAccessTokenExpired(now)) {
 			redisService.getAccessTokenMap()
 				.ifPresentOrElse(manager::refreshAccessToken, () ->

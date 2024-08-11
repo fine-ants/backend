@@ -63,14 +63,14 @@ class KisServiceTest extends AbstractContainerBaseTest {
 	@Autowired
 	private StockRepository stockRepository;
 
-	@MockBean
-	private KisClient client;
-
 	@Autowired
 	private KisAccessTokenRepository kisAccessTokenRepository;
 
 	@Autowired
 	private StockCsvReader stockCsvReader;
+
+	@MockBean
+	private KisClient client;
 
 	@MockBean
 	private HolidayRepository holidayRepository;
@@ -280,6 +280,32 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		KisAccessToken kisAccessToken = createKisAccessToken();
 		kisAccessTokenRepository.refreshAccessToken(kisAccessToken);
 		given(client.fetchDividendThisYear(tickerSymbol, kisAccessToken.createAuthorization()))
+			.willReturn(Mono.just(KisDividendWrapper.create(List.of(
+				KisDividend.create(tickerSymbol, Money.won(300), LocalDate.of(2024, 3, 1),
+					LocalDate.of(2024, 5, 1))))));
+		// when
+		List<KisDividend> dividends = kisService.fetchDividend(tickerSymbol)
+			.block();
+		// then
+		Assertions.assertThat(dividends)
+			.hasSize(1)
+			.extracting(KisDividend::getTickerSymbol, KisDividend::getDividend, KisDividend::getRecordDate,
+				KisDividend::getPaymentDate)
+			.usingComparatorForType(Money::compareTo, Money.class)
+			.containsExactlyInAnyOrder(
+				tuple("005930", Money.won(300), LocalDate.of(2024, 3, 1), LocalDate.of(2024, 5, 1)));
+	}
+
+	@DisplayName("사용자는 새로운 한국투자증권의 액세스 토큰을 발급받아서 배당 일정을 조회한다")
+	@Test
+	void fetchDividend_whenAccessTokenExpired_thenIssueAccessToken() {
+		// given
+		String tickerSymbol = "005930";
+		kisAccessTokenRepository.refreshAccessToken(null);
+		KisAccessToken newKisAccessToken = createKisAccessToken();
+		given(client.fetchAccessToken())
+			.willReturn(Mono.just(newKisAccessToken));
+		given(client.fetchDividendThisYear(tickerSymbol, newKisAccessToken.createAuthorization()))
 			.willReturn(Mono.just(KisDividendWrapper.create(List.of(
 				KisDividend.create(tickerSymbol, Money.won(300), LocalDate.of(2024, 3, 1),
 					LocalDate.of(2024, 5, 1))))));
