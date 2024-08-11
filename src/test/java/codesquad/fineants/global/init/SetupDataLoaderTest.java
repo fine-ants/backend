@@ -19,6 +19,7 @@ import codesquad.fineants.AbstractContainerBaseTest;
 import codesquad.fineants.domain.exchangerate.domain.entity.ExchangeRate;
 import codesquad.fineants.domain.exchangerate.repository.ExchangeRateRepository;
 import codesquad.fineants.domain.exchangerate.service.ExchangeRateService;
+import codesquad.fineants.domain.kis.service.KisService;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.domain.entity.Role;
 import codesquad.fineants.domain.member.repository.MemberRepository;
@@ -48,12 +49,17 @@ class SetupDataLoaderTest extends AbstractContainerBaseTest {
 	@MockBean
 	private ExchangeRateService exchangeRateService;
 
+	@MockBean
+	private KisService kisService;
+
 	@Transactional
 	@DisplayName("서버는 권한 및 역할 등의 리소스들을 생성한다")
 	@Test
 	void setupResources() {
 		// given
 		doNothing().when(exchangeRateService).updateExchangeRates();
+		doNothing().when(kisService).refreshCurrentPrice();
+		doNothing().when(kisService).refreshClosingPrice();
 		// when
 		setupDataLoader.setupResources();
 		// then
