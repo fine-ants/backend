@@ -46,7 +46,11 @@ public class AccessTokenAspect {
 			if (optionalKisAccessToken.isPresent()) {
 				manager.refreshAccessToken(optionalKisAccessToken.get());
 			} else {
-				handleNewAccessToken(now);
+				try {
+					handleNewAccessToken(now);
+				} catch (InterruptedException e) {
+					throw new RuntimeException(e);
+				}
 			}
 		}
 	}

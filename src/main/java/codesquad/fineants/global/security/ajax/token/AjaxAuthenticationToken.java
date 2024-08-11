@@ -2,6 +2,7 @@ package codesquad.fineants.global.security.ajax.token;
 
 import java.io.Serial;
 import java.util.Collection;
+import java.util.Objects;
 
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
@@ -12,9 +13,9 @@ public class AjaxAuthenticationToken extends AbstractAuthenticationToken {
 	@Serial
 	private static final long serialVersionUID = SpringSecurityCoreVersion.SERIAL_VERSION_UID;
 
-	private final Object principal;
+	private final transient Object principal;
 
-	private Object credentials;
+	private transient Object credentials;
 
 	private AjaxAuthenticationToken(Object principal, Object credentials) {
 		super(null);
@@ -61,5 +62,23 @@ public class AjaxAuthenticationToken extends AbstractAuthenticationToken {
 	public void eraseCredentials() {
 		super.eraseCredentials();
 		this.credentials = null;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
+		if (!super.equals(o))
+			return false;
+		AjaxAuthenticationToken that = (AjaxAuthenticationToken)o;
+		return Objects.equals(principal, that.principal) && Objects.equals(credentials,
+			that.credentials);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(super.hashCode(), principal, credentials);
 	}
 }
