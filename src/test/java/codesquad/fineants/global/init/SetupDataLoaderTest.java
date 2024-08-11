@@ -17,6 +17,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 
 import codesquad.fineants.AbstractContainerBaseTest;
+import codesquad.fineants.domain.dividend.domain.entity.StockDividend;
 import codesquad.fineants.domain.dividend.repository.StockDividendRepository;
 import codesquad.fineants.domain.exchangerate.domain.entity.ExchangeRate;
 import codesquad.fineants.domain.exchangerate.repository.ExchangeRateRepository;
@@ -81,6 +82,7 @@ class SetupDataLoaderTest extends AbstractContainerBaseTest {
 	void setupResources() {
 		// given
 		List<Stock> stocks = writeStocks();
+		List<StockDividend> stockDividends = writeStockDividends();
 
 		doNothing().when(exchangeRateService).updateExchangeRates();
 		doNothing().when(kisService).refreshCurrentPrice();
@@ -120,6 +122,8 @@ class SetupDataLoaderTest extends AbstractContainerBaseTest {
 			.containsExactly(ExchangeRate.base("KRW"), ExchangeRate.noneBase("USD", 0.0007316));
 		assertThat(stockRepository.findAll())
 			.containsExactlyInAnyOrderElementsOf(stocks);
+		assertThat(stockDividendRepository.findAll())
+			.containsExactlyInAnyOrderElementsOf(stockDividends);
 	}
 
 	private List<Stock> writeStocks() {
@@ -128,5 +132,11 @@ class SetupDataLoaderTest extends AbstractContainerBaseTest {
 			.toList();
 		amazonS3StockService.writeStocks(stocks);
 		return stocks;
+	}
+
+	private List<StockDividend> writeStockDividends() {
+		List<StockDividend> stockDividends = stockCsvReader.readDividendCsv();
+		amazonS3DividendService.writeDividends(stockDividends);
+		return stockDividends;
 	}
 }
