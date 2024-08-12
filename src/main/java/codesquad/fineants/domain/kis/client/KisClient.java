@@ -29,6 +29,7 @@ import codesquad.fineants.domain.kis.properties.KisProperties;
 import codesquad.fineants.domain.kis.properties.KisQueryParam;
 import codesquad.fineants.domain.kis.properties.KisQueryParamBuilder;
 import codesquad.fineants.domain.kis.properties.KisTrIdProperties;
+import codesquad.fineants.domain.kis.properties.kiscodevalue.imple.CustomerType;
 import codesquad.fineants.domain.kis.properties.kiscodevalue.imple.FidCondMrktDivCode;
 import codesquad.fineants.domain.kis.properties.kiscodevalue.imple.FidOrgAdjPrc;
 import codesquad.fineants.domain.kis.properties.kiscodevalue.imple.FidPeriodDivCode;
@@ -44,7 +45,6 @@ import reactor.util.retry.Retry;
 @Component
 public class KisClient {
 	private static final String APPLICATION_JSON_UTF8 = "application/json; charset=utf-8";
-	private static final String KIS_CUSTOMER_TYPE = "P";
 	private final KisProperties kisProperties;
 	private final KisTrIdProperties kisTrIdProperties;
 	private final WebClient webClient;
@@ -152,7 +152,7 @@ public class KisClient {
 			.add(APP_KEY, kisProperties.getAppkey())
 			.add(APP_SECRET, kisProperties.getSecretkey())
 			.add(TR_ID, kisTrIdProperties.getDividend())
-			.add(CUSTOMER_TYPE, KIS_CUSTOMER_TYPE)
+			.add(CUSTOMER_TYPE, CustomerType.INDIVIDUAL)
 			.build();
 
 		MultiValueMap<String, String> queryParam = KisQueryParamBuilder.builder()
@@ -180,7 +180,7 @@ public class KisClient {
 			.add(APP_KEY, kisProperties.getAppkey())
 			.add(APP_SECRET, kisProperties.getSecretkey())
 			.add(TR_ID, kisTrIdProperties.getDividend())
-			.add(CUSTOMER_TYPE, KIS_CUSTOMER_TYPE)
+			.add(CUSTOMER_TYPE, CustomerType.INDIVIDUAL)
 			.build();
 		MultiValueMap<String, String> queryParam = KisQueryParamBuilder.builder()
 			.add(KisQueryParam.HIGH_GB, Strings.EMPTY)
@@ -207,7 +207,7 @@ public class KisClient {
 			.add(APP_KEY, kisProperties.getAppkey())
 			.add(APP_SECRET, kisProperties.getSecretkey())
 			.add(TR_ID, kisTrIdProperties.getIpo())
-			.add(CUSTOMER_TYPE, KIS_CUSTOMER_TYPE)
+			.add(CUSTOMER_TYPE, CustomerType.INDIVIDUAL)
 			.build();
 		MultiValueMap<String, String> queryParam = KisQueryParamBuilder.builder()
 			.add(KisQueryParam.SHT_CD, Strings.EMPTY)
@@ -237,7 +237,7 @@ public class KisClient {
 			.add(APP_KEY, kisProperties.getAppkey())
 			.add(APP_SECRET, kisProperties.getSecretkey())
 			.add(TR_ID, kisTrIdProperties.getSearchStockInfo())
-			.add(CUSTOMER_TYPE, KIS_CUSTOMER_TYPE)
+			.add(CUSTOMER_TYPE, CustomerType.INDIVIDUAL)
 			.build();
 		MultiValueMap<String, String> queryParam = KisQueryParamBuilder.builder()
 			.add(KisQueryParam.PRDT_TYPE_CD, PrdtTypeCd.STOCK)
