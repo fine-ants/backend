@@ -308,7 +308,7 @@ class KisClientTest extends AbstractContainerBaseTest {
 			.containsExactly("005930", 80000L);
 
 	}
-
+	
 	@NotNull
 	private static MockResponse createResponse(int code, String body) {
 		return new MockResponse()

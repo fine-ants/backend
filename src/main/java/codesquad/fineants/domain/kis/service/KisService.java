@@ -217,7 +217,7 @@ public class KisService {
 
 	@CheckedKisAccessToken
 	public Mono<KisClosingPrice> fetchClosingPrice(String tickerSymbol) {
-		return kisClient.fetchClosingPrice(tickerSymbol, manager.createAuthorization());
+		return kisClient.fetchClosingPrice(tickerSymbol);
 	}
 
 	/**

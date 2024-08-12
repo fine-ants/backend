@@ -45,7 +45,7 @@ public class ClosingPriceRepository {
 	}
 
 	private void handleClosingPrice(String tickerSymbol) {
-		kisClient.fetchClosingPrice(tickerSymbol, accessTokenManager.createAuthorization())
+		kisClient.fetchClosingPrice(tickerSymbol)
 			.blockOptional(TIMEOUT)
 			.ifPresent(this::addPrice);
 	}
