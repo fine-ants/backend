@@ -32,6 +32,7 @@ import codesquad.fineants.domain.kis.properties.KisTrIdProperties;
 import codesquad.fineants.domain.kis.properties.kiscodevalue.imple.FidCondMrktDivCode;
 import codesquad.fineants.domain.kis.properties.kiscodevalue.imple.FidOrgAdjPrc;
 import codesquad.fineants.domain.kis.properties.kiscodevalue.imple.FidPeriodDivCode;
+import codesquad.fineants.domain.kis.properties.kiscodevalue.imple.GB1;
 import codesquad.fineants.domain.kis.repository.KisAccessTokenRepository;
 import codesquad.fineants.global.errors.exception.KisException;
 import lombok.extern.slf4j.Slf4j;
@@ -151,7 +152,7 @@ public class KisClient {
 		MultiValueMap<String, String> queryParam = KisQueryParamBuilder.builder()
 			.add(KisQueryParam.HIGH_GB, Strings.EMPTY)
 			.add(KisQueryParam.CTS, Strings.EMPTY)
-			.add(KisQueryParam.GB1, "0")
+			.add(KisQueryParam.GB1, GB1.TOTAL_DIVIDEND)
 			.add(KisQueryParam.F_DT, basicIso(from))
 			.add(KisQueryParam.T_DT, basicIso(to))
 			.add(KisQueryParam.SHT_CD, tickerSymbol)
@@ -178,7 +179,7 @@ public class KisClient {
 		MultiValueMap<String, String> queryParam = KisQueryParamBuilder.builder()
 			.add(KisQueryParam.HIGH_GB, Strings.EMPTY)
 			.add(KisQueryParam.CTS, Strings.EMPTY)
-			.add(KisQueryParam.GB1, "0")
+			.add(KisQueryParam.GB1, GB1.TOTAL_DIVIDEND)
 			.add(KisQueryParam.F_DT, basicIso(from))
 			.add(KisQueryParam.T_DT, basicIso(to))
 			.add(KisQueryParam.SHT_CD, Strings.EMPTY)
