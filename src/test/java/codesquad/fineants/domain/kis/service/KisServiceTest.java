@@ -213,8 +213,8 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		);
 		given(client.fetchIpo(
 			any(LocalDate.class),
-			any(LocalDate.class),
-			anyString()))
+			any(LocalDate.class)
+		))
 			.willReturn(Mono.just(kisIpoResponse));
 
 		KisSearchStockInfo kisSearchStockInfo = KisSearchStockInfo.listedStock(

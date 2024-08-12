@@ -266,7 +266,7 @@ public class KisService {
 	public Set<StockDataResponse.StockIntegrationInfo> fetchStockInfoInRangedIpo() {
 		LocalDate today = LocalDate.now();
 		LocalDate yesterday = today.minusDays(1);
-		Set<String> tickerSymbols = kisClient.fetchIpo(yesterday, today, manager.createAuthorization())
+		Set<String> tickerSymbols = kisClient.fetchIpo(yesterday, today)
 			.blockOptional(TIMEOUT)
 			.orElseThrow()
 			.getKisIpos().stream()

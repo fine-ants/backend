@@ -179,10 +179,11 @@ public class KisClient {
 		).map(KisDividendWrapper::getKisDividends);
 	}
 
-	public Mono<KisIpoResponse> fetchIpo(LocalDate from, LocalDate to, String authorization) {
+	@CheckedKisAccessToken
+	public Mono<KisIpoResponse> fetchIpo(LocalDate from, LocalDate to) {
 		MultiValueMap<String, String> headerMap = new LinkedMultiValueMap<>();
 		headerMap.add("content-type", "application/json; charset=utf-8");
-		headerMap.add("authorization", authorization);
+		headerMap.add("authorization", manager.createAuthorization());
 		headerMap.add("appkey", oauthKisProperties.getAppkey());
 		headerMap.add("appsecret", oauthKisProperties.getSecretkey());
 		headerMap.add("tr_id", "HHKDB669107C0");

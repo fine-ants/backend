@@ -131,9 +131,8 @@ class KisClientTest extends AbstractContainerBaseTest {
 
 		LocalDate today = LocalDate.now();
 		LocalDate yesterday = today.minusDays(1);
-		KisAccessToken kisAccessToken = createKisAccessToken();
 		// when
-		KisIpoResponse response = kisClient.fetchIpo(yesterday, today, kisAccessToken.createAuthorization())
+		KisIpoResponse response = kisClient.fetchIpo(yesterday, today)
 			.block(Duration.ofSeconds(1));
 
 		// then
@@ -173,9 +172,8 @@ class KisClientTest extends AbstractContainerBaseTest {
 
 		LocalDate today = LocalDate.now();
 		LocalDate yesterday = today.minusDays(1);
-		KisAccessToken kisAccessToken = createKisAccessToken();
 		// when
-		KisIpoResponse response = kisClient.fetchIpo(yesterday, today, kisAccessToken.createAuthorization())
+		KisIpoResponse response = kisClient.fetchIpo(yesterday, today)
 			.blockOptional()
 			.orElseThrow();
 
