@@ -86,7 +86,7 @@ public class KisClient {
 			.add(KisQueryParam.CONDITION_MARKET_DIVISION_CODE, "J")
 			.add(KisQueryParam.INPUT_STOCK_CODE, tickerSymbol)
 			.build();
-		
+
 		return performGet(
 			kisProperties.getCurrentPriceUrl(),
 			header,
@@ -106,7 +106,7 @@ public class KisClient {
 			.build();
 
 		MultiValueMap<String, String> queryParamMap = new LinkedMultiValueMap<>();
-		queryParamMap.add("FID_COND_MRKT_DIV_CODE", "J");
+		queryParamMap.add(KisQueryParam.CONDITION_MARKET_DIVISION_CODE.getParamName(), "J");
 		queryParamMap.add("FID_INPUT_ISCD", tickerSymbol);
 		queryParamMap.add("FID_INPUT_DATE_1", LocalDate.now().minusDays(1L).toString());
 		queryParamMap.add("FID_INPUT_DATE_2", LocalDate.now().minusDays(1L).toString());
