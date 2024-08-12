@@ -160,13 +160,14 @@ public class KisClient {
 
 	@CheckedKisAccessToken
 	public Mono<List<KisDividend>> fetchDividendAll(LocalDate from, LocalDate to) {
-		MultiValueMap<String, String> headerMap = new LinkedMultiValueMap<>();
-		headerMap.add("content-type", APPLICATION_JSON_UTF8);
-		headerMap.add("authorization", manager.createAuthorization());
-		headerMap.add("appkey", kisProperties.getAppkey());
-		headerMap.add("appsecret", kisProperties.getSecretkey());
-		headerMap.add("tr_id", "HHKDB669102C0");
-		headerMap.add("custtype", "P");
+		MultiValueMap<String, String> header = KisHeaderBuilder.builder()
+			.add(CONTENT_TYPE, APPLICATION_JSON_UTF8)
+			.add(AUTHORIZATION, manager.createAuthorization())
+			.add(APP_KEY, kisProperties.getAppkey())
+			.add(APP_SECRET, kisProperties.getSecretkey())
+			.add(TR_ID, "HHKDB669102C0")
+			.add(CUSTOMER_TYPE, KIS_CUSTOMER_TYPE)
+			.build();
 
 		MultiValueMap<String, String> queryParamMap = new LinkedMultiValueMap<>();
 		queryParamMap.add("HIGH_GB", Strings.EMPTY);
@@ -178,7 +179,7 @@ public class KisClient {
 
 		return performGet(
 			kisProperties.getDividendUrl(),
-			headerMap,
+			header,
 			queryParamMap,
 			KisDividendWrapper.class
 		).map(KisDividendWrapper::getKisDividends);
@@ -186,13 +187,14 @@ public class KisClient {
 
 	@CheckedKisAccessToken
 	public Mono<KisIpoResponse> fetchIpo(LocalDate from, LocalDate to) {
-		MultiValueMap<String, String> headerMap = new LinkedMultiValueMap<>();
-		headerMap.add("content-type", "application/json; charset=utf-8");
-		headerMap.add("authorization", manager.createAuthorization());
-		headerMap.add("appkey", kisProperties.getAppkey());
-		headerMap.add("appsecret", kisProperties.getSecretkey());
-		headerMap.add("tr_id", "HHKDB669107C0");
-		headerMap.add("custtype", "P");
+		MultiValueMap<String, String> header = KisHeaderBuilder.builder()
+			.add(CONTENT_TYPE, APPLICATION_JSON_UTF8)
+			.add(AUTHORIZATION, manager.createAuthorization())
+			.add(APP_KEY, kisProperties.getAppkey())
+			.add(APP_SECRET, kisProperties.getSecretkey())
+			.add(TR_ID, "HHKDB669107C0")
+			.add(CUSTOMER_TYPE, KIS_CUSTOMER_TYPE)
+			.build();
 
 		MultiValueMap<String, String> queryParamMap = new LinkedMultiValueMap<>();
 		queryParamMap.add("SHT_CD", Strings.EMPTY);
@@ -202,7 +204,7 @@ public class KisClient {
 
 		return performGet(
 			kisProperties.getIpoUrl(),
-			headerMap,
+			header,
 			queryParamMap,
 			KisIpoResponse.class
 		).retryWhen(Retry.fixedDelay(Long.MAX_VALUE, Duration.ofSeconds(5)));
@@ -215,13 +217,14 @@ public class KisClient {
 
 	@CheckedKisAccessToken
 	public Mono<KisSearchStockInfo> fetchSearchStockInfo(String tickerSymbol) {
-		MultiValueMap<String, String> headerMap = new LinkedMultiValueMap<>();
-		headerMap.add("content-type", "application/json; charset=utf-8");
-		headerMap.add("authorization", manager.createAuthorization());
-		headerMap.add("appkey", kisProperties.getAppkey());
-		headerMap.add("appsecret", kisProperties.getSecretkey());
-		headerMap.add("tr_id", "CTPF1002R");
-		headerMap.add("custtype", "P");
+		MultiValueMap<String, String> header = KisHeaderBuilder.builder()
+			.add(CONTENT_TYPE, APPLICATION_JSON_UTF8)
+			.add(AUTHORIZATION, manager.createAuthorization())
+			.add(APP_KEY, kisProperties.getAppkey())
+			.add(APP_SECRET, kisProperties.getSecretkey())
+			.add(TR_ID, "CTPF1002R")
+			.add(CUSTOMER_TYPE, KIS_CUSTOMER_TYPE)
+			.build();
 
 		MultiValueMap<String, String> queryParamMap = new LinkedMultiValueMap<>();
 		queryParamMap.add("PRDT_TYPE_CD", "300");
@@ -229,7 +232,7 @@ public class KisClient {
 
 		return performGet(
 			kisProperties.getSearchStockInfoUrl(),
-			headerMap,
+			header,
 			queryParamMap,
 			KisSearchStockInfo.class);
 	}
