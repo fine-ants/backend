@@ -262,7 +262,6 @@ class KisClientTest extends AbstractContainerBaseTest {
 	void fetchDividend() {
 		// given
 		String tickerSymbol = "000720";
-		KisAccessToken kisAccessToken = createKisAccessToken();
 		Map<String, Object> output = Map.ofEntries(
 			Map.entry("output1",
 				List.of(
@@ -279,10 +278,7 @@ class KisClientTest extends AbstractContainerBaseTest {
 		);
 		mockWebServer.enqueue(createResponse(200, ObjectMapperUtil.serialize(output)));
 		// when
-		Mono<KisDividendWrapper> mono = kisClient.fetchDividendThisYear(tickerSymbol,
-			kisAccessToken.createAuthorization());
-		KisDividendWrapper wrapper = mono
-			.blockOptional(Duration.ofSeconds(1)).orElse(null);
+		KisDividendWrapper wrapper = kisClient.fetchDividendThisYear(tickerSymbol).block();
 		// then
 		assertThat(wrapper).isNotNull();
 		assertThat(wrapper.getKisDividends()).hasSize(2);

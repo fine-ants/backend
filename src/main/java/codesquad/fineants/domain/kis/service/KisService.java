@@ -227,7 +227,7 @@ public class KisService {
 	 */
 	@CheckedKisAccessToken
 	public Mono<List<KisDividend>> fetchDividend(String tickerSymbol) {
-		return kisClient.fetchDividendThisYear(tickerSymbol, manager.createAuthorization())
+		return kisClient.fetchDividendThisYear(tickerSymbol)
 			.map(KisDividendWrapper::getKisDividends)
 			.doOnSuccess(response -> log.debug("fetchDividend list is {}", response.size()))
 			.retryWhen(Retry.fixedDelay(Long.MAX_VALUE, Duration.ofSeconds(5)))

@@ -114,24 +114,24 @@ public class KisClient {
 	/**
 	 * tickerSymbol에 해당하는 종목의 배당 일정을 조회합니다.
 	 * 해당 년도 범위에 대한 배당 일정을 조회합니다.
+	 *
 	 * @param tickerSymbol 종목의 단축코드
-	 * @param authorization 인가 코드
 	 * @return 종목의 배당 일정 정보
 	 */
-	public Mono<KisDividendWrapper> fetchDividendThisYear(String tickerSymbol, String authorization) {
+	@CheckedKisAccessToken
+	public Mono<KisDividendWrapper> fetchDividendThisYear(String tickerSymbol) {
 		LocalDate today = LocalDate.now();
 		// 해당 년도 첫일
 		LocalDate from = today.with(TemporalAdjusters.firstDayOfYear());
 		// 해당 년도 마지막일
 		LocalDate to = today.with(TemporalAdjusters.lastDayOfYear());
-		return fetchDividend(tickerSymbol, from, to, authorization);
+		return fetchDividend(tickerSymbol, from, to);
 	}
 
-	public Mono<KisDividendWrapper> fetchDividend(String tickerSymbol, LocalDate from, LocalDate to,
-		String authorization) {
+	private Mono<KisDividendWrapper> fetchDividend(String tickerSymbol, LocalDate from, LocalDate to) {
 		MultiValueMap<String, String> headerMap = new LinkedMultiValueMap<>();
 		headerMap.add("content-type", "application/json; charset=utf-8");
-		headerMap.add("authorization", authorization);
+		headerMap.add("authorization", manager.createAuthorization());
 		headerMap.add("appkey", oauthKisProperties.getAppkey());
 		headerMap.add("appsecret", oauthKisProperties.getSecretkey());
 		headerMap.add("tr_id", "HHKDB669102C0");
@@ -154,7 +154,7 @@ public class KisClient {
 			realWebClient
 		).retryWhen(Retry.fixedDelay(Long.MAX_VALUE, Duration.ofSeconds(5)));
 	}
-
+	
 	public List<KisDividend> fetchDividendAll(LocalDate from, LocalDate to, String authorization) {
 		MultiValueMap<String, String> headerMap = new LinkedMultiValueMap<>();
 		headerMap.add("content-type", "application/json; charset=utf-8");

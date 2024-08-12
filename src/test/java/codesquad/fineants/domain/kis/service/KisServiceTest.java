@@ -290,7 +290,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		String tickerSymbol = "005930";
 		KisAccessToken kisAccessToken = createKisAccessToken();
 		kisAccessTokenRepository.refreshAccessToken(kisAccessToken);
-		given(client.fetchDividendThisYear(tickerSymbol, kisAccessToken.createAuthorization()))
+		given(client.fetchDividendThisYear(tickerSymbol))
 			.willReturn(Mono.just(KisDividendWrapper.create(List.of(
 				KisDividend.create(tickerSymbol, Money.won(300), LocalDate.of(2024, 3, 1),
 					LocalDate.of(2024, 5, 1))))));
@@ -316,7 +316,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		KisAccessToken newKisAccessToken = createKisAccessToken();
 		given(client.fetchAccessToken())
 			.willReturn(Mono.just(newKisAccessToken));
-		given(client.fetchDividendThisYear(tickerSymbol, newKisAccessToken.createAuthorization()))
+		given(client.fetchDividendThisYear(tickerSymbol))
 			.willReturn(Mono.just(KisDividendWrapper.create(List.of(
 				KisDividend.create(tickerSymbol, Money.won(300), LocalDate.of(2024, 3, 1),
 					LocalDate.of(2024, 5, 1))))));
