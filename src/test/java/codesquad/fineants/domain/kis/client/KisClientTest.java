@@ -27,7 +27,9 @@ import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import codesquad.fineants.AbstractContainerBaseTest;
+import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.kis.domain.dto.response.KisClosingPrice;
+import codesquad.fineants.domain.kis.domain.dto.response.KisDividend;
 import codesquad.fineants.domain.kis.domain.dto.response.KisDividendWrapper;
 import codesquad.fineants.domain.kis.domain.dto.response.KisIpo;
 import codesquad.fineants.domain.kis.domain.dto.response.KisIpoResponse;
@@ -330,6 +332,34 @@ class KisClientTest extends AbstractContainerBaseTest {
 			.setResponseCode(code)
 			.setBody(body)
 			.addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
+	}
+
+	@DisplayName("사용자는 특정 범위의 배당 일정을 조회한다")
+	@Test
+	void fetchDividendAll() {
+		// given
+		LocalDate from = LocalDate.of(2024, 8, 12);
+		LocalDate to = from.plusDays(1);
+
+		Map<String, Object> output = Map.ofEntries(
+			Map.entry("output1", List.of(Map.of(
+				"sht_cd", "005930",
+				"per_sto_divi_amt", "600",
+				"record_date", "20240812",
+				"divi_pay_dt", "2024/10/12"))
+			)
+		);
+		mockWebServer.enqueue(createResponse(200, ObjectMapperUtil.serialize(output)));
+		// when
+		List<KisDividend> dividends = kisClient.fetchDividendAll(from, to);
+		// then
+		assertThat(dividends)
+			.hasSize(1)
+			.extracting(KisDividend::getTickerSymbol, KisDividend::getDividend, KisDividend::getRecordDate,
+				KisDividend::getPaymentDate)
+			.usingComparatorForType(Money::compareTo, Money.class)
+			.containsExactlyInAnyOrder(
+				Tuple.tuple("005930", Money.won(600), LocalDate.of(2024, 8, 12), LocalDate.of(2024, 10, 12)));
 	}
 
 	private Map<String, String> createError() {

@@ -236,7 +236,7 @@ public class KisService {
 
 	@CheckedKisAccessToken
 	public List<KisDividend> fetchDividendAll(LocalDate from, LocalDate to) {
-		return kisClient.fetchDividendAll(from, to, manager.createAuthorization()).stream()
+		return kisClient.fetchDividendAll(from, to).stream()
 			.sorted()
 			.toList();
 	}
