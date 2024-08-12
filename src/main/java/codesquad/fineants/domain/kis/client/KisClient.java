@@ -10,6 +10,7 @@ import org.apache.logging.log4j.util.Strings;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -51,6 +52,7 @@ public class KisClient {
 		return realWebClient
 			.post()
 			.uri(kisProperties.getTokenUrl())
+			.contentType(MediaType.APPLICATION_JSON)
 			.bodyValue(request)
 			.retrieve()
 			.onStatus(HttpStatusCode::isError, this::handleError)
