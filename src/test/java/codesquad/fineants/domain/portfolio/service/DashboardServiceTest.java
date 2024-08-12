@@ -106,7 +106,7 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 		purchaseHistoryRepository.save(
 			createPurchaseHistory(null, purchaseDate, numShares, purchasePricePerShare, memo, portfolioHolding));
 
-		currentPriceRedisRepository.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 72900L));
+		currentPriceRedisRepository.savePrice(KisCurrentPrice.create(stock.getTickerSymbol(), 72900L));
 		// when
 		OverviewResponse response = dashboardService.getOverview(member.getId());
 
@@ -145,7 +145,7 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 		Stock stock = stockRepository.save(createSamsungStock());
 		portfolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
 
-		currentPriceRedisRepository.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L));
+		currentPriceRedisRepository.savePrice(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L));
 		// when
 		OverviewResponse response = dashboardService.getOverview(member.getId());
 
@@ -219,7 +219,7 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 				"첫구매"
 			)
 		));
-		currentPriceRedisRepository.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 60000L));
+		currentPriceRedisRepository.savePrice(KisCurrentPrice.create(stock.getTickerSymbol(), 60000L));
 		// when
 		List<DashboardPieChartResponse> responses = dashboardService.getPieChart(member.getId());
 

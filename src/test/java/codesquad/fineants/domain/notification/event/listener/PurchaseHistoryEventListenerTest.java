@@ -81,7 +81,7 @@ class PurchaseHistoryEventListenerTest extends AbstractContainerBaseTest {
 			createPurchaseHistory(null, LocalDateTime.now(), Count.from(100), Money.won(10000), "memo",
 				portfolioHolding));
 		fcmRepository.save(createFcmToken("token", member));
-		currentPriceRedisRepository.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L));
+		currentPriceRedisRepository.savePrice(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L));
 
 		PushNotificationEvent event = new PushNotificationEvent(
 			PurchaseHistoryEventSendableParameter.create(portfolio.getId(), member.getId()));

@@ -72,7 +72,7 @@ class PortfolioGainHistoryServiceTest extends AbstractContainerBaseTest {
 		purchaseHistoryRepository.save(
 			createPurchaseHistory(null, purchaseDate, numShares, purchasePricePerShare, memo, portfolioHolding));
 
-		currentPriceRedisRepository.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 60000L));
+		currentPriceRedisRepository.savePrice(KisCurrentPrice.create(stock.getTickerSymbol(), 60000L));
 
 		// when
 		PortfolioGainHistoryCreateResponse response = service.addPortfolioGainHistory();

@@ -181,7 +181,7 @@ public class Stock extends BaseEntity {
 
 	public RateDivision getDailyChangeRate(CurrentPriceRedisRepository currentPriceRedisRepository,
 		ClosingPriceRepository closingPriceRepository) {
-		Money currentPrice = currentPriceRedisRepository.fetchCurrentPrice(tickerSymbol).orElse(null);
+		Money currentPrice = currentPriceRedisRepository.fetchPriceBy(tickerSymbol).orElse(null);
 		Money lastDayClosingPrice = closingPriceRepository.getClosingPrice(tickerSymbol).orElse(null);
 		if (currentPrice == null || lastDayClosingPrice == null) {
 			return null;
@@ -190,7 +190,7 @@ public class Stock extends BaseEntity {
 	}
 
 	public Expression getCurrentPrice(CurrentPriceRedisRepository manager) {
-		return manager.fetchCurrentPrice(tickerSymbol).orElseGet(Money::zero);
+		return manager.fetchPriceBy(tickerSymbol).orElseGet(Money::zero);
 	}
 
 	public Expression getClosingPrice(ClosingPriceRepository manager) {

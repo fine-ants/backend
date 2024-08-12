@@ -111,7 +111,7 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		purchaseHistoryRepository.save(
 			createPurchaseHistory(null, purchaseDate, numShares, purchasePerShare, memo, portfolioHolding));
 
-		currentPriceRedisRepository.addCurrentPrice(KisCurrentPrice.create("005930", 60000L));
+		currentPriceRedisRepository.savePrice(KisCurrentPrice.create("005930", 60000L));
 		closingPriceRepository.addPrice("005930", 50000);
 
 		setAuthentication(member);
@@ -244,7 +244,7 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		purchaseHistoryRepository.save(
 			createPurchaseHistory(null, purchaseDate, numShares, purchasePerShare, memo, portfolioHolding));
 
-		currentPriceRedisRepository.addCurrentPrice(KisCurrentPrice.create("005930", 60000L));
+		currentPriceRedisRepository.savePrice(KisCurrentPrice.create("005930", 60000L));
 		closingPriceRepository.addPrice("005930", 50000);
 
 		setAuthentication(member);
@@ -392,8 +392,8 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		purchaseHistoryRepository.save(
 			createPurchaseHistory(null, purchaseDate, numShares, purchasePerShare, memo, portfolioHolding2));
 
-		currentPriceRedisRepository.addCurrentPrice(KisCurrentPrice.create("005930", 60000L));
-		currentPriceRedisRepository.addCurrentPrice(KisCurrentPrice.create("035720", 60000L));
+		currentPriceRedisRepository.savePrice(KisCurrentPrice.create("005930", 60000L));
+		currentPriceRedisRepository.savePrice(KisCurrentPrice.create("035720", 60000L));
 		closingPriceRepository.addPrice("005930", 50000);
 		closingPriceRepository.addPrice("035720", 50000);
 

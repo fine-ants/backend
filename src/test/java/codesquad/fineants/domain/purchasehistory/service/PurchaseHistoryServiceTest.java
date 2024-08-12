@@ -105,7 +105,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 			.purchasePricePerShare(money)
 			.memo("첫구매")
 			.build();
-		currentPriceRedisRepository.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L));
+		currentPriceRedisRepository.savePrice(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L));
 
 		setAuthentication(member);
 		// when
@@ -152,7 +152,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 			.memo("첫구매")
 			.build();
 
-		currentPriceRedisRepository.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L));
+		currentPriceRedisRepository.savePrice(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L));
 		given(sentManager.hasTargetGainSendHistory(anyLong()))
 			.willReturn(false);
 		given(firebaseMessagingService.send(any(Message.class)))
@@ -191,7 +191,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 			.memo("첫구매")
 			.build();
 
-		currentPriceRedisRepository.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L));
+		currentPriceRedisRepository.savePrice(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L));
 		given(sentManager.hasTargetGainSendHistory(anyLong()))
 			.willReturn(false);
 		given(firebaseMessagingService.send(any(Message.class)))
@@ -288,7 +288,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 			.memo("첫구매")
 			.build();
 
-		currentPriceRedisRepository.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L));
+		currentPriceRedisRepository.savePrice(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L));
 
 		setAuthentication(member);
 		// when
@@ -329,7 +329,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 			.memo("첫구매")
 			.build();
 
-		currentPriceRedisRepository.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L));
+		currentPriceRedisRepository.savePrice(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L));
 		given(sentManager.hasTargetGainSendHistory(anyLong()))
 			.willReturn(false);
 		given(firebaseMessagingService.send(any(Message.class)))
@@ -429,7 +429,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 			createPurchaseHistory(null, LocalDateTime.now(), Count.from(100), Money.won(100), "첫구매", holding));
 		fcmRepository.save(createFcmToken("token", member));
 
-		currentPriceRedisRepository.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L));
+		currentPriceRedisRepository.savePrice(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L));
 		given(sentManager.hasTargetGainSendHistory(anyLong()))
 			.willReturn(false);
 		given(firebaseMessagingService.send(any(Message.class)))

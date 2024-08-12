@@ -20,16 +20,18 @@ public class CurrentPriceRedisRepository implements PriceRepository {
 	private final RedisTemplate<String, String> redisTemplate;
 	private final KisClient kisClient;
 
-	public void addCurrentPrice(KisCurrentPrice... currentPrices) {
-		Arrays.stream(currentPrices).forEach(this::save);
+	@Override
+	public void savePrice(KisCurrentPrice... currentPrices) {
+		Arrays.stream(currentPrices).forEach(this::savePrice);
 	}
 
-	private KisCurrentPrice save(KisCurrentPrice currentPrice) {
+	private KisCurrentPrice savePrice(KisCurrentPrice currentPrice) {
 		redisTemplate.opsForValue().set(currentPrice.toRedisKey(CURRENT_PRICE_FORMAT), currentPrice.toRedisValue());
 		return currentPrice;
 	}
 
-	public Optional<Money> fetchCurrentPrice(String tickerSymbol) {
+	@Override
+	public Optional<Money> fetchPriceBy(String tickerSymbol) {
 		Optional<String> currentPrice = getCachedPrice(tickerSymbol);
 		if (currentPrice.isEmpty()) {
 			Optional<KisCurrentPrice> kisCurrentPrice = fetchAndCachePriceFromKis(tickerSymbol);
@@ -47,6 +49,6 @@ public class CurrentPriceRedisRepository implements PriceRepository {
 	private Optional<KisCurrentPrice> fetchAndCachePriceFromKis(String tickerSymbol) {
 		return kisClient.fetchCurrentPrice(tickerSymbol)
 			.blockOptional(TIMEOUT)
-			.map(this::save);
+			.map(this::savePrice);
 	}
 }

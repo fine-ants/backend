@@ -419,7 +419,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 				portfolio
 			)
 		);
-		currentPriceRedisRepository.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 40000L));
+		currentPriceRedisRepository.savePrice(KisCurrentPrice.create(stock.getTickerSymbol(), 40000L));
 		// when
 		PortfoliosResponse response = service.readMyAllPortfolio(member.getId());
 

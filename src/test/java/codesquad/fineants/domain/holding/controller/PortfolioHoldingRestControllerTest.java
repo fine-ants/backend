@@ -343,7 +343,7 @@ class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 		portfolioHolding.addPurchaseHistory(
 			createPurchaseHistory(null, purchaseDate, numShares, purchasePerShare, memo, portfolioHolding));
 
-		given(currentPriceRedisRepository.fetchCurrentPrice(stock.getTickerSymbol()))
+		given(currentPriceRedisRepository.fetchPriceBy(stock.getTickerSymbol()))
 			.willReturn(Optional.of(portfolioHolding.getCurrentPrice()));
 
 		PieChart pieChart = new PieChart(currentPriceRedisRepository);

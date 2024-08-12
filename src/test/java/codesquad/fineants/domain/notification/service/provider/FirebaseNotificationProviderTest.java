@@ -82,7 +82,7 @@ class FirebaseNotificationProviderTest extends AbstractContainerBaseTest {
 		Member member = memberRepository.save(createMember());
 		Stock samsung = stockRepository.save(createSamsungStock());
 
-		currentPriceRedisRepository.addCurrentPrice(KisCurrentPrice.create(samsung.getTickerSymbol(), 50000L));
+		currentPriceRedisRepository.savePrice(KisCurrentPrice.create(samsung.getTickerSymbol(), 50000L));
 		willDoNothing().given(accessTokenAspect).checkAccessTokenExpiration();
 		Portfolio portfolio = createPortfolioSample(member, samsung);
 
@@ -106,7 +106,7 @@ class FirebaseNotificationProviderTest extends AbstractContainerBaseTest {
 		Member member = memberRepository.save(createMember());
 		Stock samsung = stockRepository.save(createSamsungStock());
 
-		currentPriceRedisRepository.addCurrentPrice(KisCurrentPrice.create(samsung.getTickerSymbol(), 50000L));
+		currentPriceRedisRepository.savePrice(KisCurrentPrice.create(samsung.getTickerSymbol(), 50000L));
 		willDoNothing().given(accessTokenAspect).checkAccessTokenExpiration();
 		PurchaseHistory purchaseHistory = createPurchaseHistory(null, LocalDateTime.now(), Count.from(30),
 			Money.won(100000), "첫구매", null);

@@ -111,7 +111,7 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 		WatchList watchList = watchListRepository.save(createWatchList("My WatchList 1", member));
 		watchStockRepository.save(createWatchStock(watchList, stock));
 
-		currentPriceRedisRepository.addCurrentPrice(KisCurrentPrice.create("005930", 77000L));
+		currentPriceRedisRepository.savePrice(KisCurrentPrice.create("005930", 77000L));
 		closingPriceRepository.addPrice(KisClosingPrice.create("005930", 77000L));
 
 		setAuthentication(member);

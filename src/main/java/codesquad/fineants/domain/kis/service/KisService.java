@@ -111,7 +111,7 @@ public class KisService {
 			.filter(Objects::nonNull)
 			.toList();
 
-		prices.forEach(currentPriceRedisRepository::addCurrentPrice);
+		prices.forEach(currentPriceRedisRepository::savePrice);
 
 		log.info("종목 현재가 {}개중 {}개 갱신", tickerSymbols.size(), prices.size());
 		return prices;
