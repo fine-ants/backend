@@ -6,9 +6,8 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 @Configuration
 public class KisConfig {
-	
-	@Bean(name = "realKisWebClient")
-	public WebClient realWebClient() {
+	@Bean
+	public WebClient webClient() {
 		return WebClient.builder()
 			.baseUrl("https://openapi.koreainvestment.com:9443")
 			.build();

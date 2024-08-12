@@ -10,7 +10,6 @@ import java.util.List;
 
 import org.apache.logging.log4j.util.Strings;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -43,23 +42,23 @@ public class KisClient {
 	private static final String KIS_CUSTOMER_TYPE = "P";
 	private final KisProperties kisProperties;
 	private final KisTrIdProperties kisTrIdProperties;
-	private final WebClient realWebClient;
+	private final WebClient webClient;
 	private final KisAccessTokenRepository manager;
 
 	public KisClient(KisProperties properties,
 		KisTrIdProperties kisTrIdProperties,
-		@Qualifier(value = "realKisWebClient") WebClient realWebClient,
+		WebClient webClient,
 		KisAccessTokenRepository manager) {
 		this.kisProperties = properties;
 		this.kisTrIdProperties = kisTrIdProperties;
-		this.realWebClient = realWebClient;
+		this.webClient = webClient;
 		this.manager = manager;
 	}
 
 	// 액세스 토큰 발급
 	public Mono<KisAccessToken> fetchAccessToken() {
 		KisAccessTokenRequest request = KisAccessTokenRequest.create(kisProperties);
-		return realWebClient
+		return webClient
 			.post()
 			.uri(kisProperties.getTokenUrl())
 			.contentType(MediaType.APPLICATION_JSON)
@@ -244,7 +243,7 @@ public class KisClient {
 
 	private <T> Mono<T> performGet(String uri, MultiValueMap<String, String> headerMap,
 		MultiValueMap<String, String> queryParamMap, Class<T> responseType) {
-		return realWebClient
+		return webClient
 			.get()
 			.uri(uriBuilder -> uriBuilder
 				.path(uri)
