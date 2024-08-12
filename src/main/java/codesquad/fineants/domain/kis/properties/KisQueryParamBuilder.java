@@ -18,6 +18,11 @@ public class KisQueryParamBuilder {
 		return this;
 	}
 
+	public KisQueryParamBuilder add(KisQueryParam header, KisCodeValue value) {
+		headers.put(header, value.getCode());
+		return this;
+	}
+
 	public MultiValueMap<String, String> build() {
 		return headers.entrySet().stream()
 			.collect(LinkedMultiValueMap::new,

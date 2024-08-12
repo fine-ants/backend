@@ -23,6 +23,7 @@ import codesquad.fineants.domain.kis.domain.dto.response.KisDividend;
 import codesquad.fineants.domain.kis.domain.dto.response.KisDividendWrapper;
 import codesquad.fineants.domain.kis.domain.dto.response.KisIpoResponse;
 import codesquad.fineants.domain.kis.domain.dto.response.KisSearchStockInfo;
+import codesquad.fineants.domain.kis.properties.FidCondMrktDivCode;
 import codesquad.fineants.domain.kis.properties.KisAccessTokenRequest;
 import codesquad.fineants.domain.kis.properties.KisHeaderBuilder;
 import codesquad.fineants.domain.kis.properties.KisProperties;
@@ -80,7 +81,7 @@ public class KisClient {
 			.add(TR_ID, kisTrIdProperties.getCurrentPrice())
 			.build();
 		MultiValueMap<String, String> queryParam = KisQueryParamBuilder.builder()
-			.add(KisQueryParam.FID_COND_MRKT_DIV_CODE, "J")
+			.add(KisQueryParam.FID_COND_MRKT_DIV_CODE, FidCondMrktDivCode.STOCK)
 			.add(KisQueryParam.FID_INPUT_ISCD, tickerSymbol)
 			.build();
 

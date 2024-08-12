@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum KisQueryParam {
-	FID_COND_MRKT_DIV_CODE("FID_COND_MRKT_DIV_CODE", "조건 시장 분류 코드"),
+	FID_COND_MRKT_DIV_CODE("FID_COND_MRKT_DIV_CODE", "조건 시장 분류 코드", KisCodeValue.class),
 	FID_INPUT_ISCD("FID_INPUT_ISCD", "입력 종목코드"),
 	FID_INPUT_DATE_1("FID_INPUT_DATE_1", "입력 날짜 (시작)"),
 	FID_INPUT_DATE_2("FID_INPUT_DATE_2", "입력 날짜 (종료)"),
@@ -23,4 +23,9 @@ public enum KisQueryParam {
 
 	private final String paramName;
 	private final String korName;
+	private final Class<? extends KisCodeValue> allowedValues;
+
+	KisQueryParam(String paramName, String korName) {
+		this(paramName, korName, null);
+	}
 }
