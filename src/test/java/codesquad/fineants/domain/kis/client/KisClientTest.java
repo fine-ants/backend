@@ -290,7 +290,7 @@ class KisClientTest extends AbstractContainerBaseTest {
 
 	@DisplayName("사용자는 종목의 현재가를 조회할 수 있다")
 	@Test
-	void zzFetchCurrentPrice() {
+	void fetchCurrentPrice() {
 		// given
 		String tickerSymbol = "005930";
 		Map<String, Object> output = Map.ofEntries(
