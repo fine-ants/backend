@@ -23,13 +23,13 @@ import codesquad.fineants.domain.kis.domain.dto.response.KisDividend;
 import codesquad.fineants.domain.kis.domain.dto.response.KisDividendWrapper;
 import codesquad.fineants.domain.kis.domain.dto.response.KisIpoResponse;
 import codesquad.fineants.domain.kis.domain.dto.response.KisSearchStockInfo;
-import codesquad.fineants.domain.kis.properties.FidCondMrktDivCode;
 import codesquad.fineants.domain.kis.properties.KisAccessTokenRequest;
 import codesquad.fineants.domain.kis.properties.KisHeaderBuilder;
 import codesquad.fineants.domain.kis.properties.KisProperties;
 import codesquad.fineants.domain.kis.properties.KisQueryParam;
 import codesquad.fineants.domain.kis.properties.KisQueryParamBuilder;
 import codesquad.fineants.domain.kis.properties.KisTrIdProperties;
+import codesquad.fineants.domain.kis.properties.kiscodevalue.imple.FidCondMrktDivCode;
 import codesquad.fineants.domain.kis.repository.KisAccessTokenRepository;
 import codesquad.fineants.global.errors.exception.KisException;
 import lombok.extern.slf4j.Slf4j;
@@ -103,7 +103,7 @@ public class KisClient {
 			.add(TR_ID, kisTrIdProperties.getClosingPrice())
 			.build();
 		MultiValueMap<String, String> queryParam = KisQueryParamBuilder.builder()
-			.add(KisQueryParam.FID_COND_MRKT_DIV_CODE, "J")
+			.add(KisQueryParam.FID_COND_MRKT_DIV_CODE, FidCondMrktDivCode.STOCK)
 			.add(KisQueryParam.FID_INPUT_ISCD, tickerSymbol)
 			.add(KisQueryParam.FID_INPUT_DATE_1, LocalDate.now().minusDays(1L).toString())
 			.add(KisQueryParam.FID_INPUT_DATE_2, LocalDate.now().minusDays(1L).toString())

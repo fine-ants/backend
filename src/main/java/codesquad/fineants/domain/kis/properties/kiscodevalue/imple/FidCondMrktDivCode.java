@@ -1,5 +1,6 @@
-package codesquad.fineants.domain.kis.properties;
+package codesquad.fineants.domain.kis.properties.kiscodevalue.imple;
 
+import codesquad.fineants.domain.kis.properties.kiscodevalue.KisCodeValue;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 

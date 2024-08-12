@@ -6,6 +6,8 @@ import java.util.Map;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
+import codesquad.fineants.domain.kis.properties.kiscodevalue.KisCodeValue;
+
 public class KisQueryParamBuilder {
 	private final Map<KisQueryParam, String> headers = new EnumMap<>(KisQueryParam.class);
 
