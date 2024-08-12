@@ -152,7 +152,7 @@ public class KisService {
 
 	@CheckedKisAccessToken
 	public Mono<KisCurrentPrice> fetchCurrentPrice(String tickerSymbol) {
-		return kisClient.fetchCurrentPrice(tickerSymbol, manager.createAuthorization());
+		return kisClient.fetchCurrentPrice(tickerSymbol);
 	}
 
 	// 15시 30분에 종가 갱신 수행

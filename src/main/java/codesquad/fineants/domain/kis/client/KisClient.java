@@ -69,27 +69,7 @@ public class KisClient {
 	}
 
 	// 현재가 조회
-	public Mono<KisCurrentPrice> fetchCurrentPrice(String tickerSymbol, String authorization) {
-		MultiValueMap<String, String> headerMap = new LinkedMultiValueMap<>();
-		headerMap.add("authorization", authorization);
-		headerMap.add("appkey", oauthKisProperties.getAppkey());
-		headerMap.add("appsecret", oauthKisProperties.getSecretkey());
-		headerMap.add("tr_id", "FHKST01010100");
-
-		MultiValueMap<String, String> queryParamMap = new LinkedMultiValueMap<>();
-		queryParamMap.add("fid_cond_mrkt_div_code", "J");
-		queryParamMap.add("fid_input_iscd", tickerSymbol);
-
-		return performGet(
-			oauthKisProperties.getCurrentPriceUrl(),
-			headerMap,
-			queryParamMap,
-			KisCurrentPrice.class
-		);
-	}
-
-	// 현재가 조회
-	public Mono<KisCurrentPrice> zzFetchCurrentPrice(String tickerSymbol) {
+	public Mono<KisCurrentPrice> fetchCurrentPrice(String tickerSymbol) {
 		MultiValueMap<String, String> headerMap = new LinkedMultiValueMap<>();
 		headerMap.add("authorization", manager.createAuthorization());
 		headerMap.add("appkey", oauthKisProperties.getAppkey());

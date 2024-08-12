@@ -94,7 +94,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		// given
 		String tickerSymbol = "005930";
 		kisAccessTokenRepository.refreshAccessToken(createKisAccessToken());
-		given(client.fetchCurrentPrice(anyString(), anyString()))
+		given(client.fetchCurrentPrice(anyString()))
 			.willReturn(Mono.just(KisCurrentPrice.create(tickerSymbol, 60000L)));
 		// when
 		KisCurrentPrice kisCurrentPrice = kisService.fetchCurrentPrice(tickerSymbol)
@@ -118,7 +118,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		stocks.forEach(stock -> portfolioHoldingRepository.save(createPortfolioHolding(portfolio, stock)));
 
 		kisAccessTokenRepository.refreshAccessToken(createKisAccessToken());
-		given(client.fetchCurrentPrice(anyString(), anyString()))
+		given(client.fetchCurrentPrice(anyString()))
 			.willThrow(new KisException("요청건수가 초과되었습니다"))
 			.willReturn(Mono.just(KisCurrentPrice.create("005930", 10000L)));
 
@@ -129,7 +129,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		kisService.refreshStockCurrentPrice(tickerSymbols);
 
 		// then
-		verify(client, times(1)).fetchCurrentPrice(anyString(), anyString());
+		verify(client, times(1)).fetchCurrentPrice(anyString());
 	}
 
 	@WithMockUser(roles = {"ADMIN"})
@@ -145,7 +145,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		stocks.forEach(stock -> portfolioHoldingRepository.save(createPortfolioHolding(portfolio, stock)));
 
 		kisAccessTokenRepository.refreshAccessToken(createKisAccessToken());
-		given(client.fetchCurrentPrice(anyString(), anyString()))
+		given(client.fetchCurrentPrice(anyString()))
 			.willThrow(new KisException("요청건수가 초과되었습니다"));
 
 		List<String> tickerSymbols = stocks.stream()

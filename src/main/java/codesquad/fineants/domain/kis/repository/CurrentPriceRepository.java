@@ -44,7 +44,7 @@ public class CurrentPriceRepository {
 	}
 
 	private void handleCurrentPrice(String tickerSymbol) {
-		kisClient.fetchCurrentPrice(tickerSymbol, accessTokenManager.createAuthorization())
+		kisClient.fetchCurrentPrice(tickerSymbol)
 			.blockOptional(TIMEOUT)
 			.ifPresent(this::addCurrentPrice);
 	}

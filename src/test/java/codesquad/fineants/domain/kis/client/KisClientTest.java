@@ -80,6 +80,10 @@ class KisClientTest extends AbstractContainerBaseTest {
 			WebClient.builder().baseUrl(baseUrl).build(),
 			WebClient.builder().baseUrl(baseUrl).build(),
 			manager);
+
+		KisAccessToken kisAccessToken = createKisAccessToken();
+		kisAccessTokenRedisService.setAccessTokenMap(kisAccessToken, LocalDateTime.of(2023, 12, 7, 11, 40, 0));
+		manager.refreshAccessToken(kisAccessToken);
 	}
 
 	@DisplayName("한국투자증권 서버로부터 액세스 토큰 발급이 한번 실패하는 경우 재발급을 다시 요청한다")
@@ -288,10 +292,6 @@ class KisClientTest extends AbstractContainerBaseTest {
 	@Test
 	void zzFetchCurrentPrice() {
 		// given
-		KisAccessToken kisAccessToken = createKisAccessToken();
-		kisAccessTokenRedisService.setAccessTokenMap(kisAccessToken, LocalDateTime.of(2023, 12, 7, 11, 40, 0));
-		manager.refreshAccessToken(kisAccessToken);
-
 		String tickerSymbol = "005930";
 		Map<String, Object> output = Map.ofEntries(
 			Map.entry("output", Map.of(
@@ -301,7 +301,7 @@ class KisClientTest extends AbstractContainerBaseTest {
 		);
 		mockWebServer.enqueue(createResponse(200, ObjectMapperUtil.serialize(output)));
 		// when
-		KisCurrentPrice currentPrice = kisClient.zzFetchCurrentPrice(tickerSymbol)
+		KisCurrentPrice currentPrice = kisClient.fetchCurrentPrice(tickerSymbol)
 			.block();
 		// then
 		assertThat(currentPrice)
