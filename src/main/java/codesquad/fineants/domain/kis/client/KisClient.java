@@ -37,6 +37,8 @@ import reactor.util.retry.Retry;
 @Slf4j
 @Component
 public class KisClient {
+	private static final String APPLICATION_JSON_UTF8 = "application/json; charset=utf-8";
+	private static final String KIS_CUSTOMER_TYPE = "P";
 	private final WebClient realWebClient;
 	private final KisProperties kisProperties;
 	private final KisAccessTokenRepository manager;
@@ -130,13 +132,14 @@ public class KisClient {
 	}
 
 	private Mono<KisDividendWrapper> fetchDividend(String tickerSymbol, LocalDate from, LocalDate to) {
-		MultiValueMap<String, String> headerMap = new LinkedMultiValueMap<>();
-		headerMap.add("content-type", "application/json; charset=utf-8");
-		headerMap.add("authorization", manager.createAuthorization());
-		headerMap.add("appkey", kisProperties.getAppkey());
-		headerMap.add("appsecret", kisProperties.getSecretkey());
-		headerMap.add("tr_id", "HHKDB669102C0");
-		headerMap.add("custtype", "P");
+		MultiValueMap<String, String> header = KisHeaderBuilder.builder()
+			.add(CONTENT_TYPE, APPLICATION_JSON_UTF8)
+			.add(AUTHORIZATION, manager.createAuthorization())
+			.add(APP_KEY, kisProperties.getAppkey())
+			.add(APP_SECRET, kisProperties.getSecretkey())
+			.add(TR_ID, "HHKDB669102C0")
+			.add(CUSTOMER_TYPE, KIS_CUSTOMER_TYPE)
+			.build();
 
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
 		MultiValueMap<String, String> queryParamMap = new LinkedMultiValueMap<>();
@@ -149,7 +152,7 @@ public class KisClient {
 
 		return performGet(
 			kisProperties.getDividendUrl(),
-			headerMap,
+			header,
 			queryParamMap,
 			KisDividendWrapper.class
 		).retryWhen(Retry.fixedDelay(Long.MAX_VALUE, Duration.ofSeconds(5)));
@@ -158,7 +161,7 @@ public class KisClient {
 	@CheckedKisAccessToken
 	public Mono<List<KisDividend>> fetchDividendAll(LocalDate from, LocalDate to) {
 		MultiValueMap<String, String> headerMap = new LinkedMultiValueMap<>();
-		headerMap.add("content-type", "application/json; charset=utf-8");
+		headerMap.add("content-type", APPLICATION_JSON_UTF8);
 		headerMap.add("authorization", manager.createAuthorization());
 		headerMap.add("appkey", kisProperties.getAppkey());
 		headerMap.add("appsecret", kisProperties.getSecretkey());
