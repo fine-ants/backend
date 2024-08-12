@@ -48,7 +48,7 @@ public class WatchListService {
 	private final CurrentPriceRepository currentPriceRepository;
 	private final ClosingPriceRepository closingPriceRepository;
 	private final WatchStockEventPublisher watchStockEventPublisher;
-
+	
 	@Transactional
 	@Secured("ROLE_USER")
 	public CreateWatchListResponse createWatchList(Long memberId, CreateWatchListRequest request) {
@@ -80,7 +80,7 @@ public class WatchListService {
 
 		List<ReadWatchListResponse.WatchStockResponse> watchStockResponses = watchStocks.stream()
 			.map(watchStock -> ReadWatchListResponse.from(watchStock, currentPriceRepository, closingPriceRepository))
-			.collect(Collectors.toList());
+			.toList();
 		return new ReadWatchListResponse(watchList.getName(), watchStockResponses);
 	}
 
