@@ -288,7 +288,7 @@ public class StockRestControllerDocsTest extends RestDocsSupport {
 
 		Money currentPrice = Money.won(68000L);
 		Money closingPrice = Money.won(80000L);
-		given(currentPriceRepository.getCurrentPrice(stock.getTickerSymbol()))
+		given(currentPriceRepository.fetchCurrentPrice(stock.getTickerSymbol()))
 			.willReturn(Optional.of(currentPrice));
 		given(closingPriceRepository.getClosingPrice(stock.getTickerSymbol()))
 			.willReturn(Optional.of(closingPrice));
