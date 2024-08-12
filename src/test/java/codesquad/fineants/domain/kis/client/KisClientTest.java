@@ -27,6 +27,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import codesquad.fineants.AbstractContainerBaseTest;
+import codesquad.fineants.domain.kis.domain.dto.response.KisClosingPrice;
 import codesquad.fineants.domain.kis.domain.dto.response.KisDividendWrapper;
 import codesquad.fineants.domain.kis.domain.dto.response.KisIpo;
 import codesquad.fineants.domain.kis.domain.dto.response.KisIpoResponse;
@@ -300,15 +301,33 @@ class KisClientTest extends AbstractContainerBaseTest {
 		);
 		mockWebServer.enqueue(createResponse(200, ObjectMapperUtil.serialize(output)));
 		// when
-		KisCurrentPrice currentPrice = kisClient.fetchCurrentPrice(tickerSymbol)
-			.block();
+		KisCurrentPrice currentPrice = kisClient.fetchCurrentPrice(tickerSymbol).block();
 		// then
 		assertThat(currentPrice)
 			.extracting(KisCurrentPrice::getTickerSymbol, KisCurrentPrice::getPrice)
 			.containsExactly("005930", 80000L);
-
 	}
-	
+
+	@DisplayName("사용자는 종목의 종가를 조회한다")
+	@Test
+	void fetchClosingPrice() {
+		// given
+		String tickerSymbol = "005930";
+		Map<String, Object> output = Map.ofEntries(
+			Map.entry("output1", Map.of(
+				"stck_shrn_iscd", "005930",
+				"stck_prdy_clpr", "80000")
+			)
+		);
+		mockWebServer.enqueue(createResponse(200, ObjectMapperUtil.serialize(output)));
+		// when
+		KisClosingPrice closingPrice = kisClient.fetchClosingPrice(tickerSymbol).block();
+		// then
+		assertThat(closingPrice)
+			.extracting(KisClosingPrice::getTickerSymbol, KisClosingPrice::getPrice)
+			.containsExactly("005930", 80000L);
+	}
+
 	@NotNull
 	private static MockResponse createResponse(int code, String body) {
 		return new MockResponse()
