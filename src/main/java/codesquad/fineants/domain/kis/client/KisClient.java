@@ -24,7 +24,7 @@ import codesquad.fineants.domain.kis.domain.dto.response.KisDividend;
 import codesquad.fineants.domain.kis.domain.dto.response.KisDividendWrapper;
 import codesquad.fineants.domain.kis.domain.dto.response.KisIpoResponse;
 import codesquad.fineants.domain.kis.domain.dto.response.KisSearchStockInfo;
-import codesquad.fineants.domain.kis.properties.OauthKisProperties;
+import codesquad.fineants.domain.kis.properties.KisProperties;
 import codesquad.fineants.domain.kis.repository.KisAccessTokenRepository;
 import codesquad.fineants.global.errors.exception.KisException;
 import lombok.extern.slf4j.Slf4j;
@@ -35,13 +35,13 @@ import reactor.util.retry.Retry;
 @Component
 public class KisClient {
 	private final WebClient realWebClient;
-	private final OauthKisProperties oauthKisProperties;
+	private final KisProperties kisProperties;
 	private final KisAccessTokenRepository manager;
 
-	public KisClient(OauthKisProperties properties,
+	public KisClient(KisProperties properties,
 		@Qualifier(value = "realKisWebClient") WebClient realWebClient,
 		KisAccessTokenRepository manager) {
-		this.oauthKisProperties = properties;
+		this.kisProperties = properties;
 		this.realWebClient = realWebClient;
 		this.manager = manager;
 	}
@@ -50,11 +50,11 @@ public class KisClient {
 	public Mono<KisAccessToken> fetchAccessToken() {
 		Map<String, String> requestBodyMap = new HashMap<>();
 		requestBodyMap.put("grant_type", "client_credentials");
-		requestBodyMap.put("appkey", oauthKisProperties.getAppkey());
-		requestBodyMap.put("appsecret", oauthKisProperties.getSecretkey());
+		requestBodyMap.put("appkey", kisProperties.getAppkey());
+		requestBodyMap.put("appsecret", kisProperties.getSecretkey());
 		return realWebClient
 			.post()
-			.uri(oauthKisProperties.getTokenUrl())
+			.uri(kisProperties.getTokenUrl())
 			.bodyValue(requestBodyMap)
 			.retrieve()
 			.onStatus(HttpStatusCode::isError, this::handleError)
@@ -68,8 +68,8 @@ public class KisClient {
 	public Mono<KisCurrentPrice> fetchCurrentPrice(String tickerSymbol) {
 		MultiValueMap<String, String> headerMap = new LinkedMultiValueMap<>();
 		headerMap.add("authorization", manager.createAuthorization());
-		headerMap.add("appkey", oauthKisProperties.getAppkey());
-		headerMap.add("appsecret", oauthKisProperties.getSecretkey());
+		headerMap.add("appkey", kisProperties.getAppkey());
+		headerMap.add("appsecret", kisProperties.getSecretkey());
 		headerMap.add("tr_id", "FHKST01010100");
 
 		MultiValueMap<String, String> queryParamMap = new LinkedMultiValueMap<>();
@@ -77,7 +77,7 @@ public class KisClient {
 		queryParamMap.add("fid_input_iscd", tickerSymbol);
 
 		return performGet(
-			oauthKisProperties.getCurrentPriceUrl(),
+			kisProperties.getCurrentPriceUrl(),
 			headerMap,
 			queryParamMap,
 			KisCurrentPrice.class
@@ -89,8 +89,8 @@ public class KisClient {
 	public Mono<KisClosingPrice> fetchClosingPrice(String tickerSymbol) {
 		MultiValueMap<String, String> headerMap = new LinkedMultiValueMap<>();
 		headerMap.add("authorization", manager.createAuthorization());
-		headerMap.add("appkey", oauthKisProperties.getAppkey());
-		headerMap.add("appsecret", oauthKisProperties.getSecretkey());
+		headerMap.add("appkey", kisProperties.getAppkey());
+		headerMap.add("appsecret", kisProperties.getSecretkey());
 		headerMap.add("tr_id", "FHKST03010100");
 
 		MultiValueMap<String, String> queryParamMap = new LinkedMultiValueMap<>();
@@ -102,7 +102,7 @@ public class KisClient {
 		queryParamMap.add("FID_ORG_ADJ_PRC", "0");
 
 		return performGet(
-			oauthKisProperties.getClosingPriceUrl(),
+			kisProperties.getClosingPriceUrl(),
 			headerMap,
 			queryParamMap,
 			KisClosingPrice.class
@@ -130,8 +130,8 @@ public class KisClient {
 		MultiValueMap<String, String> headerMap = new LinkedMultiValueMap<>();
 		headerMap.add("content-type", "application/json; charset=utf-8");
 		headerMap.add("authorization", manager.createAuthorization());
-		headerMap.add("appkey", oauthKisProperties.getAppkey());
-		headerMap.add("appsecret", oauthKisProperties.getSecretkey());
+		headerMap.add("appkey", kisProperties.getAppkey());
+		headerMap.add("appsecret", kisProperties.getSecretkey());
 		headerMap.add("tr_id", "HHKDB669102C0");
 		headerMap.add("custtype", "P");
 
@@ -145,7 +145,7 @@ public class KisClient {
 		queryParamMap.add("SHT_CD", tickerSymbol);
 
 		return performGet(
-			oauthKisProperties.getDividendUrl(),
+			kisProperties.getDividendUrl(),
 			headerMap,
 			queryParamMap,
 			KisDividendWrapper.class
@@ -157,8 +157,8 @@ public class KisClient {
 		MultiValueMap<String, String> headerMap = new LinkedMultiValueMap<>();
 		headerMap.add("content-type", "application/json; charset=utf-8");
 		headerMap.add("authorization", manager.createAuthorization());
-		headerMap.add("appkey", oauthKisProperties.getAppkey());
-		headerMap.add("appsecret", oauthKisProperties.getSecretkey());
+		headerMap.add("appkey", kisProperties.getAppkey());
+		headerMap.add("appsecret", kisProperties.getSecretkey());
 		headerMap.add("tr_id", "HHKDB669102C0");
 		headerMap.add("custtype", "P");
 
@@ -171,7 +171,7 @@ public class KisClient {
 		queryParamMap.add("SHT_CD", Strings.EMPTY);
 
 		return performGet(
-			oauthKisProperties.getDividendUrl(),
+			kisProperties.getDividendUrl(),
 			headerMap,
 			queryParamMap,
 			KisDividendWrapper.class
@@ -183,8 +183,8 @@ public class KisClient {
 		MultiValueMap<String, String> headerMap = new LinkedMultiValueMap<>();
 		headerMap.add("content-type", "application/json; charset=utf-8");
 		headerMap.add("authorization", manager.createAuthorization());
-		headerMap.add("appkey", oauthKisProperties.getAppkey());
-		headerMap.add("appsecret", oauthKisProperties.getSecretkey());
+		headerMap.add("appkey", kisProperties.getAppkey());
+		headerMap.add("appsecret", kisProperties.getSecretkey());
 		headerMap.add("tr_id", "HHKDB669107C0");
 		headerMap.add("custtype", "P");
 
@@ -195,7 +195,7 @@ public class KisClient {
 		queryParamMap.add("CTS", Strings.EMPTY);
 
 		return performGet(
-			oauthKisProperties.getIpoUrl(),
+			kisProperties.getIpoUrl(),
 			headerMap,
 			queryParamMap,
 			KisIpoResponse.class
@@ -212,8 +212,8 @@ public class KisClient {
 		MultiValueMap<String, String> headerMap = new LinkedMultiValueMap<>();
 		headerMap.add("content-type", "application/json; charset=utf-8");
 		headerMap.add("authorization", manager.createAuthorization());
-		headerMap.add("appkey", oauthKisProperties.getAppkey());
-		headerMap.add("appsecret", oauthKisProperties.getSecretkey());
+		headerMap.add("appkey", kisProperties.getAppkey());
+		headerMap.add("appsecret", kisProperties.getSecretkey());
 		headerMap.add("tr_id", "CTPF1002R");
 		headerMap.add("custtype", "P");
 
@@ -222,7 +222,7 @@ public class KisClient {
 		queryParamMap.add("PDNO", tickerSymbol);
 
 		return performGet(
-			oauthKisProperties.getSearchStockInfoUrl(),
+			kisProperties.getSearchStockInfoUrl(),
 			headerMap,
 			queryParamMap,
 			KisSearchStockInfo.class);
