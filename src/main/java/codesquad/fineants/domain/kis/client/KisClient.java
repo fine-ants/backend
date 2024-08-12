@@ -42,6 +42,7 @@ import reactor.util.retry.Retry;
 public class KisClient {
 	private static final String APPLICATION_JSON_UTF8 = "application/json; charset=utf-8";
 	private static final String KIS_CUSTOMER_TYPE = "P";
+	private static final DateTimeFormatter DIVIDEND_DTF = DateTimeFormatter.ofPattern("yyyyMMdd");
 	private final KisProperties kisProperties;
 	private final KisTrIdProperties kisTrIdProperties;
 	private final WebClient realWebClient;
@@ -147,19 +148,19 @@ public class KisClient {
 			.add(CUSTOMER_TYPE, KIS_CUSTOMER_TYPE)
 			.build();
 
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
-		MultiValueMap<String, String> queryParamMap = new LinkedMultiValueMap<>();
-		queryParamMap.add("HIGH_GB", Strings.EMPTY);
-		queryParamMap.add("CTS", Strings.EMPTY);
-		queryParamMap.add("GB1", "0");
-		queryParamMap.add("F_DT", from.format(formatter));
-		queryParamMap.add("T_DT", to.format(formatter));
-		queryParamMap.add("SHT_CD", tickerSymbol);
+		MultiValueMap<String, String> queryParam = KisQueryParamBuilder.builder()
+			.add(KisQueryParam.HIGH_GB, Strings.EMPTY)
+			.add(KisQueryParam.CTS, Strings.EMPTY)
+			.add(KisQueryParam.GB1, "0")
+			.add(KisQueryParam.F_DT, basicIso(from))
+			.add(KisQueryParam.T_DT, basicIso(to))
+			.add(KisQueryParam.SHT_CD, tickerSymbol)
+			.build();
 
 		return performGet(
 			kisProperties.getDividendUrl(),
 			header,
-			queryParamMap,
+			queryParam,
 			KisDividendWrapper.class
 		).retryWhen(Retry.fixedDelay(Long.MAX_VALUE, Duration.ofSeconds(5)));
 	}
