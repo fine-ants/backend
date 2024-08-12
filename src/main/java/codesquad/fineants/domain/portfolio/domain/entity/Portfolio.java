@@ -25,7 +25,7 @@ import codesquad.fineants.domain.holding.domain.dto.response.PortfolioDividendCh
 import codesquad.fineants.domain.holding.domain.dto.response.PortfolioPieChartItem;
 import codesquad.fineants.domain.holding.domain.dto.response.PortfolioSectorChartItem;
 import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
-import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
+import codesquad.fineants.domain.kis.repository.CurrentPriceRedisRepository;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.notification.domain.dto.response.NotifyMessage;
 import codesquad.fineants.domain.notification.domain.entity.type.NotificationType;
@@ -287,7 +287,7 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	}
 
 	// 포트폴리오 모든 종목들에 주식 현재가 적용
-	public void applyCurrentPriceAllHoldingsBy(CurrentPriceRepository manager) {
+	public void applyCurrentPriceAllHoldingsBy(CurrentPriceRedisRepository manager) {
 		for (PortfolioHolding portfolioHolding : portfolioHoldings) {
 			portfolioHolding.applyCurrentPrice(manager);
 			log.debug("portfolioHolding : {}, purchaseHistory : {}", portfolioHolding,

@@ -10,7 +10,7 @@ import codesquad.fineants.domain.common.money.Currency;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.common.money.Percentage;
 import codesquad.fineants.domain.kis.repository.ClosingPriceRepository;
-import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
+import codesquad.fineants.domain.kis.repository.CurrentPriceRedisRepository;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.watchlist.domain.entity.WatchStock;
 import lombok.AllArgsConstructor;
@@ -40,7 +40,7 @@ public class ReadWatchListResponse {
 	}
 
 	public static ReadWatchListResponse.WatchStockResponse from(WatchStock watchStock,
-		CurrentPriceRepository currentPriceRepository, ClosingPriceRepository closingPriceRepository) {
+		CurrentPriceRedisRepository currentPriceRedisRepository, ClosingPriceRepository closingPriceRepository) {
 		Bank bank = Bank.getInstance();
 		Currency to = Currency.KRW;
 		Stock stock = watchStock.getStock();
@@ -48,15 +48,15 @@ public class ReadWatchListResponse {
 			.id(watchStock.getId())
 			.companyName(stock.getCompanyName())
 			.tickerSymbol(stock.getTickerSymbol())
-			.currentPrice(stock.getCurrentPrice(currentPriceRepository).reduce(bank, to))
+			.currentPrice(stock.getCurrentPrice(currentPriceRedisRepository).reduce(bank, to))
 			.dailyChange(stock
-				.getDailyChange(currentPriceRepository, closingPriceRepository)
+				.getDailyChange(currentPriceRedisRepository, closingPriceRepository)
 				.reduce(bank, to))
 			.dailyChangeRate(stock
-				.getDailyChangeRate(currentPriceRepository, closingPriceRepository)
+				.getDailyChangeRate(currentPriceRedisRepository, closingPriceRepository)
 				.toPercentage(bank, to))
 			.annualDividendYield(stock
-				.getAnnualDividendYield(currentPriceRepository)
+				.getAnnualDividendYield(currentPriceRedisRepository)
 				.toPercentage(bank, to))
 			.sector(stock.getSector())
 			.dateAdded(watchStock.getCreateAt())

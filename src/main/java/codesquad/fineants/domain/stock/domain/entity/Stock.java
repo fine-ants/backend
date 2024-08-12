@@ -14,7 +14,7 @@ import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.common.money.RateDivision;
 import codesquad.fineants.domain.dividend.domain.entity.StockDividend;
 import codesquad.fineants.domain.kis.repository.ClosingPriceRepository;
-import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
+import codesquad.fineants.domain.kis.repository.CurrentPriceRedisRepository;
 import codesquad.fineants.domain.purchasehistory.domain.entity.PurchaseHistory;
 import codesquad.fineants.domain.stock.converter.MarketConverter;
 import codesquad.fineants.infra.s3.service.AmazonS3StockService;
@@ -163,7 +163,7 @@ public class Stock extends BaseEntity {
 			.reduce(Money.zero(), Expression::plus);
 	}
 
-	public RateDivision getAnnualDividendYield(CurrentPriceRepository manager) {
+	public RateDivision getAnnualDividendYield(CurrentPriceRedisRepository manager) {
 		Expression dividends = stockDividends.stream()
 			.filter(dividend -> dividend.isSatisfiedPaymentDateEqualYearBy(LocalDate.now()))
 			.map(StockDividend::getDividend)
@@ -172,16 +172,16 @@ public class Stock extends BaseEntity {
 		return dividends.divide(getCurrentPrice(manager));
 	}
 
-	public Expression getDailyChange(CurrentPriceRepository currentPriceRepository,
+	public Expression getDailyChange(CurrentPriceRedisRepository currentPriceRedisRepository,
 		ClosingPriceRepository closingPriceRepository) {
-		Expression currentPrice = getCurrentPrice(currentPriceRepository);
+		Expression currentPrice = getCurrentPrice(currentPriceRedisRepository);
 		Expression closingPrice = getClosingPrice(closingPriceRepository);
 		return currentPrice.minus(closingPrice);
 	}
 
-	public RateDivision getDailyChangeRate(CurrentPriceRepository currentPriceRepository,
+	public RateDivision getDailyChangeRate(CurrentPriceRedisRepository currentPriceRedisRepository,
 		ClosingPriceRepository closingPriceRepository) {
-		Money currentPrice = currentPriceRepository.fetchCurrentPrice(tickerSymbol).orElse(null);
+		Money currentPrice = currentPriceRedisRepository.fetchCurrentPrice(tickerSymbol).orElse(null);
 		Money lastDayClosingPrice = closingPriceRepository.getClosingPrice(tickerSymbol).orElse(null);
 		if (currentPrice == null || lastDayClosingPrice == null) {
 			return null;
@@ -189,7 +189,7 @@ public class Stock extends BaseEntity {
 		return currentPrice.minus(lastDayClosingPrice).divide(lastDayClosingPrice);
 	}
 
-	public Expression getCurrentPrice(CurrentPriceRepository manager) {
+	public Expression getCurrentPrice(CurrentPriceRedisRepository manager) {
 		return manager.fetchCurrentPrice(tickerSymbol).orElseGet(Money::zero);
 	}
 

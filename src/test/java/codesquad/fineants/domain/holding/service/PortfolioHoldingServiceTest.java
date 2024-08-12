@@ -41,7 +41,7 @@ import codesquad.fineants.domain.holding.repository.PortfolioHoldingRepository;
 import codesquad.fineants.domain.kis.aop.AccessTokenAspect;
 import codesquad.fineants.domain.kis.client.KisCurrentPrice;
 import codesquad.fineants.domain.kis.repository.ClosingPriceRepository;
-import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
+import codesquad.fineants.domain.kis.repository.CurrentPriceRedisRepository;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
@@ -82,7 +82,7 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 	private StockRepository stockRepository;
 
 	@Autowired
-	private CurrentPriceRepository currentPriceRepository;
+	private CurrentPriceRedisRepository currentPriceRedisRepository;
 
 	@Autowired
 	private ClosingPriceRepository closingPriceRepository;
@@ -111,7 +111,7 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		purchaseHistoryRepository.save(
 			createPurchaseHistory(null, purchaseDate, numShares, purchasePerShare, memo, portfolioHolding));
 
-		currentPriceRepository.addCurrentPrice(KisCurrentPrice.create("005930", 60000L));
+		currentPriceRedisRepository.addCurrentPrice(KisCurrentPrice.create("005930", 60000L));
 		closingPriceRepository.addPrice("005930", 50000);
 
 		setAuthentication(member);
@@ -244,7 +244,7 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		purchaseHistoryRepository.save(
 			createPurchaseHistory(null, purchaseDate, numShares, purchasePerShare, memo, portfolioHolding));
 
-		currentPriceRepository.addCurrentPrice(KisCurrentPrice.create("005930", 60000L));
+		currentPriceRedisRepository.addCurrentPrice(KisCurrentPrice.create("005930", 60000L));
 		closingPriceRepository.addPrice("005930", 50000);
 
 		setAuthentication(member);
@@ -392,8 +392,8 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		purchaseHistoryRepository.save(
 			createPurchaseHistory(null, purchaseDate, numShares, purchasePerShare, memo, portfolioHolding2));
 
-		currentPriceRepository.addCurrentPrice(KisCurrentPrice.create("005930", 60000L));
-		currentPriceRepository.addCurrentPrice(KisCurrentPrice.create("035720", 60000L));
+		currentPriceRedisRepository.addCurrentPrice(KisCurrentPrice.create("005930", 60000L));
+		currentPriceRedisRepository.addCurrentPrice(KisCurrentPrice.create("035720", 60000L));
 		closingPriceRepository.addPrice("005930", 50000);
 		closingPriceRepository.addPrice("035720", 50000);
 

@@ -36,7 +36,7 @@ import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
 import codesquad.fineants.domain.holding.repository.PortfolioHoldingRepository;
 import codesquad.fineants.domain.kis.aop.AccessTokenAspect;
 import codesquad.fineants.domain.kis.client.KisCurrentPrice;
-import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
+import codesquad.fineants.domain.kis.repository.CurrentPriceRedisRepository;
 import codesquad.fineants.domain.kis.service.KisService;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
@@ -101,7 +101,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 	private FirebaseMessaging firebaseMessaging;
 
 	@Autowired
-	private CurrentPriceRepository manager;
+	private CurrentPriceRedisRepository manager;
 
 	@MockBean
 	private KisService kisService;

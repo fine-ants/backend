@@ -6,7 +6,7 @@ import java.util.List;
 
 import codesquad.fineants.domain.BaseEntity;
 import codesquad.fineants.domain.common.money.Expression;
-import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
+import codesquad.fineants.domain.kis.repository.CurrentPriceRedisRepository;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import jakarta.persistence.Entity;
@@ -77,7 +77,7 @@ public class StockTargetPrice extends BaseEntity {
 		this.isActive = isActive;
 	}
 
-	public Expression getCurrentPrice(CurrentPriceRepository manager) {
+	public Expression getCurrentPrice(CurrentPriceRedisRepository manager) {
 		return stock.getCurrentPrice(manager);
 	}
 

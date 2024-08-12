@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import codesquad.fineants.domain.common.notification.Notifiable;
-import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
+import codesquad.fineants.domain.kis.repository.CurrentPriceRedisRepository;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
 import codesquad.fineants.domain.notification.domain.dto.request.NotificationSaveRequest;
@@ -50,7 +50,7 @@ public class NotificationService {
 	private final PortfolioRepository portfolioRepository;
 	private final NotificationRepository notificationRepository;
 	private final MemberRepository memberRepository;
-	private final CurrentPriceRepository currentPriceRepository;
+	private final CurrentPriceRedisRepository currentPriceRedisRepository;
 	private final NotificationSentRepository sentManager;
 	private final StockTargetPriceRepository stockTargetPriceRepository;
 	private final TargetGainNotificationPolicy targetGainNotificationPolicy;
@@ -95,7 +95,7 @@ public class NotificationService {
 	public NotifyMessageResponse notifyTargetGainAll() {
 		// 모든 회원의 포트폴리오 중에서 입력으로 받은 종목들을 가진 포트폴리오들을 조회
 		List<Notifiable> portfolios = portfolioRepository.findAllWithAll().stream()
-			.peek(portfolio -> portfolio.applyCurrentPriceAllHoldingsBy(currentPriceRepository))
+			.peek(portfolio -> portfolio.applyCurrentPriceAllHoldingsBy(currentPriceRedisRepository))
 			.collect(Collectors.toList());
 		Consumer<Long> sentFunction = sentManager::addTargetGainSendHistory;
 		return PortfolioNotifyMessagesResponse.create(
@@ -111,7 +111,7 @@ public class NotificationService {
 	@Transactional
 	public NotifyMessageResponse notifyTargetGain(Long portfolioId) {
 		Portfolio portfolio = portfolioRepository.findByPortfolioIdWithAll(portfolioId).stream()
-			.peek(p -> p.applyCurrentPriceAllHoldingsBy(currentPriceRepository))
+			.peek(p -> p.applyCurrentPriceAllHoldingsBy(currentPriceRedisRepository))
 			.findFirst()
 			.orElseThrow(() -> new FineAntsException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
 		Consumer<Long> sentFunction = sentManager::addTargetGainSendHistory;
@@ -171,7 +171,7 @@ public class NotificationService {
 	@Transactional
 	public NotifyMessageResponse notifyMaxLossAll() {
 		List<Notifiable> portfolios = portfolioRepository.findAllWithAll().stream()
-			.peek(portfolio -> portfolio.applyCurrentPriceAllHoldingsBy(currentPriceRepository))
+			.peek(portfolio -> portfolio.applyCurrentPriceAllHoldingsBy(currentPriceRedisRepository))
 			.collect(Collectors.toList());
 		Consumer<Long> sentFunction = sentManager::addMaxLossSendHistory;
 		return PortfolioNotifyMessagesResponse.create(
@@ -187,7 +187,7 @@ public class NotificationService {
 	@Transactional
 	public NotifyMessageResponse notifyMaxLoss(Long portfolioId) {
 		Portfolio portfolio = portfolioRepository.findByPortfolioIdWithAll(portfolioId)
-			.stream().peek(p -> p.applyCurrentPriceAllHoldingsBy(currentPriceRepository))
+			.stream().peek(p -> p.applyCurrentPriceAllHoldingsBy(currentPriceRedisRepository))
 			.findAny()
 			.orElseThrow(() -> new FineAntsException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
 		Consumer<Long> sentFunction = sentManager::addMaxLossSendHistory;

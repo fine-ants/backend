@@ -15,7 +15,7 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @Repository
-public class CurrentPriceRepository {
+public class CurrentPriceRedisRepository implements PriceRepository {
 	private static final String CURRENT_PRICE_FORMAT = "cp:%s";
 	private final RedisTemplate<String, String> redisTemplate;
 	private final KisClient kisClient;
@@ -25,11 +25,10 @@ public class CurrentPriceRepository {
 	}
 
 	private KisCurrentPrice save(KisCurrentPrice currentPrice) {
-		redisTemplate.opsForValue()
-			.set(currentPrice.toRedisKey(CURRENT_PRICE_FORMAT), currentPrice.toRedisValue());
+		redisTemplate.opsForValue().set(currentPrice.toRedisKey(CURRENT_PRICE_FORMAT), currentPrice.toRedisValue());
 		return currentPrice;
 	}
-	
+
 	public Optional<Money> fetchCurrentPrice(String tickerSymbol) {
 		Optional<String> currentPrice = getCachedPrice(tickerSymbol);
 		if (currentPrice.isEmpty()) {
