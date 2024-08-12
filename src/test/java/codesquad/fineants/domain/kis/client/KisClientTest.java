@@ -78,7 +78,6 @@ class KisClientTest extends AbstractContainerBaseTest {
 		this.kisClient = new KisClient(
 			oauthKisProperties,
 			WebClient.builder().baseUrl(baseUrl).build(),
-			WebClient.builder().baseUrl(baseUrl).build(),
 			manager);
 
 		KisAccessToken kisAccessToken = createKisAccessToken();

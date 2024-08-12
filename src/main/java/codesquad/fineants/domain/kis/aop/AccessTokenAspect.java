@@ -33,18 +33,19 @@ public class AccessTokenAspect {
 	@Before(value = "@annotation(CheckedKisAccessToken) && args(..)")
 	public void checkAccessTokenExpiration() {
 		LocalDateTime now = localDateTimeService.getLocalDateTimeWithNow();
-		if (manager.isAccessTokenExpired(now)) {
-			redisService.getAccessTokenMap()
-				.ifPresentOrElse(manager::refreshAccessToken, () ->
-					handleNewAccessToken().ifPresentOrElse(newKisAccessToken -> {
-						redisService.setAccessTokenMap(newKisAccessToken, now);
-						manager.refreshAccessToken(newKisAccessToken);
-						log.info("complete the newKisAccessToken");
-					}, () -> {
-						log.error("fail to newKisAccessToken");
-						throw new FineAntsException(KisErrorCode.ACCESS_TOKEN_ISSUE_FAIL);
-					}));
+		if (!manager.isAccessTokenExpired(now)) {
+			return;
 		}
+		redisService.getAccessTokenMap()
+			.ifPresentOrElse(manager::refreshAccessToken, () ->
+				handleNewAccessToken().ifPresentOrElse(newKisAccessToken -> {
+					redisService.setAccessTokenMap(newKisAccessToken, now);
+					manager.refreshAccessToken(newKisAccessToken);
+					log.info("complete the newKisAccessToken");
+				}, () -> {
+					log.error("fail to newKisAccessToken");
+					throw new FineAntsException(KisErrorCode.ACCESS_TOKEN_ISSUE_FAIL);
+				}));
 	}
 
 	private Optional<KisAccessToken> handleNewAccessToken() {

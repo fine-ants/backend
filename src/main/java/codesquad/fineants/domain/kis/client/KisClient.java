@@ -20,6 +20,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import codesquad.fineants.domain.kis.aop.CheckedKisAccessToken;
 import codesquad.fineants.domain.kis.domain.dto.response.KisClosingPrice;
 import codesquad.fineants.domain.kis.domain.dto.response.KisDividend;
 import codesquad.fineants.domain.kis.domain.dto.response.KisDividendWrapper;
@@ -35,17 +36,13 @@ import reactor.util.retry.Retry;
 @Slf4j
 @Component
 public class KisClient {
-
-	private final WebClient webClient;
 	private final WebClient realWebClient;
 	private final OauthKisProperties oauthKisProperties;
 	private final KisAccessTokenRepository manager;
 
 	public KisClient(OauthKisProperties properties,
-		@Qualifier(value = "kisWebClient") WebClient webClient,
 		@Qualifier(value = "realKisWebClient") WebClient realWebClient,
 		KisAccessTokenRepository manager) {
-		this.webClient = webClient;
 		this.oauthKisProperties = properties;
 		this.realWebClient = realWebClient;
 		this.manager = manager;
@@ -57,7 +54,7 @@ public class KisClient {
 		requestBodyMap.put("grant_type", "client_credentials");
 		requestBodyMap.put("appkey", oauthKisProperties.getAppkey());
 		requestBodyMap.put("appsecret", oauthKisProperties.getSecretkey());
-		return webClient
+		return realWebClient
 			.post()
 			.uri(oauthKisProperties.getTokenUrl())
 			.bodyValue(requestBodyMap)
@@ -69,6 +66,7 @@ public class KisClient {
 	}
 
 	// 현재가 조회
+	@CheckedKisAccessToken
 	public Mono<KisCurrentPrice> fetchCurrentPrice(String tickerSymbol) {
 		MultiValueMap<String, String> headerMap = new LinkedMultiValueMap<>();
 		headerMap.add("authorization", manager.createAuthorization());
@@ -231,7 +229,7 @@ public class KisClient {
 
 	private <T> Mono<T> performGet(String uri, MultiValueMap<String, String> headerMap,
 		MultiValueMap<String, String> queryParamMap, Class<T> responseType) {
-		return performGet(uri, headerMap, queryParamMap, responseType, webClient);
+		return performGet(uri, headerMap, queryParamMap, responseType, realWebClient);
 	}
 
 	private <T> Mono<T> performGet(String uri, MultiValueMap<String, String> headerMap,
