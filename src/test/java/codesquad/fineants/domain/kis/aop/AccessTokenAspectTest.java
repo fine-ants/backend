@@ -15,6 +15,7 @@ import codesquad.fineants.AbstractContainerBaseTest;
 import codesquad.fineants.domain.kis.client.KisClient;
 import codesquad.fineants.domain.kis.repository.KisAccessTokenRepository;
 import codesquad.fineants.domain.kis.service.KisAccessTokenRedisService;
+import codesquad.fineants.global.common.time.LocalDateTimeService;
 import reactor.core.publisher.Mono;
 
 class AccessTokenAspectTest extends AbstractContainerBaseTest {
@@ -24,6 +25,9 @@ class AccessTokenAspectTest extends AbstractContainerBaseTest {
 
 	@Autowired
 	private KisAccessTokenRedisService kisAccessTokenRedisService;
+
+	@Autowired
+	private LocalDateTimeService localDateTimeService;
 
 	@AfterEach
 	void tearDown() {
@@ -35,7 +39,7 @@ class AccessTokenAspectTest extends AbstractContainerBaseTest {
 	void checkAccessTokenExpiration() {
 		// given
 		AccessTokenAspect accessTokenAspect = new AccessTokenAspect(new KisAccessTokenRepository(null), client,
-			kisAccessTokenRedisService);
+			kisAccessTokenRedisService, localDateTimeService);
 		kisAccessTokenRedisService.deleteAccessTokenMap();
 
 		given(client.fetchAccessToken())

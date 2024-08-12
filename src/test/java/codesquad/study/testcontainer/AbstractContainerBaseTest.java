@@ -8,7 +8,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Testcontainers
-public class AbstractContainerBaseTest {
+public abstract class AbstractContainerBaseTest {
 	private static final String MYSQL_IMAGE = "mysql:8.0.32";
 	private static final int MYSQL_PORT = 3306;
 	private static final String REDIS_IMAGE = "redis:7-alpine";
