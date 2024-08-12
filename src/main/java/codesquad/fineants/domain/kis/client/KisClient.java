@@ -148,8 +148,7 @@ public class KisClient {
 			oauthKisProperties.getDividendUrl(),
 			headerMap,
 			queryParamMap,
-			KisDividendWrapper.class,
-			realWebClient
+			KisDividendWrapper.class
 		).retryWhen(Retry.fixedDelay(Long.MAX_VALUE, Duration.ofSeconds(5)));
 	}
 
@@ -175,8 +174,7 @@ public class KisClient {
 			oauthKisProperties.getDividendUrl(),
 			headerMap,
 			queryParamMap,
-			KisDividendWrapper.class,
-			realWebClient
+			KisDividendWrapper.class
 		).map(KisDividendWrapper::getKisDividends);
 	}
 
@@ -200,8 +198,7 @@ public class KisClient {
 			oauthKisProperties.getIpoUrl(),
 			headerMap,
 			queryParamMap,
-			KisIpoResponse.class,
-			realWebClient
+			KisIpoResponse.class
 		).retryWhen(Retry.fixedDelay(Long.MAX_VALUE, Duration.ofSeconds(5)));
 	}
 
@@ -228,18 +225,12 @@ public class KisClient {
 			oauthKisProperties.getSearchStockInfoUrl(),
 			headerMap,
 			queryParamMap,
-			KisSearchStockInfo.class,
-			realWebClient);
+			KisSearchStockInfo.class);
 	}
 
 	private <T> Mono<T> performGet(String uri, MultiValueMap<String, String> headerMap,
 		MultiValueMap<String, String> queryParamMap, Class<T> responseType) {
-		return performGet(uri, headerMap, queryParamMap, responseType, realWebClient);
-	}
-
-	private <T> Mono<T> performGet(String uri, MultiValueMap<String, String> headerMap,
-		MultiValueMap<String, String> queryParamMap, Class<T> responseType, WebClient webClient) {
-		return webClient
+		return realWebClient
 			.get()
 			.uri(uriBuilder -> uriBuilder
 				.path(uri)

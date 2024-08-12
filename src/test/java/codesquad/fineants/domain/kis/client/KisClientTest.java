@@ -202,7 +202,7 @@ class KisClientTest extends AbstractContainerBaseTest {
 		mockWebServer.enqueue(createResponse(200, ObjectMapperUtil.serialize(okResponseBody)));
 		// when
 		KisSearchStockInfo kisSearchStockInfo = kisClient.fetchSearchStockInfo(tickerSymbol)
-			.blockOptional(Duration.ofMinutes(10))
+			.blockOptional()
 			.orElse(null);
 		// then
 		assertThat(kisSearchStockInfo).isNotNull();
