@@ -1,7 +1,9 @@
 package codesquad.fineants.domain.kis.properties;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+@Getter
 @RequiredArgsConstructor
 public enum KisHeader {
 	AUTHORIZATION("authorization"),
@@ -10,4 +12,5 @@ public enum KisHeader {
 	TR_ID("tr_id");
 
 	private final String headerName;
+
 }

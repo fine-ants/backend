@@ -6,9 +6,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.logging.log4j.util.Strings;
 import org.jetbrains.annotations.NotNull;
@@ -28,7 +26,7 @@ import codesquad.fineants.domain.kis.domain.dto.response.KisDividendWrapper;
 import codesquad.fineants.domain.kis.domain.dto.response.KisIpoResponse;
 import codesquad.fineants.domain.kis.domain.dto.response.KisSearchStockInfo;
 import codesquad.fineants.domain.kis.properties.KisAccessTokenRequest;
-import codesquad.fineants.domain.kis.properties.KisHeader;
+import codesquad.fineants.domain.kis.properties.KisHeaderBuilder;
 import codesquad.fineants.domain.kis.properties.KisProperties;
 import codesquad.fineants.domain.kis.repository.KisAccessTokenRepository;
 import codesquad.fineants.global.errors.exception.KisException;
@@ -69,12 +67,12 @@ public class KisClient {
 	// 현재가 조회
 	@CheckedKisAccessToken
 	public Mono<KisCurrentPrice> fetchCurrentPrice(String tickerSymbol) {
-		Map<KisHeader, String> headerMap = new HashMap<>();
-		headerMap.put(AUTHORIZATION, manager.createAuthorization());
-		headerMap.put(APP_KEY, kisProperties.getAppkey());
-		headerMap.put(APP_SECRET, kisProperties.getSecretkey());
-		headerMap.put(TR_ID, "FHKST01010100");
-		MultiValueMap<String, String> header = toMultiValueMapHeader(headerMap);
+		MultiValueMap<String, String> header = KisHeaderBuilder.builder()
+			.add(AUTHORIZATION, manager.createAuthorization())
+			.add(APP_KEY, kisProperties.getAppkey())
+			.add(APP_SECRET, kisProperties.getSecretkey())
+			.add(TR_ID, "FHKST01010100")
+			.build();
 
 		MultiValueMap<String, String> queryParamMap = new LinkedMultiValueMap<>();
 		queryParamMap.add("fid_cond_mrkt_div_code", "J");
@@ -88,21 +86,15 @@ public class KisClient {
 		);
 	}
 
-	private static MultiValueMap<String, String> toMultiValueMapHeader(Map<KisHeader, String> headerMap) {
-		return headerMap.entrySet().stream()
-			.collect(LinkedMultiValueMap::new,
-				(map, entry) -> map.add(entry.getKey().name(), entry.getValue()),
-				LinkedMultiValueMap::addAll);
-	}
-
 	// 직전 거래일의 종가 조회
 	@CheckedKisAccessToken
 	public Mono<KisClosingPrice> fetchClosingPrice(String tickerSymbol) {
-		MultiValueMap<String, String> headerMap = new LinkedMultiValueMap<>();
-		headerMap.add("authorization", manager.createAuthorization());
-		headerMap.add("appkey", kisProperties.getAppkey());
-		headerMap.add("appsecret", kisProperties.getSecretkey());
-		headerMap.add("tr_id", "FHKST03010100");
+		MultiValueMap<String, String> header = KisHeaderBuilder.builder()
+			.add(AUTHORIZATION, manager.createAuthorization())
+			.add(APP_KEY, kisProperties.getAppkey())
+			.add(APP_SECRET, kisProperties.getSecretkey())
+			.add(TR_ID, "FHKST03010100")
+			.build();
 
 		MultiValueMap<String, String> queryParamMap = new LinkedMultiValueMap<>();
 		queryParamMap.add("FID_COND_MRKT_DIV_CODE", "J");
@@ -114,7 +106,7 @@ public class KisClient {
 
 		return performGet(
 			kisProperties.getClosingPriceUrl(),
-			headerMap,
+			header,
 			queryParamMap,
 			KisClosingPrice.class
 		);
