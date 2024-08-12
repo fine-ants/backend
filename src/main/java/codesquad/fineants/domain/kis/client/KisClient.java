@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.logging.log4j.util.Strings;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
@@ -166,8 +167,8 @@ public class KisClient {
 		queryParamMap.add("HIGH_GB", Strings.EMPTY);
 		queryParamMap.add("CTS", Strings.EMPTY);
 		queryParamMap.add("GB1", "0");
-		queryParamMap.add("F_DT", from.format(DateTimeFormatter.BASIC_ISO_DATE));
-		queryParamMap.add("T_DT", to.format(DateTimeFormatter.BASIC_ISO_DATE));
+		queryParamMap.add("F_DT", basicIso(from));
+		queryParamMap.add("T_DT", basicIso(to));
 		queryParamMap.add("SHT_CD", Strings.EMPTY);
 
 		return performGet(
@@ -191,8 +192,8 @@ public class KisClient {
 
 		MultiValueMap<String, String> queryParamMap = new LinkedMultiValueMap<>();
 		queryParamMap.add("SHT_CD", Strings.EMPTY);
-		queryParamMap.add("T_DT", to.format(DateTimeFormatter.BASIC_ISO_DATE));
-		queryParamMap.add("F_DT", from.format(DateTimeFormatter.BASIC_ISO_DATE));
+		queryParamMap.add("T_DT", basicIso(to));
+		queryParamMap.add("F_DT", basicIso(from));
 		queryParamMap.add("CTS", Strings.EMPTY);
 
 		return performGet(
@@ -202,6 +203,11 @@ public class KisClient {
 			KisIpoResponse.class,
 			realWebClient
 		).retryWhen(Retry.fixedDelay(Long.MAX_VALUE, Duration.ofSeconds(5)));
+	}
+
+	@NotNull
+	private String basicIso(LocalDate to) {
+		return to.format(DateTimeFormatter.BASIC_ISO_DATE);
 	}
 
 	public Mono<KisSearchStockInfo> fetchSearchStockInfo(String tickerSymbol, String authorization) {
