@@ -236,7 +236,10 @@ public class KisService {
 
 	@CheckedKisAccessToken
 	public List<KisDividend> fetchDividendAll(LocalDate from, LocalDate to) {
-		return kisClient.fetchDividendAll(from, to).stream()
+		return kisClient.fetchDividendAll(from, to)
+			.retryWhen(Retry.fixedDelay(Long.MAX_VALUE, Duration.ofSeconds(5)))
+			.blockOptional(TIMEOUT)
+			.orElseGet(Collections::emptyList).stream()
 			.sorted()
 			.toList();
 	}

@@ -8,6 +8,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -175,7 +176,7 @@ class KisClientTest extends AbstractContainerBaseTest {
 		KisAccessToken kisAccessToken = createKisAccessToken();
 		// when
 		KisIpoResponse response = kisClient.fetchIpo(yesterday, today, kisAccessToken.createAuthorization())
-			.blockOptional(Duration.ofMinutes(10))
+			.blockOptional()
 			.orElseThrow();
 
 		// then
@@ -351,7 +352,9 @@ class KisClientTest extends AbstractContainerBaseTest {
 		);
 		mockWebServer.enqueue(createResponse(200, ObjectMapperUtil.serialize(output)));
 		// when
-		List<KisDividend> dividends = kisClient.fetchDividendAll(from, to);
+		List<KisDividend> dividends = kisClient.fetchDividendAll(from, to)
+			.blockOptional()
+			.orElseGet(Collections::emptyList);
 		// then
 		assertThat(dividends)
 			.hasSize(1)

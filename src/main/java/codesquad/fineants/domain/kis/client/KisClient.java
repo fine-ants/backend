@@ -1,7 +1,5 @@
 package codesquad.fineants.domain.kis.client;
 
-import static codesquad.fineants.domain.kis.service.KisService.*;
-
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -9,7 +7,6 @@ import java.time.temporal.TemporalAdjusters;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -156,7 +153,7 @@ public class KisClient {
 	}
 
 	@CheckedKisAccessToken
-	public List<KisDividend> fetchDividendAll(LocalDate from, LocalDate to) {
+	public Mono<List<KisDividend>> fetchDividendAll(LocalDate from, LocalDate to) {
 		MultiValueMap<String, String> headerMap = new LinkedMultiValueMap<>();
 		headerMap.add("content-type", "application/json; charset=utf-8");
 		headerMap.add("authorization", manager.createAuthorization());
@@ -173,15 +170,13 @@ public class KisClient {
 		queryParamMap.add("T_DT", to.format(DateTimeFormatter.BASIC_ISO_DATE));
 		queryParamMap.add("SHT_CD", Strings.EMPTY);
 
-		KisDividendWrapper result = performGet(
+		return performGet(
 			oauthKisProperties.getDividendUrl(),
 			headerMap,
 			queryParamMap,
 			KisDividendWrapper.class,
 			realWebClient
-		).retryWhen(Retry.fixedDelay(Long.MAX_VALUE, Duration.ofSeconds(5)))
-			.block(TIMEOUT);
-		return Objects.requireNonNull(result).getKisDividends();
+		).map(KisDividendWrapper::getKisDividends);
 	}
 
 	public Mono<KisIpoResponse> fetchIpo(LocalDate from, LocalDate to, String authorization) {
