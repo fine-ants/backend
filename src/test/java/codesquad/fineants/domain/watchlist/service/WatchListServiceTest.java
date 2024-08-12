@@ -6,7 +6,6 @@ import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
@@ -23,7 +22,6 @@ import codesquad.fineants.domain.kis.client.KisCurrentPrice;
 import codesquad.fineants.domain.kis.domain.dto.response.KisClosingPrice;
 import codesquad.fineants.domain.kis.repository.ClosingPriceRepository;
 import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
-import codesquad.fineants.domain.kis.repository.KisAccessTokenRepository;
 import codesquad.fineants.domain.kis.service.KisService;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
@@ -72,14 +70,6 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 
 	@MockBean
 	private KisService kisService;
-
-	@Autowired
-	private KisAccessTokenRepository kisAccessTokenRepository;
-
-	@BeforeEach
-	void setup() {
-		kisAccessTokenRepository.refreshAccessToken(createKisAccessToken());
-	}
 
 	@DisplayName("회원이 watchlist를 추가한다.")
 	@Test
