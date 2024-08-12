@@ -36,6 +36,7 @@ import codesquad.fineants.domain.kis.domain.dto.response.KisIpo;
 import codesquad.fineants.domain.kis.domain.dto.response.KisIpoResponse;
 import codesquad.fineants.domain.kis.domain.dto.response.KisSearchStockInfo;
 import codesquad.fineants.domain.kis.properties.KisProperties;
+import codesquad.fineants.domain.kis.properties.KisTrIdProperties;
 import codesquad.fineants.domain.kis.repository.KisAccessTokenRepository;
 import codesquad.fineants.domain.kis.service.KisAccessTokenRedisService;
 import codesquad.fineants.global.util.ObjectMapperUtil;
@@ -55,6 +56,12 @@ class KisClientTest extends AbstractContainerBaseTest {
 	@Autowired
 	private KisAccessTokenRedisService kisAccessTokenRedisService;
 
+	@Autowired
+	private KisProperties kisProperties;
+
+	@Autowired
+	private KisTrIdProperties kisTrIdProperties;
+
 	@BeforeAll
 	static void setUp() throws IOException {
 		mockWebServer = new MockWebServer();
@@ -68,19 +75,10 @@ class KisClientTest extends AbstractContainerBaseTest {
 
 	@BeforeEach
 	void initialize() {
-		KisProperties kisProperties = new KisProperties(
-			"appkey",
-			"secertkey",
-			"otkenURI",
-			"currentPriceURI",
-			"lastDayClosingPriceURI",
-			"dividendURI",
-			"ipoURI",
-			"searchStockInfoURI"
-		);
 		String baseUrl = String.format("http://localhost:%s", mockWebServer.getPort());
 		this.kisClient = new KisClient(
 			kisProperties,
+			kisTrIdProperties,
 			WebClient.builder().baseUrl(baseUrl).build(),
 			manager);
 

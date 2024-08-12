@@ -28,6 +28,7 @@ import codesquad.fineants.domain.kis.domain.dto.response.KisSearchStockInfo;
 import codesquad.fineants.domain.kis.properties.KisAccessTokenRequest;
 import codesquad.fineants.domain.kis.properties.KisHeaderBuilder;
 import codesquad.fineants.domain.kis.properties.KisProperties;
+import codesquad.fineants.domain.kis.properties.KisTrIdProperties;
 import codesquad.fineants.domain.kis.repository.KisAccessTokenRepository;
 import codesquad.fineants.global.errors.exception.KisException;
 import lombok.extern.slf4j.Slf4j;
@@ -39,14 +40,17 @@ import reactor.util.retry.Retry;
 public class KisClient {
 	private static final String APPLICATION_JSON_UTF8 = "application/json; charset=utf-8";
 	private static final String KIS_CUSTOMER_TYPE = "P";
-	private final WebClient realWebClient;
 	private final KisProperties kisProperties;
+	private final KisTrIdProperties kisTrIdProperties;
+	private final WebClient realWebClient;
 	private final KisAccessTokenRepository manager;
 
 	public KisClient(KisProperties properties,
+		KisTrIdProperties kisTrIdProperties,
 		@Qualifier(value = "realKisWebClient") WebClient realWebClient,
 		KisAccessTokenRepository manager) {
 		this.kisProperties = properties;
+		this.kisTrIdProperties = kisTrIdProperties;
 		this.realWebClient = realWebClient;
 		this.manager = manager;
 	}
