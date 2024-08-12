@@ -22,11 +22,16 @@ import lombok.extern.slf4j.Slf4j;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @JsonDeserialize(using = KisDividendWrapper.KissDividendWrapperDeserializer.class)
+// TODO: KisDividend 클래스의 역직렬화를 수정하여 래퍼 클래스가 없도록 수정
 public class KisDividendWrapper {
 	private List<KisDividend> kisDividends;
 
 	public static KisDividendWrapper empty() {
 		return new KisDividendWrapper(Collections.emptyList());
+	}
+
+	public static KisDividendWrapper create(List<KisDividend> kisDividends) {
+		return new KisDividendWrapper(kisDividends);
 	}
 
 	static class KissDividendWrapperDeserializer extends JsonDeserializer<KisDividendWrapper> {

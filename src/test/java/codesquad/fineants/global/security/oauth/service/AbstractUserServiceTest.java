@@ -37,7 +37,7 @@ class AbstractUserServiceTest extends AbstractContainerBaseTest {
 	@Test
 	void saveOrUpdate_givenOtherProfileUrl_whenSaveOrUpdate_thenMaintainProfileUrl() {
 		// given
-		memberRepository.save(createOauthMember("fineants1234", "fineants1234@gmail.com", "google", "profileUrl1"));
+		memberRepository.save(createOauthMember());
 		AbstractUserService userService = new CustomOidcUserService(memberRepository, notificationPreferenceRepository,
 			nicknameGenerator, roleRepository);
 		Map<String, Object> attributes = new HashMap<>();

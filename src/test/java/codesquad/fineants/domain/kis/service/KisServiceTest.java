@@ -18,11 +18,14 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
 
 import codesquad.fineants.AbstractContainerBaseTest;
+import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.holding.repository.PortfolioHoldingRepository;
 import codesquad.fineants.domain.kis.client.KisAccessToken;
 import codesquad.fineants.domain.kis.client.KisClient;
 import codesquad.fineants.domain.kis.client.KisCurrentPrice;
 import codesquad.fineants.domain.kis.domain.dto.response.KisClosingPrice;
+import codesquad.fineants.domain.kis.domain.dto.response.KisDividend;
+import codesquad.fineants.domain.kis.domain.dto.response.KisDividendWrapper;
 import codesquad.fineants.domain.kis.domain.dto.response.KisIpo;
 import codesquad.fineants.domain.kis.domain.dto.response.KisIpoResponse;
 import codesquad.fineants.domain.kis.domain.dto.response.KisSearchStockInfo;
@@ -60,14 +63,17 @@ class KisServiceTest extends AbstractContainerBaseTest {
 	@Autowired
 	private StockRepository stockRepository;
 
-	@MockBean
-	private KisClient client;
-
 	@Autowired
 	private KisAccessTokenRepository kisAccessTokenRepository;
 
 	@Autowired
 	private StockCsvReader stockCsvReader;
+
+	@Autowired
+	private KisAccessTokenRedisService kisAccessTokenRedisService;
+
+	@MockBean
+	private KisClient client;
 
 	@MockBean
 	private HolidayRepository holidayRepository;
@@ -75,6 +81,8 @@ class KisServiceTest extends AbstractContainerBaseTest {
 	@AfterEach
 	void tearDown() {
 		Mockito.clearInvocations(client);
+		kisAccessTokenRepository.refreshAccessToken(null);
+		kisAccessTokenRedisService.deleteAccessTokenMap();
 	}
 
 	@WithMockUser(roles = {"ADMIN"})
@@ -84,7 +92,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		// given
 		String tickerSymbol = "005930";
 		kisAccessTokenRepository.refreshAccessToken(createKisAccessToken());
-		given(client.fetchCurrentPrice(anyString(), anyString()))
+		given(client.fetchCurrentPrice(anyString()))
 			.willReturn(Mono.just(KisCurrentPrice.create(tickerSymbol, 60000L)));
 		// when
 		KisCurrentPrice kisCurrentPrice = kisService.fetchCurrentPrice(tickerSymbol)
@@ -108,7 +116,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		stocks.forEach(stock -> portfolioHoldingRepository.save(createPortfolioHolding(portfolio, stock)));
 
 		kisAccessTokenRepository.refreshAccessToken(createKisAccessToken());
-		given(client.fetchCurrentPrice(anyString(), anyString()))
+		given(client.fetchCurrentPrice(anyString()))
 			.willThrow(new KisException("요청건수가 초과되었습니다"))
 			.willReturn(Mono.just(KisCurrentPrice.create("005930", 10000L)));
 
@@ -119,7 +127,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		kisService.refreshStockCurrentPrice(tickerSymbols);
 
 		// then
-		verify(client, times(1)).fetchCurrentPrice(anyString(), anyString());
+		verify(client, times(1)).fetchCurrentPrice(anyString());
 	}
 
 	@WithMockUser(roles = {"ADMIN"})
@@ -135,7 +143,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		stocks.forEach(stock -> portfolioHoldingRepository.save(createPortfolioHolding(portfolio, stock)));
 
 		kisAccessTokenRepository.refreshAccessToken(createKisAccessToken());
-		given(client.fetchCurrentPrice(anyString(), anyString()))
+		given(client.fetchCurrentPrice(anyString()))
 			.willThrow(new KisException("요청건수가 초과되었습니다"));
 
 		List<String> tickerSymbols = stocks.stream()
@@ -161,7 +169,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		stocks.forEach(stock -> portfolioHoldingRepository.save(createPortfolioHolding(portfolio, stock)));
 
 		kisAccessTokenRepository.refreshAccessToken(createKisAccessToken());
-		given(client.fetchClosingPrice(anyString(), anyString()))
+		given(client.fetchClosingPrice(anyString()))
 			.willThrow(new KisException("요청건수가 초과되었습니다"))
 			.willThrow(new KisException("요청건수가 초과되었습니다"))
 			.willReturn(Mono.just(KisClosingPrice.create("005930", 10000L)));
@@ -173,14 +181,18 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		kisService.refreshLastDayClosingPrice(tickerSymbols);
 
 		// then
-		verify(client, times(1)).fetchClosingPrice(anyString(), anyString());
+		verify(client, times(1)).fetchClosingPrice(anyString());
 	}
 
 	@DisplayName("휴장일에는 종목 가격 정보를 갱신하지 않는다")
 	@Test
 	void refreshStockPriceWhenHoliday() {
 		// given
+		KisAccessToken kisAccessToken = createKisAccessToken();
+		kisAccessTokenRepository.refreshAccessToken(kisAccessToken);
 		given(holidayRepository.isHoliday(any(LocalDate.class))).willReturn(true);
+		given(client.fetchAccessToken())
+			.willReturn(Mono.just(kisAccessToken));
 		// when
 		kisService.refreshCurrentPrice();
 		// then
@@ -199,8 +211,8 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		);
 		given(client.fetchIpo(
 			any(LocalDate.class),
-			any(LocalDate.class),
-			anyString()))
+			any(LocalDate.class)
+		))
 			.willReturn(Mono.just(kisIpoResponse));
 
 		KisSearchStockInfo kisSearchStockInfo = KisSearchStockInfo.listedStock(
@@ -211,7 +223,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 			"STK",
 			"전기,전자"
 		);
-		given(client.fetchSearchStockInfo(anyString(), anyString()))
+		given(client.fetchSearchStockInfo(anyString()))
 			.willReturn(Mono.just(kisSearchStockInfo));
 		// when
 		Set<StockDataResponse.StockIntegrationInfo> stocks = kisService.fetchStockInfoInRangedIpo();
@@ -240,9 +252,8 @@ class KisServiceTest extends AbstractContainerBaseTest {
 
 		KisAccessToken kisAccessToken = createKisAccessToken();
 		kisAccessTokenRepository.refreshAccessToken(kisAccessToken);
-		String accessToken = kisAccessToken.createAuthorization();
 		stocks.forEach(s ->
-			given(client.fetchSearchStockInfo(s.getTickerSymbol(), accessToken))
+			given(client.fetchSearchStockInfo(s.getTickerSymbol()))
 				.willReturn(Mono.just(
 						KisSearchStockInfo.listedStock(
 							s.getStockCode(),
@@ -269,6 +280,56 @@ class KisServiceTest extends AbstractContainerBaseTest {
 			);
 	}
 
+	@DisplayName("사용자는 삼성전자의 올해 배당일정을 조회한다")
+	@Test
+	void fetchDividend() {
+		// given
+		String tickerSymbol = "005930";
+		KisAccessToken kisAccessToken = createKisAccessToken();
+		kisAccessTokenRepository.refreshAccessToken(kisAccessToken);
+		given(client.fetchDividendThisYear(tickerSymbol))
+			.willReturn(Mono.just(KisDividendWrapper.create(List.of(
+				KisDividend.create(tickerSymbol, Money.won(300), LocalDate.of(2024, 3, 1),
+					LocalDate.of(2024, 5, 1))))));
+		// when
+		List<KisDividend> dividends = kisService.fetchDividend(tickerSymbol)
+			.block();
+		// then
+		Assertions.assertThat(dividends)
+			.hasSize(1)
+			.extracting(KisDividend::getTickerSymbol, KisDividend::getDividend, KisDividend::getRecordDate,
+				KisDividend::getPaymentDate)
+			.usingComparatorForType(Money::compareTo, Money.class)
+			.containsExactlyInAnyOrder(
+				tuple("005930", Money.won(300), LocalDate.of(2024, 3, 1), LocalDate.of(2024, 5, 1)));
+	}
+
+	@DisplayName("사용자는 새로운 한국투자증권의 액세스 토큰을 발급받아서 배당 일정을 조회한다")
+	@Test
+	void fetchDividend_whenAccessTokenExpired_thenIssueAccessToken() {
+		// given
+		String tickerSymbol = "005930";
+		kisAccessTokenRepository.refreshAccessToken(null);
+		KisAccessToken newKisAccessToken = createKisAccessToken();
+		given(client.fetchAccessToken())
+			.willReturn(Mono.just(newKisAccessToken));
+		given(client.fetchDividendThisYear(tickerSymbol))
+			.willReturn(Mono.just(KisDividendWrapper.create(List.of(
+				KisDividend.create(tickerSymbol, Money.won(300), LocalDate.of(2024, 3, 1),
+					LocalDate.of(2024, 5, 1))))));
+		// when
+		List<KisDividend> dividends = kisService.fetchDividend(tickerSymbol)
+			.block();
+		// then
+		Assertions.assertThat(dividends)
+			.hasSize(1)
+			.extracting(KisDividend::getTickerSymbol, KisDividend::getDividend, KisDividend::getRecordDate,
+				KisDividend::getPaymentDate)
+			.usingComparatorForType(Money::compareTo, Money.class)
+			.containsExactlyInAnyOrder(
+				tuple("005930", Money.won(300), LocalDate.of(2024, 3, 1), LocalDate.of(2024, 5, 1)));
+	}
+	
 	private List<Stock> saveStocks() {
 		return stockRepository.saveAll(stockCsvReader.readStockCsv());
 	}

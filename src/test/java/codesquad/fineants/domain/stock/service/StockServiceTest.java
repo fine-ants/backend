@@ -148,9 +148,9 @@ class StockServiceTest extends AbstractContainerBaseTest {
 		given(kisClient.fetchAccessToken())
 			.willReturn(
 				Mono.just(new KisAccessToken("accessToken", "Bearer", LocalDateTime.now().plusDays(1), 3600 * 24)));
-		given(kisClient.fetchCurrentPrice(anyString(), anyString()))
+		given(kisClient.fetchCurrentPrice(anyString()))
 			.willReturn(Mono.just(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L)));
-		given(kisClient.fetchClosingPrice(anyString(), anyString()))
+		given(kisClient.fetchClosingPrice(anyString()))
 			.willReturn(Mono.just(KisClosingPrice.create(stock.getTickerSymbol(), 49000L)));
 
 		String tickerSymbol = "005930";
