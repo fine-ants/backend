@@ -251,13 +251,13 @@ public class KisClient {
 			KisSearchStockInfo.class);
 	}
 
-	private <T> Mono<T> performGet(String uri, MultiValueMap<String, String> headerMap,
-		MultiValueMap<String, String> queryParamMap, Class<T> responseType) {
+	private <T> Mono<T> performGet(String urlPath, MultiValueMap<String, String> headerMap,
+		MultiValueMap<String, String> queryParam, Class<T> responseType) {
 		return webClient
 			.get()
 			.uri(uriBuilder -> uriBuilder
-				.path(uri)
-				.queryParams(queryParamMap)
+				.path(urlPath)
+				.queryParams(queryParam)
 				.build())
 			.headers(httpHeaders -> httpHeaders.addAll(headerMap))
 			.retrieve()
