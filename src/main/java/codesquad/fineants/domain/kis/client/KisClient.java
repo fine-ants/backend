@@ -30,6 +30,7 @@ import codesquad.fineants.domain.kis.properties.KisQueryParam;
 import codesquad.fineants.domain.kis.properties.KisQueryParamBuilder;
 import codesquad.fineants.domain.kis.properties.KisTrIdProperties;
 import codesquad.fineants.domain.kis.properties.kiscodevalue.imple.FidCondMrktDivCode;
+import codesquad.fineants.domain.kis.properties.kiscodevalue.imple.FidOrgAdjPrc;
 import codesquad.fineants.domain.kis.properties.kiscodevalue.imple.FidPeriodDivCode;
 import codesquad.fineants.domain.kis.repository.KisAccessTokenRepository;
 import codesquad.fineants.global.errors.exception.KisException;
@@ -109,7 +110,7 @@ public class KisClient {
 			.add(KisQueryParam.FID_INPUT_DATE_1, LocalDate.now().minusDays(1L).toString())
 			.add(KisQueryParam.FID_INPUT_DATE_2, LocalDate.now().minusDays(1L).toString())
 			.add(KisQueryParam.FID_PERIOD_DIV_CODE, FidPeriodDivCode.DAILY_LAST_30_TRADING_DAYS)
-			.add(KisQueryParam.FID_ORG_ADJ_PRC, "0")
+			.add(KisQueryParam.FID_ORG_ADJ_PRC, FidOrgAdjPrc.ADJUSTED)
 			.build();
 
 		return performGet(
