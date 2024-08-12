@@ -9,7 +9,7 @@ import lombok.Getter;
 @ConfigurationProperties(prefix = "oauth2.kis")
 public class KisProperties {
 
-	private final KisProperty appkey;
+	private final String appkey;
 	private final String secretkey;
 	private final String tokenUrl;
 	private final String currentPriceUrl;
@@ -21,7 +21,7 @@ public class KisProperties {
 	@ConstructorBinding
 	public KisProperties(String appkey, String secretkey, String tokenUrl, String currentPriceUrl,
 		String closingPriceUrl, String dividendUrl, String ipoUrl, String searchStockInfoUrl) {
-		this.appkey = new KisProperty("appkey", appkey);
+		this.appkey = appkey;
 		this.secretkey = secretkey;
 		this.tokenUrl = tokenUrl;
 		this.currentPriceUrl = currentPriceUrl;
@@ -29,13 +29,5 @@ public class KisProperties {
 		this.dividendUrl = dividendUrl;
 		this.ipoUrl = ipoUrl;
 		this.searchStockInfoUrl = searchStockInfoUrl;
-	}
-
-	public String getAppKeyName() {
-		return appkey.getName();
-	}
-
-	public String getAppKeyValue() {
-		return appkey.getValue();
 	}
 }

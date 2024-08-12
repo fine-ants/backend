@@ -4,9 +4,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.logging.log4j.util.Strings;
 import org.jetbrains.annotations.NotNull;
@@ -24,6 +22,7 @@ import codesquad.fineants.domain.kis.domain.dto.response.KisDividend;
 import codesquad.fineants.domain.kis.domain.dto.response.KisDividendWrapper;
 import codesquad.fineants.domain.kis.domain.dto.response.KisIpoResponse;
 import codesquad.fineants.domain.kis.domain.dto.response.KisSearchStockInfo;
+import codesquad.fineants.domain.kis.properties.KisAccessTokenRequest;
 import codesquad.fineants.domain.kis.properties.KisProperties;
 import codesquad.fineants.domain.kis.repository.KisAccessTokenRepository;
 import codesquad.fineants.global.errors.exception.KisException;
@@ -48,14 +47,11 @@ public class KisClient {
 
 	// 액세스 토큰 발급
 	public Mono<KisAccessToken> fetchAccessToken() {
-		Map<String, String> requestBodyMap = new HashMap<>();
-		requestBodyMap.put("grant_type", "client_credentials");
-		requestBodyMap.put(kisProperties.getAppKeyName(), kisProperties.getAppKeyValue());
-		requestBodyMap.put("appsecret", kisProperties.getSecretkey());
+		KisAccessTokenRequest request = KisAccessTokenRequest.create(kisProperties);
 		return realWebClient
 			.post()
 			.uri(kisProperties.getTokenUrl())
-			.bodyValue(requestBodyMap)
+			.bodyValue(request)
 			.retrieve()
 			.onStatus(HttpStatusCode::isError, this::handleError)
 			.bodyToMono(KisAccessToken.class)
@@ -68,7 +64,7 @@ public class KisClient {
 	public Mono<KisCurrentPrice> fetchCurrentPrice(String tickerSymbol) {
 		MultiValueMap<String, String> headerMap = new LinkedMultiValueMap<>();
 		headerMap.add("authorization", manager.createAuthorization());
-		headerMap.add(kisProperties.getAppKeyName(), kisProperties.getAppKeyValue());
+		headerMap.add("appkey", kisProperties.getAppkey());
 		headerMap.add("appsecret", kisProperties.getSecretkey());
 		headerMap.add("tr_id", "FHKST01010100");
 
@@ -89,7 +85,7 @@ public class KisClient {
 	public Mono<KisClosingPrice> fetchClosingPrice(String tickerSymbol) {
 		MultiValueMap<String, String> headerMap = new LinkedMultiValueMap<>();
 		headerMap.add("authorization", manager.createAuthorization());
-		headerMap.add(kisProperties.getAppKeyName(), kisProperties.getAppKeyValue());
+		headerMap.add("appkey", kisProperties.getAppkey());
 		headerMap.add("appsecret", kisProperties.getSecretkey());
 		headerMap.add("tr_id", "FHKST03010100");
 
@@ -130,7 +126,7 @@ public class KisClient {
 		MultiValueMap<String, String> headerMap = new LinkedMultiValueMap<>();
 		headerMap.add("content-type", "application/json; charset=utf-8");
 		headerMap.add("authorization", manager.createAuthorization());
-		headerMap.add(kisProperties.getAppKeyName(), kisProperties.getAppKeyValue());
+		headerMap.add("appkey", kisProperties.getAppkey());
 		headerMap.add("appsecret", kisProperties.getSecretkey());
 		headerMap.add("tr_id", "HHKDB669102C0");
 		headerMap.add("custtype", "P");
@@ -157,7 +153,7 @@ public class KisClient {
 		MultiValueMap<String, String> headerMap = new LinkedMultiValueMap<>();
 		headerMap.add("content-type", "application/json; charset=utf-8");
 		headerMap.add("authorization", manager.createAuthorization());
-		headerMap.add(kisProperties.getAppKeyName(), kisProperties.getAppKeyValue());
+		headerMap.add("appkey", kisProperties.getAppkey());
 		headerMap.add("appsecret", kisProperties.getSecretkey());
 		headerMap.add("tr_id", "HHKDB669102C0");
 		headerMap.add("custtype", "P");
@@ -183,7 +179,7 @@ public class KisClient {
 		MultiValueMap<String, String> headerMap = new LinkedMultiValueMap<>();
 		headerMap.add("content-type", "application/json; charset=utf-8");
 		headerMap.add("authorization", manager.createAuthorization());
-		headerMap.add(kisProperties.getAppKeyName(), kisProperties.getAppKeyValue());
+		headerMap.add("appkey", kisProperties.getAppkey());
 		headerMap.add("appsecret", kisProperties.getSecretkey());
 		headerMap.add("tr_id", "HHKDB669107C0");
 		headerMap.add("custtype", "P");
@@ -212,7 +208,7 @@ public class KisClient {
 		MultiValueMap<String, String> headerMap = new LinkedMultiValueMap<>();
 		headerMap.add("content-type", "application/json; charset=utf-8");
 		headerMap.add("authorization", manager.createAuthorization());
-		headerMap.add(kisProperties.getAppKeyName(), kisProperties.getAppKeyValue());
+		headerMap.add("appkey", kisProperties.getAppkey());
 		headerMap.add("appsecret", kisProperties.getSecretkey());
 		headerMap.add("tr_id", "CTPF1002R");
 		headerMap.add("custtype", "P");
