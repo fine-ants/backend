@@ -33,6 +33,7 @@ import codesquad.fineants.domain.kis.properties.kiscodevalue.imple.FidCondMrktDi
 import codesquad.fineants.domain.kis.properties.kiscodevalue.imple.FidOrgAdjPrc;
 import codesquad.fineants.domain.kis.properties.kiscodevalue.imple.FidPeriodDivCode;
 import codesquad.fineants.domain.kis.properties.kiscodevalue.imple.GB1;
+import codesquad.fineants.domain.kis.properties.kiscodevalue.imple.PrdtTypeCd;
 import codesquad.fineants.domain.kis.repository.KisAccessTokenRepository;
 import codesquad.fineants.global.errors.exception.KisException;
 import lombok.extern.slf4j.Slf4j;
@@ -108,8 +109,8 @@ public class KisClient {
 		MultiValueMap<String, String> queryParam = KisQueryParamBuilder.builder()
 			.add(KisQueryParam.FID_COND_MRKT_DIV_CODE, FidCondMrktDivCode.STOCK)
 			.add(KisQueryParam.FID_INPUT_ISCD, tickerSymbol)
-			.add(KisQueryParam.FID_INPUT_DATE_1, LocalDate.now().minusDays(1L).toString())
-			.add(KisQueryParam.FID_INPUT_DATE_2, LocalDate.now().minusDays(1L).toString())
+			.add(KisQueryParam.FID_INPUT_DATE_1, yesterday())
+			.add(KisQueryParam.FID_INPUT_DATE_2, yesterday())
 			.add(KisQueryParam.FID_PERIOD_DIV_CODE, FidPeriodDivCode.DAILY_LAST_30_TRADING_DAYS)
 			.add(KisQueryParam.FID_ORG_ADJ_PRC, FidOrgAdjPrc.ADJUSTED)
 			.build();
@@ -120,6 +121,11 @@ public class KisClient {
 			queryParam,
 			KisClosingPrice.class
 		);
+	}
+
+	@NotNull
+	private String yesterday() {
+		return LocalDate.now().minusDays(1L).toString();
 	}
 
 	/**
@@ -234,7 +240,7 @@ public class KisClient {
 			.add(CUSTOMER_TYPE, KIS_CUSTOMER_TYPE)
 			.build();
 		MultiValueMap<String, String> queryParam = KisQueryParamBuilder.builder()
-			.add(KisQueryParam.PRDT_TYPE_CD, "300")
+			.add(KisQueryParam.PRDT_TYPE_CD, PrdtTypeCd.STOCK)
 			.add(KisQueryParam.PDNO, tickerSymbol)
 			.build();
 
