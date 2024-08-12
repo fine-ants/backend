@@ -26,6 +26,7 @@ import codesquad.fineants.domain.kis.domain.dto.response.KisDividendWrapper;
 import codesquad.fineants.domain.kis.domain.dto.response.KisIpoResponse;
 import codesquad.fineants.domain.kis.domain.dto.response.KisSearchStockInfo;
 import codesquad.fineants.domain.kis.properties.OauthKisProperties;
+import codesquad.fineants.domain.kis.repository.KisAccessTokenRepository;
 import codesquad.fineants.global.errors.exception.KisException;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
@@ -38,13 +39,16 @@ public class KisClient {
 	private final WebClient webClient;
 	private final WebClient realWebClient;
 	private final OauthKisProperties oauthKisProperties;
+	private final KisAccessTokenRepository manager;
 
 	public KisClient(OauthKisProperties properties,
 		@Qualifier(value = "kisWebClient") WebClient webClient,
-		@Qualifier(value = "realKisWebClient") WebClient realWebClient) {
+		@Qualifier(value = "realKisWebClient") WebClient realWebClient,
+		KisAccessTokenRepository manager) {
 		this.webClient = webClient;
 		this.oauthKisProperties = properties;
 		this.realWebClient = realWebClient;
+		this.manager = manager;
 	}
 
 	// 액세스 토큰 발급
@@ -68,6 +72,26 @@ public class KisClient {
 	public Mono<KisCurrentPrice> fetchCurrentPrice(String tickerSymbol, String authorization) {
 		MultiValueMap<String, String> headerMap = new LinkedMultiValueMap<>();
 		headerMap.add("authorization", authorization);
+		headerMap.add("appkey", oauthKisProperties.getAppkey());
+		headerMap.add("appsecret", oauthKisProperties.getSecretkey());
+		headerMap.add("tr_id", "FHKST01010100");
+
+		MultiValueMap<String, String> queryParamMap = new LinkedMultiValueMap<>();
+		queryParamMap.add("fid_cond_mrkt_div_code", "J");
+		queryParamMap.add("fid_input_iscd", tickerSymbol);
+
+		return performGet(
+			oauthKisProperties.getCurrentPriceUrl(),
+			headerMap,
+			queryParamMap,
+			KisCurrentPrice.class
+		);
+	}
+
+	// 현재가 조회
+	public Mono<KisCurrentPrice> zzFetchCurrentPrice(String tickerSymbol) {
+		MultiValueMap<String, String> headerMap = new LinkedMultiValueMap<>();
+		headerMap.add("authorization", manager.createAuthorization());
 		headerMap.add("appkey", oauthKisProperties.getAppkey());
 		headerMap.add("appsecret", oauthKisProperties.getSecretkey());
 		headerMap.add("tr_id", "FHKST01010100");

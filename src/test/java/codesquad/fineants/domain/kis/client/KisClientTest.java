@@ -21,6 +21,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -31,6 +32,8 @@ import codesquad.fineants.domain.kis.domain.dto.response.KisIpo;
 import codesquad.fineants.domain.kis.domain.dto.response.KisIpoResponse;
 import codesquad.fineants.domain.kis.domain.dto.response.KisSearchStockInfo;
 import codesquad.fineants.domain.kis.properties.OauthKisProperties;
+import codesquad.fineants.domain.kis.repository.KisAccessTokenRepository;
+import codesquad.fineants.domain.kis.service.KisAccessTokenRedisService;
 import codesquad.fineants.global.util.ObjectMapperUtil;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
@@ -41,6 +44,12 @@ class KisClientTest extends AbstractContainerBaseTest {
 	public static MockWebServer mockWebServer;
 
 	private KisClient kisClient;
+
+	@Autowired
+	private KisAccessTokenRepository manager;
+
+	@Autowired
+	private KisAccessTokenRedisService kisAccessTokenRedisService;
 
 	@BeforeAll
 	static void setUp() throws IOException {
@@ -69,7 +78,8 @@ class KisClientTest extends AbstractContainerBaseTest {
 		this.kisClient = new KisClient(
 			oauthKisProperties,
 			WebClient.builder().baseUrl(baseUrl).build(),
-			WebClient.builder().baseUrl(baseUrl).build());
+			WebClient.builder().baseUrl(baseUrl).build(),
+			manager);
 	}
 
 	@DisplayName("한국투자증권 서버로부터 액세스 토큰 발급이 한번 실패하는 경우 재발급을 다시 요청한다")
@@ -272,6 +282,32 @@ class KisClientTest extends AbstractContainerBaseTest {
 		// then
 		assertThat(wrapper).isNotNull();
 		assertThat(wrapper.getKisDividends()).hasSize(2);
+	}
+
+	@DisplayName("사용자는 종목의 현재가를 조회할 수 있다")
+	@Test
+	void zzFetchCurrentPrice() {
+		// given
+		KisAccessToken kisAccessToken = createKisAccessToken();
+		kisAccessTokenRedisService.setAccessTokenMap(kisAccessToken, LocalDateTime.of(2023, 12, 7, 11, 40, 0));
+		manager.refreshAccessToken(kisAccessToken);
+
+		String tickerSymbol = "005930";
+		Map<String, Object> output = Map.ofEntries(
+			Map.entry("output", Map.of(
+				"stck_shrn_iscd", "005930",
+				"stck_prpr", "80000")
+			)
+		);
+		mockWebServer.enqueue(createResponse(200, ObjectMapperUtil.serialize(output)));
+		// when
+		KisCurrentPrice currentPrice = kisClient.zzFetchCurrentPrice(tickerSymbol)
+			.block();
+		// then
+		assertThat(currentPrice)
+			.extracting(KisCurrentPrice::getTickerSymbol, KisCurrentPrice::getPrice)
+			.containsExactly("005930", 80000L);
+
 	}
 
 	@NotNull
