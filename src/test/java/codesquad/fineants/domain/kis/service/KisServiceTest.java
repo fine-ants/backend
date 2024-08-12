@@ -225,7 +225,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 			"STK",
 			"전기,전자"
 		);
-		given(client.fetchSearchStockInfo(anyString(), anyString()))
+		given(client.fetchSearchStockInfo(anyString()))
 			.willReturn(Mono.just(kisSearchStockInfo));
 		// when
 		Set<StockDataResponse.StockIntegrationInfo> stocks = kisService.fetchStockInfoInRangedIpo();
@@ -256,7 +256,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		kisAccessTokenRepository.refreshAccessToken(kisAccessToken);
 		String accessToken = kisAccessToken.createAuthorization();
 		stocks.forEach(s ->
-			given(client.fetchSearchStockInfo(s.getTickerSymbol(), accessToken))
+			given(client.fetchSearchStockInfo(s.getTickerSymbol()))
 				.willReturn(Mono.just(
 						KisSearchStockInfo.listedStock(
 							s.getStockCode(),

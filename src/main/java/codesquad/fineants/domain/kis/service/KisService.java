@@ -251,7 +251,7 @@ public class KisService {
 	 */
 	@CheckedKisAccessToken
 	public Mono<KisSearchStockInfo> fetchSearchStockInfo(String tickerSymbol) {
-		return kisClient.fetchSearchStockInfo(tickerSymbol, manager.createAuthorization())
+		return kisClient.fetchSearchStockInfo(tickerSymbol)
 			.doOnSuccess(response -> log.debug("fetchSearchStockInfo ticker is {}", response.getTickerSymbol()))
 			.retryWhen(Retry.fixedDelay(Long.MAX_VALUE, Duration.ofSeconds(5)))
 			.onErrorResume(e -> Mono.empty());

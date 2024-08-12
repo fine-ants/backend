@@ -210,10 +210,11 @@ public class KisClient {
 		return localDate.format(DateTimeFormatter.BASIC_ISO_DATE);
 	}
 
-	public Mono<KisSearchStockInfo> fetchSearchStockInfo(String tickerSymbol, String authorization) {
+	@CheckedKisAccessToken
+	public Mono<KisSearchStockInfo> fetchSearchStockInfo(String tickerSymbol) {
 		MultiValueMap<String, String> headerMap = new LinkedMultiValueMap<>();
 		headerMap.add("content-type", "application/json; charset=utf-8");
-		headerMap.add("authorization", authorization);
+		headerMap.add("authorization", manager.createAuthorization());
 		headerMap.add("appkey", oauthKisProperties.getAppkey());
 		headerMap.add("appsecret", oauthKisProperties.getSecretkey());
 		headerMap.add("tr_id", "CTPF1002R");

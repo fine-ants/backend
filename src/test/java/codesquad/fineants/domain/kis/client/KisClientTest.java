@@ -187,7 +187,6 @@ class KisClientTest extends AbstractContainerBaseTest {
 	void fetchSearchStockInfo() {
 		// given
 		String tickerSymbol = "034220";
-		String accessToken = createKisAccessToken().getAccessToken();
 
 		Map<String, Object> okResponseBody = new HashMap<>();
 		KisSearchStockInfo output = KisSearchStockInfo.listedStock(
@@ -202,7 +201,7 @@ class KisClientTest extends AbstractContainerBaseTest {
 
 		mockWebServer.enqueue(createResponse(200, ObjectMapperUtil.serialize(okResponseBody)));
 		// when
-		KisSearchStockInfo kisSearchStockInfo = kisClient.fetchSearchStockInfo(tickerSymbol, accessToken)
+		KisSearchStockInfo kisSearchStockInfo = kisClient.fetchSearchStockInfo(tickerSymbol)
 			.blockOptional(Duration.ofMinutes(10))
 			.orElse(null);
 		// then
@@ -240,9 +239,8 @@ class KisClientTest extends AbstractContainerBaseTest {
 		mockWebServer.enqueue(createResponse(200, ObjectMapperUtil.serialize(okResponseBody)));
 
 		String tickerSymbol = "034220";
-		String accessToken = createKisAccessToken().getAccessToken();
 		// when
-		KisSearchStockInfo kisSearchStockInfo = kisClient.fetchSearchStockInfo(tickerSymbol, accessToken)
+		KisSearchStockInfo kisSearchStockInfo = kisClient.fetchSearchStockInfo(tickerSymbol)
 			.retry(1)
 			.blockOptional()
 			.orElse(null);
