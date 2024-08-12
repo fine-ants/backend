@@ -71,6 +71,9 @@ class KisServiceTest extends AbstractContainerBaseTest {
 	@Autowired
 	private StockCsvReader stockCsvReader;
 
+	@Autowired
+	private KisAccessTokenRedisService kisAccessTokenRedisService;
+
 	@MockBean
 	private KisClient client;
 
@@ -80,6 +83,8 @@ class KisServiceTest extends AbstractContainerBaseTest {
 	@AfterEach
 	void tearDown() {
 		Mockito.clearInvocations(client);
+		kisAccessTokenRepository.refreshAccessToken(null);
+		kisAccessTokenRedisService.deleteAccessTokenMap();
 	}
 
 	@WithMockUser(roles = {"ADMIN"})
@@ -185,7 +190,11 @@ class KisServiceTest extends AbstractContainerBaseTest {
 	@Test
 	void refreshStockPriceWhenHoliday() {
 		// given
+		KisAccessToken kisAccessToken = createKisAccessToken();
+		kisAccessTokenRepository.refreshAccessToken(kisAccessToken);
 		given(holidayRepository.isHoliday(any(LocalDate.class))).willReturn(true);
+		given(client.fetchAccessToken())
+			.willReturn(Mono.just(kisAccessToken));
 		// when
 		kisService.refreshCurrentPrice();
 		// then
@@ -329,14 +338,8 @@ class KisServiceTest extends AbstractContainerBaseTest {
 	void fetchDividend_whenAccessTokenExpired_thenThrowException() {
 		// given
 		String tickerSymbol = "005930";
-		kisAccessTokenRepository.refreshAccessToken(null);
-		KisAccessToken newKisAccessToken = createKisAccessToken();
 		given(client.fetchAccessToken())
 			.willReturn(Mono.error(new KisException("요청 건수 초과")));
-		given(client.fetchDividendThisYear(tickerSymbol, newKisAccessToken.createAuthorization()))
-			.willReturn(Mono.just(KisDividendWrapper.create(List.of(
-				KisDividend.create(tickerSymbol, Money.won(300), LocalDate.of(2024, 3, 1),
-					LocalDate.of(2024, 5, 1))))));
 		// when
 		Throwable throwable = catchThrowable(() -> kisService.fetchDividend(tickerSymbol).block());
 		// then
