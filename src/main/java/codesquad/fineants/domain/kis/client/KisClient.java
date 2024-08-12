@@ -14,7 +14,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
-import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -42,7 +41,6 @@ import reactor.util.retry.Retry;
 public class KisClient {
 	private static final String APPLICATION_JSON_UTF8 = "application/json; charset=utf-8";
 	private static final String KIS_CUSTOMER_TYPE = "P";
-	private static final DateTimeFormatter DIVIDEND_DTF = DateTimeFormatter.ofPattern("yyyyMMdd");
 	private final KisProperties kisProperties;
 	private final KisTrIdProperties kisTrIdProperties;
 	private final WebClient realWebClient;
@@ -83,8 +81,8 @@ public class KisClient {
 			.add(TR_ID, kisTrIdProperties.getCurrentPrice())
 			.build();
 		MultiValueMap<String, String> queryParam = KisQueryParamBuilder.builder()
-			.add(KisQueryParam.CONDITION_MARKET_DIVISION_CODE, "J")
-			.add(KisQueryParam.INPUT_STOCK_CODE, tickerSymbol)
+			.add(KisQueryParam.FID_COND_MRKT_DIV_CODE, "J")
+			.add(KisQueryParam.FID_INPUT_ISCD, tickerSymbol)
 			.build();
 
 		return performGet(
@@ -105,10 +103,10 @@ public class KisClient {
 			.add(TR_ID, kisTrIdProperties.getClosingPrice())
 			.build();
 		MultiValueMap<String, String> queryParam = KisQueryParamBuilder.builder()
-			.add(KisQueryParam.CONDITION_MARKET_DIVISION_CODE, "J")
-			.add(KisQueryParam.INPUT_STOCK_CODE, tickerSymbol)
-			.add(KisQueryParam.FID_INPUT_DATE_FROM, LocalDate.now().minusDays(1L).toString())
-			.add(KisQueryParam.FID_INPUT_DATE_TO, LocalDate.now().minusDays(1L).toString())
+			.add(KisQueryParam.FID_COND_MRKT_DIV_CODE, "J")
+			.add(KisQueryParam.FID_INPUT_ISCD, tickerSymbol)
+			.add(KisQueryParam.FID_INPUT_DATE_1, LocalDate.now().minusDays(1L).toString())
+			.add(KisQueryParam.FID_INPUT_DATE_2, LocalDate.now().minusDays(1L).toString())
 			.add(KisQueryParam.FID_PERIOD_DIV_CODE, "D")
 			.add(KisQueryParam.FID_ORG_ADJ_PRC, "0")
 			.build();
@@ -175,19 +173,19 @@ public class KisClient {
 			.add(TR_ID, kisTrIdProperties.getDividend())
 			.add(CUSTOMER_TYPE, KIS_CUSTOMER_TYPE)
 			.build();
-
-		MultiValueMap<String, String> queryParamMap = new LinkedMultiValueMap<>();
-		queryParamMap.add("HIGH_GB", Strings.EMPTY);
-		queryParamMap.add("CTS", Strings.EMPTY);
-		queryParamMap.add("GB1", "0");
-		queryParamMap.add("F_DT", basicIso(from));
-		queryParamMap.add("T_DT", basicIso(to));
-		queryParamMap.add("SHT_CD", Strings.EMPTY);
+		MultiValueMap<String, String> queryParam = KisQueryParamBuilder.builder()
+			.add(KisQueryParam.HIGH_GB, Strings.EMPTY)
+			.add(KisQueryParam.CTS, Strings.EMPTY)
+			.add(KisQueryParam.GB1, "0")
+			.add(KisQueryParam.F_DT, basicIso(from))
+			.add(KisQueryParam.T_DT, basicIso(to))
+			.add(KisQueryParam.SHT_CD, Strings.EMPTY)
+			.build();
 
 		return performGet(
 			kisProperties.getDividendUrl(),
 			header,
-			queryParamMap,
+			queryParam,
 			KisDividendWrapper.class
 		).map(KisDividendWrapper::getKisDividends);
 	}
@@ -202,17 +200,17 @@ public class KisClient {
 			.add(TR_ID, kisTrIdProperties.getIpo())
 			.add(CUSTOMER_TYPE, KIS_CUSTOMER_TYPE)
 			.build();
-
-		MultiValueMap<String, String> queryParamMap = new LinkedMultiValueMap<>();
-		queryParamMap.add("SHT_CD", Strings.EMPTY);
-		queryParamMap.add("T_DT", basicIso(to));
-		queryParamMap.add("F_DT", basicIso(from));
-		queryParamMap.add("CTS", Strings.EMPTY);
+		MultiValueMap<String, String> queryParam = KisQueryParamBuilder.builder()
+			.add(KisQueryParam.SHT_CD, Strings.EMPTY)
+			.add(KisQueryParam.F_DT, basicIso(from))
+			.add(KisQueryParam.T_DT, basicIso(to))
+			.add(KisQueryParam.CTS, Strings.EMPTY)
+			.build();
 
 		return performGet(
 			kisProperties.getIpoUrl(),
 			header,
-			queryParamMap,
+			queryParam,
 			KisIpoResponse.class
 		).retryWhen(Retry.fixedDelay(Long.MAX_VALUE, Duration.ofSeconds(5)));
 	}
@@ -232,15 +230,15 @@ public class KisClient {
 			.add(TR_ID, kisTrIdProperties.getSearchStockInfo())
 			.add(CUSTOMER_TYPE, KIS_CUSTOMER_TYPE)
 			.build();
-
-		MultiValueMap<String, String> queryParamMap = new LinkedMultiValueMap<>();
-		queryParamMap.add("PRDT_TYPE_CD", "300");
-		queryParamMap.add("PDNO", tickerSymbol);
+		MultiValueMap<String, String> queryParam = KisQueryParamBuilder.builder()
+			.add(KisQueryParam.PRDT_TYPE_CD, "300")
+			.add(KisQueryParam.PDNO, tickerSymbol)
+			.build();
 
 		return performGet(
 			kisProperties.getSearchStockInfoUrl(),
 			header,
-			queryParamMap,
+			queryParam,
 			KisSearchStockInfo.class);
 	}
 
