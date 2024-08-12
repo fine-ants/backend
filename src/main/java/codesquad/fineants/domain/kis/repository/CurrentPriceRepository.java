@@ -6,7 +6,7 @@ import java.util.Arrays;
 import java.util.Optional;
 
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.kis.client.KisClient;
@@ -14,7 +14,7 @@ import codesquad.fineants.domain.kis.client.KisCurrentPrice;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-@Component
+@Repository
 public class CurrentPriceRepository {
 	private static final String CURRENT_PRICE_FORMAT = "cp:%s";
 	private final RedisTemplate<String, String> redisTemplate;
@@ -26,14 +26,10 @@ public class CurrentPriceRepository {
 
 	private KisCurrentPrice save(KisCurrentPrice currentPrice) {
 		redisTemplate.opsForValue()
-			.set(getRedisKey(currentPrice.getTickerSymbol()), String.valueOf(currentPrice.getPrice()));
+			.set(currentPrice.toRedisKey(CURRENT_PRICE_FORMAT), currentPrice.toRedisValue());
 		return currentPrice;
 	}
-
-	private String getRedisKey(String tickerSymbol) {
-		return String.format(CURRENT_PRICE_FORMAT, tickerSymbol);
-	}
-
+	
 	public Optional<Money> fetchCurrentPrice(String tickerSymbol) {
 		Optional<String> currentPrice = getCachedPrice(tickerSymbol);
 		if (currentPrice.isEmpty()) {
