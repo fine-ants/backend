@@ -17,9 +17,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Component
 public class CurrentPriceRepository {
-	private static final String format = "cp:%s";
+	private static final String CURRENT_PRICE_FORMAT = "cp:%s";
 	private final RedisTemplate<String, String> redisTemplate;
-	private final KisAccessTokenRepository accessTokenManager;
 	private final KisClient kisClient;
 	private final AccessTokenAspect accessTokenAspect;
 
@@ -30,12 +29,12 @@ public class CurrentPriceRepository {
 	public void addCurrentPrice(List<KisCurrentPrice> currentPrices) {
 		currentPrices.forEach(currentPrice ->
 			redisTemplate.opsForValue()
-				.set(String.format(format, currentPrice.getTickerSymbol()), String.valueOf(currentPrice.getPrice())));
+				.set(String.format(CURRENT_PRICE_FORMAT, currentPrice.getTickerSymbol()),
+					String.valueOf(currentPrice.getPrice())));
 	}
 
 	public Optional<Money> getCurrentPrice(String tickerSymbol) {
-		accessTokenAspect.checkAccessTokenExpiration();
-		String currentPrice = redisTemplate.opsForValue().get(String.format(format, tickerSymbol));
+		String currentPrice = redisTemplate.opsForValue().get(String.format(CURRENT_PRICE_FORMAT, tickerSymbol));
 		if (currentPrice == null) {
 			handleCurrentPrice(tickerSymbol);
 			return getCurrentPrice(tickerSymbol);

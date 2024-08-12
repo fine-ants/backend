@@ -30,6 +30,7 @@ import codesquad.fineants.domain.dividend.domain.entity.StockDividend;
 import codesquad.fineants.domain.fcm.domain.entity.FcmToken;
 import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
 import codesquad.fineants.domain.kis.client.KisAccessToken;
+import codesquad.fineants.domain.kis.repository.KisAccessTokenRepository;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.domain.entity.MemberRole;
 import codesquad.fineants.domain.member.domain.entity.Role;
@@ -98,11 +99,15 @@ public abstract class AbstractContainerBaseTest {
 		registry.add("spring.datasource.password", () -> "password1234!");
 	}
 
+	@Autowired
+	private KisAccessTokenRepository kisAccessTokenRepository;
+
 	@BeforeEach
 	public void abstractSetup() {
 		createRoleIfNotFound("ROLE_ADMIN", "관리자");
 		createRoleIfNotFound("ROLE_MANAGER", "매니저");
 		createRoleIfNotFound("ROLE_USER", "회원");
+		kisAccessTokenRepository.refreshAccessToken(createKisAccessToken());
 	}
 
 	@AfterEach
