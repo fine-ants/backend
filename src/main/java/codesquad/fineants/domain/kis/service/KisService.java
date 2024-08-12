@@ -21,7 +21,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import codesquad.fineants.domain.holding.repository.PortfolioHoldingRepository;
-import codesquad.fineants.domain.kis.aop.CheckedKisAccessToken;
 import codesquad.fineants.domain.kis.client.KisClient;
 import codesquad.fineants.domain.kis.client.KisCurrentPrice;
 import codesquad.fineants.domain.kis.domain.dto.response.KisClosingPrice;
@@ -67,7 +66,6 @@ public class KisService {
 	// 평일 9am ~ 15:59pm 5초마다 현재가 갱신 수행
 	@Profile(value = "production")
 	@Scheduled(cron = "0/5 * 9-15 ? * MON,TUE,WED,THU,FRI")
-	@CheckedKisAccessToken
 	@Transactional(readOnly = true)
 	public void refreshCurrentPrice() {
 		// 휴장일인 경우 실행하지 않음
@@ -78,7 +76,6 @@ public class KisService {
 	}
 
 	// 회원이 가지고 있는 모든 종목에 대하여 현재가 갱신
-	@CheckedKisAccessToken
 	@Transactional(readOnly = true)
 	public List<KisCurrentPrice> refreshAllStockCurrentPrice() {
 		Set<String> totalTickerSymbol = new HashSet<>();
@@ -96,7 +93,6 @@ public class KisService {
 	}
 
 	// 주식 현재가 갱신
-	@CheckedKisAccessToken
 	@Transactional(readOnly = true)
 	public List<KisCurrentPrice> refreshStockCurrentPrice(List<String> tickerSymbols) {
 		List<CompletableFuture<KisCurrentPrice>> futures = tickerSymbols.stream()
@@ -150,7 +146,6 @@ public class KisService {
 		};
 	}
 
-	@CheckedKisAccessToken
 	public Mono<KisCurrentPrice> fetchCurrentPrice(String tickerSymbol) {
 		return kisClient.fetchCurrentPrice(tickerSymbol);
 	}
@@ -158,7 +153,6 @@ public class KisService {
 	// 15시 30분에 종가 갱신 수행
 	@Scheduled(cron = "* 30 15 * * *")
 	@Transactional(readOnly = true)
-	@CheckedKisAccessToken
 	public void refreshClosingPrice() {
 		// 휴장일인 경우 실행하지 않음
 		if (holidayRepository.isHoliday(LocalDate.now())) {
@@ -168,14 +162,13 @@ public class KisService {
 	}
 
 	// 종목 종가 모두 갱신
-	@CheckedKisAccessToken
+
 	public List<KisClosingPrice> refreshAllLastDayClosingPrice() {
 		List<String> tickerSymbols = portFolioHoldingRepository.findAllTickerSymbol();
 		return refreshLastDayClosingPrice(tickerSymbols);
 	}
 
 	// 종목 종가 일부 갱신
-	@CheckedKisAccessToken
 	public List<KisClosingPrice> refreshLastDayClosingPrice(List<String> tickerSymbols) {
 		List<KisClosingPrice> lastDayClosingPrices = readLastDayClosingPriceResponses(tickerSymbols);
 		lastDayClosingPrices.forEach(closingPriceRepository::addPrice);
@@ -215,7 +208,6 @@ public class KisService {
 		return future;
 	}
 
-	@CheckedKisAccessToken
 	public Mono<KisClosingPrice> fetchClosingPrice(String tickerSymbol) {
 		return kisClient.fetchClosingPrice(tickerSymbol);
 	}
@@ -225,16 +217,14 @@ public class KisService {
 	 * @param tickerSymbol 종목 단축 코드
 	 * @return 종목의 배당 일정 정보
 	 */
-	@CheckedKisAccessToken
+
 	public Mono<List<KisDividend>> fetchDividend(String tickerSymbol) {
 		return kisClient.fetchDividendThisYear(tickerSymbol)
 			.map(KisDividendWrapper::getKisDividends)
 			.doOnSuccess(response -> log.debug("fetchDividend list is {}", response.size()))
-			.retryWhen(Retry.fixedDelay(Long.MAX_VALUE, Duration.ofSeconds(5)))
 			.onErrorResume(e -> Mono.empty());
 	}
 
-	@CheckedKisAccessToken
 	public List<KisDividend> fetchDividendAll(LocalDate from, LocalDate to) {
 		return kisClient.fetchDividendAll(from, to)
 			.retryWhen(Retry.fixedDelay(Long.MAX_VALUE, Duration.ofSeconds(5)))
@@ -249,7 +239,6 @@ public class KisService {
 	 * @param tickerSymbol 종목 티커 심볼
 	 * @return 종목 정보
 	 */
-	@CheckedKisAccessToken
 	public Mono<KisSearchStockInfo> fetchSearchStockInfo(String tickerSymbol) {
 		return kisClient.fetchSearchStockInfo(tickerSymbol)
 			.doOnSuccess(response -> log.debug("fetchSearchStockInfo ticker is {}", response.getTickerSymbol()))
@@ -262,7 +251,7 @@ public class KisService {
 	 * 하루전부터 오늘까지의 상장된 종목들의 정보를 조회한다.
 	 * @return 종목 정보 리스트
 	 */
-	@CheckedKisAccessToken
+
 	public Set<StockDataResponse.StockIntegrationInfo> fetchStockInfoInRangedIpo() {
 		LocalDate today = LocalDate.now();
 		LocalDate yesterday = today.minusDays(1);
