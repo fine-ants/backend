@@ -2,17 +2,14 @@ package codesquad.fineants.domain.kis.properties;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.ToString;
 
-@Getter
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@ToString
 public class KisAccessTokenRequest {
 	@JsonProperty("grant_type")
-	private String grantType;
-	private String appkey;
-	private String secretkey;
+	private final String grantType;
+	private final String appkey;
+	private final String secretkey;
 
 	private KisAccessTokenRequest(String appkey, String secretkey) {
 		this.grantType = "client_credentials";
