@@ -77,7 +77,7 @@ public class KisClient {
 			.add(AUTHORIZATION, manager.createAuthorization())
 			.add(APP_KEY, kisProperties.getAppkey())
 			.add(APP_SECRET, kisProperties.getSecretkey())
-			.add(TR_ID, "FHKST01010100")
+			.add(TR_ID, kisTrIdProperties.getCurrentPrice())
 			.build();
 
 		MultiValueMap<String, String> queryParamMap = new LinkedMultiValueMap<>();
@@ -99,7 +99,7 @@ public class KisClient {
 			.add(AUTHORIZATION, manager.createAuthorization())
 			.add(APP_KEY, kisProperties.getAppkey())
 			.add(APP_SECRET, kisProperties.getSecretkey())
-			.add(TR_ID, "FHKST03010100")
+			.add(TR_ID, kisTrIdProperties.getClosingPrice())
 			.build();
 
 		MultiValueMap<String, String> queryParamMap = new LinkedMultiValueMap<>();
@@ -141,7 +141,7 @@ public class KisClient {
 			.add(AUTHORIZATION, manager.createAuthorization())
 			.add(APP_KEY, kisProperties.getAppkey())
 			.add(APP_SECRET, kisProperties.getSecretkey())
-			.add(TR_ID, "HHKDB669102C0")
+			.add(TR_ID, kisTrIdProperties.getDividend())
 			.add(CUSTOMER_TYPE, KIS_CUSTOMER_TYPE)
 			.build();
 
@@ -169,7 +169,7 @@ public class KisClient {
 			.add(AUTHORIZATION, manager.createAuthorization())
 			.add(APP_KEY, kisProperties.getAppkey())
 			.add(APP_SECRET, kisProperties.getSecretkey())
-			.add(TR_ID, "HHKDB669102C0")
+			.add(TR_ID, kisTrIdProperties.getDividend())
 			.add(CUSTOMER_TYPE, KIS_CUSTOMER_TYPE)
 			.build();
 
@@ -196,7 +196,7 @@ public class KisClient {
 			.add(AUTHORIZATION, manager.createAuthorization())
 			.add(APP_KEY, kisProperties.getAppkey())
 			.add(APP_SECRET, kisProperties.getSecretkey())
-			.add(TR_ID, "HHKDB669107C0")
+			.add(TR_ID, kisTrIdProperties.getIpo())
 			.add(CUSTOMER_TYPE, KIS_CUSTOMER_TYPE)
 			.build();
 
@@ -226,7 +226,7 @@ public class KisClient {
 			.add(AUTHORIZATION, manager.createAuthorization())
 			.add(APP_KEY, kisProperties.getAppkey())
 			.add(APP_SECRET, kisProperties.getSecretkey())
-			.add(TR_ID, "CTPF1002R")
+			.add(TR_ID, kisTrIdProperties.getSearchStockInfo())
 			.add(CUSTOMER_TYPE, KIS_CUSTOMER_TYPE)
 			.build();
 
