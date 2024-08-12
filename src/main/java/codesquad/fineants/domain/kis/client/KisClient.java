@@ -206,8 +206,8 @@ public class KisClient {
 	}
 
 	@NotNull
-	private String basicIso(LocalDate to) {
-		return to.format(DateTimeFormatter.BASIC_ISO_DATE);
+	private String basicIso(LocalDate localDate) {
+		return localDate.format(DateTimeFormatter.BASIC_ISO_DATE);
 	}
 
 	public Mono<KisSearchStockInfo> fetchSearchStockInfo(String tickerSymbol, String authorization) {
