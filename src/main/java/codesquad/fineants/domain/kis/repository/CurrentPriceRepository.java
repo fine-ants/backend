@@ -21,24 +21,37 @@ public class CurrentPriceRepository {
 	private final KisClient kisClient;
 
 	public void addCurrentPrice(KisCurrentPrice... currentPrices) {
-		Arrays.stream(currentPrices).forEach(currentPrice ->
-			redisTemplate.opsForValue()
-				.set(String.format(CURRENT_PRICE_FORMAT, currentPrice.getTickerSymbol()),
-					String.valueOf(currentPrice.getPrice())));
+		Arrays.stream(currentPrices).forEach(this::save);
+	}
+
+	private KisCurrentPrice save(KisCurrentPrice currentPrice) {
+		redisTemplate.opsForValue()
+			.set(getRedisKey(currentPrice.getTickerSymbol()), String.valueOf(currentPrice.getPrice()));
+		return currentPrice;
+	}
+
+	private String getRedisKey(String tickerSymbol) {
+		return String.format(CURRENT_PRICE_FORMAT, tickerSymbol);
 	}
 
 	public Optional<Money> fetchCurrentPrice(String tickerSymbol) {
-		String currentPrice = redisTemplate.opsForValue().get(String.format(CURRENT_PRICE_FORMAT, tickerSymbol));
-		if (currentPrice == null) {
-			handleCurrentPrice(tickerSymbol);
-			return fetchCurrentPrice(tickerSymbol);
+		Optional<String> currentPrice = getCachedPrice(tickerSymbol);
+		if (currentPrice.isEmpty()) {
+			Optional<KisCurrentPrice> kisCurrentPrice = fetchAndCachePriceFromKis(tickerSymbol);
+			return kisCurrentPrice
+				.map(KisCurrentPrice::getPrice)
+				.map(Money::won);
 		}
-		return Optional.of(Money.won(currentPrice));
+		return currentPrice.map(Money::won);
 	}
 
-	private void handleCurrentPrice(String tickerSymbol) {
-		kisClient.fetchCurrentPrice(tickerSymbol)
+	private Optional<String> getCachedPrice(String tickerSymbol) {
+		return Optional.ofNullable(redisTemplate.opsForValue().get(String.format(CURRENT_PRICE_FORMAT, tickerSymbol)));
+	}
+
+	private Optional<KisCurrentPrice> fetchAndCachePriceFromKis(String tickerSymbol) {
+		return kisClient.fetchCurrentPrice(tickerSymbol)
 			.blockOptional(TIMEOUT)
-			.ifPresent(this::addCurrentPrice);
+			.map(this::save);
 	}
 }
