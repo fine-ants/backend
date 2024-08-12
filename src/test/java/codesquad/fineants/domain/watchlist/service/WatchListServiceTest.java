@@ -21,7 +21,7 @@ import codesquad.fineants.domain.dividend.repository.StockDividendRepository;
 import codesquad.fineants.domain.kis.client.KisCurrentPrice;
 import codesquad.fineants.domain.kis.domain.dto.response.KisClosingPrice;
 import codesquad.fineants.domain.kis.repository.ClosingPriceRepository;
-import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
+import codesquad.fineants.domain.kis.repository.CurrentPriceRedisRepository;
 import codesquad.fineants.domain.kis.service.KisService;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
@@ -54,7 +54,7 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 	private WatchListRepository watchListRepository;
 
 	@Autowired
-	private CurrentPriceRepository currentPriceRepository;
+	private CurrentPriceRedisRepository currentPriceRedisRepository;
 
 	@Autowired
 	private ClosingPriceRepository closingPriceRepository;
@@ -111,7 +111,7 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 		WatchList watchList = watchListRepository.save(createWatchList("My WatchList 1", member));
 		watchStockRepository.save(createWatchStock(watchList, stock));
 
-		currentPriceRepository.addCurrentPrice(KisCurrentPrice.create("005930", 77000L));
+		currentPriceRedisRepository.savePrice(KisCurrentPrice.create("005930", 77000L));
 		closingPriceRepository.addPrice(KisClosingPrice.create("005930", 77000L));
 
 		setAuthentication(member);

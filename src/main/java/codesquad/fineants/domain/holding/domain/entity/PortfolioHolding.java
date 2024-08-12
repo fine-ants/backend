@@ -20,7 +20,7 @@ import codesquad.fineants.domain.common.money.RateDivision;
 import codesquad.fineants.domain.dividend.domain.entity.StockDividend;
 import codesquad.fineants.domain.holding.domain.dto.response.PortfolioPieChartItem;
 import codesquad.fineants.domain.kis.repository.ClosingPriceRepository;
-import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
+import codesquad.fineants.domain.kis.repository.CurrentPriceRedisRepository;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.purchasehistory.domain.entity.PurchaseHistory;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
@@ -208,7 +208,7 @@ public class PortfolioHolding extends BaseEntity {
 		return monthlyDividends;
 	}
 
-	public void applyCurrentPrice(CurrentPriceRepository manager) {
+	public void applyCurrentPrice(CurrentPriceRedisRepository manager) {
 		Bank bank = Bank.getInstance();
 		Currency to = Currency.KRW;
 		this.currentPrice = stock.getCurrentPrice(manager).reduce(bank, to);

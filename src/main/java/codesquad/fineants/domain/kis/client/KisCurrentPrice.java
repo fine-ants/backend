@@ -34,6 +34,14 @@ public class KisCurrentPrice {
 		return new KisCurrentPrice(tickerSymbol, price);
 	}
 
+	public String toRedisKey(String format) {
+		return String.format(format, tickerSymbol);
+	}
+
+	public String toRedisValue() {
+		return String.valueOf(price);
+	}
+
 	static class KisCurrentPriceDeserializer extends JsonDeserializer<KisCurrentPrice> {
 		@Override
 		public KisCurrentPrice deserialize(JsonParser parser, DeserializationContext context) throws

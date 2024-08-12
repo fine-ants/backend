@@ -19,7 +19,7 @@ import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.common.money.RateDivision;
 import codesquad.fineants.domain.gainhistory.domain.entity.PortfolioGainHistory;
 import codesquad.fineants.domain.gainhistory.repository.PortfolioGainHistoryRepository;
-import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
+import codesquad.fineants.domain.kis.repository.CurrentPriceRedisRepository;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
 import codesquad.fineants.domain.portfolio.domain.dto.response.DashboardLineChartResponse;
@@ -38,7 +38,7 @@ import lombok.extern.slf4j.Slf4j;
 public class DashboardService {
 	private final PortfolioRepository portfolioRepository;
 	private final MemberRepository memberRepository;
-	private final CurrentPriceRepository currentPriceRepository;
+	private final CurrentPriceRedisRepository currentPriceRedisRepository;
 	private final PortfolioGainHistoryRepository portfolioGainHistoryRepository;
 
 	@Transactional(readOnly = true)
@@ -56,7 +56,7 @@ public class DashboardService {
 			return OverviewResponse.empty(member.getNickname());
 		}
 		for (Portfolio portfolio : portfolios) {
-			portfolio.applyCurrentPriceAllHoldingsBy(currentPriceRepository);
+			portfolio.applyCurrentPriceAllHoldingsBy(currentPriceRedisRepository);
 			totalValuation = totalValuation.plus(portfolio.calculateTotalAsset());
 			totalCurrentValuation = totalCurrentValuation.plus(portfolio.calculateTotalCurrentValuation());
 			totalInvestment = totalInvestment.plus(portfolio.calculateTotalInvestmentAmount());
@@ -86,7 +86,7 @@ public class DashboardService {
 		}
 		Expression totalValuation = Money.wonZero(); // 평가 금액 + 현금
 		for (Portfolio portfolio : portfolios) {
-			portfolio.applyCurrentPriceAllHoldingsBy(currentPriceRepository);
+			portfolio.applyCurrentPriceAllHoldingsBy(currentPriceRedisRepository);
 			totalValuation = totalValuation.plus(portfolio.calculateTotalAsset());
 		}
 		List<DashboardPieChartResponse> pieChartResponses = new ArrayList<>();

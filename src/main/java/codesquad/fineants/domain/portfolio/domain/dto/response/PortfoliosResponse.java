@@ -5,7 +5,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import codesquad.fineants.domain.gainhistory.domain.entity.PortfolioGainHistory;
-import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
+import codesquad.fineants.domain.kis.repository.CurrentPriceRedisRepository;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -24,12 +24,12 @@ public class PortfoliosResponse {
 
 	public static PortfoliosResponse of(List<Portfolio> portfolios,
 		Map<Portfolio, PortfolioGainHistory> portfolioGainHistoryMap,
-		CurrentPriceRepository manager) {
+		CurrentPriceRedisRepository manager) {
 		return new PortfoliosResponse(getContents(portfolios, portfolioGainHistoryMap, manager));
 	}
 
 	private static List<PortFolioItem> getContents(List<Portfolio> portfolios,
-		Map<Portfolio, PortfolioGainHistory> portfolioGainHistoryMap, CurrentPriceRepository manager) {
+		Map<Portfolio, PortfolioGainHistory> portfolioGainHistoryMap, CurrentPriceRedisRepository manager) {
 		return portfolios.stream()
 			.map(portfolio -> {
 				portfolio.applyCurrentPriceAllHoldingsBy(manager);

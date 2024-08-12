@@ -21,7 +21,7 @@ import codesquad.fineants.domain.gainhistory.repository.PortfolioGainHistoryRepo
 import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
 import codesquad.fineants.domain.holding.repository.PortfolioHoldingRepository;
 import codesquad.fineants.domain.kis.client.KisCurrentPrice;
-import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
+import codesquad.fineants.domain.kis.repository.CurrentPriceRedisRepository;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
 import codesquad.fineants.domain.portfolio.domain.dto.response.DashboardLineChartResponse;
@@ -53,7 +53,7 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 	@Autowired
 	private StockDividendRepository stockDividendRepository;
 	@Autowired
-	private CurrentPriceRepository currentPriceRepository;
+	private CurrentPriceRedisRepository currentPriceRedisRepository;
 
 	@Test
 	void getOverviewWhenNoPortfolio() {
@@ -106,7 +106,7 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 		purchaseHistoryRepository.save(
 			createPurchaseHistory(null, purchaseDate, numShares, purchasePricePerShare, memo, portfolioHolding));
 
-		currentPriceRepository.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 72900L));
+		currentPriceRedisRepository.savePrice(KisCurrentPrice.create(stock.getTickerSymbol(), 72900L));
 		// when
 		OverviewResponse response = dashboardService.getOverview(member.getId());
 
@@ -145,7 +145,7 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 		Stock stock = stockRepository.save(createSamsungStock());
 		portfolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
 
-		currentPriceRepository.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L));
+		currentPriceRedisRepository.savePrice(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L));
 		// when
 		OverviewResponse response = dashboardService.getOverview(member.getId());
 
@@ -219,7 +219,7 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 				"첫구매"
 			)
 		));
-		currentPriceRepository.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 60000L));
+		currentPriceRedisRepository.savePrice(KisCurrentPrice.create(stock.getTickerSymbol(), 60000L));
 		// when
 		List<DashboardPieChartResponse> responses = dashboardService.getPieChart(member.getId());
 
