@@ -81,7 +81,6 @@ public class KisClient {
 			.add(APP_SECRET, kisProperties.getSecretkey())
 			.add(TR_ID, kisTrIdProperties.getCurrentPrice())
 			.build();
-
 		MultiValueMap<String, String> queryParam = KisQueryParamBuilder.builder()
 			.add(KisQueryParam.CONDITION_MARKET_DIVISION_CODE, "J")
 			.add(KisQueryParam.INPUT_STOCK_CODE, tickerSymbol)
@@ -104,19 +103,19 @@ public class KisClient {
 			.add(APP_SECRET, kisProperties.getSecretkey())
 			.add(TR_ID, kisTrIdProperties.getClosingPrice())
 			.build();
-
-		MultiValueMap<String, String> queryParamMap = new LinkedMultiValueMap<>();
-		queryParamMap.add(KisQueryParam.CONDITION_MARKET_DIVISION_CODE.getParamName(), "J");
-		queryParamMap.add("FID_INPUT_ISCD", tickerSymbol);
-		queryParamMap.add("FID_INPUT_DATE_1", LocalDate.now().minusDays(1L).toString());
-		queryParamMap.add("FID_INPUT_DATE_2", LocalDate.now().minusDays(1L).toString());
-		queryParamMap.add("FID_PERIOD_DIV_CODE", "D");
-		queryParamMap.add("FID_ORG_ADJ_PRC", "0");
+		MultiValueMap<String, String> queryParam = KisQueryParamBuilder.builder()
+			.add(KisQueryParam.CONDITION_MARKET_DIVISION_CODE, "J")
+			.add(KisQueryParam.INPUT_STOCK_CODE, tickerSymbol)
+			.add(KisQueryParam.FID_INPUT_DATE_FROM, LocalDate.now().minusDays(1L).toString())
+			.add(KisQueryParam.FID_INPUT_DATE_TO, LocalDate.now().minusDays(1L).toString())
+			.add(KisQueryParam.FID_PERIOD_DIV_CODE, "D")
+			.add(KisQueryParam.FID_ORG_ADJ_PRC, "0")
+			.build();
 
 		return performGet(
 			kisProperties.getClosingPriceUrl(),
 			header,
-			queryParamMap,
+			queryParam,
 			KisClosingPrice.class
 		);
 	}
