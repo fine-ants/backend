@@ -19,7 +19,7 @@ import codesquad.fineants.domain.gainhistory.repository.PortfolioGainHistoryRepo
 import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
 import codesquad.fineants.domain.holding.repository.PortfolioHoldingRepository;
 import codesquad.fineants.domain.kis.client.KisCurrentPrice;
-import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
+import codesquad.fineants.domain.kis.repository.CurrentPriceRedisRepository;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
@@ -52,7 +52,7 @@ class PortfolioGainHistoryServiceTest extends AbstractContainerBaseTest {
 	private PurchaseHistoryRepository purchaseHistoryRepository;
 
 	@Autowired
-	private CurrentPriceRepository currentPriceRepository;
+	private CurrentPriceRedisRepository currentPriceRedisRepository;
 
 	// TODO: Kis 접근 토큰 모킹 처리
 	@DisplayName("모든 포트폴리오의 손익 내역을 추가한다")
@@ -72,7 +72,7 @@ class PortfolioGainHistoryServiceTest extends AbstractContainerBaseTest {
 		purchaseHistoryRepository.save(
 			createPurchaseHistory(null, purchaseDate, numShares, purchasePricePerShare, memo, portfolioHolding));
 
-		currentPriceRepository.addCurrentPrice(KisCurrentPrice.create(stock.getTickerSymbol(), 60000L));
+		currentPriceRedisRepository.savePrice(KisCurrentPrice.create(stock.getTickerSymbol(), 60000L));
 
 		// when
 		PortfolioGainHistoryCreateResponse response = service.addPortfolioGainHistory();

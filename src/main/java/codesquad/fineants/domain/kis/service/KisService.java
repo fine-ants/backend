@@ -29,7 +29,7 @@ import codesquad.fineants.domain.kis.domain.dto.response.KisDividendWrapper;
 import codesquad.fineants.domain.kis.domain.dto.response.KisIpo;
 import codesquad.fineants.domain.kis.domain.dto.response.KisSearchStockInfo;
 import codesquad.fineants.domain.kis.repository.ClosingPriceRepository;
-import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
+import codesquad.fineants.domain.kis.repository.CurrentPriceRedisRepository;
 import codesquad.fineants.domain.kis.repository.HolidayRepository;
 import codesquad.fineants.domain.kis.repository.KisAccessTokenRepository;
 import codesquad.fineants.domain.notification.event.publisher.PortfolioPublisher;
@@ -56,7 +56,7 @@ public class KisService {
 	private final KisClient kisClient;
 	private final PortfolioHoldingRepository portFolioHoldingRepository;
 	private final KisAccessTokenRepository manager;
-	private final CurrentPriceRepository currentPriceRepository;
+	private final CurrentPriceRedisRepository currentPriceRedisRepository;
 	private final ClosingPriceRepository closingPriceRepository;
 	private final HolidayRepository holidayRepository;
 	private final StockTargetPricePublisher stockTargetPricePublisher;
@@ -111,7 +111,7 @@ public class KisService {
 			.filter(Objects::nonNull)
 			.toList();
 
-		prices.forEach(currentPriceRepository::addCurrentPrice);
+		prices.forEach(currentPriceRedisRepository::savePrice);
 
 		log.info("종목 현재가 {}개중 {}개 갱신", tickerSymbols.size(), prices.size());
 		return prices;

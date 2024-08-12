@@ -31,7 +31,7 @@ import codesquad.fineants.domain.kis.domain.dto.response.KisClosingPrice;
 import codesquad.fineants.domain.kis.domain.dto.response.KisDividend;
 import codesquad.fineants.domain.kis.domain.dto.response.KisSearchStockInfo;
 import codesquad.fineants.domain.kis.repository.ClosingPriceRepository;
-import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
+import codesquad.fineants.domain.kis.repository.CurrentPriceRedisRepository;
 import codesquad.fineants.domain.kis.repository.KisAccessTokenRepository;
 import codesquad.fineants.domain.kis.service.KisService;
 import codesquad.fineants.domain.stock.domain.dto.response.StockDataResponse;
@@ -63,7 +63,7 @@ class StockServiceTest extends AbstractContainerBaseTest {
 	private KisAccessTokenRepository kisAccessTokenRepository;
 
 	@Autowired
-	private CurrentPriceRepository currentPriceRepository;
+	private CurrentPriceRedisRepository currentPriceRedisRepository;
 
 	@Autowired
 	private ClosingPriceRepository closingPriceRepository;
@@ -96,7 +96,7 @@ class StockServiceTest extends AbstractContainerBaseTest {
 		Stock stock = stockRepository.save(createSamsungStock());
 		stockDividendRepository.saveAll(createStockDividendWith(stock));
 
-		currentPriceRepository.addCurrentPrice(KisCurrentPrice.create("005930", 50000L));
+		currentPriceRedisRepository.savePrice(KisCurrentPrice.create("005930", 50000L));
 		closingPriceRepository.addPrice(KisClosingPrice.create("005930", 49000L));
 		given(kisClient.fetchAccessToken())
 			.willReturn(

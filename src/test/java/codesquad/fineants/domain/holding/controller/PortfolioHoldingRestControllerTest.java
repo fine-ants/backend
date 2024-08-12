@@ -46,7 +46,7 @@ import codesquad.fineants.domain.holding.domain.dto.response.PortfolioStockDelet
 import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
 import codesquad.fineants.domain.holding.service.PortfolioHoldingService;
 import codesquad.fineants.domain.holding.service.PortfolioObservableService;
-import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
+import codesquad.fineants.domain.kis.repository.CurrentPriceRedisRepository;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.service.PortFolioService;
@@ -68,7 +68,7 @@ class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 	private PortFolioService portFolioService;
 
 	@MockBean
-	private CurrentPriceRepository currentPriceRepository;
+	private CurrentPriceRedisRepository currentPriceRedisRepository;
 
 	@Override
 	protected Object initController() {
@@ -343,12 +343,12 @@ class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 		portfolioHolding.addPurchaseHistory(
 			createPurchaseHistory(null, purchaseDate, numShares, purchasePerShare, memo, portfolioHolding));
 
-		given(currentPriceRepository.getCurrentPrice(stock.getTickerSymbol()))
+		given(currentPriceRedisRepository.fetchPriceBy(stock.getTickerSymbol()))
 			.willReturn(Optional.of(portfolioHolding.getCurrentPrice()));
 
-		PieChart pieChart = new PieChart(currentPriceRepository);
-		DividendChart dividendChart = new DividendChart(currentPriceRepository);
-		SectorChart sectorChart = new SectorChart(currentPriceRepository);
+		PieChart pieChart = new PieChart(currentPriceRedisRepository);
+		DividendChart dividendChart = new DividendChart(currentPriceRedisRepository);
+		SectorChart sectorChart = new SectorChart(currentPriceRedisRepository);
 
 		PortfolioDetails portfolioDetails = PortfolioDetails.from(portfolio);
 		List<PortfolioPieChartItem> pieChartItems = pieChart.createBy(portfolio);

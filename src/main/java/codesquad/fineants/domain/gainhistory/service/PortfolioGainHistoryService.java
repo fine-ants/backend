@@ -11,7 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import codesquad.fineants.domain.gainhistory.domain.dto.response.PortfolioGainHistoryCreateResponse;
 import codesquad.fineants.domain.gainhistory.domain.entity.PortfolioGainHistory;
 import codesquad.fineants.domain.gainhistory.repository.PortfolioGainHistoryRepository;
-import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
+import codesquad.fineants.domain.kis.repository.CurrentPriceRedisRepository;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.repository.PortfolioRepository;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 public class PortfolioGainHistoryService {
 	private final PortfolioGainHistoryRepository repository;
 	private final PortfolioRepository portfolioRepository;
-	private final CurrentPriceRepository currentPriceRepository;
+	private final CurrentPriceRedisRepository currentPriceRedisRepository;
 
 	@Transactional
 	@Scheduled(cron = "0 0 16 * * ?") // 매일 16시에 실행
@@ -39,7 +39,7 @@ public class PortfolioGainHistoryService {
 		List<PortfolioGainHistory> portfolioGainHistories = new ArrayList<>();
 
 		for (Portfolio portfolio : portfolios) {
-			portfolio.applyCurrentPriceAllHoldingsBy(currentPriceRepository);
+			portfolio.applyCurrentPriceAllHoldingsBy(currentPriceRedisRepository);
 			PortfolioGainHistory latestHistory =
 				repository.findFirstByPortfolioAndCreateAtIsLessThanEqualOrderByCreateAtDesc(
 						portfolio.getId(), LocalDateTime.now())

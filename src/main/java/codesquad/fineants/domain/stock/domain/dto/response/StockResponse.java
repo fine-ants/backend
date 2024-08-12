@@ -9,7 +9,7 @@ import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.common.money.Percentage;
 import codesquad.fineants.domain.stock.domain.entity.Market;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
-import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
+import codesquad.fineants.domain.kis.repository.CurrentPriceRedisRepository;
 import codesquad.fineants.domain.kis.repository.ClosingPriceRepository;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -59,7 +59,7 @@ public class StockResponse {
 			.build();
 	}
 
-	public static StockResponse of(Stock stock, CurrentPriceRepository currentPriceRepository,
+	public static StockResponse of(Stock stock, CurrentPriceRedisRepository currentPriceRedisRepository,
 		ClosingPriceRepository closingPriceRepository) {
 		Bank bank = Bank.getInstance();
 		Currency to = Currency.KRW;
@@ -69,14 +69,14 @@ public class StockResponse {
 			.companyName(stock.getCompanyName())
 			.companyNameEng(stock.getCompanyNameEng())
 			.market(stock.getMarket())
-			.currentPrice(stock.getCurrentPrice(currentPriceRepository).reduce(bank, to))
-			.dailyChange(stock.getDailyChange(currentPriceRepository, closingPriceRepository).reduce(bank, to))
-			.dailyChangeRate(stock.getDailyChangeRate(currentPriceRepository, closingPriceRepository).toPercentage(
+			.currentPrice(stock.getCurrentPrice(currentPriceRedisRepository).reduce(bank, to))
+			.dailyChange(stock.getDailyChange(currentPriceRedisRepository, closingPriceRepository).reduce(bank, to))
+			.dailyChangeRate(stock.getDailyChangeRate(currentPriceRedisRepository, closingPriceRepository).toPercentage(
 				bank, to))
 			.sector(stock.getSector())
 			.annualDividend(stock.getAnnualDividend().reduce(bank, to))
 			.annualDividendYield(
-				stock.getAnnualDividendYield(currentPriceRepository).toPercentage(bank, to))
+				stock.getAnnualDividendYield(currentPriceRedisRepository).toPercentage(bank, to))
 			.dividendMonths(stock.getDividendMonths())
 			.build();
 	}
