@@ -8,7 +8,9 @@ import lombok.ToString;
 public class KisAccessTokenRequest {
 	@JsonProperty("grant_type")
 	private final String grantType;
+	@JsonProperty("appkey")
 	private final String appkey;
+	@JsonProperty("appsecret")
 	private final String secretkey;
 
 	private KisAccessTokenRequest(String appkey, String secretkey) {
