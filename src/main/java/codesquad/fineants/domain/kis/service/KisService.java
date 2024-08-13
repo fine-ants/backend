@@ -15,6 +15,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -95,18 +96,27 @@ public class KisService {
 	// 주식 현재가 갱신
 	@Transactional(readOnly = true)
 	public List<KisCurrentPrice> refreshStockCurrentPrice(List<String> tickerSymbols) {
-		List<KisCurrentPrice> prices = tickerSymbols.stream()
+		List<KisCurrentPrice> prices = fetchCurrentPriceBy(tickerSymbols);
+		currentPriceRedisRepository.savePrice(toArray(prices));
+		log.info("종목 현재가 {}개중 {}개 갱신", tickerSymbols.size(), prices.size());
+		return prices;
+	}
+
+	@NotNull
+	private List<KisCurrentPrice> fetchCurrentPriceBy(List<String> tickerSymbols) {
+		return tickerSymbols.stream()
 			.map(tickerSymbol ->
 				this.fetchCurrentPrice(tickerSymbol)
 					.retryWhen(Retry.fixedDelay(Long.MAX_VALUE, Duration.ofSeconds(5)))
 					.blockOptional(TIMEOUT)
 			)
 			.map(optional -> optional.orElseGet(KisCurrentPrice::empty))
-			.filter(kisCurrentPrice -> !kisCurrentPrice.isEmpty())
+			.filter(KisCurrentPrice::hasPrice)
 			.toList();
-		currentPriceRedisRepository.savePrice(prices.toArray(KisCurrentPrice[]::new));
-		log.info("종목 현재가 {}개중 {}개 갱신", tickerSymbols.size(), prices.size());
-		return prices;
+	}
+
+	private KisCurrentPrice[] toArray(List<KisCurrentPrice> prices) {
+		return prices.toArray(KisCurrentPrice[]::new);
 	}
 
 	private <T> CompletableFuture<T> createCompletableFuture() {
