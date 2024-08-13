@@ -2,7 +2,6 @@ package codesquad.fineants.domain.kis.service;
 
 import java.time.Duration;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -98,15 +97,14 @@ public class KisService {
 	// 주식 현재가 갱신
 	@Transactional(readOnly = true)
 	public List<KisCurrentPrice> refreshStockCurrentPrice(List<String> tickerSymbols) {
-		List<KisCurrentPrice> prices = new ArrayList<>();
-		for (String tickerSymbol : tickerSymbols) {
-			KisCurrentPrice kisCurrentPrice = this.fetchCurrentPrice(tickerSymbol)
-				.retryWhen(Retry.fixedDelay(Long.MAX_VALUE, delayManager.fixedDelay()))
-				.blockOptional(delayManager.timeout())
-				.orElseGet(() -> KisCurrentPrice.empty(tickerSymbol));
-			prices.add(kisCurrentPrice);
-		}
-
+		List<KisCurrentPrice> prices = tickerSymbols.stream()
+			.map(ticker ->
+				this.fetchCurrentPrice(ticker)
+					.retryWhen(Retry.fixedDelay(Long.MAX_VALUE, delayManager.fixedDelay()))
+					.blockOptional(delayManager.timeout())
+					.orElseGet(() -> KisCurrentPrice.empty(ticker))
+			)
+			.toList();
 		currentPriceRedisRepository.savePrice(toArray(prices));
 		log.info("종목 현재가 {}개중 {}개 갱신", tickerSymbols.size(), prices.size());
 		return prices;
