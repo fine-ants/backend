@@ -31,7 +31,6 @@ import codesquad.fineants.domain.kis.domain.dto.response.KisSearchStockInfo;
 import codesquad.fineants.domain.kis.repository.ClosingPriceRepository;
 import codesquad.fineants.domain.kis.repository.CurrentPriceRedisRepository;
 import codesquad.fineants.domain.kis.repository.HolidayRepository;
-import codesquad.fineants.domain.kis.repository.KisAccessTokenRepository;
 import codesquad.fineants.domain.notification.event.publisher.PortfolioPublisher;
 import codesquad.fineants.domain.stock.domain.dto.response.StockDataResponse;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
@@ -56,7 +55,6 @@ public class KisService {
 
 	private final KisClient kisClient;
 	private final PortfolioHoldingRepository portFolioHoldingRepository;
-	private final KisAccessTokenRepository manager;
 	private final CurrentPriceRedisRepository currentPriceRedisRepository;
 	private final ClosingPriceRepository closingPriceRepository;
 	private final HolidayRepository holidayRepository;
@@ -68,7 +66,7 @@ public class KisService {
 	// 평일 9am ~ 15:59pm 5초마다 현재가 갱신 수행
 	@Profile(value = "production")
 	@Scheduled(cron = "0/5 * 9-15 ? * MON,TUE,WED,THU,FRI")
-	@Transactional(readOnly = true)
+	@Transactional
 	public void refreshCurrentPrice() {
 		// 휴장일인 경우 실행하지 않음
 		if (holidayRepository.isHoliday(LocalDate.now())) {
@@ -78,7 +76,7 @@ public class KisService {
 	}
 
 	// 회원이 가지고 있는 모든 종목에 대하여 현재가 갱신
-	@Transactional(readOnly = true)
+	@Transactional
 	public List<KisCurrentPrice> refreshAllStockCurrentPrice() {
 		Set<String> totalTickerSymbol = new HashSet<>();
 		totalTickerSymbol.addAll(portFolioHoldingRepository.findAllTickerSymbol());
@@ -87,7 +85,6 @@ public class KisService {
 			.map(Stock::getTickerSymbol)
 			.collect(Collectors.toSet()));
 		List<String> totalTickerSymbolList = totalTickerSymbol.stream().toList();
-
 		List<KisCurrentPrice> prices = this.refreshStockCurrentPrice(totalTickerSymbolList);
 		stockTargetPricePublisher.publishEvent(totalTickerSymbolList);
 		portfolioPublisher.publishCurrentPriceEvent();
@@ -100,6 +97,7 @@ public class KisService {
 		int concurrency = 20;
 		List<KisCurrentPrice> prices = Flux.fromIterable(tickerSymbols)
 			.flatMap(ticker -> this.fetchCurrentPrice(ticker)
+				.doOnSuccess(kisCurrentPrice -> log.debug("reload stock current price {}", kisCurrentPrice))
 				.retryWhen(Retry.fixedDelay(Long.MAX_VALUE, delayManager.fixedDelay())), concurrency)
 			.delayElements(delayManager.delay())
 			.collectList()
