@@ -144,7 +144,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 
 		kisAccessTokenRepository.refreshAccessToken(createKisAccessToken());
 		given(client.fetchCurrentPrice(anyString()))
-			.willThrow(new KisException("요청건수가 초과되었습니다"));
+			.willReturn(Mono.error(new KisException("요청건수가 초과되었습니다")));
 
 		List<String> tickerSymbols = stocks.stream()
 			.map(Stock::getTickerSymbol)

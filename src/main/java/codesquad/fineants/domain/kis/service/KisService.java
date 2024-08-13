@@ -15,7 +15,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
-import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -39,6 +38,7 @@ import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock_target_price.domain.entity.StockTargetPrice;
 import codesquad.fineants.domain.stock_target_price.event.publisher.StockTargetPricePublisher;
 import codesquad.fineants.domain.stock_target_price.repository.StockTargetPriceRepository;
+import codesquad.fineants.global.common.delay.DelayManager;
 import codesquad.fineants.global.errors.exception.KisException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -63,6 +63,7 @@ public class KisService {
 	private final StockTargetPricePublisher stockTargetPricePublisher;
 	private final PortfolioPublisher portfolioPublisher;
 	private final StockTargetPriceRepository stockTargetPriceRepository;
+	private final DelayManager delayManager;
 
 	// 평일 9am ~ 15:59pm 5초마다 현재가 갱신 수행
 	@Profile(value = "production")
@@ -96,23 +97,16 @@ public class KisService {
 	// 주식 현재가 갱신
 	@Transactional(readOnly = true)
 	public List<KisCurrentPrice> refreshStockCurrentPrice(List<String> tickerSymbols) {
-		List<KisCurrentPrice> prices = fetchCurrentPriceBy(tickerSymbols);
+		List<KisCurrentPrice> prices = Flux.fromIterable(tickerSymbols)
+			.flatMap(tickerSymbol -> this.fetchCurrentPrice(tickerSymbol)
+				.retryWhen(Retry.fixedDelay(Long.MAX_VALUE, Duration.ofSeconds(5))), 20)
+			.delayElements(delayManager.getDelay())
+			.collectList()
+			.blockOptional(TIMEOUT)
+			.orElseGet(Collections::emptyList);
 		currentPriceRedisRepository.savePrice(toArray(prices));
 		log.info("종목 현재가 {}개중 {}개 갱신", tickerSymbols.size(), prices.size());
 		return prices;
-	}
-
-	@NotNull
-	private List<KisCurrentPrice> fetchCurrentPriceBy(List<String> tickerSymbols) {
-		return tickerSymbols.stream()
-			.map(tickerSymbol ->
-				this.fetchCurrentPrice(tickerSymbol)
-					.retryWhen(Retry.fixedDelay(Long.MAX_VALUE, Duration.ofSeconds(5)))
-					.blockOptional(TIMEOUT)
-			)
-			.map(optional -> optional.orElseGet(KisCurrentPrice::empty))
-			.filter(KisCurrentPrice::hasPrice)
-			.toList();
 	}
 
 	private KisCurrentPrice[] toArray(List<KisCurrentPrice> prices) {
@@ -234,7 +228,6 @@ public class KisService {
 	 * 하루전부터 오늘까지의 상장된 종목들의 정보를 조회한다.
 	 * @return 종목 정보 리스트
 	 */
-
 	public Set<StockDataResponse.StockIntegrationInfo> fetchStockInfoInRangedIpo() {
 		LocalDate today = LocalDate.now();
 		LocalDate yesterday = today.minusDays(1);
