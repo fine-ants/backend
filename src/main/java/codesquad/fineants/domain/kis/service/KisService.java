@@ -97,9 +97,10 @@ public class KisService {
 	// 주식 현재가 갱신
 	@Transactional(readOnly = true)
 	public List<KisCurrentPrice> refreshStockCurrentPrice(List<String> tickerSymbols) {
+		int concurrency = 20;
 		List<KisCurrentPrice> prices = Flux.fromIterable(tickerSymbols)
 			.flatMap(ticker -> this.fetchCurrentPrice(ticker)
-				.retryWhen(Retry.fixedDelay(Long.MAX_VALUE, delayManager.fixedDelay())), 20)
+				.retryWhen(Retry.fixedDelay(Long.MAX_VALUE, delayManager.fixedDelay())), concurrency)
 			.delayElements(delayManager.delay())
 			.collectList()
 			.blockOptional(delayManager.timeout())
