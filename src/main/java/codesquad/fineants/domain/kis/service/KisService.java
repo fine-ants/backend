@@ -2,6 +2,7 @@ package codesquad.fineants.domain.kis.service;
 
 import java.time.Duration;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -97,13 +98,15 @@ public class KisService {
 	// 주식 현재가 갱신
 	@Transactional(readOnly = true)
 	public List<KisCurrentPrice> refreshStockCurrentPrice(List<String> tickerSymbols) {
-		List<KisCurrentPrice> prices = Flux.fromIterable(tickerSymbols)
-			.flatMap(tickerSymbol -> this.fetchCurrentPrice(tickerSymbol)
-				.retryWhen(Retry.fixedDelay(Long.MAX_VALUE, Duration.ofSeconds(5))), 20)
-			.delayElements(delayManager.getDelay())
-			.collectList()
-			.blockOptional(TIMEOUT)
-			.orElseGet(Collections::emptyList);
+		List<KisCurrentPrice> prices = new ArrayList<>();
+		for (String tickerSymbol : tickerSymbols) {
+			KisCurrentPrice kisCurrentPrice = this.fetchCurrentPrice(tickerSymbol)
+				.retryWhen(Retry.fixedDelay(Long.MAX_VALUE, delayManager.fixedDelay()))
+				.blockOptional(delayManager.timeout())
+				.orElseGet(() -> KisCurrentPrice.empty(tickerSymbol));
+			prices.add(kisCurrentPrice);
+		}
+
 		currentPriceRedisRepository.savePrice(toArray(prices));
 		log.info("종목 현재가 {}개중 {}개 갱신", tickerSymbols.size(), prices.size());
 		return prices;
@@ -124,7 +127,7 @@ public class KisService {
 	}
 
 	public Mono<KisCurrentPrice> fetchCurrentPrice(String tickerSymbol) {
-		return kisClient.fetchCurrentPrice(tickerSymbol);
+		return Mono.defer(() -> kisClient.fetchCurrentPrice(tickerSymbol));
 	}
 
 	// 15시 30분에 종가 갱신 수행

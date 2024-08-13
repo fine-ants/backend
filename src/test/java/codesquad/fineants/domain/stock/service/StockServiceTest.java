@@ -232,7 +232,7 @@ class StockServiceTest extends AbstractContainerBaseTest {
 					LocalDate.parse("20240630", dtf),
 					LocalDate.parse("20240814", dtf))
 			)));
-		given(delayManager.getDelay()).willReturn(Duration.ZERO);
+		given(delayManager.delay()).willReturn(Duration.ZERO);
 		// when
 		StockReloadResponse response = stockService.reloadStocks();
 		// then
@@ -305,7 +305,7 @@ class StockServiceTest extends AbstractContainerBaseTest {
 				KisDividend.create(s.getTickerSymbol(), Money.won(300), LocalDate.of(2024, 5, 1),
 					LocalDate.of(2024, 7, 1)))))
 		);
-		given(delayManager.getDelay()).willReturn(Duration.ZERO);
+		given(delayManager.delay()).willReturn(Duration.ZERO);
 		// when
 		stockService.scheduledReloadStocks();
 		// then
