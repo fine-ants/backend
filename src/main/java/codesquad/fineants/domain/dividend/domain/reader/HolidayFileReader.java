@@ -8,7 +8,6 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
@@ -34,7 +33,7 @@ public class HolidayFileReader {
 				.map(parts -> new HolidayDto(
 					LocalDate.parse(parts[0], formatter),
 					parts[1]))
-				.collect(Collectors.toList());
+				.toList();
 		}
 	}
 }

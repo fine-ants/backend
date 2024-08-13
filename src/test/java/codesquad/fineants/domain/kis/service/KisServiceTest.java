@@ -29,6 +29,7 @@ import codesquad.fineants.domain.kis.domain.dto.response.KisDividendWrapper;
 import codesquad.fineants.domain.kis.domain.dto.response.KisIpo;
 import codesquad.fineants.domain.kis.domain.dto.response.KisIpoResponse;
 import codesquad.fineants.domain.kis.domain.dto.response.KisSearchStockInfo;
+import codesquad.fineants.domain.kis.repository.CurrentPriceRedisRepository;
 import codesquad.fineants.domain.kis.repository.HolidayRepository;
 import codesquad.fineants.domain.kis.repository.KisAccessTokenRepository;
 import codesquad.fineants.domain.member.domain.entity.Member;
@@ -72,6 +73,9 @@ class KisServiceTest extends AbstractContainerBaseTest {
 	@Autowired
 	private KisAccessTokenRedisService kisAccessTokenRedisService;
 
+	@Autowired
+	private CurrentPriceRedisRepository currentPriceRedisRepository;
+
 	@MockBean
 	private KisClient client;
 
@@ -104,20 +108,16 @@ class KisServiceTest extends AbstractContainerBaseTest {
 	}
 
 	@WithMockUser(roles = {"ADMIN"})
-	@DisplayName("현재가 갱신시 요청건수 초과로 실패하였다가 다시 시도하여 성공한다")
+	@DisplayName("현재가를 갱신한다")
 	@Test
 	void refreshStockCurrentPriceWhenExceedingTransactionPerSecond() {
 		// given
 		Member member = memberRepository.save(createMember());
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
-		List<Stock> stocks = stockRepository.saveAll(List.of(
-			createSamsungStock()
-		));
+		List<Stock> stocks = stockRepository.saveAll(List.of(createSamsungStock()));
 		stocks.forEach(stock -> portfolioHoldingRepository.save(createPortfolioHolding(portfolio, stock)));
 
-		kisAccessTokenRepository.refreshAccessToken(createKisAccessToken());
-		given(client.fetchCurrentPrice(anyString()))
-			.willThrow(new KisException("요청건수가 초과되었습니다"))
+		given(client.fetchCurrentPrice("005930"))
 			.willReturn(Mono.just(KisCurrentPrice.create("005930", 10000L)));
 
 		List<String> tickerSymbols = stocks.stream()
@@ -127,7 +127,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		kisService.refreshStockCurrentPrice(tickerSymbols);
 
 		// then
-		verify(client, times(1)).fetchCurrentPrice(anyString());
+		assertThat(currentPriceRedisRepository.fetchPriceBy("005930").orElseThrow()).isEqualTo(Money.won(10000));
 	}
 
 	@WithMockUser(roles = {"ADMIN"})
@@ -329,7 +329,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 			.containsExactlyInAnyOrder(
 				tuple("005930", Money.won(300), LocalDate.of(2024, 3, 1), LocalDate.of(2024, 5, 1)));
 	}
-	
+
 	private List<Stock> saveStocks() {
 		return stockRepository.saveAll(stockCsvReader.readStockCsv());
 	}

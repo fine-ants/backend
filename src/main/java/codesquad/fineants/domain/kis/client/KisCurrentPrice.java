@@ -2,6 +2,8 @@ package codesquad.fineants.domain.kis.client;
 
 import java.io.IOException;
 
+import org.apache.logging.log4j.util.Strings;
+
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.TreeNode;
 import com.fasterxml.jackson.databind.DeserializationContext;
@@ -26,6 +28,10 @@ public class KisCurrentPrice {
 	private String tickerSymbol;
 	private Long price;
 
+	public static KisCurrentPrice empty() {
+		return empty(Strings.EMPTY);
+	}
+
 	public static KisCurrentPrice empty(String tickerSymbol) {
 		return new KisCurrentPrice(tickerSymbol, 0L);
 	}
@@ -40,6 +46,10 @@ public class KisCurrentPrice {
 
 	public String toRedisValue() {
 		return String.valueOf(price);
+	}
+
+	public boolean isEmpty() {
+		return tickerSymbol == null;
 	}
 
 	static class KisCurrentPriceDeserializer extends JsonDeserializer<KisCurrentPrice> {
