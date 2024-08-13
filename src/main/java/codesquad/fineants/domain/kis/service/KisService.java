@@ -109,12 +109,6 @@ public class KisService {
 		return prices;
 	}
 
-	private CompletableFuture<KisCurrentPrice> submitCurrentPriceFuture(String tickerSymbol) {
-		CompletableFuture<KisCurrentPrice> future = createCompletableFuture();
-		executorService.schedule(createCurrentPriceRunnable(tickerSymbol, future), 1L, TimeUnit.SECONDS);
-		return future;
-	}
-
 	private <T> CompletableFuture<T> createCompletableFuture() {
 		CompletableFuture<T> future = new CompletableFuture<>();
 		future.orTimeout(TIMEOUT.toMillis(), TimeUnit.MILLISECONDS);
@@ -123,19 +117,6 @@ public class KisService {
 			return null;
 		});
 		return future;
-	}
-
-	private Runnable createCurrentPriceRunnable(String tickerSymbol, CompletableFuture<KisCurrentPrice> future) {
-		return () -> {
-			try {
-				future.complete(fetchCurrentPrice(tickerSymbol)
-					.blockOptional(Duration.ofMinutes(1L))
-					.orElseGet(() -> KisCurrentPrice.empty(tickerSymbol))
-				);
-			} catch (KisException e) {
-				future.completeExceptionally(e);
-			}
-		};
 	}
 
 	public Mono<KisCurrentPrice> fetchCurrentPrice(String tickerSymbol) {
