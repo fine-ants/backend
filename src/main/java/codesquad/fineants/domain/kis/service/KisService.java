@@ -97,13 +97,13 @@ public class KisService {
 	// 주식 현재가 갱신
 	@Transactional(readOnly = true)
 	public List<KisCurrentPrice> refreshStockCurrentPrice(List<String> tickerSymbols) {
-		List<KisCurrentPrice> prices = tickerSymbols.stream()
-			.map(ticker ->
-				this.fetchCurrentPrice(ticker)
-					.retryWhen(Retry.fixedDelay(Long.MAX_VALUE, delayManager.fixedDelay()))
-					.blockOptional(delayManager.timeout())
-					.orElseGet(() -> KisCurrentPrice.empty(ticker))
-			)
+		List<KisCurrentPrice> prices = Flux.fromIterable(tickerSymbols)
+			.flatMap(ticker -> this.fetchCurrentPrice(ticker)
+				.retryWhen(Retry.fixedDelay(Long.MAX_VALUE, delayManager.fixedDelay())), 20)
+			.delayElements(delayManager.delay())
+			.collectList()
+			.blockOptional(delayManager.timeout())
+			.orElseGet(Collections::emptyList).stream()
 			.toList();
 		currentPriceRedisRepository.savePrice(toArray(prices));
 		log.info("종목 현재가 {}개중 {}개 갱신", tickerSymbols.size(), prices.size());

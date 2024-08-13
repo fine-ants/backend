@@ -124,6 +124,9 @@ class KisServiceTest extends AbstractContainerBaseTest {
 
 		given(client.fetchCurrentPrice("005930"))
 			.willReturn(Mono.just(KisCurrentPrice.create("005930", 10000L)));
+		given(delayManager.timeout()).willReturn(Duration.ofSeconds(1));
+		given(delayManager.delay()).willReturn(Duration.ZERO);
+		given(delayManager.fixedDelay()).willReturn(Duration.ZERO);
 
 		List<String> tickerSymbols = stocks.stream()
 			.map(Stock::getTickerSymbol)
