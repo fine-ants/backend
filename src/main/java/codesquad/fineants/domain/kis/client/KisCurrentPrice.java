@@ -48,8 +48,8 @@ public class KisCurrentPrice {
 		return String.valueOf(price);
 	}
 
-	public boolean isEmpty() {
-		return tickerSymbol == null;
+	public boolean hasPrice() {
+		return tickerSymbol != null && price > 0;
 	}
 
 	static class KisCurrentPriceDeserializer extends JsonDeserializer<KisCurrentPrice> {
