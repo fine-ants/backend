@@ -238,4 +238,9 @@ public class PortfolioHolding extends BaseEntity {
 	public boolean hasAuthorization(Long memberId) {
 		return portfolio.hasAuthorization(memberId);
 	}
+
+	// TODO: 불변 컬렉션으로 변경
+	public List<PurchaseHistory> getPurchaseHistory() {
+		return purchaseHistory;
+	}
 }
