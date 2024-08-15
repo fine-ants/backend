@@ -195,6 +195,7 @@ public class NotificationService {
 			.stream().peek(p -> p.applyCurrentPriceAllHoldingsBy(currentPriceRedisRepository))
 			.findAny()
 			.orElseThrow(() -> new FineAntsException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
+		log.info("portfolio HashCode is {}", portfolio.hashCode());
 		Consumer<Long> sentFunction = sentManager::addMaxLossSendHistory;
 		return PortfolioNotifyMessagesResponse.create(
 			notifyMessage(List.of(portfolio), maximumLossNotificationPolicy, sentFunction)
