@@ -12,6 +12,7 @@ env:
   AWS_REGION: ap-northeast-2
   CODEDEPLOY_NAME: fineAnts
   CODEDEPLOY_GROUP: production
+  ACTIONS_STEP_DEBUG: true
 
 jobs:
   build-image:
