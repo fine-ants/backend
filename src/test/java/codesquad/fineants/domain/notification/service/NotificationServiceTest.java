@@ -365,7 +365,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 			portfolio.getId());
 
 		// then
-
+		log.info("최대손실율 알림 전송 내역 여부 {}", sentManager.hasMaxLossSendHistory(portfolio.getId()));
 		assertAll(
 			() -> assertThat(response.getNotifications()).isEmpty(),
 			() -> assertThat(sentManager.hasMaxLossSendHistory(portfolio.getId())).isFalse()
