@@ -2,6 +2,7 @@ package codesquad.fineants.domain.watchlist.domain.entity;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import codesquad.fineants.domain.BaseEntity;
@@ -61,5 +62,9 @@ public class WatchList extends BaseEntity {
 
 	public boolean hasAuthorization(Long memberId) {
 		return member.hasAuthorization(memberId);
+	}
+
+	public List<WatchStock> getWatchStocks() {
+		return Collections.unmodifiableList(watchStocks);
 	}
 }
