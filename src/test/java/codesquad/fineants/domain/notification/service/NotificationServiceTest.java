@@ -13,6 +13,7 @@ import java.util.stream.Stream;
 
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
@@ -111,6 +112,11 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 
 	@MockBean
 	private AccessTokenAspect accessTokenAspect;
+
+	@BeforeEach
+	void clean() {
+		sentManager.clear();
+	}
 
 	@AfterEach
 	void tearDown() {
@@ -337,7 +343,6 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 	void notifyMaxLoss_whenNotifySettingIsInActive_thenResponseEmptyList(boolean browserNotify,
 		boolean maxLossNotify) {
 		// given
-		sentManager.clear();
 		Member member = memberRepository.save(createMember());
 		NotificationPreference preference = member.getNotificationPreference();
 		preference.changePreference(createNotificationPreference(browserNotify, true, maxLossNotify, true, member));
