@@ -21,6 +21,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
@@ -331,6 +332,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		);
 	}
 
+	@Transactional
 	@DisplayName("알림 설정이 비활성화 되어 있어서 포트폴리오의 최대 손실율에 도달하여 사용자에게 알림을 푸시할 수 없습니다")
 	@CsvSource(value = {"false,true", "true,false", "false, false"})
 	@ParameterizedTest
@@ -367,7 +369,6 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		);
 	}
 
-	@SuppressWarnings("checkstyle:OneStatementPerLine")
 	@DisplayName("토큰이 유효하지 않아서 최대 손실율 달성 알림을 보낼수 없지만, 알림은 저장된다")
 	@Test
 	void notifyMaxLoss_whenInvalidFcmToken_thenDeleteFcmToken() throws FirebaseMessagingException {
