@@ -337,6 +337,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 	void notifyMaxLoss_whenNotifySettingIsInActive_thenResponseEmptyList(boolean browserNotify,
 		boolean maxLossNotify) {
 		// given
+		sentManager.clear();
 		Member member = memberRepository.save(createMember());
 		NotificationPreference preference = member.getNotificationPreference();
 		preference.changePreference(createNotificationPreference(browserNotify, true, maxLossNotify, true, member));
