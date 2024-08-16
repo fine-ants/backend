@@ -2,7 +2,6 @@ package codesquad.fineants.domain.member.domain.entity;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -140,9 +139,5 @@ public class Member extends BaseEntity {
 			.map(MemberRole::getRoleName)
 			.collect(Collectors.toSet()));
 		return result;
-	}
-
-	public Set<MemberRole> getRoles() {
-		return Collections.unmodifiableSet(roles);
 	}
 }

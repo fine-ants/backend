@@ -14,7 +14,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import codesquad.fineants.domain.dividend.domain.entity.StockDividend;
 import codesquad.fineants.domain.dividend.repository.StockDividendRepository;
 import codesquad.fineants.domain.exchangerate.domain.entity.ExchangeRate;
 import codesquad.fineants.domain.exchangerate.repository.ExchangeRateRepository;
@@ -27,7 +26,6 @@ import codesquad.fineants.domain.member.repository.MemberRepository;
 import codesquad.fineants.domain.member.repository.RoleRepository;
 import codesquad.fineants.domain.notificationpreference.domain.entity.NotificationPreference;
 import codesquad.fineants.domain.notificationpreference.repository.NotificationPreferenceRepository;
-import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
 import codesquad.fineants.global.errors.errorcode.MemberErrorCode;
 import codesquad.fineants.global.errors.errorcode.RoleErrorCode;
@@ -70,6 +68,11 @@ public class SetupDataLoader {
 		setupExchangeRateResources();
 		setupStockResources();
 		setupStockDividendResources();
+
+		log.info("애플리케이션 시작시 종목 현재가 및 종가 초기화 시작");
+		kisService.refreshCurrentPrice();
+		kisService.refreshClosingPrice();
+		log.info("애플리케이션 시작시 종목 현재가 및 종가 초기화 종료");
 	}
 
 	private void setupSecurityResources() {
@@ -172,12 +175,10 @@ public class SetupDataLoader {
 	}
 
 	private void setupStockResources() {
-		List<Stock> stocks = stockRepository.saveAll(amazonS3StockService.fetchStocks());
-		log.info("setupStock count is {}", stocks.size());
+		stockRepository.saveAll(amazonS3StockService.fetchStocks());
 	}
 
 	private void setupStockDividendResources() {
-		List<StockDividend> dividends = stockDividendRepository.saveAll(amazonS3DividendService.fetchDividends());
-		log.info("setupStockDividend count is {}", dividends.size());
+		stockDividendRepository.saveAll(amazonS3DividendService.fetchDividends());
 	}
 }

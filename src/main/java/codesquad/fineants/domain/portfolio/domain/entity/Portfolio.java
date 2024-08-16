@@ -2,7 +2,6 @@ package codesquad.fineants.domain.portfolio.domain.entity;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -528,9 +527,5 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	@Override
 	public NotifyMessage getTargetPriceMessage(String token) {
 		throw new UnsupportedOperationException("This method is not supported for Portfolio");
-	}
-
-	public List<PortfolioHolding> getPortfolioHoldings() {
-		return Collections.unmodifiableList(portfolioHoldings);
 	}
 }

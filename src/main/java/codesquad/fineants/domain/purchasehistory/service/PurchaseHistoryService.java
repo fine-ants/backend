@@ -110,6 +110,13 @@ public class PurchaseHistoryService {
 		PurchaseHistory deletePurchaseHistory = findPurchaseHistory(purchaseHistoryId);
 		repository.deleteById(purchaseHistoryId);
 
+		// 매입 이력 알람 이벤트를 위한 매입 이력 데이터 삭제
+		findPortfolio(portfolioId).getPortfolioHoldings().stream()
+			.filter(holding -> holding.getId().equals(portfolioHoldingId))
+			.findAny()
+			.orElseThrow(() -> new FineAntsException(PortfolioHoldingErrorCode.NOT_FOUND_PORTFOLIO_HOLDING))
+			.getPurchaseHistory().remove(deletePurchaseHistory);
+
 		purchaseHistoryEventPublisher.publishPushNotificationEvent(portfolioId, memberId);
 		return PurchaseHistoryDeleteResponse.from(deletePurchaseHistory, portfolioId, memberId);
 	}

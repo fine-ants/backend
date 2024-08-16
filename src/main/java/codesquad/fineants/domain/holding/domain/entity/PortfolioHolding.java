@@ -3,7 +3,6 @@ package codesquad.fineants.domain.holding.domain.entity;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -238,9 +237,5 @@ public class PortfolioHolding extends BaseEntity {
 
 	public boolean hasAuthorization(Long memberId) {
 		return portfolio.hasAuthorization(memberId);
-	}
-
-	public List<PurchaseHistory> getPurchaseHistory() {
-		return Collections.unmodifiableList(purchaseHistory);
 	}
 }

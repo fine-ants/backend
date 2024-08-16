@@ -19,7 +19,7 @@ public class CurrentPriceRedisRepository implements PriceRepository {
 	private static final String CURRENT_PRICE_FORMAT = "cp:%s";
 	private final RedisTemplate<String, String> redisTemplate;
 	private final KisClient kisClient;
-	
+
 	@Override
 	public void savePrice(KisCurrentPrice... currentPrices) {
 		Arrays.stream(currentPrices).forEach(this::savePrice);

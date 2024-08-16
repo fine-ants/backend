@@ -152,7 +152,7 @@ public class StockAndDividendManager {
 		final int concurrency = 20;
 		return Flux.fromIterable(findAllTickerSymbols())
 			.flatMap(kisService::fetchSearchStockInfo, concurrency)
-			.delayElements(delayManager.delay())
+			.delayElements(delayManager.getDelay())
 			.collectList()
 			.blockOptional(TIMEOUT)
 			.orElseGet(Collections::emptyList).stream()
@@ -191,7 +191,7 @@ public class StockAndDividendManager {
 		final int concurrency = 20;
 		return Flux.fromIterable(tickerSymbols)
 			.flatMap(ticker -> kisService.fetchDividend(ticker).flatMapMany(Flux::fromIterable), concurrency)
-			.delayElements(delayManager.delay())
+			.delayElements(delayManager.getDelay())
 			.collectList()
 			.blockOptional(TIMEOUT)
 			.orElseGet(Collections::emptyList).stream()

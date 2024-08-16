@@ -44,6 +44,10 @@ public class TargetPriceNotification extends BaseEntity implements Notifiable {
 	@JoinColumn(name = "stock_target_price_id")
 	private StockTargetPrice stockTargetPrice;
 
+	private TargetPriceNotification(Money targetPrice, StockTargetPrice stockTargetPrice) {
+		this(LocalDateTime.now(), null, null, targetPrice, stockTargetPrice);
+	}
+
 	private TargetPriceNotification(LocalDateTime createAt, LocalDateTime modifiedAt, Long id,
 		Money targetPrice, StockTargetPrice stockTargetPrice) {
 		super(createAt, modifiedAt);

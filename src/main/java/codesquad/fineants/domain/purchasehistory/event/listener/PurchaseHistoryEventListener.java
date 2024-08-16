@@ -1,10 +1,8 @@
 package codesquad.fineants.domain.purchasehistory.event.listener;
 
-import java.util.concurrent.CompletableFuture;
-
+import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.event.TransactionalEventListener;
 
 import codesquad.fineants.domain.notification.domain.dto.response.PortfolioNotifyMessagesResponse;
 import codesquad.fineants.domain.notification.service.NotificationService;
@@ -22,19 +20,21 @@ public class PurchaseHistoryEventListener {
 
 	// 매입 이력 이벤트가 발생하면 포트폴리오 목표수익률에 달성하면 푸시 알림
 	@Async
-	@TransactionalEventListener
-	public CompletableFuture<PortfolioNotifyMessagesResponse> notifyTargetGainBy(PushNotificationEvent event) {
+	@EventListener
+	public void notifyTargetGainBy(PushNotificationEvent event) {
 		PurchaseHistoryEventSendableParameter parameter = event.getValue();
-		return CompletableFuture.supplyAsync(() ->
-			(PortfolioNotifyMessagesResponse)notificationService.notifyTargetGain(parameter.getPortfolioId()));
+		PortfolioNotifyMessagesResponse response = (PortfolioNotifyMessagesResponse)notificationService.notifyTargetGain(
+			parameter.getPortfolioId());
+		log.info("매입 이력 이벤트로 인한 목표 수익률 달성 알림 결과 : {}", response);
 	}
 
 	// 매입 이력 이벤트가 발생하면 포트폴리오 최대손실율에 도달하면 푸시 알림
 	@Async
-	@TransactionalEventListener
-	public CompletableFuture<PortfolioNotifyMessagesResponse> notifyMaxLoss(PushNotificationEvent event) {
+	@EventListener
+	public void notifyMaxLoss(PushNotificationEvent event) {
 		PurchaseHistoryEventSendableParameter parameter = event.getValue();
-		return CompletableFuture.supplyAsync(() ->
-			(PortfolioNotifyMessagesResponse)notificationService.notifyMaxLoss(parameter.getPortfolioId()));
+		PortfolioNotifyMessagesResponse response = (PortfolioNotifyMessagesResponse)notificationService.notifyMaxLoss(
+			parameter.getPortfolioId());
+		log.info("매입 이력 이벤트로 인한 최대 손실율 달성 알림 결과 : response={}", response);
 	}
 }

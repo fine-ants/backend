@@ -524,7 +524,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 
 				List<String> tickerSymbols = Stream.of(stock)
 					.map(Stock::getTickerSymbol)
-					.toList();
+					.collect(Collectors.toList());
 
 				// when
 				NotifyMessageResponse response = service.notifyTargetPriceToAllMember(tickerSymbols);

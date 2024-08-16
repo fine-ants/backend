@@ -7,6 +7,7 @@ import static org.mockito.BDDMockito.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -16,6 +17,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
 
+import com.google.firebase.messaging.Message;
+
 import codesquad.fineants.AbstractContainerBaseTest;
 import codesquad.fineants.domain.common.count.Count;
 import codesquad.fineants.domain.common.money.Money;
@@ -23,7 +26,6 @@ import codesquad.fineants.domain.fcm.repository.FcmRepository;
 import codesquad.fineants.domain.fcm.service.FirebaseMessagingService;
 import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
 import codesquad.fineants.domain.holding.repository.PortfolioHoldingRepository;
-import codesquad.fineants.domain.kis.client.KisClient;
 import codesquad.fineants.domain.kis.client.KisCurrentPrice;
 import codesquad.fineants.domain.kis.repository.CurrentPriceRedisRepository;
 import codesquad.fineants.domain.member.domain.entity.Member;
@@ -45,7 +47,6 @@ import codesquad.fineants.global.errors.errorcode.MemberErrorCode;
 import codesquad.fineants.global.errors.errorcode.PortfolioErrorCode;
 import codesquad.fineants.global.errors.errorcode.PurchaseHistoryErrorCode;
 import codesquad.fineants.global.errors.exception.FineAntsException;
-import reactor.core.publisher.Mono;
 
 class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 
@@ -81,9 +82,6 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 
 	@MockBean
 	private NotificationSentRepository sentManager;
-
-	@MockBean
-	private KisClient kisClient;
 
 	@WithMockUser
 	@DisplayName("사용자는 매입 이력을 추가한다")
@@ -128,6 +126,90 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 				.usingComparatorForType(Money::compareTo, Money.class)
 				.usingComparatorForType(Count::compareTo, Count.class)
 				.containsExactlyInAnyOrder(response.getId(), now.toLocalDate(), Money.won(50000.0), numShares, "첫구매")
+		);
+	}
+
+	@DisplayName("사용자는 매입 이력 추가시 목표 수익률을 달성하여 알림을 받는다")
+	@Test
+	void addPurchaseHistory_whenAchieveTargetGain_thenSaveNotification() {
+		// given
+		Member member = memberRepository.save(createMember());
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
+		Stock stock = stockRepository.save(createSamsungStock());
+		Stock stock2 = stockRepository.save(createDongwhaPharmStock());
+		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
+		portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock2));
+		purchaseHistoryRepository.save(
+			createPurchaseHistory(null, LocalDateTime.of(2023, 9, 26, 9, 30, 0), Count.from(3), Money.won(50000), "첫구매",
+				holding));
+		fcmRepository.save(createFcmToken("token", member));
+		fcmRepository.save(createFcmToken("token2", member));
+
+		PurchaseHistoryCreateRequest request = PurchaseHistoryCreateRequest.builder()
+			.purchaseDate(LocalDateTime.now())
+			.numShares(Count.from(100L))
+			.purchasePricePerShare(Money.won(100.0))
+			.memo("첫구매")
+			.build();
+
+		currentPriceRedisRepository.savePrice(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L));
+		given(sentManager.hasTargetGainSendHistory(anyLong()))
+			.willReturn(false);
+		given(firebaseMessagingService.send(any(Message.class)))
+			.willReturn(Optional.of("messageId"));
+
+		setAuthentication(member);
+		// when
+		PurchaseHistoryCreateResponse response = service.createPurchaseHistory(
+			request,
+			portfolio.getId(),
+			holding.getId(),
+			member.getId()
+		);
+
+		// then
+		assertAll(
+			() -> assertThat(response.getId()).isNotNull(),
+			() -> assertThat(notificationRepository.findAllByMemberId(member.getId())).hasSize(1)
+		);
+	}
+
+	@DisplayName("사용자는 매입 이력 추가시 최대 손실율에 달성하여 알림을 받는다")
+	@Test
+	void addPurchaseHistory_whenAchieveMaxLoss_thenSaveNotification() {
+		// given
+		Member member = memberRepository.save(createMember());
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
+		Stock stock = stockRepository.save(createSamsungStock());
+		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
+		fcmRepository.save(createFcmToken("token", member));
+
+		PurchaseHistoryCreateRequest request = PurchaseHistoryCreateRequest.builder()
+			.purchaseDate(LocalDateTime.now())
+			.numShares(Count.from(10L))
+			.purchasePricePerShare(Money.won(90000.0))
+			.memo("첫구매")
+			.build();
+
+		currentPriceRedisRepository.savePrice(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L));
+		given(sentManager.hasTargetGainSendHistory(anyLong()))
+			.willReturn(false);
+		given(firebaseMessagingService.send(any(Message.class)))
+			.willReturn(Optional.of("messageId"));
+
+		setAuthentication(member);
+		// when
+		PurchaseHistoryCreateResponse response = service.createPurchaseHistory(
+			request,
+			portfolio.getId(),
+			holding.getId(),
+			member.getId()
+		);
+
+		// then
+		assertAll(
+			() -> assertThat(response.getId()).isNotNull(),
+			() -> assertThat(notificationRepository.findAllByMemberId(member.getId())).hasSize(1)
 		);
 	}
 
@@ -227,6 +309,52 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 		);
 	}
 
+	@DisplayName("사용자는 매입 이력을 수정시 목표 수익율을 달성하여 알림을 받는다")
+	@Test
+	void modifyPurchaseHistory_whenTargetGain_thenSaveNotification() {
+		// given
+		Member member = memberRepository.save(createMember());
+		fcmRepository.save(createFcmToken("token", member));
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
+		Stock stock = stockRepository.save(createSamsungStock());
+		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
+		PurchaseHistory history = purchaseHistoryRepository.save(
+			createPurchaseHistory(null, LocalDateTime.of(2023, 9, 26, 9, 30, 0), Count.from(3), Money.won(50000), "첫구매",
+				holding));
+
+		PurchaseHistoryUpdateRequest request = PurchaseHistoryUpdateRequest.builder()
+			.purchaseDate(LocalDateTime.now())
+			.numShares(Count.from(100L))
+			.purchasePricePerShare(Money.won(100.0))
+			.memo("첫구매")
+			.build();
+
+		currentPriceRedisRepository.savePrice(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L));
+		given(sentManager.hasTargetGainSendHistory(anyLong()))
+			.willReturn(false);
+		given(firebaseMessagingService.send(any(Message.class)))
+			.willReturn(Optional.of("messageId"));
+
+		setAuthentication(member);
+		// when
+		PurchaseHistoryUpdateResponse response = service.updatePurchaseHistory(
+			request,
+			holding.getId(),
+			history.getId(),
+			portfolio.getId(),
+			member.getId()
+		);
+
+		// then
+		PurchaseHistory changePurchaseHistory = purchaseHistoryRepository.findById(history.getId()).orElseThrow();
+		assertAll(
+			() -> assertThat(response).extracting("id").isNotNull(),
+			() -> assertThat(response.getNumShares()).isEqualByComparingTo(Count.from(100)),
+			() -> assertThat(changePurchaseHistory.getNumShares()).isEqualByComparingTo(Count.from(100L)),
+			() -> assertThat(notificationRepository.findAllByMemberId(member.getId())).hasSize(1)
+		);
+	}
+
 	@DisplayName("회원은 다른 회원의 매입 이력을 수정할 수 없다")
 	@Test
 	void modifyPurchaseHistory_whenOtherMemberModify_thenThrowException() {
@@ -269,8 +397,6 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 		PurchaseHistory history = purchaseHistoryRepository.save(
 			createPurchaseHistory(null, LocalDateTime.of(2023, 9, 26, 9, 30, 0), Count.from(3), Money.won(50000), "첫구매",
 				holding));
-		given(kisClient.fetchCurrentPrice(anyString()))
-			.willReturn(Mono.just(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L)));
 
 		setAuthentication(member);
 		// when
@@ -285,6 +411,44 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 		assertAll(
 			() -> assertThat(response).extracting("id").isNotNull(),
 			() -> assertThat(purchaseHistoryRepository.findById(history.getId())).isEmpty()
+		);
+	}
+
+	@DisplayName("사용자는 매입 이력 삭제시 목표 수익율을 달성하여 알림을 받는다")
+	@Test
+	void deletePurchaseHistory_whenTargetGain_thenSaveNotification() {
+		// given
+		Member member = memberRepository.save(createMember());
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
+		Stock stock = stockRepository.save(createSamsungStock());
+		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
+		PurchaseHistory history = purchaseHistoryRepository.save(
+			createPurchaseHistory(null, LocalDateTime.of(2023, 9, 26, 9, 30, 0), Count.from(3), Money.won(50000), "첫구매",
+				holding));
+		purchaseHistoryRepository.save(
+			createPurchaseHistory(null, LocalDateTime.now(), Count.from(100), Money.won(100), "첫구매", holding));
+		fcmRepository.save(createFcmToken("token", member));
+
+		currentPriceRedisRepository.savePrice(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L));
+		given(sentManager.hasTargetGainSendHistory(anyLong()))
+			.willReturn(false);
+		given(firebaseMessagingService.send(any(Message.class)))
+			.willReturn(Optional.of("messageId"));
+
+		setAuthentication(member);
+		// when
+		PurchaseHistoryDeleteResponse response = service.deletePurchaseHistory(
+			holding.getId(),
+			history.getId(),
+			portfolio.getId(),
+			member.getId()
+		);
+
+		// then
+		assertAll(
+			() -> assertThat(response).extracting("id").isNotNull(),
+			() -> assertThat(purchaseHistoryRepository.findById(history.getId())).isEmpty(),
+			() -> assertThat(notificationRepository.findAllByMemberId(member.getId())).hasSize(1)
 		);
 	}
 

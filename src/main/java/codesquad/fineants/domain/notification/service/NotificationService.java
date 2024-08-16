@@ -73,7 +73,6 @@ public class NotificationService {
 
 	/**
 	 * 포트폴리오 알림 저장
-	 *
 	 * @param request 알림 데이터
 	 * @return 알림 저장 결과
 	 */
@@ -90,7 +89,6 @@ public class NotificationService {
 
 	/**
 	 * 모든 회원을 대상으로 목표 수익률을 만족하는 포트폴리오에 대해서 목표 수익률 달성 알림 푸시
-	 *
 	 * @return 알림 전송 결과
 	 */
 	@Transactional
@@ -107,7 +105,6 @@ public class NotificationService {
 
 	/**
 	 * 특정 포트폴리오의 목표 수익률 달성 알림 푸시
-	 *
 	 * @param portfolioId 포트폴리오 등록번호
 	 * @return 알림 전송 결과
 	 */
@@ -169,7 +166,6 @@ public class NotificationService {
 
 	/**
 	 * 모든 포트폴리오를 대상으로 최대 손실율에 도달하는 모든 포트폴리오에 대해서 최대 손실율 도달 알림 푸시
-	 *
 	 * @return 알림 전송 결과
 	 */
 	@Transactional
@@ -185,7 +181,6 @@ public class NotificationService {
 
 	/**
 	 * 특정 포트폴리오의 최대 손실율 달성 알림 푸시
-	 *
 	 * @param portfolioId 포트폴리오 등록번호
 	 * @return 알림 전송 결과
 	 */
@@ -203,7 +198,6 @@ public class NotificationService {
 
 	/**
 	 * 모든 회원을 대상으로 특정 종목들에 대한 종목 지정가 알림 발송
-	 *
 	 * @param tickerSymbols 종목의 티커 심볼 리스트
 	 * @return 알림 전송 결과
 	 */
@@ -226,7 +220,6 @@ public class NotificationService {
 
 	/**
 	 * 특정 회원을 대상으로 종목 지정가 알림 발송
-	 *
 	 * @param memberId 회원의 등록번호
 	 * @return 알림 전송 결과
 	 */
