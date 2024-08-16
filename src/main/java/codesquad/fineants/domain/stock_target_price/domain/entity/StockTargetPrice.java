@@ -2,6 +2,7 @@ package codesquad.fineants.domain.stock_target_price.domain.entity;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import codesquad.fineants.domain.BaseEntity;
@@ -50,11 +51,6 @@ public class StockTargetPrice extends BaseEntity {
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "stockTargetPrice")
 	private List<TargetPriceNotification> targetPriceNotifications;
 
-	private StockTargetPrice(Boolean isActive, Member member, Stock stock,
-		List<TargetPriceNotification> targetPriceNotifications) {
-		this(LocalDateTime.now(), null, null, isActive, member, stock, targetPriceNotifications);
-	}
-
 	private StockTargetPrice(LocalDateTime createAt, LocalDateTime modifiedAt, Long id, Boolean isActive, Member member,
 		Stock stock, List<TargetPriceNotification> targetPriceNotifications) {
 		super(createAt, modifiedAt);
@@ -83,5 +79,9 @@ public class StockTargetPrice extends BaseEntity {
 
 	public boolean hasAuthorization(Long memberId) {
 		return member.hasAuthorization(memberId);
+	}
+
+	public List<TargetPriceNotification> getTargetPriceNotifications() {
+		return Collections.unmodifiableList(targetPriceNotifications);
 	}
 }
