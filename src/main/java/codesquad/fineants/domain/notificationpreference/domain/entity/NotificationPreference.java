@@ -15,7 +15,9 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
@@ -92,6 +94,7 @@ public class NotificationPreference extends BaseEntity {
 	}
 
 	public boolean isPossibleMaxLossNotification() {
+		log.debug("isPossibleMaxLossNotification browserNotify={}, maxLossNotify={}", browserNotify, maxLossNotify);
 		return this.browserNotify && this.maxLossNotify;
 	}
 

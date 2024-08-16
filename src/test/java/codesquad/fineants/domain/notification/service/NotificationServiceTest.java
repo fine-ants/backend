@@ -58,8 +58,10 @@ import codesquad.fineants.domain.stock_target_price.domain.entity.StockTargetPri
 import codesquad.fineants.domain.stock_target_price.domain.entity.TargetPriceNotification;
 import codesquad.fineants.domain.stock_target_price.repository.StockTargetPriceRepository;
 import codesquad.fineants.domain.stock_target_price.repository.TargetPriceNotificationRepository;
+import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
+@Slf4j
 class NotificationServiceTest extends AbstractContainerBaseTest {
 
 	@Autowired
@@ -363,6 +365,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 			portfolio.getId());
 
 		// then
+
 		assertAll(
 			() -> assertThat(response.getNotifications()).isEmpty(),
 			() -> assertThat(sentManager.hasMaxLossSendHistory(portfolio.getId())).isFalse()
