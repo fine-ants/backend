@@ -105,7 +105,7 @@ public class KisService {
 			.orElseGet(Collections::emptyList).stream()
 			.toList();
 		currentPriceRedisRepository.savePrice(toArray(prices));
-		log.info("종목 현재가 {}개중 {}개 갱신", tickerSymbols.size(), prices.size());
+		log.info("The current stock price has renewed {} out of {}", prices.size(), tickerSymbols.size());
 		return prices;
 	}
 
