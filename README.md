@@ -57,7 +57,8 @@
 
 ## 3. ERD 설계
 
-![image](https://github.com/fine-ants/FineAnts-was/assets/33227831/f48d2492-844e-4066-9a09-c34194fb6a28)
+![image](https://github.com/user-attachments/assets/a71b4c30-d080-4bde-9a13-575bf45d0973)
+
 
 ## 4. 핵심 기능
 
