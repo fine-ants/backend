@@ -29,6 +29,32 @@
 - MySQL 8.0
 - Redis
 
+## 3. 아키텍처 구조
+<img width="684" alt="image" src="https://github.com/user-attachments/assets/605ff9d5-b8e4-4073-87d7-b5820b8cccfb">
+
+**fineants frontend**
+- React 기반 웹 서버 애플리케이션
+
+**fineants was**
+- Spring 프레임워크 기반 웹 애플리케이션 서버
+- 사용자의 포트폴리오를 관리하고 종목의 정보를 이용하여 포트폴리오의 손익율을 계산하여 응답
+- 포트폴리오의 목표수익률 또는 최대손실율 달성 여부에 따라서 알림을 전송
+
+**MySQL**
+- 회원, 포트폴리오, 종목 등의 데이터를 저장
+
+**Redis**
+- 종목의 현재가, 종가 데이터를 저장
+- 회원의 로그아웃 내역을 저장
+- 한국투자증권의 액세스 토큰 저장
+
+**한국투자증권**
+- 오픈 API 서버로써 종목, 배당금 관련 정보를 조회
+
+**Google/Kakao/Naver**
+- OAuth 소셜 로그인을 위한 플랫폼
+- 해당 플랫폼을 통해서 소셜 로그인을 수행
+
 ## 3. ERD 설계
 
 ![image](https://github.com/fine-ants/FineAnts-was/assets/33227831/f48d2492-844e-4066-9a09-c34194fb6a28)
