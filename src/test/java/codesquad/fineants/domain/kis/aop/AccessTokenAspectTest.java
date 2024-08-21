@@ -16,6 +16,7 @@ import codesquad.fineants.domain.kis.client.KisClient;
 import codesquad.fineants.domain.kis.repository.KisAccessTokenRepository;
 import codesquad.fineants.domain.kis.service.KisAccessTokenRedisService;
 import codesquad.fineants.global.common.time.LocalDateTimeService;
+import codesquad.fineants.global.errors.exception.KisException;
 import reactor.core.publisher.Mono;
 
 class AccessTokenAspectTest extends AbstractContainerBaseTest {
@@ -51,5 +52,23 @@ class AccessTokenAspectTest extends AbstractContainerBaseTest {
 		accessTokenAspect.checkAccessTokenExpiration();
 		// then
 		Assertions.assertThat(kisAccessTokenRedisService.getAccessTokenMap().isPresent()).isTrue();
+	}
+
+	@DisplayName("액세스 토큰 발급이 실패하고 예외가 발생한다")
+	@Test
+	void checkAccessTokenExpiration_whenAccessTokenExpiredAndFailFetchAccessToken_thenThrowException() {
+		// given
+		AccessTokenAspect accessTokenAspect = new AccessTokenAspect(new KisAccessTokenRepository(null), client,
+			kisAccessTokenRedisService, localDateTimeService);
+		kisAccessTokenRedisService.deleteAccessTokenMap();
+
+		given(client.fetchAccessToken())
+			.willReturn(Mono.error(new KisException("요청 건수 초과")));
+		// when
+		Throwable throwable = Assertions.catchThrowable(accessTokenAspect::checkAccessTokenExpiration);
+		// then
+		Assertions.assertThat(throwable)
+			.isInstanceOf(KisException.class)
+			.hasMessage("요청 건수 초과");
 	}
 }

@@ -17,7 +17,6 @@ import codesquad.fineants.global.errors.errorcode.KisErrorCode;
 import codesquad.fineants.global.errors.exception.FineAntsException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import reactor.core.publisher.Mono;
 
 @Aspect
 @Component
@@ -34,6 +33,7 @@ public class AccessTokenAspect {
 	public void checkAccessTokenExpiration() {
 		LocalDateTime now = localDateTimeService.getLocalDateTimeWithNow();
 		if (!manager.isAccessTokenExpired(now)) {
+			log.debug("access token is not expired");
 			return;
 		}
 		redisService.getAccessTokenMap()
@@ -49,8 +49,9 @@ public class AccessTokenAspect {
 	}
 
 	private Optional<KisAccessToken> handleNewAccessToken() {
-		return client.fetchAccessToken()
-			.onErrorResume(throwable -> Mono.empty())
+		Optional<KisAccessToken> result = client.fetchAccessToken()
 			.blockOptional(Duration.ofMinutes(10));
+		log.info("new access Token Issue : {}", result);
+		return result;
 	}
 }
