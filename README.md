@@ -67,7 +67,7 @@
 
 ### 4.1 포트폴리오 생성
 
-![image](https://github.com/fine-ants/FineAnts-was/assets/33227831/19f0a177-f0c4-4c16-b859-145deeaa5fe3)
+![image](https://github.com/user-attachments/assets/a381d1e4-7612-4e17-bc36-899293db1573)
 
 - 포트폴리오 추가시 검증
     - 목표수익금액(targetGain)이 예산(budget)를 초과해야 한다
