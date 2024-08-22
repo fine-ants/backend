@@ -32,6 +32,17 @@ public class AccessTokenAspect {
 	@Before(value = "@annotation(CheckedKisAccessToken) && args(..)")
 	public void checkAccessTokenExpiration() {
 		LocalDateTime now = localDateTimeService.getLocalDateTimeWithNow();
+		// 액세스 토큰이 만료 1시간 이전이라면 토큰을 재발급한다
+		if (manager.isTokenExpiringSoon(now)) {
+			client.fetchAccessToken()
+				.blockOptional(Duration.ofMinutes(10))
+				.ifPresent(newKisAccessToken -> {
+					redisService.setAccessTokenMap(newKisAccessToken, now);
+					manager.refreshAccessToken(newKisAccessToken);
+					log.info("만료 1시간 이전의 액세스 토큰 재발급 {}", newKisAccessToken);
+				});
+			return;
+		}
 		if (!manager.isAccessTokenExpired(now)) {
 			log.debug("access token is not expired");
 			return;

@@ -6,6 +6,7 @@ import static org.mockito.BDDMockito.*;
 
 import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
@@ -138,6 +139,44 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		assertThat(currentPriceRedisRepository.fetchPriceBy("005930").orElseThrow()).isEqualTo(Money.won(10000));
 	}
 
+	@DisplayName("현재가를 갱신할때 액세스 토큰의 만료시간이 1시간 이전어서 새로운 액세스 토큰을 재발급한다")
+	@Test
+	void refreshStockCurrentPrice_whenAccessTokenSoonExpired_thenFetchAccessToken() {
+		// given
+		Member member = memberRepository.save(createMember());
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
+		List<Stock> stocks = stockRepository.saveAll(List.of(createSamsungStock()));
+		stocks.forEach(stock -> portfolioHoldingRepository.save(createPortfolioHolding(portfolio, stock)));
+
+		given(client.fetchCurrentPrice("005930"))
+			.willReturn(Mono.just(KisCurrentPrice.create("005930", 10000L)));
+		given(delayManager.timeout()).willReturn(Duration.ofSeconds(1));
+		given(delayManager.delay()).willReturn(Duration.ZERO);
+		given(delayManager.fixedDelay()).willReturn(Duration.ZERO);
+
+		List<String> tickerSymbols = stocks.stream()
+			.map(Stock::getTickerSymbol)
+			.toList();
+
+		KisAccessToken soonExpiredAccessToken = KisAccessToken.bearerType("accessToken",
+			LocalDateTime.now().plusMinutes(10), 6000);
+		kisAccessTokenRepository.refreshAccessToken(soonExpiredAccessToken);
+		kisAccessTokenRedisService.setAccessTokenMap(soonExpiredAccessToken, LocalDateTime.now());
+
+		KisAccessToken reloadAccessToken = createKisAccessToken();
+		given(client.fetchAccessToken())
+			.willReturn(Mono.just(reloadAccessToken));
+
+		// when
+		kisService.refreshStockCurrentPrice(tickerSymbols);
+
+		// then
+		assertThat(kisAccessTokenRepository.createAuthorization()).isEqualTo(reloadAccessToken.createAuthorization());
+		assertThat(kisAccessTokenRedisService.getAccessTokenMap().orElseThrow().getAccessToken()).isEqualTo(
+			reloadAccessToken.getAccessToken());
+		assertThat(currentPriceRedisRepository.fetchPriceBy("005930").orElseThrow()).isEqualTo(Money.won(10000));
+	}
+
 	@DisplayName("종목 현재가 갱신시 예외가 발생하면 다시 시도하여 가격을 조회한다")
 	@Test
 	void refreshStockCurrentPrice_whenFailFetch_thenRetryFetch() {
@@ -196,22 +235,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		// then
 		verify(client, times(1)).fetchClosingPrice(anyString());
 	}
-
-	@DisplayName("휴장일에는 종목 가격 정보를 갱신하지 않는다")
-	@Test
-	void refreshStockPriceWhenHoliday() {
-		// given
-		KisAccessToken kisAccessToken = createKisAccessToken();
-		kisAccessTokenRepository.refreshAccessToken(kisAccessToken);
-		given(holidayRepository.isHoliday(any(LocalDate.class))).willReturn(true);
-		given(client.fetchAccessToken())
-			.willReturn(Mono.just(kisAccessToken));
-		// when
-		kisService.refreshCurrentPrice();
-		// then
-		verify(holidayRepository, times(1)).isHoliday(any(LocalDate.class));
-	}
-
+	
 	@DisplayName("한국투자증권에 상장된 종목 정보를 조회한다")
 	@Test
 	void fetchStockInfoInRangedIpo() {

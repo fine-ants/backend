@@ -71,12 +71,11 @@ public class KisClient {
 			.retrieve()
 			.onStatus(HttpStatusCode::isError, this::handleError)
 			.bodyToMono(KisAccessToken.class)
-			.retryWhen(Retry.fixedDelay(Long.MAX_VALUE, Duration.ofSeconds(5)))
+			.retryWhen(Retry.fixedDelay(Long.MAX_VALUE, Duration.ofMinutes(1)))
 			.log();
 	}
 
 	// 현재가 조회
-	@CheckedKisAccessToken
 	public Mono<KisCurrentPrice> fetchCurrentPrice(String tickerSymbol) {
 		MultiValueMap<String, String> header = KisHeaderBuilder.builder()
 			.add(AUTHORIZATION, manager.createAuthorization())
