@@ -15,7 +15,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
-import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -63,19 +62,6 @@ public class KisService {
 	private final PortfolioPublisher portfolioPublisher;
 	private final StockTargetPriceRepository stockTargetPriceRepository;
 	private final DelayManager delayManager;
-
-	// 평일 9am ~ 15:59pm 5초마다 현재가 갱신 수행
-	@Profile(value = "production")
-	@Scheduled(cron = "0/5 * 9-15 ? * MON,TUE,WED,THU,FRI")
-	@Transactional
-	@CheckedKisAccessToken
-	public void refreshCurrentPrice() {
-		// 휴장일인 경우 실행하지 않음
-		if (holidayRepository.isHoliday(LocalDate.now())) {
-			return;
-		}
-		refreshAllStockCurrentPrice();
-	}
 
 	// 회원이 가지고 있는 모든 종목에 대하여 현재가 갱신
 	@Transactional

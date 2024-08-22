@@ -235,22 +235,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		// then
 		verify(client, times(1)).fetchClosingPrice(anyString());
 	}
-
-	@DisplayName("휴장일에는 종목 가격 정보를 갱신하지 않는다")
-	@Test
-	void refreshStockPriceWhenHoliday() {
-		// given
-		KisAccessToken kisAccessToken = createKisAccessToken();
-		kisAccessTokenRepository.refreshAccessToken(kisAccessToken);
-		given(holidayRepository.isHoliday(any(LocalDate.class))).willReturn(true);
-		given(client.fetchAccessToken())
-			.willReturn(Mono.just(kisAccessToken));
-		// when
-		kisService.refreshCurrentPrice();
-		// then
-		verify(holidayRepository, times(1)).isHoliday(any(LocalDate.class));
-	}
-
+	
 	@DisplayName("한국투자증권에 상장된 종목 정보를 조회한다")
 	@Test
 	void fetchStockInfoInRangedIpo() {
