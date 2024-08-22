@@ -19,7 +19,6 @@ import codesquad.fineants.domain.dividend.repository.StockDividendRepository;
 import codesquad.fineants.domain.exchangerate.domain.entity.ExchangeRate;
 import codesquad.fineants.domain.exchangerate.repository.ExchangeRateRepository;
 import codesquad.fineants.domain.exchangerate.service.ExchangeRateService;
-import codesquad.fineants.domain.kis.service.KisService;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.domain.entity.MemberRole;
 import codesquad.fineants.domain.member.domain.entity.Role;
@@ -46,7 +45,6 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Slf4j
 public class SetupDataLoader {
-	private final KisService kisService;
 	private final RoleRepository roleRepository;
 	private final MemberRepository memberRepository;
 	private final NotificationPreferenceRepository notificationPreferenceRepository;

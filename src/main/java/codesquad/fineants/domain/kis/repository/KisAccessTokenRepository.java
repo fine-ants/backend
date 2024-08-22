@@ -34,5 +34,12 @@ public class KisAccessTokenRepository {
 	public String createAuthorization() {
 		return accessToken.createAuthorization();
 	}
+
+	public boolean isTokenExpiringSoon(LocalDateTime localDateTime) {
+		if (accessToken == null) {
+			return true;
+		}
+		return accessToken.betweenSecondFrom(localDateTime).toSeconds() < 3600;
+	}
 }
 

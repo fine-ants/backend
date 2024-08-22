@@ -15,12 +15,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
-import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import codesquad.fineants.domain.holding.repository.PortfolioHoldingRepository;
+import codesquad.fineants.domain.kis.aop.CheckedKisAccessToken;
 import codesquad.fineants.domain.kis.client.KisClient;
 import codesquad.fineants.domain.kis.client.KisCurrentPrice;
 import codesquad.fineants.domain.kis.domain.dto.response.KisClosingPrice;
@@ -63,20 +63,9 @@ public class KisService {
 	private final StockTargetPriceRepository stockTargetPriceRepository;
 	private final DelayManager delayManager;
 
-	// 평일 9am ~ 15:59pm 5초마다 현재가 갱신 수행
-	@Profile(value = "production")
-	@Scheduled(cron = "0/5 * 9-15 ? * MON,TUE,WED,THU,FRI")
-	@Transactional
-	public void refreshCurrentPrice() {
-		// 휴장일인 경우 실행하지 않음
-		if (holidayRepository.isHoliday(LocalDate.now())) {
-			return;
-		}
-		refreshAllStockCurrentPrice();
-	}
-
 	// 회원이 가지고 있는 모든 종목에 대하여 현재가 갱신
 	@Transactional
+	@CheckedKisAccessToken
 	public List<KisCurrentPrice> refreshAllStockCurrentPrice() {
 		Set<String> totalTickerSymbol = new HashSet<>();
 		totalTickerSymbol.addAll(portFolioHoldingRepository.findAllTickerSymbol());
@@ -93,6 +82,7 @@ public class KisService {
 
 	// 주식 현재가 갱신
 	@Transactional(readOnly = true)
+	@CheckedKisAccessToken
 	public List<KisCurrentPrice> refreshStockCurrentPrice(List<String> tickerSymbols) {
 		int concurrency = 20;
 		List<KisCurrentPrice> prices = Flux.fromIterable(tickerSymbols)
