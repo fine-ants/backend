@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import codesquad.fineants.domain.holding.repository.PortfolioHoldingRepository;
+import codesquad.fineants.domain.kis.aop.CheckedKisAccessToken;
 import codesquad.fineants.domain.kis.client.KisClient;
 import codesquad.fineants.domain.kis.client.KisCurrentPrice;
 import codesquad.fineants.domain.kis.domain.dto.response.KisClosingPrice;
@@ -67,6 +68,7 @@ public class KisService {
 	@Profile(value = "production")
 	@Scheduled(cron = "0/5 * 9-15 ? * MON,TUE,WED,THU,FRI")
 	@Transactional
+	@CheckedKisAccessToken
 	public void refreshCurrentPrice() {
 		// 휴장일인 경우 실행하지 않음
 		if (holidayRepository.isHoliday(LocalDate.now())) {
@@ -77,6 +79,7 @@ public class KisService {
 
 	// 회원이 가지고 있는 모든 종목에 대하여 현재가 갱신
 	@Transactional
+	@CheckedKisAccessToken
 	public List<KisCurrentPrice> refreshAllStockCurrentPrice() {
 		Set<String> totalTickerSymbol = new HashSet<>();
 		totalTickerSymbol.addAll(portFolioHoldingRepository.findAllTickerSymbol());
@@ -93,6 +96,7 @@ public class KisService {
 
 	// 주식 현재가 갱신
 	@Transactional(readOnly = true)
+	@CheckedKisAccessToken
 	public List<KisCurrentPrice> refreshStockCurrentPrice(List<String> tickerSymbols) {
 		int concurrency = 20;
 		List<KisCurrentPrice> prices = Flux.fromIterable(tickerSymbols)
