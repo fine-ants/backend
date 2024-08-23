@@ -44,6 +44,7 @@ import codesquad.fineants.global.errors.exception.kis.KisException;
 import codesquad.fineants.global.errors.exception.kis.RequestLimitExceededKisException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.Exceptions;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
@@ -92,6 +93,7 @@ public class KisService {
 			this.fetchCurrentPrice(ticker)
 				.doOnSuccess(kisCurrentPrice -> log.debug("reload stock current price {}", kisCurrentPrice))
 				.onErrorResume(throwable -> {
+					log.error(throwable.getMessage());
 					if (throwable instanceof ExpiredAccessTokenKisException) {
 						return Mono.empty();
 					} else {
@@ -100,6 +102,13 @@ public class KisService {
 				})
 				.retryWhen(Retry.fixedDelay(3, delayManager.fixedDelay())
 					.filter(RequestLimitExceededKisException.class::isInstance))
+				.onErrorResume(throwable -> {
+					log.error(throwable.getMessage());
+					if (Exceptions.isRetryExhausted(throwable)) {
+						return Mono.empty();
+					}
+					return Mono.error(throwable);
+				})
 				.blockOptional(delayManager.timeout())
 				.ifPresent(prices::add);
 		}
