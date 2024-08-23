@@ -178,6 +178,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		assertThat(currentPriceRedisRepository.fetchPriceBy("005930").orElseThrow()).isEqualTo(Money.won(10000));
 	}
 
+	// TODO: KisException 개선
 	@DisplayName("한국투자증권에 종목 현재가 요청중에 액세스 토큰이 만료되어 실패하게 되면, 해당 요청을 취소한다")
 	@Test
 	void refreshStockCurrentPrice_whenAccessTokenExpired_thenCancelStockCurrentPriceRequest() {
@@ -185,9 +186,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		String ticker = "005930";
 		List<String> tickers = List.of(ticker);
 		BDDMockito.given(client.fetchCurrentPrice(ticker))
-			.willReturn(Mono.error(new KisException("액세스 토큰 만료")));
-		given(delayManager.timeout())
-			.willReturn(Duration.ofMillis(100));
+			.willReturn(Mono.error(new KisException("기간이 만료된 token입니다")));
 		// when
 		List<KisCurrentPrice> prices = kisService.refreshStockCurrentPrice(tickers);
 		// then
