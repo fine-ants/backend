@@ -2,6 +2,7 @@ package codesquad.fineants.domain.kis.service;
 
 import java.time.Duration;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -84,16 +85,21 @@ public class KisService {
 	@Transactional(readOnly = true)
 	@CheckedKisAccessToken
 	public List<KisCurrentPrice> refreshStockCurrentPrice(List<String> tickerSymbols) {
-		int concurrency = 20;
-		List<KisCurrentPrice> prices = Flux.fromIterable(tickerSymbols)
-			.flatMap(ticker -> this.fetchCurrentPrice(ticker)
+		List<KisCurrentPrice> prices = new ArrayList<>();
+		for (String ticker : tickerSymbols) {
+			KisCurrentPrice price = this.fetchCurrentPrice(ticker)
 				.doOnSuccess(kisCurrentPrice -> log.debug("reload stock current price {}", kisCurrentPrice))
-				.retryWhen(Retry.fixedDelay(Long.MAX_VALUE, delayManager.fixedDelay())), concurrency)
-			.delayElements(delayManager.delay())
-			.collectList()
-			.blockOptional(delayManager.timeout())
-			.orElseGet(Collections::emptyList).stream()
-			.toList();
+				.onErrorResume(throwable -> {
+					log.error(throwable.getMessage());
+					return Mono.empty();
+				})
+				// .retryWhen(Retry.fixedDelay(Long.MAX_VALUE, delayManager.fixedDelay()))
+				.blockOptional(delayManager.timeout())
+				.orElse(null);
+			if (price != null) {
+				prices.add(price);
+			}
+		}
 		currentPriceRedisRepository.savePrice(toArray(prices));
 		log.info("The current stock price has renewed {} out of {}", prices.size(), tickerSymbols.size());
 		return prices;
@@ -181,6 +187,7 @@ public class KisService {
 
 	/**
 	 * tickerSymbol에 해당하는 종목의 배당 일정을 조회합니다.
+	 *
 	 * @param tickerSymbol 종목 단축 코드
 	 * @return 종목의 배당 일정 정보
 	 */
@@ -203,6 +210,7 @@ public class KisService {
 
 	/**
 	 * 종목 기본 조회
+	 *
 	 * @param tickerSymbol 종목 티커 심볼
 	 * @return 종목 정보
 	 */
@@ -216,6 +224,7 @@ public class KisService {
 	/**
 	 * 상장된 종목 조회
 	 * 하루전부터 오늘까지의 상장된 종목들의 정보를 조회한다.
+	 *
 	 * @return 종목 정보 리스트
 	 */
 	public Set<StockDataResponse.StockIntegrationInfo> fetchStockInfoInRangedIpo() {
