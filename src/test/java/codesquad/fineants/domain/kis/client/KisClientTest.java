@@ -39,7 +39,7 @@ import codesquad.fineants.domain.kis.properties.KisProperties;
 import codesquad.fineants.domain.kis.properties.KisTrIdProperties;
 import codesquad.fineants.domain.kis.repository.KisAccessTokenRepository;
 import codesquad.fineants.domain.kis.service.KisAccessTokenRedisService;
-import codesquad.fineants.global.errors.exception.kis.KisException;
+import codesquad.fineants.global.errors.exception.kis.RequestLimitExceededKisException;
 import codesquad.fineants.global.util.ObjectMapperUtil;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
@@ -315,7 +315,7 @@ class KisClientTest extends AbstractContainerBaseTest {
 		String ticker = "005930";
 		// when & then
 		StepVerifier.create(kisClient.fetchCurrentPrice(ticker))
-			.expectError(KisException.class)
+			.expectError(RequestLimitExceededKisException.class)
 			.verify();
 	}
 

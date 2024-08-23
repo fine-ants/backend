@@ -45,9 +45,7 @@ import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
 import codesquad.fineants.domain.stock.service.StockCsvReader;
 import codesquad.fineants.global.common.delay.DelayManager;
-import codesquad.fineants.global.errors.exception.kis.ExpiredAccessTokenKisException;
 import codesquad.fineants.global.errors.exception.kis.KisException;
-import codesquad.fineants.global.errors.exception.kis.RequestLimitExceededKisException;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -187,7 +185,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		String ticker = "005930";
 		List<String> tickers = List.of(ticker);
 		BDDMockito.given(client.fetchCurrentPrice(ticker))
-			.willReturn(Mono.error(new ExpiredAccessTokenKisException("1", "EGW00123", "기간이 만료된 token 입니다.")));
+			.willReturn(Mono.error(KisException.expiredAccessToken()));
 		// when
 		List<KisCurrentPrice> prices = kisService.refreshStockCurrentPrice(tickers);
 		// then
@@ -207,7 +205,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 
 		kisAccessTokenRepository.refreshAccessToken(createKisAccessToken());
 		given(client.fetchCurrentPrice("005930"))
-			.willReturn(Mono.error(new RequestLimitExceededKisException("1", "EGW00201", "초당 거래건수를 초과하였습니다.")))
+			.willReturn(Mono.error(KisException.requestLimitExceeded()))
 			.willReturn(Mono.just(KisCurrentPrice.create("005930", 50000L)));
 		given(delayManager.timeout()).willReturn(Duration.ofSeconds(1));
 		given(delayManager.delay()).willReturn(Duration.ZERO);
