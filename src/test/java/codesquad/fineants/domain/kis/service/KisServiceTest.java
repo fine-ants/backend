@@ -203,7 +203,6 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		));
 		stocks.forEach(stock -> portfolioHoldingRepository.save(createPortfolioHolding(portfolio, stock)));
 
-		kisAccessTokenRepository.refreshAccessToken(createKisAccessToken());
 		given(client.fetchCurrentPrice("005930"))
 			.willReturn(Mono.error(KisException.requestLimitExceeded()))
 			.willReturn(Mono.just(KisCurrentPrice.create("005930", 50000L)));

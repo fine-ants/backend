@@ -89,10 +89,9 @@ public class KisService {
 	public List<KisCurrentPrice> refreshStockCurrentPrice(List<String> tickerSymbols) {
 		List<KisCurrentPrice> prices = new ArrayList<>();
 		for (String ticker : tickerSymbols) {
-			KisCurrentPrice price = this.fetchCurrentPrice(ticker)
+			this.fetchCurrentPrice(ticker)
 				.doOnSuccess(kisCurrentPrice -> log.debug("reload stock current price {}", kisCurrentPrice))
 				.onErrorResume(throwable -> {
-					log.error(throwable.getMessage());
 					if (throwable instanceof ExpiredAccessTokenKisException) {
 						return Mono.empty();
 					} else {
@@ -102,10 +101,7 @@ public class KisService {
 				.retryWhen(Retry.fixedDelay(3, delayManager.fixedDelay())
 					.filter(RequestLimitExceededKisException.class::isInstance))
 				.blockOptional(delayManager.timeout())
-				.orElse(null);
-			if (price != null) {
-				prices.add(price);
-			}
+				.ifPresent(prices::add);
 		}
 		currentPriceRedisRepository.savePrice(toArray(prices));
 		log.info("The current stock price has renewed {} out of {}", prices.size(), tickerSymbols.size());
