@@ -14,7 +14,6 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.BDDMockito;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -184,8 +183,24 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		// given
 		String ticker = "005930";
 		List<String> tickers = List.of(ticker);
-		BDDMockito.given(client.fetchCurrentPrice(ticker))
+		given(client.fetchCurrentPrice(ticker))
 			.willReturn(Mono.error(KisException.expiredAccessToken()));
+		// when
+		List<KisCurrentPrice> prices = kisService.refreshStockCurrentPrice(tickers);
+		// then
+		Assertions.assertThat(prices).isEmpty();
+	}
+
+	@DisplayName("한국투자증권에 종목 현재가 요청중에 요청 건수 초과 에러시 재시도 또한 전부 실패하게 되면 리스트에 추가되지 않는다")
+	@Test
+	void refreshStockCurrentPrice_whenFailRetry_thenNotAddResultList() {
+		// given
+		String ticker = "005930";
+		List<String> tickers = List.of(ticker);
+		given(client.fetchCurrentPrice(ticker))
+			.willReturn(Mono.error(KisException.requestLimitExceeded()));
+		given(delayManager.fixedDelay())
+			.willReturn(Duration.ZERO);
 		// when
 		List<KisCurrentPrice> prices = kisService.refreshStockCurrentPrice(tickers);
 		// then
