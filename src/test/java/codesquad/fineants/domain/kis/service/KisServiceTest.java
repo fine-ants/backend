@@ -45,7 +45,9 @@ import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
 import codesquad.fineants.domain.stock.service.StockCsvReader;
 import codesquad.fineants.global.common.delay.DelayManager;
+import codesquad.fineants.global.errors.exception.ExpiredKisAccessTokenException;
 import codesquad.fineants.global.errors.exception.KisException;
+import codesquad.fineants.global.errors.exception.RequestLimitExceededException;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -178,7 +180,6 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		assertThat(currentPriceRedisRepository.fetchPriceBy("005930").orElseThrow()).isEqualTo(Money.won(10000));
 	}
 
-	// TODO: KisException 개선
 	@DisplayName("한국투자증권에 종목 현재가 요청중에 액세스 토큰이 만료되어 실패하게 되면, 해당 요청을 취소한다")
 	@Test
 	void refreshStockCurrentPrice_whenAccessTokenExpired_thenCancelStockCurrentPriceRequest() {
@@ -186,7 +187,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		String ticker = "005930";
 		List<String> tickers = List.of(ticker);
 		BDDMockito.given(client.fetchCurrentPrice(ticker))
-			.willReturn(Mono.error(new KisException("기간이 만료된 token입니다")));
+			.willReturn(Mono.error(new ExpiredKisAccessTokenException("1", "EGW00123", "기간이 만료된 token 입니다.")));
 		// when
 		List<KisCurrentPrice> prices = kisService.refreshStockCurrentPrice(tickers);
 		// then
@@ -206,7 +207,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 
 		kisAccessTokenRepository.refreshAccessToken(createKisAccessToken());
 		given(client.fetchCurrentPrice("005930"))
-			.willReturn(Mono.error(new KisException("요청 건수 초과")))
+			.willReturn(Mono.error(new RequestLimitExceededException("1", "EGW00201", "초당 거래건수를 초과하였습니다.")))
 			.willReturn(Mono.just(KisCurrentPrice.create("005930", 50000L)));
 		given(delayManager.timeout()).willReturn(Duration.ofSeconds(1));
 		given(delayManager.delay()).willReturn(Duration.ZERO);
@@ -238,8 +239,8 @@ class KisServiceTest extends AbstractContainerBaseTest {
 
 		kisAccessTokenRepository.refreshAccessToken(createKisAccessToken());
 		given(client.fetchClosingPrice(anyString()))
-			.willThrow(new KisException("요청건수가 초과되었습니다"))
-			.willThrow(new KisException("요청건수가 초과되었습니다"))
+			.willThrow(new KisException("1", "EGW00201", "초당 거래건수를 초과하였습니다."))
+			.willThrow(new KisException("1", "EGW00201", "초당 거래건수를 초과하였습니다."))
 			.willReturn(Mono.just(KisClosingPrice.create("005930", 10000L)));
 
 		List<String> tickerSymbols = stocks.stream()
