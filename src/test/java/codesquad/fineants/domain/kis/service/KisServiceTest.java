@@ -14,6 +14,7 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.BDDMockito;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -181,7 +182,12 @@ class KisServiceTest extends AbstractContainerBaseTest {
 	@Test
 	void refreshStockCurrentPrice_whenAccessTokenExpired_thenCancelStockCurrentPriceRequest() {
 		// given
-		List<String> tickers = List.of("005930");
+		String ticker = "005930";
+		List<String> tickers = List.of(ticker);
+		BDDMockito.given(client.fetchCurrentPrice(ticker))
+			.willReturn(Mono.error(new KisException("액세스 토큰 만료")));
+		given(delayManager.timeout())
+			.willReturn(Duration.ofMillis(100));
 		// when
 		List<KisCurrentPrice> prices = kisService.refreshStockCurrentPrice(tickers);
 		// then
