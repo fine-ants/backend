@@ -177,6 +177,17 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		assertThat(currentPriceRedisRepository.fetchPriceBy("005930").orElseThrow()).isEqualTo(Money.won(10000));
 	}
 
+	@DisplayName("한국투자증권에 종목 현재가 요청중에 액세스 토큰이 만료되어 실패하게 되면, 해당 요청을 취소한다")
+	@Test
+	void refreshStockCurrentPrice_whenAccessTokenExpired_thenCancelStockCurrentPriceRequest() {
+		// given
+		List<String> tickers = List.of("005930");
+		// when
+		List<KisCurrentPrice> prices = kisService.refreshStockCurrentPrice(tickers);
+		// then
+		Assertions.assertThat(prices).isEmpty();
+	}
+
 	@DisplayName("종목 현재가 갱신시 예외가 발생하면 다시 시도하여 가격을 조회한다")
 	@Test
 	void refreshStockCurrentPrice_whenFailFetch_thenRetryFetch() {
@@ -235,7 +246,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		// then
 		verify(client, times(1)).fetchClosingPrice(anyString());
 	}
-	
+
 	@DisplayName("한국투자증권에 상장된 종목 정보를 조회한다")
 	@Test
 	void fetchStockInfoInRangedIpo() {
