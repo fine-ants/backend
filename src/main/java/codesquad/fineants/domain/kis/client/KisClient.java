@@ -21,6 +21,7 @@ import codesquad.fineants.domain.kis.aop.CheckedKisAccessToken;
 import codesquad.fineants.domain.kis.domain.dto.response.KisClosingPrice;
 import codesquad.fineants.domain.kis.domain.dto.response.KisDividend;
 import codesquad.fineants.domain.kis.domain.dto.response.KisDividendWrapper;
+import codesquad.fineants.domain.kis.domain.dto.response.KisErrorResponse;
 import codesquad.fineants.domain.kis.domain.dto.response.KisIpoResponse;
 import codesquad.fineants.domain.kis.domain.dto.response.KisSearchStockInfo;
 import codesquad.fineants.domain.kis.properties.KisAccessTokenRequest;
@@ -36,8 +37,6 @@ import codesquad.fineants.domain.kis.properties.kiscodevalue.imple.FidPeriodDivC
 import codesquad.fineants.domain.kis.properties.kiscodevalue.imple.GB1;
 import codesquad.fineants.domain.kis.properties.kiscodevalue.imple.PrdtTypeCd;
 import codesquad.fineants.domain.kis.repository.KisAccessTokenRepository;
-import codesquad.fineants.global.errors.exception.KisException;
-import codesquad.fineants.global.util.ObjectMapperUtil;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
@@ -266,11 +265,8 @@ public class KisClient {
 	}
 
 	private Mono<? extends Throwable> handleError(ClientResponse clientResponse) {
-		return clientResponse.bodyToMono(String.class)
-			.doOnNext(log::error)
-			.flatMap(body -> {
-				KisException exception = ObjectMapperUtil.deserialize(body, KisException.class);
-				return Mono.error(() -> exception);
-			});
+		return clientResponse.bodyToMono(KisErrorResponse.class)
+			.doOnNext(kisErrorResponse -> log.error(kisErrorResponse.toString()))
+			.flatMap(kisErrorResponse -> Mono.error(kisErrorResponse::toException));
 	}
 }
