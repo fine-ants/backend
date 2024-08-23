@@ -37,6 +37,7 @@ import codesquad.fineants.domain.kis.properties.kiscodevalue.imple.GB1;
 import codesquad.fineants.domain.kis.properties.kiscodevalue.imple.PrdtTypeCd;
 import codesquad.fineants.domain.kis.repository.KisAccessTokenRepository;
 import codesquad.fineants.global.errors.exception.KisException;
+import codesquad.fineants.global.util.ObjectMapperUtil;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
@@ -267,6 +268,9 @@ public class KisClient {
 	private Mono<? extends Throwable> handleError(ClientResponse clientResponse) {
 		return clientResponse.bodyToMono(String.class)
 			.doOnNext(log::error)
-			.flatMap(body -> Mono.error(() -> new KisException(body)));
+			.flatMap(body -> {
+				KisException exception = ObjectMapperUtil.deserialize(body, KisException.class);
+				return Mono.error(() -> exception);
+			});
 	}
 }
