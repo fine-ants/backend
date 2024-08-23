@@ -1,4 +1,4 @@
-package codesquad.fineants.global.errors.exception;
+package codesquad.fineants.global.errors.exception.kis;
 
 import lombok.Getter;
 import lombok.ToString;

@@ -16,7 +16,7 @@ import codesquad.fineants.domain.kis.client.KisClient;
 import codesquad.fineants.domain.kis.repository.KisAccessTokenRepository;
 import codesquad.fineants.domain.kis.service.KisAccessTokenRedisService;
 import codesquad.fineants.global.common.time.LocalDateTimeService;
-import codesquad.fineants.global.errors.exception.ExpiredKisAccessTokenException;
+import codesquad.fineants.global.errors.exception.kis.ExpiredAccessTokenKisException;
 import reactor.core.publisher.Mono;
 
 class AccessTokenAspectTest extends AbstractContainerBaseTest {
@@ -63,12 +63,12 @@ class AccessTokenAspectTest extends AbstractContainerBaseTest {
 		kisAccessTokenRedisService.deleteAccessTokenMap();
 
 		given(client.fetchAccessToken())
-			.willReturn(Mono.error(new ExpiredKisAccessTokenException("1", "EGW00201", "초당 거래건수를 초과하였습니다.")));
+			.willReturn(Mono.error(new ExpiredAccessTokenKisException("1", "EGW00201", "초당 거래건수를 초과하였습니다.")));
 		// when
 		Throwable throwable = Assertions.catchThrowable(accessTokenAspect::checkAccessTokenExpiration);
 		// then
 		Assertions.assertThat(throwable)
-			.isInstanceOf(ExpiredKisAccessTokenException.class)
+			.isInstanceOf(ExpiredAccessTokenKisException.class)
 			.hasMessage("초당 거래건수를 초과하였습니다.");
 	}
 }
