@@ -93,24 +93,24 @@ public class KisService {
 			this.fetchCurrentPrice(ticker)
 				.doOnSuccess(kisCurrentPrice -> log.debug("reload stock current price {}", kisCurrentPrice))
 				.onErrorResume(throwable -> {
-					log.error(throwable.getMessage());
 					if (throwable instanceof ExpiredAccessTokenKisException) {
+						log.info("Kis access token is expired and return empty Mono");
 						return Mono.empty();
-					} else {
-						return Mono.error(throwable);
 					}
+					log.error(throwable.getMessage());
+					return Mono.error(throwable);
 				})
 				.retryWhen(Retry.fixedDelay(3, delayManager.fixedDelay())
 					.filter(RequestLimitExceededKisException.class::isInstance))
 				.onErrorResume(throwable -> {
-					log.error(throwable.getMessage());
 					if (Exceptions.isRetryExhausted(throwable)) {
+						log.info("Retry operations fails and return empty Mono");
 						return Mono.empty();
 					}
+					log.error(throwable.getMessage());
 					return Mono.error(throwable);
 				})
-				.blockOptional(delayManager.timeout())
-				.ifPresent(prices::add);
+				.subscribe(prices::add);
 		}
 		currentPriceRedisRepository.savePrice(toArray(prices));
 		log.info("The current stock price has renewed {} out of {}", prices.size(), tickerSymbols.size());

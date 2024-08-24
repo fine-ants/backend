@@ -139,6 +139,21 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		assertThat(currentPriceRedisRepository.fetchPriceBy("005930").orElseThrow()).isEqualTo(Money.won(10000));
 	}
 
+	@DisplayName("다수의 종목들의 현재가를 갱신한 다음에 레디스에 저장한다")
+	@Test
+	void refreshStockCurrentPrice_whenMultipleStocks_thenSaveToRedis() {
+		// given
+		List<String> tickers = saveStocks().stream()
+			.map(Stock::getTickerSymbol)
+			.toList();
+		tickers.forEach(ticker -> given(client.fetchCurrentPrice(ticker))
+			.willReturn(Mono.just(KisCurrentPrice.create(ticker, 50000L))));
+		// when
+		List<KisCurrentPrice> prices = kisService.refreshStockCurrentPrice(tickers);
+		// then
+		Assertions.assertThat(prices).hasSize(tickers.size());
+	}
+
 	@DisplayName("현재가를 갱신할때 액세스 토큰의 만료시간이 1시간 이전어서 새로운 액세스 토큰을 재발급한다")
 	@Test
 	void refreshStockCurrentPrice_whenAccessTokenSoonExpired_thenFetchAccessToken() {
