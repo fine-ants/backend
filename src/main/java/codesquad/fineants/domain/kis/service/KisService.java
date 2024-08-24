@@ -90,24 +90,11 @@ public class KisService {
 		List<KisCurrentPrice> prices = Flux.fromIterable(tickerSymbols)
 			.flatMap(ticker -> this.fetchCurrentPrice(ticker)
 				.doOnSuccess(kisCurrentPrice -> log.debug("reload stock current price {}", kisCurrentPrice))
-				.onErrorResume(throwable -> {
-					if (throwable instanceof ExpiredAccessTokenKisException) {
-						log.info("Kis access token is expired and return empty Mono");
-						return Mono.empty();
-					}
-					log.error(throwable.getMessage());
-					return Mono.error(throwable);
-				})
-				.retryWhen(Retry.fixedDelay(3, delayManager.fixedDelay())
+				.onErrorResume(ExpiredAccessTokenKisException.class::isInstance, throwable -> Mono.empty())
+				.retryWhen(Retry.fixedDelay(5, delayManager.fixedDelay())
 					.filter(RequestLimitExceededKisException.class::isInstance))
-				.onErrorResume(throwable -> {
-					if (Exceptions.isRetryExhausted(throwable)) {
-						log.info("Retry operations fails and return empty Mono");
-						return Mono.empty();
-					}
-					log.error(throwable.getMessage());
-					return Mono.error(throwable);
-				}))
+				.onErrorResume(Exceptions::isRetryExhausted, throwable -> Mono.empty())
+				.onErrorResume(Mono::error))
 			.collectList()
 			.blockOptional(delayManager.timeout())
 			.orElseGet(Collections::emptyList);
