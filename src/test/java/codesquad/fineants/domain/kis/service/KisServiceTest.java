@@ -143,11 +143,12 @@ class KisServiceTest extends AbstractContainerBaseTest {
 	@Test
 	void refreshStockCurrentPrice_whenMultipleStocks_thenSaveToRedis() {
 		// given
-		List<String> tickers = saveStocks().stream()
+		List<String> tickers = saveStocks(100).stream()
 			.map(Stock::getTickerSymbol)
 			.toList();
 		tickers.forEach(ticker -> given(client.fetchCurrentPrice(ticker))
-			.willReturn(Mono.just(KisCurrentPrice.create(ticker, 50000L))));
+			.willReturn(Mono.just(KisCurrentPrice.create(ticker, 50000L)).delayElement(Duration.ofMillis(100))));
+		given(delayManager.timeout()).willReturn(Duration.ofMinutes(10));
 		// when
 		List<KisCurrentPrice> prices = kisService.refreshStockCurrentPrice(tickers);
 		// then
@@ -412,6 +413,13 @@ class KisServiceTest extends AbstractContainerBaseTest {
 	}
 
 	private List<Stock> saveStocks() {
-		return stockRepository.saveAll(stockCsvReader.readStockCsv());
+		return saveStocks(0);
+	}
+
+	private List<Stock> saveStocks(int limit) {
+		return stockRepository.saveAll(stockCsvReader.readStockCsv()
+			.stream()
+			.limit(limit)
+			.toList());
 	}
 }

@@ -2,7 +2,6 @@ package codesquad.fineants.domain.kis.service;
 
 import java.time.Duration;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -88,9 +87,8 @@ public class KisService {
 	@Transactional(readOnly = true)
 	@CheckedKisAccessToken
 	public List<KisCurrentPrice> refreshStockCurrentPrice(List<String> tickerSymbols) {
-		List<KisCurrentPrice> prices = new ArrayList<>();
-		for (String ticker : tickerSymbols) {
-			this.fetchCurrentPrice(ticker)
+		List<KisCurrentPrice> prices = Flux.fromIterable(tickerSymbols)
+			.flatMap(ticker -> this.fetchCurrentPrice(ticker)
 				.doOnSuccess(kisCurrentPrice -> log.debug("reload stock current price {}", kisCurrentPrice))
 				.onErrorResume(throwable -> {
 					if (throwable instanceof ExpiredAccessTokenKisException) {
@@ -109,9 +107,10 @@ public class KisService {
 					}
 					log.error(throwable.getMessage());
 					return Mono.error(throwable);
-				})
-				.subscribe(prices::add);
-		}
+				}))
+			.collectList()
+			.blockOptional(delayManager.timeout())
+			.orElseGet(Collections::emptyList);
 		currentPriceRedisRepository.savePrice(toArray(prices));
 		log.info("The current stock price has renewed {} out of {}", prices.size(), tickerSymbols.size());
 		return prices;
