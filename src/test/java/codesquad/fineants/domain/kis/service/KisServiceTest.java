@@ -193,14 +193,15 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		assertThat(currentPriceRedisRepository.fetchPriceBy("005930").orElseThrow()).isEqualTo(Money.won(10000));
 	}
 
-	@DisplayName("한국투자증권에 종목 현재가 요청중에 액세스 토큰이 만료되어 실패하게 되면, 해당 요청을 취소한다")
+	@DisplayName("한국투자증권에 종목 현재가 요청중에 액세스 토큰이 만료되어 실패하게 되면, 해당 요청은 조회하지 않는다")
 	@Test
 	void refreshStockCurrentPrice_whenAccessTokenExpired_thenCancelStockCurrentPriceRequest() {
 		// given
-		String ticker = "005930";
-		List<String> tickers = List.of(ticker);
-		given(client.fetchCurrentPrice(ticker))
-			.willReturn(Mono.error(KisException.expiredAccessToken()));
+		List<String> tickers = saveStocks(100).stream()
+			.map(Stock::getTickerSymbol)
+			.toList();
+		tickers.forEach(ticker -> given(client.fetchCurrentPrice(ticker))
+			.willReturn(Mono.error(KisException.expiredAccessToken())));
 		// when
 		List<KisCurrentPrice> prices = kisService.refreshStockCurrentPrice(tickers);
 		// then
@@ -211,12 +212,12 @@ class KisServiceTest extends AbstractContainerBaseTest {
 	@Test
 	void refreshStockCurrentPrice_whenFailRetry_thenNotAddResultList() {
 		// given
-		String ticker = "005930";
-		List<String> tickers = List.of(ticker);
-		given(client.fetchCurrentPrice(ticker))
-			.willReturn(Mono.error(KisException.requestLimitExceeded()));
-		given(delayManager.fixedDelay())
-			.willReturn(Duration.ZERO);
+		List<String> tickers = saveStocks(100).stream()
+			.map(Stock::getTickerSymbol)
+			.toList();
+		tickers.forEach(ticker -> given(client.fetchCurrentPrice(ticker))
+			.willReturn(Mono.error(KisException.requestLimitExceeded())));
+		given(delayManager.fixedDelay()).willReturn(Duration.ZERO);
 		// when
 		List<KisCurrentPrice> prices = kisService.refreshStockCurrentPrice(tickers);
 		// then

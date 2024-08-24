@@ -55,7 +55,6 @@ public class KisService {
 	private static final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
 	public static final Duration DELAY = Duration.ofMillis(50L);
 	public static final Duration TIMEOUT = Duration.ofMinutes(10L);
-
 	private final KisClient kisClient;
 	private final PortfolioHoldingRepository portFolioHoldingRepository;
 	private final CurrentPriceRedisRepository currentPriceRedisRepository;
@@ -93,13 +92,12 @@ public class KisService {
 				.onErrorResume(ExpiredAccessTokenKisException.class::isInstance, throwable -> Mono.empty())
 				.retryWhen(Retry.fixedDelay(5, delayManager.fixedDelay())
 					.filter(RequestLimitExceededKisException.class::isInstance))
-				.onErrorResume(Exceptions::isRetryExhausted, throwable -> Mono.empty())
-				.onErrorResume(Mono::error))
+				.onErrorResume(Exceptions::isRetryExhausted, throwable -> Mono.empty()))
 			.collectList()
 			.blockOptional(delayManager.timeout())
 			.orElseGet(Collections::emptyList);
 		currentPriceRedisRepository.savePrice(toArray(prices));
-		log.info("The current stock price has renewed {} out of {}", prices.size(), tickerSymbols.size());
+		log.info("The stock's current price has renewed {} out of {}", prices.size(), tickerSymbols.size());
 		return prices;
 	}
 
