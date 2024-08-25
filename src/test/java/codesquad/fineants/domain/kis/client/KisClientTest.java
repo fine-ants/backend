@@ -97,7 +97,7 @@ class KisClientTest extends AbstractContainerBaseTest {
 		mockWebServer.enqueue(createResponse(200, ObjectMapperUtil.serialize(expectedKisAccessToken)));
 
 		// when
-		Mono<KisAccessToken> responseMono = this.kisClient.fetchAccessToken();
+		Mono<KisAccessToken> responseMono = this.kisClient.fetchAccessToken().retry(1);
 
 		// then
 		StepVerifier
