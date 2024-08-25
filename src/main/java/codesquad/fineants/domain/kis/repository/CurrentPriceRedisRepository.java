@@ -1,7 +1,5 @@
 package codesquad.fineants.domain.kis.repository;
 
-import static codesquad.fineants.domain.kis.service.KisService.*;
-
 import java.util.Arrays;
 import java.util.Optional;
 
@@ -11,6 +9,7 @@ import org.springframework.stereotype.Repository;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.kis.client.KisClient;
 import codesquad.fineants.domain.kis.client.KisCurrentPrice;
+import codesquad.fineants.global.common.delay.DelayManager;
 import lombok.RequiredArgsConstructor;
 import reactor.util.retry.Retry;
 
@@ -20,6 +19,7 @@ public class CurrentPriceRedisRepository implements PriceRepository {
 	private static final String CURRENT_PRICE_FORMAT = "cp:%s";
 	private final RedisTemplate<String, String> redisTemplate;
 	private final KisClient kisClient;
+	private final DelayManager delayManager;
 
 	@Override
 	public void savePrice(KisCurrentPrice... currentPrices) {
@@ -49,8 +49,8 @@ public class CurrentPriceRedisRepository implements PriceRepository {
 
 	private Optional<KisCurrentPrice> fetchAndCachePriceFromKis(String tickerSymbol) {
 		return kisClient.fetchCurrentPrice(tickerSymbol)
-			.retryWhen(Retry.fixedDelay(Long.MAX_VALUE, DELAY))
-			.blockOptional(TIMEOUT)
+			.retryWhen(Retry.fixedDelay(5, delayManager.fixedDelay()))
+			.blockOptional(delayManager.timeout())
 			.map(this::savePrice);
 	}
 }

@@ -18,6 +18,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 
 import codesquad.fineants.AbstractContainerBaseTest;
 import codesquad.fineants.domain.common.money.Money;
@@ -80,7 +81,7 @@ class StockServiceTest extends AbstractContainerBaseTest {
 	@MockBean
 	private KisService kisService;
 
-	@MockBean
+	@SpyBean
 	private DelayManager delayManager;
 
 	@AfterEach
@@ -206,23 +207,21 @@ class StockServiceTest extends AbstractContainerBaseTest {
 		given(kisService.fetchStockInfoInRangedIpo())
 			.willReturn(Set.of(hynix));
 		given(kisService.fetchSearchStockInfo(hynix.getTickerSymbol()))
-			.willReturn(Mono.just(KisSearchStockInfo.listedStock(
-					"KR7000660001",
-					"000660",
-					"에스케이하이닉스보통주",
-					"SK hynix",
-					"STK",
-					"전기,전자")
-				)
+			.willReturn(KisSearchStockInfo.listedStock(
+				"KR7000660001",
+				"000660",
+				"에스케이하이닉스보통주",
+				"SK hynix",
+				"STK",
+				"전기,전자")
 			);
 		given(kisService.fetchSearchStockInfo(nokwon.getTickerSymbol()))
-			.willReturn(Mono.just(
-				KisSearchStockInfo.delistedStock("KR7065560005", "065560", "녹원씨엔아이",
-					"Nokwon Commercials & Industries, Inc.",
-					"KSQ", "소프트웨어", LocalDate.of(2024, 7, 29))));
+			.willReturn(KisSearchStockInfo.delistedStock("KR7065560005", "065560", "녹원씨엔아이",
+				"Nokwon Commercials & Industries, Inc.",
+				"KSQ", "소프트웨어", LocalDate.of(2024, 7, 29)));
 		DateTimeFormatter dtf = DateTimeFormatter.BASIC_ISO_DATE;
 		given(kisService.fetchDividend(hynix.getTickerSymbol()))
-			.willReturn(Mono.just(List.of(
+			.willReturn(List.of(
 				KisDividend.create(hynix.getTickerSymbol(),
 					Money.won(300),
 					LocalDate.parse("20240331", dtf),
@@ -231,7 +230,7 @@ class StockServiceTest extends AbstractContainerBaseTest {
 					Money.won(300),
 					LocalDate.parse("20240630", dtf),
 					LocalDate.parse("20240814", dtf))
-			)));
+			));
 		given(delayManager.delay()).willReturn(Duration.ZERO);
 		// when
 		StockReloadResponse response = stockService.reloadStocks();
@@ -281,40 +280,39 @@ class StockServiceTest extends AbstractContainerBaseTest {
 		given(kisService.fetchStockInfoInRangedIpo())
 			.willReturn(Set.of(stock));
 		given(kisService.fetchSearchStockInfo(stock.getTickerSymbol()))
-			.willReturn(Mono.just(
+			.willReturn(
 				KisSearchStockInfo.listedStock(stock.getStockCode(), stock.getTickerSymbol(), stock.getCompanyName(),
-					stock.getCompanyNameEng(), "STK", "전기,전자")));
+					stock.getCompanyNameEng(), "STK", "전기,전자"));
 		stocks.forEach(s -> given(kisService.fetchSearchStockInfo(s.getTickerSymbol()))
-			.willReturn(Mono.just(
-					KisSearchStockInfo.listedStock(
-						s.getStockCode(),
-						s.getTickerSymbol(),
-						s.getCompanyName(),
-						s.getCompanyNameEng(),
-						"STK",
-						s.getSector()
-					)
+			.willReturn(KisSearchStockInfo.listedStock(
+					s.getStockCode(),
+					s.getTickerSymbol(),
+					s.getCompanyName(),
+					s.getCompanyNameEng(),
+					"STK",
+					s.getSector()
 				)
 			));
 		stocks.forEach(s -> given(kisService.fetchDividend(anyString()))
-			.willReturn(Mono.just(Collections.emptyList())));
+			.willReturn(Collections.emptyList()));
 		stocks.forEach(s -> given(kisService.fetchDividend(s.getTickerSymbol()))
-			.willReturn(Mono.just(List.of(
+			.willReturn(List.of(
 				KisDividend.create(s.getTickerSymbol(), Money.won(300), LocalDate.of(2024, 3, 1),
 					LocalDate.of(2024, 5, 1)),
 				KisDividend.create(s.getTickerSymbol(), Money.won(300), LocalDate.of(2024, 5, 1),
-					LocalDate.of(2024, 7, 1)))))
-		);
+					LocalDate.of(2024, 7, 1)))));
 		given(delayManager.delay()).willReturn(Duration.ZERO);
 		// when
 		stockService.scheduledReloadStocks();
 		// then
 		assertThat(stockRepository.findByTickerSymbol("000660")).isPresent();
 		assertThat(amazonS3StockService.fetchStocks())
-			.as("Verify that the stock information in the stocks.csv file stored in s3 matches the items in the database")
+			.as("Verify that the stock information in the stocks.csv file stored "
+				+ "in s3 matches the items in the database")
 			.containsExactlyInAnyOrderElementsOf(stockRepository.findAll());
 		assertThat(amazonS3DividendService.fetchDividends())
-			.as("Verify that the dividend information in the dividends.csv file stored in s3 matches the items in the database")
+			.as("Verify that the dividend information in the dividends.csv file stored "
+				+ "in s3 matches the items in the database")
 			.containsExactlyInAnyOrderElementsOf(stockDividendRepository.findAllStockDividends());
 	}
 

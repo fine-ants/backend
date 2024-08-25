@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.security.test.context.support.WithMockUser;
 
 import codesquad.fineants.AbstractContainerBaseTest;
@@ -32,7 +33,6 @@ import codesquad.fineants.domain.kis.domain.dto.response.KisIpo;
 import codesquad.fineants.domain.kis.domain.dto.response.KisIpoResponse;
 import codesquad.fineants.domain.kis.domain.dto.response.KisSearchStockInfo;
 import codesquad.fineants.domain.kis.repository.CurrentPriceRedisRepository;
-import codesquad.fineants.domain.kis.repository.HolidayRepository;
 import codesquad.fineants.domain.kis.repository.KisAccessTokenRepository;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
@@ -44,7 +44,7 @@ import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
 import codesquad.fineants.domain.stock.service.StockCsvReader;
 import codesquad.fineants.global.common.delay.DelayManager;
-import codesquad.fineants.global.errors.exception.KisException;
+import codesquad.fineants.global.errors.exception.kis.KisException;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -82,10 +82,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 	@MockBean
 	private KisClient client;
 
-	@MockBean
-	private HolidayRepository holidayRepository;
-
-	@MockBean
+	@SpyBean
 	private DelayManager delayManager;
 
 	@AfterEach
@@ -139,6 +136,22 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		assertThat(currentPriceRedisRepository.fetchPriceBy("005930").orElseThrow()).isEqualTo(Money.won(10000));
 	}
 
+	@DisplayName("다수의 종목들의 현재가를 갱신한 다음에 레디스에 저장한다")
+	@Test
+	void refreshStockCurrentPrice_whenMultipleStocks_thenSaveToRedis() {
+		// given
+		List<String> tickers = saveStocks(100).stream()
+			.map(Stock::getTickerSymbol)
+			.toList();
+		tickers.forEach(ticker -> given(client.fetchCurrentPrice(ticker))
+			.willReturn(Mono.just(KisCurrentPrice.create(ticker, 50000L)).delayElement(Duration.ofMillis(100))));
+		given(delayManager.delay()).willReturn(Duration.ZERO);
+		// when
+		List<KisCurrentPrice> prices = kisService.refreshStockCurrentPrice(tickers);
+		// then
+		Assertions.assertThat(prices).hasSize(tickers.size());
+	}
+
 	@DisplayName("현재가를 갱신할때 액세스 토큰의 만료시간이 1시간 이전어서 새로운 액세스 토큰을 재발급한다")
 	@Test
 	void refreshStockCurrentPrice_whenAccessTokenSoonExpired_thenFetchAccessToken() {
@@ -150,7 +163,6 @@ class KisServiceTest extends AbstractContainerBaseTest {
 
 		given(client.fetchCurrentPrice("005930"))
 			.willReturn(Mono.just(KisCurrentPrice.create("005930", 10000L)));
-		given(delayManager.timeout()).willReturn(Duration.ofSeconds(1));
 		given(delayManager.delay()).willReturn(Duration.ZERO);
 		given(delayManager.fixedDelay()).willReturn(Duration.ZERO);
 
@@ -177,6 +189,37 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		assertThat(currentPriceRedisRepository.fetchPriceBy("005930").orElseThrow()).isEqualTo(Money.won(10000));
 	}
 
+	@DisplayName("한국투자증권에 종목 현재가 요청중에 액세스 토큰이 만료되어 실패하게 되면, 해당 요청은 조회하지 않는다")
+	@Test
+	void refreshStockCurrentPrice_whenAccessTokenExpired_thenCancelStockCurrentPriceRequest() {
+		// given
+		List<String> tickers = saveStocks(100).stream()
+			.map(Stock::getTickerSymbol)
+			.toList();
+		tickers.forEach(ticker -> given(client.fetchCurrentPrice(ticker))
+			.willReturn(Mono.error(KisException.expiredAccessToken())));
+		// when
+		List<KisCurrentPrice> prices = kisService.refreshStockCurrentPrice(tickers);
+		// then
+		Assertions.assertThat(prices).isEmpty();
+	}
+
+	@DisplayName("한국투자증권에 종목 현재가 요청중에 요청 건수 초과 에러시 재시도 또한 전부 실패하게 되면 리스트에 추가되지 않는다")
+	@Test
+	void refreshStockCurrentPrice_whenFailRetry_thenNotAddResultList() {
+		// given
+		List<String> tickers = saveStocks(100).stream()
+			.map(Stock::getTickerSymbol)
+			.toList();
+		tickers.forEach(ticker -> given(client.fetchCurrentPrice(ticker))
+			.willReturn(Mono.error(KisException.requestLimitExceeded())));
+		given(delayManager.fixedDelay()).willReturn(Duration.ZERO);
+		// when
+		List<KisCurrentPrice> prices = kisService.refreshStockCurrentPrice(tickers);
+		// then
+		Assertions.assertThat(prices).isEmpty();
+	}
+
 	@DisplayName("종목 현재가 갱신시 예외가 발생하면 다시 시도하여 가격을 조회한다")
 	@Test
 	void refreshStockCurrentPrice_whenFailFetch_thenRetryFetch() {
@@ -188,11 +231,9 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		));
 		stocks.forEach(stock -> portfolioHoldingRepository.save(createPortfolioHolding(portfolio, stock)));
 
-		kisAccessTokenRepository.refreshAccessToken(createKisAccessToken());
 		given(client.fetchCurrentPrice("005930"))
-			.willReturn(Mono.error(new KisException("요청 건수 초과")))
+			.willReturn(Mono.error(KisException.requestLimitExceeded()))
 			.willReturn(Mono.just(KisCurrentPrice.create("005930", 50000L)));
-		given(delayManager.timeout()).willReturn(Duration.ofSeconds(1));
 		given(delayManager.delay()).willReturn(Duration.ZERO);
 		given(delayManager.fixedDelay()).willReturn(Duration.ZERO);
 
@@ -208,7 +249,6 @@ class KisServiceTest extends AbstractContainerBaseTest {
 			.isEqualTo(Money.won(50000));
 	}
 
-	@WithMockUser(roles = {"ADMIN"})
 	@DisplayName("종가 갱신시 요청건수 초과로 실패하였다가 다시 시도하여 성공한다")
 	@Test
 	void refreshLastDayClosingPriceWhenExceedingTransactionPerSecond() {
@@ -222,20 +262,20 @@ class KisServiceTest extends AbstractContainerBaseTest {
 
 		kisAccessTokenRepository.refreshAccessToken(createKisAccessToken());
 		given(client.fetchClosingPrice(anyString()))
-			.willThrow(new KisException("요청건수가 초과되었습니다"))
-			.willThrow(new KisException("요청건수가 초과되었습니다"))
+			.willThrow(KisException.requestLimitExceeded())
+			.willThrow(KisException.requestLimitExceeded())
 			.willReturn(Mono.just(KisClosingPrice.create("005930", 10000L)));
-
+		given(delayManager.fixedDelay()).willReturn(Duration.ZERO);
 		List<String> tickerSymbols = stocks.stream()
 			.map(Stock::getTickerSymbol)
 			.toList();
 		// when
-		kisService.refreshLastDayClosingPrice(tickerSymbols);
+		kisService.refreshClosingPrice(tickerSymbols);
 
 		// then
-		verify(client, times(1)).fetchClosingPrice(anyString());
+		verify(client, times(3)).fetchClosingPrice(anyString());
 	}
-	
+
 	@DisplayName("한국투자증권에 상장된 종목 정보를 조회한다")
 	@Test
 	void fetchStockInfoInRangedIpo() {
@@ -307,6 +347,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		// when & then
 		tickerSymbols.stream()
 			.map(kisService::fetchSearchStockInfo)
+			.map(Mono::just)
 			.forEach(mono ->
 				StepVerifier.create(mono)
 					.expectNextMatches(stockInfo -> {
@@ -329,8 +370,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 				KisDividend.create(tickerSymbol, Money.won(300), LocalDate.of(2024, 3, 1),
 					LocalDate.of(2024, 5, 1))))));
 		// when
-		List<KisDividend> dividends = kisService.fetchDividend(tickerSymbol)
-			.block();
+		List<KisDividend> dividends = kisService.fetchDividend(tickerSymbol);
 		// then
 		Assertions.assertThat(dividends)
 			.hasSize(1)
@@ -355,8 +395,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 				KisDividend.create(tickerSymbol, Money.won(300), LocalDate.of(2024, 3, 1),
 					LocalDate.of(2024, 5, 1))))));
 		// when
-		List<KisDividend> dividends = kisService.fetchDividend(tickerSymbol)
-			.block();
+		List<KisDividend> dividends = kisService.fetchDividend(tickerSymbol);
 		// then
 		Assertions.assertThat(dividends)
 			.hasSize(1)
@@ -368,6 +407,13 @@ class KisServiceTest extends AbstractContainerBaseTest {
 	}
 
 	private List<Stock> saveStocks() {
-		return stockRepository.saveAll(stockCsvReader.readStockCsv());
+		return saveStocks(0);
+	}
+
+	private List<Stock> saveStocks(int limit) {
+		return stockRepository.saveAll(stockCsvReader.readStockCsv()
+			.stream()
+			.limit(limit)
+			.toList());
 	}
 }

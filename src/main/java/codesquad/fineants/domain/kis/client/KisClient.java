@@ -17,10 +17,10 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import codesquad.fineants.domain.kis.aop.CheckedKisAccessToken;
 import codesquad.fineants.domain.kis.domain.dto.response.KisClosingPrice;
 import codesquad.fineants.domain.kis.domain.dto.response.KisDividend;
 import codesquad.fineants.domain.kis.domain.dto.response.KisDividendWrapper;
+import codesquad.fineants.domain.kis.domain.dto.response.KisErrorResponse;
 import codesquad.fineants.domain.kis.domain.dto.response.KisIpoResponse;
 import codesquad.fineants.domain.kis.domain.dto.response.KisSearchStockInfo;
 import codesquad.fineants.domain.kis.properties.KisAccessTokenRequest;
@@ -36,7 +36,6 @@ import codesquad.fineants.domain.kis.properties.kiscodevalue.imple.FidPeriodDivC
 import codesquad.fineants.domain.kis.properties.kiscodevalue.imple.GB1;
 import codesquad.fineants.domain.kis.properties.kiscodevalue.imple.PrdtTypeCd;
 import codesquad.fineants.domain.kis.repository.KisAccessTokenRepository;
-import codesquad.fineants.global.errors.exception.KisException;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
@@ -71,7 +70,6 @@ public class KisClient {
 			.retrieve()
 			.onStatus(HttpStatusCode::isError, this::handleError)
 			.bodyToMono(KisAccessToken.class)
-			.retryWhen(Retry.fixedDelay(Long.MAX_VALUE, Duration.ofMinutes(1)))
 			.log();
 	}
 
@@ -97,7 +95,6 @@ public class KisClient {
 	}
 
 	// 직전 거래일의 종가 조회
-	@CheckedKisAccessToken
 	public Mono<KisClosingPrice> fetchClosingPrice(String tickerSymbol) {
 		MultiValueMap<String, String> header = KisHeaderBuilder.builder()
 			.add(AUTHORIZATION, manager.createAuthorization())
@@ -134,7 +131,6 @@ public class KisClient {
 	 * @param tickerSymbol 종목의 단축코드
 	 * @return 종목의 배당 일정 정보
 	 */
-	@CheckedKisAccessToken
 	public Mono<KisDividendWrapper> fetchDividendThisYear(String tickerSymbol) {
 		LocalDate today = LocalDate.now();
 		// 해당 년도 첫일
@@ -168,11 +164,10 @@ public class KisClient {
 			header,
 			queryParam,
 			KisDividendWrapper.class
-		).retryWhen(Retry.fixedDelay(Long.MAX_VALUE, Duration.ofSeconds(5)));
+		);
 	}
 
-	@CheckedKisAccessToken
-	public Mono<List<KisDividend>> fetchDividendAll(LocalDate from, LocalDate to) {
+	public Mono<List<KisDividend>> fetchDividendsBetween(LocalDate from, LocalDate to) {
 		MultiValueMap<String, String> header = KisHeaderBuilder.builder()
 			.add(CONTENT_TYPE, APPLICATION_JSON_UTF8)
 			.add(AUTHORIZATION, manager.createAuthorization())
@@ -198,7 +193,6 @@ public class KisClient {
 		).map(KisDividendWrapper::getKisDividends);
 	}
 
-	@CheckedKisAccessToken
 	public Mono<KisIpoResponse> fetchIpo(LocalDate from, LocalDate to) {
 		MultiValueMap<String, String> header = KisHeaderBuilder.builder()
 			.add(CONTENT_TYPE, APPLICATION_JSON_UTF8)
@@ -228,7 +222,6 @@ public class KisClient {
 		return localDate.format(DateTimeFormatter.BASIC_ISO_DATE);
 	}
 
-	@CheckedKisAccessToken
 	public Mono<KisSearchStockInfo> fetchSearchStockInfo(String tickerSymbol) {
 		MultiValueMap<String, String> header = KisHeaderBuilder.builder()
 			.add(CONTENT_TYPE, APPLICATION_JSON_UTF8)
@@ -265,8 +258,8 @@ public class KisClient {
 	}
 
 	private Mono<? extends Throwable> handleError(ClientResponse clientResponse) {
-		return clientResponse.bodyToMono(String.class)
-			.doOnNext(log::error)
-			.flatMap(body -> Mono.error(() -> new KisException(body)));
+		return clientResponse.bodyToMono(KisErrorResponse.class)
+			.doOnNext(kisErrorResponse -> log.error(kisErrorResponse.toString()))
+			.flatMap(kisErrorResponse -> Mono.error(kisErrorResponse::toException));
 	}
 }

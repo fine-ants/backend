@@ -12,11 +12,15 @@ import codesquad.fineants.domain.kis.client.KisAccessToken;
 import codesquad.fineants.domain.kis.client.KisClient;
 import codesquad.fineants.domain.kis.repository.KisAccessTokenRepository;
 import codesquad.fineants.domain.kis.service.KisAccessTokenRedisService;
+import codesquad.fineants.global.common.delay.DelayManager;
 import codesquad.fineants.global.common.time.LocalDateTimeService;
 import codesquad.fineants.global.errors.errorcode.KisErrorCode;
 import codesquad.fineants.global.errors.exception.FineAntsException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.Exceptions;
+import reactor.core.publisher.Mono;
+import reactor.util.retry.Retry;
 
 @Aspect
 @Component
@@ -28,6 +32,7 @@ public class AccessTokenAspect {
 	private final KisClient client;
 	private final KisAccessTokenRedisService redisService;
 	private final LocalDateTimeService localDateTimeService;
+	private final DelayManager delayManager;
 
 	@Before(value = "@annotation(CheckedKisAccessToken) && args(..)")
 	public void checkAccessTokenExpiration() {
@@ -35,7 +40,11 @@ public class AccessTokenAspect {
 		// 액세스 토큰이 만료 1시간 이전이라면 토큰을 재발급한다
 		if (manager.isTokenExpiringSoon(now)) {
 			client.fetchAccessToken()
-				.blockOptional(Duration.ofMinutes(10))
+				.doOnSuccess(kisAccessToken -> log.debug("success the kis access token issue : {}", kisAccessToken))
+				.retryWhen(Retry.fixedDelay(5, delayManager.fixedAccessTokenDelay()))
+				.onErrorResume(Exceptions::isRetryExhausted, throwable -> Mono.empty())
+				.onErrorResume(throwable -> Mono.empty())
+				.blockOptional(delayManager.timeout())
 				.ifPresent(newKisAccessToken -> {
 					redisService.setAccessTokenMap(newKisAccessToken, now);
 					manager.refreshAccessToken(newKisAccessToken);
@@ -61,6 +70,9 @@ public class AccessTokenAspect {
 
 	private Optional<KisAccessToken> handleNewAccessToken() {
 		Optional<KisAccessToken> result = client.fetchAccessToken()
+			.doOnSuccess(kisAccessToken -> log.debug("success the kis access token issue : {}", kisAccessToken))
+			.retryWhen(Retry.fixedDelay(5, delayManager.fixedAccessTokenDelay()))
+			.onErrorResume(throwable -> Mono.empty())
 			.blockOptional(Duration.ofMinutes(10));
 		log.info("new access Token Issue : {}", result);
 		return result;

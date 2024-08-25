@@ -1,6 +1,5 @@
 package codesquad.fineants.domain.stock.service;
 
-import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -30,14 +29,12 @@ import codesquad.fineants.global.errors.exception.FineAntsException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class StockAndDividendManager {
-
-	private static final Duration TIMEOUT = Duration.ofMinutes(10);
-
 	private final StockRepository stockRepository;
 	private final StockDividendRepository dividendRepository;
 	private final KisService kisService;
@@ -151,10 +148,10 @@ public class StockAndDividendManager {
 	private Map<Boolean, List<Stock>> fetchPartitionedStocksForDelisted() {
 		final int concurrency = 20;
 		return Flux.fromIterable(findAllTickerSymbols())
-			.flatMap(kisService::fetchSearchStockInfo, concurrency)
+			.flatMap(ticker -> Mono.just(kisService.fetchSearchStockInfo(ticker)), concurrency)
 			.delayElements(delayManager.delay())
 			.collectList()
-			.blockOptional(TIMEOUT)
+			.blockOptional(delayManager.timeout())
 			.orElseGet(Collections::emptyList).stream()
 			.collect(Collectors.partitioningBy(
 					KisSearchStockInfo::isDelisted,
@@ -173,7 +170,7 @@ public class StockAndDividendManager {
 
 	/**
 	 * 신규 배당 일정 저장
-	 * 수행과정
+	 * 수행 과정
 	 * - 배당 일정 조회
 	 * - 배당 일정 저장
 	 * @param tickerSymbols 배당 일정을 조회할 종목의 티커 심볼
@@ -181,22 +178,17 @@ public class StockAndDividendManager {
 	 */
 	private List<StockDividend> reloadDividend(Set<String> tickerSymbols) {
 		// 올해 배당 일정 조회
-		List<StockDividend> stockDividends = fetchDividends(tickerSymbols);
-		// 배당 일정 저장
-		return dividendRepository.saveAll(stockDividends);
-	}
-
-	@NotNull
-	private List<StockDividend> fetchDividends(Set<String> tickerSymbols) {
-		final int concurrency = 20;
-		return Flux.fromIterable(tickerSymbols)
-			.flatMap(ticker -> kisService.fetchDividend(ticker).flatMapMany(Flux::fromIterable), concurrency)
+		int concurrency = 20;
+		List<StockDividend> stockDividends = Flux.fromIterable(tickerSymbols)
+			.flatMap(ticker -> Flux.fromIterable(kisService.fetchDividend(ticker)), concurrency)
 			.delayElements(delayManager.delay())
 			.collectList()
-			.blockOptional(TIMEOUT)
+			.blockOptional(delayManager.timeout())
 			.orElseGet(Collections::emptyList).stream()
 			.map(this::mapStockDividend)
 			.toList();
+		// 배당 일정 저장
+		return dividendRepository.saveAll(stockDividends);
 	}
 
 	// 조회한 배당금을 엔티티 종목의 배당금으로 매핑

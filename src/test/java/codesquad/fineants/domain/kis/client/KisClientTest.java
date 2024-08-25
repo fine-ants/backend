@@ -39,6 +39,7 @@ import codesquad.fineants.domain.kis.properties.KisProperties;
 import codesquad.fineants.domain.kis.properties.KisTrIdProperties;
 import codesquad.fineants.domain.kis.repository.KisAccessTokenRepository;
 import codesquad.fineants.domain.kis.service.KisAccessTokenRedisService;
+import codesquad.fineants.global.errors.exception.kis.RequestLimitExceededKisException;
 import codesquad.fineants.global.util.ObjectMapperUtil;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
@@ -301,6 +302,23 @@ class KisClientTest extends AbstractContainerBaseTest {
 			.containsExactly("005930", 80000L);
 	}
 
+	@DisplayName("종목의 현재가 조회시 초당 거래 건수 초과하여 에러 응답한다")
+	@Test
+	void fetchCurrentPrice_whenExceedRequestLimit_thenMonoError() {
+		// given
+		Map<String, String> output = Map.of(
+			"rt_cd", "1",
+			"msg_cd", "EGW00201",
+			"msg1", "초당 거래건수를 초과하였습니다."
+		);
+		mockWebServer.enqueue(createResponse(500, ObjectMapperUtil.serialize(output)));
+		String ticker = "005930";
+		// when & then
+		StepVerifier.create(kisClient.fetchCurrentPrice(ticker))
+			.expectError(RequestLimitExceededKisException.class)
+			.verify();
+	}
+
 	@DisplayName("사용자는 종목의 종가를 조회한다")
 	@Test
 	void fetchClosingPrice() {
@@ -346,7 +364,7 @@ class KisClientTest extends AbstractContainerBaseTest {
 		);
 		mockWebServer.enqueue(createResponse(200, ObjectMapperUtil.serialize(output)));
 		// when
-		List<KisDividend> dividends = kisClient.fetchDividendAll(from, to)
+		List<KisDividend> dividends = kisClient.fetchDividendsBetween(from, to)
 			.blockOptional()
 			.orElseGet(Collections::emptyList);
 		// then
