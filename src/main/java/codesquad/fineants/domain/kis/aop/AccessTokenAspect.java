@@ -35,6 +35,7 @@ public class AccessTokenAspect {
 		// 액세스 토큰이 만료 1시간 이전이라면 토큰을 재발급한다
 		if (manager.isTokenExpiringSoon(now)) {
 			client.fetchAccessToken()
+				.doOnSuccess(kisAccessToken -> log.debug("success the kis access token issue : {}", kisAccessToken))
 				.blockOptional(Duration.ofMinutes(10))
 				.ifPresent(newKisAccessToken -> {
 					redisService.setAccessTokenMap(newKisAccessToken, now);
