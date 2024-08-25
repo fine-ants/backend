@@ -222,7 +222,7 @@ class StockServiceTest extends AbstractContainerBaseTest {
 					"KSQ", "소프트웨어", LocalDate.of(2024, 7, 29))));
 		DateTimeFormatter dtf = DateTimeFormatter.BASIC_ISO_DATE;
 		given(kisService.fetchDividend(hynix.getTickerSymbol()))
-			.willReturn(Mono.just(List.of(
+			.willReturn(List.of(
 				KisDividend.create(hynix.getTickerSymbol(),
 					Money.won(300),
 					LocalDate.parse("20240331", dtf),
@@ -231,7 +231,7 @@ class StockServiceTest extends AbstractContainerBaseTest {
 					Money.won(300),
 					LocalDate.parse("20240630", dtf),
 					LocalDate.parse("20240814", dtf))
-			)));
+			));
 		given(delayManager.delay()).willReturn(Duration.ZERO);
 		// when
 		StockReloadResponse response = stockService.reloadStocks();
@@ -297,24 +297,25 @@ class StockServiceTest extends AbstractContainerBaseTest {
 				)
 			));
 		stocks.forEach(s -> given(kisService.fetchDividend(anyString()))
-			.willReturn(Mono.just(Collections.emptyList())));
+			.willReturn(Collections.emptyList()));
 		stocks.forEach(s -> given(kisService.fetchDividend(s.getTickerSymbol()))
-			.willReturn(Mono.just(List.of(
+			.willReturn(List.of(
 				KisDividend.create(s.getTickerSymbol(), Money.won(300), LocalDate.of(2024, 3, 1),
 					LocalDate.of(2024, 5, 1)),
 				KisDividend.create(s.getTickerSymbol(), Money.won(300), LocalDate.of(2024, 5, 1),
-					LocalDate.of(2024, 7, 1)))))
-		);
+					LocalDate.of(2024, 7, 1)))));
 		given(delayManager.delay()).willReturn(Duration.ZERO);
 		// when
 		stockService.scheduledReloadStocks();
 		// then
 		assertThat(stockRepository.findByTickerSymbol("000660")).isPresent();
 		assertThat(amazonS3StockService.fetchStocks())
-			.as("Verify that the stock information in the stocks.csv file stored in s3 matches the items in the database")
+			.as("Verify that the stock information in the stocks.csv file stored "
+				+ "in s3 matches the items in the database")
 			.containsExactlyInAnyOrderElementsOf(stockRepository.findAll());
 		assertThat(amazonS3DividendService.fetchDividends())
-			.as("Verify that the dividend information in the dividends.csv file stored in s3 matches the items in the database")
+			.as("Verify that the dividend information in the dividends.csv file stored "
+				+ "in s3 matches the items in the database")
 			.containsExactlyInAnyOrderElementsOf(stockDividendRepository.findAllStockDividends());
 	}
 

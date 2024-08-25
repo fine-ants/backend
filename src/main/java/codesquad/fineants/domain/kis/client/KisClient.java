@@ -165,7 +165,7 @@ public class KisClient {
 			header,
 			queryParam,
 			KisDividendWrapper.class
-		).retryWhen(Retry.fixedDelay(Long.MAX_VALUE, Duration.ofSeconds(5)));
+		);
 	}
 
 	public Mono<List<KisDividend>> fetchDividendAll(LocalDate from, LocalDate to) {

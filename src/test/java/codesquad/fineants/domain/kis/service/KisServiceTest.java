@@ -375,8 +375,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 				KisDividend.create(tickerSymbol, Money.won(300), LocalDate.of(2024, 3, 1),
 					LocalDate.of(2024, 5, 1))))));
 		// when
-		List<KisDividend> dividends = kisService.fetchDividend(tickerSymbol)
-			.block();
+		List<KisDividend> dividends = kisService.fetchDividend(tickerSymbol);
 		// then
 		Assertions.assertThat(dividends)
 			.hasSize(1)
@@ -401,8 +400,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 				KisDividend.create(tickerSymbol, Money.won(300), LocalDate.of(2024, 3, 1),
 					LocalDate.of(2024, 5, 1))))));
 		// when
-		List<KisDividend> dividends = kisService.fetchDividend(tickerSymbol)
-			.block();
+		List<KisDividend> dividends = kisService.fetchDividend(tickerSymbol);
 		// then
 		Assertions.assertThat(dividends)
 			.hasSize(1)

@@ -1,7 +1,5 @@
 package codesquad.fineants.domain.kis.controller;
 
-import java.time.Duration;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -25,7 +23,6 @@ import codesquad.fineants.global.api.ApiResponse;
 import codesquad.fineants.global.success.KisSuccessCode;
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
-import reactor.util.retry.Retry;
 
 @RestController
 @RequestMapping("/api/kis")
@@ -92,10 +89,7 @@ public class KisRestController {
 	@GetMapping("/dividend/{tickerSymbol}")
 	@Secured(value = {"ROLE_MANAGER", "ROLE_ADMIN"})
 	public ApiResponse<List<KisDividend>> fetchDividend(@PathVariable String tickerSymbol) {
-		return ApiResponse.success(KisSuccessCode.OK_FETCH_DIVIDEND, service.fetchDividend(tickerSymbol)
-			.retryWhen(Retry.fixedDelay(Long.MAX_VALUE, Duration.ofSeconds(5)))
-			.blockOptional(Duration.ofMinutes(1))
-			.orElseGet(Collections::emptyList));
+		return ApiResponse.success(KisSuccessCode.OK_FETCH_DIVIDEND, service.fetchDividend(tickerSymbol));
 	}
 
 	@DeleteMapping("/access-token")
