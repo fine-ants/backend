@@ -70,7 +70,6 @@ public class KisClient {
 			.retrieve()
 			.onStatus(HttpStatusCode::isError, this::handleError)
 			.bodyToMono(KisAccessToken.class)
-			.retryWhen(Retry.fixedDelay(Long.MAX_VALUE, Duration.ofMinutes(1)))
 			.log();
 	}
 
