@@ -6,8 +6,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.stream.Collectors;
 
 import org.springframework.scheduling.annotation.Scheduled;
@@ -50,7 +48,6 @@ import reactor.util.retry.Retry;
 @RequiredArgsConstructor
 @Service
 public class KisService {
-	private static final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
 	public static final Duration DELAY = Duration.ofMillis(50L);
 	public static final Duration TIMEOUT = Duration.ofMinutes(10L);
 	private final KisClient kisClient;
@@ -114,7 +111,7 @@ public class KisService {
 		return Mono.defer(() -> kisClient.fetchCurrentPrice(tickerSymbol));
 	}
 
-	// 15시 30분에 종가 갱신 수행
+	// start pm 15:30
 	@Scheduled(cron = "* 30 15 * * *")
 	@Transactional(readOnly = true)
 	public void scheduledRefreshAllClosingPrice() {
@@ -125,7 +122,6 @@ public class KisService {
 		refreshAllClosingPrice();
 	}
 
-	// 종목 종가 모두 갱신
 	@CheckedKisAccessToken
 	public List<KisClosingPrice> refreshAllClosingPrice() {
 		return refreshClosingPrice(stockRepository.findAll().stream()
@@ -133,7 +129,6 @@ public class KisService {
 			.toList());
 	}
 
-	// 종목 종가 갱신
 	@CheckedKisAccessToken
 	public List<KisClosingPrice> refreshClosingPrice(List<String> tickerSymbols) {
 		int concurrency = 20;
@@ -181,7 +176,7 @@ public class KisService {
 	}
 
 	@CheckedKisAccessToken
-	public List<KisDividend> fetchDividendAll(LocalDate from, LocalDate to) {
+	public List<KisDividend> fetchDividendsBetween(LocalDate from, LocalDate to) {
 		return kisClient.fetchDividendAll(from, to)
 			.retryWhen(Retry.fixedDelay(Long.MAX_VALUE, Duration.ofSeconds(5)))
 			.blockOptional(TIMEOUT)

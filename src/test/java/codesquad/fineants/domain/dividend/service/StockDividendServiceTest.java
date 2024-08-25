@@ -94,7 +94,7 @@ class StockDividendServiceTest extends AbstractContainerBaseTest {
 		int kakaoDividend = 61;
 
 		kisAccessTokenRepository.refreshAccessToken(createKisAccessToken());
-		given(kisService.fetchDividendAll(
+		given(kisService.fetchDividendsBetween(
 			ArgumentMatchers.any(LocalDate.class),
 			ArgumentMatchers.any(LocalDate.class)
 		)).willReturn(List.of(
