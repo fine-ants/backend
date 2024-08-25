@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.security.test.context.support.WithMockUser;
 
 import codesquad.fineants.AbstractContainerBaseTest;
@@ -85,7 +86,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 	@MockBean
 	private HolidayRepository holidayRepository;
 
-	@MockBean
+	@SpyBean
 	private DelayManager delayManager;
 
 	@AfterEach
@@ -148,7 +149,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 			.toList();
 		tickers.forEach(ticker -> given(client.fetchCurrentPrice(ticker))
 			.willReturn(Mono.just(KisCurrentPrice.create(ticker, 50000L)).delayElement(Duration.ofMillis(100))));
-		given(delayManager.timeout()).willReturn(Duration.ofMinutes(10));
+		given(delayManager.delay()).willReturn(Duration.ZERO);
 		// when
 		List<KisCurrentPrice> prices = kisService.refreshStockCurrentPrice(tickers);
 		// then
@@ -166,7 +167,6 @@ class KisServiceTest extends AbstractContainerBaseTest {
 
 		given(client.fetchCurrentPrice("005930"))
 			.willReturn(Mono.just(KisCurrentPrice.create("005930", 10000L)));
-		given(delayManager.timeout()).willReturn(Duration.ofSeconds(1));
 		given(delayManager.delay()).willReturn(Duration.ZERO);
 		given(delayManager.fixedDelay()).willReturn(Duration.ZERO);
 
@@ -238,7 +238,6 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		given(client.fetchCurrentPrice("005930"))
 			.willReturn(Mono.error(KisException.requestLimitExceeded()))
 			.willReturn(Mono.just(KisCurrentPrice.create("005930", 50000L)));
-		given(delayManager.timeout()).willReturn(Duration.ofSeconds(1));
 		given(delayManager.delay()).willReturn(Duration.ZERO);
 		given(delayManager.fixedDelay()).willReturn(Duration.ZERO);
 
@@ -270,8 +269,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 			.willThrow(KisException.requestLimitExceeded())
 			.willThrow(KisException.requestLimitExceeded())
 			.willReturn(Mono.just(KisClosingPrice.create("005930", 10000L)));
-		given(delayManager.timeout())
-			.willReturn(Duration.ofMinutes(10));
+		given(delayManager.fixedDelay()).willReturn(Duration.ZERO);
 		List<String> tickerSymbols = stocks.stream()
 			.map(Stock::getTickerSymbol)
 			.toList();
@@ -308,8 +306,6 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		);
 		given(client.fetchSearchStockInfo(anyString()))
 			.willReturn(Mono.just(kisSearchStockInfo));
-		given(delayManager.timeout())
-			.willReturn(Duration.ofMinutes(10));
 		// when
 		Set<StockDataResponse.StockIntegrationInfo> stocks = kisService.fetchStockInfoInRangedIpo();
 		// then

@@ -18,6 +18,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 
 import codesquad.fineants.AbstractContainerBaseTest;
 import codesquad.fineants.domain.common.money.Money;
@@ -80,7 +81,7 @@ class StockServiceTest extends AbstractContainerBaseTest {
 	@MockBean
 	private KisService kisService;
 
-	@MockBean
+	@SpyBean
 	private DelayManager delayManager;
 
 	@AfterEach
@@ -231,7 +232,6 @@ class StockServiceTest extends AbstractContainerBaseTest {
 					LocalDate.parse("20240814", dtf))
 			));
 		given(delayManager.delay()).willReturn(Duration.ZERO);
-		given(delayManager.timeout()).willReturn(Duration.ofMinutes(10));
 		// when
 		StockReloadResponse response = stockService.reloadStocks();
 		// then
@@ -285,12 +285,12 @@ class StockServiceTest extends AbstractContainerBaseTest {
 					stock.getCompanyNameEng(), "STK", "전기,전자"));
 		stocks.forEach(s -> given(kisService.fetchSearchStockInfo(s.getTickerSymbol()))
 			.willReturn(KisSearchStockInfo.listedStock(
-				s.getStockCode(),
-				s.getTickerSymbol(),
-				s.getCompanyName(),
-				s.getCompanyNameEng(),
-				"STK",
-				s.getSector()
+					s.getStockCode(),
+					s.getTickerSymbol(),
+					s.getCompanyName(),
+					s.getCompanyNameEng(),
+					"STK",
+					s.getSector()
 				)
 			));
 		stocks.forEach(s -> given(kisService.fetchDividend(anyString()))
@@ -302,7 +302,6 @@ class StockServiceTest extends AbstractContainerBaseTest {
 				KisDividend.create(s.getTickerSymbol(), Money.won(300), LocalDate.of(2024, 5, 1),
 					LocalDate.of(2024, 7, 1)))));
 		given(delayManager.delay()).willReturn(Duration.ZERO);
-		given(delayManager.timeout()).willReturn(Duration.ofMinutes(10));
 		// when
 		stockService.scheduledReloadStocks();
 		// then
