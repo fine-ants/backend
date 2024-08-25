@@ -32,6 +32,9 @@ public class KisAccessTokenRepository {
 	}
 
 	public String createAuthorization() {
+		if (accessToken == null) {
+			return null;
+		}
 		return accessToken.createAuthorization();
 	}
 
