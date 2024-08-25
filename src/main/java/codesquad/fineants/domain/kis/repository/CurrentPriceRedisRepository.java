@@ -10,11 +10,18 @@ import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.kis.client.KisClient;
 import codesquad.fineants.domain.kis.client.KisCurrentPrice;
 import codesquad.fineants.global.common.delay.DelayManager;
+import codesquad.fineants.global.errors.exception.kis.CredentialsTypeKisException;
+import codesquad.fineants.global.errors.exception.kis.ExpiredAccessTokenKisException;
+import codesquad.fineants.global.errors.exception.kis.RequestLimitExceededKisException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import reactor.core.Exceptions;
+import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
 
 @RequiredArgsConstructor
 @Repository
+@Slf4j
 public class CurrentPriceRedisRepository implements PriceRepository {
 	private static final String CURRENT_PRICE_FORMAT = "cp:%s";
 	private final RedisTemplate<String, String> redisTemplate;
@@ -49,7 +56,12 @@ public class CurrentPriceRedisRepository implements PriceRepository {
 
 	private Optional<KisCurrentPrice> fetchAndCachePriceFromKis(String tickerSymbol) {
 		return kisClient.fetchCurrentPrice(tickerSymbol)
-			.retryWhen(Retry.fixedDelay(5, delayManager.fixedDelay()))
+			.doOnSuccess(kisCurrentPrice -> log.debug("reload stock current price {}", kisCurrentPrice))
+			.onErrorResume(ExpiredAccessTokenKisException.class::isInstance, throwable -> Mono.empty())
+			.onErrorResume(CredentialsTypeKisException.class::isInstance, throwable -> Mono.empty())
+			.retryWhen(Retry.fixedDelay(5, delayManager.fixedDelay())
+				.filter(RequestLimitExceededKisException.class::isInstance))
+			.onErrorResume(Exceptions::isRetryExhausted, throwable -> Mono.empty())
 			.blockOptional(delayManager.timeout())
 			.map(this::savePrice);
 	}
