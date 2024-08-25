@@ -33,7 +33,6 @@ import codesquad.fineants.domain.kis.domain.dto.response.KisIpo;
 import codesquad.fineants.domain.kis.domain.dto.response.KisIpoResponse;
 import codesquad.fineants.domain.kis.domain.dto.response.KisSearchStockInfo;
 import codesquad.fineants.domain.kis.repository.CurrentPriceRedisRepository;
-import codesquad.fineants.domain.kis.repository.HolidayRepository;
 import codesquad.fineants.domain.kis.repository.KisAccessTokenRepository;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
@@ -82,9 +81,6 @@ class KisServiceTest extends AbstractContainerBaseTest {
 
 	@MockBean
 	private KisClient client;
-
-	@MockBean
-	private HolidayRepository holidayRepository;
 
 	@SpyBean
 	private DelayManager delayManager;
