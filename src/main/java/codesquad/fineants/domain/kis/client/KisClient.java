@@ -17,7 +17,6 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import codesquad.fineants.domain.kis.aop.CheckedKisAccessToken;
 import codesquad.fineants.domain.kis.domain.dto.response.KisClosingPrice;
 import codesquad.fineants.domain.kis.domain.dto.response.KisDividend;
 import codesquad.fineants.domain.kis.domain.dto.response.KisDividendWrapper;
@@ -97,7 +96,6 @@ public class KisClient {
 	}
 
 	// 직전 거래일의 종가 조회
-	@CheckedKisAccessToken
 	public Mono<KisClosingPrice> fetchClosingPrice(String tickerSymbol) {
 		MultiValueMap<String, String> header = KisHeaderBuilder.builder()
 			.add(AUTHORIZATION, manager.createAuthorization())
@@ -134,7 +132,6 @@ public class KisClient {
 	 * @param tickerSymbol 종목의 단축코드
 	 * @return 종목의 배당 일정 정보
 	 */
-	@CheckedKisAccessToken
 	public Mono<KisDividendWrapper> fetchDividendThisYear(String tickerSymbol) {
 		LocalDate today = LocalDate.now();
 		// 해당 년도 첫일
@@ -171,7 +168,6 @@ public class KisClient {
 		).retryWhen(Retry.fixedDelay(Long.MAX_VALUE, Duration.ofSeconds(5)));
 	}
 
-	@CheckedKisAccessToken
 	public Mono<List<KisDividend>> fetchDividendAll(LocalDate from, LocalDate to) {
 		MultiValueMap<String, String> header = KisHeaderBuilder.builder()
 			.add(CONTENT_TYPE, APPLICATION_JSON_UTF8)
@@ -198,7 +194,6 @@ public class KisClient {
 		).map(KisDividendWrapper::getKisDividends);
 	}
 
-	@CheckedKisAccessToken
 	public Mono<KisIpoResponse> fetchIpo(LocalDate from, LocalDate to) {
 		MultiValueMap<String, String> header = KisHeaderBuilder.builder()
 			.add(CONTENT_TYPE, APPLICATION_JSON_UTF8)
@@ -228,7 +223,6 @@ public class KisClient {
 		return localDate.format(DateTimeFormatter.BASIC_ISO_DATE);
 	}
 
-	@CheckedKisAccessToken
 	public Mono<KisSearchStockInfo> fetchSearchStockInfo(String tickerSymbol) {
 		MultiValueMap<String, String> header = KisHeaderBuilder.builder()
 			.add(CONTENT_TYPE, APPLICATION_JSON_UTF8)
