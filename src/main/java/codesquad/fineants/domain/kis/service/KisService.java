@@ -177,9 +177,9 @@ public class KisService {
 
 	@CheckedKisAccessToken
 	public List<KisDividend> fetchDividendsBetween(LocalDate from, LocalDate to) {
-		return kisClient.fetchDividendAll(from, to)
-			.retryWhen(Retry.fixedDelay(Long.MAX_VALUE, Duration.ofSeconds(5)))
-			.blockOptional(TIMEOUT)
+		return kisClient.fetchDividendsBetween(from, to)
+			.retryWhen(Retry.fixedDelay(5, delayManager.fixedDelay()))
+			.blockOptional(delayManager.timeout())
 			.orElseGet(Collections::emptyList).stream()
 			.sorted()
 			.toList();

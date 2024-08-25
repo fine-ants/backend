@@ -364,7 +364,7 @@ class KisClientTest extends AbstractContainerBaseTest {
 		);
 		mockWebServer.enqueue(createResponse(200, ObjectMapperUtil.serialize(output)));
 		// when
-		List<KisDividend> dividends = kisClient.fetchDividendAll(from, to)
+		List<KisDividend> dividends = kisClient.fetchDividendsBetween(from, to)
 			.blockOptional()
 			.orElseGet(Collections::emptyList);
 		// then

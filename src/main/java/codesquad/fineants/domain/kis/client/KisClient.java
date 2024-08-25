@@ -168,7 +168,7 @@ public class KisClient {
 		);
 	}
 
-	public Mono<List<KisDividend>> fetchDividendAll(LocalDate from, LocalDate to) {
+	public Mono<List<KisDividend>> fetchDividendsBetween(LocalDate from, LocalDate to) {
 		MultiValueMap<String, String> header = KisHeaderBuilder.builder()
 			.add(CONTENT_TYPE, APPLICATION_JSON_UTF8)
 			.add(AUTHORIZATION, manager.createAuthorization())
