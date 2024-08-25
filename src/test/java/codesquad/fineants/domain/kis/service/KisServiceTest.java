@@ -254,7 +254,6 @@ class KisServiceTest extends AbstractContainerBaseTest {
 			.isEqualTo(Money.won(50000));
 	}
 
-	@WithMockUser(roles = {"ADMIN"})
 	@DisplayName("종가 갱신시 요청건수 초과로 실패하였다가 다시 시도하여 성공한다")
 	@Test
 	void refreshLastDayClosingPriceWhenExceedingTransactionPerSecond() {
@@ -268,18 +267,19 @@ class KisServiceTest extends AbstractContainerBaseTest {
 
 		kisAccessTokenRepository.refreshAccessToken(createKisAccessToken());
 		given(client.fetchClosingPrice(anyString()))
-			.willThrow(new KisException("1", "EGW00201", "초당 거래건수를 초과하였습니다."))
-			.willThrow(new KisException("1", "EGW00201", "초당 거래건수를 초과하였습니다."))
+			.willThrow(KisException.requestLimitExceeded())
+			.willThrow(KisException.requestLimitExceeded())
 			.willReturn(Mono.just(KisClosingPrice.create("005930", 10000L)));
-
+		given(delayManager.timeout())
+			.willReturn(Duration.ofMinutes(10));
 		List<String> tickerSymbols = stocks.stream()
 			.map(Stock::getTickerSymbol)
 			.toList();
 		// when
-		kisService.refreshLastDayClosingPrice(tickerSymbols);
+		kisService.refreshClosingPrice(tickerSymbols);
 
 		// then
-		verify(client, times(1)).fetchClosingPrice(anyString());
+		verify(client, times(3)).fetchClosingPrice(anyString());
 	}
 
 	@DisplayName("한국투자증권에 상장된 종목 정보를 조회한다")

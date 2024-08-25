@@ -24,6 +24,6 @@ public class PortfolioHoldingEventListener {
 		log.info("포트폴리오 종목 추가로 인한 종목 현재가 및 종가 갱신 수행");
 		String tickerSymbol = event.getTickerSymbol();
 		kisService.refreshStockCurrentPrice(List.of(tickerSymbol));
-		kisService.refreshLastDayClosingPrice(List.of(tickerSymbol));
+		kisService.refreshClosingPrice(List.of(tickerSymbol));
 	}
 }

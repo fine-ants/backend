@@ -66,7 +66,7 @@ public class KisRestController {
 	@PostMapping("/closing-price/all/refresh")
 	@Secured(value = {"ROLE_MANAGER", "ROLE_ADMIN"})
 	public ApiResponse<List<KisClosingPrice>> refreshAllLastDayClosingPrice() {
-		List<KisClosingPrice> responses = service.refreshAllLastDayClosingPrice();
+		List<KisClosingPrice> responses = service.refreshAllClosingPrice();
 		return ApiResponse.success(KisSuccessCode.OK_REFRESH_LAST_DAY_CLOSING_PRICE, responses);
 	}
 
@@ -76,7 +76,7 @@ public class KisRestController {
 	public ApiResponse<List<KisClosingPrice>> refreshLastDayClosingPrice(
 		@RequestBody StockPriceRefreshRequest request
 	) {
-		List<KisClosingPrice> responses = service.refreshLastDayClosingPrice(request.getTickerSymbols());
+		List<KisClosingPrice> responses = service.refreshClosingPrice(request.getTickerSymbols());
 		return ApiResponse.success(KisSuccessCode.OK_REFRESH_LAST_DAY_CLOSING_PRICE, responses);
 	}
 

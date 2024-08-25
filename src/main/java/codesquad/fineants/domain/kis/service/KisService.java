@@ -3,15 +3,11 @@ package codesquad.fineants.domain.kis.service;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 import org.springframework.scheduling.annotation.Scheduled;
@@ -36,12 +32,12 @@ import codesquad.fineants.domain.notification.event.publisher.PortfolioPublisher
 import codesquad.fineants.domain.stock.domain.dto.response.StockDataResponse;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
+import codesquad.fineants.domain.stock_target_price.domain.entity.StockTargetPrice;
 import codesquad.fineants.domain.stock_target_price.event.publisher.StockTargetPricePublisher;
 import codesquad.fineants.domain.stock_target_price.repository.StockTargetPriceRepository;
 import codesquad.fineants.global.common.delay.DelayManager;
 import codesquad.fineants.global.errors.exception.kis.CredentialsTypeKisException;
 import codesquad.fineants.global.errors.exception.kis.ExpiredAccessTokenKisException;
-import codesquad.fineants.global.errors.exception.kis.KisException;
 import codesquad.fineants.global.errors.exception.kis.RequestLimitExceededKisException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -66,23 +62,21 @@ public class KisService {
 	private final PortfolioPublisher portfolioPublisher;
 	private final StockTargetPriceRepository stockTargetPriceRepository;
 	private final DelayManager delayManager;
-	private final StockRepository stockRepository;
-
 	private final KisAccessTokenRepository kisAccessTokenRepository;
 	private final KisAccessTokenRedisService kisAccessTokenRedisService;
+	private final StockRepository stockRepository;
 
 	// 회원이 가지고 있는 모든 종목에 대하여 현재가 갱신
 	@Transactional
 	@CheckedKisAccessToken
 	public List<KisCurrentPrice> refreshAllStockCurrentPrice() {
-		// Set<String> totalTickerSymbol = new HashSet<>();
-		// totalTickerSymbol.addAll(portFolioHoldingRepository.findAllTickerSymbol());
-		// totalTickerSymbol.addAll(stockTargetPriceRepository.findAll().stream()
-		// 	.map(StockTargetPrice::getStock)
-		// 	.map(Stock::getTickerSymbol)
-		// 	.collect(Collectors.toSet()));
-		// List<String> totalTickerSymbolList = totalTickerSymbol.stream().toList();
-		List<String> totalTickerSymbolList = stockRepository.findAll().stream().map(Stock::getTickerSymbol).toList();
+		Set<String> totalTickerSymbol = new HashSet<>();
+		totalTickerSymbol.addAll(portFolioHoldingRepository.findAllTickerSymbol());
+		totalTickerSymbol.addAll(stockTargetPriceRepository.findAll().stream()
+			.map(StockTargetPrice::getStock)
+			.map(Stock::getTickerSymbol)
+			.collect(Collectors.toSet()));
+		List<String> totalTickerSymbolList = totalTickerSymbol.stream().toList();
 		List<KisCurrentPrice> prices = this.refreshStockCurrentPrice(totalTickerSymbolList);
 		stockTargetPricePublisher.publishEvent(totalTickerSymbolList);
 		portfolioPublisher.publishCurrentPriceEvent();
@@ -115,16 +109,6 @@ public class KisService {
 		return prices.toArray(KisCurrentPrice[]::new);
 	}
 
-	private <T> CompletableFuture<T> createCompletableFuture() {
-		CompletableFuture<T> future = new CompletableFuture<>();
-		future.orTimeout(TIMEOUT.toMillis(), TimeUnit.MILLISECONDS);
-		future.exceptionally(e -> {
-			log.error(e.getMessage());
-			return null;
-		});
-		return future;
-	}
-
 	@CheckedKisAccessToken
 	public Mono<KisCurrentPrice> fetchCurrentPrice(String tickerSymbol) {
 		return Mono.defer(() -> kisClient.fetchCurrentPrice(tickerSymbol));
@@ -133,65 +117,47 @@ public class KisService {
 	// 15시 30분에 종가 갱신 수행
 	@Scheduled(cron = "* 30 15 * * *")
 	@Transactional(readOnly = true)
-	public void refreshClosingPrice() {
+	public void scheduledRefreshAllClosingPrice() {
 		// 휴장일인 경우 실행하지 않음
 		if (holidayRepository.isHoliday(LocalDate.now())) {
 			return;
 		}
-		refreshAllLastDayClosingPrice();
+		refreshAllClosingPrice();
 	}
 
 	// 종목 종가 모두 갱신
 	@CheckedKisAccessToken
-	public List<KisClosingPrice> refreshAllLastDayClosingPrice() {
-		List<String> tickerSymbols = portFolioHoldingRepository.findAllTickerSymbol();
-		return refreshLastDayClosingPrice(tickerSymbols);
+	public List<KisClosingPrice> refreshAllClosingPrice() {
+		return refreshClosingPrice(stockRepository.findAll().stream()
+			.map(Stock::getTickerSymbol)
+			.toList());
 	}
 
-	// 종목 종가 일부 갱신
+	// 종목 종가 갱신
 	@CheckedKisAccessToken
-	public List<KisClosingPrice> refreshLastDayClosingPrice(List<String> tickerSymbols) {
-		List<KisClosingPrice> lastDayClosingPrices = readLastDayClosingPriceResponses(tickerSymbols);
-		lastDayClosingPrices.forEach(closingPriceRepository::addPrice);
-		log.info("종목 종가 {}개중 {}개 갱신", tickerSymbols.size(), lastDayClosingPrices.size());
-		return lastDayClosingPrices;
-	}
+	public List<KisClosingPrice> refreshClosingPrice(List<String> tickerSymbols) {
+		int concurrency = 20;
+		List<KisClosingPrice> prices = Flux.fromIterable(tickerSymbols)
+			.flatMap(ticker -> this.fetchClosingPrice(ticker)
+				.doOnSuccess(price -> log.debug("reload stock closing price {}", price))
+				.onErrorResume(ExpiredAccessTokenKisException.class::isInstance, throwable -> Mono.empty())
+				.onErrorResume(CredentialsTypeKisException.class::isInstance, throwable -> Mono.empty())
+				.retryWhen(Retry.fixedDelay(5, delayManager.fixedDelay())
+					.filter(RequestLimitExceededKisException.class::isInstance))
+				.onErrorResume(Exceptions::isRetryExhausted, throwable -> Mono.empty()), concurrency)
+			.delayElements(delayManager.delay())
+			.collectList()
+			.blockOptional(delayManager.timeout())
+			.orElseGet(Collections::emptyList);
 
-	private List<KisClosingPrice> readLastDayClosingPriceResponses(List<String> unknownTickerSymbols) {
-		List<CompletableFuture<KisClosingPrice>> futures = unknownTickerSymbols.stream()
-			.map(this::createClosingPriceFuture)
-			.toList();
-
-		return futures.stream()
-			.map(future -> {
-				try {
-					return future.get(1L, TimeUnit.MINUTES);
-				} catch (InterruptedException | ExecutionException | TimeoutException e) {
-					return null;
-				}
-			})
-			.filter(Objects::nonNull)
-			.toList();
-	}
-
-	private CompletableFuture<KisClosingPrice> createClosingPriceFuture(
-		String tickerSymbol) {
-		CompletableFuture<KisClosingPrice> future = createCompletableFuture();
-		executorService.schedule(() -> {
-			try {
-				future.complete(fetchClosingPrice(tickerSymbol)
-					.blockOptional(TIMEOUT)
-					.orElseGet(() -> KisClosingPrice.empty(tickerSymbol)));
-			} catch (KisException e) {
-				future.completeExceptionally(e);
-			}
-		}, 1L, TimeUnit.SECONDS);
-		return future;
+		prices.forEach(closingPriceRepository::addPrice);
+		log.info("종목 종가 {}개중 {}개 갱신", tickerSymbols.size(), prices.size());
+		return prices;
 	}
 
 	@CheckedKisAccessToken
 	public Mono<KisClosingPrice> fetchClosingPrice(String tickerSymbol) {
-		return kisClient.fetchClosingPrice(tickerSymbol);
+		return Mono.defer(() -> kisClient.fetchClosingPrice(tickerSymbol));
 	}
 
 	/**
@@ -200,7 +166,6 @@ public class KisService {
 	 * @param tickerSymbol 종목 단축 코드
 	 * @return 종목의 배당 일정 정보
 	 */
-
 	@CheckedKisAccessToken
 	public Mono<List<KisDividend>> fetchDividend(String tickerSymbol) {
 		return kisClient.fetchDividendThisYear(tickerSymbol)
