@@ -125,6 +125,7 @@ public class KisService {
 		return future;
 	}
 
+	@CheckedKisAccessToken
 	public Mono<KisCurrentPrice> fetchCurrentPrice(String tickerSymbol) {
 		return Mono.defer(() -> kisClient.fetchCurrentPrice(tickerSymbol));
 	}
@@ -141,13 +142,14 @@ public class KisService {
 	}
 
 	// 종목 종가 모두 갱신
-
+	@CheckedKisAccessToken
 	public List<KisClosingPrice> refreshAllLastDayClosingPrice() {
 		List<String> tickerSymbols = portFolioHoldingRepository.findAllTickerSymbol();
 		return refreshLastDayClosingPrice(tickerSymbols);
 	}
 
 	// 종목 종가 일부 갱신
+	@CheckedKisAccessToken
 	public List<KisClosingPrice> refreshLastDayClosingPrice(List<String> tickerSymbols) {
 		List<KisClosingPrice> lastDayClosingPrices = readLastDayClosingPriceResponses(tickerSymbols);
 		lastDayClosingPrices.forEach(closingPriceRepository::addPrice);
@@ -187,6 +189,7 @@ public class KisService {
 		return future;
 	}
 
+	@CheckedKisAccessToken
 	public Mono<KisClosingPrice> fetchClosingPrice(String tickerSymbol) {
 		return kisClient.fetchClosingPrice(tickerSymbol);
 	}
@@ -198,6 +201,7 @@ public class KisService {
 	 * @return 종목의 배당 일정 정보
 	 */
 
+	@CheckedKisAccessToken
 	public Mono<List<KisDividend>> fetchDividend(String tickerSymbol) {
 		return kisClient.fetchDividendThisYear(tickerSymbol)
 			.map(KisDividendWrapper::getKisDividends)
@@ -205,6 +209,7 @@ public class KisService {
 			.onErrorResume(e -> Mono.empty());
 	}
 
+	@CheckedKisAccessToken
 	public List<KisDividend> fetchDividendAll(LocalDate from, LocalDate to) {
 		return kisClient.fetchDividendAll(from, to)
 			.retryWhen(Retry.fixedDelay(Long.MAX_VALUE, Duration.ofSeconds(5)))
@@ -220,6 +225,7 @@ public class KisService {
 	 * @param tickerSymbol 종목 티커 심볼
 	 * @return 종목 정보
 	 */
+	@CheckedKisAccessToken
 	public Mono<KisSearchStockInfo> fetchSearchStockInfo(String tickerSymbol) {
 		return kisClient.fetchSearchStockInfo(tickerSymbol)
 			.doOnSuccess(response -> log.debug("fetchSearchStockInfo ticker is {}", response.getTickerSymbol()))
@@ -233,6 +239,7 @@ public class KisService {
 	 *
 	 * @return 종목 정보 리스트
 	 */
+	@CheckedKisAccessToken
 	public Set<StockDataResponse.StockIntegrationInfo> fetchStockInfoInRangedIpo() {
 		LocalDate today = LocalDate.now();
 		LocalDate yesterday = today.minusDays(1);
