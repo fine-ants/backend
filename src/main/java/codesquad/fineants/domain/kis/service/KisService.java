@@ -3,7 +3,6 @@ package codesquad.fineants.domain.kis.service;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -21,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import codesquad.fineants.domain.holding.repository.PortfolioHoldingRepository;
 import codesquad.fineants.domain.kis.aop.CheckedKisAccessToken;
+import codesquad.fineants.domain.kis.client.KisAccessToken;
 import codesquad.fineants.domain.kis.client.KisClient;
 import codesquad.fineants.domain.kis.client.KisCurrentPrice;
 import codesquad.fineants.domain.kis.domain.dto.response.KisClosingPrice;
@@ -31,13 +31,15 @@ import codesquad.fineants.domain.kis.domain.dto.response.KisSearchStockInfo;
 import codesquad.fineants.domain.kis.repository.ClosingPriceRepository;
 import codesquad.fineants.domain.kis.repository.CurrentPriceRedisRepository;
 import codesquad.fineants.domain.kis.repository.HolidayRepository;
+import codesquad.fineants.domain.kis.repository.KisAccessTokenRepository;
 import codesquad.fineants.domain.notification.event.publisher.PortfolioPublisher;
 import codesquad.fineants.domain.stock.domain.dto.response.StockDataResponse;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
-import codesquad.fineants.domain.stock_target_price.domain.entity.StockTargetPrice;
+import codesquad.fineants.domain.stock.repository.StockRepository;
 import codesquad.fineants.domain.stock_target_price.event.publisher.StockTargetPricePublisher;
 import codesquad.fineants.domain.stock_target_price.repository.StockTargetPriceRepository;
 import codesquad.fineants.global.common.delay.DelayManager;
+import codesquad.fineants.global.errors.exception.kis.CredentialsTypeKisException;
 import codesquad.fineants.global.errors.exception.kis.ExpiredAccessTokenKisException;
 import codesquad.fineants.global.errors.exception.kis.KisException;
 import codesquad.fineants.global.errors.exception.kis.RequestLimitExceededKisException;
@@ -64,18 +66,23 @@ public class KisService {
 	private final PortfolioPublisher portfolioPublisher;
 	private final StockTargetPriceRepository stockTargetPriceRepository;
 	private final DelayManager delayManager;
+	private final StockRepository stockRepository;
+
+	private final KisAccessTokenRepository kisAccessTokenRepository;
+	private final KisAccessTokenRedisService kisAccessTokenRedisService;
 
 	// 회원이 가지고 있는 모든 종목에 대하여 현재가 갱신
 	@Transactional
 	@CheckedKisAccessToken
 	public List<KisCurrentPrice> refreshAllStockCurrentPrice() {
-		Set<String> totalTickerSymbol = new HashSet<>();
-		totalTickerSymbol.addAll(portFolioHoldingRepository.findAllTickerSymbol());
-		totalTickerSymbol.addAll(stockTargetPriceRepository.findAll().stream()
-			.map(StockTargetPrice::getStock)
-			.map(Stock::getTickerSymbol)
-			.collect(Collectors.toSet()));
-		List<String> totalTickerSymbolList = totalTickerSymbol.stream().toList();
+		// Set<String> totalTickerSymbol = new HashSet<>();
+		// totalTickerSymbol.addAll(portFolioHoldingRepository.findAllTickerSymbol());
+		// totalTickerSymbol.addAll(stockTargetPriceRepository.findAll().stream()
+		// 	.map(StockTargetPrice::getStock)
+		// 	.map(Stock::getTickerSymbol)
+		// 	.collect(Collectors.toSet()));
+		// List<String> totalTickerSymbolList = totalTickerSymbol.stream().toList();
+		List<String> totalTickerSymbolList = stockRepository.findAll().stream().map(Stock::getTickerSymbol).toList();
 		List<KisCurrentPrice> prices = this.refreshStockCurrentPrice(totalTickerSymbolList);
 		stockTargetPricePublisher.publishEvent(totalTickerSymbolList);
 		portfolioPublisher.publishCurrentPriceEvent();
@@ -86,13 +93,16 @@ public class KisService {
 	@Transactional(readOnly = true)
 	@CheckedKisAccessToken
 	public List<KisCurrentPrice> refreshStockCurrentPrice(List<String> tickerSymbols) {
+		int concurrency = 20;
 		List<KisCurrentPrice> prices = Flux.fromIterable(tickerSymbols)
 			.flatMap(ticker -> this.fetchCurrentPrice(ticker)
 				.doOnSuccess(kisCurrentPrice -> log.debug("reload stock current price {}", kisCurrentPrice))
 				.onErrorResume(ExpiredAccessTokenKisException.class::isInstance, throwable -> Mono.empty())
+				.onErrorResume(CredentialsTypeKisException.class::isInstance, throwable -> Mono.empty())
 				.retryWhen(Retry.fixedDelay(5, delayManager.fixedDelay())
 					.filter(RequestLimitExceededKisException.class::isInstance))
-				.onErrorResume(Exceptions::isRetryExhausted, throwable -> Mono.empty()))
+				.onErrorResume(Exceptions::isRetryExhausted, throwable -> Mono.empty()), concurrency)
+			.delayElements(delayManager.delay())
 			.collectList()
 			.blockOptional(delayManager.timeout())
 			.orElseGet(Collections::emptyList);
@@ -244,5 +254,12 @@ public class KisService {
 			.map(KisSearchStockInfo::toEntity)
 			.map(StockDataResponse.StockIntegrationInfo::from)
 			.collect(Collectors.toUnmodifiableSet());
+	}
+
+	public KisAccessToken deleteAccessToken() {
+		kisAccessTokenRepository.refreshAccessToken(null);
+		KisAccessToken kisAccessToken = kisAccessTokenRedisService.getAccessTokenMap().orElse(null);
+		kisAccessTokenRedisService.deleteAccessTokenMap();
+		return kisAccessToken;
 	}
 }
