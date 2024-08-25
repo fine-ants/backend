@@ -308,6 +308,8 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		);
 		given(client.fetchSearchStockInfo(anyString()))
 			.willReturn(Mono.just(kisSearchStockInfo));
+		given(delayManager.timeout())
+			.willReturn(Duration.ofMinutes(10));
 		// when
 		Set<StockDataResponse.StockIntegrationInfo> stocks = kisService.fetchStockInfoInRangedIpo();
 		// then
@@ -353,6 +355,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		// when & then
 		tickerSymbols.stream()
 			.map(kisService::fetchSearchStockInfo)
+			.map(Mono::just)
 			.forEach(mono ->
 				StepVerifier.create(mono)
 					.expectNextMatches(stockInfo -> {

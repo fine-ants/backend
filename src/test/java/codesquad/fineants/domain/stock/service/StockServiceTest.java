@@ -206,20 +206,18 @@ class StockServiceTest extends AbstractContainerBaseTest {
 		given(kisService.fetchStockInfoInRangedIpo())
 			.willReturn(Set.of(hynix));
 		given(kisService.fetchSearchStockInfo(hynix.getTickerSymbol()))
-			.willReturn(Mono.just(KisSearchStockInfo.listedStock(
-					"KR7000660001",
-					"000660",
-					"에스케이하이닉스보통주",
-					"SK hynix",
-					"STK",
-					"전기,전자")
-				)
+			.willReturn(KisSearchStockInfo.listedStock(
+				"KR7000660001",
+				"000660",
+				"에스케이하이닉스보통주",
+				"SK hynix",
+				"STK",
+				"전기,전자")
 			);
 		given(kisService.fetchSearchStockInfo(nokwon.getTickerSymbol()))
-			.willReturn(Mono.just(
-				KisSearchStockInfo.delistedStock("KR7065560005", "065560", "녹원씨엔아이",
-					"Nokwon Commercials & Industries, Inc.",
-					"KSQ", "소프트웨어", LocalDate.of(2024, 7, 29))));
+			.willReturn(KisSearchStockInfo.delistedStock("KR7065560005", "065560", "녹원씨엔아이",
+				"Nokwon Commercials & Industries, Inc.",
+				"KSQ", "소프트웨어", LocalDate.of(2024, 7, 29)));
 		DateTimeFormatter dtf = DateTimeFormatter.BASIC_ISO_DATE;
 		given(kisService.fetchDividend(hynix.getTickerSymbol()))
 			.willReturn(List.of(
@@ -233,6 +231,7 @@ class StockServiceTest extends AbstractContainerBaseTest {
 					LocalDate.parse("20240814", dtf))
 			));
 		given(delayManager.delay()).willReturn(Duration.ZERO);
+		given(delayManager.timeout()).willReturn(Duration.ofMinutes(10));
 		// when
 		StockReloadResponse response = stockService.reloadStocks();
 		// then
@@ -281,19 +280,17 @@ class StockServiceTest extends AbstractContainerBaseTest {
 		given(kisService.fetchStockInfoInRangedIpo())
 			.willReturn(Set.of(stock));
 		given(kisService.fetchSearchStockInfo(stock.getTickerSymbol()))
-			.willReturn(Mono.just(
+			.willReturn(
 				KisSearchStockInfo.listedStock(stock.getStockCode(), stock.getTickerSymbol(), stock.getCompanyName(),
-					stock.getCompanyNameEng(), "STK", "전기,전자")));
+					stock.getCompanyNameEng(), "STK", "전기,전자"));
 		stocks.forEach(s -> given(kisService.fetchSearchStockInfo(s.getTickerSymbol()))
-			.willReturn(Mono.just(
-					KisSearchStockInfo.listedStock(
-						s.getStockCode(),
-						s.getTickerSymbol(),
-						s.getCompanyName(),
-						s.getCompanyNameEng(),
-						"STK",
-						s.getSector()
-					)
+			.willReturn(KisSearchStockInfo.listedStock(
+				s.getStockCode(),
+				s.getTickerSymbol(),
+				s.getCompanyName(),
+				s.getCompanyNameEng(),
+				"STK",
+				s.getSector()
 				)
 			));
 		stocks.forEach(s -> given(kisService.fetchDividend(anyString()))
@@ -305,6 +302,7 @@ class StockServiceTest extends AbstractContainerBaseTest {
 				KisDividend.create(s.getTickerSymbol(), Money.won(300), LocalDate.of(2024, 5, 1),
 					LocalDate.of(2024, 7, 1)))));
 		given(delayManager.delay()).willReturn(Duration.ZERO);
+		given(delayManager.timeout()).willReturn(Duration.ofMinutes(10));
 		// when
 		stockService.scheduledReloadStocks();
 		// then

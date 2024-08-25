@@ -194,14 +194,16 @@ public class KisService {
 	 * @return 종목 정보
 	 */
 	@CheckedKisAccessToken
-	public Mono<KisSearchStockInfo> fetchSearchStockInfo(String tickerSymbol) {
+	public KisSearchStockInfo fetchSearchStockInfo(String tickerSymbol) {
 		return kisClient.fetchSearchStockInfo(tickerSymbol)
 			.doOnSuccess(response -> log.debug("fetchSearchStockInfo ticker is {}", response.getTickerSymbol()))
 			.onErrorResume(ExpiredAccessTokenKisException.class::isInstance, throwable -> Mono.empty())
 			.onErrorResume(CredentialsTypeKisException.class::isInstance, throwable -> Mono.empty())
 			.retryWhen(Retry.fixedDelay(5, delayManager.fixedDelay())
 				.filter(RequestLimitExceededKisException.class::isInstance))
-			.onErrorResume(Exceptions::isRetryExhausted, throwable -> Mono.empty());
+			.onErrorResume(Exceptions::isRetryExhausted, throwable -> Mono.empty())
+			.blockOptional(delayManager.timeout())
+			.orElse(null);
 	}
 
 	/**
@@ -224,7 +226,7 @@ public class KisService {
 
 		int concurrency = 20;
 		return Flux.fromIterable(tickerSymbols)
-			.flatMap(this::fetchSearchStockInfo, concurrency)
+			.flatMap(ticker -> Mono.just(this.fetchSearchStockInfo(ticker)), concurrency)
 			.delayElements(delayManager.delay())
 			.collectList()
 			.blockOptional(delayManager.timeout())

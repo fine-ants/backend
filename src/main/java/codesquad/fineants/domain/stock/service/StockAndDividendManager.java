@@ -1,6 +1,5 @@
 package codesquad.fineants.domain.stock.service;
 
-import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -30,14 +29,12 @@ import codesquad.fineants.global.errors.exception.FineAntsException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class StockAndDividendManager {
-
-	private static final Duration TIMEOUT = Duration.ofMinutes(10);
-
 	private final StockRepository stockRepository;
 	private final StockDividendRepository dividendRepository;
 	private final KisService kisService;
@@ -151,10 +148,10 @@ public class StockAndDividendManager {
 	private Map<Boolean, List<Stock>> fetchPartitionedStocksForDelisted() {
 		final int concurrency = 20;
 		return Flux.fromIterable(findAllTickerSymbols())
-			.flatMap(kisService::fetchSearchStockInfo, concurrency)
+			.flatMap(ticker -> Mono.just(kisService.fetchSearchStockInfo(ticker)), concurrency)
 			.delayElements(delayManager.delay())
 			.collectList()
-			.blockOptional(TIMEOUT)
+			.blockOptional(delayManager.timeout())
 			.orElseGet(Collections::emptyList).stream()
 			.collect(Collectors.partitioningBy(
 					KisSearchStockInfo::isDelisted,
@@ -186,7 +183,7 @@ public class StockAndDividendManager {
 			.flatMap(ticker -> Flux.fromIterable(kisService.fetchDividend(ticker)), concurrency)
 			.delayElements(delayManager.delay())
 			.collectList()
-			.blockOptional(TIMEOUT)
+			.blockOptional(delayManager.timeout())
 			.orElseGet(Collections::emptyList).stream()
 			.map(this::mapStockDividend)
 			.toList();
