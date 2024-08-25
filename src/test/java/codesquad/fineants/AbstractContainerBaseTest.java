@@ -49,6 +49,7 @@ import codesquad.fineants.global.errors.exception.FineAntsException;
 import codesquad.fineants.global.security.factory.TokenFactory;
 import codesquad.fineants.global.security.oauth.dto.MemberAuthentication;
 import codesquad.fineants.global.security.oauth.dto.Token;
+import codesquad.fineants.support.RedisRepository;
 import jakarta.servlet.http.Cookie;
 import lombok.extern.slf4j.Slf4j;
 
@@ -86,6 +87,12 @@ public abstract class AbstractContainerBaseTest {
 	@Autowired
 	private DatabaseCleaner databaseCleaner;
 
+	@Autowired
+	private KisAccessTokenRepository kisAccessTokenRepository;
+
+	@Autowired
+	private RedisRepository redisRepository;
+
 	@DynamicPropertySource
 	public static void overrideProps(DynamicPropertyRegistry registry) {
 		// redis property config
@@ -99,9 +106,6 @@ public abstract class AbstractContainerBaseTest {
 		registry.add("spring.datasource.password", () -> "password1234!");
 	}
 
-	@Autowired
-	private KisAccessTokenRepository kisAccessTokenRepository;
-
 	@BeforeEach
 	public void abstractSetup() {
 		createRoleIfNotFound("ROLE_ADMIN", "관리자");
@@ -113,6 +117,7 @@ public abstract class AbstractContainerBaseTest {
 	@AfterEach
 	public void cleanDatabase() {
 		databaseCleaner.clear();
+		redisRepository.clearAll();
 	}
 
 	public KisAccessToken createKisAccessToken() {

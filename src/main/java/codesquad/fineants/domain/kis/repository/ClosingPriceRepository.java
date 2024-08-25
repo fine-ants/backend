@@ -1,7 +1,5 @@
 package codesquad.fineants.domain.kis.repository;
 
-import static codesquad.fineants.domain.kis.service.KisService.*;
-
 import java.time.Duration;
 import java.util.Optional;
 
@@ -12,6 +10,7 @@ import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.kis.aop.AccessTokenAspect;
 import codesquad.fineants.domain.kis.client.KisClient;
 import codesquad.fineants.domain.kis.domain.dto.response.KisClosingPrice;
+import codesquad.fineants.global.common.delay.DelayManager;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -20,9 +19,9 @@ public class ClosingPriceRepository {
 
 	private static final String format = "lastDayClosingPrice:%s";
 	private final RedisTemplate<String, String> redisTemplate;
-	private final KisAccessTokenRepository accessTokenManager;
 	private final KisClient kisClient;
 	private final AccessTokenAspect accessTokenAspect;
+	private final DelayManager delayManager;
 
 	public void addPrice(String tickerSymbol, long price) {
 		redisTemplate.opsForValue().set(String.format(format, tickerSymbol), String.valueOf(price), Duration.ofDays(2));
@@ -46,7 +45,7 @@ public class ClosingPriceRepository {
 
 	private void handleClosingPrice(String tickerSymbol) {
 		kisClient.fetchClosingPrice(tickerSymbol)
-			.blockOptional(TIMEOUT)
+			.blockOptional(delayManager.timeout())
 			.ifPresent(this::addPrice);
 	}
 }

@@ -6,29 +6,43 @@ import java.time.Duration;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 
 import codesquad.fineants.AbstractContainerBaseTest;
 import codesquad.fineants.domain.kis.client.KisClient;
 import codesquad.fineants.domain.kis.repository.KisAccessTokenRepository;
 import codesquad.fineants.domain.kis.service.KisAccessTokenRedisService;
-import codesquad.fineants.global.common.time.LocalDateTimeService;
-import codesquad.fineants.global.errors.exception.KisException;
+import codesquad.fineants.global.common.delay.DelayManager;
+import codesquad.fineants.global.errors.exception.kis.KisException;
 import reactor.core.publisher.Mono;
 
 class AccessTokenAspectTest extends AbstractContainerBaseTest {
 
-	@MockBean
-	private KisClient client;
+	@Autowired
+	private AccessTokenAspect accessTokenAspect;
 
 	@Autowired
 	private KisAccessTokenRedisService kisAccessTokenRedisService;
 
 	@Autowired
-	private LocalDateTimeService localDateTimeService;
+	private KisAccessTokenRepository kisAccessTokenRepository;
+
+	@SpyBean
+	private DelayManager delayManager;
+
+	@MockBean
+	private KisClient client;
+
+	@BeforeEach
+	void clean() {
+		kisAccessTokenRepository.refreshAccessToken(null);
+		kisAccessTokenRedisService.deleteAccessTokenMap();
+	}
 
 	@AfterEach
 	void tearDown() {
@@ -39,36 +53,25 @@ class AccessTokenAspectTest extends AbstractContainerBaseTest {
 	@Test
 	void checkAccessTokenExpiration() {
 		// given
-		AccessTokenAspect accessTokenAspect = new AccessTokenAspect(new KisAccessTokenRepository(null), client,
-			kisAccessTokenRedisService, localDateTimeService);
-		kisAccessTokenRedisService.deleteAccessTokenMap();
-
 		given(client.fetchAccessToken())
-			.willReturn(
-				Mono.just(createKisAccessToken())
-					.delayElement(Duration.ofMillis(500L))
-			);
+			.willReturn(Mono.just(createKisAccessToken()));
 		// when
 		accessTokenAspect.checkAccessTokenExpiration();
 		// then
-		Assertions.assertThat(kisAccessTokenRedisService.getAccessTokenMap().isPresent()).isTrue();
+		Assertions.assertThat(kisAccessTokenRedisService.getAccessTokenMap()).isPresent();
 	}
 
-	@DisplayName("액세스 토큰 발급이 실패하고 예외가 발생한다")
+	@DisplayName("액세스 토큰 발급이 실패하면 empty Mono를 반환한다")
 	@Test
-	void checkAccessTokenExpiration_whenAccessTokenExpiredAndFailFetchAccessToken_thenThrowException() {
+	void checkAccessTokenExpiration_whenAccessTokenExpiredAndFailFetchAccessToken_thenReturnEmptyMono() {
 		// given
-		AccessTokenAspect accessTokenAspect = new AccessTokenAspect(new KisAccessTokenRepository(null), client,
-			kisAccessTokenRedisService, localDateTimeService);
-		kisAccessTokenRedisService.deleteAccessTokenMap();
-
 		given(client.fetchAccessToken())
-			.willReturn(Mono.error(new KisException("요청 건수 초과")));
+			.willReturn(Mono.error(KisException.tokenIssuanceRetryLater()));
+		given(delayManager.fixedAccessTokenDelay()).willReturn(Duration.ZERO);
 		// when
-		Throwable throwable = Assertions.catchThrowable(accessTokenAspect::checkAccessTokenExpiration);
+		accessTokenAspect.checkAccessTokenExpiration();
 		// then
-		Assertions.assertThat(throwable)
-			.isInstanceOf(KisException.class)
-			.hasMessage("요청 건수 초과");
+		Assertions.assertThat(kisAccessTokenRepository.createAuthorization()).isNull();
+		Assertions.assertThat(kisAccessTokenRedisService.getAccessTokenMap()).isEmpty();
 	}
 }
