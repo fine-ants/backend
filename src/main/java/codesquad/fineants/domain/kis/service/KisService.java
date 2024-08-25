@@ -1,6 +1,5 @@
 package codesquad.fineants.domain.kis.service;
 
-import java.time.Duration;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.HashSet;
@@ -48,8 +47,6 @@ import reactor.util.retry.Retry;
 @RequiredArgsConstructor
 @Service
 public class KisService {
-	public static final Duration DELAY = Duration.ofMillis(50L);
-	public static final Duration TIMEOUT = Duration.ofMinutes(10L);
 	private final KisClient kisClient;
 	private final PortfolioHoldingRepository portFolioHoldingRepository;
 	private final CurrentPriceRedisRepository currentPriceRedisRepository;
@@ -178,7 +175,12 @@ public class KisService {
 	@CheckedKisAccessToken
 	public List<KisDividend> fetchDividendsBetween(LocalDate from, LocalDate to) {
 		return kisClient.fetchDividendsBetween(from, to)
-			.retryWhen(Retry.fixedDelay(5, delayManager.fixedDelay()))
+			.doOnSuccess(dividends -> log.debug("dividends is {}", dividends))
+			.onErrorResume(ExpiredAccessTokenKisException.class::isInstance, throwable -> Mono.empty())
+			.onErrorResume(CredentialsTypeKisException.class::isInstance, throwable -> Mono.empty())
+			.retryWhen(Retry.fixedDelay(5, delayManager.fixedDelay())
+				.filter(RequestLimitExceededKisException.class::isInstance))
+			.onErrorResume(Exceptions::isRetryExhausted, throwable -> Mono.empty())
 			.blockOptional(delayManager.timeout())
 			.orElseGet(Collections::emptyList).stream()
 			.sorted()
@@ -195,8 +197,11 @@ public class KisService {
 	public Mono<KisSearchStockInfo> fetchSearchStockInfo(String tickerSymbol) {
 		return kisClient.fetchSearchStockInfo(tickerSymbol)
 			.doOnSuccess(response -> log.debug("fetchSearchStockInfo ticker is {}", response.getTickerSymbol()))
-			.retryWhen(Retry.fixedDelay(Long.MAX_VALUE, Duration.ofSeconds(5)))
-			.onErrorResume(e -> Mono.empty());
+			.onErrorResume(ExpiredAccessTokenKisException.class::isInstance, throwable -> Mono.empty())
+			.onErrorResume(CredentialsTypeKisException.class::isInstance, throwable -> Mono.empty())
+			.retryWhen(Retry.fixedDelay(5, delayManager.fixedDelay())
+				.filter(RequestLimitExceededKisException.class::isInstance))
+			.onErrorResume(Exceptions::isRetryExhausted, throwable -> Mono.empty());
 	}
 
 	/**
@@ -210,7 +215,7 @@ public class KisService {
 		LocalDate today = LocalDate.now();
 		LocalDate yesterday = today.minusDays(1);
 		Set<String> tickerSymbols = kisClient.fetchIpo(yesterday, today)
-			.blockOptional(TIMEOUT)
+			.blockOptional(delayManager.timeout())
 			.orElseThrow()
 			.getKisIpos().stream()
 			.filter(kisIpo -> !kisIpo.isEmpty())
@@ -220,9 +225,9 @@ public class KisService {
 		int concurrency = 20;
 		return Flux.fromIterable(tickerSymbols)
 			.flatMap(this::fetchSearchStockInfo, concurrency)
-			.delayElements(DELAY)
+			.delayElements(delayManager.delay())
 			.collectList()
-			.blockOptional(TIMEOUT)
+			.blockOptional(delayManager.timeout())
 			.orElseGet(Collections::emptyList).stream()
 			.map(KisSearchStockInfo::toEntity)
 			.map(StockDataResponse.StockIntegrationInfo::from)
