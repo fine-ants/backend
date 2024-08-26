@@ -20,6 +20,7 @@ import codesquad.fineants.domain.kis.domain.dto.response.KisClosingPrice;
 import codesquad.fineants.domain.kis.domain.dto.response.KisDividend;
 import codesquad.fineants.domain.kis.domain.dto.response.KisDividendWrapper;
 import codesquad.fineants.domain.kis.domain.dto.response.KisIpo;
+import codesquad.fineants.domain.kis.domain.dto.response.KisIpoResponse;
 import codesquad.fineants.domain.kis.domain.dto.response.KisSearchStockInfo;
 import codesquad.fineants.domain.kis.repository.ClosingPriceRepository;
 import codesquad.fineants.domain.kis.repository.CurrentPriceRedisRepository;
@@ -217,27 +218,30 @@ public class KisService {
 	 * @return 종목 정보 리스트
 	 */
 	@CheckedKisAccessToken
-	public Set<StockDataResponse.StockIntegrationInfo> fetchStockInfoInRangedIpo() {
+	public Flux<StockDataResponse.StockIntegrationInfo> fetchStockInfoInRangedIpo() {
 		LocalDate today = localDateTimeService.getLocalDateWithNow();
 		LocalDate yesterday = today.minusDays(1);
-		Set<String> tickerSymbols = kisClient.fetchIpo(yesterday, today)
-			.blockOptional(delayManager.timeout())
-			.orElseThrow()
-			.getKisIpos().stream()
+		Flux<String> tickerSymbols = kisClient.fetchIpo(yesterday, today)
+			.onErrorResume(throwable -> {
+				log.error("fetchIpo error message is {}", throwable.getMessage());
+				return Mono.empty();
+			})
+			.map(KisIpoResponse::getKisIpos)
+			.defaultIfEmpty(Collections.emptyList())
+			.flatMapMany(Flux::fromIterable)
 			.filter(kisIpo -> !kisIpo.isEmpty())
-			.map(KisIpo::getShtCd)
-			.collect(Collectors.toSet());
+			.map(KisIpo::getShtCd);
 
 		int concurrency = 20;
-		return Flux.fromIterable(tickerSymbols)
+		return tickerSymbols
 			.flatMap(this::fetchSearchStockInfo, concurrency)
 			.delayElements(delayManager.delay())
-			.collectList()
-			.blockOptional(delayManager.timeout())
-			.orElseGet(Collections::emptyList).stream()
+			.onErrorResume(throwable -> {
+				log.error("fetchSearchStockInfo error message is {}", throwable.getMessage());
+				return Mono.empty();
+			})
 			.map(KisSearchStockInfo::toEntity)
-			.map(StockDataResponse.StockIntegrationInfo::from)
-			.collect(Collectors.toUnmodifiableSet());
+			.map(StockDataResponse.StockIntegrationInfo::from);
 	}
 
 	public KisAccessToken deleteAccessToken() {

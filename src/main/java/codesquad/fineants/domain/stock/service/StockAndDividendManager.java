@@ -29,6 +29,7 @@ import codesquad.fineants.global.errors.exception.FineAntsException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 @Component
 @RequiredArgsConstructor
@@ -54,7 +55,9 @@ public class StockAndDividendManager {
 		Set<String> ipoTickerSymbols = saveIpoStocks();
 
 		// 상장 폐지 종목 조회
-		Map<Boolean, List<Stock>> partitionedStocksForDelisted = fetchPartitionedStocksForDelisted();
+		Map<Boolean, List<Stock>> partitionedStocksForDelisted = fetchPartitionedStocksForDelisted()
+			.blockOptional(delayManager.timeout())
+			.orElseGet(Collections::emptyMap);
 
 		// 상장 폐지 종목 및 종목의 배당 일정 삭제
 		Set<String> deletedStocks = deleteStocks(partitionedStocksForDelisted.get(true));
@@ -93,17 +96,16 @@ public class StockAndDividendManager {
 	 */
 	@NotNull
 	private Set<String> saveIpoStocks() {
-		return stockRepository.saveAll(fetchIpoStocks()).stream()
+		List<Stock> stocks = kisService.fetchStockInfoInRangedIpo()
+			.map(StockDataResponse.StockIntegrationInfo::toEntity)
+			.collectList()
+			.blockOptional(delayManager.timeout())
+			.orElseGet(Collections::emptyList);
+
+		return stockRepository.saveAll(stocks).stream()
 			.peek(stock -> log.info("save ipoStock is {}", stock))
 			.map(Stock::getTickerSymbol)
 			.collect(Collectors.toUnmodifiableSet());
-	}
-
-	@NotNull
-	private List<Stock> fetchIpoStocks() {
-		return kisService.fetchStockInfoInRangedIpo().stream()
-			.map(StockDataResponse.StockIntegrationInfo::toEntity)
-			.toList();
 	}
 
 	private Set<DividendItem> mapDividendItems(List<StockDividend> stockDividends) {
@@ -144,14 +146,15 @@ public class StockAndDividendManager {
 	 * - 상장 폐지 종목 분할하여 반환
 	 * @return 상장 폐지 종목 분할 맵
 	 */
-	private Map<Boolean, List<Stock>> fetchPartitionedStocksForDelisted() {
+	private Mono<Map<Boolean, List<Stock>>> fetchPartitionedStocksForDelisted() {
 		final int concurrency = 20;
 		return Flux.fromIterable(findAllTickerSymbols())
 			.flatMap(kisService::fetchSearchStockInfo, concurrency)
 			.delayElements(delayManager.delay())
-			.collectList()
-			.blockOptional(delayManager.timeout())
-			.orElseGet(Collections::emptyList).stream()
+			.onErrorResume(throwable -> {
+				log.error("fetchPartitionedStocksForDelisted error message is {}", throwable.getMessage());
+				return Mono.empty();
+			})
 			.collect(Collectors.partitioningBy(
 					KisSearchStockInfo::isDelisted,
 					Collectors.mapping(KisSearchStockInfo::toEntity, Collectors.toList())
