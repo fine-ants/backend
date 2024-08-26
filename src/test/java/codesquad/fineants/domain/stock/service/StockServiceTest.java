@@ -207,18 +207,18 @@ class StockServiceTest extends AbstractContainerBaseTest {
 		given(kisService.fetchStockInfoInRangedIpo())
 			.willReturn(Set.of(hynix));
 		given(kisService.fetchSearchStockInfo(hynix.getTickerSymbol()))
-			.willReturn(KisSearchStockInfo.listedStock(
+			.willReturn(Mono.just(KisSearchStockInfo.listedStock(
 				"KR7000660001",
 				"000660",
 				"에스케이하이닉스보통주",
 				"SK hynix",
 				"STK",
-				"전기,전자")
+				"전기,전자"))
 			);
 		given(kisService.fetchSearchStockInfo(nokwon.getTickerSymbol()))
-			.willReturn(KisSearchStockInfo.delistedStock("KR7065560005", "065560", "녹원씨엔아이",
+			.willReturn(Mono.just(KisSearchStockInfo.delistedStock("KR7065560005", "065560", "녹원씨엔아이",
 				"Nokwon Commercials & Industries, Inc.",
-				"KSQ", "소프트웨어", LocalDate.of(2024, 7, 29)));
+				"KSQ", "소프트웨어", LocalDate.of(2024, 7, 29))));
 		DateTimeFormatter dtf = DateTimeFormatter.BASIC_ISO_DATE;
 		given(kisService.fetchDividend(hynix.getTickerSymbol()))
 			.willReturn(List.of(
@@ -280,18 +280,18 @@ class StockServiceTest extends AbstractContainerBaseTest {
 		given(kisService.fetchStockInfoInRangedIpo())
 			.willReturn(Set.of(stock));
 		given(kisService.fetchSearchStockInfo(stock.getTickerSymbol()))
-			.willReturn(
+			.willReturn(Mono.just(
 				KisSearchStockInfo.listedStock(stock.getStockCode(), stock.getTickerSymbol(), stock.getCompanyName(),
-					stock.getCompanyNameEng(), "STK", "전기,전자"));
+					stock.getCompanyNameEng(), "STK", "전기,전자")));
 		stocks.forEach(s -> given(kisService.fetchSearchStockInfo(s.getTickerSymbol()))
-			.willReturn(KisSearchStockInfo.listedStock(
+			.willReturn(Mono.just(KisSearchStockInfo.listedStock(
 					s.getStockCode(),
 					s.getTickerSymbol(),
 					s.getCompanyName(),
 					s.getCompanyNameEng(),
 					"STK",
 					s.getSector()
-				)
+				))
 			));
 		stocks.forEach(s -> given(kisService.fetchDividend(anyString()))
 			.willReturn(Collections.emptyList()));
