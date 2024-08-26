@@ -44,6 +44,7 @@ import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
 import codesquad.fineants.domain.stock.service.StockCsvReader;
 import codesquad.fineants.global.common.delay.DelayManager;
+import codesquad.fineants.global.common.time.LocalDateTimeService;
 import codesquad.fineants.global.errors.exception.kis.KisException;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
@@ -84,6 +85,9 @@ class KisServiceTest extends AbstractContainerBaseTest {
 
 	@SpyBean
 	private DelayManager delayManager;
+
+	@SpyBean
+	private LocalDateTimeService localDateTimeService;
 
 	@AfterEach
 	void tearDown() {
@@ -314,6 +318,23 @@ class KisServiceTest extends AbstractContainerBaseTest {
 				StockDataResponse.StockIntegrationInfo::getCompanyNameEng,
 				StockDataResponse.StockIntegrationInfo::getMarket
 			).containsExactly(tuple("KR7000660001", "000660", "에스케이하이닉스보통주", "SK hynix", Market.KOSPI));
+	}
+
+	@DisplayName("상장된 종목들의 상세 종목을 조회할 때 별도의 스레드에서 blocking되면 안된다")
+	@Test
+	void fetchStockInfoInRangedIpo_shouldNotBlockInSeparateThread() {
+		// given
+		given(client.fetchIpo(
+			any(LocalDate.class),
+			any(LocalDate.class)
+		)).willReturn(Mono.error(() -> new IllegalStateException(
+			"blockOptional() is blocking, which is not supported in thread parallel-1")));
+		// when
+		Throwable throwable = catchThrowable(() -> kisService.fetchStockInfoInRangedIpo());
+		// then
+		Assertions.assertThat(throwable)
+			.isInstanceOf(IllegalStateException.class)
+			.hasMessage("blockOptional() is blocking, which is not supported in thread parallel-1");
 	}
 
 	@DisplayName("사용자는 db에 저장된 종목을 각각 조회한다")

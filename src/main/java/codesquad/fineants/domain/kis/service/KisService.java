@@ -33,6 +33,7 @@ import codesquad.fineants.domain.stock_target_price.domain.entity.StockTargetPri
 import codesquad.fineants.domain.stock_target_price.event.publisher.StockTargetPricePublisher;
 import codesquad.fineants.domain.stock_target_price.repository.StockTargetPriceRepository;
 import codesquad.fineants.global.common.delay.DelayManager;
+import codesquad.fineants.global.common.time.LocalDateTimeService;
 import codesquad.fineants.global.errors.exception.kis.CredentialsTypeKisException;
 import codesquad.fineants.global.errors.exception.kis.ExpiredAccessTokenKisException;
 import codesquad.fineants.global.errors.exception.kis.RequestLimitExceededKisException;
@@ -59,6 +60,7 @@ public class KisService {
 	private final KisAccessTokenRepository kisAccessTokenRepository;
 	private final KisAccessTokenRedisService kisAccessTokenRedisService;
 	private final StockRepository stockRepository;
+	private final LocalDateTimeService localDateTimeService;
 
 	// 회원이 가지고 있는 모든 종목에 대하여 현재가 갱신
 	@Transactional
@@ -216,7 +218,7 @@ public class KisService {
 	 */
 	@CheckedKisAccessToken
 	public Set<StockDataResponse.StockIntegrationInfo> fetchStockInfoInRangedIpo() {
-		LocalDate today = LocalDate.now();
+		LocalDate today = localDateTimeService.getLocalDateWithNow();
 		LocalDate yesterday = today.minusDays(1);
 		Set<String> tickerSymbols = kisClient.fetchIpo(yesterday, today)
 			.blockOptional(delayManager.timeout())
