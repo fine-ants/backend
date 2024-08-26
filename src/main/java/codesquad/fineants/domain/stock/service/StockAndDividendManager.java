@@ -29,7 +29,6 @@ import codesquad.fineants.global.errors.exception.FineAntsException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 @Component
 @RequiredArgsConstructor
@@ -148,7 +147,7 @@ public class StockAndDividendManager {
 	private Map<Boolean, List<Stock>> fetchPartitionedStocksForDelisted() {
 		final int concurrency = 20;
 		return Flux.fromIterable(findAllTickerSymbols())
-			.flatMap(ticker -> Mono.just(kisService.fetchSearchStockInfo(ticker)), concurrency)
+			.flatMap(kisService::fetchSearchStockInfo, concurrency)
 			.delayElements(delayManager.delay())
 			.collectList()
 			.blockOptional(delayManager.timeout())
