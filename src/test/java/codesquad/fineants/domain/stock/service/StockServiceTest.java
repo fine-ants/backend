@@ -9,7 +9,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.AfterEach;
@@ -44,6 +43,7 @@ import codesquad.fineants.domain.stock.repository.StockRepository;
 import codesquad.fineants.global.common.delay.DelayManager;
 import codesquad.fineants.infra.s3.service.AmazonS3DividendService;
 import codesquad.fineants.infra.s3.service.AmazonS3StockService;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 class StockServiceTest extends AbstractContainerBaseTest {
@@ -205,7 +205,7 @@ class StockServiceTest extends AbstractContainerBaseTest {
 			"전기,전자",
 			Market.KOSPI);
 		given(kisService.fetchStockInfoInRangedIpo())
-			.willReturn(Set.of(hynix));
+			.willReturn(Flux.just(hynix));
 		given(kisService.fetchSearchStockInfo(hynix.getTickerSymbol()))
 			.willReturn(Mono.just(KisSearchStockInfo.listedStock(
 				"KR7000660001",
@@ -265,6 +265,26 @@ class StockServiceTest extends AbstractContainerBaseTest {
 			);
 	}
 
+	// TODO: 종목 최신화 메서드들 실행시 별도의 쓰레드에서 blocking이 없도록 하기
+	@DisplayName("종목 최신화 수행중에 상장폐지된 종목을 요청할때 해당 요청은 blocking되면 안된다")
+	@Test
+	void reloadStocks_shouldNotBlockingThread_whenFetchSearchStockInfo() {
+		// given
+		given(kisService.fetchStockInfoInRangedIpo())
+			.willReturn(Flux.empty());
+		given(kisService.fetchSearchStockInfo(anyString()))
+			.willReturn(Mono.error(
+				new IllegalStateException("blockOptional() is blocking, which is not supported in thread parallel-1")));
+		given(kisService.fetchDividend(anyString()))
+			.willReturn(Collections.emptyList());
+		// when
+		StockReloadResponse response = stockService.reloadStocks();
+		// then
+		assertThat(response.getAddedStocks()).isEmpty();
+		assertThat(response.getDeletedStocks()).isEmpty();
+		assertThat(response.getAddedDividends()).isEmpty();
+	}
+
 	@DisplayName("서버는 종목들을 최신화한다")
 	@Test
 	void scheduledRefreshStocks() {
@@ -278,7 +298,7 @@ class StockServiceTest extends AbstractContainerBaseTest {
 			"전기,전자",
 			Market.KOSPI);
 		given(kisService.fetchStockInfoInRangedIpo())
-			.willReturn(Set.of(stock));
+			.willReturn(Flux.just(stock));
 		given(kisService.fetchSearchStockInfo(stock.getTickerSymbol()))
 			.willReturn(Mono.just(
 				KisSearchStockInfo.listedStock(stock.getStockCode(), stock.getTickerSymbol(), stock.getCompanyName(),
