@@ -5,7 +5,7 @@ import java.time.Duration;
 public interface DelayManager {
 
 	Duration DEFAULT_DELAY = Duration.ofMillis(50);
-	Duration TIMEOUT = Duration.ofMinutes(10);
+	Duration REQUEST_TIMEOUT = Duration.ofMinutes(10);
 	Duration FIXED_DELAY = Duration.ofSeconds(5);
 	Duration FIXED_ACCESS_TOKEN_DELAY = Duration.ofMinutes(1);
 
@@ -14,7 +14,7 @@ public interface DelayManager {
 	}
 
 	default Duration timeout() {
-		return TIMEOUT;
+		return REQUEST_TIMEOUT;
 	}
 
 	default Duration fixedDelay() {
