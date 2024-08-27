@@ -42,8 +42,14 @@ public class AccessTokenAspect {
 			client.fetchAccessToken()
 				.doOnSuccess(kisAccessToken -> log.debug("success the kis access token issue : {}", kisAccessToken))
 				.retryWhen(Retry.fixedDelay(5, delayManager.fixedAccessTokenDelay()))
-				.onErrorResume(Exceptions::isRetryExhausted, throwable -> Mono.empty())
-				.onErrorResume(throwable -> Mono.empty())
+				.onErrorResume(Exceptions::isRetryExhausted, throwable -> {
+					log.error("fail the retry, error message is {}", throwable.getMessage());
+					return Mono.empty();
+				})
+				.onErrorResume(throwable -> {
+					log.error("fail the fetch accessToken, error message is {}", throwable.getMessage());
+					return Mono.empty();
+				})
 				.blockOptional(delayManager.timeout())
 				.ifPresent(newKisAccessToken -> {
 					redisService.setAccessTokenMap(newKisAccessToken, now);
