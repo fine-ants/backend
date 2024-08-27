@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import codesquad.fineants.domain.holding.repository.PortfolioHoldingRepository;
-import codesquad.fineants.domain.kis.aop.CheckedKisAccessToken;
 import codesquad.fineants.domain.kis.client.KisAccessToken;
 import codesquad.fineants.domain.kis.client.KisClient;
 import codesquad.fineants.domain.kis.client.KisCurrentPrice;
@@ -65,7 +64,6 @@ public class KisService {
 
 	// 회원이 가지고 있는 모든 종목에 대하여 현재가 갱신
 	@Transactional
-	@CheckedKisAccessToken
 	public List<KisCurrentPrice> refreshAllStockCurrentPrice() {
 		Set<String> totalTickerSymbol = new HashSet<>();
 		totalTickerSymbol.addAll(portFolioHoldingRepository.findAllTickerSymbol());
@@ -82,7 +80,6 @@ public class KisService {
 
 	// 주식 현재가 갱신
 	@Transactional(readOnly = true)
-	@CheckedKisAccessToken
 	public List<KisCurrentPrice> refreshStockCurrentPrice(List<String> tickerSymbols) {
 		int concurrency = 20;
 		List<KisCurrentPrice> prices = Flux.fromIterable(tickerSymbols)
@@ -106,7 +103,6 @@ public class KisService {
 		return prices.toArray(KisCurrentPrice[]::new);
 	}
 
-	@CheckedKisAccessToken
 	public Mono<KisCurrentPrice> fetchCurrentPrice(String tickerSymbol) {
 		return Mono.defer(() -> kisClient.fetchCurrentPrice(tickerSymbol));
 	}
@@ -122,14 +118,12 @@ public class KisService {
 		refreshAllClosingPrice();
 	}
 
-	@CheckedKisAccessToken
 	public List<KisClosingPrice> refreshAllClosingPrice() {
 		return refreshClosingPrice(stockRepository.findAll().stream()
 			.map(Stock::getTickerSymbol)
 			.toList());
 	}
 
-	@CheckedKisAccessToken
 	public List<KisClosingPrice> refreshClosingPrice(List<String> tickerSymbols) {
 		int concurrency = 20;
 		List<KisClosingPrice> prices = Flux.fromIterable(tickerSymbols)
@@ -150,7 +144,6 @@ public class KisService {
 		return prices;
 	}
 
-	@CheckedKisAccessToken
 	public Mono<KisClosingPrice> fetchClosingPrice(String tickerSymbol) {
 		return Mono.defer(() -> kisClient.fetchClosingPrice(tickerSymbol));
 	}
@@ -161,7 +154,6 @@ public class KisService {
 	 * @param tickerSymbol 종목 단축 코드
 	 * @return 종목의 배당 일정 정보
 	 */
-	@CheckedKisAccessToken
 	public Flux<KisDividend> fetchDividend(String tickerSymbol) {
 		return kisClient.fetchDividendThisYear(tickerSymbol)
 			.map(KisDividendWrapper::getKisDividends)
@@ -175,7 +167,6 @@ public class KisService {
 			.flatMapMany(Flux::fromIterable);
 	}
 
-	@CheckedKisAccessToken
 	public List<KisDividend> fetchDividendsBetween(LocalDate from, LocalDate to) {
 		return kisClient.fetchDividendsBetween(from, to)
 			.doOnSuccess(dividends -> log.debug("dividends is {}", dividends))
@@ -196,7 +187,6 @@ public class KisService {
 	 * @param tickerSymbol 종목 티커 심볼
 	 * @return 종목 정보
 	 */
-	@CheckedKisAccessToken
 	public Mono<KisSearchStockInfo> fetchSearchStockInfo(String tickerSymbol) {
 		return kisClient.fetchSearchStockInfo(tickerSymbol)
 			.doOnSuccess(response -> log.debug("fetchSearchStockInfo ticker is {}", response.getTickerSymbol()))
@@ -217,7 +207,6 @@ public class KisService {
 	 *
 	 * @return 종목 정보 리스트
 	 */
-	@CheckedKisAccessToken
 	public Flux<StockDataResponse.StockIntegrationInfo> fetchStockInfoInRangedIpo() {
 		LocalDate today = localDateTimeService.getLocalDateWithNow();
 		LocalDate yesterday = today.minusDays(1);
