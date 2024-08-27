@@ -98,7 +98,10 @@ public class StockAndDividendManager {
 	private Set<String> saveIpoStocks() {
 		List<Stock> stocks = kisService.fetchStockInfoInRangedIpo()
 			.map(StockDataResponse.StockIntegrationInfo::toEntity)
-			.onErrorResume(throwable -> Mono.empty())
+			.onErrorResume(throwable -> {
+				log.error("fetchStockInfoInRangedIpo error message is {}", throwable.getMessage());
+				return Mono.empty();
+			})
 			.collectList()
 			.blockOptional(delayManager.timeout())
 			.orElseGet(Collections::emptyList);
