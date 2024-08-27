@@ -316,6 +316,44 @@ class KisServiceTest extends AbstractContainerBaseTest {
 			.verify();
 	}
 
+	@DisplayName("상장 종목 조회 중 액세스 토큰을 재발급한 다음에 상장 종목을 조회한다")
+	@Test
+	void reloadStocks_shouldNotBlockingThread_whenFetchAccessToken() {
+		// given
+		kisAccessTokenRedisService.deleteAccessTokenMap();
+		kisAccessTokenRepository.refreshAccessToken(null);
+
+		given(client.fetchAccessToken())
+			.willReturn(Mono.just(createKisAccessToken()).delayElement(Duration.ofSeconds(5)));
+		KisIpoResponse kisIpoResponse = KisIpoResponse.create(
+			List.of(KisIpo.create("20240326", "000660", "에스케이하이닉스보통주"))
+		);
+		given(client.fetchIpo(
+			any(LocalDate.class),
+			any(LocalDate.class)
+		))
+			.willReturn(Mono.just(kisIpoResponse));
+
+		KisSearchStockInfo kisSearchStockInfo = KisSearchStockInfo.listedStock(
+			"KR7000660001",
+			"000660",
+			"에스케이하이닉스보통주",
+			"SK hynix",
+			"STK",
+			"전기,전자"
+		);
+		given(client.fetchSearchStockInfo(anyString()))
+			.willReturn(Mono.just(kisSearchStockInfo));
+		// when
+		Flux<StockIntegrationInfo> stocks = kisService.fetchStockInfoInRangedIpo();
+		// then
+		StepVerifier.create(stocks)
+			.expectNext(StockIntegrationInfo.create("000660", "에스케이하이닉스보통주", "SK hynix", "KR7000660001",
+				"전기,전자", Market.KOSPI))
+			.expectComplete()
+			.verify();
+	}
+
 	@DisplayName("상장된 종목들의 상세 종목을 조회할 때 별도의 스레드에서 blocking되면 안된다")
 	@Test
 	void fetchStockInfoInRangedIpo_shouldNotBlockInSeparateThread() {
@@ -388,15 +426,13 @@ class KisServiceTest extends AbstractContainerBaseTest {
 				KisDividend.create(tickerSymbol, Money.won(300), LocalDate.of(2024, 3, 1),
 					LocalDate.of(2024, 5, 1))))));
 		// when
-		List<KisDividend> dividends = kisService.fetchDividend(tickerSymbol);
+		Flux<KisDividend> dividends = kisService.fetchDividend(tickerSymbol);
 		// then
-		Assertions.assertThat(dividends)
-			.hasSize(1)
-			.extracting(KisDividend::getTickerSymbol, KisDividend::getDividend, KisDividend::getRecordDate,
-				KisDividend::getPaymentDate)
-			.usingComparatorForType(Money::compareTo, Money.class)
-			.containsExactlyInAnyOrder(
-				tuple("005930", Money.won(300), LocalDate.of(2024, 3, 1), LocalDate.of(2024, 5, 1)));
+		StepVerifier.create(dividends)
+			.expectNext(
+				KisDividend.create("005930", Money.won(300), LocalDate.of(2024, 3, 1), LocalDate.of(2024, 5, 1)))
+			.expectComplete()
+			.verify();
 	}
 
 	@DisplayName("사용자는 새로운 한국투자증권의 액세스 토큰을 발급받아서 배당 일정을 조회한다")
@@ -413,15 +449,13 @@ class KisServiceTest extends AbstractContainerBaseTest {
 				KisDividend.create(tickerSymbol, Money.won(300), LocalDate.of(2024, 3, 1),
 					LocalDate.of(2024, 5, 1))))));
 		// when
-		List<KisDividend> dividends = kisService.fetchDividend(tickerSymbol);
+		Flux<KisDividend> dividends = kisService.fetchDividend(tickerSymbol);
 		// then
-		Assertions.assertThat(dividends)
-			.hasSize(1)
-			.extracting(KisDividend::getTickerSymbol, KisDividend::getDividend, KisDividend::getRecordDate,
-				KisDividend::getPaymentDate)
-			.usingComparatorForType(Money::compareTo, Money.class)
-			.containsExactlyInAnyOrder(
-				tuple("005930", Money.won(300), LocalDate.of(2024, 3, 1), LocalDate.of(2024, 5, 1)));
+		StepVerifier.create(dividends)
+			.expectNext(
+				KisDividend.create("005930", Money.won(300), LocalDate.of(2024, 3, 1), LocalDate.of(2024, 5, 1)))
+			.expectComplete()
+			.verify();
 	}
 
 	private List<Stock> saveStocks() {

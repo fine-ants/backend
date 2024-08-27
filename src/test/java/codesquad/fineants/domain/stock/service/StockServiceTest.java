@@ -7,7 +7,6 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Collections;
 import java.util.List;
 
 import org.assertj.core.groups.Tuple;
@@ -221,16 +220,14 @@ class StockServiceTest extends AbstractContainerBaseTest {
 				"KSQ", "소프트웨어", LocalDate.of(2024, 7, 29))));
 		DateTimeFormatter dtf = DateTimeFormatter.BASIC_ISO_DATE;
 		given(kisService.fetchDividend(hynix.getTickerSymbol()))
-			.willReturn(List.of(
-				KisDividend.create(hynix.getTickerSymbol(),
+			.willReturn(Flux.just(KisDividend.create(hynix.getTickerSymbol(),
 					Money.won(300),
 					LocalDate.parse("20240331", dtf),
 					LocalDate.parse("20240514", dtf)),
 				KisDividend.create(hynix.getTickerSymbol(),
 					Money.won(300),
 					LocalDate.parse("20240630", dtf),
-					LocalDate.parse("20240814", dtf))
-			));
+					LocalDate.parse("20240814", dtf))));
 		given(delayManager.delay()).willReturn(Duration.ZERO);
 		// when
 		StockReloadResponse response = stockService.reloadStocks();
@@ -265,18 +262,19 @@ class StockServiceTest extends AbstractContainerBaseTest {
 			);
 	}
 
-	// TODO: 종목 최신화 메서드들 실행시 별도의 쓰레드에서 blocking이 없도록 하기
-	@DisplayName("종목 최신화 수행중에 상장폐지된 종목을 요청할때 해당 요청은 blocking되면 안된다")
+	@DisplayName("종목 최신화 수행중에 별도의 스레드에서 blocking되면 안된다")
 	@Test
 	void reloadStocks_shouldNotBlockingThread_whenFetchSearchStockInfo() {
 		// given
 		given(kisService.fetchStockInfoInRangedIpo())
-			.willReturn(Flux.empty());
+			.willReturn(Flux.error(
+				new IllegalStateException("blockOptional() is blocking, which is not supported in thread parallel-1")));
 		given(kisService.fetchSearchStockInfo(anyString()))
 			.willReturn(Mono.error(
 				new IllegalStateException("blockOptional() is blocking, which is not supported in thread parallel-1")));
 		given(kisService.fetchDividend(anyString()))
-			.willReturn(Collections.emptyList());
+			.willReturn(Flux.error(
+				new IllegalStateException("blockOptional() is blocking, which is not supported in thread parallel-1")));
 		// when
 		StockReloadResponse response = stockService.reloadStocks();
 		// then
@@ -314,10 +312,9 @@ class StockServiceTest extends AbstractContainerBaseTest {
 				))
 			));
 		stocks.forEach(s -> given(kisService.fetchDividend(anyString()))
-			.willReturn(Collections.emptyList()));
+			.willReturn(Flux.empty()));
 		stocks.forEach(s -> given(kisService.fetchDividend(s.getTickerSymbol()))
-			.willReturn(List.of(
-				KisDividend.create(s.getTickerSymbol(), Money.won(300), LocalDate.of(2024, 3, 1),
+			.willReturn(Flux.just(KisDividend.create(s.getTickerSymbol(), Money.won(300), LocalDate.of(2024, 3, 1),
 					LocalDate.of(2024, 5, 1)),
 				KisDividend.create(s.getTickerSymbol(), Money.won(300), LocalDate.of(2024, 5, 1),
 					LocalDate.of(2024, 7, 1)))));
