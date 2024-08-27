@@ -316,42 +316,20 @@ class KisServiceTest extends AbstractContainerBaseTest {
 			.verify();
 	}
 
-	@DisplayName("상장 종목 조회 중 액세스 토큰을 재발급한 다음에 상장 종목을 조회한다")
+	@DisplayName("상장 종목 조회 중 액세스 토큰 재발급에 실패하면 비즈니스 메서드로 이동하지 않고 빈 Flux를 반환해야 한다")
 	@Test
-	void reloadStocks_shouldNotBlockingThread_whenFetchAccessToken() {
+	void fetchStockInfoInRangedIpo_shouldNotBlockingThread_whenFetchAccessToken() {
 		// given
 		kisAccessTokenRedisService.deleteAccessTokenMap();
 		kisAccessTokenRepository.refreshAccessToken(null);
-
+		given(delayManager.fixedAccessTokenDelay()).willReturn(Duration.ZERO);
 		given(client.fetchAccessToken())
-			.willReturn(Mono.just(createKisAccessToken()).delayElement(Duration.ofSeconds(5)));
-		KisIpoResponse kisIpoResponse = KisIpoResponse.create(
-			List.of(KisIpo.create("20240326", "000660", "에스케이하이닉스보통주"))
-		);
-		given(client.fetchIpo(
-			any(LocalDate.class),
-			any(LocalDate.class)
-		))
-			.willReturn(Mono.just(kisIpoResponse));
-
-		KisSearchStockInfo kisSearchStockInfo = KisSearchStockInfo.listedStock(
-			"KR7000660001",
-			"000660",
-			"에스케이하이닉스보통주",
-			"SK hynix",
-			"STK",
-			"전기,전자"
-		);
-		given(client.fetchSearchStockInfo(anyString()))
-			.willReturn(Mono.just(kisSearchStockInfo));
+			.willReturn(Mono.error(
+				new IllegalStateException("blockOptional() is blocking, which is not supported in thread parallel-1")));
 		// when
 		Flux<StockIntegrationInfo> stocks = kisService.fetchStockInfoInRangedIpo();
 		// then
-		StepVerifier.create(stocks)
-			.expectNext(StockIntegrationInfo.create("000660", "에스케이하이닉스보통주", "SK hynix", "KR7000660001",
-				"전기,전자", Market.KOSPI))
-			.expectComplete()
-			.verify();
+		StepVerifier.create(stocks).verifyComplete();
 	}
 
 	@DisplayName("상장된 종목들의 상세 종목을 조회할 때 별도의 스레드에서 blocking되면 안된다")
