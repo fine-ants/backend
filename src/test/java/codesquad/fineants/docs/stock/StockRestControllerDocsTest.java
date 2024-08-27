@@ -290,7 +290,7 @@ public class StockRestControllerDocsTest extends RestDocsSupport {
 		Money closingPrice = Money.won(80000L);
 		given(currentPriceRedisRepository.fetchPriceBy(stock.getTickerSymbol()))
 			.willReturn(Optional.of(currentPrice));
-		given(closingPriceRepository.getClosingPrice(stock.getTickerSymbol()))
+		given(closingPriceRepository.fetchPrice(stock.getTickerSymbol()))
 			.willReturn(Optional.of(closingPrice));
 		given(service.getDetailedStock(stock.getTickerSymbol()))
 			.willReturn(StockResponse.create(

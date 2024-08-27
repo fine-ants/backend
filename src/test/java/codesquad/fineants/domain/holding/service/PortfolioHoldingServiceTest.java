@@ -38,7 +38,6 @@ import codesquad.fineants.domain.holding.domain.dto.response.PortfolioStockDelet
 import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
 import codesquad.fineants.domain.holding.event.publisher.PortfolioHoldingEventPublisher;
 import codesquad.fineants.domain.holding.repository.PortfolioHoldingRepository;
-import codesquad.fineants.domain.kis.aop.AccessTokenAspect;
 import codesquad.fineants.domain.kis.client.KisCurrentPrice;
 import codesquad.fineants.domain.kis.repository.ClosingPriceRepository;
 import codesquad.fineants.domain.kis.repository.CurrentPriceRedisRepository;
@@ -89,10 +88,6 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 
 	@MockBean
 	private PortfolioHoldingEventPublisher publisher;
-
-	// CurrentPriceRepository AccessToken 모킹
-	@MockBean
-	private AccessTokenAspect accessTokenAspect;
 
 	@DisplayName("포트폴리오 종목들의 상세 정보를 조회한다")
 	@Test
@@ -626,7 +621,7 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		// then
 		assertAll(
 			() -> assertThat(response).extracting("portfolioHoldingId").isNotNull(),
-			() -> assertThat(portFolioHoldingRepository.findById(portfolioHoldingId).isEmpty()).isTrue(),
+			() -> assertThat(portFolioHoldingRepository.findById(portfolioHoldingId)).isEmpty(),
 			() -> assertThat(purchaseHistoryRepository.findAllByPortfolioHoldingId(portfolioHoldingId)).isEmpty()
 		);
 	}
@@ -714,8 +709,8 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		assertThat(throwable)
 			.isInstanceOf(NotFoundResourceException.class)
 			.hasMessage("포트폴리오 종목이 존재하지 않습니다");
-		assertThat(portFolioHoldingRepository.findById(portfolioHolding.getId()).isPresent()).isTrue();
-		assertThat(purchaseHistoryRepository.findById(purchaseHistory.getId()).isPresent()).isTrue();
+		assertThat(portFolioHoldingRepository.findById(portfolioHolding.getId())).isPresent();
+		assertThat(purchaseHistoryRepository.findById(purchaseHistory.getId())).isPresent();
 	}
 
 	@DisplayName("사용자는 다수의 포트폴리오 삭제시 다른 회원의 포트폴리오 종목이 존재한다면 전부 삭제할 수 없다")
@@ -749,8 +744,8 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		assertThat(throwable)
 			.isInstanceOf(FineAntsException.class)
 			.hasMessage(MemberErrorCode.FORBIDDEN_MEMBER.getMessage());
-		assertThat(portFolioHoldingRepository.findById(portfolioHolding.getId()).isPresent()).isTrue();
-		assertThat(portFolioHoldingRepository.findById(portfolioHolding2.getId()).isPresent()).isTrue();
-		assertThat(purchaseHistoryRepository.findById(purchaseHistory.getId()).isPresent()).isTrue();
+		assertThat(portFolioHoldingRepository.findById(portfolioHolding.getId())).isPresent();
+		assertThat(portFolioHoldingRepository.findById(portfolioHolding2.getId())).isPresent();
+		assertThat(purchaseHistoryRepository.findById(purchaseHistory.getId())).isPresent();
 	}
 }
