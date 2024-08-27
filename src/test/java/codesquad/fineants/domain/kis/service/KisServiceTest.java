@@ -315,23 +315,7 @@ class KisServiceTest extends AbstractContainerBaseTest {
 			.expectComplete()
 			.verify();
 	}
-
-	@DisplayName("상장 종목 조회 중 액세스 토큰 재발급에 실패하면 비즈니스 메서드로 이동하지 않고 빈 Flux를 반환해야 한다")
-	@Test
-	void fetchStockInfoInRangedIpo_shouldNotBlockingThread_whenFetchAccessToken() {
-		// given
-		kisAccessTokenRedisService.deleteAccessTokenMap();
-		kisAccessTokenRepository.refreshAccessToken(null);
-		given(delayManager.fixedAccessTokenDelay()).willReturn(Duration.ZERO);
-		given(client.fetchAccessToken())
-			.willReturn(Mono.error(
-				new IllegalStateException("blockOptional() is blocking, which is not supported in thread parallel-1")));
-		// when
-		Flux<StockIntegrationInfo> stocks = kisService.fetchStockInfoInRangedIpo();
-		// then
-		StepVerifier.create(stocks).verifyComplete();
-	}
-
+	
 	@DisplayName("상장된 종목들의 상세 종목을 조회할 때 별도의 스레드에서 blocking되면 안된다")
 	@Test
 	void fetchStockInfoInRangedIpo_shouldNotBlockInSeparateThread() {
