@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.kis.aop.AccessTokenAspect;
+import codesquad.fineants.domain.kis.aop.CheckedKisAccessToken;
 import codesquad.fineants.domain.kis.client.KisClient;
 import codesquad.fineants.domain.kis.domain.dto.response.KisClosingPrice;
 import codesquad.fineants.global.common.delay.DelayManager;
@@ -32,9 +33,8 @@ public class ClosingPriceRepository {
 			.set(String.format(format, price.getTickerSymbol()), String.valueOf(price.getPrice()), Duration.ofDays(2));
 	}
 
+	@CheckedKisAccessToken
 	public Optional<Money> getClosingPrice(String tickerSymbol) {
-		accessTokenAspect.checkAccessTokenExpiration();
-
 		String closingPrice = redisTemplate.opsForValue().get(String.format(format, tickerSymbol));
 		if (closingPrice == null) {
 			handleClosingPrice(tickerSymbol);
