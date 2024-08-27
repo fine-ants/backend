@@ -186,6 +186,10 @@ public class StockAndDividendManager {
 			.flatMap(kisService::fetchDividend, concurrency)
 			.delayElements(delayManager.delay())
 			.collectList()
+			.onErrorResume(throwable -> {
+				log.error("reloadDividend error message is {}", throwable.getMessage());
+				return Mono.empty();
+			})
 			.blockOptional(delayManager.timeout())
 			.orElseGet(Collections::emptyList).stream()
 			.map(this::mapStockDividend)
