@@ -2,7 +2,6 @@ package codesquad.fineants.domain.stock.service;
 
 import java.util.List;
 
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -56,12 +55,6 @@ public class StockService {
 		Stock stock = stockRepository.findByTickerSymbol(tickerSymbol)
 			.orElseThrow(() -> new NotFoundResourceException(StockErrorCode.NOT_FOUND_STOCK));
 		return StockResponse.of(stock, currentPriceRedisRepository, closingPriceRepository);
-	}
-
-	@Scheduled(cron = "${cron.expression.reload-stocks:0 0 8 * * ?}") // 매일 오전 8시 (초, 분, 시간)
-	@Transactional
-	public void scheduledReloadStocks() {
-		reloadStocks();
 	}
 
 	@Transactional

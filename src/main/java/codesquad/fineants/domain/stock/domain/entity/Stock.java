@@ -183,7 +183,7 @@ public class Stock extends BaseEntity {
 	public RateDivision getDailyChangeRate(CurrentPriceRedisRepository currentPriceRedisRepository,
 		ClosingPriceRepository closingPriceRepository) {
 		Money currentPrice = currentPriceRedisRepository.fetchPriceBy(tickerSymbol).orElse(null);
-		Money lastDayClosingPrice = closingPriceRepository.getClosingPrice(tickerSymbol).orElse(null);
+		Money lastDayClosingPrice = closingPriceRepository.fetchPrice(tickerSymbol).orElse(null);
 		if (currentPrice == null || lastDayClosingPrice == null) {
 			return null;
 		}
@@ -195,7 +195,7 @@ public class Stock extends BaseEntity {
 	}
 
 	public Expression getClosingPrice(ClosingPriceRepository manager) {
-		return manager.getClosingPrice(tickerSymbol).orElseGet(Money::zero);
+		return manager.fetchPrice(tickerSymbol).orElseGet(Money::zero);
 	}
 
 	public List<Integer> getDividendMonths() {

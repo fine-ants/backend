@@ -7,7 +7,6 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 
 import codesquad.fineants.domain.common.money.Money;
-import codesquad.fineants.domain.kis.aop.CheckedKisAccessToken;
 import codesquad.fineants.domain.kis.client.KisClient;
 import codesquad.fineants.domain.kis.client.KisCurrentPrice;
 import codesquad.fineants.global.common.delay.DelayManager;
@@ -55,7 +54,6 @@ public class CurrentPriceRedisRepository implements PriceRepository {
 		return Optional.ofNullable(redisTemplate.opsForValue().get(String.format(CURRENT_PRICE_FORMAT, tickerSymbol)));
 	}
 
-	@CheckedKisAccessToken
 	private Optional<KisCurrentPrice> fetchAndCachePriceFromKis(String tickerSymbol) {
 		return kisClient.fetchCurrentPrice(tickerSymbol)
 			.doOnSuccess(kisCurrentPrice -> log.debug("reload stock current price {}", kisCurrentPrice))

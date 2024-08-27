@@ -8,7 +8,6 @@ import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.assertj.core.groups.Tuple;
@@ -35,7 +34,6 @@ import codesquad.fineants.domain.fcm.repository.FcmRepository;
 import codesquad.fineants.domain.fcm.service.FirebaseMessagingService;
 import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
 import codesquad.fineants.domain.holding.repository.PortfolioHoldingRepository;
-import codesquad.fineants.domain.kis.aop.AccessTokenAspect;
 import codesquad.fineants.domain.kis.client.KisCurrentPrice;
 import codesquad.fineants.domain.kis.repository.CurrentPriceRedisRepository;
 import codesquad.fineants.domain.kis.service.KisService;
@@ -109,9 +107,6 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 
 	@MockBean
 	private FirebaseMessagingService firebaseMessagingService;
-
-	@MockBean
-	private AccessTokenAspect accessTokenAspect;
 
 	@BeforeEach
 	void clean() {
@@ -196,8 +191,8 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 
 		// then
 		assertAll(
-			() -> assertThat(response.getNotifications()).hasSize(0),
-			() -> assertThat(notificationRepository.findAllByMemberId(member.getId())).hasSize(0),
+			() -> assertThat(response.getNotifications()).isEmpty(),
+			() -> assertThat(notificationRepository.findAllByMemberId(member.getId())).isEmpty(),
 			() -> assertThat(sentManager.hasTargetGainSendHistory(portfolio.getId())).isFalse()
 		);
 	}
@@ -486,7 +481,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 
 		List<String> tickerSymbols = Stream.of(stock, stock2)
 			.map(Stock::getTickerSymbol)
-			.collect(Collectors.toList());
+			.toList();
 
 		// when
 		NotifyMessageResponse response = service.notifyTargetPriceToAllMember(tickerSymbols);
@@ -550,7 +545,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 				Stock stock = createSamsungStock();
 				List<String> tickerSymbols = Stream.of(stock)
 					.map(Stock::getTickerSymbol)
-					.collect(Collectors.toList());
+					.toList();
 
 				// when
 				NotifyMessageResponse response = service.notifyTargetPriceToAllMember(tickerSymbols);
@@ -560,7 +555,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 					() -> assertThat(response)
 						.extracting("notifications")
 						.asList()
-						.hasSize(0),
+						.isEmpty(),
 					() -> assertThat(
 						notificationRepository.findAllByMemberIds(List.of(member.getId())))
 						.asList()

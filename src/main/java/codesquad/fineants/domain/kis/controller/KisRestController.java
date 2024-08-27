@@ -2,6 +2,7 @@ package codesquad.fineants.domain.kis.controller;
 
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -80,16 +81,19 @@ public class KisRestController {
 	// 상장된 종목 정보 조회
 	@GetMapping("/ipo/search-stock-info")
 	@Secured(value = {"ROLE_MANAGER", "ROLE_ADMIN"})
-	public ApiResponse<Set<StockDataResponse.StockIntegrationInfo>> fetchStockInfoInRangedIpo() {
-		Set<StockDataResponse.StockIntegrationInfo> result = service.fetchStockInfoInRangedIpo();
-		return ApiResponse.success(KisSuccessCode.OK_FETCH_IPO_SEARCh_STOCK_INFO, result);
+	public Mono<ApiResponse<Set<StockDataResponse.StockIntegrationInfo>>> fetchStockInfoInRangedIpo() {
+		Mono<Set<StockDataResponse.StockIntegrationInfo>> result = service.fetchStockInfoInRangedIpo()
+			.collect(Collectors.toUnmodifiableSet());
+		return result.map(data -> ApiResponse.success(KisSuccessCode.OK_FETCH_IPO_SEARCh_STOCK_INFO, data));
 	}
 
 	// 배당 일정 조회
 	@GetMapping("/dividend/{tickerSymbol}")
 	@Secured(value = {"ROLE_MANAGER", "ROLE_ADMIN"})
-	public ApiResponse<List<KisDividend>> fetchDividend(@PathVariable String tickerSymbol) {
-		return ApiResponse.success(KisSuccessCode.OK_FETCH_DIVIDEND, service.fetchDividend(tickerSymbol));
+	public Mono<ApiResponse<List<KisDividend>>> fetchDividend(@PathVariable String tickerSymbol) {
+		Mono<List<KisDividend>> result = service.fetchDividend(tickerSymbol)
+			.collect(Collectors.toList());
+		return result.map(data -> ApiResponse.success(KisSuccessCode.OK_FETCH_DIVIDEND, data));
 	}
 
 	@DeleteMapping("/access-token")
