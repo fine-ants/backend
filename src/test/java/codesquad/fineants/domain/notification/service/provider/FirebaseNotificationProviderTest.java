@@ -22,7 +22,6 @@ import codesquad.fineants.domain.fcm.repository.FcmRepository;
 import codesquad.fineants.domain.fcm.service.FirebaseMessagingService;
 import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
 import codesquad.fineants.domain.holding.repository.PortfolioHoldingRepository;
-import codesquad.fineants.domain.kis.aop.AccessTokenAspect;
 import codesquad.fineants.domain.kis.client.KisCurrentPrice;
 import codesquad.fineants.domain.kis.repository.CurrentPriceRedisRepository;
 import codesquad.fineants.domain.member.domain.entity.Member;
@@ -72,9 +71,6 @@ class FirebaseNotificationProviderTest extends AbstractContainerBaseTest {
 	@MockBean
 	private FirebaseMessagingService firebaseMessagingService;
 
-	@MockBean
-	private AccessTokenAspect accessTokenAspect;
-
 	@DisplayName("포트폴리오의 목표수익률 달성 알림을 FCM 방식으로 푸시한다")
 	@Test
 	void sendNotification_whenPolicyIsTargetGain_thenNotifyMessage() {
@@ -83,7 +79,6 @@ class FirebaseNotificationProviderTest extends AbstractContainerBaseTest {
 		Stock samsung = stockRepository.save(createSamsungStock());
 
 		currentPriceRedisRepository.savePrice(KisCurrentPrice.create(samsung.getTickerSymbol(), 50000L));
-		willDoNothing().given(accessTokenAspect).checkAccessTokenExpiration();
 		Portfolio portfolio = createPortfolioSample(member, samsung);
 
 		given(firebaseMessagingService.send(ArgumentMatchers.any(Message.class)))
@@ -107,7 +102,6 @@ class FirebaseNotificationProviderTest extends AbstractContainerBaseTest {
 		Stock samsung = stockRepository.save(createSamsungStock());
 
 		currentPriceRedisRepository.savePrice(KisCurrentPrice.create(samsung.getTickerSymbol(), 50000L));
-		willDoNothing().given(accessTokenAspect).checkAccessTokenExpiration();
 		PurchaseHistory purchaseHistory = createPurchaseHistory(null, LocalDateTime.now(), Count.from(30),
 			Money.won(100000), "첫구매", null);
 		Portfolio portfolio = createPortfolioSample(member, samsung, purchaseHistory);

@@ -1,5 +1,6 @@
 package codesquad.fineants.domain.kis.service;
 
+import static codesquad.fineants.domain.stock.domain.dto.response.StockDataResponse.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
@@ -8,7 +9,6 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Set;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
@@ -38,14 +38,15 @@ import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.repository.PortfolioRepository;
-import codesquad.fineants.domain.stock.domain.dto.response.StockDataResponse;
 import codesquad.fineants.domain.stock.domain.entity.Market;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
 import codesquad.fineants.domain.stock.service.StockCsvReader;
 import codesquad.fineants.global.common.delay.DelayManager;
+import codesquad.fineants.global.common.time.LocalDateTimeService;
 import codesquad.fineants.global.errors.exception.kis.KisException;
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -84,6 +85,9 @@ class KisServiceTest extends AbstractContainerBaseTest {
 
 	@SpyBean
 	private DelayManager delayManager;
+
+	@SpyBean
+	private LocalDateTimeService localDateTimeService;
 
 	@AfterEach
 	void tearDown() {
@@ -303,17 +307,31 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		given(client.fetchSearchStockInfo(anyString()))
 			.willReturn(Mono.just(kisSearchStockInfo));
 		// when
-		Set<StockDataResponse.StockIntegrationInfo> stocks = kisService.fetchStockInfoInRangedIpo();
+		Flux<StockIntegrationInfo> stocks = kisService.fetchStockInfoInRangedIpo();
 		// then
-		assertThat(stocks)
-			.hasSize(1)
-			.extracting(
-				StockDataResponse.StockIntegrationInfo::getStockCode,
-				StockDataResponse.StockIntegrationInfo::getTickerSymbol,
-				StockDataResponse.StockIntegrationInfo::getCompanyName,
-				StockDataResponse.StockIntegrationInfo::getCompanyNameEng,
-				StockDataResponse.StockIntegrationInfo::getMarket
-			).containsExactly(tuple("KR7000660001", "000660", "에스케이하이닉스보통주", "SK hynix", Market.KOSPI));
+		StepVerifier.create(stocks)
+			.expectNext(StockIntegrationInfo.create("000660", "에스케이하이닉스보통주", "SK hynix", "KR7000660001",
+				"전기,전자", Market.KOSPI))
+			.expectComplete()
+			.verify();
+	}
+	
+	@DisplayName("상장된 종목들의 상세 종목을 조회할 때 별도의 스레드에서 blocking되면 안된다")
+	@Test
+	void fetchStockInfoInRangedIpo_shouldNotBlockInSeparateThread() {
+		// given
+		given(client.fetchIpo(
+			any(LocalDate.class),
+			any(LocalDate.class)
+		)).willReturn(Mono.error(() -> new IllegalStateException(
+			"blockOptional() is blocking, which is not supported in thread parallel-1")));
+		// when
+		Flux<StockIntegrationInfo> result = kisService.fetchStockInfoInRangedIpo();
+		// then
+		StepVerifier.create(result)
+			.expectNextCount(0)
+			.expectComplete()
+			.verify();
 	}
 
 	@DisplayName("사용자는 db에 저장된 종목을 각각 조회한다")
@@ -370,15 +388,13 @@ class KisServiceTest extends AbstractContainerBaseTest {
 				KisDividend.create(tickerSymbol, Money.won(300), LocalDate.of(2024, 3, 1),
 					LocalDate.of(2024, 5, 1))))));
 		// when
-		List<KisDividend> dividends = kisService.fetchDividend(tickerSymbol);
+		Flux<KisDividend> dividends = kisService.fetchDividend(tickerSymbol);
 		// then
-		Assertions.assertThat(dividends)
-			.hasSize(1)
-			.extracting(KisDividend::getTickerSymbol, KisDividend::getDividend, KisDividend::getRecordDate,
-				KisDividend::getPaymentDate)
-			.usingComparatorForType(Money::compareTo, Money.class)
-			.containsExactlyInAnyOrder(
-				tuple("005930", Money.won(300), LocalDate.of(2024, 3, 1), LocalDate.of(2024, 5, 1)));
+		StepVerifier.create(dividends)
+			.expectNext(
+				KisDividend.create("005930", Money.won(300), LocalDate.of(2024, 3, 1), LocalDate.of(2024, 5, 1)))
+			.expectComplete()
+			.verify();
 	}
 
 	@DisplayName("사용자는 새로운 한국투자증권의 액세스 토큰을 발급받아서 배당 일정을 조회한다")
@@ -395,15 +411,13 @@ class KisServiceTest extends AbstractContainerBaseTest {
 				KisDividend.create(tickerSymbol, Money.won(300), LocalDate.of(2024, 3, 1),
 					LocalDate.of(2024, 5, 1))))));
 		// when
-		List<KisDividend> dividends = kisService.fetchDividend(tickerSymbol);
+		Flux<KisDividend> dividends = kisService.fetchDividend(tickerSymbol);
 		// then
-		Assertions.assertThat(dividends)
-			.hasSize(1)
-			.extracting(KisDividend::getTickerSymbol, KisDividend::getDividend, KisDividend::getRecordDate,
-				KisDividend::getPaymentDate)
-			.usingComparatorForType(Money::compareTo, Money.class)
-			.containsExactlyInAnyOrder(
-				tuple("005930", Money.won(300), LocalDate.of(2024, 3, 1), LocalDate.of(2024, 5, 1)));
+		StepVerifier.create(dividends)
+			.expectNext(
+				KisDividend.create("005930", Money.won(300), LocalDate.of(2024, 3, 1), LocalDate.of(2024, 5, 1)))
+			.expectComplete()
+			.verify();
 	}
 
 	private List<Stock> saveStocks() {

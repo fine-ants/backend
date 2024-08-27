@@ -91,7 +91,6 @@ class SetupDataLoaderTest extends AbstractContainerBaseTest {
 		List<StockDividend> stockDividends = writeStockDividends(stocks, limit);
 
 		doNothing().when(exchangeRateService).updateExchangeRates();
-		doNothing().when(kisService).scheduledRefreshAllClosingPrice();
 		// when
 		setupDataLoader.setupResources();
 		// then

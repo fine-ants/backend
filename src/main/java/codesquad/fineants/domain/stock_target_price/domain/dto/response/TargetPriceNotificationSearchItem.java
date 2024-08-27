@@ -5,8 +5,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import codesquad.fineants.domain.common.money.Money;
-import codesquad.fineants.domain.stock_target_price.domain.entity.StockTargetPrice;
 import codesquad.fineants.domain.kis.repository.ClosingPriceRepository;
+import codesquad.fineants.domain.stock_target_price.domain.entity.StockTargetPrice;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -37,7 +37,7 @@ public class TargetPriceNotificationSearchItem {
 		return TargetPriceNotificationSearchItem.builder()
 			.companyName(stockTargetPrice.getStock().getCompanyName())
 			.tickerSymbol(stockTargetPrice.getStock().getTickerSymbol())
-			.lastPrice(manager.getClosingPrice(stockTargetPrice.getStock().getTickerSymbol())
+			.lastPrice(manager.fetchPrice(stockTargetPrice.getStock().getTickerSymbol())
 				.orElse(Money.zero()))
 			.targetPrices(targetPrices)
 			.isActive(stockTargetPrice.getIsActive())

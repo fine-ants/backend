@@ -20,6 +20,7 @@ import codesquad.fineants.domain.dividend.domain.entity.StockDividend;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
@@ -29,6 +30,7 @@ import lombok.ToString;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @ToString
 @JsonDeserialize(using = KisDividend.KissDividendDeserializer.class)
+@EqualsAndHashCode
 public class KisDividend implements Comparable<KisDividend> {
 	private String tickerSymbol;
 	private Money dividend;

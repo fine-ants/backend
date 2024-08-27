@@ -13,6 +13,7 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -88,6 +89,7 @@ public class StockDataResponse {
 	@AllArgsConstructor(access = AccessLevel.PRIVATE)
 	@Builder(access = AccessLevel.PRIVATE)
 	@EqualsAndHashCode(of = "tickerSymbol")
+	@ToString
 	public static class StockIntegrationInfo {
 		private String tickerSymbol;
 		private String companyName;
