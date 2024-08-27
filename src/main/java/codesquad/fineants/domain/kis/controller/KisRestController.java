@@ -90,8 +90,10 @@ public class KisRestController {
 	// 배당 일정 조회
 	@GetMapping("/dividend/{tickerSymbol}")
 	@Secured(value = {"ROLE_MANAGER", "ROLE_ADMIN"})
-	public ApiResponse<List<KisDividend>> fetchDividend(@PathVariable String tickerSymbol) {
-		return ApiResponse.success(KisSuccessCode.OK_FETCH_DIVIDEND, service.fetchDividend(tickerSymbol));
+	public Mono<ApiResponse<List<KisDividend>>> fetchDividend(@PathVariable String tickerSymbol) {
+		Mono<List<KisDividend>> result = service.fetchDividend(tickerSymbol)
+			.collect(Collectors.toList());
+		return result.map(data -> ApiResponse.success(KisSuccessCode.OK_FETCH_DIVIDEND, data));
 	}
 
 	@DeleteMapping("/access-token")

@@ -162,7 +162,7 @@ public class KisService {
 	 * @return 종목의 배당 일정 정보
 	 */
 	@CheckedKisAccessToken
-	public List<KisDividend> fetchDividend(String tickerSymbol) {
+	public Flux<KisDividend> fetchDividend(String tickerSymbol) {
 		return kisClient.fetchDividendThisYear(tickerSymbol)
 			.map(KisDividendWrapper::getKisDividends)
 			.doOnSuccess(response -> log.debug("fetchDividend list is {}", response.size()))
@@ -171,8 +171,8 @@ public class KisService {
 			.retryWhen(Retry.fixedDelay(5, delayManager.fixedDelay())
 				.filter(RequestLimitExceededKisException.class::isInstance))
 			.onErrorResume(Exceptions::isRetryExhausted, throwable -> Mono.empty())
-			.blockOptional(delayManager.timeout())
-			.orElseGet(Collections::emptyList);
+			.onErrorResume(throwable -> Mono.empty())
+			.flatMapMany(Flux::fromIterable);
 	}
 
 	@CheckedKisAccessToken

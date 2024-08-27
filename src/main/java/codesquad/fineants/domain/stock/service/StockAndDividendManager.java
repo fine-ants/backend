@@ -98,6 +98,7 @@ public class StockAndDividendManager {
 	private Set<String> saveIpoStocks() {
 		List<Stock> stocks = kisService.fetchStockInfoInRangedIpo()
 			.map(StockDataResponse.StockIntegrationInfo::toEntity)
+			.onErrorResume(throwable -> Mono.empty())
 			.collectList()
 			.blockOptional(delayManager.timeout())
 			.orElseGet(Collections::emptyList);
@@ -182,7 +183,7 @@ public class StockAndDividendManager {
 		// 올해 배당 일정 조회
 		int concurrency = 20;
 		List<StockDividend> stockDividends = Flux.fromIterable(tickerSymbols)
-			.flatMap(ticker -> Flux.fromIterable(kisService.fetchDividend(ticker)), concurrency)
+			.flatMap(kisService::fetchDividend, concurrency)
 			.delayElements(delayManager.delay())
 			.collectList()
 			.blockOptional(delayManager.timeout())
