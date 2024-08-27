@@ -1,4 +1,4 @@
-package codesquad.fineants.domain.kis.service;
+package codesquad.fineants.domain.kis.scheduler;
 
 import java.time.LocalDate;
 
@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import codesquad.fineants.domain.kis.repository.HolidayRepository;
+import codesquad.fineants.domain.kis.service.KisService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
