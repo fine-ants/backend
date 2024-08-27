@@ -28,28 +28,28 @@ public class KisAccessTokenScheduler {
 	private final DelayManager delayManager;
 	private final KisClient kisClient;
 
-	@Scheduled(fixedRate = 10, timeUnit = TimeUnit.HOURS)
+	@Scheduled(fixedRate = 1, timeUnit = TimeUnit.MINUTES)
 	public void checkAndReissueAccessToken() {
 		LocalDateTime now = localDateTimeService.getLocalDateTimeWithNow();
-		if (manager.isTokenExpiringSoon(now)) {
-			kisClient.fetchAccessToken()
-				.doOnSuccess(kisAccessToken -> log.debug("success the kis access token issue : {}", kisAccessToken))
-				.retryWhen(Retry.fixedDelay(5, delayManager.fixedAccessTokenDelay()))
-				.onErrorResume(Exceptions::isRetryExhausted, throwable -> {
-					log.error("fail the retry, error message is {}", throwable.getMessage());
-					return Mono.empty();
-				})
-				.onErrorResume(throwable -> {
-					log.error("fail the fetch accessToken, error message is {}", throwable.getMessage());
-					return Mono.empty();
-				})
-				.blockOptional(delayManager.timeout())
-				.ifPresent(newKisAccessToken -> {
-					redisService.setAccessTokenMap(newKisAccessToken, now);
-					manager.refreshAccessToken(newKisAccessToken);
-					log.info("Reissue access tokens 1 hour prior to expiration {}", newKisAccessToken);
-				});
+		if (!manager.isTokenExpiringSoon(now)) {
+			return;
 		}
-		log.debug("finish checkAndReloadAccessToken");
+		kisClient.fetchAccessToken()
+			.doOnSuccess(kisAccessToken -> log.debug("success the kis access token issue : {}", kisAccessToken))
+			.retryWhen(Retry.fixedDelay(5, delayManager.fixedAccessTokenDelay()))
+			.onErrorResume(Exceptions::isRetryExhausted, throwable -> {
+				log.error("fail the retry, error message is {}", throwable.getMessage());
+				return Mono.empty();
+			})
+			.onErrorResume(throwable -> {
+				log.error("fail the fetch accessToken, error message is {}", throwable.getMessage());
+				return Mono.empty();
+			})
+			.blockOptional(delayManager.timeout())
+			.ifPresent(newKisAccessToken -> {
+				redisService.setAccessTokenMap(newKisAccessToken, now);
+				manager.refreshAccessToken(newKisAccessToken);
+				log.info("Reissue access tokens 1 hour prior to expiration {}", newKisAccessToken);
+			});
 	}
 }
