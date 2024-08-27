@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -105,17 +104,6 @@ public class KisService {
 
 	public Mono<KisCurrentPrice> fetchCurrentPrice(String tickerSymbol) {
 		return Mono.defer(() -> kisClient.fetchCurrentPrice(tickerSymbol));
-	}
-
-	// start pm 15:30
-	@Scheduled(cron = "* 30 15 * * *")
-	@Transactional(readOnly = true)
-	public void scheduledRefreshAllClosingPrice() {
-		// 휴장일인 경우 실행하지 않음
-		if (holidayRepository.isHoliday(LocalDate.now())) {
-			return;
-		}
-		refreshAllClosingPrice();
 	}
 
 	public List<KisClosingPrice> refreshAllClosingPrice() {
