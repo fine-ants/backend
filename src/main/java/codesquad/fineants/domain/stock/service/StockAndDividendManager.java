@@ -168,7 +168,7 @@ public class StockAndDividendManager {
 
 	@NotNull
 	private Set<String> findAllTickerSymbols() {
-		return stockRepository.findAll()
+		return stockRepository.findAllStocks()
 			.stream()
 			.map(Stock::getTickerSymbol)
 			.collect(Collectors.toUnmodifiableSet());
