@@ -13,6 +13,9 @@ import codesquad.fineants.domain.stock.domain.entity.Stock;
 
 public interface StockRepository extends JpaRepository<Stock, Long> {
 
+	@Query("select s from Stock s where s.isDeleted = false")
+	List<Stock> findAllStocks();
+
 	Optional<Stock> findByTickerSymbol(String tickerSymbol);
 
 	@Query("select s from Stock s where s.tickerSymbol in :tickerSymbols")

@@ -32,6 +32,8 @@ import codesquad.fineants.domain.notification.domain.dto.response.NotifyMessage;
 import codesquad.fineants.domain.notification.domain.entity.type.NotificationType;
 import codesquad.fineants.domain.notification.repository.NotificationSentRepository;
 import codesquad.fineants.domain.notificationpreference.domain.entity.NotificationPreference;
+import codesquad.fineants.global.common.time.DefaultLocalDateTimeService;
+import codesquad.fineants.global.common.time.LocalDateTimeService;
 import codesquad.fineants.global.errors.errorcode.PortfolioErrorCode;
 import codesquad.fineants.global.errors.exception.BadRequestException;
 import codesquad.fineants.global.errors.exception.FineAntsException;
@@ -50,6 +52,7 @@ import jakarta.persistence.NamedEntityGraphs;
 import jakarta.persistence.NamedSubgraph;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -100,6 +103,9 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	@BatchSize(size = 1000)
 	@OneToMany(mappedBy = "portfolio")
 	private final List<PortfolioHolding> portfolioHoldings = new ArrayList<>();
+
+	@Transient
+	private LocalDateTimeService localDateTimeService = new DefaultLocalDateTimeService();
 
 	private Portfolio(Long id, String name, String securitiesFirm, Money budget, Money targetGain, Money maximumLoss,
 		Boolean targetGainIsActive, Boolean maximumLossIsActive, Member member) {
@@ -252,7 +258,8 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	// 총 연간 배당금 = 각 종목들의 연배당금의 합계
 	public Expression calculateAnnualDividend() {
 		return portfolioHoldings.stream()
-			.map(portfolioHolding -> portfolioHolding.createMonthlyDividendMap(LocalDate.now()))
+			.map(portfolioHolding -> portfolioHolding.createMonthlyDividendMap(
+				localDateTimeService.getLocalDateWithNow()))
 			.map(map -> map.values().stream()
 				.reduce(Money.zero(), Expression::plus))
 			.reduce(Money.zero(), Expression::plus);
@@ -360,7 +367,7 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	public List<PortfolioPieChartItem> createPieChart() {
 		List<PortfolioPieChartItem> stocks = portfolioHoldings.stream()
 			.map(portfolioHolding -> portfolioHolding.createPieChartItem(calculateWeightBy(portfolioHolding)))
-			.collect(Collectors.toList());
+			.toList();
 		Bank bank = Bank.getInstance();
 		Percentage weight = calculateCashWeight().toPercentage(bank, Currency.KRW);
 		PortfolioPieChartItem cash = PortfolioPieChartItem.cash(weight, bank.toWon(calculateBalance()));
@@ -406,14 +413,14 @@ public class Portfolio extends BaseEntity implements Notifiable {
 		Currency to = Currency.KRW;
 		return totalDividendMap.entrySet().stream()
 			.map(entry -> PortfolioDividendChartItem.create(entry.getKey(), entry.getValue().reduce(bank, to)))
-			.collect(Collectors.toList());
+			.toList();
 	}
 
 	public List<PortfolioSectorChartItem> createSectorChart() {
 		return calculateSectorCurrentValuationMap().entrySet().stream()
 			.map(mappingSectorChartItem())
 			.sorted(PortfolioSectorChartItem::compareTo)
-			.collect(Collectors.toList());
+			.toList();
 	}
 
 	private Map<String, List<Expression>> calculateSectorCurrentValuationMap() {
@@ -532,5 +539,9 @@ public class Portfolio extends BaseEntity implements Notifiable {
 
 	public List<PortfolioHolding> getPortfolioHoldings() {
 		return Collections.unmodifiableList(portfolioHoldings);
+	}
+
+	public void setLocalDateTimeService(LocalDateTimeService localDateTimeService) {
+		this.localDateTimeService = localDateTimeService;
 	}
 }

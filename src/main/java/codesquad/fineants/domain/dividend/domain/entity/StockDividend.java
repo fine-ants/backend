@@ -16,7 +16,6 @@ import codesquad.fineants.domain.dividend.domain.calculator.ExDividendDateCalcul
 import codesquad.fineants.domain.dividend.domain.reader.HolidayFileReader;
 import codesquad.fineants.domain.kis.repository.HolidayRepository;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
-import codesquad.fineants.infra.s3.dto.Dividend;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
@@ -56,6 +55,8 @@ public class StockDividend extends BaseEntity {
 	private LocalDate exDividendDate;
 	@Column(name = "payment_date")
 	private LocalDate paymentDate;
+	@Column(name = "is_deleted", nullable = false)
+	private boolean isDeleted;
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "ticker_symbol")
 	private Stock stock;
@@ -70,6 +71,7 @@ public class StockDividend extends BaseEntity {
 		this.recordDate = recordDate;
 		this.exDividendDate = exDividendDate;
 		this.paymentDate = paymentDate;
+		this.isDeleted = false;
 		this.stock = stock;
 	}
 
@@ -178,10 +180,6 @@ public class StockDividend extends BaseEntity {
 
 	public boolean hasInRange(LocalDate from, LocalDate to) {
 		return recordDate.isAfter(from) && recordDate.isBefore(to);
-	}
-
-	public Dividend toDividend() {
-		return Dividend.create(recordDate, paymentDate, stock.getTickerSymbol(), stock.getCompanyName(), dividend);
 	}
 
 	public boolean equalPaymentDate(LocalDate paymentDate) {
