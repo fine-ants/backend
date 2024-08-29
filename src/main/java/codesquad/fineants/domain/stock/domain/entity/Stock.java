@@ -116,7 +116,7 @@ public class Stock extends BaseEntity {
 
 		for (StockDividend stockDividend : currentYearStockDividends) {
 			for (PurchaseHistory purchaseHistory : purchaseHistories) {
-				if (stockDividend.isSatisfied(purchaseHistory.getPurchaseLocalDate())) {
+				if (stockDividend.canReceiveDividendOn(purchaseHistory.getPurchaseLocalDate())) {
 					int paymentMonth = stockDividend.getMonthValueByPaymentDate();
 					Expression dividendSum = stockDividend.calculateDividendSum(purchaseHistory.getNumShares());
 					result.put(paymentMonth, result.getOrDefault(paymentMonth, Money.zero()).plus(dividendSum));
@@ -166,7 +166,7 @@ public class Stock extends BaseEntity {
 
 	public RateDivision getAnnualDividendYield(CurrentPriceRedisRepository manager) {
 		Expression dividends = stockDividends.stream()
-			.filter(dividend -> dividend.isSatisfiedPaymentDateEqualYearBy(LocalDate.now()))
+			.filter(dividend -> dividend.isPaymentInCurrentYear(LocalDate.now()))
 			.map(StockDividend::getDividend)
 			.map(Expression.class::cast)
 			.reduce(Money.zero(), Expression::plus);
@@ -201,7 +201,7 @@ public class Stock extends BaseEntity {
 	public List<Integer> getDividendMonths() {
 		return stockDividends.stream()
 			.filter(dividend -> dividend.isCurrentYearPaymentDate(LocalDate.now()))
-			.map(dividend -> dividend.getPaymentDate().getMonthValue())
+			.map(StockDividend::getMonthValueByPaymentDate)
 			.toList();
 	}
 	// ticker 및 recordDate 기준으로 KisDividend가 매치되어 있는지 확인
@@ -225,7 +225,7 @@ public class Stock extends BaseEntity {
 
 	public List<StockDividend> getStockDividendNotInRange(LocalDate from, LocalDate to) {
 		return stockDividends.stream()
-			.filter(stockDividend -> !stockDividend.hasInRange(from, to))
+			.filter(stockDividend -> !stockDividend.hasInRangeForRecordDate(from, to))
 			.toList();
 	}
 

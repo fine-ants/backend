@@ -20,6 +20,7 @@ import org.springframework.boot.test.mock.mockito.SpyBean;
 import codesquad.fineants.AbstractContainerBaseTest;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.common.money.Percentage;
+import codesquad.fineants.domain.dividend.domain.entity.DividendDates;
 import codesquad.fineants.domain.dividend.domain.entity.StockDividend;
 import codesquad.fineants.domain.dividend.repository.StockDividendRepository;
 import codesquad.fineants.domain.kis.client.KisAccessToken;
@@ -228,21 +229,24 @@ class StockServiceTest extends AbstractContainerBaseTest {
 			hynix.getTickerSymbol());
 		assertThat(hynixDividends)
 			.hasSize(2)
-			.extracting(StockDividend::getDividend, StockDividend::getRecordDate, StockDividend::getExDividendDate,
-				StockDividend::getPaymentDate)
+			.extracting(StockDividend::getDividend, StockDividend::getDividendDates)
 			.usingComparatorForType(Money::compareTo, Money.class)
 			.containsExactly(
 				Tuple.tuple(
 					Money.won(300),
-					LocalDate.parse("20240331", dtf),
-					LocalDate.parse("20240329", dtf),
-					LocalDate.parse("20240514", dtf)
+					DividendDates.of(
+						LocalDate.parse("20240331", dtf),
+						LocalDate.parse("20240329", dtf),
+						LocalDate.parse("20240514", dtf)
+					)
 				),
 				Tuple.tuple(
 					Money.won(300),
-					LocalDate.parse("20240630", dtf),
-					LocalDate.parse("20240628", dtf),
-					LocalDate.parse("20240814", dtf)
+					DividendDates.of(
+						LocalDate.parse("20240630", dtf),
+						LocalDate.parse("20240628", dtf),
+						LocalDate.parse("20240814", dtf)
+					)
 				)
 			);
 	}
