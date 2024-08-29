@@ -113,8 +113,8 @@ public class StockDividend extends BaseEntity {
 			this.stock.getStockCode());
 	}
 
-	public boolean canReceiveDividendOn(LocalDate purchaseDate) {
-		return dividendDates.canReceiveDividendOn(purchaseDate);
+	public boolean canReceiveDividendOn(PurchaseHistory history) {
+		return history.canReceiveDividendOn(dividendDates);
 	}
 
 	public Integer getMonthValueByPaymentDate() {

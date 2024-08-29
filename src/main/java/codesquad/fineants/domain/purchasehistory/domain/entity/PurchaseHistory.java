@@ -9,6 +9,7 @@ import codesquad.fineants.domain.common.count.CountConverter;
 import codesquad.fineants.domain.common.money.Expression;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.common.money.MoneyConverter;
+import codesquad.fineants.domain.dividend.domain.entity.DividendDates;
 import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
 import codesquad.fineants.domain.purchasehistory.domain.dto.request.PurchaseHistoryCreateRequest;
 import jakarta.persistence.Column;
@@ -120,5 +121,9 @@ public class PurchaseHistory extends BaseEntity {
 
 	public boolean isPurchaseDateBeforeExDividendDate(LocalDateTime localDateTime) {
 		return this.purchaseDate.isBefore(localDateTime);
+	}
+
+	public boolean canReceiveDividendOn(DividendDates dividendDates) {
+		return dividendDates.canReceiveDividendOn(purchaseDate.toLocalDate());
 	}
 }
