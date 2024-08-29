@@ -80,7 +80,7 @@ public class StockDividend extends BaseEntity {
 	// 주식 개수에 따른 배당금 합계 계산
 	// 배당금 합계 = 주당 배당금 * 주식 개수
 	public Expression calculateDividendSum(Count numShares) {
-		return dividend.times(numShares.getValue().intValue());
+		return numShares.multiply(dividend);
 	}
 
 	public boolean isDuplicatedRecordDate(List<StockDividend> currentYearStockDividends) {

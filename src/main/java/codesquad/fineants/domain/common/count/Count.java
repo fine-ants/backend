@@ -53,7 +53,7 @@ public class Count implements Comparable<Count> {
 	public Expression division(Money numerator) {
 		return numerator.divide(value);
 	}
-
+	
 	@Override
 	public boolean equals(Object object) {
 		if (this == object) {
