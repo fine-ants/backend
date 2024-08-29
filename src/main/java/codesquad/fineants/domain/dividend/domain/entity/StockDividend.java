@@ -1,11 +1,7 @@
 package codesquad.fineants.domain.dividend.domain.entity;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Map;
-
-import org.apache.logging.log4j.util.Strings;
 
 import codesquad.fineants.domain.BaseEntity;
 import codesquad.fineants.domain.common.count.Count;
@@ -172,22 +168,6 @@ public class StockDividend extends BaseEntity {
 			dividendDates.basicIsoForRecordDate(),
 			dividendDates.basicIsoForPaymentDate(),
 			this.stock.getStockCode());
-	}
-
-	public static StockDividend parseCsvLine(String[] data, Map<String, Stock> stockMap) {
-		Long id = Long.parseLong(data[0]);
-		Money dividend = Money.won(Long.parseLong(data[1]));
-		LocalDate recordDate = basicIso(data[2]);
-		LocalDate paymentDate = basicIso(data[3]);
-		Stock stock = stockMap.get(data[4]);
-		return create(id, dividend, recordDate, paymentDate, stock);
-	}
-
-	private static LocalDate basicIso(String localDateString) {
-		if (Strings.isBlank(localDateString)) {
-			return null;
-		}
-		return LocalDate.parse(localDateString, DateTimeFormatter.BASIC_ISO_DATE);
 	}
 
 	public boolean isSatisfiedBy(PurchaseHistory history) {
