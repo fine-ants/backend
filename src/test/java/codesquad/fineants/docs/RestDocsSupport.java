@@ -166,7 +166,7 @@ public abstract class RestDocsSupport {
 
 	protected StockDividend createStockDividend(LocalDate recordDate, LocalDate exDividendDate, LocalDate paymentDate,
 		Stock stock) {
-		return StockDividend.create(Money.won(361), recordDate, exDividendDate, paymentDate, stock);
+		return StockDividend.create(Money.won(361), recordDate, paymentDate, stock);
 	}
 
 	protected Notification createPortfolioNotification(PortfolioNotifyMessage message, Member member) {

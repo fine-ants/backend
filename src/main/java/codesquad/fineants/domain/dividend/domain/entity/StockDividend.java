@@ -62,20 +62,13 @@ public class StockDividend extends BaseEntity {
 		this.stock = stock;
 	}
 
-	public static StockDividend create(Money dividend, LocalDate recordDate,
-		LocalDate paymentDate, Stock stock) {
+	public static StockDividend create(Money dividend, LocalDate recordDate, LocalDate paymentDate, Stock stock) {
 		DividendDates dividendDates = DividendDates.withPaymentDate(recordDate, paymentDate);
 		return create(null, dividend, dividendDates, stock);
 	}
 
-	public static StockDividend create(Money dividend, LocalDate recordDate, LocalDate exDividendDate,
-		LocalDate paymentDate, Stock stock) {
-		DividendDates dividendDates = DividendDates.withPaymentDate(recordDate, paymentDate);
-		return create(null, dividend, dividendDates, stock);
-	}
-
-	public static StockDividend create(Long id, Money dividend, LocalDate recordDate,
-		LocalDate paymentDate, Stock stock) {
+	public static StockDividend create(Long id, Money dividend, LocalDate recordDate, LocalDate paymentDate,
+		Stock stock) {
 		DividendDates dividendDates = DividendDates.withPaymentDate(recordDate, paymentDate);
 		return create(id, dividend, dividendDates, stock);
 	}
@@ -90,47 +83,9 @@ public class StockDividend extends BaseEntity {
 		return dividend.times(numShares.getValue().intValue());
 	}
 
-	// 배당금을 받을 수 있는지 검사
-	public boolean canReceiveDividendOn(LocalDate purchaseDate) {
-		return dividendDates.canReceiveDividendOn(purchaseDate);
-	}
-
-	// 현금 배당 지급일의 월을 반환
-	public Integer getMonthValueByPaymentDate() {
-		return dividendDates.getPaymentDateMonth();
-	}
-
-	// 배정기준일이 현재 년도인지 검사
-	public boolean isCurrentYearRecordDate(LocalDate localDate) {
-		return dividendDates.isCurrentYearRecordDate(localDate);
-	}
-
-	// 현금지급일자가 작년도인지 검사
-	public boolean isLastYearPaymentDate(LocalDate lastYearLocalDate) {
-		return dividendDates.isLastYearPaymentDate(lastYearLocalDate);
-	}
-
-	// 입력으로 받은 배당금 데이터들중 배정기준일이 같은 분기에 해당하는 데이터가 존재하는지 검사
 	public boolean isDuplicatedRecordDate(List<StockDividend> currentYearStockDividends) {
 		return currentYearStockDividends.stream()
 			.anyMatch(stockDividend -> stockDividend.getQuarter().equals(getQuarter()));
-	}
-
-	private Integer getQuarter() {
-		return dividendDates.getQuarterWithRecordDate();
-	}
-
-	// 현금지급일자를 기준으로 현재년도인지 검사
-	public boolean isCurrentYearPaymentDate(LocalDate today) {
-		return dividendDates.isCurrentYearPaymentDate(today);
-	}
-
-	public boolean equalRecordDate(LocalDate recordDate) {
-		return dividendDates.equalRecordDate(recordDate);
-	}
-
-	public boolean hasPaymentDate() {
-		return dividendDates.hasPaymentDate();
 	}
 
 	public void change(StockDividend stockDividend) {
@@ -149,6 +104,47 @@ public class StockDividend extends BaseEntity {
 		return String.format("%s:%s:%s", stock.getTickerSymbol(), dividend, dividendDateString);
 	}
 
+	public String toCsvLineString() {
+		return String.join(",",
+			this.id.toString(),
+			this.dividend.toString(),
+			dividendDates.basicIsoForRecordDate(),
+			dividendDates.basicIsoForPaymentDate(),
+			this.stock.getStockCode());
+	}
+
+	public boolean canReceiveDividendOn(LocalDate purchaseDate) {
+		return dividendDates.canReceiveDividendOn(purchaseDate);
+	}
+
+	public Integer getMonthValueByPaymentDate() {
+		return dividendDates.getPaymentDateMonth();
+	}
+
+	public boolean isCurrentYearRecordDate(LocalDate localDate) {
+		return dividendDates.isCurrentYearRecordDate(localDate);
+	}
+
+	public boolean isLastYearPaymentDate(LocalDate lastYearLocalDate) {
+		return dividendDates.isLastYearPaymentDate(lastYearLocalDate);
+	}
+
+	private Integer getQuarter() {
+		return dividendDates.getQuarterWithRecordDate();
+	}
+
+	public boolean isCurrentYearPaymentDate(LocalDate today) {
+		return dividendDates.isCurrentYearPaymentDate(today);
+	}
+
+	public boolean equalRecordDate(LocalDate recordDate) {
+		return dividendDates.equalRecordDate(recordDate);
+	}
+
+	public boolean hasPaymentDate() {
+		return dividendDates.hasPaymentDate();
+	}
+
 	public boolean isPaymentInCurrentYear(LocalDate localDate) {
 		return dividendDates.isPaymentInCurrentYear(localDate);
 	}
@@ -159,15 +155,6 @@ public class StockDividend extends BaseEntity {
 
 	public boolean equalPaymentDate(LocalDate paymentDate) {
 		return dividendDates.equalPaymentDate(paymentDate);
-	}
-
-	public String toCsvLineString() {
-		return String.join(",",
-			this.id.toString(),
-			this.dividend.toString(),
-			dividendDates.basicIsoForRecordDate(),
-			dividendDates.basicIsoForPaymentDate(),
-			this.stock.getStockCode());
 	}
 
 	public boolean isSatisfiedBy(PurchaseHistory history) {
