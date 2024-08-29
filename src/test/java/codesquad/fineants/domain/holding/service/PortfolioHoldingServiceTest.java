@@ -2,6 +2,7 @@ package codesquad.fineants.domain.holding.service;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.BDDMockito.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -14,6 +15,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import codesquad.fineants.AbstractContainerBaseTest;
@@ -49,6 +51,7 @@ import codesquad.fineants.domain.purchasehistory.domain.entity.PurchaseHistory;
 import codesquad.fineants.domain.purchasehistory.repository.PurchaseHistoryRepository;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
+import codesquad.fineants.global.common.time.LocalDateTimeService;
 import codesquad.fineants.global.errors.errorcode.MemberErrorCode;
 import codesquad.fineants.global.errors.errorcode.PortfolioHoldingErrorCode;
 import codesquad.fineants.global.errors.exception.FineAntsException;
@@ -86,6 +89,9 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 	@Autowired
 	private ClosingPriceRepository closingPriceRepository;
 
+	@SpyBean
+	private LocalDateTimeService localDateTimeService;
+
 	@MockBean
 	private PortfolioHoldingEventPublisher publisher;
 
@@ -95,8 +101,10 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		// given
 		Member member = memberRepository.save(createMember());
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
+		portfolio.setLocalDateTimeService(localDateTimeService);
+		given(localDateTimeService.getLocalDateWithNow()).willReturn(LocalDate.of(2024, 1, 1));
 		Stock stock = stockRepository.save(createSamsungStock());
-		stockDividendRepository.saveAll(createStockDividendWith(stock));
+		stockDividendRepository.saveAll(createStockDividendThisYearWith(stock));
 		PortfolioHolding portfolioHolding = portFolioHoldingRepository.save(createPortfolioHolding(portfolio, stock));
 
 		LocalDateTime purchaseDate = LocalDateTime.of(2023, 9, 26, 9, 30, 0);
@@ -133,7 +141,7 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		Percentage dailyGainRate = RateDivision.of(dailyGain, totalInvestmentAmount)
 			.toPercentage(Bank.getInstance(), Currency.KRW);
 
-		Expression totalAnnualDividend = Money.won(361 * 3 * 4);
+		Money totalAnnualDividend = Money.won(361 * 3 * 3);
 		Expression currentValuation = Money.won(180000);
 		Percentage annualDividendYield = RateDivision.of(totalAnnualDividend, currentValuation)
 			.toPercentage(Bank.getInstance(), Currency.KRW);
@@ -152,7 +160,7 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 			() -> assertThat(details.getDailyGain()).isEqualByComparingTo(Money.won(30000L)),
 			() -> assertThat(details.getDailyGainRate()).isEqualByComparingTo(dailyGainRate),
 			() -> assertThat(details.getBalance()).isEqualByComparingTo(Money.won(850000L)),
-			() -> assertThat(details.getAnnualDividend()).isEqualByComparingTo(Money.won(4332L)),
+			() -> assertThat(details.getAnnualDividend()).isEqualByComparingTo(totalAnnualDividend),
 			() -> assertThat(details.getAnnualDividendYield()).isEqualByComparingTo(annualDividendYield),
 			() -> assertThat(details.getProvisionalLossBalance()).isEqualByComparingTo(Money.won(0L)),
 			() -> assertThat(details.getTargetGainNotify()).isTrue(),
@@ -183,7 +191,7 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 						Percentage.from(0.2),
 						Money.won(30000),
 						Percentage.from(0.2),
-						Money.won(4332)
+						Money.won(3249)
 					)
 				),
 			() -> assertThat(response.getPortfolioHoldings())
