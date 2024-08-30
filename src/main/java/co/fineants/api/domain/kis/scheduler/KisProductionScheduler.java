@@ -30,5 +30,4 @@ public class KisProductionScheduler {
 		}
 		kisService.refreshAllStockCurrentPrice();
 	}
-
 }

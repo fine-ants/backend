@@ -19,7 +19,7 @@ public class KisClosingPriceScheduler {
 	private final HolidayRepository holidayRepository;
 
 	// start pm 15:30
-	@Scheduled(cron = "${cron.expression.closing-price:* 30 15 * * *}")
+	@Scheduled(cron = "${cron.expression.closing-price:0 30 15 * * ?}")
 	@Transactional(readOnly = true)
 	public void scheduledRefreshAllClosingPrice() {
 		if (holidayRepository.isHoliday(LocalDate.now())) {
