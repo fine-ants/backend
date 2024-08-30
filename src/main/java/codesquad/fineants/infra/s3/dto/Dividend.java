@@ -2,7 +2,6 @@ package codesquad.fineants.infra.s3.dto;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Map;
 
 import com.google.common.base.Strings;
 
@@ -22,7 +21,7 @@ public class Dividend {
 	private LocalDate paymentDate;
 	private String tickerSymbol;
 	private String name;
-	private Money dividend;
+	private Money amount;
 
 	public static Dividend parse(String[] data) {
 		String recordDate = data[0];
@@ -57,30 +56,12 @@ public class Dividend {
 		return new Dividend(recordDate, paymentDate, tickerSymbol, name, dividend);
 	}
 
-	public boolean containsBy(Map<String, Stock> stockMap) {
-		return stockMap.containsKey(tickerSymbol);
-	}
-
-	public Stock getStockBy(Map<String, Stock> stockMap) {
-		return stockMap.get(tickerSymbol);
-	}
-
 	public StockDividend toEntity(Stock stock) {
 		return StockDividend.create(
-			dividend,
+			amount,
 			recordDate,
 			paymentDate,
 			stock
 		);
-	}
-
-	public String toCsvLineString() {
-		String formatPaymentDate = paymentDate == null ? "" : paymentDate.format(DateTimeFormatter.BASIC_ISO_DATE);
-		return String.join(",",
-			recordDate.format(DateTimeFormatter.BASIC_ISO_DATE),
-			formatPaymentDate,
-			tickerSymbol,
-			name,
-			dividend.toString());
 	}
 }
