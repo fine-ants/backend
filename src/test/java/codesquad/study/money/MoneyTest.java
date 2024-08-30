@@ -4,22 +4,22 @@ import static org.assertj.core.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
 
-public class MoneyTest {
+class MoneyTest {
 	@Test
 	void testMultiplication() {
 		Money five = Money.dollar(5);
 		Expression product = five.times(2);
-		assertThat(product.equals(Money.dollar(10))).isTrue();
+		assertThat(product).isEqualTo(Money.dollar(10));
 
 		product = five.times(3);
-		assertThat(product.equals(Money.dollar(15))).isTrue();
+		assertThat(product).isEqualTo(Money.dollar(15));
 	}
 
 	@Test
 	void testFrancMultiplication() {
 		Money five = Money.franc(5);
-		assertThat(five.times(2).equals(Money.franc(10))).isTrue();
-		assertThat(five.times(3).equals(Money.franc(15))).isTrue();
+		assertThat(five.times(2)).isEqualTo(Money.franc(10));
+		assertThat(five.times(3)).isEqualTo(Money.franc(15));
 	}
 
 	@Test
@@ -42,7 +42,7 @@ public class MoneyTest {
 		Expression sum = five.plus(five);
 		Bank bank = new Bank();
 		Money reduced = bank.reduce(sum, "USD");
-		assertThat(reduced.equals(Money.dollar(10))).isTrue();
+		assertThat(reduced).isEqualTo(Money.dollar(10));
 	}
 
 	@Test
@@ -50,8 +50,8 @@ public class MoneyTest {
 		Money five = Money.dollar(5);
 		Expression result = five.plus(five);
 		Sum sum = (Sum)result;
-		assertThat(five.equals(sum.augend)).isTrue();
-		assertThat(five.equals(sum.addend)).isTrue();
+		assertThat(five).isEqualTo(sum.augend);
+		assertThat(five).isEqualTo(sum.addend);
 	}
 
 	@Test
@@ -59,14 +59,14 @@ public class MoneyTest {
 		Expression sum = new Sum(Money.dollar(3), Money.dollar(4));
 		Bank bank = new Bank();
 		Money result = bank.reduce(sum, "USD");
-		assertThat(result.equals(Money.dollar(7))).isTrue();
+		assertThat(result).isEqualTo(Money.dollar(7));
 	}
 
 	@Test
 	void testReduceMoney() {
 		Bank bank = new Bank();
 		Money result = bank.reduce(Money.dollar(1), "USD");
-		assertThat(result.equals(Money.dollar(1))).isTrue();
+		assertThat(result).isEqualTo(Money.dollar(1));
 	}
 
 	@Test
@@ -74,7 +74,7 @@ public class MoneyTest {
 		Bank bank = new Bank();
 		bank.addRate("CHF", "USD", 2);
 		Money result = bank.reduce(Money.franc(2), "USD");
-		assertThat(result.equals(Money.dollar(1))).isTrue();
+		assertThat(result).isEqualTo(Money.dollar(1));
 	}
 
 	@Test
@@ -89,7 +89,7 @@ public class MoneyTest {
 		Bank bank = new Bank();
 		bank.addRate("CHF", "USD", 2);
 		Money result = bank.reduce(fiveBucks.plus(tenFrancs), "USD");
-		assertThat(result.equals(Money.dollar(10))).isTrue();
+		assertThat(result).isEqualTo(Money.dollar(10));
 	}
 
 	@Test
@@ -100,7 +100,7 @@ public class MoneyTest {
 		bank.addRate("CHF", "USD", 2);
 		Expression sum = new Sum(fiveBucks, tenFrancs).plus(fiveBucks);
 		Money result = bank.reduce(sum, "USD");
-		assertThat(result.equals(Money.dollar(15))).isTrue();
+		assertThat(result).isEqualTo(Money.dollar(15));
 	}
 
 	@Test
@@ -111,6 +111,6 @@ public class MoneyTest {
 		bank.addRate("CHF", "USD", 2);
 		Expression sum = new Sum(fiveBucks, tenFrancs).times(2);
 		Money result = bank.reduce(sum, "USD");
-		assertThat(result.equals(Money.dollar(20))).isTrue();
+		assertThat(result).isEqualTo(Money.dollar(20));
 	}
 }

@@ -1,7 +1,6 @@
 package codesquad.fineants.domain.member.service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Service;
@@ -34,8 +33,7 @@ public class MemberNotificationService {
 		return MemberNotificationResponse.create(
 			notifications.stream()
 				.map(MemberNotification::from)
-				.collect(Collectors.toList())
-		);
+				.toList());
 	}
 
 	// 입력 받은 알림들 중에서 안 읽은 알람들을 읽음 처리하고 읽은 알림의 등록번호 리스트를 반환
@@ -58,7 +56,7 @@ public class MemberNotificationService {
 		// 읽은 알림들의 등록번호 반환
 		return notifications.stream()
 			.map(Notification::getId)
-			.collect(Collectors.toList());
+			.toList();
 	}
 
 	private void verifyExistNotifications(Long memberId, List<Long> notificationIds) {

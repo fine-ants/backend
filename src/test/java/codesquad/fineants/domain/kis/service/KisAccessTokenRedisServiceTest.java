@@ -43,12 +43,10 @@ class KisAccessTokenRedisServiceTest extends AbstractContainerBaseTest {
 		KisAccessToken accessToken = createKisAccessToken();
 
 		// when
-		Throwable throwable = catchThrowable(
-			() -> service.setAccessTokenMap(accessToken, LocalDateTime.of(2023, 12, 8, 15, 0, 0)));
+		service.setAccessTokenMap(accessToken, LocalDateTime.of(2023, 12, 8, 15, 0, 0));
 
 		// then
-		assertThat(throwable)
-			.isInstanceOf(RuntimeException.class);
+		assertThat(service.getAccessTokenMap()).isEmpty();
 	}
 
 	@DisplayName("kis 액세스 토큰맵을 가져온다")

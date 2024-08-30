@@ -31,7 +31,7 @@ import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.service.MemberService;
 import codesquad.fineants.global.util.ObjectMapperUtil;
 
-public class MemberRestControllerDocsTest extends RestDocsSupport {
+class MemberRestControllerDocsTest extends RestDocsSupport {
 
 	private final MemberService memberService = Mockito.mock(MemberService.class);
 

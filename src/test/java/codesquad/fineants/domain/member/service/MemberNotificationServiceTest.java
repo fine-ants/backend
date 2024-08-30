@@ -111,7 +111,7 @@ class MemberNotificationServiceTest extends AbstractContainerBaseTest {
 		List<Notification> notifications = notificationRepository.saveAll(createNotifications(member));
 		List<Long> notificationIds = notifications.stream()
 			.map(Notification::getId)
-			.collect(Collectors.toList());
+			.toList();
 
 		setAuthentication(member);
 		// when
@@ -162,7 +162,7 @@ class MemberNotificationServiceTest extends AbstractContainerBaseTest {
 		List<Notification> notifications = notificationRepository.saveAll(createNotifications(member));
 		List<Long> notificationIds = notifications.stream()
 			.map(Notification::getId)
-			.collect(Collectors.toList());
+			.toList();
 
 		setAuthentication(hacker);
 		// when
@@ -183,7 +183,7 @@ class MemberNotificationServiceTest extends AbstractContainerBaseTest {
 		List<Notification> notifications = notificationRepository.saveAll(createNotifications(member));
 		List<Long> notificationIds = notifications.stream()
 			.map(Notification::getId)
-			.collect(Collectors.toList());
+			.toList();
 
 		setAuthentication(member);
 		// when
@@ -192,8 +192,7 @@ class MemberNotificationServiceTest extends AbstractContainerBaseTest {
 
 		// then
 		assertThat(deletedAllNotifications).hasSize(3);
-		assertThat(notificationRepository.findAllByMemberIdAndIds(member.getId(), notificationIds).size())
-			.isZero();
+		assertThat(notificationRepository.findAllByMemberIdAndIds(member.getId(), notificationIds)).isEmpty();
 	}
 
 	@DisplayName("사용자는 존재하지 않은 알람들을 삭제할 수 없습니다")
@@ -227,7 +226,7 @@ class MemberNotificationServiceTest extends AbstractContainerBaseTest {
 		List<Notification> notifications = notificationRepository.saveAll(createNotifications(member));
 		List<Long> notificationIds = notifications.stream()
 			.map(Notification::getId)
-			.collect(Collectors.toList());
+			.toList();
 
 		setAuthentication(hacker);
 		// when

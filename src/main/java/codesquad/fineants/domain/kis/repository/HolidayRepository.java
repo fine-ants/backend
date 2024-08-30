@@ -2,6 +2,7 @@ package codesquad.fineants.domain.kis.repository;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -17,10 +18,16 @@ public class HolidayRepository {
 
 	private final Set<LocalDate> holidays;
 
-	public HolidayRepository(HolidayFileReader reader) throws IOException {
-		this.holidays = reader.read().stream()
-			.map(HolidayDto::getDate)
-			.collect(Collectors.toSet());
+	public HolidayRepository(HolidayFileReader reader) {
+		Set<LocalDate> temp = new HashSet<>();
+		try {
+			temp = reader.read().stream()
+				.map(HolidayDto::getDate)
+				.collect(Collectors.toSet());
+		} catch (IOException e) {
+			log.error(e.getMessage());
+		}
+		this.holidays = temp;
 	}
 
 	public boolean isHoliday(LocalDate localDate) {

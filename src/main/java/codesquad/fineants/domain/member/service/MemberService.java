@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.Authentication;
@@ -86,7 +85,6 @@ public class MemberService {
 	private final PortfolioGainHistoryRepository portfolioGainHistoryRepository;
 	private final PurchaseHistoryRepository purchaseHistoryRepository;
 	private final VerifyCodeGenerator verifyCodeGenerator;
-	private final MemberNotificationPreferenceService preferenceService;
 	private final NotificationPreferenceRepository notificationPreferenceRepository;
 	private final NotificationRepository notificationRepository;
 	private final FcmRepository fcmRepository;
@@ -313,8 +311,7 @@ public class MemberService {
 		portfolios.forEach(portfolio -> portfolioGainHistories.addAll(
 			portfolioGainHistoryRepository.findAllByPortfolioId(portfolio.getId())));
 		purchaseHistoryRepository.deleteAllByPortfolioHoldingIdIn(
-			portfolioHoldings.stream().map(PortfolioHolding::getId).collect(
-				Collectors.toList()));
+			portfolioHoldings.stream().map(PortfolioHolding::getId).toList());
 		portfolioGainHistoryRepository.deleteAll(portfolioGainHistories);
 		portfolioHoldingRepository.deleteAll(portfolioHoldings);
 		portfolioRepository.deleteAll(portfolios);

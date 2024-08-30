@@ -32,7 +32,7 @@ import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock_target_price.domain.entity.TargetPriceNotification;
 import codesquad.fineants.global.util.ObjectMapperUtil;
 
-public class MemberNotificationRestControllerDocsTest extends RestDocsSupport {
+class MemberNotificationRestControllerDocsTest extends RestDocsSupport {
 
 	private final MemberNotificationService service = Mockito.mock(MemberNotificationService.class);
 	private final MemberNotificationPreferenceService preferenceService = Mockito.mock(
