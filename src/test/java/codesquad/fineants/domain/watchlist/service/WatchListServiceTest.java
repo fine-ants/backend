@@ -101,7 +101,7 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 		// given
 		Member member = memberRepository.save(createMember());
 		Stock stock = stockRepository.save(createSamsungStock());
-		stockDividendRepository.save(createStockDividend(LocalDate.now(), LocalDate.now(), LocalDate.now(), stock));
+		stockDividendRepository.save(createStockDividend(LocalDate.now(), LocalDate.now(), stock));
 
 		WatchList watchList = watchListRepository.save(createWatchList("My WatchList 1", member));
 		watchStockRepository.save(createWatchStock(watchList, stock));
@@ -142,7 +142,7 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 		Member member = memberRepository.save(createMember());
 		Member hacker = memberRepository.save(createMember("hacker"));
 		Stock stock = stockRepository.save(createSamsungStock());
-		stockDividendRepository.save(createStockDividend(LocalDate.now(), LocalDate.now(), LocalDate.now(), stock));
+		stockDividendRepository.save(createStockDividend(LocalDate.now(), LocalDate.now(), stock));
 
 		WatchList watchList = watchListRepository.save(createWatchList("My WatchList 1", member));
 		watchStockRepository.save(createWatchStock(watchList, stock));
