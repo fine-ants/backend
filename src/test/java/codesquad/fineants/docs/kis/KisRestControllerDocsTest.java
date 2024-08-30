@@ -28,7 +28,7 @@ import codesquad.fineants.domain.kis.service.KisService;
 import codesquad.fineants.global.util.ObjectMapperUtil;
 import reactor.core.publisher.Mono;
 
-public class KisRestControllerDocsTest extends RestDocsSupport {
+class KisRestControllerDocsTest extends RestDocsSupport {
 
 	private final KisService service = Mockito.mock(KisService.class);
 

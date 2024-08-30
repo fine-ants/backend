@@ -1,6 +1,5 @@
 package codesquad.fineants.domain.member.domain.entity;
 
-import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -50,11 +49,8 @@ public class Member extends BaseEntity {
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "member", orphanRemoval = true, cascade = CascadeType.ALL)
 	private Set<MemberRole> roles;
 
-	private Member(LocalDateTime createAt, LocalDateTime modifiedAt, Long id, String email,
-		String nickname, String provider, String password, String profileUrl,
-		NotificationPreference notificationPreference,
-		Set<MemberRole> roles) {
-		super(createAt, modifiedAt);
+	private Member(Long id, String email, String nickname, String provider, String password, String profileUrl,
+		NotificationPreference notificationPreference, Set<MemberRole> roles) {
 		this.id = id;
 		this.email = email;
 		this.nickname = nickname;
@@ -67,8 +63,7 @@ public class Member extends BaseEntity {
 
 	public static Member oauthMember(String email, String nickname, String provider,
 		String profileUrl) {
-		return new Member(LocalDateTime.now(), null, null, email, nickname, provider, null, profileUrl, null,
-			new HashSet<>());
+		return new Member(null, email, nickname, provider, null, profileUrl, null, new HashSet<>());
 	}
 
 	public static Member localMember(String email, String nickname, String password) {
@@ -80,8 +75,7 @@ public class Member extends BaseEntity {
 	}
 
 	public static Member localMember(Long id, String email, String nickname, String password, String profileUrl) {
-		return new Member(LocalDateTime.now(), null, id, email, nickname, "local", password, profileUrl, null,
-			new HashSet<>());
+		return new Member(id, email, nickname, "local", password, profileUrl, null, new HashSet<>());
 	}
 
 	public void addMemberRole(MemberRole memberRole) {
@@ -123,7 +117,7 @@ public class Member extends BaseEntity {
 		this.nickname = nickname;
 	}
 
-	public Collection<? extends GrantedAuthority> getSimpleGrantedAuthorities() {
+	public Collection<GrantedAuthority> getSimpleGrantedAuthorities() {
 		return roles.stream()
 			.map(MemberRole::toSimpleGrantedAuthority)
 			.collect(Collectors.toSet());

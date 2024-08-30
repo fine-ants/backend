@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
-import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -65,7 +64,7 @@ class FcmServiceTest extends AbstractContainerBaseTest {
 		FcmRegisterResponse response = fcmService.createToken(request, member.getId());
 
 		// then
-		assertThat(response.getFcmTokenId()).isGreaterThan(0);
+		assertThat(response.getFcmTokenId()).isPositive();
 	}
 
 	@DisplayName("한 사용자가 동일한 토큰값으로 여러번의 토큰 등록을 요청해도 db에는 한개의 member_id, token 값쌍의 데이터가 있어야 한다")
@@ -92,7 +91,7 @@ class FcmServiceTest extends AbstractContainerBaseTest {
 		// 10개의 쓰레드가 전부 완료할때까지 대기
 		Throwable throwable = catchThrowable(() -> futures.stream()
 			.map(CompletableFuture::join)
-			.collect(Collectors.toList()));
+			.toList());
 
 		// then
 		assertThat(throwable)
@@ -162,7 +161,7 @@ class FcmServiceTest extends AbstractContainerBaseTest {
 			() -> assertThat(response)
 				.extracting("fcmTokenId")
 				.isEqualTo(fcmToken.getId()),
-			() -> assertThat(fcmRepository.findById(fcmToken.getId()).isEmpty()).isTrue()
+			() -> assertThat(fcmRepository.findById(fcmToken.getId())).isEmpty()
 		);
 	}
 

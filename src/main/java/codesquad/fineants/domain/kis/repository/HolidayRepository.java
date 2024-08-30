@@ -9,20 +9,18 @@ import org.springframework.stereotype.Component;
 
 import codesquad.fineants.domain.dividend.domain.dto.response.HolidayDto;
 import codesquad.fineants.domain.dividend.domain.reader.HolidayFileReader;
+import lombok.extern.slf4j.Slf4j;
 
 @Component
+@Slf4j
 public class HolidayRepository {
 
 	private final Set<LocalDate> holidays;
 
-	public HolidayRepository(HolidayFileReader reader) {
-		try {
-			this.holidays = reader.read().stream()
-				.map(HolidayDto::getDate)
-				.collect(Collectors.toSet());
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
+	public HolidayRepository(HolidayFileReader reader) throws IOException {
+		this.holidays = reader.read().stream()
+			.map(HolidayDto::getDate)
+			.collect(Collectors.toSet());
 	}
 
 	public boolean isHoliday(LocalDate localDate) {
