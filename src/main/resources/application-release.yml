@@ -19,7 +19,7 @@ spring:
       port: 6379
 logging:
   level:
-    codesquad: debug
+    co: debug
 server:
   port: 444
 cron:
