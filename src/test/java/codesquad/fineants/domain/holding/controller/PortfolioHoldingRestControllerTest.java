@@ -46,7 +46,7 @@ import codesquad.fineants.domain.holding.domain.dto.response.PortfolioStockDelet
 import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
 import codesquad.fineants.domain.holding.service.PortfolioHoldingService;
 import codesquad.fineants.domain.holding.service.PortfolioObservableService;
-import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
+import codesquad.fineants.domain.kis.repository.CurrentPriceRedisRepository;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.service.PortFolioService;
@@ -68,7 +68,7 @@ class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 	private PortFolioService portFolioService;
 
 	@MockBean
-	private CurrentPriceRepository currentPriceRepository;
+	private CurrentPriceRedisRepository currentPriceRedisRepository;
 
 	@Override
 	protected Object initController() {
@@ -343,12 +343,12 @@ class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 		portfolioHolding.addPurchaseHistory(
 			createPurchaseHistory(null, purchaseDate, numShares, purchasePerShare, memo, portfolioHolding));
 
-		given(currentPriceRepository.getCurrentPrice(stock.getTickerSymbol()))
+		given(currentPriceRedisRepository.fetchPriceBy(stock.getTickerSymbol()))
 			.willReturn(Optional.of(portfolioHolding.getCurrentPrice()));
 
-		PieChart pieChart = new PieChart(currentPriceRepository);
-		DividendChart dividendChart = new DividendChart(currentPriceRepository);
-		SectorChart sectorChart = new SectorChart(currentPriceRepository);
+		PieChart pieChart = new PieChart(currentPriceRedisRepository);
+		DividendChart dividendChart = new DividendChart(currentPriceRedisRepository);
+		SectorChart sectorChart = new SectorChart(currentPriceRedisRepository);
 
 		PortfolioDetails portfolioDetails = PortfolioDetails.from(portfolio);
 		List<PortfolioPieChartItem> pieChartItems = pieChart.createBy(portfolio);
@@ -414,45 +414,37 @@ class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 		return List.of(
 			createStockDividend(
 				LocalDate.of(2022, 3, 30),
-				LocalDate.of(2022, 3, 31),
 				LocalDate.of(2022, 5, 17),
 				stock
 			),
 			createStockDividend(
 				LocalDate.of(2022, 6, 29),
-				LocalDate.of(2022, 6, 30),
 				LocalDate.of(2022, 8, 16),
 				stock
 			),
 			createStockDividend(
 				LocalDate.of(2022, 9, 29),
-				LocalDate.of(2022, 9, 30),
 				LocalDate.of(2022, 11, 15),
 				stock
 			),
 			createStockDividend(
 				LocalDate.of(2022, 12, 30),
-				LocalDate.of(2022, 12, 31),
 				LocalDate.of(2023, 4, 14),
 				stock),
 			createStockDividend(
 				LocalDate.of(2023, 3, 30),
-				LocalDate.of(2023, 3, 31),
 				LocalDate.of(2023, 5, 17),
 				stock),
 			createStockDividend(
 				LocalDate.of(2023, 6, 29),
-				LocalDate.of(2023, 6, 30),
 				LocalDate.of(2023, 8, 16),
 				stock),
 			createStockDividend(
 				LocalDate.of(2023, 9, 27),
-				LocalDate.of(2023, 9, 30),
 				LocalDate.of(2023, 11, 20),
 				stock),
 			createStockDividend(
 				LocalDate.of(2024, 3, 30),
-				LocalDate.of(2024, 3, 31),
 				LocalDate.of(2024, 5, 17),
 				stock)
 		);

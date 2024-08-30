@@ -174,44 +174,7 @@ class ExchangeRateServiceTest extends AbstractContainerBaseTest {
 				tuple("USD", Percentage.from(0.1))
 			);
 	}
-
-	@DisplayName("환율을 최신화한다")
-	@Test
-	void updateExchangeRates() {
-		// given
-		String krw = "KRW";
-		String usd = "USD";
-		double rate = 0.1;
-		repository.save(ExchangeRate.base(krw));
-		repository.save(ExchangeRate.of(usd, rate, false));
-
-		double usdRate = 0.2;
-		given(webClient.fetchRates(krw)).willReturn(Map.of(usd, usdRate));
-		// when
-		service.updateExchangeRates();
-		// then
-		ExchangeRate exchangeRate = repository.findByCode(usd).orElseThrow();
-		Percentage expected = Percentage.from(usdRate);
-		assertThat(exchangeRate)
-			.extracting("rate")
-			.usingComparatorForType(Percentage::compareTo, Percentage.class)
-			.isEqualTo(expected);
-	}
-
-	@DisplayName("관리자는 기준 통화가 없는 상태에서 환율 업데이트를 할 수 없다")
-	@Test
-	void updateExchangeRates_whenNoBase_thenError() {
-		// given
-		String baseCode = "KRW";
-		given(webClient.fetchRates(baseCode)).willReturn(Map.of(baseCode, 1.0));
-		// when
-		Throwable throwable = catchThrowable(() -> service.updateExchangeRates());
-		// then
-		assertThat(throwable)
-			.isInstanceOf(FineAntsException.class)
-			.hasMessage(ExchangeRateErrorCode.UNAVAILABLE_UPDATE_EXCHANGE_RATE.getMessage());
-	}
-
+	
 	@WithMockUser(roles = {"ADMIN"})
 	@DisplayName("기준 통화를 변경한다")
 	@Test

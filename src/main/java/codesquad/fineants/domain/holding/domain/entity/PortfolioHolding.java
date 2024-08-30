@@ -3,6 +3,7 @@ package codesquad.fineants.domain.holding.domain.entity;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -20,7 +21,7 @@ import codesquad.fineants.domain.common.money.RateDivision;
 import codesquad.fineants.domain.dividend.domain.entity.StockDividend;
 import codesquad.fineants.domain.holding.domain.dto.response.PortfolioPieChartItem;
 import codesquad.fineants.domain.kis.repository.ClosingPriceRepository;
-import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
+import codesquad.fineants.domain.kis.repository.CurrentPriceRedisRepository;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.purchasehistory.domain.entity.PurchaseHistory;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
@@ -163,7 +164,7 @@ public class PortfolioHolding extends BaseEntity {
 		Expression totalDividend = Money.zero();
 		for (PurchaseHistory history : purchaseHistory) {
 			for (StockDividend stockDividend : stockDividends) {
-				if (history.isSatisfiedDividend(stockDividend.getExDividendDate())) {
+				if (stockDividend.isSatisfiedBy(history)) {
 					totalDividend = totalDividend.plus(stockDividend.calculateDividendSum(history.getNumShares()));
 				}
 			}
@@ -187,8 +188,7 @@ public class PortfolioHolding extends BaseEntity {
 			.flatMap(stockDividend ->
 				Stream.of(
 					purchaseHistory.stream()
-						.filter(history ->
-							history.getPurchaseDate().isBefore(stockDividend.getExDividendDate().atStartOfDay()))
+						.filter(stockDividend::isPurchaseDateBeforeExDividendDate)
 						.map(PurchaseHistory::getNumShares)
 						.reduce(Count.zero(), Count::add)
 						.multiply(stockDividend.getDividend())
@@ -208,7 +208,7 @@ public class PortfolioHolding extends BaseEntity {
 		return monthlyDividends;
 	}
 
-	public void applyCurrentPrice(CurrentPriceRepository manager) {
+	public void applyCurrentPrice(CurrentPriceRedisRepository manager) {
 		Bank bank = Bank.getInstance();
 		Currency to = Currency.KRW;
 		this.currentPrice = stock.getCurrentPrice(manager).reduce(bank, to);
@@ -237,5 +237,9 @@ public class PortfolioHolding extends BaseEntity {
 
 	public boolean hasAuthorization(Long memberId) {
 		return portfolio.hasAuthorization(memberId);
+	}
+
+	public List<PurchaseHistory> getPurchaseHistory() {
+		return Collections.unmodifiableList(purchaseHistory);
 	}
 }

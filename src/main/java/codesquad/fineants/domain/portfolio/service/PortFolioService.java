@@ -13,7 +13,7 @@ import codesquad.fineants.domain.gainhistory.domain.entity.PortfolioGainHistory;
 import codesquad.fineants.domain.gainhistory.repository.PortfolioGainHistoryRepository;
 import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
 import codesquad.fineants.domain.holding.repository.PortfolioHoldingRepository;
-import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
+import codesquad.fineants.domain.kis.repository.CurrentPriceRedisRepository;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
 import codesquad.fineants.domain.portfolio.domain.dto.request.PortfolioCreateRequest;
@@ -48,7 +48,7 @@ public class PortFolioService {
 	private final PortfolioHoldingRepository portfolioHoldingRepository;
 	private final PurchaseHistoryRepository purchaseHistoryRepository;
 	private final PortfolioGainHistoryRepository portfolioGainHistoryRepository;
-	private final CurrentPriceRepository currentPriceRepository;
+	private final CurrentPriceRedisRepository currentPriceRedisRepository;
 	private final PortfolioPropertiesRepository portfolioPropertiesRepository;
 
 	@Transactional
@@ -108,7 +108,7 @@ public class PortFolioService {
 		Portfolio findPortfolio = findPortfolio(portfolioId);
 		List<Long> portfolioHoldingIds = portfolioHoldingRepository.findAllByPortfolio(findPortfolio).stream()
 			.map(PortfolioHolding::getId)
-			.collect(Collectors.toList());
+			.toList();
 
 		int delPortfolioGainHistoryCnt = portfolioGainHistoryRepository.deleteAllByPortfolioId(portfolioId);
 		log.info("포트폴리오 손익 내역 삭제 개수 : {}", delPortfolioGainHistoryCnt);
@@ -131,7 +131,7 @@ public class PortFolioService {
 			Portfolio portfolio = findPortfolio(portfolioId);
 			List<Long> portfolioStockIds = portfolioHoldingRepository.findAllByPortfolio(portfolio).stream()
 				.map(PortfolioHolding::getId)
-				.collect(Collectors.toList());
+				.toList();
 			purchaseHistoryRepository.deleteAllByPortfolioHoldingIdIn(portfolioStockIds);
 			portfolioHoldingRepository.deleteAllByPortfolioId(portfolio.getId());
 			portfolioGainHistoryRepository.deleteAllByPortfolioId(portfolioId);
@@ -160,6 +160,6 @@ public class PortFolioService {
 						.orElseGet(() -> PortfolioGainHistory.empty(portfolio))
 			));
 
-		return PortfoliosResponse.of(portfolios, portfolioGainHistoryMap, currentPriceRepository);
+		return PortfoliosResponse.of(portfolios, portfolioGainHistoryMap, currentPriceRedisRepository);
 	}
 }

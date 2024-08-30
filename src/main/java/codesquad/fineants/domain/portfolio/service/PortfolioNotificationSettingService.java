@@ -1,7 +1,6 @@
 package codesquad.fineants.domain.portfolio.service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Service;
@@ -25,7 +24,7 @@ public class PortfolioNotificationSettingService {
 	public PortfolioNotificationSettingSearchResponse searchPortfolioNotificationSetting(Long memberId) {
 		List<PortfolioNotificationSettingSearchItem> portfolios = repository.findAllByMemberId(memberId).stream()
 			.map(PortfolioNotificationSettingSearchItem::from)
-			.collect(Collectors.toList());
+			.toList();
 		return PortfolioNotificationSettingSearchResponse.from(portfolios);
 	}
 }

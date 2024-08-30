@@ -3,7 +3,6 @@ package codesquad.fineants.global.errors.handler;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -39,7 +38,7 @@ public class GlobalExceptionHandler {
 				errors.put("field", error.getField());
 				errors.put("defaultMessage", error.getDefaultMessage());
 				return errors;
-			}).collect(Collectors.toList());
+			}).toList();
 		ApiResponse<Object> body = ApiResponse.of(
 			HttpStatus.BAD_REQUEST,
 			"잘못된 입력형식입니다",
@@ -72,7 +71,7 @@ public class GlobalExceptionHandler {
 	}
 
 	@ExceptionHandler(Exception.class)
-	public ResponseEntity<ApiResponse<Object>> handleFineAntsException(Exception exception) {
+	public ResponseEntity<ApiResponse<Object>> handleException(Exception exception) {
 		log.error(exception.getMessage(), exception);
 		ApiResponse<Object> body = ApiResponse.of(HttpStatus.INTERNAL_SERVER_ERROR, exception.getMessage(),
 			exception.toString());

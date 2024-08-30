@@ -1,6 +1,5 @@
 package codesquad.fineants.domain.stock.service;
 
-import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -30,14 +29,12 @@ import codesquad.fineants.global.errors.exception.FineAntsException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class StockAndDividendManager {
-
-	private static final Duration TIMEOUT = Duration.ofMinutes(10);
-
 	private final StockRepository stockRepository;
 	private final StockDividendRepository dividendRepository;
 	private final KisService kisService;
@@ -58,7 +55,9 @@ public class StockAndDividendManager {
 		Set<String> ipoTickerSymbols = saveIpoStocks();
 
 		// 상장 폐지 종목 조회
-		Map<Boolean, List<Stock>> partitionedStocksForDelisted = fetchPartitionedStocksForDelisted();
+		Map<Boolean, List<Stock>> partitionedStocksForDelisted = fetchPartitionedStocksForDelisted()
+			.blockOptional(delayManager.timeout())
+			.orElseGet(Collections::emptyMap);
 
 		// 상장 폐지 종목 및 종목의 배당 일정 삭제
 		Set<String> deletedStocks = deleteStocks(partitionedStocksForDelisted.get(true));
@@ -97,17 +96,20 @@ public class StockAndDividendManager {
 	 */
 	@NotNull
 	private Set<String> saveIpoStocks() {
-		return stockRepository.saveAll(fetchIpoStocks()).stream()
+		List<Stock> stocks = kisService.fetchStockInfoInRangedIpo()
+			.map(StockDataResponse.StockIntegrationInfo::toEntity)
+			.onErrorResume(throwable -> {
+				log.error("fetchStockInfoInRangedIpo error message is {}", throwable.getMessage());
+				return Mono.empty();
+			})
+			.collectList()
+			.blockOptional(delayManager.timeout())
+			.orElseGet(Collections::emptyList);
+
+		return stockRepository.saveAll(stocks).stream()
 			.peek(stock -> log.info("save ipoStock is {}", stock))
 			.map(Stock::getTickerSymbol)
 			.collect(Collectors.toUnmodifiableSet());
-	}
-
-	@NotNull
-	private List<Stock> fetchIpoStocks() {
-		return kisService.fetchStockInfoInRangedIpo().stream()
-			.map(StockDataResponse.StockIntegrationInfo::toEntity)
-			.toList();
 	}
 
 	private Set<DividendItem> mapDividendItems(List<StockDividend> stockDividends) {
@@ -148,14 +150,15 @@ public class StockAndDividendManager {
 	 * - 상장 폐지 종목 분할하여 반환
 	 * @return 상장 폐지 종목 분할 맵
 	 */
-	private Map<Boolean, List<Stock>> fetchPartitionedStocksForDelisted() {
+	private Mono<Map<Boolean, List<Stock>>> fetchPartitionedStocksForDelisted() {
 		final int concurrency = 20;
 		return Flux.fromIterable(findAllTickerSymbols())
 			.flatMap(kisService::fetchSearchStockInfo, concurrency)
-			.delayElements(delayManager.getDelay())
-			.collectList()
-			.blockOptional(TIMEOUT)
-			.orElseGet(Collections::emptyList).stream()
+			.delayElements(delayManager.delay())
+			.onErrorResume(throwable -> {
+				log.error("fetchPartitionedStocksForDelisted error message is {}", throwable.getMessage());
+				return Mono.empty();
+			})
 			.collect(Collectors.partitioningBy(
 					KisSearchStockInfo::isDelisted,
 					Collectors.mapping(KisSearchStockInfo::toEntity, Collectors.toList())
@@ -165,7 +168,7 @@ public class StockAndDividendManager {
 
 	@NotNull
 	private Set<String> findAllTickerSymbols() {
-		return stockRepository.findAll()
+		return stockRepository.findAllStocks()
 			.stream()
 			.map(Stock::getTickerSymbol)
 			.collect(Collectors.toUnmodifiableSet());
@@ -173,7 +176,7 @@ public class StockAndDividendManager {
 
 	/**
 	 * 신규 배당 일정 저장
-	 * 수행과정
+	 * 수행 과정
 	 * - 배당 일정 조회
 	 * - 배당 일정 저장
 	 * @param tickerSymbols 배당 일정을 조회할 종목의 티커 심볼
@@ -181,22 +184,21 @@ public class StockAndDividendManager {
 	 */
 	private List<StockDividend> reloadDividend(Set<String> tickerSymbols) {
 		// 올해 배당 일정 조회
-		List<StockDividend> stockDividends = fetchDividends(tickerSymbols);
-		// 배당 일정 저장
-		return dividendRepository.saveAll(stockDividends);
-	}
-
-	@NotNull
-	private List<StockDividend> fetchDividends(Set<String> tickerSymbols) {
-		final int concurrency = 20;
-		return Flux.fromIterable(tickerSymbols)
-			.flatMap(ticker -> kisService.fetchDividend(ticker).flatMapMany(Flux::fromIterable), concurrency)
-			.delayElements(delayManager.getDelay())
+		int concurrency = 20;
+		List<StockDividend> stockDividends = Flux.fromIterable(tickerSymbols)
+			.flatMap(kisService::fetchDividend, concurrency)
+			.delayElements(delayManager.delay())
 			.collectList()
-			.blockOptional(TIMEOUT)
+			.onErrorResume(throwable -> {
+				log.error("reloadDividend error message is {}", throwable.getMessage());
+				return Mono.empty();
+			})
+			.blockOptional(delayManager.timeout())
 			.orElseGet(Collections::emptyList).stream()
 			.map(this::mapStockDividend)
 			.toList();
+		// 배당 일정 저장
+		return dividendRepository.saveAll(stockDividends);
 	}
 
 	// 조회한 배당금을 엔티티 종목의 배당금으로 매핑

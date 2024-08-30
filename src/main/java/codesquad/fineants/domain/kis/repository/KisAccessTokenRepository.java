@@ -1,6 +1,7 @@
 package codesquad.fineants.domain.kis.repository;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 import org.springframework.stereotype.Component;
 
@@ -32,7 +33,21 @@ public class KisAccessTokenRepository {
 	}
 
 	public String createAuthorization() {
+		if (accessToken == null) {
+			return null;
+		}
 		return accessToken.createAuthorization();
+	}
+
+	public boolean isTokenExpiringSoon(LocalDateTime localDateTime) {
+		if (accessToken == null) {
+			return true;
+		}
+		return accessToken.betweenSecondFrom(localDateTime).toSeconds() < 3600;
+	}
+
+	public Optional<KisAccessToken> getAccessToken() {
+		return Optional.ofNullable(accessToken);
 	}
 }
 

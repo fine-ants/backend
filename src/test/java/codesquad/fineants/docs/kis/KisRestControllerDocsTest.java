@@ -28,7 +28,7 @@ import codesquad.fineants.domain.kis.service.KisService;
 import codesquad.fineants.global.util.ObjectMapperUtil;
 import reactor.core.publisher.Mono;
 
-public class KisRestControllerDocsTest extends RestDocsSupport {
+class KisRestControllerDocsTest extends RestDocsSupport {
 
 	private final KisService service = Mockito.mock(KisService.class);
 
@@ -183,7 +183,7 @@ public class KisRestControllerDocsTest extends RestDocsSupport {
 	@Test
 	void refreshAllLastDayClosingPrice() throws Exception {
 		// given
-		given(service.refreshAllLastDayClosingPrice())
+		given(service.refreshAllClosingPrice())
 			.willReturn(List.of(
 				KisClosingPrice.create("005930", 60000L)
 			));
@@ -227,7 +227,7 @@ public class KisRestControllerDocsTest extends RestDocsSupport {
 		// given
 		List<String> tickerSymbols = List.of("005930");
 
-		given(service.refreshLastDayClosingPrice(tickerSymbols))
+		given(service.refreshClosingPrice(tickerSymbols))
 			.willReturn(List.of(
 				KisClosingPrice.create("005930", 60000L)
 			));

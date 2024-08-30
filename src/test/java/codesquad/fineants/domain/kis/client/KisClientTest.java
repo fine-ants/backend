@@ -8,6 +8,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,16 +22,24 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import codesquad.fineants.AbstractContainerBaseTest;
+import codesquad.fineants.domain.common.money.Money;
+import codesquad.fineants.domain.kis.domain.dto.response.KisClosingPrice;
+import codesquad.fineants.domain.kis.domain.dto.response.KisDividend;
 import codesquad.fineants.domain.kis.domain.dto.response.KisDividendWrapper;
 import codesquad.fineants.domain.kis.domain.dto.response.KisIpo;
 import codesquad.fineants.domain.kis.domain.dto.response.KisIpoResponse;
 import codesquad.fineants.domain.kis.domain.dto.response.KisSearchStockInfo;
-import codesquad.fineants.domain.kis.properties.OauthKisProperties;
+import codesquad.fineants.domain.kis.properties.KisProperties;
+import codesquad.fineants.domain.kis.properties.KisTrIdProperties;
+import codesquad.fineants.domain.kis.repository.KisAccessTokenRepository;
+import codesquad.fineants.domain.kis.service.KisAccessTokenRedisService;
+import codesquad.fineants.global.errors.exception.kis.RequestLimitExceededKisException;
 import codesquad.fineants.global.util.ObjectMapperUtil;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
@@ -41,6 +50,18 @@ class KisClientTest extends AbstractContainerBaseTest {
 	public static MockWebServer mockWebServer;
 
 	private KisClient kisClient;
+
+	@Autowired
+	private KisAccessTokenRepository manager;
+
+	@Autowired
+	private KisAccessTokenRedisService kisAccessTokenRedisService;
+
+	@Autowired
+	private KisProperties kisProperties;
+
+	@Autowired
+	private KisTrIdProperties kisTrIdProperties;
 
 	@BeforeAll
 	static void setUp() throws IOException {
@@ -55,21 +76,16 @@ class KisClientTest extends AbstractContainerBaseTest {
 
 	@BeforeEach
 	void initialize() {
-		OauthKisProperties oauthKisProperties = new OauthKisProperties(
-			"appkey",
-			"secertkey",
-			"otkenURI",
-			"currentPriceURI",
-			"lastDayClosingPriceURI",
-			"dividendURI",
-			"ipoURI",
-			"searchStockInfoURI"
-		);
 		String baseUrl = String.format("http://localhost:%s", mockWebServer.getPort());
 		this.kisClient = new KisClient(
-			oauthKisProperties,
+			kisProperties,
+			kisTrIdProperties,
 			WebClient.builder().baseUrl(baseUrl).build(),
-			WebClient.builder().baseUrl(baseUrl).build());
+			manager);
+
+		KisAccessToken kisAccessToken = createKisAccessToken();
+		kisAccessTokenRedisService.setAccessTokenMap(kisAccessToken, LocalDateTime.of(2023, 12, 7, 11, 40, 0));
+		manager.refreshAccessToken(kisAccessToken);
 	}
 
 	@DisplayName("한국투자증권 서버로부터 액세스 토큰 발급이 한번 실패하는 경우 재발급을 다시 요청한다")
@@ -81,7 +97,7 @@ class KisClientTest extends AbstractContainerBaseTest {
 		mockWebServer.enqueue(createResponse(200, ObjectMapperUtil.serialize(expectedKisAccessToken)));
 
 		// when
-		Mono<KisAccessToken> responseMono = this.kisClient.fetchAccessToken();
+		Mono<KisAccessToken> responseMono = this.kisClient.fetchAccessToken().retry(1);
 
 		// then
 		StepVerifier
@@ -114,9 +130,8 @@ class KisClientTest extends AbstractContainerBaseTest {
 
 		LocalDate today = LocalDate.now();
 		LocalDate yesterday = today.minusDays(1);
-		KisAccessToken kisAccessToken = createKisAccessToken();
 		// when
-		KisIpoResponse response = kisClient.fetchIpo(yesterday, today, kisAccessToken.createAuthorization())
+		KisIpoResponse response = kisClient.fetchIpo(yesterday, today)
 			.block(Duration.ofSeconds(1));
 
 		// then
@@ -156,10 +171,9 @@ class KisClientTest extends AbstractContainerBaseTest {
 
 		LocalDate today = LocalDate.now();
 		LocalDate yesterday = today.minusDays(1);
-		KisAccessToken kisAccessToken = createKisAccessToken();
 		// when
-		KisIpoResponse response = kisClient.fetchIpo(yesterday, today, kisAccessToken.createAuthorization())
-			.blockOptional(Duration.ofMinutes(10))
+		KisIpoResponse response = kisClient.fetchIpo(yesterday, today)
+			.blockOptional()
 			.orElseThrow();
 
 		// then
@@ -172,7 +186,6 @@ class KisClientTest extends AbstractContainerBaseTest {
 	void fetchSearchStockInfo() {
 		// given
 		String tickerSymbol = "034220";
-		String accessToken = createKisAccessToken().getAccessToken();
 
 		Map<String, Object> okResponseBody = new HashMap<>();
 		KisSearchStockInfo output = KisSearchStockInfo.listedStock(
@@ -187,8 +200,8 @@ class KisClientTest extends AbstractContainerBaseTest {
 
 		mockWebServer.enqueue(createResponse(200, ObjectMapperUtil.serialize(okResponseBody)));
 		// when
-		KisSearchStockInfo kisSearchStockInfo = kisClient.fetchSearchStockInfo(tickerSymbol, accessToken)
-			.blockOptional(Duration.ofMinutes(10))
+		KisSearchStockInfo kisSearchStockInfo = kisClient.fetchSearchStockInfo(tickerSymbol)
+			.blockOptional()
 			.orElse(null);
 		// then
 		assertThat(kisSearchStockInfo).isNotNull();
@@ -225,9 +238,8 @@ class KisClientTest extends AbstractContainerBaseTest {
 		mockWebServer.enqueue(createResponse(200, ObjectMapperUtil.serialize(okResponseBody)));
 
 		String tickerSymbol = "034220";
-		String accessToken = createKisAccessToken().getAccessToken();
 		// when
-		KisSearchStockInfo kisSearchStockInfo = kisClient.fetchSearchStockInfo(tickerSymbol, accessToken)
+		KisSearchStockInfo kisSearchStockInfo = kisClient.fetchSearchStockInfo(tickerSymbol)
 			.retry(1)
 			.blockOptional()
 			.orElse(null);
@@ -248,7 +260,6 @@ class KisClientTest extends AbstractContainerBaseTest {
 	void fetchDividend() {
 		// given
 		String tickerSymbol = "000720";
-		KisAccessToken kisAccessToken = createKisAccessToken();
 		Map<String, Object> output = Map.ofEntries(
 			Map.entry("output1",
 				List.of(
@@ -265,13 +276,67 @@ class KisClientTest extends AbstractContainerBaseTest {
 		);
 		mockWebServer.enqueue(createResponse(200, ObjectMapperUtil.serialize(output)));
 		// when
-		Mono<KisDividendWrapper> mono = kisClient.fetchDividendThisYear(tickerSymbol,
-			kisAccessToken.createAuthorization());
-		KisDividendWrapper wrapper = mono
-			.blockOptional(Duration.ofSeconds(1)).orElse(null);
+		KisDividendWrapper wrapper = kisClient.fetchDividendThisYear(tickerSymbol).block();
 		// then
 		assertThat(wrapper).isNotNull();
 		assertThat(wrapper.getKisDividends()).hasSize(2);
+	}
+
+	@DisplayName("사용자는 종목의 현재가를 조회할 수 있다")
+	@Test
+	void fetchCurrentPrice() {
+		// given
+		String tickerSymbol = "005930";
+		Map<String, Object> output = Map.ofEntries(
+			Map.entry("output", Map.of(
+				"stck_shrn_iscd", "005930",
+				"stck_prpr", "80000")
+			)
+		);
+		mockWebServer.enqueue(createResponse(200, ObjectMapperUtil.serialize(output)));
+		// when
+		KisCurrentPrice currentPrice = kisClient.fetchCurrentPrice(tickerSymbol).block();
+		// then
+		assertThat(currentPrice)
+			.extracting(KisCurrentPrice::getTickerSymbol, KisCurrentPrice::getPrice)
+			.containsExactly("005930", 80000L);
+	}
+
+	@DisplayName("종목의 현재가 조회시 초당 거래 건수 초과하여 에러 응답한다")
+	@Test
+	void fetchCurrentPrice_whenExceedRequestLimit_thenMonoError() {
+		// given
+		Map<String, String> output = Map.of(
+			"rt_cd", "1",
+			"msg_cd", "EGW00201",
+			"msg1", "초당 거래건수를 초과하였습니다."
+		);
+		mockWebServer.enqueue(createResponse(500, ObjectMapperUtil.serialize(output)));
+		String ticker = "005930";
+		// when & then
+		StepVerifier.create(kisClient.fetchCurrentPrice(ticker))
+			.expectError(RequestLimitExceededKisException.class)
+			.verify();
+	}
+
+	@DisplayName("사용자는 종목의 종가를 조회한다")
+	@Test
+	void fetchClosingPrice() {
+		// given
+		String tickerSymbol = "005930";
+		Map<String, Object> output = Map.ofEntries(
+			Map.entry("output1", Map.of(
+				"stck_shrn_iscd", "005930",
+				"stck_prdy_clpr", "80000")
+			)
+		);
+		mockWebServer.enqueue(createResponse(200, ObjectMapperUtil.serialize(output)));
+		// when
+		KisClosingPrice closingPrice = kisClient.fetchClosingPrice(tickerSymbol).block();
+		// then
+		assertThat(closingPrice)
+			.extracting(KisClosingPrice::getTickerSymbol, KisClosingPrice::getPrice)
+			.containsExactly("005930", 80000L);
 	}
 
 	@NotNull
@@ -280,6 +345,36 @@ class KisClientTest extends AbstractContainerBaseTest {
 			.setResponseCode(code)
 			.setBody(body)
 			.addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
+	}
+
+	@DisplayName("사용자는 특정 범위의 배당 일정을 조회한다")
+	@Test
+	void fetchDividendAll() {
+		// given
+		LocalDate from = LocalDate.of(2024, 8, 12);
+		LocalDate to = from.plusDays(1);
+
+		Map<String, Object> output = Map.ofEntries(
+			Map.entry("output1", List.of(Map.of(
+				"sht_cd", "005930",
+				"per_sto_divi_amt", "600",
+				"record_date", "20240812",
+				"divi_pay_dt", "2024/10/12"))
+			)
+		);
+		mockWebServer.enqueue(createResponse(200, ObjectMapperUtil.serialize(output)));
+		// when
+		List<KisDividend> dividends = kisClient.fetchDividendsBetween(from, to)
+			.blockOptional()
+			.orElseGet(Collections::emptyList);
+		// then
+		assertThat(dividends)
+			.hasSize(1)
+			.extracting(KisDividend::getTickerSymbol, KisDividend::getDividend, KisDividend::getRecordDate,
+				KisDividend::getPaymentDate)
+			.usingComparatorForType(Money::compareTo, Money.class)
+			.containsExactlyInAnyOrder(
+				Tuple.tuple("005930", Money.won(600), LocalDate.of(2024, 8, 12), LocalDate.of(2024, 10, 12)));
 	}
 
 	private Map<String, String> createError() {

@@ -45,7 +45,7 @@ import codesquad.fineants.domain.portfolio.service.PortFolioService;
 import codesquad.fineants.global.success.PortfolioSuccessCode;
 import codesquad.fineants.global.util.ObjectMapperUtil;
 
-public class PortfolioRestControllerDocsTest extends RestDocsSupport {
+class PortfolioRestControllerDocsTest extends RestDocsSupport {
 
 	private final PortFolioService portFolioService = Mockito.mock(PortFolioService.class);
 

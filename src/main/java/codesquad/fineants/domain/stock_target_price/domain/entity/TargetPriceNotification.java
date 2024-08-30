@@ -7,7 +7,7 @@ import codesquad.fineants.domain.common.money.Expression;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.common.money.MoneyConverter;
 import codesquad.fineants.domain.common.notification.Notifiable;
-import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
+import codesquad.fineants.domain.kis.repository.CurrentPriceRedisRepository;
 import codesquad.fineants.domain.notification.domain.dto.response.NotifyMessage;
 import codesquad.fineants.domain.notification.domain.entity.type.NotificationType;
 import codesquad.fineants.domain.notificationpreference.domain.entity.NotificationPreference;
@@ -44,10 +44,6 @@ public class TargetPriceNotification extends BaseEntity implements Notifiable {
 	@JoinColumn(name = "stock_target_price_id")
 	private StockTargetPrice stockTargetPrice;
 
-	private TargetPriceNotification(Money targetPrice, StockTargetPrice stockTargetPrice) {
-		this(LocalDateTime.now(), null, null, targetPrice, stockTargetPrice);
-	}
-
 	private TargetPriceNotification(LocalDateTime createAt, LocalDateTime modifiedAt, Long id,
 		Money targetPrice, StockTargetPrice stockTargetPrice) {
 		super(createAt, modifiedAt);
@@ -65,7 +61,7 @@ public class TargetPriceNotification extends BaseEntity implements Notifiable {
 		StockTargetPrice stockTargetPrice) {
 		return new TargetPriceNotification(LocalDateTime.now(), null, id, targetPrice, stockTargetPrice);
 	}
-	
+
 	public String getReferenceId() {
 		return stockTargetPrice.getStock().getTickerSymbol();
 	}
@@ -74,7 +70,7 @@ public class TargetPriceNotification extends BaseEntity implements Notifiable {
 		return stockTargetPrice.getIsActive();
 	}
 
-	public boolean isSameTargetPrice(CurrentPriceRepository manager) {
+	public boolean isSameTargetPrice(CurrentPriceRedisRepository manager) {
 		Expression currentPrice = stockTargetPrice.getCurrentPrice(manager);
 		return targetPrice.compareTo(currentPrice) == 0;
 	}

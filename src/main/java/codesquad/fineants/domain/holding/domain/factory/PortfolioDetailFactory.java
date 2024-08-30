@@ -8,7 +8,7 @@ import codesquad.fineants.domain.gainhistory.domain.entity.PortfolioGainHistory;
 import codesquad.fineants.domain.gainhistory.repository.PortfolioGainHistoryRepository;
 import codesquad.fineants.domain.holding.domain.dto.response.PortfolioDetailRealTimeItem;
 import codesquad.fineants.domain.holding.domain.dto.response.PortfolioDetailResponse;
-import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
+import codesquad.fineants.domain.kis.repository.CurrentPriceRedisRepository;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import lombok.RequiredArgsConstructor;
 
@@ -16,7 +16,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class PortfolioDetailFactory {
 
-	private final CurrentPriceRepository manager;
+	private final CurrentPriceRedisRepository manager;
 	private final PortfolioGainHistoryRepository portfolioGainHistoryRepository;
 
 	public PortfolioDetailResponse createPortfolioDetailItem(Portfolio portfolio) {

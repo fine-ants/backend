@@ -2,9 +2,7 @@ package codesquad.fineants.domain.exchangerate.service;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +22,7 @@ public class ExchangeRateService {
 
 	private final ExchangeRateRepository exchangeRateRepository;
 	private final ExchangeRateWebClient webClient;
+	private final ExchangeRateUpdateService exchangeRateUpdateService;
 
 	@Transactional
 	@Secured("ROLE_ADMIN")
@@ -57,11 +56,20 @@ public class ExchangeRateService {
 	public ExchangeRateListResponse readExchangeRates() {
 		List<ExchangeRateItem> items = exchangeRateRepository.findAll().stream()
 			.map(ExchangeRateItem::from)
-			.collect(Collectors.toList());
+			.toList();
 		return ExchangeRateListResponse.from(items);
 	}
 
-	@Scheduled(cron = "0 0 * * * *") // 매일 자정에 한번씩 수행
+	@Transactional
+	@Secured("ROLE_ADMIN")
+	public void patchBase(String code) {
+		// 기존 기준 통화의 base 값을 false로 변경
+		findBaseExchangeRate().changeBase(false);
+		// code의 base 값을 true로 변경
+		findExchangeRateBy(code).changeBase(true);
+		exchangeRateUpdateService.updateExchangeRates();
+	}
+
 	@Transactional
 	public void updateExchangeRates() {
 		List<ExchangeRate> originalRates = exchangeRateRepository.findAll();
@@ -86,16 +94,6 @@ public class ExchangeRateService {
 			.filter(ExchangeRate::isBase)
 			.findFirst()
 			.orElseThrow(() -> new FineAntsException(ExchangeRateErrorCode.NOT_EXIST_BASE));
-	}
-
-	@Transactional
-	@Secured("ROLE_ADMIN")
-	public void patchBase(String code) {
-		// 기존 기준 통화의 base 값을 false로 변경
-		findBaseExchangeRate().changeBase(false);
-		// code의 base 값을 true로 변경
-		findExchangeRateBy(code).changeBase(true);
-		updateExchangeRates();
 	}
 
 	private ExchangeRate findExchangeRateBy(String code) {

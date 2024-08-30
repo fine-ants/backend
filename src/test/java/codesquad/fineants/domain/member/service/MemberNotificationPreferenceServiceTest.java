@@ -52,8 +52,7 @@ class MemberNotificationPreferenceServiceTest extends AbstractContainerBaseTest 
 			() -> assertThat(response)
 				.extracting("browserNotify", "targetGainNotify", "maxLossNotify", "targetPriceNotify")
 				.containsExactly(false, false, false, false),
-			() -> assertThat(repository.findByMemberId(member.getId()).isPresent())
-				.isTrue()
+			() -> assertThat(repository.findByMemberId(member.getId())).isPresent()
 		);
 	}
 
@@ -155,7 +154,7 @@ class MemberNotificationPreferenceServiceTest extends AbstractContainerBaseTest 
 			() -> assertThat(preference)
 				.extracting("browserNotify", "targetGainNotify", "maxLossNotify", "targetPriceNotify")
 				.containsExactly(false, false, false, false),
-			() -> assertThat(fcmRepository.findById(fcmToken.getId()).isEmpty()).isTrue()
+			() -> assertThat(fcmRepository.findById(fcmToken.getId())).isEmpty()
 		);
 	}
 
@@ -185,7 +184,7 @@ class MemberNotificationPreferenceServiceTest extends AbstractContainerBaseTest 
 			() -> assertThat(preference)
 				.extracting("browserNotify", "targetGainNotify", "maxLossNotify", "targetPriceNotify")
 				.containsExactly(false, false, false, false),
-			() -> assertThat(fcmRepository.findAllByMemberId(member.getId()).isEmpty()).isTrue()
+			() -> assertThat(fcmRepository.findAllByMemberId(member.getId())).isEmpty()
 		);
 	}
 

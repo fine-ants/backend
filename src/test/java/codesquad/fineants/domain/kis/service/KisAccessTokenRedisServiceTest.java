@@ -33,7 +33,7 @@ class KisAccessTokenRedisServiceTest extends AbstractContainerBaseTest {
 		service.setAccessTokenMap(kisAccessToken, createNow());
 
 		// then
-		assertThat(service.getAccessTokenMap().isPresent()).isTrue();
+		assertThat(service.getAccessTokenMap()).isPresent();
 	}
 
 	@DisplayName("이미 만료된 액세스 토큰을 redis에 저장할 수 없다.")
@@ -43,12 +43,10 @@ class KisAccessTokenRedisServiceTest extends AbstractContainerBaseTest {
 		KisAccessToken accessToken = createKisAccessToken();
 
 		// when
-		Throwable throwable = catchThrowable(
-			() -> service.setAccessTokenMap(accessToken, LocalDateTime.of(2023, 12, 8, 15, 0, 0)));
+		service.setAccessTokenMap(accessToken, LocalDateTime.of(2023, 12, 8, 15, 0, 0));
 
 		// then
-		assertThat(throwable)
-			.isInstanceOf(RuntimeException.class);
+		assertThat(service.getAccessTokenMap()).isEmpty();
 	}
 
 	@DisplayName("kis 액세스 토큰맵을 가져온다")
@@ -81,7 +79,7 @@ class KisAccessTokenRedisServiceTest extends AbstractContainerBaseTest {
 		Optional<KisAccessToken> optionalKisAccessToken = service.getAccessTokenMap();
 
 		// then
-		assertThat(optionalKisAccessToken.isEmpty()).isTrue();
+		assertThat(optionalKisAccessToken).isEmpty();
 	}
 
 	private LocalDateTime createNow() {

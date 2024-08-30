@@ -21,7 +21,7 @@ import codesquad.fineants.domain.stock.domain.entity.Market;
 import codesquad.fineants.domain.stock.service.StockService;
 
 @WebMvcTest(controllers = StockRestController.class)
-public class StockRestControllerTest extends ControllerTestSupport {
+class StockRestControllerTest extends ControllerTestSupport {
 
 	@MockBean
 	private StockService stockService;

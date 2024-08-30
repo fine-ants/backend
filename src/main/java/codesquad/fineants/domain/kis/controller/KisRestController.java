@@ -1,11 +1,11 @@
 package codesquad.fineants.domain.kis.controller;
 
-import java.time.Duration;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.security.access.annotation.Secured;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import codesquad.fineants.domain.kis.client.KisAccessToken;
 import codesquad.fineants.domain.kis.client.KisCurrentPrice;
 import codesquad.fineants.domain.kis.domain.dto.request.StockPriceRefreshRequest;
 import codesquad.fineants.domain.kis.domain.dto.response.KisClosingPrice;
@@ -23,7 +24,6 @@ import codesquad.fineants.global.api.ApiResponse;
 import codesquad.fineants.global.success.KisSuccessCode;
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
-import reactor.util.retry.Retry;
 
 @RestController
 @RequestMapping("/api/kis")
@@ -64,7 +64,7 @@ public class KisRestController {
 	@PostMapping("/closing-price/all/refresh")
 	@Secured(value = {"ROLE_MANAGER", "ROLE_ADMIN"})
 	public ApiResponse<List<KisClosingPrice>> refreshAllLastDayClosingPrice() {
-		List<KisClosingPrice> responses = service.refreshAllLastDayClosingPrice();
+		List<KisClosingPrice> responses = service.refreshAllClosingPrice();
 		return ApiResponse.success(KisSuccessCode.OK_REFRESH_LAST_DAY_CLOSING_PRICE, responses);
 	}
 
@@ -74,25 +74,30 @@ public class KisRestController {
 	public ApiResponse<List<KisClosingPrice>> refreshLastDayClosingPrice(
 		@RequestBody StockPriceRefreshRequest request
 	) {
-		List<KisClosingPrice> responses = service.refreshLastDayClosingPrice(request.getTickerSymbols());
+		List<KisClosingPrice> responses = service.refreshClosingPrice(request.getTickerSymbols());
 		return ApiResponse.success(KisSuccessCode.OK_REFRESH_LAST_DAY_CLOSING_PRICE, responses);
 	}
 
 	// 상장된 종목 정보 조회
 	@GetMapping("/ipo/search-stock-info")
 	@Secured(value = {"ROLE_MANAGER", "ROLE_ADMIN"})
-	public ApiResponse<Set<StockDataResponse.StockIntegrationInfo>> fetchStockInfoInRangedIpo() {
-		Set<StockDataResponse.StockIntegrationInfo> result = service.fetchStockInfoInRangedIpo();
-		return ApiResponse.success(KisSuccessCode.OK_FETCH_IPO_SEARCh_STOCK_INFO, result);
+	public Mono<ApiResponse<Set<StockDataResponse.StockIntegrationInfo>>> fetchStockInfoInRangedIpo() {
+		Mono<Set<StockDataResponse.StockIntegrationInfo>> result = service.fetchStockInfoInRangedIpo()
+			.collect(Collectors.toUnmodifiableSet());
+		return result.map(data -> ApiResponse.success(KisSuccessCode.OK_FETCH_IPO_SEARCH_STOCK_INFO, data));
 	}
 
 	// 배당 일정 조회
 	@GetMapping("/dividend/{tickerSymbol}")
 	@Secured(value = {"ROLE_MANAGER", "ROLE_ADMIN"})
-	public ApiResponse<List<KisDividend>> fetchDividend(@PathVariable String tickerSymbol) {
-		return ApiResponse.success(KisSuccessCode.OK_FETCH_DIVIDEND, service.fetchDividend(tickerSymbol)
-			.retryWhen(Retry.fixedDelay(Long.MAX_VALUE, Duration.ofSeconds(5)))
-			.blockOptional(Duration.ofMinutes(1))
-			.orElseGet(Collections::emptyList));
+	public Mono<ApiResponse<List<KisDividend>>> fetchDividend(@PathVariable String tickerSymbol) {
+		Mono<List<KisDividend>> result = service.fetchDividend(tickerSymbol)
+			.collect(Collectors.toList());
+		return result.map(data -> ApiResponse.success(KisSuccessCode.OK_FETCH_DIVIDEND, data));
+	}
+
+	@DeleteMapping("/access-token")
+	public ApiResponse<KisAccessToken> deleteAccessToken() {
+		return ApiResponse.ok("액세스 토큰을 삭제하였습니다.", service.deleteAccessToken());
 	}
 }

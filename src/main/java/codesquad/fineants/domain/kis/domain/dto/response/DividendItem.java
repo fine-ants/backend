@@ -3,6 +3,7 @@ package codesquad.fineants.domain.kis.domain.dto.response;
 import java.time.LocalDate;
 
 import codesquad.fineants.domain.common.money.Money;
+import codesquad.fineants.domain.dividend.domain.entity.DividendDates;
 import codesquad.fineants.domain.dividend.domain.entity.StockDividend;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -26,13 +27,14 @@ public class DividendItem {
 	}
 
 	public static DividendItem from(StockDividend stockDividend) {
+		DividendDates dividendDates = stockDividend.getDividendDates();
 		return new DividendItem(
 			stockDividend.getId(),
 			stockDividend.getStock().getTickerSymbol(),
 			stockDividend.getDividend(),
-			stockDividend.getRecordDate(),
-			stockDividend.getExDividendDate(),
-			stockDividend.getPaymentDate()
+			dividendDates.getRecordDate(),
+			dividendDates.getExDividendDate(),
+			dividendDates.getPaymentDate()
 		);
 	}
 }

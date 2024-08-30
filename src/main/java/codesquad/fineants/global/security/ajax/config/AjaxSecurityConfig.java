@@ -37,6 +37,10 @@ import lombok.RequiredArgsConstructor;
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class AjaxSecurityConfig {
+	private static final String LOGIN_ENDPOINT = "/api/auth/login";
+	private static final String LOGOUT_ENDPOINT = "/api/auth/logout";
+	private static final String ERROR_ENDPOINT = "/error";
+
 	private final UserDetailsService userDetailsService;
 	private final PasswordEncoder passwordEncoder;
 	private final ObjectMapper objectMapper;
@@ -51,14 +55,14 @@ public class AjaxSecurityConfig {
 		http.sessionManagement(configurer -> configurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 		http
 			.securityMatcher(
-				"/api/auth/login",
-				"/api/auth/logout",
-				"/error"
+				LOGIN_ENDPOINT,
+				LOGOUT_ENDPOINT,
+				ERROR_ENDPOINT
 			)
 			.authorizeHttpRequests(authorize -> authorize
-				.requestMatchers("/api/auth/login").permitAll()
-				.requestMatchers("/api/auth/logout").permitAll()
-				.requestMatchers("/error").permitAll()
+				.requestMatchers(LOGIN_ENDPOINT).permitAll()
+				.requestMatchers(LOGOUT_ENDPOINT).permitAll()
+				.requestMatchers(ERROR_ENDPOINT).permitAll()
 				.dispatcherTypeMatchers(DispatcherType.ASYNC, DispatcherType.FORWARD, DispatcherType.ERROR).permitAll()
 				.anyRequest().authenticated()
 			);
@@ -66,7 +70,7 @@ public class AjaxSecurityConfig {
 		http.authenticationManager(authenticationManager());
 
 		AjaxLoginProcessingFilter ajaxLoginProcessingFilter = new AjaxLoginProcessingFilter(
-			new AntPathRequestMatcher("/api/auth/login"),
+			new AntPathRequestMatcher(LOGIN_ENDPOINT),
 			authenticationManager(),
 			objectMapper);
 		ajaxLoginProcessingFilter.setAuthenticationSuccessHandler(ajaxAuthenticationSuccessHandler());
@@ -74,7 +78,7 @@ public class AjaxSecurityConfig {
 		http.addFilterBefore(ajaxLoginProcessingFilter, UsernamePasswordAuthenticationFilter.class);
 
 		http.logout(configurer -> configurer
-			.logoutUrl("/api/auth/logout")
+			.logoutUrl(LOGOUT_ENDPOINT)
 			.addLogoutHandler(logoutHandler())
 			.logoutSuccessHandler(jwtLogoutSuccessHandler())
 			.permitAll()

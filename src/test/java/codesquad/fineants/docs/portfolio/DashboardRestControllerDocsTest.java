@@ -31,7 +31,7 @@ import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.service.DashboardService;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 
-public class DashboardRestControllerDocsTest extends RestDocsSupport {
+class DashboardRestControllerDocsTest extends RestDocsSupport {
 
 	private final DashboardService service = Mockito.mock(DashboardService.class);
 

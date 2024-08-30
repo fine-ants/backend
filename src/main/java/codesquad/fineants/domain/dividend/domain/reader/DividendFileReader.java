@@ -8,7 +8,6 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
@@ -36,7 +35,7 @@ public class DividendFileReader {
 					parts[1].isEmpty() ? null : LocalDate.parse(parts[1], formatter),
 					parts[2],
 					Float.parseFloat(parts[3])))
-				.collect(Collectors.toList());
+				.toList();
 		}
 	}
 }

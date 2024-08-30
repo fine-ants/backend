@@ -94,7 +94,7 @@ class StockDividendServiceTest extends AbstractContainerBaseTest {
 		int kakaoDividend = 61;
 
 		kisAccessTokenRepository.refreshAccessToken(createKisAccessToken());
-		given(kisService.fetchDividendAll(
+		given(kisService.fetchDividendsBetween(
 			ArgumentMatchers.any(LocalDate.class),
 			ArgumentMatchers.any(LocalDate.class)
 		)).willReturn(List.of(
@@ -166,58 +166,49 @@ class StockDividendServiceTest extends AbstractContainerBaseTest {
 			createStockDividend(
 				Money.won(361L),
 				LocalDate.of(2022, 3, 31),
-				LocalDate.of(2022, 3, 30),
 				LocalDate.of(2022, 5, 17),
 				stock
 			),
 			createStockDividend(
 				Money.won(361L),
 				LocalDate.of(2022, 6, 30),
-				LocalDate.of(2022, 6, 29),
 				LocalDate.of(2022, 8, 16),
 				stock
 			),
 			createStockDividend(
 				Money.won(361L),
 				LocalDate.of(2022, 9, 30),
-				LocalDate.of(2022, 9, 29),
 				LocalDate.of(2022, 11, 15),
 				stock
 			),
 			createStockDividend(
 				Money.won(361L),
 				LocalDate.of(2022, 12, 31),
-				LocalDate.of(2022, 12, 30),
 				LocalDate.of(2023, 4, 14),
 				stock),
 			createStockDividend(
 				Money.won(361L),
 				LocalDate.of(2023, 3, 31),
-				LocalDate.of(2023, 3, 30),
 				LocalDate.of(2023, 5, 17),
 				stock),
 			createStockDividend(
 				Money.won(361L),
 				LocalDate.of(2023, 6, 30),
-				LocalDate.of(2023, 6, 29),
 				LocalDate.of(2023, 8, 16),
 				stock),
 			createStockDividend(
 				Money.won(361L),
 				LocalDate.of(2023, 9, 30),
-				LocalDate.of(2023, 9, 27),
 				LocalDate.of(2023, 11, 20),
 				stock),
 			createStockDividend(
 				Money.won(361L),
 				LocalDate.of(2023, 12, 31),
-				LocalDate.of(2023, 12, 28),
 				LocalDate.of(2024, 4, 19),
 				stock),
 			createStockDividend(
 				Money.won(361L),
 				LocalDate.of(2024, 3, 31),
-				LocalDate.of(2024, 3, 29),
 				null,
 				stock)
 		);
@@ -228,14 +219,12 @@ class StockDividendServiceTest extends AbstractContainerBaseTest {
 			createStockDividend(
 				Money.won(61L),
 				LocalDate.of(2022, 12, 31),
-				LocalDate.of(2022, 12, 30),
 				LocalDate.of(2023, 4, 25),
 				stock
 			),
 			createStockDividend(
 				Money.won(61L),
 				LocalDate.of(2024, 2, 29),
-				LocalDate.of(2024, 2, 28),
 				null,
 				stock
 			)

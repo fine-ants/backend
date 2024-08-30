@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import codesquad.fineants.domain.common.notification.Notifiable;
-import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
+import codesquad.fineants.domain.kis.repository.CurrentPriceRedisRepository;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
 import codesquad.fineants.domain.notification.domain.dto.request.NotificationSaveRequest;
@@ -50,7 +50,7 @@ public class NotificationService {
 	private final PortfolioRepository portfolioRepository;
 	private final NotificationRepository notificationRepository;
 	private final MemberRepository memberRepository;
-	private final CurrentPriceRepository currentPriceRepository;
+	private final CurrentPriceRedisRepository currentPriceRedisRepository;
 	private final NotificationSentRepository sentManager;
 	private final StockTargetPriceRepository stockTargetPriceRepository;
 	private final TargetGainNotificationPolicy targetGainNotificationPolicy;
@@ -73,6 +73,7 @@ public class NotificationService {
 
 	/**
 	 * 포트폴리오 알림 저장
+	 *
 	 * @param request 알림 데이터
 	 * @return 알림 저장 결과
 	 */
@@ -89,13 +90,14 @@ public class NotificationService {
 
 	/**
 	 * 모든 회원을 대상으로 목표 수익률을 만족하는 포트폴리오에 대해서 목표 수익률 달성 알림 푸시
+	 *
 	 * @return 알림 전송 결과
 	 */
 	@Transactional
 	public NotifyMessageResponse notifyTargetGainAll() {
 		// 모든 회원의 포트폴리오 중에서 입력으로 받은 종목들을 가진 포트폴리오들을 조회
 		List<Notifiable> portfolios = portfolioRepository.findAllWithAll().stream()
-			.peek(portfolio -> portfolio.applyCurrentPriceAllHoldingsBy(currentPriceRepository))
+			.peek(portfolio -> portfolio.applyCurrentPriceAllHoldingsBy(currentPriceRedisRepository))
 			.collect(Collectors.toList());
 		Consumer<Long> sentFunction = sentManager::addTargetGainSendHistory;
 		return PortfolioNotifyMessagesResponse.create(
@@ -105,13 +107,14 @@ public class NotificationService {
 
 	/**
 	 * 특정 포트폴리오의 목표 수익률 달성 알림 푸시
+	 *
 	 * @param portfolioId 포트폴리오 등록번호
 	 * @return 알림 전송 결과
 	 */
 	@Transactional
 	public NotifyMessageResponse notifyTargetGain(Long portfolioId) {
 		Portfolio portfolio = portfolioRepository.findByPortfolioIdWithAll(portfolioId).stream()
-			.peek(p -> p.applyCurrentPriceAllHoldingsBy(currentPriceRepository))
+			.peek(p -> p.applyCurrentPriceAllHoldingsBy(currentPriceRedisRepository))
 			.findFirst()
 			.orElseThrow(() -> new FineAntsException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
 		Consumer<Long> sentFunction = sentManager::addTargetGainSendHistory;
@@ -166,12 +169,13 @@ public class NotificationService {
 
 	/**
 	 * 모든 포트폴리오를 대상으로 최대 손실율에 도달하는 모든 포트폴리오에 대해서 최대 손실율 도달 알림 푸시
+	 *
 	 * @return 알림 전송 결과
 	 */
 	@Transactional
 	public NotifyMessageResponse notifyMaxLossAll() {
 		List<Notifiable> portfolios = portfolioRepository.findAllWithAll().stream()
-			.peek(portfolio -> portfolio.applyCurrentPriceAllHoldingsBy(currentPriceRepository))
+			.peek(portfolio -> portfolio.applyCurrentPriceAllHoldingsBy(currentPriceRedisRepository))
 			.collect(Collectors.toList());
 		Consumer<Long> sentFunction = sentManager::addMaxLossSendHistory;
 		return PortfolioNotifyMessagesResponse.create(
@@ -181,13 +185,14 @@ public class NotificationService {
 
 	/**
 	 * 특정 포트폴리오의 최대 손실율 달성 알림 푸시
+	 *
 	 * @param portfolioId 포트폴리오 등록번호
 	 * @return 알림 전송 결과
 	 */
 	@Transactional
 	public NotifyMessageResponse notifyMaxLoss(Long portfolioId) {
 		Portfolio portfolio = portfolioRepository.findByPortfolioIdWithAll(portfolioId)
-			.stream().peek(p -> p.applyCurrentPriceAllHoldingsBy(currentPriceRepository))
+			.stream().peek(p -> p.applyCurrentPriceAllHoldingsBy(currentPriceRedisRepository))
 			.findAny()
 			.orElseThrow(() -> new FineAntsException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
 		Consumer<Long> sentFunction = sentManager::addMaxLossSendHistory;
@@ -198,6 +203,7 @@ public class NotificationService {
 
 	/**
 	 * 모든 회원을 대상으로 특정 종목들에 대한 종목 지정가 알림 발송
+	 *
 	 * @param tickerSymbols 종목의 티커 심볼 리스트
 	 * @return 알림 전송 결과
 	 */
@@ -220,6 +226,7 @@ public class NotificationService {
 
 	/**
 	 * 특정 회원을 대상으로 종목 지정가 알림 발송
+	 *
 	 * @param memberId 회원의 등록번호
 	 * @return 알림 전송 결과
 	 */
@@ -229,7 +236,7 @@ public class NotificationService {
 			.stream()
 			.map(StockTargetPrice::getTargetPriceNotifications)
 			.flatMap(Collection::stream)
-			.map(targetPriceNotification -> (Notifiable)targetPriceNotification)
+			.map(Notifiable.class::cast)
 			.toList();
 		Consumer<Long> sentFunction = sentManager::addTargetPriceSendHistory;
 		return TargetPriceNotifyMessageResponse.create(

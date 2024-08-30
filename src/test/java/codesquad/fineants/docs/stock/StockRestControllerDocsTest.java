@@ -30,7 +30,7 @@ import codesquad.fineants.domain.common.money.Percentage;
 import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
 import codesquad.fineants.domain.kis.domain.dto.response.DividendItem;
 import codesquad.fineants.domain.kis.repository.ClosingPriceRepository;
-import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
+import codesquad.fineants.domain.kis.repository.CurrentPriceRedisRepository;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.stock.controller.StockRestController;
 import codesquad.fineants.domain.stock.domain.dto.request.StockSearchRequest;
@@ -42,7 +42,7 @@ import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.service.StockService;
 import codesquad.fineants.global.util.ObjectMapperUtil;
 
-public class StockRestControllerDocsTest extends RestDocsSupport {
+class StockRestControllerDocsTest extends RestDocsSupport {
 
 	private final StockService service = Mockito.mock(StockService.class);
 
@@ -283,14 +283,14 @@ public class StockRestControllerDocsTest extends RestDocsSupport {
 		holding.addPurchaseHistory(createPurchaseHistory(holding, LocalDateTime.now()));
 		portfolio.addHolding(holding);
 
-		CurrentPriceRepository currentPriceRepository = Mockito.mock(CurrentPriceRepository.class);
+		CurrentPriceRedisRepository currentPriceRedisRepository = Mockito.mock(CurrentPriceRedisRepository.class);
 		ClosingPriceRepository closingPriceRepository = Mockito.mock(ClosingPriceRepository.class);
 
 		Money currentPrice = Money.won(68000L);
 		Money closingPrice = Money.won(80000L);
-		given(currentPriceRepository.getCurrentPrice(stock.getTickerSymbol()))
+		given(currentPriceRedisRepository.fetchPriceBy(stock.getTickerSymbol()))
 			.willReturn(Optional.of(currentPrice));
-		given(closingPriceRepository.getClosingPrice(stock.getTickerSymbol()))
+		given(closingPriceRepository.fetchPrice(stock.getTickerSymbol()))
 			.willReturn(Optional.of(closingPrice));
 		given(service.getDetailedStock(stock.getTickerSymbol()))
 			.willReturn(StockResponse.create(

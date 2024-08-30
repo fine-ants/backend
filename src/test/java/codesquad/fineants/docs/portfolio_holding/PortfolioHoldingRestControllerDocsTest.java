@@ -45,7 +45,7 @@ import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.global.util.ObjectMapperUtil;
 
-public class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
+class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 
 	private final PortfolioHoldingService service = Mockito.mock(PortfolioHoldingService.class);
 	private final PortfolioObservableService portfolioObservableService = Mockito.mock(
@@ -520,8 +520,6 @@ public class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 	void deletePortfolioHoldings() throws Exception {
 		// given
 		Portfolio portfolio = createPortfolio(createMember());
-		Stock stock = createSamsungStock();
-
 		Map<String, Object> body = Map.of(
 			"portfolioHoldingIds", List.of(1, 2)
 		);

@@ -1,14 +1,13 @@
 package codesquad.fineants.domain.watchlist.service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import codesquad.fineants.domain.kis.repository.ClosingPriceRepository;
-import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
+import codesquad.fineants.domain.kis.repository.CurrentPriceRedisRepository;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
 import codesquad.fineants.domain.stock.repository.StockRepository;
@@ -45,7 +44,7 @@ public class WatchListService {
 	private final MemberRepository memberRepository;
 	private final StockRepository stockRepository;
 	private final WatchStockRepository watchStockRepository;
-	private final CurrentPriceRepository currentPriceRepository;
+	private final CurrentPriceRedisRepository currentPriceRedisRepository;
 	private final ClosingPriceRepository closingPriceRepository;
 	private final WatchStockEventPublisher watchStockEventPublisher;
 
@@ -64,7 +63,7 @@ public class WatchListService {
 		Member member = findMember(memberId);
 		return watchListRepository.findByMember(member).stream()
 			.map(ReadWatchListsResponse::from)
-			.collect(Collectors.toList());
+			.toList();
 	}
 
 	@Transactional(readOnly = true)
@@ -79,8 +78,9 @@ public class WatchListService {
 		List<WatchStock> watchStocks = watchStockRepository.findWithStockAndDividendsByWatchList(watchList);
 
 		List<ReadWatchListResponse.WatchStockResponse> watchStockResponses = watchStocks.stream()
-			.map(watchStock -> ReadWatchListResponse.from(watchStock, currentPriceRepository, closingPriceRepository))
-			.collect(Collectors.toList());
+			.map(watchStock -> ReadWatchListResponse.from(watchStock, currentPriceRedisRepository,
+				closingPriceRepository))
+			.toList();
 		return new ReadWatchListResponse(watchList.getName(), watchStockResponses);
 	}
 

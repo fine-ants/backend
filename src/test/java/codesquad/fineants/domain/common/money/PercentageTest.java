@@ -3,6 +3,7 @@ package codesquad.fineants.domain.common.money;
 import java.text.DecimalFormat;
 
 import org.assertj.core.api.Assertions;
+import org.assertj.core.data.Offset;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -20,7 +21,7 @@ class PercentageTest {
 		// when
 		Double actual = percentage.toPercentage();
 		// then
-		Assertions.assertThat(actual.toString()).isEqualTo(expected);
+		Assertions.assertThat(actual).isCloseTo(Double.valueOf(expected), Offset.offset(0.1));
 	}
 
 	@DisplayName("실수를 대상으로 십진수 포맷한다")

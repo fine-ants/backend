@@ -2,13 +2,12 @@ package codesquad.fineants.domain.stock.service;
 
 import java.util.List;
 
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import codesquad.fineants.domain.dividend.repository.StockDividendRepository;
 import codesquad.fineants.domain.kis.repository.ClosingPriceRepository;
-import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
+import codesquad.fineants.domain.kis.repository.CurrentPriceRedisRepository;
 import codesquad.fineants.domain.stock.domain.dto.request.StockSearchRequest;
 import codesquad.fineants.domain.stock.domain.dto.response.StockReloadResponse;
 import codesquad.fineants.domain.stock.domain.dto.response.StockResponse;
@@ -28,7 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 public class StockService {
 	private final StockRepository stockRepository;
-	private final CurrentPriceRepository currentPriceRepository;
+	private final CurrentPriceRedisRepository currentPriceRedisRepository;
 	private final ClosingPriceRepository closingPriceRepository;
 	private final AmazonS3StockService amazonS3StockService;
 	private final AmazonS3DividendService amazonS3DividendService;
@@ -55,13 +54,7 @@ public class StockService {
 	public StockResponse getDetailedStock(String tickerSymbol) {
 		Stock stock = stockRepository.findByTickerSymbol(tickerSymbol)
 			.orElseThrow(() -> new NotFoundResourceException(StockErrorCode.NOT_FOUND_STOCK));
-		return StockResponse.of(stock, currentPriceRepository, closingPriceRepository);
-	}
-
-	@Scheduled(cron = "${cron.expression.reload-stocks:0 0 8 * * ?}") // 매일 오전 8시 (초, 분, 시간)
-	@Transactional
-	public void scheduledReloadStocks() {
-		reloadStocks();
+		return StockResponse.of(stock, currentPriceRedisRepository, closingPriceRepository);
 	}
 
 	@Transactional

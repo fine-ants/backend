@@ -7,7 +7,6 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -163,7 +162,7 @@ class PortfolioHoldingTest extends AbstractContainerBaseTest {
 		Currency to = Currency.KRW;
 		List<Money> moneys = result.values().stream()
 			.map(expression -> expression.reduce(bank, to))
-			.collect(Collectors.toList());
+			.toList();
 		assertThat(moneys)
 			.usingComparatorForType(Expression::compareTo, Expression.class)
 			.isEqualTo(expected.values());
@@ -172,19 +171,19 @@ class PortfolioHoldingTest extends AbstractContainerBaseTest {
 	private List<StockDividend> createStockDividends(Stock stock) {
 		return List.of(
 			createStockDividend(
-				LocalDate.of(2022, 12, 31), LocalDate.of(2022, 12, 30),
+				LocalDate.of(2022, 12, 31),
 				LocalDate.of(2023, 4, 14),
 				stock),
 			createStockDividend(
-				LocalDate.of(2023, 3, 31), LocalDate.of(2023, 3, 30),
+				LocalDate.of(2023, 3, 31),
 				LocalDate.of(2023, 5, 17),
 				stock),
 			createStockDividend(
-				LocalDate.of(2023, 6, 30), LocalDate.of(2023, 6, 29),
+				LocalDate.of(2023, 6, 30),
 				LocalDate.of(2023, 8, 16),
 				stock),
 			createStockDividend(
-				LocalDate.of(2023, 9, 30), LocalDate.of(2023, 9, 27),
+				LocalDate.of(2023, 9, 30),
 				LocalDate.of(2023, 11, 20),
 				stock)
 		);

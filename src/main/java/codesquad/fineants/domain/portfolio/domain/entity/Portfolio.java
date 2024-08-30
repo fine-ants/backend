@@ -2,6 +2,7 @@ package codesquad.fineants.domain.portfolio.domain.entity;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -25,12 +26,14 @@ import codesquad.fineants.domain.holding.domain.dto.response.PortfolioDividendCh
 import codesquad.fineants.domain.holding.domain.dto.response.PortfolioPieChartItem;
 import codesquad.fineants.domain.holding.domain.dto.response.PortfolioSectorChartItem;
 import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
-import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
+import codesquad.fineants.domain.kis.repository.CurrentPriceRedisRepository;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.notification.domain.dto.response.NotifyMessage;
 import codesquad.fineants.domain.notification.domain.entity.type.NotificationType;
 import codesquad.fineants.domain.notification.repository.NotificationSentRepository;
 import codesquad.fineants.domain.notificationpreference.domain.entity.NotificationPreference;
+import codesquad.fineants.global.common.time.DefaultLocalDateTimeService;
+import codesquad.fineants.global.common.time.LocalDateTimeService;
 import codesquad.fineants.global.errors.errorcode.PortfolioErrorCode;
 import codesquad.fineants.global.errors.exception.BadRequestException;
 import codesquad.fineants.global.errors.exception.FineAntsException;
@@ -45,10 +48,10 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.NamedAttributeNode;
 import jakarta.persistence.NamedEntityGraph;
-import jakarta.persistence.NamedEntityGraphs;
 import jakarta.persistence.NamedSubgraph;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -56,15 +59,13 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
-@NamedEntityGraphs({
-	@NamedEntityGraph(name = "Portfolio.withAll", attributeNodes = {
-		@NamedAttributeNode("member"),
-		@NamedAttributeNode(value = "portfolioHoldings", subgraph = "portfolioHoldings")
-	}, subgraphs = {
-		@NamedSubgraph(name = "portfolioHoldings", attributeNodes = {
-			@NamedAttributeNode("stock")
-		})})
-})
+@NamedEntityGraph(name = "Portfolio.withAll", attributeNodes = {
+	@NamedAttributeNode("member"),
+	@NamedAttributeNode(value = "portfolioHoldings", subgraph = "portfolioHoldings")
+}, subgraphs = {
+	@NamedSubgraph(name = "portfolioHoldings", attributeNodes = {
+		@NamedAttributeNode("stock")
+	})})
 @Slf4j
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -99,6 +100,9 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	@BatchSize(size = 1000)
 	@OneToMany(mappedBy = "portfolio")
 	private final List<PortfolioHolding> portfolioHoldings = new ArrayList<>();
+
+	@Transient
+	private LocalDateTimeService localDateTimeService = new DefaultLocalDateTimeService();
 
 	private Portfolio(Long id, String name, String securitiesFirm, Money budget, Money targetGain, Money maximumLoss,
 		Boolean targetGainIsActive, Boolean maximumLossIsActive, Member member) {
@@ -251,7 +255,8 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	// 총 연간 배당금 = 각 종목들의 연배당금의 합계
 	public Expression calculateAnnualDividend() {
 		return portfolioHoldings.stream()
-			.map(portfolioHolding -> portfolioHolding.createMonthlyDividendMap(LocalDate.now()))
+			.map(portfolioHolding -> portfolioHolding.createMonthlyDividendMap(
+				localDateTimeService.getLocalDateWithNow()))
 			.map(map -> map.values().stream()
 				.reduce(Money.zero(), Expression::plus))
 			.reduce(Money.zero(), Expression::plus);
@@ -287,7 +292,7 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	}
 
 	// 포트폴리오 모든 종목들에 주식 현재가 적용
-	public void applyCurrentPriceAllHoldingsBy(CurrentPriceRepository manager) {
+	public void applyCurrentPriceAllHoldingsBy(CurrentPriceRedisRepository manager) {
 		for (PortfolioHolding portfolioHolding : portfolioHoldings) {
 			portfolioHolding.applyCurrentPrice(manager);
 			log.debug("portfolioHolding : {}, purchaseHistory : {}", portfolioHolding,
@@ -359,7 +364,7 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	public List<PortfolioPieChartItem> createPieChart() {
 		List<PortfolioPieChartItem> stocks = portfolioHoldings.stream()
 			.map(portfolioHolding -> portfolioHolding.createPieChartItem(calculateWeightBy(portfolioHolding)))
-			.collect(Collectors.toList());
+			.toList();
 		Bank bank = Bank.getInstance();
 		Percentage weight = calculateCashWeight().toPercentage(bank, Currency.KRW);
 		PortfolioPieChartItem cash = PortfolioPieChartItem.cash(weight, bank.toWon(calculateBalance()));
@@ -405,14 +410,14 @@ public class Portfolio extends BaseEntity implements Notifiable {
 		Currency to = Currency.KRW;
 		return totalDividendMap.entrySet().stream()
 			.map(entry -> PortfolioDividendChartItem.create(entry.getKey(), entry.getValue().reduce(bank, to)))
-			.collect(Collectors.toList());
+			.toList();
 	}
 
 	public List<PortfolioSectorChartItem> createSectorChart() {
 		return calculateSectorCurrentValuationMap().entrySet().stream()
 			.map(mappingSectorChartItem())
 			.sorted(PortfolioSectorChartItem::compareTo)
-			.collect(Collectors.toList());
+			.toList();
 	}
 
 	private Map<String, List<Expression>> calculateSectorCurrentValuationMap() {
@@ -527,5 +532,13 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	@Override
 	public NotifyMessage getTargetPriceMessage(String token) {
 		throw new UnsupportedOperationException("This method is not supported for Portfolio");
+	}
+
+	public List<PortfolioHolding> getPortfolioHoldings() {
+		return Collections.unmodifiableList(portfolioHoldings);
+	}
+
+	public void setLocalDateTimeService(LocalDateTimeService localDateTimeService) {
+		this.localDateTimeService = localDateTimeService;
 	}
 }

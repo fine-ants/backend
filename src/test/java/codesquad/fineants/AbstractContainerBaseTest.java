@@ -3,7 +3,6 @@ package codesquad.fineants;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.util.Strings;
 import org.junit.jupiter.api.AfterEach;
@@ -31,6 +30,7 @@ import codesquad.fineants.domain.dividend.domain.entity.StockDividend;
 import codesquad.fineants.domain.fcm.domain.entity.FcmToken;
 import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
 import codesquad.fineants.domain.kis.client.KisAccessToken;
+import codesquad.fineants.domain.kis.repository.KisAccessTokenRepository;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.domain.entity.MemberRole;
 import codesquad.fineants.domain.member.domain.entity.Role;
@@ -49,6 +49,7 @@ import codesquad.fineants.global.errors.exception.FineAntsException;
 import codesquad.fineants.global.security.factory.TokenFactory;
 import codesquad.fineants.global.security.oauth.dto.MemberAuthentication;
 import codesquad.fineants.global.security.oauth.dto.Token;
+import codesquad.fineants.support.RedisRepository;
 import jakarta.servlet.http.Cookie;
 import lombok.extern.slf4j.Slf4j;
 
@@ -58,8 +59,8 @@ import lombok.extern.slf4j.Slf4j;
 @Import(value = {AmazonS3Config.class})
 @AutoConfigureWebTestClient
 @Testcontainers
-@WithMockUser(username = "dragonbead95@naver.com", roles = {"USER"})
-public class AbstractContainerBaseTest {
+@WithMockUser(username = "dragonbead95@naver.com")
+public abstract class AbstractContainerBaseTest {
 	private static final String REDIS_IMAGE = "redis:7-alpine";
 	private static final int REDIS_PORT = 6379;
 
@@ -86,6 +87,12 @@ public class AbstractContainerBaseTest {
 	@Autowired
 	private DatabaseCleaner databaseCleaner;
 
+	@Autowired
+	private KisAccessTokenRepository kisAccessTokenRepository;
+
+	@Autowired
+	private RedisRepository redisRepository;
+
 	@DynamicPropertySource
 	public static void overrideProps(DynamicPropertyRegistry registry) {
 		// redis property config
@@ -104,11 +111,13 @@ public class AbstractContainerBaseTest {
 		createRoleIfNotFound("ROLE_ADMIN", "관리자");
 		createRoleIfNotFound("ROLE_MANAGER", "매니저");
 		createRoleIfNotFound("ROLE_USER", "회원");
+		kisAccessTokenRepository.refreshAccessToken(createKisAccessToken());
 	}
 
 	@AfterEach
 	public void cleanDatabase() {
 		databaseCleaner.clear();
+		redisRepository.clearAll();
 	}
 
 	public KisAccessToken createKisAccessToken() {
@@ -147,15 +156,15 @@ public class AbstractContainerBaseTest {
 		return member;
 	}
 
-	protected Member createOauthMember(String nickname, String email, String provider, String profileUrl) {
+	protected Member createOauthMember() {
 		Role userRole = roleRepository.findRoleByRoleName("ROLE_USER")
 			.orElseThrow(() -> new FineAntsException(RoleErrorCode.NOT_EXIST_ROLE));
 		// 회원 생성
 		Member member = Member.oauthMember(
-			email,
-			nickname,
-			provider,
-			profileUrl
+			"fineants1234@gmail.com",
+			"fineants1234",
+			"google",
+			"profileUrl1"
 		);
 		// 역할 설정
 		member.addMemberRole(MemberRole.create(member, userRole));
@@ -237,18 +246,7 @@ public class AbstractContainerBaseTest {
 	}
 
 	protected Stock createKakaoStock() {
-		return createStock(
-			"035720",
-			"카카오보통주",
-			"Kakao",
-			"KR7035720002",
-			"서비스업"
-		);
-	}
-
-	protected Stock createStock(String tickerSymbol, String companyName, String companyNameEng, String stockCode,
-		String sector) {
-		return Stock.of(tickerSymbol, companyName, companyNameEng, stockCode, sector, Market.KOSPI);
+		return Stock.of("035720", "카카오보통주", "Kakao", "KR7035720002", "서비스업", Market.KOSPI);
 	}
 
 	protected PortfolioHolding createPortfolioHolding(Portfolio portfolio, Stock stock) {
@@ -259,14 +257,14 @@ public class AbstractContainerBaseTest {
 		return PortfolioHolding.of(portfolio, stock, Money.won(currentPrice));
 	}
 
-	protected StockDividend createStockDividend(LocalDate recordDate, LocalDate exDividendDate, LocalDate paymentDate,
+	protected StockDividend createStockDividend(LocalDate recordDate, LocalDate paymentDate,
 		Stock stock) {
-		return StockDividend.create(Money.won(361), recordDate, exDividendDate, paymentDate, stock);
+		return StockDividend.create(Money.won(361), recordDate, paymentDate, stock);
 	}
 
-	protected StockDividend createStockDividend(Money dividend, LocalDate recordDate, LocalDate exDividendDate,
+	protected StockDividend createStockDividend(Money dividend, LocalDate recordDate,
 		LocalDate paymentDate, Stock stock) {
-		return StockDividend.create(dividend, recordDate, exDividendDate, paymentDate, stock);
+		return StockDividend.create(dividend, recordDate, paymentDate, stock);
 	}
 
 	protected PurchaseHistory createPurchaseHistory(Long id, LocalDateTime purchaseDate, Count numShares,
@@ -303,42 +301,59 @@ public class AbstractContainerBaseTest {
 		return targetPrices.stream()
 			.map(targetPrice -> TargetPriceNotification.newTargetPriceNotification(Money.won(targetPrice),
 				stockTargetPrice))
-			.collect(Collectors.toList());
+			.toList();
 	}
 
 	protected List<StockDividend> createStockDividendWith(Stock stock) {
 		return List.of(
 			createStockDividend(
-				LocalDate.of(2022, 12, 31), LocalDate.of(2022, 12, 30),
+				LocalDate.of(2022, 12, 31),
 				LocalDate.of(2023, 4, 14),
 				stock),
 			createStockDividend(
-				LocalDate.of(2023, 3, 31), LocalDate.of(2023, 3, 30),
+				LocalDate.of(2023, 3, 31),
 				LocalDate.of(2023, 5, 17),
 				stock),
 			createStockDividend(
-				LocalDate.of(2023, 6, 30), LocalDate.of(2023, 6, 29),
+				LocalDate.of(2023, 6, 30),
 				LocalDate.of(2023, 8, 16),
 				stock),
 			createStockDividend(
-				LocalDate.of(2023, 9, 30), LocalDate.of(2023, 9, 27),
+				LocalDate.of(2023, 9, 30),
 				LocalDate.of(2023, 11, 20),
 				stock),
 			createStockDividend(
-				LocalDate.of(2024, 3, 31), LocalDate.of(2024, 3, 29),
+				LocalDate.of(2024, 3, 31),
 				LocalDate.of(2024, 5, 17),
 				stock),
 			createStockDividend(
-				LocalDate.of(2024, 6, 30), LocalDate.of(2024, 6, 28),
+				LocalDate.of(2024, 6, 30),
 				LocalDate.of(2024, 8, 16),
 				stock),
 			createStockDividend(
-				LocalDate.of(2024, 9, 30), LocalDate.of(2024, 9, 27),
+				LocalDate.of(2024, 9, 30),
 				LocalDate.of(2024, 11, 20),
 				stock)
 		);
 	}
 
+	protected List<StockDividend> createStockDividendThisYearWith(Stock stock) {
+		return List.of(
+			createStockDividend(
+				LocalDate.of(2024, 3, 31),
+				LocalDate.of(2024, 5, 17),
+				stock),
+			createStockDividend(
+				LocalDate.of(2024, 6, 30),
+				LocalDate.of(2024, 8, 16),
+				stock),
+			createStockDividend(
+				LocalDate.of(2024, 9, 30),
+				LocalDate.of(2024, 11, 20),
+				stock)
+		);
+	}
+	
 	protected Cookie[] createTokenCookies() {
 		TokenFactory tokenFactory = new TokenFactory();
 		Token token = Token.create("accessToken", "refreshToken");

@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.math.BigDecimal;
 
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -391,7 +392,9 @@ class MoneyTest {
 		Money fiveBucks = Money.dollar(5);
 		RateDivision rateDivision = tenBucks.divide(fiveBucks);
 
-		assertThrows(IllegalArgumentException.class, () -> rateDivision.plus(Money.dollar(5)));
+		Throwable throwable = Assertions.catchThrowable(() -> rateDivision.plus(Money.dollar(5)));
+		Assertions.assertThat(throwable)
+			.isInstanceOf(IllegalArgumentException.class);
 	}
 
 	@DisplayName("비율을 뺄셈한다")

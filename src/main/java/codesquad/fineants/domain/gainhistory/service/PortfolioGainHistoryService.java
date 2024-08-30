@@ -4,14 +4,13 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import codesquad.fineants.domain.gainhistory.domain.dto.response.PortfolioGainHistoryCreateResponse;
 import codesquad.fineants.domain.gainhistory.domain.entity.PortfolioGainHistory;
 import codesquad.fineants.domain.gainhistory.repository.PortfolioGainHistoryRepository;
-import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
+import codesquad.fineants.domain.kis.repository.CurrentPriceRedisRepository;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.repository.PortfolioRepository;
 import lombok.RequiredArgsConstructor;
@@ -24,14 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 public class PortfolioGainHistoryService {
 	private final PortfolioGainHistoryRepository repository;
 	private final PortfolioRepository portfolioRepository;
-	private final CurrentPriceRepository currentPriceRepository;
-
-	@Transactional
-	@Scheduled(cron = "0 0 16 * * ?") // 매일 16시에 실행
-	public void scheduledPortfolioGainHistory() {
-		PortfolioGainHistoryCreateResponse response = addPortfolioGainHistory();
-		log.info("포트폴리오 수익 내역 기록 결과, size = {}", response.getIds().size());
-	}
+	private final CurrentPriceRedisRepository currentPriceRedisRepository;
 
 	@Transactional
 	public PortfolioGainHistoryCreateResponse addPortfolioGainHistory() {
@@ -39,7 +31,7 @@ public class PortfolioGainHistoryService {
 		List<PortfolioGainHistory> portfolioGainHistories = new ArrayList<>();
 
 		for (Portfolio portfolio : portfolios) {
-			portfolio.applyCurrentPriceAllHoldingsBy(currentPriceRepository);
+			portfolio.applyCurrentPriceAllHoldingsBy(currentPriceRedisRepository);
 			PortfolioGainHistory latestHistory =
 				repository.findFirstByPortfolioAndCreateAtIsLessThanEqualOrderByCreateAtDesc(
 						portfolio.getId(), LocalDateTime.now())

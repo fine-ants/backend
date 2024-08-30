@@ -6,7 +6,7 @@ import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
+import codesquad.fineants.domain.kis.repository.CurrentPriceRedisRepository;
 import codesquad.fineants.domain.notification.domain.entity.policy.ConditionEvaluator;
 import codesquad.fineants.domain.notification.domain.entity.policy.TargetGainNotificationEvaluator;
 import codesquad.fineants.domain.notification.domain.entity.policy.maxloss.MaxLossAccountPreferenceCondition;
@@ -36,7 +36,7 @@ import lombok.RequiredArgsConstructor;
 public class NotificationConfig {
 
 	private final NotificationSentRepository sentManager;
-	private final CurrentPriceRepository currentPriceRepository;
+	private final CurrentPriceRedisRepository currentPriceRedisRepository;
 	private final FirebaseNotificationProvider firebaseNotificationProvider;
 
 	@Bean
@@ -82,7 +82,7 @@ public class NotificationConfig {
 	public TargetPriceNotificationPolicy targetPriceNotificationPolicy() {
 		return new TargetPriceNotificationPolicy(
 			List.of(
-				new TargetPriceCondition(currentPriceRepository),
+				new TargetPriceCondition(currentPriceRedisRepository),
 				new TargetPriceActiveCondition(),
 				new TargetPriceSentHistoryCondition(sentManager)
 			),

@@ -2,6 +2,7 @@ package codesquad.fineants.domain.holding.service;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.BDDMockito.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -14,6 +15,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import codesquad.fineants.AbstractContainerBaseTest;
@@ -38,10 +40,9 @@ import codesquad.fineants.domain.holding.domain.dto.response.PortfolioStockDelet
 import codesquad.fineants.domain.holding.domain.entity.PortfolioHolding;
 import codesquad.fineants.domain.holding.event.publisher.PortfolioHoldingEventPublisher;
 import codesquad.fineants.domain.holding.repository.PortfolioHoldingRepository;
-import codesquad.fineants.domain.kis.aop.AccessTokenAspect;
 import codesquad.fineants.domain.kis.client.KisCurrentPrice;
 import codesquad.fineants.domain.kis.repository.ClosingPriceRepository;
-import codesquad.fineants.domain.kis.repository.CurrentPriceRepository;
+import codesquad.fineants.domain.kis.repository.CurrentPriceRedisRepository;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
 import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
@@ -50,6 +51,7 @@ import codesquad.fineants.domain.purchasehistory.domain.entity.PurchaseHistory;
 import codesquad.fineants.domain.purchasehistory.repository.PurchaseHistoryRepository;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
+import codesquad.fineants.global.common.time.LocalDateTimeService;
 import codesquad.fineants.global.errors.errorcode.MemberErrorCode;
 import codesquad.fineants.global.errors.errorcode.PortfolioHoldingErrorCode;
 import codesquad.fineants.global.errors.exception.FineAntsException;
@@ -82,17 +84,16 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 	private StockRepository stockRepository;
 
 	@Autowired
-	private CurrentPriceRepository currentPriceRepository;
+	private CurrentPriceRedisRepository currentPriceRedisRepository;
 
 	@Autowired
 	private ClosingPriceRepository closingPriceRepository;
 
+	@SpyBean
+	private LocalDateTimeService localDateTimeService;
+
 	@MockBean
 	private PortfolioHoldingEventPublisher publisher;
-
-	// CurrentPriceRepository AccessToken 모킹
-	@MockBean
-	private AccessTokenAspect accessTokenAspect;
 
 	@DisplayName("포트폴리오 종목들의 상세 정보를 조회한다")
 	@Test
@@ -100,8 +101,10 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		// given
 		Member member = memberRepository.save(createMember());
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
+		portfolio.setLocalDateTimeService(localDateTimeService);
+		given(localDateTimeService.getLocalDateWithNow()).willReturn(LocalDate.of(2024, 1, 1));
 		Stock stock = stockRepository.save(createSamsungStock());
-		stockDividendRepository.saveAll(createStockDividendWith(stock));
+		stockDividendRepository.saveAll(createStockDividendThisYearWith(stock));
 		PortfolioHolding portfolioHolding = portFolioHoldingRepository.save(createPortfolioHolding(portfolio, stock));
 
 		LocalDateTime purchaseDate = LocalDateTime.of(2023, 9, 26, 9, 30, 0);
@@ -111,7 +114,7 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		purchaseHistoryRepository.save(
 			createPurchaseHistory(null, purchaseDate, numShares, purchasePerShare, memo, portfolioHolding));
 
-		currentPriceRepository.addCurrentPrice(KisCurrentPrice.create("005930", 60000L));
+		currentPriceRedisRepository.savePrice(KisCurrentPrice.create("005930", 60000L));
 		closingPriceRepository.addPrice("005930", 50000);
 
 		setAuthentication(member);
@@ -138,7 +141,7 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		Percentage dailyGainRate = RateDivision.of(dailyGain, totalInvestmentAmount)
 			.toPercentage(Bank.getInstance(), Currency.KRW);
 
-		Expression totalAnnualDividend = Money.won(361 * 3 * 4);
+		Money totalAnnualDividend = Money.won(361 * 3 * 3);
 		Expression currentValuation = Money.won(180000);
 		Percentage annualDividendYield = RateDivision.of(totalAnnualDividend, currentValuation)
 			.toPercentage(Bank.getInstance(), Currency.KRW);
@@ -157,7 +160,7 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 			() -> assertThat(details.getDailyGain()).isEqualByComparingTo(Money.won(30000L)),
 			() -> assertThat(details.getDailyGainRate()).isEqualByComparingTo(dailyGainRate),
 			() -> assertThat(details.getBalance()).isEqualByComparingTo(Money.won(850000L)),
-			() -> assertThat(details.getAnnualDividend()).isEqualByComparingTo(Money.won(4332L)),
+			() -> assertThat(details.getAnnualDividend()).isEqualByComparingTo(totalAnnualDividend),
 			() -> assertThat(details.getAnnualDividendYield()).isEqualByComparingTo(annualDividendYield),
 			() -> assertThat(details.getProvisionalLossBalance()).isEqualByComparingTo(Money.won(0L)),
 			() -> assertThat(details.getTargetGainNotify()).isTrue(),
@@ -188,7 +191,7 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 						Percentage.from(0.2),
 						Money.won(30000),
 						Percentage.from(0.2),
-						Money.won(4332)
+						Money.won(3249)
 					)
 				),
 			() -> assertThat(response.getPortfolioHoldings())
@@ -244,7 +247,7 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		purchaseHistoryRepository.save(
 			createPurchaseHistory(null, purchaseDate, numShares, purchasePerShare, memo, portfolioHolding));
 
-		currentPriceRepository.addCurrentPrice(KisCurrentPrice.create("005930", 60000L));
+		currentPriceRedisRepository.savePrice(KisCurrentPrice.create("005930", 60000L));
 		closingPriceRepository.addPrice("005930", 50000);
 
 		setAuthentication(member);
@@ -374,8 +377,7 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		Member member = memberRepository.save(createMember());
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Stock stock = stockRepository.save(createSamsungStock());
-		Stock stock2 = stockRepository.save(
-			createStock("035720", "카카오보통주", "Kakao", "KR7035720002", "서비스업"));
+		Stock stock2 = stockRepository.save(createKakaoStock());
 		stockDividendRepository.saveAll(createStockDividendWith(stock));
 		PortfolioHolding portfolioHolding = portFolioHoldingRepository.save(createPortfolioHolding(portfolio, stock));
 		PortfolioHolding portfolioHolding2 = portFolioHoldingRepository.save(createPortfolioHolding(portfolio, stock2));
@@ -393,8 +395,8 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		purchaseHistoryRepository.save(
 			createPurchaseHistory(null, purchaseDate, numShares, purchasePerShare, memo, portfolioHolding2));
 
-		currentPriceRepository.addCurrentPrice(KisCurrentPrice.create("005930", 60000L));
-		currentPriceRepository.addCurrentPrice(KisCurrentPrice.create("035720", 60000L));
+		currentPriceRedisRepository.savePrice(KisCurrentPrice.create("005930", 60000L));
+		currentPriceRedisRepository.savePrice(KisCurrentPrice.create("035720", 60000L));
 		closingPriceRepository.addPrice("005930", 50000);
 		closingPriceRepository.addPrice("035720", 50000);
 
@@ -627,7 +629,7 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		// then
 		assertAll(
 			() -> assertThat(response).extracting("portfolioHoldingId").isNotNull(),
-			() -> assertThat(portFolioHoldingRepository.findById(portfolioHoldingId).isEmpty()).isTrue(),
+			() -> assertThat(portFolioHoldingRepository.findById(portfolioHoldingId)).isEmpty(),
 			() -> assertThat(purchaseHistoryRepository.findAllByPortfolioHoldingId(portfolioHoldingId)).isEmpty()
 		);
 	}
@@ -715,8 +717,8 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		assertThat(throwable)
 			.isInstanceOf(NotFoundResourceException.class)
 			.hasMessage("포트폴리오 종목이 존재하지 않습니다");
-		assertThat(portFolioHoldingRepository.findById(portfolioHolding.getId()).isPresent()).isTrue();
-		assertThat(purchaseHistoryRepository.findById(purchaseHistory.getId()).isPresent()).isTrue();
+		assertThat(portFolioHoldingRepository.findById(portfolioHolding.getId())).isPresent();
+		assertThat(purchaseHistoryRepository.findById(purchaseHistory.getId())).isPresent();
 	}
 
 	@DisplayName("사용자는 다수의 포트폴리오 삭제시 다른 회원의 포트폴리오 종목이 존재한다면 전부 삭제할 수 없다")
@@ -750,8 +752,8 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		assertThat(throwable)
 			.isInstanceOf(FineAntsException.class)
 			.hasMessage(MemberErrorCode.FORBIDDEN_MEMBER.getMessage());
-		assertThat(portFolioHoldingRepository.findById(portfolioHolding.getId()).isPresent()).isTrue();
-		assertThat(portFolioHoldingRepository.findById(portfolioHolding2.getId()).isPresent()).isTrue();
-		assertThat(purchaseHistoryRepository.findById(purchaseHistory.getId()).isPresent()).isTrue();
+		assertThat(portFolioHoldingRepository.findById(portfolioHolding.getId())).isPresent();
+		assertThat(portFolioHoldingRepository.findById(portfolioHolding2.getId())).isPresent();
+		assertThat(purchaseHistoryRepository.findById(purchaseHistory.getId())).isPresent();
 	}
 }

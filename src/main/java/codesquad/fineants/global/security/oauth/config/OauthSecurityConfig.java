@@ -130,7 +130,7 @@ public class OauthSecurityConfig {
 
 	@Bean
 	public WebSecurityCustomizer webSecurity() {
-		return (web) -> web.ignoring()
+		return web -> web.ignoring()
 			.requestMatchers("/docs/**")
 			.requestMatchers("/static/docs/**")
 			.requestMatchers(PathRequest.toStaticResources().atCommonLocations());

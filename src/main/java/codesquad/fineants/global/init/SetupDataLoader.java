@@ -14,11 +14,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import codesquad.fineants.domain.dividend.domain.entity.StockDividend;
 import codesquad.fineants.domain.dividend.repository.StockDividendRepository;
 import codesquad.fineants.domain.exchangerate.domain.entity.ExchangeRate;
 import codesquad.fineants.domain.exchangerate.repository.ExchangeRateRepository;
-import codesquad.fineants.domain.exchangerate.service.ExchangeRateService;
-import codesquad.fineants.domain.kis.service.KisService;
+import codesquad.fineants.domain.exchangerate.service.ExchangeRateUpdateService;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.domain.entity.MemberRole;
 import codesquad.fineants.domain.member.domain.entity.Role;
@@ -26,6 +26,7 @@ import codesquad.fineants.domain.member.repository.MemberRepository;
 import codesquad.fineants.domain.member.repository.RoleRepository;
 import codesquad.fineants.domain.notificationpreference.domain.entity.NotificationPreference;
 import codesquad.fineants.domain.notificationpreference.repository.NotificationPreferenceRepository;
+import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
 import codesquad.fineants.global.errors.errorcode.MemberErrorCode;
 import codesquad.fineants.global.errors.errorcode.RoleErrorCode;
@@ -44,13 +45,12 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Slf4j
 public class SetupDataLoader {
-	private final KisService kisService;
 	private final RoleRepository roleRepository;
 	private final MemberRepository memberRepository;
 	private final NotificationPreferenceRepository notificationPreferenceRepository;
 	private final PasswordEncoder passwordEncoder;
 	private final ExchangeRateRepository exchangeRateRepository;
-	private final ExchangeRateService exchangeRateService;
+	private final ExchangeRateUpdateService exchangeRateUpdateService;
 	private final AdminProperties adminProperties;
 	private final ManagerProperties managerProperties;
 	private final UserProperties userProperties;
@@ -68,11 +68,6 @@ public class SetupDataLoader {
 		setupExchangeRateResources();
 		setupStockResources();
 		setupStockDividendResources();
-
-		log.info("애플리케이션 시작시 종목 현재가 및 종가 초기화 시작");
-		kisService.refreshCurrentPrice();
-		kisService.refreshClosingPrice();
-		log.info("애플리케이션 시작시 종목 현재가 및 종가 초기화 종료");
 	}
 
 	private void setupSecurityResources() {
@@ -167,7 +162,7 @@ public class SetupDataLoader {
 			.map(this::saveExchangeRateIfNotFound)
 			.toList();
 		log.info("create the exchange rates : {}", rates);
-		exchangeRateService.updateExchangeRates();
+		exchangeRateUpdateService.updateExchangeRates();
 	}
 
 	private ExchangeRate saveExchangeRateIfNotFound(ExchangeRate exchangeRate) {
@@ -175,10 +170,12 @@ public class SetupDataLoader {
 	}
 
 	private void setupStockResources() {
-		stockRepository.saveAll(amazonS3StockService.fetchStocks());
+		List<Stock> stocks = stockRepository.saveAll(amazonS3StockService.fetchStocks());
+		log.info("setupStock count is {}", stocks.size());
 	}
 
 	private void setupStockDividendResources() {
-		stockDividendRepository.saveAll(amazonS3DividendService.fetchDividends());
+		List<StockDividend> dividends = stockDividendRepository.saveAll(amazonS3DividendService.fetchDividends());
+		log.info("setupStockDividend count is {}", dividends.size());
 	}
 }

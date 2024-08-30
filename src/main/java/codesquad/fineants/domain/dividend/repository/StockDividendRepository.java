@@ -14,17 +14,24 @@ import codesquad.fineants.domain.dividend.domain.entity.StockDividend;
 
 public interface StockDividendRepository extends JpaRepository<StockDividend, Long> {
 
-	@Query("select sd from StockDividend sd join fetch sd.stock s order by s.tickerSymbol, sd.recordDate")
+	@Query("select sd from StockDividend sd join fetch sd.stock s "
+		+ "where sd.isDeleted = false "
+		+ "order by s.tickerSymbol, sd.dividendDates.recordDate")
 	List<StockDividend> findAllStockDividends();
 
-	@Query("select sd from StockDividend sd join fetch sd.stock s where s.tickerSymbol = :tickerSymbol order by s.tickerSymbol, sd.recordDate")
+	@Query("select sd from StockDividend sd join fetch sd.stock s "
+		+ "where s.tickerSymbol = :tickerSymbol and sd.isDeleted = false "
+		+ "order by s.tickerSymbol, sd.dividendDates.recordDate")
 	List<StockDividend> findStockDividendsByTickerSymbol(@Param("tickerSymbol") String tickerSymbol);
 
-	@Query("select sd from StockDividend sd join fetch sd.stock s where s.tickerSymbol = :tickerSymbol and sd.recordDate = :recordDate order by s.tickerSymbol, sd.recordDate")
+	@Query("select sd from StockDividend sd join fetch sd.stock s "
+		+ "where s.tickerSymbol = :tickerSymbol and sd.dividendDates.recordDate = :recordDate and sd.isDeleted = false "
+		+ "order by s.tickerSymbol, sd.dividendDates.recordDate")
 	Optional<StockDividend> findByTickerSymbolAndRecordDate(@Param("tickerSymbol") String tickerSymbol,
 		@Param("recordDate") LocalDate recordDate);
 
 	@Modifying
-	@Query("delete from StockDividend sd where sd.stock.tickerSymbol in :tickerSymbols")
+	@Query("update StockDividend sd set sd.isDeleted = true "
+		+ "where sd.stock.tickerSymbol in :tickerSymbols")
 	int deleteByTickerSymbols(@Param("tickerSymbols") Set<String> tickerSymbols);
 }
