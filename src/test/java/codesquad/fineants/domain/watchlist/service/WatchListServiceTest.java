@@ -11,7 +11,6 @@ import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.transaction.annotation.Transactional;
 
 import codesquad.fineants.AbstractContainerBaseTest;
@@ -22,7 +21,6 @@ import codesquad.fineants.domain.kis.client.KisCurrentPrice;
 import codesquad.fineants.domain.kis.domain.dto.response.KisClosingPrice;
 import codesquad.fineants.domain.kis.repository.ClosingPriceRepository;
 import codesquad.fineants.domain.kis.repository.CurrentPriceRedisRepository;
-import codesquad.fineants.domain.kis.service.KisService;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.repository.MemberRepository;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
@@ -68,9 +66,6 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 	@Autowired
 	private StockDividendRepository stockDividendRepository;
 
-	@MockBean
-	private KisService kisService;
-
 	@DisplayName("회원이 watchlist를 추가한다.")
 	@Test
 	void createWatchList() {
@@ -97,7 +92,7 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 		List<ReadWatchListsResponse> response = watchListService.readWatchLists(member.getId());
 
 		//then
-		assertThat(response.size()).isEqualTo(2);
+		assertThat(response).hasSize(2);
 	}
 
 	@DisplayName("회원이 watchlist 단일 목록을 조회한다.")
@@ -270,8 +265,8 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 		watchListService.deleteWatchLists(member.getId(), List.of(watchListId));
 
 		// then
-		assertThat(watchListRepository.findById(watchListId).isPresent()).isFalse();
-		assertThat(watchStockRepository.findByWatchList(watchList)).hasSize(0);
+		assertThat(watchListRepository.findById(watchListId)).isEmpty();
+		assertThat(watchStockRepository.findByWatchList(watchList)).isEmpty();
 	}
 
 	@DisplayName("사용자는 다른 사용자의 watchlists를 삭제할 수 없습니다")
@@ -310,8 +305,8 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 		watchListService.deleteWatchList(member.getId(), watchListId);
 
 		// then
-		assertThat(watchListRepository.findById(watchListId).isPresent()).isFalse();
-		assertThat(watchStockRepository.findByWatchList(watchList)).hasSize(0);
+		assertThat(watchListRepository.findById(watchListId)).isEmpty();
+		assertThat(watchStockRepository.findByWatchList(watchList)).isEmpty();
 	}
 
 	@DisplayName("사용자는 다른 사용자의 WatchList를 삭제할 수 없다")
@@ -353,7 +348,7 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 		watchListService.deleteWatchStocks(member.getId(), watchListId, request);
 
 		// then
-		assertThat(watchStockRepository.findById(watchStockId).isPresent()).isFalse();
+		assertThat(watchStockRepository.findById(watchStockId)).isEmpty();
 	}
 
 	@DisplayName("사용자는 다른 사용자의 watchList의 종목을 삭제할 수 없다")
@@ -395,7 +390,7 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 		watchListService.deleteWatchStock(member.getId(), watchListId, stock.getTickerSymbol());
 
 		// then
-		assertThat(watchStockRepository.findById(watchStockId).isPresent()).isFalse();
+		assertThat(watchStockRepository.findById(watchStockId)).isEmpty();
 	}
 
 	@SuppressWarnings("checkstyle:NoWhitespaceBefore")
@@ -476,7 +471,7 @@ class WatchListServiceTest extends AbstractContainerBaseTest {
 			stock.getTickerSymbol());
 
 		// then
-		assertThat(responseList.size()).isEqualTo(2);
+		assertThat(responseList).hasSize(2);
 
 		boolean hasStockForWatchList1 = false;
 		boolean hasStockForWatchList2 = false;

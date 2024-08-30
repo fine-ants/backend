@@ -1,7 +1,6 @@
 package codesquad.fineants.domain.watchlist.service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Service;
@@ -64,7 +63,7 @@ public class WatchListService {
 		Member member = findMember(memberId);
 		return watchListRepository.findByMember(member).stream()
 			.map(ReadWatchListsResponse::from)
-			.collect(Collectors.toList());
+			.toList();
 	}
 
 	@Transactional(readOnly = true)
