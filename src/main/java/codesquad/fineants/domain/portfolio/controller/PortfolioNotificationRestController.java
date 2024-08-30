@@ -29,7 +29,7 @@ public class PortfolioNotificationRestController {
 		@Valid @RequestBody PortfolioNotificationUpdateRequest request) {
 		log.info("포트폴리오 알림 설정 : request={}, portfolioId={}", request, portfolioId);
 		PortfolioNotificationUpdateResponse response = service.updateNotificationTargetGain(request, portfolioId);
-		if (response.getIsActive()) {
+		if (Boolean.TRUE.equals(response.getIsActive())) {
 			return ApiResponse.success(PortfolioSuccessCode.OK_MODIFY_PORTFOLIO_TARGET_GAIN_ACTIVE_NOTIFICATION);
 		}
 		return ApiResponse.success(PortfolioSuccessCode.OK_MODIFY_PORTFOLIO_TARGET_GAIN_INACTIVE_NOTIFICATION);
@@ -41,7 +41,7 @@ public class PortfolioNotificationRestController {
 		@Valid @RequestBody PortfolioNotificationUpdateRequest request) {
 		log.info("포트폴리오 알림 설정 : request={}, portfolioId={}", request, portfolioId);
 		PortfolioNotificationUpdateResponse response = service.updateNotificationMaximumLoss(request, portfolioId);
-		if (response.getIsActive()) {
+		if (Boolean.TRUE.equals(response.getIsActive())) {
 			return ApiResponse.success(PortfolioSuccessCode.OK_MODIFY_PORTFOLIO_MAXIMUM_LOSS_ACTIVE_NOTIFICATION);
 		}
 		return ApiResponse.success(PortfolioSuccessCode.OK_MODIFY_PORTFOLIO_MAXIMUM_LOSS_INACTIVE_NOTIFICATION);

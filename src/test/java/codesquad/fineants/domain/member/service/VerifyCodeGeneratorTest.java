@@ -22,6 +22,6 @@ class VerifyCodeGeneratorTest extends AbstractContainerBaseTest {
 		String result = verifyCodeGenerator.generate();
 
 		// then
-		assertThat(result.length()).isEqualTo(6);
+		assertThat(result).hasSize(6);
 	}
 }

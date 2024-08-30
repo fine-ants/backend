@@ -1,7 +1,6 @@
 package codesquad.fineants.domain.holding.domain.dto.response;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
@@ -25,7 +24,7 @@ public class PortfolioHoldingItem {
 			lastDayClosingPrice);
 		List<PurchaseHistoryItem> purchaseHistory = portfolioHolding.getPurchaseHistory().stream()
 			.map(PurchaseHistoryItem::from)
-			.collect(Collectors.toList());
+			.toList();
 		return new PortfolioHoldingItem(stockItem, holdingDetailItem, purchaseHistory);
 	}
 }

@@ -29,7 +29,7 @@ import codesquad.fineants.domain.member.domain.dto.response.SignUpServiceRespons
 import codesquad.fineants.domain.member.service.MemberService;
 import codesquad.fineants.global.util.ObjectMapperUtil;
 
-public class SignUpRestControllerDocsTest extends RestDocsSupport {
+class SignUpRestControllerDocsTest extends RestDocsSupport {
 
 	private MemberService memberService;
 

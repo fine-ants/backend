@@ -7,7 +7,6 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -163,7 +162,7 @@ class PortfolioHoldingTest extends AbstractContainerBaseTest {
 		Currency to = Currency.KRW;
 		List<Money> moneys = result.values().stream()
 			.map(expression -> expression.reduce(bank, to))
-			.collect(Collectors.toList());
+			.toList();
 		assertThat(moneys)
 			.usingComparatorForType(Expression::compareTo, Expression.class)
 			.isEqualTo(expected.values());

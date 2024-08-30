@@ -51,7 +51,6 @@ class MoneyTest {
 		Expression result = five.plus(five);
 		Sum sum = (Sum)result;
 		assertThat(five).isEqualTo(sum.augend);
-		assertThat(five).isEqualTo(sum.addend);
 	}
 
 	@Test

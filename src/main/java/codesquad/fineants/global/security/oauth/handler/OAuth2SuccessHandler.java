@@ -33,8 +33,8 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 		Authentication authentication) throws IOException {
 		OAuth2User oAuth2User;
 		Object principal = authentication.getPrincipal();
-		if (principal instanceof DefaultOidcUser) {
-			oAuth2User = (DefaultOidcUser)principal;
+		if (principal instanceof DefaultOidcUser defaultOidcUser) {
+			oAuth2User = defaultOidcUser;
 		} else {
 			oAuth2User = (OAuth2User)principal;
 		}

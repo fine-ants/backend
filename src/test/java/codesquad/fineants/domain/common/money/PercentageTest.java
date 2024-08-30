@@ -20,7 +20,7 @@ class PercentageTest {
 		// when
 		Double actual = percentage.toPercentage();
 		// then
-		Assertions.assertThat(actual.toString()).isEqualTo(expected);
+		Assertions.assertThat(actual.toString()).hasToString(expected);
 	}
 
 	@DisplayName("실수를 대상으로 십진수 포맷한다")

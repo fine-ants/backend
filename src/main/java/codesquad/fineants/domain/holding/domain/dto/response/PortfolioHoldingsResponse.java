@@ -2,7 +2,6 @@ package codesquad.fineants.domain.holding.domain.dto.response;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.gainhistory.domain.entity.PortfolioGainHistory;
@@ -28,7 +27,7 @@ public class PortfolioHoldingsResponse {
 		List<PortfolioHoldingItem> portfolioHoldingItems = portfolioHoldings.stream()
 			.map(portfolioHolding -> PortfolioHoldingItem.from(portfolioHolding,
 				lastDayClosingPriceMap.getOrDefault(portfolioHolding.getStock().getTickerSymbol(), Money.zero())))
-			.collect(Collectors.toList());
+			.toList();
 		return new PortfolioHoldingsResponse(portfolioDetailResponse, portfolioHoldingItems);
 	}
 

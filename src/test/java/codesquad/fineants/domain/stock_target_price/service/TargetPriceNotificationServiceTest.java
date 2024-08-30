@@ -64,8 +64,8 @@ class TargetPriceNotificationServiceTest extends AbstractContainerBaseTest {
 				.extracting("deletedIds")
 				.asList()
 				.hasSize(1),
-			() -> assertThat(targetPriceNotificationRepository.findById(id).isEmpty()).isTrue(),
-			() -> assertThat(repository.findById(stockTargetPrice.getId()).isEmpty()).isTrue()
+			() -> assertThat(targetPriceNotificationRepository.findById(id)).isEmpty(),
+			() -> assertThat(repository.findById(stockTargetPrice.getId())).isEmpty()
 		);
 	}
 
@@ -125,7 +125,7 @@ class TargetPriceNotificationServiceTest extends AbstractContainerBaseTest {
 
 		List<Long> ids = targetPriceNotifications.stream()
 			.map(TargetPriceNotification::getId)
-			.collect(Collectors.toList());
+			.toList();
 
 		setAuthentication(member);
 		// when
@@ -141,8 +141,8 @@ class TargetPriceNotificationServiceTest extends AbstractContainerBaseTest {
 				.extracting("deletedIds")
 				.asList()
 				.hasSize(2),
-			() -> assertThat(targetPriceNotificationRepository.findAllById(ids).isEmpty()).isTrue(),
-			() -> assertThat(repository.findById(stockTargetPrice.getId()).isEmpty()).isTrue()
+			() -> assertThat(targetPriceNotificationRepository.findAllById(ids)).isEmpty(),
+			() -> assertThat(repository.findById(stockTargetPrice.getId())).isEmpty()
 		);
 	}
 
@@ -187,7 +187,7 @@ class TargetPriceNotificationServiceTest extends AbstractContainerBaseTest {
 
 		List<Long> ids = targetPriceNotifications.stream()
 			.map(TargetPriceNotification::getId)
-			.collect(Collectors.toList());
+			.toList();
 
 		setAuthentication(member);
 		// when
@@ -216,7 +216,7 @@ class TargetPriceNotificationServiceTest extends AbstractContainerBaseTest {
 
 		List<Long> ids = targetPriceNotifications.stream()
 			.map(TargetPriceNotification::getId)
-			.collect(Collectors.toList());
+			.toList();
 
 		setAuthentication(hacker);
 		// when

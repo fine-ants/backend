@@ -1,7 +1,5 @@
 package codesquad.fineants.domain.notification.domain.entity;
 
-import java.time.LocalDateTime;
-
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.notification.domain.dto.response.save.NotificationSaveResponse;
 import codesquad.fineants.domain.notification.domain.dto.response.save.PortfolioNotificationSaveResponse;
@@ -19,7 +17,7 @@ public class PortfolioNotification extends Notification {
 
 	private PortfolioNotification(Long id, String title, Boolean isRead, NotificationType type, String referenceId,
 		String link, Member member, String name) {
-		super(LocalDateTime.now(), null, id, title, isRead, type, referenceId, link, member);
+		super(id, title, isRead, type, referenceId, link, member);
 		this.name = name;
 	}
 

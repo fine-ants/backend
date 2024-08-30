@@ -1,7 +1,5 @@
 package codesquad.fineants.domain.notification.domain.entity;
 
-import java.time.LocalDateTime;
-
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.common.money.MoneyConverter;
 import codesquad.fineants.domain.member.domain.entity.Member;
@@ -28,7 +26,7 @@ public class StockTargetPriceNotification extends Notification {
 	private StockTargetPriceNotification(Long id, String title, Boolean isRead, NotificationType type,
 		String referenceId, String link, Member member,
 		String stockName, Money targetPrice, Long targetPriceNotificationId) {
-		super(LocalDateTime.now(), null, id, title, isRead, type, referenceId, link, member);
+		super(id, title, isRead, type, referenceId, link, member);
 		this.stockName = stockName;
 		this.targetPrice = targetPrice;
 		this.targetPriceNotificationId = targetPriceNotificationId;
@@ -41,8 +39,7 @@ public class StockTargetPriceNotification extends Notification {
 	}
 
 	public static StockTargetPriceNotification newNotification(Long id, String stockName, Money targetPrice,
-		String title,
-		String referenceId, String link, Long targetPriceNotificationId, Member member) {
+		String title, String referenceId, String link, Long targetPriceNotificationId, Member member) {
 		return new StockTargetPriceNotification(id, title, false, NotificationType.STOCK_TARGET_PRICE, referenceId,
 			link, member, stockName, targetPrice, targetPriceNotificationId);
 	}

@@ -23,6 +23,6 @@ public class NicknameGenerator {
 	}
 
 	public String generate() {
-		return String.join(EMPTY, prefix, UUID.randomUUID().toString().replaceAll(HYPHEN, EMPTY).substring(0, len));
+		return String.join(EMPTY, prefix, UUID.randomUUID().toString().replace(HYPHEN, EMPTY).substring(0, len));
 	}
 }

@@ -48,7 +48,6 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.NamedAttributeNode;
 import jakarta.persistence.NamedEntityGraph;
-import jakarta.persistence.NamedEntityGraphs;
 import jakarta.persistence.NamedSubgraph;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
@@ -60,15 +59,13 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
-@NamedEntityGraphs({
-	@NamedEntityGraph(name = "Portfolio.withAll", attributeNodes = {
-		@NamedAttributeNode("member"),
-		@NamedAttributeNode(value = "portfolioHoldings", subgraph = "portfolioHoldings")
-	}, subgraphs = {
-		@NamedSubgraph(name = "portfolioHoldings", attributeNodes = {
-			@NamedAttributeNode("stock")
-		})})
-})
+@NamedEntityGraph(name = "Portfolio.withAll", attributeNodes = {
+	@NamedAttributeNode("member"),
+	@NamedAttributeNode(value = "portfolioHoldings", subgraph = "portfolioHoldings")
+}, subgraphs = {
+	@NamedSubgraph(name = "portfolioHoldings", attributeNodes = {
+		@NamedAttributeNode("stock")
+	})})
 @Slf4j
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)

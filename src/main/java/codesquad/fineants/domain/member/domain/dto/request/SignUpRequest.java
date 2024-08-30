@@ -19,10 +19,10 @@ public class SignUpRequest {
 	@Pattern(regexp = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6}$", message = "잘못된 입력 형식입니다")
 	@NotBlank(message = "이메일은 필수 정보입니다")
 	private String email;
-	@Pattern(regexp = "^(?=.*[a-zA-Z])(?=.*[0-9])(?=.*[!@#$%^&*]).{8,16}$", message = "잘못된 입력 형식입니다")
+	@Pattern(regexp = "^(?=.*[a-zA-Z])(?=.*[\\d])(?=.*[!@#$%^&*]).{8,16}$", message = "잘못된 입력 형식입니다")
 	@NotBlank(message = "비밀번호는 필수 정보입니다")
 	private String password;
-	@Pattern(regexp = "^(?=.*[a-zA-Z])(?=.*[0-9])(?=.*[!@#$%^&*]).{8,16}$", message = "잘못된 입력 형식입니다")
+	@Pattern(regexp = "^(?=.*[a-zA-Z])(?=.*[\\d])(?=.*[!@#$%^&*]).{8,16}$", message = "잘못된 입력 형식입니다")
 	@NotBlank(message = "비밀번호 확인은 필수 정보입니다")
 	private String passwordConfirm;
 }
