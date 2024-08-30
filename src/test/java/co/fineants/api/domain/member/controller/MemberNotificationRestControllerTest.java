@@ -1,5 +1,6 @@
 package co.fineants.api.domain.member.controller;
 
+import static co.fineants.api.domain.notification.domain.entity.type.NotificationType.*;
 import static org.hamcrest.Matchers.*;
 import static org.mockito.BDDMockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;

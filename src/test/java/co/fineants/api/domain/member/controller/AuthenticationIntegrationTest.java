@@ -1,4 +1,4 @@
-package co.fineants.domain.member.controller;
+package co.fineants.api.domain.member.controller;
 
 import static io.restassured.RestAssured.*;
 import static org.hamcrest.Matchers.*;
@@ -20,7 +20,7 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseCookie;
 
-import co.fineants.AbstractContainerBaseTest;
+import co.fineants.api.AbstractContainerBaseTest;
 import co.fineants.api.domain.member.domain.entity.Member;
 import co.fineants.api.domain.member.repository.MemberRepository;
 import co.fineants.api.domain.member.service.OauthMemberRedisService;

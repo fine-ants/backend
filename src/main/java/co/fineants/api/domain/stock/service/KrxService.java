@@ -79,7 +79,7 @@ public class KrxService {
 		result.add(ACCEPT_CHARSET, StandardCharsets.UTF_8.name());
 		return result;
 	}
-	
+
 	private MultiValueMap<String, String> createKospiSectorBody() {
 		MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
 		formData.add("bld", "dbms/MDC/STAT/standard/MDCSTAT03901");

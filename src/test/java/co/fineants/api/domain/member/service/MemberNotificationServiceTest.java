@@ -1,5 +1,6 @@
 package co.fineants.api.domain.member.service;
 
+import static co.fineants.api.domain.notification.domain.entity.type.NotificationType.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
 

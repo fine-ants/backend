@@ -49,7 +49,7 @@ public class StockDividend extends BaseEntity {
 
 	@Column(name = "is_deleted", nullable = false)
 	private boolean isDeleted;
-  
+
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "ticker_symbol")
 	private Stock stock;
@@ -152,7 +152,7 @@ public class StockDividend extends BaseEntity {
 	public boolean hasInRangeForRecordDate(LocalDate from, LocalDate to) {
 		return dividendDates.hasInRangeForRecordDate(from, to);
 	}
-  
+
 	public boolean equalPaymentDate(LocalDate paymentDate) {
 		return dividendDates.equalPaymentDate(paymentDate);
 	}

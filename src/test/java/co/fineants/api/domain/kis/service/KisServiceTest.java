@@ -1,5 +1,6 @@
 package co.fineants.api.domain.kis.service;
 
+import static co.fineants.api.domain.stock.domain.dto.response.StockDataResponse.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
@@ -309,12 +310,13 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		Flux<StockIntegrationInfo> stocks = kisService.fetchStockInfoInRangedIpo();
 		// then
 		StepVerifier.create(stocks)
-			.expectNext(StockIntegrationInfo.create("000660", "에스케이하이닉스보통주", "SK hynix", "KR7000660001",
-				"전기,전자", Market.KOSPI))
+			.expectNext(
+				StockIntegrationInfo.create("000660", "에스케이하이닉스보통주", "SK hynix", "KR7000660001",
+					"전기,전자", Market.KOSPI))
 			.expectComplete()
 			.verify();
 	}
-	
+
 	@DisplayName("상장된 종목들의 상세 종목을 조회할 때 별도의 스레드에서 blocking되면 안된다")
 	@Test
 	void fetchStockInfoInRangedIpo_shouldNotBlockInSeparateThread() {

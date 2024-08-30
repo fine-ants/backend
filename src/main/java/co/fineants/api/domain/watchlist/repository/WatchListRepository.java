@@ -14,7 +14,7 @@ public interface WatchListRepository extends JpaRepository<WatchList, Long> {
 	List<WatchList> findByMember(Member member);
 
 	@Query(
-		"select new co.fineants.domain.watchlist.domain.dto.response.WatchListHasStockResponse(wl.id, wl.name, case when ws.id is not null then true else false end) "
+		"select new co.fineants.api.domain.watchlist.domain.dto.response.WatchListHasStockResponse(wl.id, wl.name, case when ws.id is not null then true else false end) "
 			+
 			"from WatchList wl left join wl.watchStocks ws on ws.stock.tickerSymbol = :tickerSymbol " +
 			"where wl.member = :member")

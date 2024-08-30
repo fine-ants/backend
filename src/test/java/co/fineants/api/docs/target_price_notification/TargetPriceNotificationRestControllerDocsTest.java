@@ -1,4 +1,4 @@
-package co.fineants.docs.target_price_notification;
+package co.fineants.api.docs.target_price_notification;
 
 import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -19,6 +19,7 @@ import org.mockito.Mockito;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.payload.JsonFieldType;
 
+import co.fineants.api.docs.RestDocsSupport;
 import co.fineants.api.domain.member.domain.entity.Member;
 import co.fineants.api.domain.stock.domain.entity.Stock;
 import co.fineants.api.domain.stock_target_price.controller.TargetPriceNotificationRestController;
@@ -27,7 +28,6 @@ import co.fineants.api.domain.stock_target_price.domain.entity.StockTargetPrice;
 import co.fineants.api.domain.stock_target_price.domain.entity.TargetPriceNotification;
 import co.fineants.api.domain.stock_target_price.service.TargetPriceNotificationService;
 import co.fineants.api.global.util.ObjectMapperUtil;
-import co.fineants.docs.RestDocsSupport;
 
 class TargetPriceNotificationRestControllerDocsTest extends RestDocsSupport {
 
