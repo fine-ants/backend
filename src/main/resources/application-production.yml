@@ -25,4 +25,4 @@ server:
 cron:
   expression:
     reload-stocks: '0 0 8 * * ?'
-    closing-price: '* * 16 * * *'
+    closing-price: '0 0 16 * * ?'
