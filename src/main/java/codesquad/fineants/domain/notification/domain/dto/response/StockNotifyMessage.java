@@ -1,5 +1,7 @@
 package codesquad.fineants.domain.notification.domain.dto.response;
 
+import java.util.Objects;
+
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.notification.domain.entity.type.NotificationType;
 import lombok.AccessLevel;
@@ -43,5 +45,23 @@ public class StockNotifyMessage extends NotifyMessage {
 	@Override
 	public String getIdToSentHistory() {
 		return String.format("targetPriceNotification:%d", targetPriceNotificationId);
+	}
+
+	@Override
+	public boolean equals(Object object) {
+		if (this == object)
+			return true;
+		if (object == null || getClass() != object.getClass())
+			return false;
+		if (!super.equals(object))
+			return false;
+		StockNotifyMessage that = (StockNotifyMessage)object;
+		return Objects.equals(stockName, that.stockName) && Objects.equals(targetPrice,
+			that.targetPrice) && Objects.equals(targetPriceNotificationId, that.targetPriceNotificationId);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(super.hashCode(), stockName, targetPrice, targetPriceNotificationId);
 	}
 }

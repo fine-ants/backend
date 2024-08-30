@@ -32,7 +32,7 @@ import codesquad.fineants.domain.purchasehistory.service.PurchaseHistoryService;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.global.util.ObjectMapperUtil;
 
-public class PurchaseHistoryRestControllerDocsTest extends RestDocsSupport {
+class PurchaseHistoryRestControllerDocsTest extends RestDocsSupport {
 
 	private final PurchaseHistoryService service = Mockito.mock(PurchaseHistoryService.class);
 

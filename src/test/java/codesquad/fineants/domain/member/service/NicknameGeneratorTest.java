@@ -22,6 +22,6 @@ class NicknameGeneratorTest extends AbstractContainerBaseTest {
 		String nickname = generator.generate();
 
 		// then
-		Assertions.assertThat(nickname.length()).isEqualTo(expectedLength);
+		Assertions.assertThat(nickname).hasSize(expectedLength);
 	}
 }

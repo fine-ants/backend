@@ -26,7 +26,7 @@ import codesquad.fineants.domain.portfolio.domain.entity.Portfolio;
 import codesquad.fineants.domain.portfolio.service.PortfolioNotificationService;
 import codesquad.fineants.global.util.ObjectMapperUtil;
 
-public class PortfolioNotificationRestControllerDocsTest extends RestDocsSupport {
+class PortfolioNotificationRestControllerDocsTest extends RestDocsSupport {
 
 	private final PortfolioNotificationService service = mock(PortfolioNotificationService.class);
 

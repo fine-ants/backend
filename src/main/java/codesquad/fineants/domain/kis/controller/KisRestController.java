@@ -84,7 +84,7 @@ public class KisRestController {
 	public Mono<ApiResponse<Set<StockDataResponse.StockIntegrationInfo>>> fetchStockInfoInRangedIpo() {
 		Mono<Set<StockDataResponse.StockIntegrationInfo>> result = service.fetchStockInfoInRangedIpo()
 			.collect(Collectors.toUnmodifiableSet());
-		return result.map(data -> ApiResponse.success(KisSuccessCode.OK_FETCH_IPO_SEARCh_STOCK_INFO, data));
+		return result.map(data -> ApiResponse.success(KisSuccessCode.OK_FETCH_IPO_SEARCH_STOCK_INFO, data));
 	}
 
 	// 배당 일정 조회

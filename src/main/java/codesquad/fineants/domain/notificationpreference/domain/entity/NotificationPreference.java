@@ -1,7 +1,5 @@
 package codesquad.fineants.domain.notificationpreference.domain.entity;
 
-import java.time.LocalDateTime;
-
 import codesquad.fineants.domain.BaseEntity;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import jakarta.persistence.Entity;
@@ -12,13 +10,11 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Entity
 public class NotificationPreference extends BaseEntity {
 
@@ -38,16 +34,14 @@ public class NotificationPreference extends BaseEntity {
 	@JoinColumn(name = "member_id")
 	private Member member;
 
-	NotificationPreference(boolean browserNotify, boolean targetGainNotify, boolean maxLossNotify,
+	private NotificationPreference(boolean browserNotify, boolean targetGainNotify, boolean maxLossNotify,
 		boolean targetPriceNotify, Member member) {
-		this(LocalDateTime.now(), null, null, browserNotify, targetGainNotify, maxLossNotify, targetPriceNotify,
-			member);
+		this(null, browserNotify, targetGainNotify, maxLossNotify, targetPriceNotify, member);
 	}
 
-	NotificationPreference(LocalDateTime createAt, LocalDateTime modifiedAt, Long id,
-		boolean browserNotify, boolean targetGainNotify, boolean maxLossNotify, boolean targetPriceNotify,
+	private NotificationPreference(Long id, boolean browserNotify, boolean targetGainNotify, boolean maxLossNotify,
+		boolean targetPriceNotify,
 		Member member) {
-		super(createAt, modifiedAt);
 		this.id = id;
 		this.browserNotify = browserNotify;
 		this.targetGainNotify = targetGainNotify;

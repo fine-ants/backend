@@ -2,7 +2,6 @@ package codesquad.fineants.domain.portfolio.domain.dto.response;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import codesquad.fineants.domain.gainhistory.domain.entity.PortfolioGainHistory;
 import codesquad.fineants.domain.kis.repository.CurrentPriceRedisRepository;
@@ -35,6 +34,6 @@ public class PortfoliosResponse {
 				portfolio.applyCurrentPriceAllHoldingsBy(manager);
 				return PortFolioItem.of(portfolio, portfolioGainHistoryMap.get(portfolio));
 			})
-			.collect(Collectors.toList());
+			.toList();
 	}
 }

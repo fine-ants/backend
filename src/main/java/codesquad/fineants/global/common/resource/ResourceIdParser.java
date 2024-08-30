@@ -7,6 +7,7 @@ import java.util.List;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -23,11 +24,11 @@ public class ResourceIdParser {
 		for (int i = 0; i < parameterAnnotations.length; i++) {
 			for (Annotation annotation : parameterAnnotations[i]) {
 				if (annotation instanceof ResourceId) {
+					Assert.isTrue(args[i] instanceof Long, "args[i]=" + args[i] + " must Long type");
 					result = Collections.singletonList((Long)args[i]);
-					break;
 				} else if (annotation instanceof ResourceIds) {
+					Assert.isTrue(args[i] instanceof List, "args[i]=" + args[i] + " must List type");
 					result = (List<Long>)args[i];
-					break;
 				}
 			}
 		}

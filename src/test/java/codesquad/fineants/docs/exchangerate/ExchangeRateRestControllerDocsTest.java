@@ -24,16 +24,18 @@ import codesquad.fineants.domain.exchangerate.domain.dto.response.ExchangeRateIt
 import codesquad.fineants.domain.exchangerate.domain.dto.response.ExchangeRateListResponse;
 import codesquad.fineants.domain.exchangerate.domain.entity.ExchangeRate;
 import codesquad.fineants.domain.exchangerate.service.ExchangeRateService;
+import codesquad.fineants.domain.exchangerate.service.ExchangeRateUpdateService;
 import codesquad.fineants.global.success.ExchangeRateSuccessCode;
 import codesquad.fineants.global.util.ObjectMapperUtil;
 
-public class ExchangeRateRestControllerDocsTest extends RestDocsSupport {
+class ExchangeRateRestControllerDocsTest extends RestDocsSupport {
 
 	private final ExchangeRateService service = Mockito.mock(ExchangeRateService.class);
+	private final ExchangeRateUpdateService exchangeRateUpdateService = Mockito.mock(ExchangeRateUpdateService.class);
 
 	@Override
 	protected Object initController() {
-		return new ExchangeRateRestController(service);
+		return new ExchangeRateRestController(service, exchangeRateUpdateService);
 	}
 
 	@DisplayName("환율 추가 API")

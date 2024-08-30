@@ -23,7 +23,7 @@ import codesquad.fineants.domain.portfolio.domain.dto.response.PortfolioNotifica
 import codesquad.fineants.domain.portfolio.domain.dto.response.PortfolioNotificationSettingSearchResponse;
 import codesquad.fineants.domain.portfolio.service.PortfolioNotificationSettingService;
 
-public class PortfolioNotificationSettingRestControllerDocsTest extends RestDocsSupport {
+class PortfolioNotificationSettingRestControllerDocsTest extends RestDocsSupport {
 
 	private final PortfolioNotificationSettingService service = Mockito.mock(PortfolioNotificationSettingService.class);
 

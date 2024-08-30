@@ -11,7 +11,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.DisplayName;
@@ -35,7 +34,7 @@ import codesquad.fineants.domain.watchlist.domain.dto.response.WatchListHasStock
 import codesquad.fineants.domain.watchlist.service.WatchListService;
 import codesquad.fineants.global.util.ObjectMapperUtil;
 
-public class WatchListRestControllerDocsTest extends RestDocsSupport {
+class WatchListRestControllerDocsTest extends RestDocsSupport {
 
 	private final WatchListService service = Mockito.mock(WatchListService.class);
 
@@ -102,7 +101,7 @@ public class WatchListRestControllerDocsTest extends RestDocsSupport {
 		given(service.readWatchLists(anyLong()))
 			.willReturn(Stream.of(createWatchList(member))
 				.map(ReadWatchListsResponse::from)
-				.collect(Collectors.toList()));
+				.toList());
 
 		// when & then
 		mockMvc.perform(RestDocumentationRequestBuilders.get("/api/watchlists")
@@ -429,8 +428,8 @@ public class WatchListRestControllerDocsTest extends RestDocsSupport {
 
 		// when & then
 		mockMvc.perform(
-				RestDocumentationRequestBuilders.delete("/api/watchlists/{watchlistId}/stock/{tickerSymbol}", watchlistId,
-						tickerSymbol)
+				RestDocumentationRequestBuilders.delete("/api/watchlists/{watchlistId}/stock/{tickerSymbol}",
+						watchlistId, tickerSymbol)
 					.cookie(createTokenCookies()))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("code").value(equalTo(200)))

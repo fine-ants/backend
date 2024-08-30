@@ -24,7 +24,7 @@ public class StockMarketObserver implements Observer<String> {
 
 	@Override
 	public void onSubscribe(@NonNull Disposable d) {
-
+		throw new UnsupportedOperationException("Not implemented");
 	}
 
 	@Override

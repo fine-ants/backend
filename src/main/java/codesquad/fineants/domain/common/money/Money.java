@@ -56,7 +56,7 @@ public class Money implements Expression {
 	}
 
 	public static Money won(double amount) {
-		return won(new BigDecimal(amount));
+		return won(BigDecimal.valueOf(amount));
 	}
 
 	public static Money zero() {
@@ -70,7 +70,7 @@ public class Money implements Expression {
 	@Override
 	public Money reduce(Bank bank, Currency to) {
 		double rate = bank.rate(currency, to);
-		return new Money(amount.divide(new BigDecimal(rate), 4, RoundingMode.HALF_UP), to);
+		return new Money(amount.divide(BigDecimal.valueOf(rate), 4, RoundingMode.HALF_UP), to);
 	}
 
 	@Override
@@ -155,14 +155,7 @@ public class Money implements Expression {
 		Money m2 = bank.reduce(expression, currency);
 		return m1.amount.compareTo(m2.amount);
 	}
-
-	public int compareTo(Money money) {
-		if (this.currency.equals(money.currency)) {
-			return this.amount.compareTo(money.amount);
-		}
-		throw new IllegalArgumentException("Not match currency");
-	}
-
+	
 	@Override
 	public boolean equals(Object object) {
 		if (this == object) {

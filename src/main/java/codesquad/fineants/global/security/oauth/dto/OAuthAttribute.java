@@ -36,8 +36,8 @@ public class OAuthAttribute {
 			case "naver" -> {
 				return ofNaver(attributes, nameAttributeKey);
 			}
+			default -> throw new IllegalArgumentException("Invalid OAuth Provider");
 		}
-		throw new IllegalArgumentException("Invalid OAuth Provider");
 	}
 
 	private static OAuthAttribute ofGoogle(Map<String, Object> attributes, String nameAttributeKey) {

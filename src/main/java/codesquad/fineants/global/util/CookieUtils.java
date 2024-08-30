@@ -8,7 +8,11 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-public class CookieUtils {
+public final class CookieUtils {
+
+	private CookieUtils() {
+		throw new IllegalStateException("Utility class");
+	}
 
 	public static String getAccessToken(HttpServletRequest request) {
 		Cookie[] cookies = request.getCookies();

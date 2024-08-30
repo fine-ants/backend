@@ -17,6 +17,7 @@ import codesquad.fineants.domain.exchangerate.domain.dto.request.ExchangeRateCre
 import codesquad.fineants.domain.exchangerate.domain.dto.response.ExchangeRateDeleteRequest;
 import codesquad.fineants.domain.exchangerate.domain.dto.response.ExchangeRateListResponse;
 import codesquad.fineants.domain.exchangerate.service.ExchangeRateService;
+import codesquad.fineants.domain.exchangerate.service.ExchangeRateUpdateService;
 import codesquad.fineants.global.api.ApiResponse;
 import codesquad.fineants.global.success.ExchangeRateSuccessCode;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +28,7 @@ import lombok.RequiredArgsConstructor;
 public class ExchangeRateRestController {
 
 	private final ExchangeRateService service;
+	private final ExchangeRateUpdateService exchangeRateUpdateService;
 
 	@ResponseStatus(HttpStatus.CREATED)
 	@PostMapping
@@ -46,7 +48,7 @@ public class ExchangeRateRestController {
 	@PutMapping
 	@Secured(value = {"ROLE_MANAGER", "ROLE_ADMIN"})
 	public ApiResponse<Void> updateExchangeRates() {
-		service.updateExchangeRates();
+		exchangeRateUpdateService.updateExchangeRates();
 		return ApiResponse.success(ExchangeRateSuccessCode.UPDATE_EXCHANGE_RATE);
 	}
 

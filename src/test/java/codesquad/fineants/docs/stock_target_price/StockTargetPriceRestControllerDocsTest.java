@@ -44,7 +44,7 @@ import codesquad.fineants.domain.stock_target_price.domain.entity.StockTargetPri
 import codesquad.fineants.domain.stock_target_price.service.StockTargetPriceService;
 import codesquad.fineants.global.util.ObjectMapperUtil;
 
-public class StockTargetPriceRestControllerDocsTest extends RestDocsSupport {
+class StockTargetPriceRestControllerDocsTest extends RestDocsSupport {
 
 	private final StockTargetPriceService service = Mockito.mock(StockTargetPriceService.class);
 

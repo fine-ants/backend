@@ -24,12 +24,12 @@ public class OauthMemberRedisService {
 	}
 
 	public void banRefreshToken(String token) {
-		long expiration = 1000 * 60 * 60 * 24 * 7;
+		long expiration = 1000L * 60L * 60L * 24L * 7L;
 		banToken(token, expiration);
 	}
 
 	public void banAccessToken(String token) {
-		long expiration = 1000 * 60 * 5;
+		long expiration = 1000L * 60L * 5L;
 		banToken(token, expiration);
 	}
 
