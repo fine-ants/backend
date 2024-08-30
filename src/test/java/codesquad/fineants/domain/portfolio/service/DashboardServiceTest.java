@@ -35,7 +35,7 @@ import codesquad.fineants.domain.purchasehistory.repository.PurchaseHistoryRepos
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
 
-public class DashboardServiceTest extends AbstractContainerBaseTest {
+class DashboardServiceTest extends AbstractContainerBaseTest {
 	@Autowired
 	private MemberRepository memberRepository;
 	@Autowired
@@ -275,7 +275,7 @@ public class DashboardServiceTest extends AbstractContainerBaseTest {
 					LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
 					Money.won(160L)
 				),
-			() -> assertThat(responses.size()).isEqualTo(1)
+			() -> assertThat(responses).asList().hasSize(1)
 		);
 	}
 }

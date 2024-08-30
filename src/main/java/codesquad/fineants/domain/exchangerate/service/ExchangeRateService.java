@@ -22,6 +22,7 @@ public class ExchangeRateService {
 
 	private final ExchangeRateRepository exchangeRateRepository;
 	private final ExchangeRateWebClient webClient;
+	private final ExchangeRateUpdateService exchangeRateUpdateService;
 
 	@Transactional
 	@Secured("ROLE_ADMIN")
@@ -66,7 +67,7 @@ public class ExchangeRateService {
 		findBaseExchangeRate().changeBase(false);
 		// code의 base 값을 true로 변경
 		findExchangeRateBy(code).changeBase(true);
-		this.updateExchangeRates();
+		exchangeRateUpdateService.updateExchangeRates();
 	}
 
 	@Transactional

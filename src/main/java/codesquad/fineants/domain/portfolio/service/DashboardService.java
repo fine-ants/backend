@@ -6,7 +6,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Service;
@@ -133,7 +132,6 @@ public class DashboardService {
 			.stream()
 			.sorted()
 			.map(key -> DashboardLineChartResponse.of(key, timeValueMap.get(key)))
-			.collect(
-				Collectors.toList());
+			.toList();
 	}
 }

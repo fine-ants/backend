@@ -136,7 +136,7 @@ public abstract class ControllerTestSupport {
 		return Stock.of("005930", "삼성전자보통주", "SamsungElectronics", "KR7005930003", "전기전자", Market.KOSPI);
 	}
 
-	protected StockDividend createStockDividend(LocalDate recordDate, LocalDate exDividendDate, LocalDate paymentDate,
+	protected StockDividend createStockDividend(LocalDate recordDate, LocalDate paymentDate,
 		Stock stock) {
 		return StockDividend.create(Money.won(361), recordDate, paymentDate, stock);
 	}
