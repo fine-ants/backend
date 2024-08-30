@@ -2,7 +2,6 @@ package codesquad.fineants.domain.stock_target_price.domain.dto.response;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.kis.repository.ClosingPriceRepository;
@@ -32,7 +31,7 @@ public class TargetPriceNotificationSearchItem {
 
 		List<TargetPriceItem> targetPrices = stockTargetPrice.getTargetPriceNotifications().stream()
 			.map(TargetPriceItem::from)
-			.collect(Collectors.toList());
+			.toList();
 
 		return TargetPriceNotificationSearchItem.builder()
 			.companyName(stockTargetPrice.getStock().getCompanyName())

@@ -164,7 +164,7 @@ public class PortfolioHolding extends BaseEntity {
 		Expression totalDividend = Money.zero();
 		for (PurchaseHistory history : purchaseHistory) {
 			for (StockDividend stockDividend : stockDividends) {
-				if (history.isSatisfiedDividend(stockDividend.getExDividendDate())) {
+				if (stockDividend.isSatisfiedBy(history)) {
 					totalDividend = totalDividend.plus(stockDividend.calculateDividendSum(history.getNumShares()));
 				}
 			}
@@ -188,8 +188,7 @@ public class PortfolioHolding extends BaseEntity {
 			.flatMap(stockDividend ->
 				Stream.of(
 					purchaseHistory.stream()
-						.filter(history ->
-							history.getPurchaseDate().isBefore(stockDividend.getExDividendDate().atStartOfDay()))
+						.filter(stockDividend::isPurchaseDateBeforeExDividendDate)
 						.map(PurchaseHistory::getNumShares)
 						.reduce(Count.zero(), Count::add)
 						.multiply(stockDividend.getDividend())

@@ -27,7 +27,7 @@ import codesquad.fineants.domain.fcm.domain.dto.response.FcmRegisterResponse;
 import codesquad.fineants.domain.fcm.service.FcmService;
 import codesquad.fineants.global.util.ObjectMapperUtil;
 
-public class FcmRestControllerDocsTest extends RestDocsSupport {
+class FcmRestControllerDocsTest extends RestDocsSupport {
 
 	private final FcmService fcmService = Mockito.mock(FcmService.class);
 

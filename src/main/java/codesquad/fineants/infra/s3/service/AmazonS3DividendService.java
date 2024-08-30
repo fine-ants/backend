@@ -27,6 +27,7 @@ import com.amazonaws.services.s3.model.PutObjectResult;
 import com.amazonaws.services.s3.model.S3Object;
 
 import codesquad.fineants.domain.dividend.domain.entity.StockDividend;
+import codesquad.fineants.domain.dividend.domain.parser.StockDividendParser;
 import codesquad.fineants.domain.stock.domain.entity.Stock;
 import codesquad.fineants.domain.stock.repository.StockRepository;
 import lombok.RequiredArgsConstructor;
@@ -43,6 +44,7 @@ public class AmazonS3DividendService {
 	@Value("${aws.s3.dividend-csv-path}")
 	private String dividendPath;
 	private final StockRepository stockRepository;
+	private final StockDividendParser stockDividendParser;
 
 	@Transactional(readOnly = true)
 	public List<StockDividend> fetchDividends() {
@@ -68,7 +70,7 @@ public class AmazonS3DividendService {
 			return br.lines()
 				.skip(1) // skip title
 				.map(line -> line.split(CSV_SEPARATOR))
-				.map(columns -> StockDividend.parseCsvLine(columns, stockMap))
+				.map(columns -> stockDividendParser.parseCsvLine(columns, stockMap))
 				.distinct()
 				.toList();
 		} catch (Exception e) {

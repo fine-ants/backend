@@ -29,7 +29,7 @@ import codesquad.fineants.domain.stock_target_price.domain.entity.TargetPriceNot
 import codesquad.fineants.domain.stock_target_price.service.TargetPriceNotificationService;
 import codesquad.fineants.global.util.ObjectMapperUtil;
 
-public class TargetPriceNotificationRestControllerDocsTest extends RestDocsSupport {
+class TargetPriceNotificationRestControllerDocsTest extends RestDocsSupport {
 
 	private final TargetPriceNotificationService service = Mockito.mock(TargetPriceNotificationService.class);
 

@@ -18,7 +18,7 @@ import codesquad.fineants.domain.dividend.domain.entity.StockDividend;
 import codesquad.fineants.domain.dividend.repository.StockDividendRepository;
 import codesquad.fineants.domain.exchangerate.domain.entity.ExchangeRate;
 import codesquad.fineants.domain.exchangerate.repository.ExchangeRateRepository;
-import codesquad.fineants.domain.exchangerate.service.ExchangeRateService;
+import codesquad.fineants.domain.exchangerate.service.ExchangeRateUpdateService;
 import codesquad.fineants.domain.member.domain.entity.Member;
 import codesquad.fineants.domain.member.domain.entity.MemberRole;
 import codesquad.fineants.domain.member.domain.entity.Role;
@@ -50,7 +50,7 @@ public class SetupDataLoader {
 	private final NotificationPreferenceRepository notificationPreferenceRepository;
 	private final PasswordEncoder passwordEncoder;
 	private final ExchangeRateRepository exchangeRateRepository;
-	private final ExchangeRateService exchangeRateService;
+	private final ExchangeRateUpdateService exchangeRateUpdateService;
 	private final AdminProperties adminProperties;
 	private final ManagerProperties managerProperties;
 	private final UserProperties userProperties;
@@ -162,7 +162,7 @@ public class SetupDataLoader {
 			.map(this::saveExchangeRateIfNotFound)
 			.toList();
 		log.info("create the exchange rates : {}", rates);
-		exchangeRateService.updateExchangeRates();
+		exchangeRateUpdateService.updateExchangeRates();
 	}
 
 	private ExchangeRate saveExchangeRateIfNotFound(ExchangeRate exchangeRate) {

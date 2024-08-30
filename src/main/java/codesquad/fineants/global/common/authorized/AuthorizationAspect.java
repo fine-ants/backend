@@ -52,7 +52,7 @@ public class AuthorizationAspect {
 	private List<Long> getResourceId(ProceedingJoinPoint joinPoint) {
 		try {
 			return resourceIdParser.getResourceList(joinPoint);
-		} catch (Throwable e) {
+		} catch (Exception e) {
 			log.error(e.getMessage());
 			return Collections.emptyList();
 		}

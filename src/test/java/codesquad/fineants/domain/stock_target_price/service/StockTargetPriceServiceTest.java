@@ -303,8 +303,8 @@ class StockTargetPriceServiceTest extends AbstractContainerBaseTest {
 		// then
 		assertAll(
 			() -> assertThat(
-				targetPriceNotificationRepository.findById(targetPriceNotification.getId()).isEmpty()).isTrue(),
-			() -> assertThat(repository.findById(stockTargetPrice.getId()).isEmpty()).isTrue()
+				targetPriceNotificationRepository.findById(targetPriceNotification.getId())).isEmpty(),
+			() -> assertThat(repository.findById(stockTargetPrice.getId())).isEmpty()
 		);
 	}
 

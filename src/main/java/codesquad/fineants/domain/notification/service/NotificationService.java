@@ -236,7 +236,7 @@ public class NotificationService {
 			.stream()
 			.map(StockTargetPrice::getTargetPriceNotifications)
 			.flatMap(Collection::stream)
-			.map(targetPriceNotification -> (Notifiable)targetPriceNotification)
+			.map(Notifiable.class::cast)
 			.toList();
 		Consumer<Long> sentFunction = sentManager::addTargetPriceSendHistory;
 		return TargetPriceNotifyMessageResponse.create(

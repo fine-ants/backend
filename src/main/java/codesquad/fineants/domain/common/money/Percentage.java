@@ -31,7 +31,7 @@ public class Percentage implements Comparable<Percentage> {
 	}
 
 	public static Percentage from(double value) {
-		return from(new BigDecimal(value));
+		return from(BigDecimal.valueOf(value));
 	}
 
 	public static Percentage from(BigDecimal value) {

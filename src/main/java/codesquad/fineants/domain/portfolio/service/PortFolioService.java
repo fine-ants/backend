@@ -108,7 +108,7 @@ public class PortFolioService {
 		Portfolio findPortfolio = findPortfolio(portfolioId);
 		List<Long> portfolioHoldingIds = portfolioHoldingRepository.findAllByPortfolio(findPortfolio).stream()
 			.map(PortfolioHolding::getId)
-			.collect(Collectors.toList());
+			.toList();
 
 		int delPortfolioGainHistoryCnt = portfolioGainHistoryRepository.deleteAllByPortfolioId(portfolioId);
 		log.info("포트폴리오 손익 내역 삭제 개수 : {}", delPortfolioGainHistoryCnt);
@@ -131,7 +131,7 @@ public class PortFolioService {
 			Portfolio portfolio = findPortfolio(portfolioId);
 			List<Long> portfolioStockIds = portfolioHoldingRepository.findAllByPortfolio(portfolio).stream()
 				.map(PortfolioHolding::getId)
-				.collect(Collectors.toList());
+				.toList();
 			purchaseHistoryRepository.deleteAllByPortfolioHoldingIdIn(portfolioStockIds);
 			portfolioHoldingRepository.deleteAllByPortfolioId(portfolio.getId());
 			portfolioGainHistoryRepository.deleteAllByPortfolioId(portfolioId);

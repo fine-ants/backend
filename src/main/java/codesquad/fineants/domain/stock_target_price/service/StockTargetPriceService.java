@@ -1,7 +1,6 @@
 package codesquad.fineants.domain.stock_target_price.service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Service;
@@ -113,7 +112,7 @@ public class StockTargetPriceService {
 		List<StockTargetPrice> stockTargetPrices = repository.findAllByMemberId(memberId);
 		List<TargetPriceNotificationSearchItem> stocks = stockTargetPrices.stream()
 			.map(stockTargetPrice -> TargetPriceNotificationSearchItem.from(stockTargetPrice, manager))
-			.collect(Collectors.toList());
+			.toList();
 		return TargetPriceNotificationSearchResponse.from(stocks);
 	}
 
@@ -127,7 +126,7 @@ public class StockTargetPriceService {
 			.stream()
 			.flatMap(stockTargetPrice -> stockTargetPrice.getTargetPriceNotifications().stream())
 			.map(TargetPriceNotificationSpecificItem::from)
-			.collect(Collectors.toList());
+			.toList();
 		TargetPriceNotificationSpecifiedSearchResponse response = TargetPriceNotificationSpecifiedSearchResponse.from(
 			targetPrices
 		);

@@ -11,7 +11,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -155,7 +154,7 @@ class MemberNotificationRestControllerTest extends ControllerTestSupport {
 		List<MemberNotification> mockNotifications = createNotifications();
 		List<Long> notificationIds = mockNotifications.stream()
 			.map(MemberNotification::getNotificationId)
-			.collect(Collectors.toList());
+			.toList();
 		given(notificationService.fetchMemberNotifications(anyLong(), anyList()))
 			.willReturn(notificationIds);
 

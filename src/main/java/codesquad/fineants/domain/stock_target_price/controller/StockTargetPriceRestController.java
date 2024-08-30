@@ -77,7 +77,7 @@ public class StockTargetPriceRestController {
 			authentication.getId());
 		log.info("종목 지정가 알림 수정 결과 : {}", response);
 		StockSuccessCode successCode =
-			response.getIsActive() ? StockSuccessCode.OK_UPDATE_TARGET_PRICE_NOTIFICATION_ACTIVE :
+			Boolean.TRUE.equals(response.getIsActive()) ? StockSuccessCode.OK_UPDATE_TARGET_PRICE_NOTIFICATION_ACTIVE :
 				StockSuccessCode.OK_UPDATE_TARGET_PRICE_NOTIFICATION_INACTIVE;
 		return ApiResponse.success(successCode);
 	}

@@ -44,19 +44,20 @@ public class StockCsvReader {
 
 		Set<Stock> result = new HashSet<>();
 		try (BufferedReader reader = new BufferedReader(new InputStreamReader(resource.getInputStream()))) {
-			Iterable<CSVRecord> records = CSVFormat.DEFAULT
-				.withHeader("stockCode", "tickerSymbol", "companyName", "companyNameEng", "market", "sector")
-				.withSkipHeaderRecord()
+			Iterable<CSVRecord> records = CSVFormat.Builder.create()
+				.setHeader("stockCode", "tickerSymbol", "companyName", "companyNameEng", "market", "sector")
+				.setSkipHeaderRecord(true)
+				.build()
 				.parse(reader);
 
-			for (CSVRecord record : records) {
+			for (CSVRecord csvRecord : records) {
 				Stock stock = Stock.of(
-					record.get("tickerSymbol"),
-					record.get("companyName"),
-					record.get("companyNameEng"),
-					record.get("stockCode"),
-					record.get("sector"),
-					Market.ofMarket(record.get("market"))
+					csvRecord.get("tickerSymbol"),
+					csvRecord.get("companyName"),
+					csvRecord.get("companyNameEng"),
+					csvRecord.get("stockCode"),
+					csvRecord.get("sector"),
+					Market.ofMarket(csvRecord.get("market"))
 				);
 				result.add(stock);
 			}
@@ -71,17 +72,18 @@ public class StockCsvReader {
 
 		Map<String, StockSectorResponse.SectorInfo> result = new HashMap<>();
 		try (BufferedReader reader = new BufferedReader(new InputStreamReader(resource.getInputStream()))) {
-			Iterable<CSVRecord> records = CSVFormat.DEFAULT
-				.withHeader("종목코드", "종목명", "시장구분", "업종명", "종가", "대비", "등락률", "시가총액")
-				.withSkipHeaderRecord()
+			Iterable<CSVRecord> records = CSVFormat.Builder.create()
+				.setHeader("종목코드", "종목명", "시장구분", "업종명", "종가", "대비", "등락률", "시가총액")
+				.setSkipHeaderRecord(true)
+				.build()
 				.parse(reader);
 
-			for (CSVRecord record : records) {
-				String tickerSymbol = formatCode(record.get("종목코드"));
+			for (CSVRecord csvRecord : records) {
+				String tickerSymbol = formatCode(csvRecord.get("종목코드"));
 				StockSectorResponse.SectorInfo sectorInfo = StockSectorResponse.SectorInfo.of(
 					tickerSymbol,
-					record.get("업종명"),
-					record.get("시장구분")
+					csvRecord.get("업종명"),
+					csvRecord.get("시장구분")
 				);
 				result.put(tickerSymbol, sectorInfo);
 			}
@@ -110,17 +112,18 @@ public class StockCsvReader {
 
 		Map<String, StockSectorResponse.SectorInfo> result = new HashMap<>();
 		try (BufferedReader reader = new BufferedReader(new InputStreamReader(resource.getInputStream()))) {
-			Iterable<CSVRecord> records = CSVFormat.DEFAULT
-				.withHeader("종목코드", "종목명", "시장구분", "업종명", "종가", "대비", "등락률", "시가총액")
-				.withSkipHeaderRecord()
+			Iterable<CSVRecord> records = CSVFormat.Builder.create()
+				.setHeader("종목코드", "종목명", "시장구분", "업종명", "종가", "대비", "등락률", "시가총액")
+				.setSkipHeaderRecord(true)
+				.build()
 				.parse(reader);
 
-			for (CSVRecord record : records) {
-				String tickerSymbol = formatCode(record.get("종목코드"));
+			for (CSVRecord csvRecord : records) {
+				String tickerSymbol = formatCode(csvRecord.get("종목코드"));
 				StockSectorResponse.SectorInfo sectorInfo = StockSectorResponse.SectorInfo.of(
 					tickerSymbol,
-					record.get("업종명"),
-					record.get("시장구분")
+					csvRecord.get("업종명"),
+					csvRecord.get("시장구분")
 				);
 				result.put(tickerSymbol, sectorInfo);
 			}
@@ -136,23 +139,24 @@ public class StockCsvReader {
 
 		List<StockDividend> result = new ArrayList<>();
 		try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-			Iterable<CSVRecord> records = CSVFormat.DEFAULT
-				.withHeader("id", "dividend", "recordDate", "paymentDate", "stockCode")
-				.withSkipHeaderRecord()
+			Iterable<CSVRecord> records = CSVFormat.Builder.create()
+				.setHeader("id", "dividend", "recordDate", "paymentDate", "stockCode")
+				.setSkipHeaderRecord(true)
+				.build()
 				.parse(reader);
 
 			Map<String, Stock> stockMap = stocks.stream()
 				.collect(Collectors.toMap(Stock::getStockCode, stock -> stock));
-			for (CSVRecord record : records) {
-				Stock stock = stockMap.get(record.get("stockCode"));
+			for (CSVRecord csvRecord : records) {
+				Stock stock = stockMap.get(csvRecord.get("stockCode"));
 				if (stock == null) {
 					continue;
 				}
 				StockDividend stockDividend = StockDividend.create(
-					Long.valueOf(record.get("id")),
-					Money.won(record.get("dividend")),
-					basicIso(record.get("recordDate")).orElse(null),
-					basicIso(record.get("paymentDate")).orElse(null),
+					Long.valueOf(csvRecord.get("id")),
+					Money.won(csvRecord.get("dividend")),
+					basicIso(csvRecord.get("recordDate")).orElse(null),
+					basicIso(csvRecord.get("paymentDate")).orElse(null),
 					stock
 				);
 				result.add(stockDividend);

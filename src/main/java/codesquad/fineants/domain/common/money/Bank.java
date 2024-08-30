@@ -1,11 +1,12 @@
 package codesquad.fineants.domain.common.money;
 
-import java.util.Hashtable;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public final class Bank {
 
 	private static Bank instance;
-	private final Hashtable<Pair, Double> rates = new Hashtable<>();
+	private final Map<Pair, Double> rates = new ConcurrentHashMap<>();
 
 	Bank() {
 	}

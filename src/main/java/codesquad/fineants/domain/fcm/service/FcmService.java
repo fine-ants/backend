@@ -1,7 +1,6 @@
 package codesquad.fineants.domain.fcm.service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.access.annotation.Secured;
@@ -95,6 +94,6 @@ public class FcmService {
 	public List<String> findTokens(Long memberId) {
 		return fcmRepository.findAllByMemberId(memberId).stream()
 			.map(FcmToken::getToken)
-			.collect(Collectors.toList());
+			.toList();
 	}
 }

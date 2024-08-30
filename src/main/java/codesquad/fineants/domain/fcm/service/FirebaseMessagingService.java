@@ -3,7 +3,6 @@ package codesquad.fineants.domain.fcm.service;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
@@ -38,7 +37,7 @@ public class FirebaseMessagingService {
 			BatchResponse batchResponse = firebaseMessaging.sendAll(messages);
 			return batchResponse.getResponses().stream()
 				.map(SendResponse::getMessageId)
-				.collect(Collectors.toList());
+				.toList();
 		} catch (FirebaseMessagingException e) {
 			log.error("푸시 알림 전송 실패 : {}", e.getMessage());
 			return Collections.emptyList();

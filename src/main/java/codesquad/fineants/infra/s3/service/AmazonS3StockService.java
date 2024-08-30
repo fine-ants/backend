@@ -26,6 +26,7 @@ import com.amazonaws.services.s3.model.PutObjectResult;
 import com.amazonaws.services.s3.model.S3Object;
 
 import codesquad.fineants.domain.stock.domain.entity.Stock;
+import codesquad.fineants.domain.stock.parser.StockParser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -44,6 +45,8 @@ public class AmazonS3StockService {
 	@Value("${aws.s3.stock-path}")
 	private String stockPath;
 
+	private final StockParser stockParser;
+
 	public List<Stock> fetchStocks() {
 		return getS3Object()
 			.map(this::parseStocks)
@@ -55,7 +58,7 @@ public class AmazonS3StockService {
 			return br.lines()
 				.skip(1) // skip title
 				.map(CSV_SEPARATOR_PATTERN::split)
-				.map(Stock::parse)
+				.map(stockParser::parse)
 				.distinct()
 				.toList();
 		} catch (Exception e) {

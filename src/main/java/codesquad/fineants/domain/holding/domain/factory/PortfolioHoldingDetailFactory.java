@@ -1,7 +1,6 @@
 package codesquad.fineants.domain.holding.domain.factory;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
 
@@ -28,7 +27,7 @@ public class PortfolioHoldingDetailFactory {
 					portfolioHolding.getLastDayClosingPrice(closingPriceRepository)
 				)
 			)
-			.collect(Collectors.toList());
+			.toList();
 	}
 
 	public List<PortfolioHoldingRealTimeItem> createPortfolioHoldingRealTimeItems(Portfolio portfolio) {
@@ -38,6 +37,6 @@ public class PortfolioHoldingDetailFactory {
 				portfolioHolding,
 				portfolioHolding.getLastDayClosingPrice(closingPriceRepository)
 			))
-			.collect(Collectors.toList());
+			.toList();
 	}
 }

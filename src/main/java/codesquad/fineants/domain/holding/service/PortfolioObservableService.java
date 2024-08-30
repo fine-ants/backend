@@ -17,7 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @RequiredArgsConstructor
 public class PortfolioObservableService {
-	private static final long TIMEOUT = 1000 * 40;
+	private static final long TIMEOUT = 1000L * 40L;
 	private final PortfolioObservable portfolioObservable;
 	private final StockMarketChecker stockMarketChecker;
 

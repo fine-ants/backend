@@ -3,6 +3,8 @@ package codesquad.fineants.infra.s3.service;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -43,9 +45,16 @@ public class AmazonS3Service {
 		// get S3
 		String path = amazonS3.getUrl(bucketName, key).toString();
 		// delete object
-		boolean delete = file.delete();
-		log.info("임시 저장 파일의 삭제 결과 : {}", delete);
+		try {
+			cleanup(file.toPath());
+		} catch (IOException e) {
+			log.error(e.getMessage());
+		}
 		return path;
+	}
+
+	private void cleanup(Path path) throws IOException {
+		Files.delete(path);
 	}
 
 	private Optional<File> convertMultiPartFileToFile(MultipartFile file) {

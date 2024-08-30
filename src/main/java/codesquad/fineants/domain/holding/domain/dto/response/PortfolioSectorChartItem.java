@@ -5,6 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import codesquad.fineants.domain.common.money.Percentage;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
@@ -13,6 +14,7 @@ import lombok.ToString;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @ToString
+@EqualsAndHashCode
 public class PortfolioSectorChartItem implements Comparable<PortfolioSectorChartItem> {
 	private String sector;
 	private Percentage sectorWeight;
