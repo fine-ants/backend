@@ -1,5 +1,7 @@
 package codesquad.fineants.domain.notification.domain.entity;
 
+import java.time.LocalDateTime;
+
 import codesquad.fineants.domain.BaseEntity;
 import codesquad.fineants.domain.common.money.Money;
 import codesquad.fineants.domain.member.domain.entity.Member;
@@ -50,6 +52,7 @@ public abstract class Notification extends BaseEntity {
 
 	Notification(Long id, String title, Boolean isRead, NotificationType type, String referenceId, String link,
 		Member member) {
+		super(LocalDateTime.now(), LocalDateTime.now());
 		this.id = id;
 		this.title = title;
 		this.isRead = isRead;
