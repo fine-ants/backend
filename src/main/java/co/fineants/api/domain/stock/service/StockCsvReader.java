@@ -9,7 +9,6 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -28,7 +27,6 @@ import org.springframework.stereotype.Component;
 
 import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.dividend.domain.entity.StockDividend;
-import co.fineants.api.domain.stock.domain.dto.response.StockSectorResponse;
 import co.fineants.api.domain.stock.domain.entity.Market;
 import co.fineants.api.domain.stock.domain.entity.Stock;
 import lombok.RequiredArgsConstructor;
@@ -67,32 +65,6 @@ public class StockCsvReader {
 		return result;
 	}
 
-	public Map<String, StockSectorResponse.SectorInfo> readKospiCsv() {
-		Resource resource = new ClassPathResource("kospi.csv");
-
-		Map<String, StockSectorResponse.SectorInfo> result = new HashMap<>();
-		try (BufferedReader reader = new BufferedReader(new InputStreamReader(resource.getInputStream()))) {
-			Iterable<CSVRecord> records = CSVFormat.Builder.create()
-				.setHeader("종목코드", "종목명", "시장구분", "업종명", "종가", "대비", "등락률", "시가총액")
-				.setSkipHeaderRecord(true)
-				.build()
-				.parse(reader);
-
-			for (CSVRecord csvRecord : records) {
-				String tickerSymbol = formatCode(csvRecord.get("종목코드"));
-				StockSectorResponse.SectorInfo sectorInfo = StockSectorResponse.SectorInfo.of(
-					tickerSymbol,
-					csvRecord.get("업종명"),
-					csvRecord.get("시장구분")
-				);
-				result.put(tickerSymbol, sectorInfo);
-			}
-		} catch (IOException e) {
-			return Collections.emptyMap();
-		}
-		return result;
-	}
-
 	/**
 	 * 종목 코드를 6자리로 맞추어 반환한다
 	 * ex) 104K -> 00104K
@@ -105,32 +77,6 @@ public class StockCsvReader {
 			sb.insert(0, "0");
 		}
 		return sb.toString();
-	}
-
-	public Map<String, StockSectorResponse.SectorInfo> readKosdaqCsv() {
-		Resource resource = new ClassPathResource("kosdaq.csv");
-
-		Map<String, StockSectorResponse.SectorInfo> result = new HashMap<>();
-		try (BufferedReader reader = new BufferedReader(new InputStreamReader(resource.getInputStream()))) {
-			Iterable<CSVRecord> records = CSVFormat.Builder.create()
-				.setHeader("종목코드", "종목명", "시장구분", "업종명", "종가", "대비", "등락률", "시가총액")
-				.setSkipHeaderRecord(true)
-				.build()
-				.parse(reader);
-
-			for (CSVRecord csvRecord : records) {
-				String tickerSymbol = formatCode(csvRecord.get("종목코드"));
-				StockSectorResponse.SectorInfo sectorInfo = StockSectorResponse.SectorInfo.of(
-					tickerSymbol,
-					csvRecord.get("업종명"),
-					csvRecord.get("시장구분")
-				);
-				result.put(tickerSymbol, sectorInfo);
-			}
-		} catch (IOException e) {
-			return Collections.emptyMap();
-		}
-		return result;
 	}
 
 	public List<StockDividend> readDividendCsv(List<Stock> stocks) {
