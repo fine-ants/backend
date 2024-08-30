@@ -371,6 +371,23 @@ public abstract class AbstractContainerBaseTest {
 		);
 	}
 
+	protected List<StockDividend> createStockDividendThisYearWith(Stock stock) {
+		return List.of(
+			createStockDividend(
+				LocalDate.of(2024, 3, 31), LocalDate.of(2024, 3, 29),
+				LocalDate.of(2024, 5, 17),
+				stock),
+			createStockDividend(
+				LocalDate.of(2024, 6, 30), LocalDate.of(2024, 6, 28),
+				LocalDate.of(2024, 8, 16),
+				stock),
+			createStockDividend(
+				LocalDate.of(2024, 9, 30), LocalDate.of(2024, 9, 27),
+				LocalDate.of(2024, 11, 20),
+				stock)
+		);
+	}
+
 	protected Cookie[] createTokenCookies() {
 		TokenFactory tokenFactory = new TokenFactory();
 		Token token = Token.create("accessToken", "refreshToken");
