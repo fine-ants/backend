@@ -28,6 +28,7 @@ import co.fineants.api.domain.kis.properties.KisProperties;
 import co.fineants.api.domain.kis.properties.KisQueryParam;
 import co.fineants.api.domain.kis.properties.KisQueryParamBuilder;
 import co.fineants.api.domain.kis.properties.KisTrIdProperties;
+import co.fineants.api.domain.kis.properties.KisWebSocketApprovalKeyRequest;
 import co.fineants.api.domain.kis.properties.kiscodevalue.imple.CustomerType;
 import co.fineants.api.domain.kis.properties.kiscodevalue.imple.FidCondMrktDivCode;
 import co.fineants.api.domain.kis.properties.kiscodevalue.imple.FidOrgAdjPrc;
@@ -240,6 +241,19 @@ public class KisClient {
 			header,
 			queryParam,
 			KisSearchStockInfo.class);
+	}
+
+	public Mono<KisWebSocketApprovalKey> fetchWebSocketApprovalKey() {
+		KisWebSocketApprovalKeyRequest request = KisWebSocketApprovalKeyRequest.create(kisProperties);
+		return webClient
+			.post()
+			.uri(kisProperties.getWebsocketUrl())
+			.contentType(MediaType.APPLICATION_JSON)
+			.bodyValue(request)
+			.retrieve()
+			.onStatus(HttpStatusCode::isError, this::handleError)
+			.bodyToMono(KisWebSocketApprovalKey.class)
+			.log();
 	}
 
 	private <T> Mono<T> performGet(String urlPath, MultiValueMap<String, String> headerMap,
