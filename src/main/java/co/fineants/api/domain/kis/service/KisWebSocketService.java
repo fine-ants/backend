@@ -4,12 +4,17 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+
+import javax.annotation.PostConstruct;
 
 import org.springframework.stereotype.Service;
 
 import co.fineants.api.domain.kis.client.KisClient;
+import co.fineants.api.domain.kis.client.KisWebSocketApprovalKey;
 import co.fineants.api.domain.kis.client.KisWebSocketClient;
 import co.fineants.api.domain.kis.properties.kiscodevalue.imple.CustomerType;
+import co.fineants.api.domain.kis.repository.WebSocketApprovalKeyRedisRepository;
 import co.fineants.api.global.common.delay.DelayManager;
 import co.fineants.api.global.util.ObjectMapperUtil;
 import lombok.RequiredArgsConstructor;
@@ -24,15 +29,17 @@ public class KisWebSocketService {
 	private final KisWebSocketClient webSocketClient;
 	private final KisClient kisClient;
 	private final DelayManager delayManager;
-	private String approvalKey;
+	private final WebSocketApprovalKeyRedisRepository approvalKeyRepository;
+
+	@PostConstruct
+	public void init() {
+		fetchApprovalKey().ifPresent(approvalKeyRepository::saveApprovalKey);
+	}
 
 	public void fetchCurrentPrice(String ticker) {
-		fetchApprovalKey();
-
 		Map<String, Object> requestMap = new HashMap<>();
 		Map<String, String> headerMap = new HashMap<>();
-		log.debug("approvalKey : {}", approvalKey);
-		headerMap.put("approval_key", approvalKey);
+		headerMap.put("approval_key", approvalKeyRepository.fetchApprovalKey().orElseThrow());
 		headerMap.put("custtype", CustomerType.INDIVIDUAL.getCode());
 		headerMap.put("tr_type", "1");
 		headerMap.put("content-type", "utf-8");
@@ -55,8 +62,8 @@ public class KisWebSocketService {
 		webSocketClient.sendMessage(ObjectMapperUtil.serialize(requestMap));
 	}
 
-	private void fetchApprovalKey() {
-		kisClient.fetchWebSocketApprovalKey()
+	private Optional<String> fetchApprovalKey() {
+		return kisClient.fetchWebSocketApprovalKey()
 			.retryWhen(Retry.fixedDelay(5, delayManager.fixedAccessTokenDelay()))
 			.onErrorResume(throwable -> {
 				log.error(throwable.getMessage());
@@ -64,6 +71,6 @@ public class KisWebSocketService {
 			})
 			.log()
 			.blockOptional(delayManager.timeout())
-			.ifPresent(kisWebSocketApprovalKey -> this.approvalKey = kisWebSocketApprovalKey.getApprovalKey());
+			.map(KisWebSocketApprovalKey::getApprovalKey);
 	}
 }
