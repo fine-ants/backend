@@ -16,6 +16,6 @@ spring:
     show-sql: true
 logging:
   level:
-    codesquad: debug
+    co: debug
 scheduling:
   enabled: false
