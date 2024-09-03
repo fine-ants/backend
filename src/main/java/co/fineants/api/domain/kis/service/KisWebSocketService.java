@@ -26,7 +26,7 @@ public class KisWebSocketService {
 	private final DelayManager delayManager;
 	private String approvalKey;
 
-	public void fetchCurrentPrice(String ticker) throws URISyntaxException {
+	public void fetchCurrentPrice(String ticker) {
 		fetchApprovalKey();
 
 		Map<String, Object> requestMap = new HashMap<>();
@@ -47,7 +47,11 @@ public class KisWebSocketService {
 		requestMap.put("body", bodyMap);
 
 		String webSocketUri = "ws://ops.koreainvestment.com:21000/tryitout/H0STCNT0";
-		webSocketClient.connect(new URI(webSocketUri));
+		try {
+			webSocketClient.connect(new URI(webSocketUri));
+		} catch (URISyntaxException e) {
+			throw new RuntimeException(e);
+		}
 		webSocketClient.sendMessage(ObjectMapperUtil.serialize(requestMap));
 	}
 
