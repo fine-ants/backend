@@ -1,5 +1,6 @@
 package co.fineants.api.domain.kis.client;
 
+import java.io.IOException;
 import java.net.URI;
 
 import org.springframework.stereotype.Component;
@@ -18,10 +19,19 @@ import lombok.extern.slf4j.Slf4j;
 public class KisWebSocketClient {
 	private Session session;
 
+	public Session connect(URI endpointURI) {
+		try {
+			WebSocketContainer container = ContainerProvider.getWebSocketContainer();
+			return container.connectToServer(this, endpointURI);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 	@OnOpen
 	public void onOpen(Session session) {
 		this.session = session;
-		log.info("Connected to WebSocket Server");
+		log.info("Connected to WebSocket Server, session={}", session);
 	}
 
 	@OnMessage
@@ -30,19 +40,20 @@ public class KisWebSocketClient {
 	}
 
 	public void sendMessage(String message) {
-		log.debug("session is {}", session);
+
 		if (session != null && session.isOpen()) {
+			log.debug("sendText from session={}", session);
 			session.getAsyncRemote().sendText(message);
 		} else {
 			log.info("WebSocket session is not open");
 		}
 	}
 
-	public Session connect(URI endpointURI) {
+	public void closeSession() {
 		try {
-			WebSocketContainer container = ContainerProvider.getWebSocketContainer();
-			return container.connectToServer(this, endpointURI);
-		} catch (Exception e) {
+			this.session.close();
+		} catch (IOException e) {
+			log.error(e.getMessage());
 			throw new RuntimeException(e);
 		}
 	}

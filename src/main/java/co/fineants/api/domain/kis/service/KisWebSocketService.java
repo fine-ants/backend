@@ -37,7 +37,10 @@ public class KisWebSocketService {
 
 	@PostConstruct
 	public void init() {
-		fetchApprovalKey().ifPresent(approvalKeyRepository::saveApprovalKey);
+		String approvalKey = approvalKeyRepository.fetchApprovalKey().orElse(null);
+		if (approvalKey == null) {
+			this.fetchApprovalKey().ifPresent(approvalKeyRepository::saveApprovalKey);
+		}
 		webSocketClient.connect(createCurrentPriceUri());
 	}
 
