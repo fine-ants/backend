@@ -2,6 +2,7 @@ package co.fineants.api.domain.kis.repository;
 
 import java.util.Optional;
 
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -16,6 +17,9 @@ public class WebSocketApprovalKeyRedisRepository {
 	private final RedisTemplate<String, String> redisTemplate;
 
 	public void saveApprovalKey(String approvalKey) {
+		if (Strings.isBlank(approvalKey)) {
+			return;
+		}
 		log.info("Save Approval Key : {}", approvalKey);
 		redisTemplate.opsForValue().set(APPROVAL_KEY_FORMAT, approvalKey);
 	}
