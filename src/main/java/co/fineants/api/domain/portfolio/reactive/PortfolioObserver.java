@@ -25,7 +25,7 @@ public class PortfolioObserver implements Observer<PortfolioHoldingsRealTimeResp
 
 	@Override
 	public void onSubscribe(@NonNull Disposable d) {
-		throw new UnsupportedOperationException("Not implemented");
+		log.info("subscribe portfolio emitter {}", emitter.toString());
 	}
 
 	@Override
