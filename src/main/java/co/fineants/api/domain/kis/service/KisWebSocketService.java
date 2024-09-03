@@ -13,6 +13,8 @@ import org.springframework.stereotype.Service;
 import co.fineants.api.domain.kis.client.KisClient;
 import co.fineants.api.domain.kis.client.KisWebSocketApprovalKey;
 import co.fineants.api.domain.kis.client.KisWebSocketClient;
+import co.fineants.api.domain.kis.properties.KisHeader;
+import co.fineants.api.domain.kis.properties.KisTrIdProperties;
 import co.fineants.api.domain.kis.properties.kiscodevalue.imple.CustomerType;
 import co.fineants.api.domain.kis.repository.WebSocketApprovalKeyRedisRepository;
 import co.fineants.api.global.common.delay.DelayManager;
@@ -26,39 +28,45 @@ import reactor.util.retry.Retry;
 @RequiredArgsConstructor
 @Slf4j
 public class KisWebSocketService {
+	private static final String KIS_WEBSOCKET_CURRENT_PRICE_URI = "ws://ops.koreainvestment.com:21000/websocket/tryitout/H0STCNT0";
 	private final KisWebSocketClient webSocketClient;
 	private final KisClient kisClient;
 	private final DelayManager delayManager;
 	private final WebSocketApprovalKeyRedisRepository approvalKeyRepository;
+	private final KisTrIdProperties kisTrIdProperties;
 
 	@PostConstruct
 	public void init() {
 		fetchApprovalKey().ifPresent(approvalKeyRepository::saveApprovalKey);
+		webSocketClient.connect(createCurrentPriceUri());
+	}
+
+	private URI createCurrentPriceUri() {
+		try {
+			return new URI(KisWebSocketService.KIS_WEBSOCKET_CURRENT_PRICE_URI);
+		} catch (URISyntaxException e) {
+			log.error(e.getMessage());
+			throw new IllegalArgumentException("invalid uri, " + KisWebSocketService.KIS_WEBSOCKET_CURRENT_PRICE_URI);
+		}
 	}
 
 	public void fetchCurrentPrice(String ticker) {
 		Map<String, Object> requestMap = new HashMap<>();
 		Map<String, String> headerMap = new HashMap<>();
-		headerMap.put("approval_key", approvalKeyRepository.fetchApprovalKey().orElseThrow());
-		headerMap.put("custtype", CustomerType.INDIVIDUAL.getCode());
-		headerMap.put("tr_type", "1");
-		headerMap.put("content-type", "utf-8");
+		headerMap.put(KisHeader.APPROVAL_KEY.name(), approvalKeyRepository.fetchApprovalKey().orElseThrow());
+		headerMap.put(KisHeader.CUSTOMER_TYPE.getHeaderName(), CustomerType.INDIVIDUAL.getCode());
+		headerMap.put(KisHeader.TR_TYPE.name(), "1");
+		headerMap.put(KisHeader.CONTENT_TYPE.name(), "utf-8");
 
 		Map<String, Object> bodyMap = new HashMap<>();
 		Map<String, String> input = new HashMap<>();
-		input.put("tr_id", "H0STCNT0");
+		input.put("tr_id", kisTrIdProperties.getWebsocketCurrentPrice());
 		input.put("tr_key", ticker);
 		bodyMap.put("input", input);
 
 		requestMap.put("header", headerMap);
 		requestMap.put("body", bodyMap);
 
-		String webSocketUri = "ws://ops.koreainvestment.com:21000/tryitout/H0STCNT0";
-		try {
-			webSocketClient.connect(new URI(webSocketUri));
-		} catch (URISyntaxException e) {
-			throw new RuntimeException(e);
-		}
 		webSocketClient.sendMessage(ObjectMapperUtil.serialize(requestMap));
 	}
 
