@@ -8,6 +8,7 @@ import java.util.Optional;
 
 import javax.annotation.PostConstruct;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import co.fineants.api.domain.kis.client.KisClient;
@@ -34,9 +35,14 @@ public class KisWebSocketService {
 	private final DelayManager delayManager;
 	private final WebSocketApprovalKeyRedisRepository approvalKeyRepository;
 	private final KisTrIdProperties kisTrIdProperties;
+	@Value("${kis.websocket.auto-connect:true}")
+	private boolean websocketAutoConnect;
 
 	@PostConstruct
 	public void init() {
+		if (!websocketAutoConnect) {
+			return;
+		}
 		String approvalKey = approvalKeyRepository.fetchApprovalKey().orElse(null);
 		if (approvalKey == null) {
 			this.fetchApprovalKey().ifPresent(approvalKeyRepository::saveApprovalKey);

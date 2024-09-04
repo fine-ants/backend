@@ -50,7 +50,7 @@ public class CurrentPriceRedisRepository implements PriceRepository {
 		return currentPrice.map(Money::won);
 	}
 
-	private Optional<String> getCachedPrice(String tickerSymbol) {
+	public Optional<String> getCachedPrice(String tickerSymbol) {
 		return Optional.ofNullable(redisTemplate.opsForValue().get(String.format(CURRENT_PRICE_FORMAT, tickerSymbol)));
 	}
 

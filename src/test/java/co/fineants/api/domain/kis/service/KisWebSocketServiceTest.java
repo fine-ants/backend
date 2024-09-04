@@ -3,15 +3,15 @@ package co.fineants.api.domain.kis.service;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
 import org.mockito.BDDMockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
 import co.fineants.api.AbstractContainerBaseTest;
-import co.fineants.api.domain.kis.client.KisClient;
-import co.fineants.api.domain.kis.client.KisWebSocketApprovalKey;
+import co.fineants.api.domain.kis.client.KisWebSocketClient;
 import co.fineants.api.domain.kis.repository.CurrentPriceRedisRepository;
-import reactor.core.publisher.Mono;
+import co.fineants.api.domain.kis.repository.WebSocketApprovalKeyRedisRepository;
 
 class KisWebSocketServiceTest extends AbstractContainerBaseTest {
 
@@ -21,21 +21,22 @@ class KisWebSocketServiceTest extends AbstractContainerBaseTest {
 	@Autowired
 	private CurrentPriceRedisRepository currentPriceRedisRepository;
 
+	@Autowired
+	private WebSocketApprovalKeyRedisRepository webSocketApprovalKeyRedisRepository;
+
 	@MockBean
-	private KisClient kisClient;
+	private KisWebSocketClient kisWebSocketClient;
 
 	@DisplayName("삼성전자의 현재가는 50000원이다")
 	@Test
 	void fetchCurrentPrice() {
 		// given
-		BDDMockito.given(kisClient.fetchWebSocketApprovalKey())
-			.willReturn(Mono.just(KisWebSocketApprovalKey.create("approvalKey")));
-
+		BDDMockito.willDoNothing().given(kisWebSocketClient).sendMessage(ArgumentMatchers.anyString());
+		webSocketApprovalKeyRedisRepository.saveApprovalKey("approvalKey");
 		String ticker = "005930";
 		// when
 		kisWebSocketService.fetchCurrentPrice(ticker);
 		// then
-		Assertions.assertThat(currentPriceRedisRepository.fetchPriceBy(ticker)).isPresent();
+		Assertions.assertThat(currentPriceRedisRepository.getCachedPrice(ticker)).isPresent();
 	}
-
 }
