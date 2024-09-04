@@ -14,6 +14,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 
 import co.fineants.api.AbstractContainerBaseTest;
 import co.fineants.api.domain.kis.factory.WebSocketContainerProviderFactory;
+import jakarta.websocket.CloseReason;
 import jakarta.websocket.DeploymentException;
 import jakarta.websocket.Session;
 import jakarta.websocket.WebSocketContainer;
@@ -49,6 +50,33 @@ class KisWebSocketClientTest extends AbstractContainerBaseTest {
 		Session connectSession = kisWebSocketClient.connect(endpointUri);
 		// then
 		Assertions.assertThat(connectSession).isEqualTo(session);
+	}
+
+	@DisplayName("웹소켓 클라이언트에 세션을 설정한다")
+	@Test
+	void onOpen() {
+		// given
+
+		// when
+		kisWebSocketClient.onOpen(session);
+		// then
+		Assertions.assertThat(kisWebSocketClient)
+			.extracting("session")
+			.isInstanceOf(Session.class)
+			.isEqualTo(session);
+	}
+
+	@DisplayName("웹소켓 클라이언트에 세션을 해제한다")
+	@Test
+	void onClose() {
+		// given
+		kisWebSocketClient.onOpen(session);
+		// when
+		kisWebSocketClient.onClose(session, new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, "정상적인 종료"));
+		// then
+		Assertions.assertThat(kisWebSocketClient)
+			.extracting("session")
+			.isNull();
 	}
 
 }
