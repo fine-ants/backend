@@ -10,12 +10,14 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
 import co.fineants.api.AbstractContainerBaseTest;
 import co.fineants.api.domain.kis.factory.WebSocketContainerProviderFactory;
 import jakarta.websocket.CloseReason;
 import jakarta.websocket.DeploymentException;
+import jakarta.websocket.RemoteEndpoint;
 import jakarta.websocket.Session;
 import jakarta.websocket.WebSocketContainer;
 
@@ -29,6 +31,9 @@ class KisWebSocketClientTest extends AbstractContainerBaseTest {
 
 	@MockBean
 	private Session session;
+
+	@Mock
+	private RemoteEndpoint.Async asyncRemote;
 
 	private KisWebSocketClient kisWebSocketClient;
 
@@ -79,4 +84,16 @@ class KisWebSocketClientTest extends AbstractContainerBaseTest {
 			.isNull();
 	}
 
+	@DisplayName("웹소켓 클라이언트가 메시지를 송신하면 응답 메시지를 받는다")
+	@Test
+	void sendMessage() {
+		// given
+		kisWebSocketClient.onOpen(session);
+		given(session.isOpen()).willReturn(true);
+		given(session.getAsyncRemote()).willReturn(asyncRemote);
+		// when
+		kisWebSocketClient.sendMessage("hello world");
+		// then
+		verify(asyncRemote, times(1)).sendText("hello world");
+	}
 }
