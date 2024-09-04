@@ -11,10 +11,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
 import co.fineants.api.AbstractContainerBaseTest;
 import co.fineants.api.domain.kis.factory.WebSocketContainerProviderFactory;
+import co.fineants.api.domain.kis.repository.CurrentPriceRedisRepository;
 import jakarta.websocket.CloseReason;
 import jakarta.websocket.DeploymentException;
 import jakarta.websocket.RemoteEndpoint;
@@ -22,6 +24,9 @@ import jakarta.websocket.Session;
 import jakarta.websocket.WebSocketContainer;
 
 class KisWebSocketClientTest extends AbstractContainerBaseTest {
+
+	@Autowired
+	private CurrentPriceRedisRepository currentPriceRedisRepository;
 
 	@MockBean
 	private WebSocketContainerProviderFactory webSocketContainerProviderFactory;
@@ -39,7 +44,7 @@ class KisWebSocketClientTest extends AbstractContainerBaseTest {
 
 	@BeforeEach
 	void setup() throws DeploymentException, IOException, URISyntaxException {
-		kisWebSocketClient = new KisWebSocketClient(webSocketContainerProviderFactory);
+		kisWebSocketClient = new KisWebSocketClient(webSocketContainerProviderFactory, currentPriceRedisRepository);
 		given(webSocketContainerProviderFactory.getContainerProvider())
 			.willReturn(webSocketContainer);
 		given(webSocketContainer.connectToServer(kisWebSocketClient, new URI("ws://localhost:8080/test")))

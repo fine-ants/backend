@@ -16,15 +16,12 @@ import java.util.Objects;
 
 import org.apache.logging.log4j.util.Strings;
 import org.assertj.core.groups.Tuple;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import co.fineants.api.AbstractContainerBaseTest;
@@ -41,7 +38,6 @@ import co.fineants.api.domain.kis.repository.KisAccessTokenRepository;
 import co.fineants.api.domain.kis.service.KisAccessTokenRedisService;
 import co.fineants.api.global.errors.exception.kis.RequestLimitExceededKisException;
 import co.fineants.api.global.util.ObjectMapperUtil;
-import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -337,14 +333,6 @@ class KisClientTest extends AbstractContainerBaseTest {
 		assertThat(closingPrice)
 			.extracting(KisClosingPrice::getTickerSymbol, KisClosingPrice::getPrice)
 			.containsExactly("005930", 80000L);
-	}
-
-	@NotNull
-	private static MockResponse createResponse(int code, String body) {
-		return new MockResponse()
-			.setResponseCode(code)
-			.setBody(body)
-			.addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
 	}
 
 	@DisplayName("사용자는 특정 범위의 배당 일정을 조회한다")

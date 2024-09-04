@@ -5,12 +5,15 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import org.apache.logging.log4j.util.Strings;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -52,6 +55,7 @@ import co.fineants.api.global.security.oauth.dto.Token;
 import co.fineants.api.support.RedisRepository;
 import jakarta.servlet.http.Cookie;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.mockwebserver.MockResponse;
 
 @Slf4j
 @ActiveProfiles("test")
@@ -104,6 +108,14 @@ public abstract class AbstractContainerBaseTest {
 		registry.add("spring.datasource.url", () -> "jdbc:tc:mysql:8.0.33://localhost/fineAnts");
 		registry.add("spring.datasource.username", () -> "admin");
 		registry.add("spring.datasource.password", () -> "password1234!");
+	}
+
+	@NotNull
+	public static MockResponse createResponse(int code, String body) {
+		return new MockResponse()
+			.setResponseCode(code)
+			.setBody(body)
+			.addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
 	}
 
 	@BeforeEach
@@ -353,7 +365,7 @@ public abstract class AbstractContainerBaseTest {
 				stock)
 		);
 	}
-	
+
 	protected Cookie[] createTokenCookies() {
 		TokenFactory tokenFactory = new TokenFactory();
 		Token token = Token.create("accessToken", "refreshToken");

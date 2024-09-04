@@ -1,12 +1,15 @@
 package co.fineants.api.domain.kis.service;
 
-import org.assertj.core.api.Assertions;
+import static org.assertj.core.api.Assertions.*;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentMatchers;
-import org.mockito.BDDMockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.web.server.LocalServerPort;
 
 import co.fineants.api.AbstractContainerBaseTest;
 import co.fineants.api.domain.kis.client.KisWebSocketClient;
@@ -14,6 +17,9 @@ import co.fineants.api.domain.kis.repository.CurrentPriceRedisRepository;
 import co.fineants.api.domain.kis.repository.WebSocketApprovalKeyRedisRepository;
 
 class KisWebSocketServiceTest extends AbstractContainerBaseTest {
+
+	@LocalServerPort
+	private int port;
 
 	@Autowired
 	private KisWebSocketService kisWebSocketService;
@@ -24,19 +30,27 @@ class KisWebSocketServiceTest extends AbstractContainerBaseTest {
 	@Autowired
 	private WebSocketApprovalKeyRedisRepository webSocketApprovalKeyRedisRepository;
 
-	@MockBean
+	@Autowired
 	private KisWebSocketClient kisWebSocketClient;
 
-	@DisplayName("삼성전자의 현재가는 50000원이다")
-	@Test
-	void fetchCurrentPrice() {
-		// given
-		BDDMockito.willDoNothing().given(kisWebSocketClient).sendMessage(ArgumentMatchers.anyString());
+	@BeforeEach
+	void setup() throws URISyntaxException {
 		webSocketApprovalKeyRedisRepository.saveApprovalKey("approvalKey");
+
+		String wsUri = "ws://localhost:" + port + "/ws/test";
+		kisWebSocketClient.connect(new URI(wsUri));
+	}
+
+	@DisplayName("삼성전자의 현재가는 70100원이다")
+	@Test
+	void fetchCurrentPrice() throws InterruptedException {
+		// given
 		String ticker = "005930";
 		// when
 		kisWebSocketService.fetchCurrentPrice(ticker);
 		// then
-		Assertions.assertThat(currentPriceRedisRepository.getCachedPrice(ticker)).isPresent();
+		Thread.sleep(100);
+		assertThat(currentPriceRedisRepository.getCachedPrice(ticker)).isPresent();
+		assertThat(currentPriceRedisRepository.getCachedPrice(ticker).orElseThrow()).isEqualTo("70100");
 	}
 }
