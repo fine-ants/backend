@@ -1,4 +1,4 @@
-package co.fineants.api;
+package co.fineants;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -52,7 +52,9 @@ import co.fineants.api.global.errors.exception.FineAntsException;
 import co.fineants.api.global.security.factory.TokenFactory;
 import co.fineants.api.global.security.oauth.dto.MemberAuthentication;
 import co.fineants.api.global.security.oauth.dto.Token;
-import co.fineants.api.support.RedisRepository;
+import co.fineants.support.amazon.config.AmazonS3Config;
+import co.fineants.support.mysql.DatabaseCleaner;
+import co.fineants.support.redis.RedisRepository;
 import jakarta.servlet.http.Cookie;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.mockwebserver.MockResponse;
@@ -72,7 +74,7 @@ public abstract class AbstractContainerBaseTest {
 		.withExposedPorts(REDIS_PORT)
 		.withReuse(true);
 
-	static final LocalStackContainer LOCAL_STACK_CONTAINER = new LocalStackContainer(
+	public static final LocalStackContainer LOCAL_STACK_CONTAINER = new LocalStackContainer(
 		DockerImageName.parse("localstack/localstack"))
 		.withServices(LocalStackContainer.Service.S3)
 		.withReuse(true);

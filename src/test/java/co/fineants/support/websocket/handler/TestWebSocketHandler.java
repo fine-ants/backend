@@ -1,4 +1,4 @@
-package co.fineants.api;
+package co.fineants.support.websocket.handler;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

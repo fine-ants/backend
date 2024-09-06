@@ -18,7 +18,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 
-import co.fineants.api.ControllerTestSupport;
 import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.member.domain.dto.response.MemberNotification;
 import co.fineants.api.domain.member.domain.dto.response.MemberNotificationResponse;
@@ -27,6 +26,7 @@ import co.fineants.api.domain.member.service.MemberNotificationPreferenceService
 import co.fineants.api.domain.member.service.MemberNotificationService;
 import co.fineants.api.domain.notification.domain.entity.NotificationBody;
 import co.fineants.api.global.util.ObjectMapperUtil;
+import co.fineants.support.controller.ControllerTestSupport;
 
 @WebMvcTest(controllers = MemberNotificationRestController.class)
 class MemberNotificationRestControllerTest extends ControllerTestSupport {

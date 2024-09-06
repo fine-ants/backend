@@ -9,7 +9,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import co.fineants.api.AbstractContainerBaseTest;
+import co.fineants.AbstractContainerBaseTest;
 import co.fineants.api.domain.member.domain.entity.Member;
 import co.fineants.api.domain.member.repository.MemberRepository;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
@@ -21,7 +21,7 @@ class PortfolioRepositoryTest extends AbstractContainerBaseTest {
 
 	@Autowired
 	private PortfolioRepository portfolioRepository;
-	
+
 	@DisplayName("회원이 가지고 있는 포트폴리오들을 조회한다")
 	@Test
 	void findAllByMemberId() {

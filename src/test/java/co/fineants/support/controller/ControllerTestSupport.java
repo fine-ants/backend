@@ -1,4 +1,4 @@
-package co.fineants.api;
+package co.fineants.support.controller;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;

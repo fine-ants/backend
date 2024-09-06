@@ -13,10 +13,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
-import co.fineants.api.ControllerTestSupport;
 import co.fineants.api.domain.portfolio.domain.dto.response.PortfolioNotificationSettingSearchItem;
 import co.fineants.api.domain.portfolio.domain.dto.response.PortfolioNotificationSettingSearchResponse;
 import co.fineants.api.domain.portfolio.service.PortfolioNotificationSettingService;
+import co.fineants.support.controller.ControllerTestSupport;
 
 @WebMvcTest(controllers = PortfolioNotificationSettingRestController.class)
 class PortfolioNotificationSettingRestControllerTest extends ControllerTestSupport {
