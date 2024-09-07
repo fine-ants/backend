@@ -1,6 +1,6 @@
 package co.fineants.price.domain.stock_price.service;
 
-import java.util.List;
+import java.util.Set;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -22,7 +22,7 @@ class StockPriceServiceTest extends AbstractContainerBaseTest {
 	@Test
 	void pushStocks() {
 		// given
-		List<String> tickerSymbols = List.of("005930", "035720");
+		Set<String> tickerSymbols = Set.of("005930", "035720");
 		// when
 		stockPriceService.pushStocks(tickerSymbols);
 		// then

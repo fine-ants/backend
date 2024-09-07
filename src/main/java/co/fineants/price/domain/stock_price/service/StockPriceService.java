@@ -1,6 +1,6 @@
 package co.fineants.price.domain.stock_price.service;
 
-import java.util.List;
+import java.util.Set;
 
 import org.springframework.stereotype.Service;
 
@@ -12,7 +12,7 @@ import lombok.RequiredArgsConstructor;
 public class StockPriceService {
 	private final StockPriceRepository repository;
 
-	public void pushStocks(List<String> tickerSymbols) {
+	public void pushStocks(Set<String> tickerSymbols) {
 		repository.saveAll(tickerSymbols);
 	}
 }

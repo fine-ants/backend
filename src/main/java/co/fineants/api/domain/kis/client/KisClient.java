@@ -8,6 +8,7 @@ import java.util.List;
 
 import org.apache.logging.log4j.util.Strings;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -51,7 +52,7 @@ public class KisClient {
 
 	public KisClient(KisProperties properties,
 		KisTrIdProperties kisTrIdProperties,
-		WebClient webClient,
+		@Qualifier("koreaInvestmentWebClient") WebClient webClient,
 		KisAccessTokenRepository manager) {
 		this.kisProperties = properties;
 		this.kisTrIdProperties = kisTrIdProperties;

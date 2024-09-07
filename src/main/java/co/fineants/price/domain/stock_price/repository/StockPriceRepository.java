@@ -27,4 +27,8 @@ public class StockPriceRepository {
 	public int size() {
 		return tickerSymbolSet.size();
 	}
+
+	public void clear() {
+		tickerSymbolSet.clear();
+	}
 }

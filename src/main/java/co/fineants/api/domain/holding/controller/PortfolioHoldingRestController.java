@@ -57,7 +57,7 @@ public class PortfolioHoldingRestController {
 	// 포트폴리오 종목 실시간 조회
 	@GetMapping(value = "/holdings/realtime", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
 	public SseEmitter observePortfolioHoldings(@PathVariable Long portfolioId) {
-		// TODO: 포트폴리오에 담겨있는 종목들을 RealTimeStockRepository에 저장한다
+		portfolioObservableService.pushStockTickersBy(portfolioId);
 		return portfolioObservableService.observePortfolioHoldings(portfolioId);
 	}
 

@@ -6,17 +6,10 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 @Configuration
 public class WebClientConfig {
-	@Bean
+	@Bean("koreaInvestmentWebClient")
 	public WebClient koreaInvestmentWebClient() {
 		return WebClient.builder()
 			.baseUrl("https://openapi.koreainvestment.com:9443")
-			.build();
-	}
-
-	@Bean
-	public WebClient localhostWebClient() {
-		return WebClient.builder()
-			.baseUrl("http://localhost:8080")
 			.build();
 	}
 }
