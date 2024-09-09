@@ -51,11 +51,7 @@ public class StockPriceWebSocketClient {
 		if (!websocketAutoConnect) {
 			return;
 		}
-		String approvalKey = approvalKeyRepository.fetchApprovalKey().orElse(null);
-		if (approvalKey == null) {
-			this.fetchApprovalKey().ifPresent(approvalKeyRepository::saveApprovalKey);
-		}
-		connect(KIS_WEBSOCKET_CURRENT_PRICE_URI);
+		connect();
 	}
 
 	private Optional<String> fetchApprovalKey() {
@@ -71,7 +67,15 @@ public class StockPriceWebSocketClient {
 	}
 
 	public void connect() {
+		fetchApprovalKeyIfEmpty();
 		connect(KIS_WEBSOCKET_CURRENT_PRICE_URI);
+	}
+
+	private void fetchApprovalKeyIfEmpty() {
+		String approvalKey = approvalKeyRepository.fetchApprovalKey().orElse(null);
+		if (approvalKey == null) {
+			this.fetchApprovalKey().ifPresent(approvalKeyRepository::saveApprovalKey);
+		}
 	}
 
 	public void connect(String uri) {
