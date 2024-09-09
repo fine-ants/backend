@@ -72,9 +72,13 @@ public class StockPriceWebSocketClient {
 	public void connect(String uri) {
 		try {
 			session = webSocketClient.execute(stockPriceWebSocketHandler, uri).get();
-		} catch (InterruptedException | ExecutionException e) {
-			log.error("StockPriceWebSocketClient fail connection, errorMessage={}", e.getMessage());
-			throw new RuntimeException(e);
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			log.warn("Thread interrupted during connection, errorMessage={}", e.getMessage());
+			throw new IllegalStateException("Thread was interrupted during WebSocket connection", e);
+		} catch (ExecutionException e) {
+			log.warn("Thread interrupted during connection, cause={}", e.getMessage());
+			throw new IllegalStateException("WebSocket connection failed due to execution error", e);
 		}
 	}
 
