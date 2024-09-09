@@ -85,6 +85,7 @@ public class StockPriceWebSocketClient {
 	public boolean sendMessage(String ticker) {
 		if (session != null && session.isOpen()) {
 			try {
+				log.info("StockPriceWebStockClient sendMessage, ticker={}", ticker);
 				session.sendMessage(new TextMessage(createCurrentPriceRequest(ticker)));
 				return true;
 			} catch (IOException e) {
