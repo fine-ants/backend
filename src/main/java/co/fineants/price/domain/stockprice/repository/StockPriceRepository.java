@@ -7,17 +7,24 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Repository;
 
+import co.fineants.price.domain.stockprice.service.StockPriceDispatcher;
+import lombok.RequiredArgsConstructor;
+
 @Repository
+@RequiredArgsConstructor
 public class StockPriceRepository {
 
 	private static final Set<String> tickerSymbolSet = ConcurrentHashMap.newKeySet();
+	private final StockPriceDispatcher dispatcher;
 
 	public void save(String tickerSymbol) {
 		tickerSymbolSet.add(tickerSymbol);
+		dispatcher.dispatch(tickerSymbol);
 	}
 
 	public void saveAll(Collection<String> tickerSymbols) {
 		tickerSymbolSet.addAll(tickerSymbols);
+		dispatcher.dispatch(tickerSymbols);
 	}
 
 	public Set<String> findAll() {
