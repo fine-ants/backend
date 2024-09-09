@@ -10,6 +10,7 @@ import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.client.WebSocketClient;
@@ -69,6 +70,10 @@ public class StockPriceWebSocketClient {
 			.map(KisWebSocketApprovalKey::getApprovalKey);
 	}
 
+	public void connect() {
+		connect(KIS_WEBSOCKET_CURRENT_PRICE_URI);
+	}
+
 	public void connect(String uri) {
 		try {
 			session = webSocketClient.execute(stockPriceWebSocketHandler, uri).get();
@@ -116,5 +121,13 @@ public class StockPriceWebSocketClient {
 		requestMap.put("body", bodyMap);
 
 		return ObjectMapperUtil.serialize(requestMap);
+	}
+
+	public void disconnect() {
+		try {
+			this.session.close(CloseStatus.NORMAL);
+		} catch (IOException e) {
+			log.warn("StockPriceWebSocketClient fail close, error message is {}", e.getMessage());
+		}
 	}
 }
