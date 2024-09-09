@@ -1,4 +1,4 @@
-package co.fineants.price.domain.stock_price.service;
+package co.fineants.price.domain.stockprice.service;
 
 import java.util.Set;
 
@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import co.fineants.AbstractContainerBaseTest;
-import co.fineants.price.domain.stock_price.repository.StockPriceRepository;
+import co.fineants.price.domain.stockprice.repository.StockPriceRepository;
 
 class StockPriceServiceTest extends AbstractContainerBaseTest {
 

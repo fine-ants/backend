@@ -1,4 +1,4 @@
-package co.fineants.price.domain.stock_price.client;
+package co.fineants.price.domain.stockprice.client;
 
 import java.io.IOException;
 import java.util.HashMap;

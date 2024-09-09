@@ -1,4 +1,4 @@
-package co.fineants.price.domain.stock_price.repository;
+package co.fineants.price.domain.stockprice.repository;
 
 import java.util.Collection;
 import java.util.Set;

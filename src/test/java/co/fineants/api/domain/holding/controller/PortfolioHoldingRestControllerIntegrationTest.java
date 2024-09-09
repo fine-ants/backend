@@ -35,7 +35,7 @@ import co.fineants.api.domain.purchasehistory.repository.PurchaseHistoryReposito
 import co.fineants.api.domain.stock.domain.entity.Stock;
 import co.fineants.api.domain.stock.repository.StockRepository;
 import co.fineants.api.global.common.time.LocalDateTimeService;
-import co.fineants.price.domain.stock_price.repository.StockPriceRepository;
+import co.fineants.price.domain.stockprice.repository.StockPriceRepository;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import reactor.core.publisher.Flux;

@@ -1,4 +1,4 @@
-package co.fineants.price.domain.stock_price.client;
+package co.fineants.price.domain.stockprice.client;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.*;

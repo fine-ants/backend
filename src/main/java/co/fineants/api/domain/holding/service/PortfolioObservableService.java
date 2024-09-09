@@ -17,7 +17,7 @@ import co.fineants.api.domain.stock.domain.entity.Stock;
 import co.fineants.api.global.common.time.LocalDateTimeService;
 import co.fineants.api.global.errors.errorcode.PortfolioErrorCode;
 import co.fineants.api.global.errors.exception.FineAntsException;
-import co.fineants.price.domain.stock_price.service.StockPriceService;
+import co.fineants.price.domain.stockprice.service.StockPriceService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
