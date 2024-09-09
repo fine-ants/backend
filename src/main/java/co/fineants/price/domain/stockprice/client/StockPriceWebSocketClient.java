@@ -85,7 +85,7 @@ public class StockPriceWebSocketClient {
 	public boolean sendMessage(String ticker) {
 		if (session != null && session.isOpen()) {
 			try {
-				session.sendMessage(new TextMessage(createCurrentPrice(ticker)));
+				session.sendMessage(new TextMessage(createCurrentPriceRequest(ticker)));
 				return true;
 			} catch (IOException e) {
 				log.error("StockPriceWebStockClient fail sendMessage, errorMessage={}", e.getMessage());
@@ -97,7 +97,7 @@ public class StockPriceWebSocketClient {
 		}
 	}
 
-	private String createCurrentPrice(String ticker) {
+	private String createCurrentPriceRequest(String ticker) {
 		Map<String, Object> requestMap = new HashMap<>();
 		Map<String, String> headerMap = new HashMap<>();
 		headerMap.put(KisHeader.APPROVAL_KEY.name(), approvalKeyRepository.fetchApprovalKey().orElseThrow());

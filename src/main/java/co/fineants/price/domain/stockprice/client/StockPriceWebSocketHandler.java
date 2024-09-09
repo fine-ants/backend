@@ -27,7 +27,7 @@ public class StockPriceWebSocketHandler implements WebSocketHandler {
 	}
 
 	@Override
-	public void handleMessage(@NotNull WebSocketSession session, WebSocketMessage<?> message) throws Exception {
+	public void handleMessage(@NotNull WebSocketSession session, WebSocketMessage<?> message) {
 		String payload = message.getPayload().toString();
 		if (isSubscribeSuccessMessage(payload)) {
 			KisSubscribeResponse response = ObjectMapperUtil.deserialize(payload,
@@ -60,13 +60,12 @@ public class StockPriceWebSocketHandler implements WebSocketHandler {
 	}
 
 	@Override
-	public void handleTransportError(@NotNull WebSocketSession session, @NotNull Throwable exception) throws Exception {
+	public void handleTransportError(@NotNull WebSocketSession session, @NotNull Throwable exception) {
 		log.error("Error with websocket session={}, errorMessage={}", session, exception.getMessage());
 	}
 
 	@Override
-	public void afterConnectionClosed(@NotNull WebSocketSession session, @NotNull CloseStatus closeStatus) throws
-		Exception {
+	public void afterConnectionClosed(@NotNull WebSocketSession session, @NotNull CloseStatus closeStatus) {
 		log.info("close StockPriceWebSocket session={}, closeStatus={}", session, closeStatus);
 	}
 
