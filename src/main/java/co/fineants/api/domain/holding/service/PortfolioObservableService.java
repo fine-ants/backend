@@ -1,23 +1,17 @@
 package co.fineants.api.domain.holding.service;
 
 import java.util.Set;
-import java.util.stream.Collectors;
 
-import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
-import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import co.fineants.api.domain.portfolio.reactive.PortfolioObservable;
 import co.fineants.api.domain.portfolio.reactive.PortfolioObserver;
 import co.fineants.api.domain.portfolio.reactive.StockMarketObserver;
 import co.fineants.api.domain.portfolio.repository.PortfolioRepository;
-import co.fineants.api.domain.stock.domain.entity.Stock;
+import co.fineants.api.domain.portfolio.service.PortfolioCacheService;
 import co.fineants.api.global.common.time.LocalDateTimeService;
-import co.fineants.api.global.errors.errorcode.PortfolioErrorCode;
-import co.fineants.api.global.errors.exception.FineAntsException;
 import co.fineants.price.domain.stockprice.service.StockPriceService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,23 +27,15 @@ public class PortfolioObservableService {
 	private final PortfolioRepository portfolioRepository;
 	private final LocalDateTimeService localDateTimeService;
 	private final StockPriceService stockPriceService;
+	private final PortfolioCacheService portfolioCacheService;
 
 	@Transactional(readOnly = true)
 	public void pushStockTickersBy(Long portfolioId) {
 		if (!stockMarketChecker.isMarketOpen(localDateTimeService.getLocalDateTimeWithNow())) {
 			return;
 		}
-		stockPriceService.pushStocks(getTickerSymbolsFromPortfolioBy(portfolioId));
-	}
-
-	@NotNull
-	private Set<String> getTickerSymbolsFromPortfolioBy(Long portfolioId) {
-		Portfolio portfolio = portfolioRepository.findByPortfolioIdWithAll(portfolioId)
-			.orElseThrow(() -> new FineAntsException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
-		return portfolio.getPortfolioHoldings().stream()
-			.map(PortfolioHolding::getStock)
-			.map(Stock::getTickerSymbol)
-			.collect(Collectors.toUnmodifiableSet());
+		Set<String> tickers = portfolioCacheService.getTickerSymbolsFromPortfolioBy(portfolioId);
+		stockPriceService.pushStocks(tickers);
 	}
 
 	public SseEmitter observePortfolioHoldings(Long portfolioId) {

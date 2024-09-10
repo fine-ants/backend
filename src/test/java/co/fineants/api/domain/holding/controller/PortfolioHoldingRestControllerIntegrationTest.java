@@ -33,6 +33,7 @@ import co.fineants.api.domain.member.domain.entity.Member;
 import co.fineants.api.domain.member.repository.MemberRepository;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import co.fineants.api.domain.portfolio.repository.PortfolioRepository;
+import co.fineants.api.domain.portfolio.service.PortfolioCacheService;
 import co.fineants.api.domain.purchasehistory.repository.PurchaseHistoryRepository;
 import co.fineants.api.domain.stock.domain.entity.Stock;
 import co.fineants.api.domain.stock.repository.StockRepository;
@@ -51,7 +52,7 @@ class PortfolioHoldingRestControllerIntegrationTest extends AbstractContainerBas
 	@Autowired
 	private MemberRepository memberRepository;
 
-	@SpyBean
+	@Autowired
 	private PortfolioRepository portfolioRepository;
 
 	@Autowired
@@ -69,14 +70,17 @@ class PortfolioHoldingRestControllerIntegrationTest extends AbstractContainerBas
 	@Autowired
 	private ClosingPriceRepository closingPriceRepository;
 
-	@MockBean
-	private LocalDateTimeService localDateTimeService;
-
 	@Autowired
 	private WebTestClient webTestClient;
 
 	@Autowired
 	private StockPriceRepository stockPriceRepository;
+
+	@SpyBean
+	private PortfolioCacheService portfolioCacheService;
+
+	@MockBean
+	private LocalDateTimeService localDateTimeService;
 
 	@BeforeEach
 	void setUp() {
@@ -136,7 +140,7 @@ class PortfolioHoldingRestControllerIntegrationTest extends AbstractContainerBas
 		requestPortfolioHoldingWithSse(uri, loginCookies);
 		requestPortfolioHoldingWithSse(uri, loginCookies);
 		// then
-		verify(portfolioRepository, times(4)).findByPortfolioIdWithAll(portfolioId);
+		verify(portfolioCacheService, times(1)).getTickerSymbolsFromPortfolioBy(portfolioId);
 		assertThat(stockPriceRepository.size()).isEqualTo(1);
 	}
 
