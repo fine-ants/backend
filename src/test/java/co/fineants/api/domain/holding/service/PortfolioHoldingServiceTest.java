@@ -13,8 +13,11 @@ import java.util.Set;
 
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
+import org.mockito.BDDMockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
@@ -100,6 +103,11 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 
 	@MockBean
 	private PortfolioHoldingEventPublisher publisher;
+
+	@BeforeEach
+	void setup() {
+		BDDMockito.willDoNothing().given(publisher).publishPortfolioHolding(ArgumentMatchers.anyString());
+	}
 
 	@AfterEach
 	void tearDown() {
