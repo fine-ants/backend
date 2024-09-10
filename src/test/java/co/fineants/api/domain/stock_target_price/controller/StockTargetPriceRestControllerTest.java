@@ -23,7 +23,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 
-import co.fineants.api.ControllerTestSupport;
 import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.stock.domain.entity.Stock;
 import co.fineants.api.domain.stock_target_price.domain.dto.request.TargetPriceNotificationCreateRequest;
@@ -37,6 +36,7 @@ import co.fineants.api.domain.stock_target_price.domain.dto.response.TargetPrice
 import co.fineants.api.domain.stock_target_price.domain.dto.response.TargetPriceNotificationUpdateResponse;
 import co.fineants.api.domain.stock_target_price.service.StockTargetPriceService;
 import co.fineants.api.global.util.ObjectMapperUtil;
+import co.fineants.support.controller.ControllerTestSupport;
 
 @WebMvcTest(controllers = StockTargetPriceRestController.class)
 class StockTargetPriceRestControllerTest extends ControllerTestSupport {

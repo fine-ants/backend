@@ -20,7 +20,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.security.test.context.support.WithMockUser;
 
-import co.fineants.api.AbstractContainerBaseTest;
+import co.fineants.AbstractContainerBaseTest;
 import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.holding.repository.PortfolioHoldingRepository;
 import co.fineants.api.domain.kis.client.KisAccessToken;

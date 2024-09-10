@@ -1,4 +1,4 @@
-package co.fineants.api;
+package co.fineants.support.mysql;
 
 import java.util.ArrayList;
 import java.util.List;

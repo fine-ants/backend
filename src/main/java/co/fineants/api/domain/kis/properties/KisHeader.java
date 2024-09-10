@@ -12,7 +12,9 @@ public enum KisHeader {
 	TR_ID("tr_id"),
 	CONTENT_TYPE("content-type"),
 	ACCEPT("accept"),
-	CUSTOMER_TYPE("custtype");
+	CUSTOMER_TYPE("custtype"),
+	TR_TYPE("tr_type"),
+	APPROVAL_KEY("approval_key");
 
 	private final String headerName;
 

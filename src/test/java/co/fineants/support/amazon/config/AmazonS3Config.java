@@ -1,4 +1,4 @@
-package co.fineants.api;
+package co.fineants.support.amazon.config;
 
 import java.io.IOException;
 
@@ -16,6 +16,7 @@ import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.Bucket;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 
+import co.fineants.AbstractContainerBaseTest;
 import lombok.extern.slf4j.Slf4j;
 
 @Profile("test")

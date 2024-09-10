@@ -16,12 +16,12 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 
-import co.fineants.api.ControllerTestSupport;
 import co.fineants.api.domain.fcm.domain.dto.request.FcmRegisterRequest;
 import co.fineants.api.domain.fcm.domain.dto.response.FcmDeleteResponse;
 import co.fineants.api.domain.fcm.domain.dto.response.FcmRegisterResponse;
 import co.fineants.api.domain.fcm.service.FcmService;
 import co.fineants.api.global.util.ObjectMapperUtil;
+import co.fineants.support.controller.ControllerTestSupport;
 
 @WebMvcTest(controllers = FcmRestController.class)
 class FcmRestControllerTest extends ControllerTestSupport {

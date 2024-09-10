@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseCookie;
 
-import co.fineants.api.AbstractContainerBaseTest;
+import co.fineants.AbstractContainerBaseTest;
 import co.fineants.api.global.security.oauth.dto.Token;
 
 class TokenFactoryTest extends AbstractContainerBaseTest {

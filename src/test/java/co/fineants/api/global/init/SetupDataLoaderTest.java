@@ -16,7 +16,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 
-import co.fineants.api.AbstractContainerBaseTest;
+import co.fineants.AbstractContainerBaseTest;
 import co.fineants.api.domain.dividend.domain.entity.StockDividend;
 import co.fineants.api.domain.dividend.repository.StockDividendRepository;
 import co.fineants.api.domain.exchangerate.domain.entity.ExchangeRate;

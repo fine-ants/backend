@@ -33,7 +33,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.filter.DelegatingFilterProxy;
 
-import co.fineants.api.AbstractContainerBaseTest;
+import co.fineants.AbstractContainerBaseTest;
 import co.fineants.api.domain.member.repository.MemberRepository;
 import co.fineants.api.domain.member.repository.MemberRoleRepository;
 import co.fineants.api.domain.member.repository.RoleRepository;

@@ -9,7 +9,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import co.fineants.api.AbstractContainerBaseTest;
+import co.fineants.AbstractContainerBaseTest;
 import co.fineants.api.domain.fcm.domain.entity.FcmToken;
 import co.fineants.api.domain.fcm.repository.FcmRepository;
 import co.fineants.api.domain.member.domain.dto.request.MemberNotificationPreferenceRequest;

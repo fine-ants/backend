@@ -26,7 +26,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
 
-import co.fineants.api.ControllerTestSupport;
 import co.fineants.api.domain.common.count.Count;
 import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.dividend.domain.entity.StockDividend;
@@ -49,11 +48,11 @@ import co.fineants.api.domain.holding.service.PortfolioObservableService;
 import co.fineants.api.domain.kis.repository.CurrentPriceRedisRepository;
 import co.fineants.api.domain.member.domain.entity.Member;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
-import co.fineants.api.domain.portfolio.service.PortFolioService;
 import co.fineants.api.domain.stock.domain.entity.Stock;
 import co.fineants.api.global.errors.errorcode.PortfolioErrorCode;
 import co.fineants.api.global.errors.exception.NotFoundResourceException;
 import co.fineants.api.global.util.ObjectMapperUtil;
+import co.fineants.support.controller.ControllerTestSupport;
 
 @WebMvcTest(controllers = PortfolioHoldingRestController.class)
 class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
@@ -63,9 +62,6 @@ class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 
 	@MockBean
 	private PortfolioObservableService portfolioObservableService;
-
-	@MockBean
-	private PortFolioService portFolioService;
 
 	@MockBean
 	private CurrentPriceRedisRepository currentPriceRedisRepository;

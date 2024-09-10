@@ -23,7 +23,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 
-import co.fineants.api.ControllerTestSupport;
 import co.fineants.api.domain.common.count.Count;
 import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.common.money.Percentage;
@@ -37,6 +36,7 @@ import co.fineants.api.domain.portfolio.domain.dto.response.PortfoliosResponse;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import co.fineants.api.domain.portfolio.service.PortFolioService;
 import co.fineants.api.global.util.ObjectMapperUtil;
+import co.fineants.support.controller.ControllerTestSupport;
 
 @WebMvcTest(controllers = PortFolioRestController.class)
 class PortFolioRestControllerTest extends ControllerTestSupport {

@@ -21,7 +21,7 @@ import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
 
-import co.fineants.api.AbstractContainerBaseTest;
+import co.fineants.AbstractContainerBaseTest;
 import co.fineants.api.domain.fcm.domain.dto.request.FcmRegisterRequest;
 import co.fineants.api.domain.fcm.domain.dto.response.FcmDeleteResponse;
 import co.fineants.api.domain.fcm.domain.dto.response.FcmRegisterResponse;

@@ -14,14 +14,16 @@ public class KisTrIdProperties {
 	private final String dividend;
 	private final String ipo;
 	private final String searchStockInfo;
+	private final String websocketCurrentPrice;
 
 	@ConstructorBinding
 	public KisTrIdProperties(String currentPrice, String closingPrice, String dividend, String ipo,
-		String searchStockInfo) {
+		String searchStockInfo, String websocketCurrentPrice) {
 		this.currentPrice = currentPrice;
 		this.closingPrice = closingPrice;
 		this.dividend = dividend;
 		this.ipo = ipo;
 		this.searchStockInfo = searchStockInfo;
+		this.websocketCurrentPrice = websocketCurrentPrice;
 	}
 }
