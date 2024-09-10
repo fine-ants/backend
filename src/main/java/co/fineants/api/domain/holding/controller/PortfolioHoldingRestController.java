@@ -72,7 +72,7 @@ public class PortfolioHoldingRestController {
 	@DeleteMapping("/holdings/{portfolioHoldingId}")
 	public ApiResponse<Void> deletePortfolioHolding(@PathVariable Long portfolioId,
 		@PathVariable Long portfolioHoldingId) {
-		portfolioHoldingService.deletePortfolioStock(portfolioHoldingId);
+		portfolioHoldingService.deletePortfolioStock(portfolioHoldingId, portfolioId);
 		return ApiResponse.success(PortfolioStockSuccessCode.OK_DELETE_PORTFOLIO_STOCK);
 	}
 

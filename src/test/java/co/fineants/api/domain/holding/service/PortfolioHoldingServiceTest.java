@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.cache.CacheManager;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import co.fineants.AbstractContainerBaseTest;
@@ -88,6 +89,9 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 
 	@Autowired
 	private ClosingPriceRepository closingPriceRepository;
+
+	@Autowired
+	private CacheManager cacheManager;
 
 	@SpyBean
 	private LocalDateTimeService localDateTimeService;
@@ -453,7 +457,8 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 			() -> assertThat(response)
 				.extracting("portfolioHoldingId")
 				.isNotNull(),
-			() -> assertThat(portFolioHoldingRepository.findAll()).hasSize(1)
+			() -> assertThat(portFolioHoldingRepository.findAll()).hasSize(1),
+			() -> assertThat(cacheManager.getCache("tickerSymbols")).isNotNull()
 		);
 	}
 
@@ -624,7 +629,7 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		Long portfolioHoldingId = portfolioHolding.getId();
 		setAuthentication(member);
 		// when
-		PortfolioStockDeleteResponse response = service.deletePortfolioStock(portfolioHoldingId);
+		PortfolioStockDeleteResponse response = service.deletePortfolioStock(portfolioHoldingId, portfolio.getId());
 
 		// then
 		assertAll(
@@ -639,12 +644,12 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 	void deletePortfolioStockWithNotExistPortfolioStockId() {
 		// given
 		Member member = memberRepository.save(createMember());
-		portfolioRepository.save(createPortfolio(member));
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Long portfolioStockId = 9999L;
 
 		setAuthentication(member);
 		// when
-		Throwable throwable = catchThrowable(() -> service.deletePortfolioStock(portfolioStockId));
+		Throwable throwable = catchThrowable(() -> service.deletePortfolioStock(portfolioStockId, portfolio.getId()));
 
 		// then
 		assertThat(throwable)

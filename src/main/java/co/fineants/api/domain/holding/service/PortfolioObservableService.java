@@ -9,7 +9,6 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import co.fineants.api.domain.portfolio.reactive.PortfolioObservable;
 import co.fineants.api.domain.portfolio.reactive.PortfolioObserver;
 import co.fineants.api.domain.portfolio.reactive.StockMarketObserver;
-import co.fineants.api.domain.portfolio.repository.PortfolioRepository;
 import co.fineants.api.domain.portfolio.service.PortfolioCacheService;
 import co.fineants.api.global.common.time.LocalDateTimeService;
 import co.fineants.price.domain.stockprice.service.StockPriceService;
@@ -24,7 +23,6 @@ public class PortfolioObservableService {
 	private static final long TIMEOUT = 1000L * 40L;
 	private final PortfolioObservable portfolioObservable;
 	private final StockMarketChecker stockMarketChecker;
-	private final PortfolioRepository portfolioRepository;
 	private final LocalDateTimeService localDateTimeService;
 	private final StockPriceService stockPriceService;
 	private final PortfolioCacheService portfolioCacheService;
