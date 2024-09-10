@@ -1,7 +1,5 @@
 package co.fineants.price.domain.stockprice.service;
 
-import java.util.Collection;
-
 import org.springframework.stereotype.Component;
 
 import co.fineants.price.domain.stockprice.client.StockPriceWebSocketClient;
@@ -14,9 +12,5 @@ public class StockPriceDispatcher {
 
 	public void dispatch(String ticker) {
 		client.sendMessage(ticker);
-	}
-
-	public void dispatch(Collection<String> tickerSymbols) {
-		tickerSymbols.forEach(client::sendMessage);
 	}
 }
