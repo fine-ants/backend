@@ -25,6 +25,8 @@ spring:
   servlet:
     multipart:
       max-file-size: 10MB
+  cache:
+    type: redis
   config:
     import:
       - ./secret/application-secret.yml
