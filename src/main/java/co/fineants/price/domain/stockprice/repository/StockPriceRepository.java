@@ -18,13 +18,20 @@ public class StockPriceRepository {
 	private final StockPriceDispatcher dispatcher;
 
 	public void save(String tickerSymbol) {
+		if (tickerSymbolSet.contains(tickerSymbol)) {
+			return;
+		}
 		tickerSymbolSet.add(tickerSymbol);
 		dispatcher.dispatch(tickerSymbol);
 	}
 
 	public void saveAll(Collection<String> tickerSymbols) {
-		tickerSymbolSet.addAll(tickerSymbols);
-		dispatcher.dispatch(tickerSymbols);
+		tickerSymbols.stream()
+			.filter(ticker -> !tickerSymbolSet.contains(ticker))
+			.forEach(ticker -> {
+				tickerSymbolSet.add(ticker);
+				dispatcher.dispatch(ticker);
+			});
 	}
 
 	public Set<String> findAll() {

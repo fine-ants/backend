@@ -4,6 +4,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import co.fineants.price.domain.stockprice.client.StockPriceWebSocketClient;
+import co.fineants.price.domain.stockprice.repository.StockPriceRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -12,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 public class StockPriceWebSocketScheduler {
 	private final StockPriceWebSocketClient client;
+	private final StockPriceRepository repository;
 
 	@Scheduled(cron = "0 30 8 * * MON,TUE,WED,THU,FRI")
 	public void openWebSocketClient() {
@@ -23,5 +25,6 @@ public class StockPriceWebSocketScheduler {
 	public void closeWebSocketClient() {
 		log.info("close the StockPriceWebSocketClient");
 		client.disconnect();
+		repository.clear();
 	}
 }
