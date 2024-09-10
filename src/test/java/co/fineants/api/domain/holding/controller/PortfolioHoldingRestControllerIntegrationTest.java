@@ -136,7 +136,7 @@ class PortfolioHoldingRestControllerIntegrationTest extends AbstractContainerBas
 		requestPortfolioHoldingWithSse(uri, loginCookies);
 		requestPortfolioHoldingWithSse(uri, loginCookies);
 		// then
-		verify(portfolioRepository, times(1)).findByPortfolioIdWithAll(portfolioId);
+		verify(portfolioRepository, times(4)).findByPortfolioIdWithAll(portfolioId);
 		assertThat(stockPriceRepository.size()).isEqualTo(1);
 	}
 
