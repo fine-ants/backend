@@ -3,6 +3,7 @@ package co.fineants.api.domain.holding.service;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -35,13 +36,20 @@ public class PortfolioObservableService {
 
 	@Transactional(readOnly = true)
 	public void pushStockTickersBy(Long portfolioId) {
+		if (!stockMarketChecker.isMarketOpen(localDateTimeService.getLocalDateTimeWithNow())) {
+			return;
+		}
+		stockPriceService.pushStocks(getTickerSymbolsFromPortfolioBy(portfolioId));
+	}
+
+	@NotNull
+	private Set<String> getTickerSymbolsFromPortfolioBy(Long portfolioId) {
 		Portfolio portfolio = portfolioRepository.findByPortfolioIdWithAll(portfolioId)
 			.orElseThrow(() -> new FineAntsException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
-		Set<String> tickers = portfolio.getPortfolioHoldings().stream()
+		return portfolio.getPortfolioHoldings().stream()
 			.map(PortfolioHolding::getStock)
 			.map(Stock::getTickerSymbol)
 			.collect(Collectors.toUnmodifiableSet());
-		stockPriceService.pushStocks(tickers);
 	}
 
 	public SseEmitter observePortfolioHoldings(Long portfolioId) {

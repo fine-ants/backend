@@ -1,17 +1,19 @@
 package co.fineants.api.domain.holding.controller;
 
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.BDDMockito.*;
+
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Map;
 
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.BDDMockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerSentEvent;
@@ -49,7 +51,7 @@ class PortfolioHoldingRestControllerIntegrationTest extends AbstractContainerBas
 	@Autowired
 	private MemberRepository memberRepository;
 
-	@Autowired
+	@SpyBean
 	private PortfolioRepository portfolioRepository;
 
 	@Autowired
@@ -86,7 +88,7 @@ class PortfolioHoldingRestControllerIntegrationTest extends AbstractContainerBas
 		stockPriceRepository.clear();
 	}
 
-	@DisplayName("사용자가 포트폴리오 종목 조회(SSE)를 요청하면 포트폴리오 종목들의 정보를 price 모듈의 큐에 푸시한다")
+	@DisplayName("사용자가 포트폴리오 종목 조회(SSE)를 요청하면 포트폴리오 종목들의 정보를 price 저장소에 푸시한다")
 	@Test
 	void observePortfolioHoldings_whenPassingPortfolioId_thenSaveStockPriceRepository() {
 		// given
@@ -97,7 +99,7 @@ class PortfolioHoldingRestControllerIntegrationTest extends AbstractContainerBas
 		purchaseHistoryRepository.save(
 			createPurchaseHistory(null, LocalDateTime.now(), Count.from(3), Money.won(50000), "첫구매", holding));
 
-		BDDMockito.given(localDateTimeService.getLocalDateTimeWithNow())
+		given(localDateTimeService.getLocalDateTimeWithNow())
 			.willReturn(LocalDateTime.of(2024, 9, 6, 10, 0, 0));
 		currentPriceRedisRepository.savePrice(KisCurrentPrice.create(samsung.getTickerSymbol(), 50000L));
 		closingPriceRepository.addPrice(KisClosingPrice.create(samsung.getTickerSymbol(), 49000L));
@@ -106,6 +108,39 @@ class PortfolioHoldingRestControllerIntegrationTest extends AbstractContainerBas
 		Long portfolioId = portfolio.getId();
 		String uri = String.format("/api/portfolio/%d/holdings/realtime", portfolioId);
 		// when
+		requestPortfolioHoldingWithSse(uri, loginCookies);
+
+		assertThat(stockPriceRepository.size()).isEqualTo(1);
+	}
+
+	@DisplayName("사용자가 포트폴리오 종목 조회(SSE)을 계속 요청할 때 포트폴리오의 종목 정보가 동일하면 캐시된 종목 정보를 반환해야 한다")
+	@Test
+	void observePortfolioHoldings_whenMultipleRequest_thenFetchCachedTickers() {
+		// given
+		Stock samsung = stockRepository.save(createSamsungStock());
+		Member member = memberRepository.save(createMember());
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
+		PortfolioHolding holding = holdingRepository.save(createPortfolioHolding(portfolio, samsung));
+		purchaseHistoryRepository.save(
+			createPurchaseHistory(null, LocalDateTime.now(), Count.from(3), Money.won(50000), "첫구매", holding));
+
+		given(localDateTimeService.getLocalDateTimeWithNow())
+			.willReturn(LocalDateTime.of(2024, 9, 6, 10, 0, 0));
+		currentPriceRedisRepository.savePrice(KisCurrentPrice.create(samsung.getTickerSymbol(), 50000L));
+		closingPriceRepository.addPrice(KisClosingPrice.create(samsung.getTickerSymbol(), 49000L));
+
+		Map<String, String> loginCookies = login(member);
+		Long portfolioId = portfolio.getId();
+		String uri = String.format("/api/portfolio/%d/holdings/realtime", portfolioId);
+		// when
+		requestPortfolioHoldingWithSse(uri, loginCookies);
+		requestPortfolioHoldingWithSse(uri, loginCookies);
+		// then
+		verify(portfolioRepository, times(1)).findByPortfolioIdWithAll(portfolioId);
+		assertThat(stockPriceRepository.size()).isEqualTo(1);
+	}
+
+	private void requestPortfolioHoldingWithSse(String uri, Map<String, String> loginCookies) {
 		Flux<ServerSentEvent> responseBody = webTestClient
 			.mutate()
 			.responseTimeout(Duration.ofSeconds(35))
@@ -122,14 +157,53 @@ class PortfolioHoldingRestControllerIntegrationTest extends AbstractContainerBas
 			.expectHeader().contentTypeCompatibleWith(MediaType.TEXT_EVENT_STREAM)
 			.returnResult(ServerSentEvent.class)
 			.getResponseBody();
-		// then
 		StepVerifier.create(responseBody)
 			.expectSubscription()
 			.expectNextCount(1)
 			.thenCancel()
 			.verify();
+	}
 
-		Assertions.assertThat(stockPriceRepository.size()).isEqualTo(1);
+	@DisplayName("사용자가 장시간이 아닐때 포트폴리오 종목 조회(SSE)시 포트폴리오의 종목 정보들을 price 저장소에 넣지 않는다")
+	@Test
+	void observePortfolioHoldings_whenCloseStockMarket_thenNotPushTickerToPriceRepository() {
+		// given
+		Stock samsung = stockRepository.save(createSamsungStock());
+		Member member = memberRepository.save(createMember());
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
+		PortfolioHolding holding = holdingRepository.save(createPortfolioHolding(portfolio, samsung));
+		purchaseHistoryRepository.save(
+			createPurchaseHistory(null, LocalDateTime.now(), Count.from(3), Money.won(50000), "첫구매", holding));
+
+		given(localDateTimeService.getLocalDateTimeWithNow())
+			.willReturn(LocalDateTime.of(2024, 9, 6, 16, 0, 0));
+
+		Map<String, String> loginCookies = login(member);
+		Long portfolioId = portfolio.getId();
+		String uri = String.format("/api/portfolio/%d/holdings/realtime", portfolioId);
+		// when
+		Flux<String> responseBody = webTestClient
+			.mutate()
+			.responseTimeout(Duration.ofSeconds(35))
+			.build()
+			.get()
+			.uri(uri)
+			.cookies(cookies -> {
+				cookies.add("accessToken", loginCookies.get("accessToken"));
+				cookies.add("refreshToken", loginCookies.get("refreshToken"));
+			})
+			.accept(MediaType.TEXT_EVENT_STREAM)
+			.exchange()
+			.expectStatus().isOk()
+			.expectHeader().contentTypeCompatibleWith(MediaType.TEXT_EVENT_STREAM)
+			.returnResult(String.class)
+			.getResponseBody();
+		// then
+		StepVerifier.create(responseBody)
+			.expectSubscription()
+			.expectNext("sse complete")
+			.verifyComplete();
+		assertThat(stockPriceRepository.size()).isZero();
 	}
 
 	private Map<String, String> login(Member member) {
