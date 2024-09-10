@@ -9,14 +9,15 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.assertj.core.groups.Tuple;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.cache.CacheManager;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import co.fineants.AbstractContainerBaseTest;
@@ -60,6 +61,7 @@ import co.fineants.api.global.errors.exception.NotFoundResourceException;
 import co.fineants.api.global.security.ajax.token.AjaxAuthenticationToken;
 import co.fineants.api.global.security.oauth.dto.MemberAuthentication;
 import co.fineants.api.global.util.ObjectMapperUtil;
+import co.fineants.support.cache.PortfolioCacheSupportService;
 
 class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 
@@ -91,13 +93,18 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 	private ClosingPriceRepository closingPriceRepository;
 
 	@Autowired
-	private CacheManager cacheManager;
+	private PortfolioCacheSupportService portfolioCacheSupportService;
 
 	@SpyBean
 	private LocalDateTimeService localDateTimeService;
 
 	@MockBean
 	private PortfolioHoldingEventPublisher publisher;
+
+	@AfterEach
+	void tearDown() {
+		portfolioCacheSupportService.clear();
+	}
 
 	@DisplayName("포트폴리오 종목들의 상세 정보를 조회한다")
 	@Test
@@ -458,7 +465,9 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 				.extracting("portfolioHoldingId")
 				.isNotNull(),
 			() -> assertThat(portFolioHoldingRepository.findAll()).hasSize(1),
-			() -> assertThat(cacheManager.getCache("tickerSymbols")).isNotNull()
+			() -> assertThat(portfolioCacheSupportService.fetchTickers(portfolio.getId()))
+				.isInstanceOf(Set.class)
+				.hasSize(1)
 		);
 	}
 
@@ -514,7 +523,10 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 			() -> assertThat(response)
 				.extracting("portfolioHoldingId")
 				.isNotNull(),
-			() -> assertThat(portFolioHoldingRepository.findAll()).hasSize(1)
+			() -> assertThat(portFolioHoldingRepository.findAll()).hasSize(1),
+			() -> assertThat(portfolioCacheSupportService.fetchTickers(portfolio.getId()))
+				.isInstanceOf(Set.class)
+				.hasSize(1)
 		);
 	}
 
@@ -554,7 +566,10 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 				.extracting("portfolioHoldingId")
 				.isNotNull(),
 			() -> assertThat(portFolioHoldingRepository.findAll()).hasSize(1),
-			() -> assertThat(purchaseHistoryRepository.findAllByPortfolioHoldingId(holding.getId())).hasSize(2)
+			() -> assertThat(purchaseHistoryRepository.findAllByPortfolioHoldingId(holding.getId())).hasSize(2),
+			() -> assertThat(portfolioCacheSupportService.fetchTickers(portfolio.getId()))
+				.isInstanceOf(Set.class)
+				.hasSize(1)
 		);
 	}
 
@@ -635,7 +650,8 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		assertAll(
 			() -> assertThat(response).extracting("portfolioHoldingId").isNotNull(),
 			() -> assertThat(portFolioHoldingRepository.findById(portfolioHoldingId)).isEmpty(),
-			() -> assertThat(purchaseHistoryRepository.findAllByPortfolioHoldingId(portfolioHoldingId)).isEmpty()
+			() -> assertThat(purchaseHistoryRepository.findAllByPortfolioHoldingId(portfolioHoldingId)).isEmpty(),
+			() -> assertThat(portfolioCacheSupportService.fetchCache().get(portfolio.getId())).isNull()
 		);
 	}
 
@@ -693,7 +709,8 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 			() -> assertThat(purchaseHistoryRepository.existsById(purchaseHistory1.getId())).isFalse(),
 			() -> assertThat(purchaseHistoryRepository.existsById(purchaseHistory2.getId())).isFalse(),
 			() -> assertThat(portFolioHoldingRepository.existsById(portfolioHolding1.getId())).isFalse(),
-			() -> assertThat(portFolioHoldingRepository.existsById(portfolioHolding2.getId())).isFalse()
+			() -> assertThat(portFolioHoldingRepository.existsById(portfolioHolding2.getId())).isFalse(),
+			() -> assertThat(portfolioCacheSupportService.fetchCache().get(portfolio.getId())).isNull()
 		);
 	}
 
