@@ -48,7 +48,6 @@ import co.fineants.api.domain.holding.service.PortfolioObservableService;
 import co.fineants.api.domain.kis.repository.CurrentPriceRedisRepository;
 import co.fineants.api.domain.member.domain.entity.Member;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
-import co.fineants.api.domain.portfolio.service.PortFolioService;
 import co.fineants.api.domain.stock.domain.entity.Stock;
 import co.fineants.api.global.errors.errorcode.PortfolioErrorCode;
 import co.fineants.api.global.errors.exception.NotFoundResourceException;
@@ -63,9 +62,6 @@ class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 
 	@MockBean
 	private PortfolioObservableService portfolioObservableService;
-
-	@MockBean
-	private PortFolioService portFolioService;
 
 	@MockBean
 	private CurrentPriceRedisRepository currentPriceRedisRepository;
