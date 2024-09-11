@@ -9,8 +9,8 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.web.cors.CorsConfiguration;
 
 @Configuration
-@Profile(value = {"local", "release"})
-public class CommonSecurityReleaseConfig {
+@Profile(value = {"test", "local", "release"})
+public class CommonSecurityDefaultConfig {
 
 	@Bean
 	public CorsConfiguration corsConfiguration() {
