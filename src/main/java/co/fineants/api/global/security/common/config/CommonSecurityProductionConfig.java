@@ -5,10 +5,12 @@ import java.util.List;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.web.cors.CorsConfiguration;
 
 @Configuration
-public class CommonSecurityConfig {
+@Profile(value = {"production"})
+public class CommonSecurityProductionConfig {
 
 	@Bean
 	public CorsConfiguration corsConfiguration() {
@@ -17,8 +19,6 @@ public class CommonSecurityConfig {
 			List.of("https://fineants.co",
 				"https://www.fineants.co",
 				"https://release.fineants.co",
-				"http://localhost:5173",
-				"https://localhost:5173",
 				"https://accounts.kakao.com/login",
 				"https://nid.naver.com/oauth2.0/authorize",
 				"https://accounts.google.com/o/oauth2/v2/auth"));
