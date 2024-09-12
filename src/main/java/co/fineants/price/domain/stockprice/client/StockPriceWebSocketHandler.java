@@ -36,7 +36,7 @@ public class StockPriceWebSocketHandler implements WebSocketHandler {
 		} else if (isRealTimeSigningPriceMessage(payload)) {
 			handleStockTextMessage(payload);
 		} else {
-			log.info("Received Message : {}", message);
+			log.info("Received Message : {}", message.getPayload());
 		}
 	}
 
@@ -56,7 +56,7 @@ public class StockPriceWebSocketHandler implements WebSocketHandler {
 		String currentPrice = values[2];
 		KisCurrentPrice kisCurrentPrice = KisCurrentPrice.create(ticker, Long.valueOf(currentPrice));
 		currentPriceRedisRepository.savePrice(kisCurrentPrice);
-		log.debug("save the stock currentPrice, {}", kisCurrentPrice);
+		log.info("save the stock currentPrice, {}", kisCurrentPrice);
 	}
 
 	@Override
