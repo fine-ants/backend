@@ -9,16 +9,21 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.assertj.core.groups.Tuple;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
+import org.mockito.BDDMockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import co.fineants.api.AbstractContainerBaseTest;
+import co.fineants.AbstractContainerBaseTest;
 import co.fineants.api.domain.common.count.Count;
 import co.fineants.api.domain.common.money.Bank;
 import co.fineants.api.domain.common.money.Currency;
@@ -59,6 +64,7 @@ import co.fineants.api.global.errors.exception.NotFoundResourceException;
 import co.fineants.api.global.security.ajax.token.AjaxAuthenticationToken;
 import co.fineants.api.global.security.oauth.dto.MemberAuthentication;
 import co.fineants.api.global.util.ObjectMapperUtil;
+import co.fineants.support.cache.PortfolioCacheSupportService;
 
 class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 
@@ -89,11 +95,24 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 	@Autowired
 	private ClosingPriceRepository closingPriceRepository;
 
+	@Autowired
+	private PortfolioCacheSupportService portfolioCacheSupportService;
+
 	@SpyBean
 	private LocalDateTimeService localDateTimeService;
 
 	@MockBean
 	private PortfolioHoldingEventPublisher publisher;
+
+	@BeforeEach
+	void setup() {
+		BDDMockito.willDoNothing().given(publisher).publishPortfolioHolding(ArgumentMatchers.anyString());
+	}
+
+	@AfterEach
+	void tearDown() {
+		portfolioCacheSupportService.clear();
+	}
 
 	@DisplayName("포트폴리오 종목들의 상세 정보를 조회한다")
 	@Test
@@ -453,7 +472,10 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 			() -> assertThat(response)
 				.extracting("portfolioHoldingId")
 				.isNotNull(),
-			() -> assertThat(portFolioHoldingRepository.findAll()).hasSize(1)
+			() -> assertThat(portFolioHoldingRepository.findAll()).hasSize(1),
+			() -> assertThat(portfolioCacheSupportService.fetchTickers(portfolio.getId()))
+				.isInstanceOf(Set.class)
+				.hasSize(1)
 		);
 	}
 
@@ -509,7 +531,10 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 			() -> assertThat(response)
 				.extracting("portfolioHoldingId")
 				.isNotNull(),
-			() -> assertThat(portFolioHoldingRepository.findAll()).hasSize(1)
+			() -> assertThat(portFolioHoldingRepository.findAll()).hasSize(1),
+			() -> assertThat(portfolioCacheSupportService.fetchTickers(portfolio.getId()))
+				.isInstanceOf(Set.class)
+				.hasSize(1)
 		);
 	}
 
@@ -549,7 +574,10 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 				.extracting("portfolioHoldingId")
 				.isNotNull(),
 			() -> assertThat(portFolioHoldingRepository.findAll()).hasSize(1),
-			() -> assertThat(purchaseHistoryRepository.findAllByPortfolioHoldingId(holding.getId())).hasSize(2)
+			() -> assertThat(purchaseHistoryRepository.findAllByPortfolioHoldingId(holding.getId())).hasSize(2),
+			() -> assertThat(portfolioCacheSupportService.fetchTickers(portfolio.getId()))
+				.isInstanceOf(Set.class)
+				.hasSize(1)
 		);
 	}
 
@@ -624,13 +652,14 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		Long portfolioHoldingId = portfolioHolding.getId();
 		setAuthentication(member);
 		// when
-		PortfolioStockDeleteResponse response = service.deletePortfolioStock(portfolioHoldingId);
+		PortfolioStockDeleteResponse response = service.deletePortfolioStock(portfolioHoldingId, portfolio.getId());
 
 		// then
 		assertAll(
 			() -> assertThat(response).extracting("portfolioHoldingId").isNotNull(),
 			() -> assertThat(portFolioHoldingRepository.findById(portfolioHoldingId)).isEmpty(),
-			() -> assertThat(purchaseHistoryRepository.findAllByPortfolioHoldingId(portfolioHoldingId)).isEmpty()
+			() -> assertThat(purchaseHistoryRepository.findAllByPortfolioHoldingId(portfolioHoldingId)).isEmpty(),
+			() -> assertThat(portfolioCacheSupportService.fetchCache().get(portfolio.getId())).isNull()
 		);
 	}
 
@@ -639,12 +668,12 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 	void deletePortfolioStockWithNotExistPortfolioStockId() {
 		// given
 		Member member = memberRepository.save(createMember());
-		portfolioRepository.save(createPortfolio(member));
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Long portfolioStockId = 9999L;
 
 		setAuthentication(member);
 		// when
-		Throwable throwable = catchThrowable(() -> service.deletePortfolioStock(portfolioStockId));
+		Throwable throwable = catchThrowable(() -> service.deletePortfolioStock(portfolioStockId, portfolio.getId()));
 
 		// then
 		assertThat(throwable)
@@ -688,7 +717,8 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 			() -> assertThat(purchaseHistoryRepository.existsById(purchaseHistory1.getId())).isFalse(),
 			() -> assertThat(purchaseHistoryRepository.existsById(purchaseHistory2.getId())).isFalse(),
 			() -> assertThat(portFolioHoldingRepository.existsById(portfolioHolding1.getId())).isFalse(),
-			() -> assertThat(portFolioHoldingRepository.existsById(portfolioHolding2.getId())).isFalse()
+			() -> assertThat(portFolioHoldingRepository.existsById(portfolioHolding2.getId())).isFalse(),
+			() -> assertThat(portfolioCacheSupportService.fetchCache().get(portfolio.getId())).isNull()
 		);
 	}
 

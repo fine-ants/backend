@@ -67,7 +67,7 @@ public class OauthSecurityConfig {
 	}
 
 	@Bean
-	@Order(1)
+	@Order(2)
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		http
 			.authorizeHttpRequests(authorize ->

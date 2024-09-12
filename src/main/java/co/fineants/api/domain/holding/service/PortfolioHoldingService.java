@@ -2,7 +2,9 @@ package co.fineants.api.domain.holding.service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,6 +35,7 @@ import co.fineants.api.domain.holding.event.publisher.PortfolioHoldingEventPubli
 import co.fineants.api.domain.holding.repository.PortfolioHoldingRepository;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import co.fineants.api.domain.portfolio.repository.PortfolioRepository;
+import co.fineants.api.domain.portfolio.service.PortfolioCacheService;
 import co.fineants.api.domain.purchasehistory.domain.entity.PurchaseHistory;
 import co.fineants.api.domain.purchasehistory.repository.PurchaseHistoryRepository;
 import co.fineants.api.domain.stock.domain.entity.Stock;
@@ -48,6 +51,7 @@ import co.fineants.api.global.errors.errorcode.PurchaseHistoryErrorCode;
 import co.fineants.api.global.errors.errorcode.StockErrorCode;
 import co.fineants.api.global.errors.exception.FineAntsException;
 import co.fineants.api.global.errors.exception.NotFoundResourceException;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -66,6 +70,7 @@ public class PortfolioHoldingService {
 	private final PortfolioDetailFactory portfolioDetailFactory;
 	private final PortfolioHoldingDetailFactory portfolioHoldingDetailFactory;
 	private final PortfolioHoldingEventPublisher publisher;
+	private final PortfolioCacheService portfolioCacheService;
 
 	@Transactional
 	@Authorized(serviceClass = PortfolioAuthorizedService.class)
@@ -90,6 +95,10 @@ public class PortfolioHoldingService {
 			throw new FineAntsException(PurchaseHistoryErrorCode.BAD_INPUT);
 		}
 
+		// 포트폴리오의 종목 캐시 업데이트
+		Set<String> cachedTickers = portfolioCacheService.updateTickerSymbolsFrom(portfolioId);
+		log.debug("update cached tickerSymbols: {}", cachedTickers);
+
 		publisher.publishPortfolioHolding(stock.getTickerSymbol());
 		log.info("포트폴리오 종목 추가 결과 : {}", saveHolding);
 		return PortfolioStockCreateResponse.from(saveHolding);
@@ -97,8 +106,10 @@ public class PortfolioHoldingService {
 
 	@Transactional
 	@Authorized(serviceClass = PortfolioHoldingAuthorizedService.class)
-	public PortfolioStockDeleteResponse deletePortfolioStock(@ResourceId Long portfolioHoldingId) {
-		log.info("포트폴리오 종목 삭제 서비스 : portfolioHoldingId={}", portfolioHoldingId);
+	@CacheEvict(value = "tickerSymbols", key = "#portfolioId")
+	public PortfolioStockDeleteResponse deletePortfolioStock(@ResourceId Long portfolioHoldingId,
+		@NotNull Long portfolioId) {
+		log.info("포트폴리오 종목 삭제 서비스 : portfolioHoldingId={}, portfolioId={}", portfolioHoldingId, portfolioId);
 		purchaseHistoryRepository.deleteAllByPortfolioHoldingIdIn(List.of(portfolioHoldingId));
 
 		int deleted = portfolioHoldingRepository.deleteAllByIdIn(List.of(portfolioHoldingId));
@@ -110,6 +121,7 @@ public class PortfolioHoldingService {
 
 	@Transactional
 	@Authorized(serviceClass = PortfolioHoldingAuthorizedService.class)
+	@CacheEvict(value = "tickerSymbols", key = "#portfolioId")
 	public PortfolioStockDeletesResponse deletePortfolioHoldings(Long portfolioId, Long memberId,
 		@ResourceIds List<Long> portfolioHoldingIds) {
 		log.info("포트폴리오 종목 다수 삭제 서비스 : portfolioId={}, memberId={}, portfolioHoldingIds={}", portfolioId, memberId,

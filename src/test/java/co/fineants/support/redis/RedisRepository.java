@@ -1,4 +1,4 @@
-package co.fineants.api.support;
+package co.fineants.support.redis;
 
 import java.util.Set;
 

@@ -13,7 +13,8 @@ public enum KisSuccessCode implements SuccessCode {
 	OK_FETCH_CURRENT_PRICE(HttpStatus.OK, "종목 현재가가 조회되었습니다"),
 	OK_FETCH_DIVIDEND(HttpStatus.OK, "배당금이 조회되었습니다"),
 	OK_REFRESH_DIVIDEND(HttpStatus.OK, "배당일정이 갱신되었습니다"),
-	OK_FETCH_IPO_SEARCH_STOCK_INFO(HttpStatus.OK, "상장된 종목들의 정보가 조회되었습니다");
+	OK_FETCH_IPO_SEARCH_STOCK_INFO(HttpStatus.OK, "상장된 종목들의 정보가 조회되었습니다"),
+	OK_SIGNING_PRICE_SEND_MESSAGE(HttpStatus.OK, "종목의 실시간 체결가 메시지 전송을 완료하였습니다");
 
 	private final HttpStatus httpStatus;
 	private final String message;

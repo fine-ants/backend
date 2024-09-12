@@ -19,3 +19,6 @@ logging:
     co: debug
 scheduling:
   enabled: false
+kis:
+  websocket:
+    auto-connect: false

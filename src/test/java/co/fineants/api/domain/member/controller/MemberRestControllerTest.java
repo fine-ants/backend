@@ -23,12 +23,12 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
-import co.fineants.api.ControllerTestSupport;
 import co.fineants.api.domain.member.domain.dto.request.ProfileChangeServiceRequest;
 import co.fineants.api.domain.member.domain.dto.response.ProfileChangeResponse;
 import co.fineants.api.domain.member.domain.entity.Member;
 import co.fineants.api.domain.member.service.MemberService;
 import co.fineants.api.global.util.ObjectMapperUtil;
+import co.fineants.support.controller.ControllerTestSupport;
 
 @WebMvcTest(controllers = MemberRestController.class)
 class MemberRestControllerTest extends ControllerTestSupport {

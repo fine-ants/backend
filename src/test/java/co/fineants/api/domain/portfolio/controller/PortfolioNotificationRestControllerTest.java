@@ -18,12 +18,12 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 
-import co.fineants.api.ControllerTestSupport;
 import co.fineants.api.domain.portfolio.domain.dto.request.PortfolioNotificationUpdateRequest;
 import co.fineants.api.domain.portfolio.domain.dto.response.PortfolioNotificationUpdateResponse;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import co.fineants.api.domain.portfolio.repository.PortfolioRepository;
 import co.fineants.api.domain.portfolio.service.PortfolioNotificationService;
+import co.fineants.support.controller.ControllerTestSupport;
 
 @WebMvcTest(controllers = PortfolioNotificationRestController.class)
 class PortfolioNotificationRestControllerTest extends ControllerTestSupport {

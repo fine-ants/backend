@@ -19,7 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
 
-import co.fineants.api.AbstractContainerBaseTest;
+import co.fineants.AbstractContainerBaseTest;
 import co.fineants.api.domain.common.money.Currency;
 import co.fineants.api.domain.common.money.Percentage;
 import co.fineants.api.domain.exchangerate.client.ExchangeRateWebClient;
@@ -174,7 +174,7 @@ class ExchangeRateServiceTest extends AbstractContainerBaseTest {
 				tuple("USD", Percentage.from(0.1))
 			);
 	}
-	
+
 	@WithMockUser(roles = {"ADMIN"})
 	@DisplayName("기준 통화를 변경한다")
 	@Test
