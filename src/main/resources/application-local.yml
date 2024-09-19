@@ -8,7 +8,7 @@ spring:
     database: mysql
     database-platform: org.hibernate.dialect.MySQL8Dialect
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
     properties:
       hibernate:
         format_sql: true
@@ -18,7 +18,6 @@ spring:
   sql:
     init:
       mode: always
-      data-locations: classpath*:db/mysql/data.sql
   data:
     redis:
       host: ${REDIS_HOST:localhost}
