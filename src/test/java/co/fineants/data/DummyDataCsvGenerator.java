@@ -17,35 +17,7 @@ public class DummyDataCsvGenerator {
 	public static void main(String[] args) {
 		DummyDataCsvGenerator dummyDataCsvGenerator = new DummyDataCsvGenerator();
 		dummyDataCsvGenerator.writeMemberFile();
-		dummyDataCsvGenerator.writeMemberRoleFile();
 		dummyDataCsvGenerator.writePortfolioFile();
-	}
-
-	private void writeMemberRoleFile() {
-		String fileName = "src/main/resources/db/mysql/member_role.csv";
-		CSVFormat csvFormat = CSVFormat.Builder.create()
-			.setHeader("member_role_id", "member_id", "role_id")
-			.setSkipHeaderRecord(false)
-			.build();
-		List<String[]> members = createMemberRoleDummyData();
-		boolean result = writeCsvFile(fileName, csvFormat, members);
-		if (result) {
-			log.info("success writing the member_role csv file");
-		} else {
-			log.info("fail writing the member_role csv file");
-		}
-	}
-
-	private List<String[]> createMemberRoleDummyData() {
-		int recordCount = 1_000_000;
-		List<String[]> result = new ArrayList<>();
-		for (long i = 1; i <= recordCount; i++) {
-			String memberRoleId = String.valueOf(i);
-			String memberId = String.valueOf(i);
-			String roleId = String.valueOf(1);
-			result.add(new String[] {memberRoleId, memberId, roleId});
-		}
-		return result;
 	}
 
 	public void writeMemberFile() {
