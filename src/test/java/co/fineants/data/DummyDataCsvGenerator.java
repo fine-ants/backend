@@ -36,7 +36,7 @@ public class DummyDataCsvGenerator {
 	}
 
 	private List<String[]> createMemberDummyData() {
-		int recordCount = 1_000_000;
+		int recordCount = 5_000;
 		List<String[]> result = new ArrayList<>();
 		for (long i = 1; i <= recordCount; i++) {
 			String id = String.valueOf(i);
