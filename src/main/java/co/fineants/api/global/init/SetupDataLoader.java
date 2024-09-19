@@ -158,10 +158,6 @@ public class SetupDataLoader {
 	}
 
 	private void setupExchangeRateResources() {
-		if (exchangeRateRepository.findByCode("KRW").isPresent() && exchangeRateRepository.findByCode("USD")
-			.isPresent()) {
-			return;
-		}
 		List<ExchangeRate> rates = Stream.of(ExchangeRate.base("KRW"), ExchangeRate.zero("USD", false))
 			.map(this::saveExchangeRateIfNotFound)
 			.toList();
