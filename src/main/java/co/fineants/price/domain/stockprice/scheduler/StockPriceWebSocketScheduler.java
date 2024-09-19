@@ -2,6 +2,7 @@ package co.fineants.price.domain.stockprice.scheduler;
 
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.web.socket.CloseStatus;
 
 import co.fineants.price.domain.stockprice.client.StockPriceWebSocketClient;
 import co.fineants.price.domain.stockprice.repository.StockPriceRepository;
@@ -24,7 +25,7 @@ public class StockPriceWebSocketScheduler {
 	@Scheduled(cron = "0 0 16 * * MON,TUE,WED,THU,FRI")
 	public void closeWebSocketClient() {
 		log.info("close the StockPriceWebSocketClient");
-		client.disconnect();
+		client.disconnect(CloseStatus.NORMAL);
 		repository.clear();
 	}
 }
