@@ -18,15 +18,30 @@ public class StockPriceEventListener {
 
 	@Async
 	@EventListener
-	public void onMessage(WebSocketSessionEvent event) {
+	public void onWebSocketSessionConnectEvent(WebSocketSessionConnectEvent event) {
 		log.info("WebSocketSessionEvent : {}", event);
 		client.connect();
 	}
 
 	@Async
 	@EventListener
-	public void onMessage(StockPriceDeleteEvent event) {
+	public void onStockPriceDeleteEvent(StockPriceDeleteEvent event) {
 		log.info("StockPriceDeleteEvent : {}", event);
 		stockPriceRepository.remove(event.getTicker());
 	}
+
+	@EventListener
+	public void onStockPriceSubscribeEvent(StockPriceSubscribeEvent event) {
+		log.info("StockPriceSubscribeEvent : {}", event);
+		boolean result = client.sendSubscribeMessage(event.getTicker());
+		log.info("Subscribe result : {}", result);
+	}
+
+	@EventListener
+	public void onStockPriceUnsubscribeEvent(StockPriceUnsubscribeEvent event) {
+		log.info("StockPriceUnsubscribeEvent : {}", event);
+		boolean result = client.sendUnsubscribeMessage(event.getTicker());
+		log.info("Unsubscribe result : {}", result);
+	}
+
 }

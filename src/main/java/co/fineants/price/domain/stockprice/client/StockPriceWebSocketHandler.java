@@ -41,13 +41,29 @@ public class StockPriceWebSocketHandler implements WebSocketHandler {
 			handleStockTextMessage(payload);
 		} else if (isPingPongMessage(payload)) {
 			sendPongMessage(session, message);
-		} else {
+		} else if (isSubscribeInternalErrorMessage(payload)) {
 			log.info("Received Message : {}", message.getPayload());
 			// SUBSCRIBE INTERNAL ERROR 메시지의 경우에는 저장소에서 종목을 제거한다
-			// MAX SUBSCRIBE OVER 메시지의 경우에는 저장소에서 종목을 제거한다
 			String ticker = parseTicker(message.getPayload().toString());
 			eventPublisher.publishEvent(StockPriceDeleteEvent.from(ticker));
+		} else if (isMaxSubscribeOverMessage(payload)) {
+			log.info("Received Message : {}", message.getPayload());
+			// MAX SUBSCRIBE OVER 메시지의 경우에는 저장소에서 우선순위가 낮은 종목에 대하여 구독 해제를 신청해야 합니다.
+			String ticker = parseTicker(message.getPayload().toString());
+			eventPublisher.publishEvent(StockPriceUnsubscribeEvent.from(session, ticker));
+			// MAX SUBSCRIBE OVER 메시지를 받게된 종목에 대하여 다시 구독 요청해야 합니다.
+			eventPublisher.publishEvent(StockPriceSubscribeEvent.from(session, ticker));
+		} else {
+			log.info("Received Message : {}", message.getPayload());
 		}
+	}
+
+	private boolean isMaxSubscribeOverMessage(String payload) {
+		return payload.contains("MAX SUBSCRIBE OVER");
+	}
+
+	private boolean isSubscribeInternalErrorMessage(@NotNull String payload) {
+		return payload.contains("SUBSCRIBE INTERNAL ERROR");
 	}
 
 	private String parseTicker(String payload) {
@@ -75,7 +91,7 @@ public class StockPriceWebSocketHandler implements WebSocketHandler {
 			log.error("session can not close, errorMessage={}", ex.getMessage());
 		}
 		// 재연결 처리
-		eventPublisher.publishEvent(WebSocketSessionEvent.from(session));
+		eventPublisher.publishEvent(WebSocketSessionConnectEvent.from(session));
 	}
 
 	// 실시간 체결가 메시지인지 여부 확인
