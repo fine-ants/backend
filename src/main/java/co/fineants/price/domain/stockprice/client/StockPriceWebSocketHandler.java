@@ -39,10 +39,15 @@ public class StockPriceWebSocketHandler implements WebSocketHandler {
 			log.debug("kisSubscribeResponse is {}", response);
 		} else if (isRealTimeSigningPriceMessage(payload)) {
 			handleStockTextMessage(payload);
+		} else if (isPingPongMessage(payload)) {
+			sendPongMessage(session, message);
 		} else {
 			log.info("Received Message : {}", message.getPayload());
-			sendPongMessage(session, message);
 		}
+	}
+
+	private boolean isPingPongMessage(@NotNull String message) {
+		return message.contains("PINGPONG");
 	}
 
 	private void sendPongMessage(@NotNull WebSocketSession session, WebSocketMessage<?> message) {

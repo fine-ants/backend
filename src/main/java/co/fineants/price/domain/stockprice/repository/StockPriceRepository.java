@@ -25,12 +25,7 @@ public class StockPriceRepository {
 				continue;
 			}
 			tickerSymbolSet.add(ticker);
-			try {
-				dispatcher.dispatch(ticker);
-			} catch (Exception exception) {
-				log.error("dispatch fail, errorMessage={}", exception.getMessage());
-				return;
-			}
+			dispatcher.dispatch(ticker);
 		}
 	}
 
