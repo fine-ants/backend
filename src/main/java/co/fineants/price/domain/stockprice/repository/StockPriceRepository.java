@@ -9,21 +9,29 @@ import org.springframework.stereotype.Repository;
 
 import co.fineants.price.domain.stockprice.service.StockPriceDispatcher;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Repository
 @RequiredArgsConstructor
+@Slf4j
 public class StockPriceRepository {
 
 	private static final Set<String> tickerSymbolSet = ConcurrentHashMap.newKeySet();
 	private final StockPriceDispatcher dispatcher;
 
 	public void saveAll(Collection<String> tickerSymbols) {
-		tickerSymbols.stream()
-			.filter(ticker -> !tickerSymbolSet.contains(ticker))
-			.forEach(ticker -> {
-				tickerSymbolSet.add(ticker);
+		for (String ticker : tickerSymbols) {
+			if (tickerSymbolSet.contains(ticker)) {
+				continue;
+			}
+			tickerSymbolSet.add(ticker);
+			try {
 				dispatcher.dispatch(ticker);
-			});
+			} catch (Exception exception) {
+				log.error("dispatch fail, errorMessage={}", exception.getMessage());
+				return;
+			}
+		}
 	}
 
 	public Set<String> findAll() {
