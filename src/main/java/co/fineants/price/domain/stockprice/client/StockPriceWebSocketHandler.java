@@ -3,6 +3,7 @@ package co.fineants.price.domain.stockprice.client;
 import java.io.IOException;
 
 import org.jetbrains.annotations.NotNull;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.WebSocketHandler;
@@ -22,6 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 public class StockPriceWebSocketHandler implements WebSocketHandler {
 
 	private final CurrentPriceRedisRepository currentPriceRedisRepository;
+	private final ApplicationEventPublisher eventPublisher;
 
 	@Override
 	public void afterConnectionEstablished(@NotNull WebSocketSession session) {
@@ -39,22 +41,27 @@ public class StockPriceWebSocketHandler implements WebSocketHandler {
 			handleStockTextMessage(payload);
 		} else {
 			log.info("Received Message : {}", message.getPayload());
-			sendPongData(session, message);
+			sendPongMessage(session, message);
 		}
 	}
 
-	private void sendPongData(@NotNull WebSocketSession session, WebSocketMessage<?> message) {
-		// send pong data
+	private void sendPongMessage(@NotNull WebSocketSession session, WebSocketMessage<?> message) {
 		try {
 			session.sendMessage(message);
 		} catch (IOException e) {
 			log.error("StockPriceWebStockClient fail send pong data, errorMessage={}", e.getMessage());
-			try {
-				session.close(CloseStatus.SERVER_ERROR);
-			} catch (IOException ex) {
-				log.error("session can not close, errorMessage={}", ex.getMessage());
-			}
+			handleSessionCloseAndReconnect(session);
 		}
+	}
+
+	private void handleSessionCloseAndReconnect(@NotNull WebSocketSession session) {
+		try {
+			session.close(CloseStatus.SERVER_ERROR);
+		} catch (IOException ex) {
+			log.error("session can not close, errorMessage={}", ex.getMessage());
+		}
+		// 재연결 처리
+		eventPublisher.publishEvent(WebSocketSessionEvent.from(session));
 	}
 
 	// 실시간 체결가 메시지인지 여부 확인
