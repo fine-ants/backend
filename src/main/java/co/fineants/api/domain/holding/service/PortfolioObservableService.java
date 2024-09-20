@@ -29,7 +29,7 @@ public class PortfolioObservableService {
 
 	@Transactional(readOnly = true)
 	public void pushStockTickersBy(Long portfolioId) {
-		if (!stockMarketChecker.isMarketOpen(localDateTimeService.getLocalDateTimeWithNow())) {
+		if (stockMarketChecker.isMarketOpen(localDateTimeService.getLocalDateTimeWithNow())) {
 			return;
 		}
 		Set<String> tickers = portfolioCacheService.getTickerSymbolsFromPortfolioBy(portfolioId);

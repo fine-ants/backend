@@ -7,14 +7,12 @@ import lombok.Getter;
 
 @Getter
 public class StockPriceUnsubscribeEvent extends ApplicationEvent {
-	private final String ticker;
 
-	private StockPriceUnsubscribeEvent(WebSocketSession session, String ticker) {
+	private StockPriceUnsubscribeEvent(WebSocketSession session) {
 		super(session);
-		this.ticker = ticker;
 	}
 
-	public static StockPriceUnsubscribeEvent from(WebSocketSession session, String ticker) {
-		return new StockPriceUnsubscribeEvent(session, ticker);
+	public static StockPriceUnsubscribeEvent from(WebSocketSession session) {
+		return new StockPriceUnsubscribeEvent(session);
 	}
 }

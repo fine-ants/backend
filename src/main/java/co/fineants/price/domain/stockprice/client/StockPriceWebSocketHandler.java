@@ -49,9 +49,9 @@ public class StockPriceWebSocketHandler implements WebSocketHandler {
 		} else if (isMaxSubscribeOverMessage(payload)) {
 			log.info("Received Message : {}", message.getPayload());
 			// MAX SUBSCRIBE OVER 메시지의 경우에는 저장소에서 우선순위가 낮은 종목에 대하여 구독 해제를 신청해야 합니다.
-			String ticker = parseTicker(message.getPayload().toString());
-			eventPublisher.publishEvent(StockPriceUnsubscribeEvent.from(session, ticker));
+			eventPublisher.publishEvent(StockPriceUnsubscribeEvent.from(session));
 			// MAX SUBSCRIBE OVER 메시지를 받게된 종목에 대하여 다시 구독 요청해야 합니다.
+			String ticker = parseTicker(message.getPayload().toString());
 			eventPublisher.publishEvent(StockPriceSubscribeEvent.from(session, ticker));
 		} else {
 			log.info("Received Message : {}", message.getPayload());
