@@ -17,14 +17,6 @@ public class StockPriceRepository {
 	private static final Set<String> tickerSymbolSet = ConcurrentHashMap.newKeySet();
 	private final StockPriceDispatcher dispatcher;
 
-	public void save(String tickerSymbol) {
-		if (tickerSymbolSet.contains(tickerSymbol)) {
-			return;
-		}
-		tickerSymbolSet.add(tickerSymbol);
-		dispatcher.dispatch(tickerSymbol);
-	}
-
 	public void saveAll(Collection<String> tickerSymbols) {
 		tickerSymbols.stream()
 			.filter(ticker -> !tickerSymbolSet.contains(ticker))
