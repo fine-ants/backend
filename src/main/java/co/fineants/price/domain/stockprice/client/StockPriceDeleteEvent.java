@@ -2,8 +2,10 @@ package co.fineants.price.domain.stockprice.client;
 
 import org.springframework.context.ApplicationEvent;
 
+import lombok.Getter;
 import lombok.ToString;
 
+@Getter
 @ToString
 public class StockPriceDeleteEvent extends ApplicationEvent {
 
@@ -18,7 +20,4 @@ public class StockPriceDeleteEvent extends ApplicationEvent {
 		return new StockPriceDeleteEvent(ticker);
 	}
 
-	public String getTicker() {
-		return ticker;
-	}
 }
