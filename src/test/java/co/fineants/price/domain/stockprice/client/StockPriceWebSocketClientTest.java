@@ -42,7 +42,7 @@ class StockPriceWebSocketClientTest extends AbstractContainerBaseTest {
 		// given
 		String ticker = "005930";
 		// when
-		client.sendMessage(ticker);
+		client.sendSubscribeMessage(ticker);
 		// then
 		await().atMost(Duration.ofSeconds(5))
 			.until(() -> currentPriceRedisRepository.getCachedPrice(ticker).isPresent());

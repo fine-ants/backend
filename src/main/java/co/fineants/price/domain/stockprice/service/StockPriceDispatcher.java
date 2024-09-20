@@ -11,6 +11,6 @@ public class StockPriceDispatcher {
 	private final StockPriceWebSocketClient client;
 
 	public void dispatch(String ticker) {
-		client.sendMessage(ticker);
+		client.sendSubscribeMessage(ticker);
 	}
 }

@@ -13,6 +13,6 @@ public class KisWebSocketService {
 	private final StockPriceWebSocketClient stockPriceWebSocketClient;
 
 	public void fetchCurrentPrice(String ticker) {
-		stockPriceWebSocketClient.sendMessage(ticker);
+		stockPriceWebSocketClient.sendSubscribeMessage(ticker);
 	}
 }

@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
+import org.springframework.web.socket.WebSocketMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.client.WebSocketClient;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
@@ -91,11 +92,19 @@ public class StockPriceWebSocketClient {
 		}
 	}
 
-	public boolean sendMessage(String ticker) {
+	public boolean sendSubscribeMessage(String ticker) {
+		return sendMessage(ticker, new TextMessage(createCurrentPriceSubscribeRequest(ticker)));
+	}
+
+	public boolean sendUnsubscribeMessage(String ticker) {
+		return sendMessage(ticker, new TextMessage(createCurrentPriceUnsubscribeRequest(ticker)));
+	}
+
+	private boolean sendMessage(String ticker, WebSocketMessage<String> message) {
 		if (session != null && session.isOpen()) {
 			try {
 				log.info("StockPriceWebStockClient sendMessage, ticker={}", ticker);
-				session.sendMessage(new TextMessage(createCurrentPriceRequest(ticker)));
+				session.sendMessage(message);
 				return true;
 			} catch (IOException e) {
 				log.error("StockPriceWebStockClient fail sendMessage, errorMessage={}", e.getMessage());
@@ -107,12 +116,20 @@ public class StockPriceWebSocketClient {
 		}
 	}
 
-	private String createCurrentPriceRequest(String ticker) {
+	private String createCurrentPriceSubscribeRequest(String ticker) {
+		return createCurrentPriceRequest(ticker, "1");
+	}
+
+	private String createCurrentPriceUnsubscribeRequest(String ticker) {
+		return createCurrentPriceRequest(ticker, "0");
+	}
+
+	private String createCurrentPriceRequest(String ticker, String trType) {
 		Map<String, Object> requestMap = new HashMap<>();
 		Map<String, String> headerMap = new HashMap<>();
 		headerMap.put(KisHeader.APPROVAL_KEY.name(), approvalKeyRepository.fetchApprovalKey().orElseThrow());
 		headerMap.put(KisHeader.CUSTOMER_TYPE.getHeaderName(), CustomerType.INDIVIDUAL.getCode());
-		headerMap.put(KisHeader.TR_TYPE.name(), "1");
+		headerMap.put(KisHeader.TR_TYPE.name(), trType);
 		headerMap.put(KisHeader.CONTENT_TYPE.name(), "utf-8");
 
 		Map<String, Object> bodyMap = new HashMap<>();
