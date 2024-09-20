@@ -2,6 +2,7 @@ package co.fineants.api.domain.kis.domain.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import lombok.Getter;
 import lombok.ToString;
 
 @ToString
@@ -16,10 +17,12 @@ public class KisSubscribeResponse {
 	private static class Header {
 		@JsonProperty("tr_id")
 		private String trId;
+		@Getter
 		@JsonProperty("tr_key")
 		private String trKey;
 		@JsonProperty("encrypt")
 		private String encrypt;
+
 	}
 
 	@ToString
@@ -44,5 +47,9 @@ public class KisSubscribeResponse {
 
 		@JsonProperty("key")
 		private String key;
+	}
+
+	public String getTrKey() {
+		return header.getTrKey();
 	}
 }

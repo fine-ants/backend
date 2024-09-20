@@ -40,4 +40,9 @@ public class StockPriceRepository {
 	public void clear() {
 		tickerSymbolSet.clear();
 	}
+
+	public void remove(String ticker) {
+		log.info("remove ticker={}", ticker);
+		tickerSymbolSet.remove(ticker);
+	}
 }

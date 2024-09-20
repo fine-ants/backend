@@ -43,7 +43,16 @@ public class StockPriceWebSocketHandler implements WebSocketHandler {
 			sendPongMessage(session, message);
 		} else {
 			log.info("Received Message : {}", message.getPayload());
+			// SUBSCRIBE INTERNAL ERROR 메시지의 경우에는 저장소에서 종목을 제거한다
+			// MAX SUBSCRIBE OVER 메시지의 경우에는 저장소에서 종목을 제거한다
+			String ticker = parseTicker(message.getPayload().toString());
+			eventPublisher.publishEvent(StockPriceDeleteEvent.from(ticker));
 		}
+	}
+
+	private String parseTicker(String payload) {
+		KisSubscribeResponse response = ObjectMapperUtil.deserialize(payload, KisSubscribeResponse.class);
+		return response.getTrKey();
 	}
 
 	private boolean isPingPongMessage(@NotNull String message) {
