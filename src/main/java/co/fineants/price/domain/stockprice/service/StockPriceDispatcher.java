@@ -1,6 +1,8 @@
 package co.fineants.price.domain.stockprice.service;
 
 import java.time.Duration;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 import org.springframework.stereotype.Component;
 
@@ -17,13 +19,16 @@ public class StockPriceDispatcher {
 	private final KisService kisService;
 	private final CurrentPriceRedisRepository currentPriceRedisRepository;
 
+	private final Executor executor = Executors.newSingleThreadExecutor();
+
 	public void dispatch(String ticker) {
 		client.sendSubscribeMessage(ticker);
 	}
 
 	public void dispatchCurrentPrice(String ticker) {
-		kisService.fetchCurrentPrice(ticker)
-			.retryWhen(Retry.fixedDelay(5, Duration.ofSeconds(5)))
-			.subscribe(currentPriceRedisRepository::savePrice);
+		executor.execute(() ->
+			kisService.fetchCurrentPrice(ticker)
+				.retryWhen(Retry.fixedDelay(5, Duration.ofSeconds(5)))
+				.subscribe(currentPriceRedisRepository::savePrice));
 	}
 }
