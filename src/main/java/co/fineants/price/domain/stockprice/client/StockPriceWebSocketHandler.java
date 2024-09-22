@@ -41,9 +41,7 @@ public class StockPriceWebSocketHandler implements WebSocketHandler {
 			handleStockTextMessage(payload);
 		} else if (isPingPongMessage(payload)) {
 			sendPongMessage(session, message);
-		} else if (isSubscribeInternalErrorMessage(payload)) {
-			log.info("Received Message : {}", message.getPayload());
-		} else if (isMaxSubscribeOverMessage(payload)) {
+		} else if (isSubscribeInternalErrorMessage(payload) || isMaxSubscribeOverMessage(payload)) {
 			log.info("Received Message : {}", message.getPayload());
 		} else {
 			log.info("Received Message : {}", message.getPayload());
@@ -56,11 +54,6 @@ public class StockPriceWebSocketHandler implements WebSocketHandler {
 
 	private boolean isSubscribeInternalErrorMessage(@NotNull String payload) {
 		return payload.contains("SUBSCRIBE INTERNAL ERROR");
-	}
-
-	private String parseTicker(String payload) {
-		KisSubscribeResponse response = ObjectMapperUtil.deserialize(payload, KisSubscribeResponse.class);
-		return response.getTrKey();
 	}
 
 	private boolean isPingPongMessage(@NotNull String message) {
