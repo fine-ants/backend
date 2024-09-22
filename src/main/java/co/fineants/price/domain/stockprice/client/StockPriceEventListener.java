@@ -36,12 +36,4 @@ public class StockPriceEventListener {
 		boolean result = client.sendSubscribeMessage(event.getTicker());
 		log.info("Subscribe result : {}", result);
 	}
-
-	@EventListener
-	public void onStockPriceUnsubscribeEvent(StockPriceUnsubscribeEvent event) {
-		log.info("StockPriceUnsubscribeEvent : {}", event);
-		boolean result = client.sendUnsubscribeMessage(event.getTicker());
-		log.info("Unsubscribe result : {}", result);
-	}
-
 }
