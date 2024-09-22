@@ -127,9 +127,9 @@ public class StockPriceWebSocketClient {
 		return ObjectMapperUtil.serialize(requestMap);
 	}
 
-	public void disconnect() {
+	public void disconnect(CloseStatus status) {
 		try {
-			this.session.close(CloseStatus.NORMAL);
+			this.session.close(status);
 		} catch (IOException e) {
 			log.warn("StockPriceWebSocketClient fail close, error message is {}", e.getMessage());
 		}
