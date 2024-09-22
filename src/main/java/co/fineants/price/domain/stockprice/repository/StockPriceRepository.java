@@ -1,7 +1,5 @@
 package co.fineants.price.domain.stockprice.repository;
 
-import java.util.Collection;
-import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -21,14 +19,9 @@ public class StockPriceRepository {
 	private static final Queue<String> tickerSymbolSet = new ConcurrentLinkedQueue<>();
 	private final StockPriceDispatcher dispatcher;
 
-	public void saveAll(Collection<String> tickerSymbols) {
-		for (String ticker : tickerSymbols) {
-			if (tickerSymbolSet.contains(ticker)) {
-				continue;
-			}
-			tickerSymbolSet.add(ticker);
-			dispatcher.dispatch(ticker);
-		}
+	public void save(String tickerSymbol) {
+		tickerSymbolSet.add(tickerSymbol);
+		dispatcher.dispatch(tickerSymbol);
 	}
 
 	public Set<String> findAll() {
@@ -43,12 +36,16 @@ public class StockPriceRepository {
 		tickerSymbolSet.clear();
 	}
 
-	public Optional<String> pop() {
-		return Optional.ofNullable(tickerSymbolSet.poll());
+	public void remove(String ticker) {
+		tickerSymbolSet.remove(ticker);
+		log.info("remove ticker={}", ticker);
 	}
 
-	public void remove(String ticker) {
-		log.info("remove ticker={}", ticker);
-		tickerSymbolSet.remove(ticker);
+	public boolean contains(String ticker) {
+		return tickerSymbolSet.contains(ticker);
+	}
+
+	public boolean canSubscribe(String ticker) {
+		return tickerSymbolSet.size() < 20 && tickerSymbolSet.contains(ticker);
 	}
 }

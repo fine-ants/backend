@@ -13,6 +13,8 @@ public class StockPriceService {
 	private final StockPriceRepository repository;
 
 	public void pushStocks(Set<String> tickerSymbols) {
-		repository.saveAll(tickerSymbols);
+		tickerSymbols.stream()
+			.filter(repository::canSubscribe)
+			.forEach(repository::save);
 	}
 }
