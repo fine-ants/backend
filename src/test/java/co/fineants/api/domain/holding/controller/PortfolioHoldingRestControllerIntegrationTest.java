@@ -28,6 +28,7 @@ import co.fineants.api.domain.kis.client.KisCurrentPrice;
 import co.fineants.api.domain.kis.domain.dto.response.KisClosingPrice;
 import co.fineants.api.domain.kis.repository.ClosingPriceRepository;
 import co.fineants.api.domain.kis.repository.CurrentPriceRedisRepository;
+import co.fineants.api.domain.kis.repository.WebSocketApprovalKeyRedisRepository;
 import co.fineants.api.domain.member.domain.dto.request.LoginRequest;
 import co.fineants.api.domain.member.domain.entity.Member;
 import co.fineants.api.domain.member.repository.MemberRepository;
@@ -76,6 +77,9 @@ class PortfolioHoldingRestControllerIntegrationTest extends AbstractContainerBas
 	@Autowired
 	private StockPriceRepository stockPriceRepository;
 
+	@Autowired
+	private WebSocketApprovalKeyRedisRepository approvalKeyRedisRepository;
+
 	@SpyBean
 	private PortfolioCacheService portfolioCacheService;
 
@@ -84,6 +88,7 @@ class PortfolioHoldingRestControllerIntegrationTest extends AbstractContainerBas
 
 	@BeforeEach
 	void setUp() {
+		approvalKeyRedisRepository.saveApprovalKey("approvalKey");
 		stockPriceRepository.clear();
 	}
 
