@@ -11,10 +11,14 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class StockPriceService {
 	private final StockPriceRepository repository;
+	private final StockPriceDispatcher dispatcher;
 
 	public void pushStocks(Set<String> tickerSymbols) {
 		tickerSymbols.stream()
 			.filter(repository::canSubscribe)
-			.forEach(repository::save);
+			.forEach(ticker -> {
+				repository.save(ticker);
+				dispatcher.dispatch(ticker);
+			});
 	}
 }

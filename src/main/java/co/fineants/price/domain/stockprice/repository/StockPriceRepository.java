@@ -7,7 +7,6 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Repository;
 
-import co.fineants.price.domain.stockprice.service.StockPriceDispatcher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -17,11 +16,9 @@ import lombok.extern.slf4j.Slf4j;
 public class StockPriceRepository {
 
 	private static final Queue<String> tickerSymbolSet = new ConcurrentLinkedQueue<>();
-	private final StockPriceDispatcher dispatcher;
 
-	public void save(String tickerSymbol) {
-		tickerSymbolSet.add(tickerSymbol);
-		dispatcher.dispatch(tickerSymbol);
+	public boolean save(String tickerSymbol) {
+		return tickerSymbolSet.add(tickerSymbol);
 	}
 
 	public Set<String> findAll() {
@@ -46,6 +43,6 @@ public class StockPriceRepository {
 	}
 
 	public boolean canSubscribe(String ticker) {
-		return tickerSymbolSet.size() < 20 && tickerSymbolSet.contains(ticker);
+		return tickerSymbolSet.size() < 20 && !tickerSymbolSet.contains(ticker);
 	}
 }
