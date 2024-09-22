@@ -1,8 +1,10 @@
 package co.fineants.price.domain.stockprice.repository;
 
 import java.util.Collection;
+import java.util.Optional;
+import java.util.Queue;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Repository;
@@ -16,7 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class StockPriceRepository {
 
-	private static final Set<String> tickerSymbolSet = ConcurrentHashMap.newKeySet();
+	private static final Queue<String> tickerSymbolSet = new ConcurrentLinkedQueue<>();
 	private final StockPriceDispatcher dispatcher;
 
 	public void saveAll(Collection<String> tickerSymbols) {
@@ -39,6 +41,10 @@ public class StockPriceRepository {
 
 	public void clear() {
 		tickerSymbolSet.clear();
+	}
+
+	public Optional<String> pop() {
+		return Optional.ofNullable(tickerSymbolSet.poll());
 	}
 
 	public void remove(String ticker) {
