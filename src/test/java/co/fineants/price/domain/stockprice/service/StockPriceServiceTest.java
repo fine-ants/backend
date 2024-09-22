@@ -7,6 +7,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
@@ -35,6 +36,11 @@ class StockPriceServiceTest extends AbstractContainerBaseTest {
 
 	@MockBean
 	private StockPriceDispatcher dispatcher;
+
+	@AfterEach
+	void tearDown() {
+		stockPriceRepository.clear();
+	}
 
 	@DisplayName("사용자는 종목 정보를 큐에 넣는다")
 	@Test
