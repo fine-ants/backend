@@ -63,7 +63,7 @@ public class StockPriceWebSocketHandler implements WebSocketHandler {
 	private void sendPongMessage(@NotNull WebSocketSession session, WebSocketMessage<?> message) {
 		try {
 			session.sendMessage(message);
-		} catch (IOException e) {
+		} catch (Exception e) {
 			log.error("StockPriceWebStockClient fail send pong data, errorMessage={}", e.getMessage());
 			handleSessionCloseAndReconnect(session);
 		}
@@ -73,9 +73,9 @@ public class StockPriceWebSocketHandler implements WebSocketHandler {
 		try {
 			session.close(CloseStatus.SERVER_ERROR);
 		} catch (IOException ex) {
-			log.error("session can not close, errorMessage={}", ex.getMessage());
+			log.error("StockPriceWebSocketHandler fail close session, errorMessage={}", ex.getMessage());
 		}
-		// 재연결 처리
+		// reconnect
 		eventPublisher.publishEvent(WebSocketSessionConnectEvent.from(session));
 	}
 

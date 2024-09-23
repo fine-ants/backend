@@ -8,14 +8,15 @@ import java.util.concurrent.ExecutionException;
 
 import javax.annotation.PostConstruct;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.client.WebSocketClient;
-import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 
 import co.fineants.api.domain.kis.client.KisClient;
 import co.fineants.api.domain.kis.client.KisWebSocketApprovalKey;
@@ -41,10 +42,10 @@ public class StockPriceWebSocketClient {
 	private final WebSocketApprovalKeyRedisRepository approvalKeyRepository;
 	private final KisClient kisClient;
 	private final DelayManager delayManager;
-
+	private final WebSocketClient webSocketClient;
+	private final ApplicationEventPublisher eventPublisher;
 	@Value("${kis.websocket.auto-connect:true}")
 	private boolean websocketAutoConnect;
-	private final WebSocketClient webSocketClient = new StandardWebSocketClient();
 	private WebSocketSession session = null;
 
 	@PostConstruct
@@ -103,17 +104,29 @@ public class StockPriceWebSocketClient {
 	private boolean sendMessage(String ticker, WebSocketMessage<String> message) {
 		if (session != null && session.isOpen()) {
 			try {
-				log.info("StockPriceWebStockClient sendMessage, ticker={}", ticker);
 				session.sendMessage(message);
+				log.info("StockPriceWebStockClient sendMessage, ticker={}", ticker);
 				return true;
-			} catch (IOException e) {
+			} catch (Exception e) {
 				log.error("StockPriceWebStockClient fail sendMessage, errorMessage={}", e.getMessage());
+				handleSessionCloseAndReconnect(session);
 				return false;
 			}
 		} else {
 			log.info("WebSocket session is not open");
 			return false;
 		}
+	}
+
+	private void handleSessionCloseAndReconnect(@NotNull WebSocketSession session) {
+		try {
+			session.close(CloseStatus.SERVER_ERROR);
+			log.info("close session={}", session);
+		} catch (IOException ex) {
+			log.error("StockPriceWebSocketClient fail close session, errorMessage={}", ex.getMessage());
+		}
+		// reconnect
+		eventPublisher.publishEvent(WebSocketSessionConnectEvent.from(session));
 	}
 
 	private String createCurrentPriceSubscribeRequest(String ticker) {
