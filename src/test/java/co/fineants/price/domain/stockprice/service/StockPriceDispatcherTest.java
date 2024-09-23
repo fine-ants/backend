@@ -3,13 +3,13 @@ package co.fineants.price.domain.stockprice.service;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.BDDMockito.*;
 
-import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.annotation.DirtiesContext;
 import org.testcontainers.shaded.org.awaitility.Awaitility;
 
 import co.fineants.AbstractContainerBaseTest;
@@ -18,6 +18,7 @@ import co.fineants.api.domain.kis.repository.CurrentPriceRedisRepository;
 import co.fineants.api.domain.kis.service.KisService;
 import reactor.core.publisher.Mono;
 
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class StockPriceDispatcherTest extends AbstractContainerBaseTest {
 
 	@Autowired
@@ -35,8 +36,7 @@ class StockPriceDispatcherTest extends AbstractContainerBaseTest {
 		// given
 		String ticker = "005930";
 		given(kisService.fetchCurrentPrice(ticker))
-			.willReturn(Mono.just(KisCurrentPrice.create(ticker, 50000L))
-				.delayElement(Duration.ofMillis(100)));
+			.willReturn(Mono.just(KisCurrentPrice.create(ticker, 50000L)));
 		// when
 		dispatcher.dispatchCurrentPrice(ticker);
 		// then
