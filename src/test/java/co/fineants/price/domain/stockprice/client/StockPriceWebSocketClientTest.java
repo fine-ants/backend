@@ -3,17 +3,28 @@ package co.fineants.price.domain.stockprice.client;
 import static org.assertj.core.api.Assertions.*;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.*;
 
+import java.io.IOException;
 import java.time.Duration;
+import java.util.concurrent.CompletableFuture;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
+import org.mockito.BDDMockito;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.web.socket.WebSocketMessage;
+import org.springframework.web.socket.WebSocketSession;
+import org.springframework.web.socket.client.WebSocketClient;
 
 import co.fineants.AbstractContainerBaseTest;
+import co.fineants.api.domain.kis.client.KisClient;
 import co.fineants.api.domain.kis.repository.CurrentPriceRedisRepository;
 import co.fineants.api.domain.kis.repository.WebSocketApprovalKeyRedisRepository;
+import co.fineants.api.global.common.delay.DelayManager;
 
 class StockPriceWebSocketClientTest extends AbstractContainerBaseTest {
 
@@ -25,6 +36,18 @@ class StockPriceWebSocketClientTest extends AbstractContainerBaseTest {
 
 	@Autowired
 	private WebSocketApprovalKeyRedisRepository webSocketApprovalKeyRedisRepository;
+
+	@Autowired
+	private StockPriceWebSocketHandler handler;
+
+	@Autowired
+	private KisClient kisClient;
+
+	@Autowired
+	private DelayManager delayManager;
+
+	@Autowired
+	private ApplicationEventPublisher eventPublisher;
 
 	@LocalServerPort
 	private int port;
@@ -47,5 +70,30 @@ class StockPriceWebSocketClientTest extends AbstractContainerBaseTest {
 		await().atMost(Duration.ofSeconds(5))
 			.until(() -> currentPriceRedisRepository.getCachedPrice(ticker).isPresent());
 		assertThat(currentPriceRedisRepository.getCachedPrice(ticker).orElseThrow()).isEqualTo("70100");
+	}
+
+	@DisplayName("세션을 통해서 메시지를 전송하다가 파이프가 부러지면 세션을 종료하고 재연결한다")
+	@Test
+	void sendMessage_whenBrokenPipe_thenCloseAndReconnectSession() throws IOException {
+		// given
+		WebSocketClient webSocketClient = Mockito.mock(WebSocketClient.class);
+		WebSocketSession session = Mockito.mock(WebSocketSession.class);
+		String uri = "ws://localhost:" + port + "/ws/test";
+		BDDMockito.given(webSocketClient.execute(handler, uri))
+			.willReturn(CompletableFuture.completedFuture(session));
+		BDDMockito.given(session.isOpen()).willReturn(true);
+		BDDMockito.willThrow(new IOException("broken pipe"))
+			.given(session).sendMessage(ArgumentMatchers.any(WebSocketMessage.class));
+		StockPriceWebSocketClient stockPriceWebSocketClient = new StockPriceWebSocketClient(handler,
+			webSocketApprovalKeyRedisRepository, kisClient, delayManager, webSocketClient, eventPublisher);
+		stockPriceWebSocketClient.connect(uri);
+
+		String ticker = "005930";
+
+		// when
+		boolean result = stockPriceWebSocketClient.sendSubscribeMessage(ticker);
+		// then
+		assertThat(result).isFalse();
+		assertThat(session.isOpen()).isTrue();
 	}
 }
