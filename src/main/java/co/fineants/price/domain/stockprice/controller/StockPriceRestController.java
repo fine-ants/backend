@@ -24,7 +24,7 @@ public class StockPriceRestController {
 	@Secured(value = {"ROLE_MANAGER", "ROLE_ADMIN"})
 	public ApiResponse<Void> sendMessage(@RequestParam String ticker) {
 		boolean result = client.sendSubscribeMessage(ticker);
-		log.info("sendMessage result={}", result);
+		log.info("subscribe result={}, ticker={}", result, ticker);
 		return ApiResponse.success(KisSuccessCode.OK_SIGNING_PRICE_SEND_MESSAGE);
 	}
 }

@@ -33,7 +33,8 @@ public class StockPriceEventListener {
 	@EventListener
 	public void onStockPriceSubscribeEvent(StockPriceSubscribeEvent event) {
 		log.info("StockPriceSubscribeEvent : {}", event);
-		boolean result = client.sendSubscribeMessage(event.getTicker());
-		log.info("Subscribe result : {}", result);
+		String ticker = event.getTicker();
+		boolean result = client.sendSubscribeMessage(ticker);
+		log.info("Subscribe result: {}, ticker: {}", result, ticker);
 	}
 }
