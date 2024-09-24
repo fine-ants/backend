@@ -50,4 +50,12 @@ public class StockPriceRepository {
 		tickerSymbolSet.remove(stockPrice);
 		tickerSymbolSet.add(stockPrice);
 	}
+
+	public Set<StockPrice> removeExpiredStockPrice() {
+		Set<StockPrice> result = tickerSymbolSet.stream()
+			.filter(StockPrice::isExpired)
+			.collect(Collectors.toUnmodifiableSet());
+		tickerSymbolSet.removeAll(result);
+		return result;
+	}
 }
