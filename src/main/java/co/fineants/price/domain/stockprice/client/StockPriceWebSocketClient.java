@@ -72,10 +72,6 @@ public class StockPriceWebSocketClient {
 		return sendMessage(ticker, new TextMessage(createCurrentPriceSubscribeRequest(ticker)));
 	}
 
-	public boolean sendUnsubscribeMessage(String ticker) {
-		return sendMessage(ticker, new TextMessage(createCurrentPriceUnsubscribeRequest(ticker)));
-	}
-
 	private boolean sendMessage(String ticker, WebSocketMessage<String> message) {
 		if (session == null || !session.isOpen()) {
 			log.info("WebSocket session is not open");
@@ -104,19 +100,15 @@ public class StockPriceWebSocketClient {
 	}
 
 	private String createCurrentPriceSubscribeRequest(String ticker) {
-		return createCurrentPriceRequest(ticker, "1");
+		return createCurrentPriceRequest(ticker);
 	}
 
-	private String createCurrentPriceUnsubscribeRequest(String ticker) {
-		return createCurrentPriceRequest(ticker, "0");
-	}
-
-	private String createCurrentPriceRequest(String ticker, String trType) {
+	private String createCurrentPriceRequest(String ticker) {
 		Map<String, Object> requestMap = new HashMap<>();
 		Map<String, String> headerMap = new HashMap<>();
 		headerMap.put(KisHeader.APPROVAL_KEY.name(), approvalKeyRepository.fetchApprovalKey().orElseThrow());
 		headerMap.put(KisHeader.CUSTOMER_TYPE.getHeaderName(), CustomerType.INDIVIDUAL.getCode());
-		headerMap.put(KisHeader.TR_TYPE.name(), trType);
+		headerMap.put(KisHeader.TR_TYPE.name(), "1"); // 거래 타입, 1:'등록', 0:'해제'
 		headerMap.put(KisHeader.CONTENT_TYPE.name(), "utf-8");
 
 		Map<String, Object> bodyMap = new HashMap<>();

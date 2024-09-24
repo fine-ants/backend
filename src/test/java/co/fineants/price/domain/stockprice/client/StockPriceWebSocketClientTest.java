@@ -1,6 +1,7 @@
 package co.fineants.price.domain.stockprice.client;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.BDDMockito.given;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.*;
 
 import java.io.IOException;
@@ -21,10 +22,8 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.client.WebSocketClient;
 
 import co.fineants.AbstractContainerBaseTest;
-import co.fineants.api.domain.kis.client.KisClient;
 import co.fineants.api.domain.kis.repository.CurrentPriceRedisRepository;
 import co.fineants.api.domain.kis.repository.WebSocketApprovalKeyRedisRepository;
-import co.fineants.api.global.common.delay.DelayManager;
 
 class StockPriceWebSocketClientTest extends AbstractContainerBaseTest {
 
@@ -39,12 +38,6 @@ class StockPriceWebSocketClientTest extends AbstractContainerBaseTest {
 
 	@Autowired
 	private StockPriceWebSocketHandler handler;
-
-	@Autowired
-	private KisClient kisClient;
-
-	@Autowired
-	private DelayManager delayManager;
 
 	@Autowired
 	private ApplicationEventPublisher eventPublisher;
@@ -79,13 +72,13 @@ class StockPriceWebSocketClientTest extends AbstractContainerBaseTest {
 		WebSocketClient webSocketClient = Mockito.mock(WebSocketClient.class);
 		WebSocketSession session = Mockito.mock(WebSocketSession.class);
 		String uri = "ws://localhost:" + port + "/ws/test";
-		BDDMockito.given(webSocketClient.execute(handler, uri))
+		given(webSocketClient.execute(handler, uri))
 			.willReturn(CompletableFuture.completedFuture(session));
-		BDDMockito.given(session.isOpen()).willReturn(true);
+		given(session.isOpen()).willReturn(true);
 		BDDMockito.willThrow(new IOException("broken pipe"))
 			.given(session).sendMessage(ArgumentMatchers.any(WebSocketMessage.class));
 		StockPriceWebSocketClient stockPriceWebSocketClient = new StockPriceWebSocketClient(handler,
-			webSocketApprovalKeyRedisRepository, kisClient, delayManager, webSocketClient, eventPublisher);
+			webSocketApprovalKeyRedisRepository, webSocketClient, eventPublisher);
 		stockPriceWebSocketClient.connect(uri);
 
 		String ticker = "005930";
