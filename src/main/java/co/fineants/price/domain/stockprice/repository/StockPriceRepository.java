@@ -1,12 +1,12 @@
 package co.fineants.price.domain.stockprice.repository;
 
-import java.util.Queue;
 import java.util.Set;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Repository;
 
+import co.fineants.price.domain.stockprice.domain.StockPrice;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -15,13 +15,13 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class StockPriceRepository {
 
-	private static final Queue<String> tickerSymbolSet = new ConcurrentLinkedQueue<>();
+	private static final Set<StockPrice> tickerSymbolSet = ConcurrentHashMap.newKeySet();
 
-	public boolean save(String tickerSymbol) {
-		return tickerSymbolSet.add(tickerSymbol);
+	public boolean save(StockPrice stockPrice) {
+		return tickerSymbolSet.add(stockPrice);
 	}
 
-	public Set<String> findAll() {
+	public Set<StockPrice> findAll() {
 		return tickerSymbolSet.stream().collect(Collectors.toUnmodifiableSet());
 	}
 
@@ -33,16 +33,29 @@ public class StockPriceRepository {
 		tickerSymbolSet.clear();
 	}
 
-	public void remove(String ticker) {
-		tickerSymbolSet.remove(ticker);
-		log.info("remove ticker={}", ticker);
+	public void remove(StockPrice stockPrice) {
+		tickerSymbolSet.remove(stockPrice);
+		log.info("remove stockPrice={}", stockPrice);
 	}
 
-	public boolean contains(String ticker) {
-		return tickerSymbolSet.contains(ticker);
+	public boolean contains(StockPrice stockPrice) {
+		return tickerSymbolSet.contains(stockPrice);
 	}
 
-	public boolean canSubscribe(String ticker) {
-		return tickerSymbolSet.size() < 20 && !tickerSymbolSet.contains(ticker);
+	public boolean canSubscribe(StockPrice stockPrice) {
+		return tickerSymbolSet.size() < 20 && !tickerSymbolSet.contains(stockPrice);
+	}
+
+	public void refreshExpiration(StockPrice stockPrice) {
+		tickerSymbolSet.remove(stockPrice);
+		tickerSymbolSet.add(stockPrice);
+	}
+
+	public Set<StockPrice> removeExpiredStockPrice() {
+		Set<StockPrice> result = tickerSymbolSet.stream()
+			.filter(StockPrice::isExpired)
+			.collect(Collectors.toUnmodifiableSet());
+		tickerSymbolSet.removeAll(result);
+		return result;
 	}
 }
