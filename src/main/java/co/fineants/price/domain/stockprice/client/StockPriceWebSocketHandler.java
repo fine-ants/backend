@@ -1,7 +1,5 @@
 package co.fineants.price.domain.stockprice.client;
 
-import java.io.IOException;
-
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
@@ -65,27 +63,29 @@ public class StockPriceWebSocketHandler implements WebSocketHandler {
 			session.sendMessage(message);
 		} catch (Exception e) {
 			log.error("StockPriceWebStockClient fail send pong data, errorMessage={}", e.getMessage());
-			handleSessionCloseAndReconnect(session);
+			closeSession(session);
+			publishSessionReconnectEvent(session);
 		}
 	}
 
-	private void handleSessionCloseAndReconnect(@NotNull WebSocketSession session) {
+	private void closeSession(@NotNull WebSocketSession session) {
 		try {
 			session.close(CloseStatus.SERVER_ERROR);
-		} catch (IOException ex) {
+		} catch (Exception ex) {
 			log.error("StockPriceWebSocketHandler fail close session, errorMessage={}", ex.getMessage());
 		}
-		// reconnect
+	}
+
+	private void publishSessionReconnectEvent(@NotNull WebSocketSession session) {
 		eventPublisher.publishEvent(WebSocketSessionConnectEvent.from(session));
 	}
 
-	// 실시간 체결가 메시지인지 여부 확인
 	private boolean isRealTimeSigningPriceMessage(String message) {
 		return message.startsWith("0|H0STCNT0");
 	}
 
 	private boolean isSubscribeSuccessMessage(String message) {
-		return message.startsWith("{") && message.endsWith("}") && message.contains("SUBSCRIBE SUCCESS");
+		return message.contains("SUBSCRIBE SUCCESS");
 	}
 
 	private void handleStockTextMessage(String message) {
