@@ -18,10 +18,12 @@ public class KisProperties {
 	private final String dividendUrl;
 	private final String ipoUrl;
 	private final String searchStockInfoUrl;
+	private final String websocketCurrentPriceUrl;
 
 	@ConstructorBinding
 	public KisProperties(String appkey, String secretkey, String tokenUrl, String websocketUrl, String currentPriceUrl,
-		String closingPriceUrl, String dividendUrl, String ipoUrl, String searchStockInfoUrl) {
+		String closingPriceUrl, String dividendUrl, String ipoUrl, String searchStockInfoUrl,
+		String websocketCurrentPriceUrl) {
 		this.appkey = appkey;
 		this.secretkey = secretkey;
 		this.tokenUrl = tokenUrl;
@@ -31,5 +33,6 @@ public class KisProperties {
 		this.dividendUrl = dividendUrl;
 		this.ipoUrl = ipoUrl;
 		this.searchStockInfoUrl = searchStockInfoUrl;
+		this.websocketCurrentPriceUrl = websocketCurrentPriceUrl;
 	}
 }

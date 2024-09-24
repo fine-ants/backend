@@ -1,37 +1,24 @@
 package co.fineants.price.domain.stockprice.repository;
 
-import java.util.Collection;
+import java.util.Queue;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Repository;
 
-import co.fineants.price.domain.stockprice.service.StockPriceDispatcher;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Repository
 @RequiredArgsConstructor
+@Slf4j
 public class StockPriceRepository {
 
-	private static final Set<String> tickerSymbolSet = ConcurrentHashMap.newKeySet();
-	private final StockPriceDispatcher dispatcher;
+	private static final Queue<String> tickerSymbolSet = new ConcurrentLinkedQueue<>();
 
-	public void save(String tickerSymbol) {
-		if (tickerSymbolSet.contains(tickerSymbol)) {
-			return;
-		}
-		tickerSymbolSet.add(tickerSymbol);
-		dispatcher.dispatch(tickerSymbol);
-	}
-
-	public void saveAll(Collection<String> tickerSymbols) {
-		tickerSymbols.stream()
-			.filter(ticker -> !tickerSymbolSet.contains(ticker))
-			.forEach(ticker -> {
-				tickerSymbolSet.add(ticker);
-				dispatcher.dispatch(ticker);
-			});
+	public boolean save(String tickerSymbol) {
+		return tickerSymbolSet.add(tickerSymbol);
 	}
 
 	public Set<String> findAll() {
@@ -44,5 +31,18 @@ public class StockPriceRepository {
 
 	public void clear() {
 		tickerSymbolSet.clear();
+	}
+
+	public void remove(String ticker) {
+		tickerSymbolSet.remove(ticker);
+		log.info("remove ticker={}", ticker);
+	}
+
+	public boolean contains(String ticker) {
+		return tickerSymbolSet.contains(ticker);
+	}
+
+	public boolean canSubscribe(String ticker) {
+		return tickerSymbolSet.size() < 20 && !tickerSymbolSet.contains(ticker);
 	}
 }

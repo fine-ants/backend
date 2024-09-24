@@ -1,49 +1,36 @@
 package co.fineants.price.domain.stockprice.client;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
 import javax.annotation.PostConstruct;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
-import org.springframework.web.socket.TextMessage;
+import org.springframework.web.socket.WebSocketMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.client.WebSocketClient;
-import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 
-import co.fineants.api.domain.kis.client.KisClient;
-import co.fineants.api.domain.kis.client.KisWebSocketApprovalKey;
-import co.fineants.api.domain.kis.properties.KisHeader;
-import co.fineants.api.domain.kis.properties.kiscodevalue.imple.CustomerType;
-import co.fineants.api.domain.kis.repository.WebSocketApprovalKeyRedisRepository;
-import co.fineants.api.global.common.delay.DelayManager;
-import co.fineants.api.global.util.ObjectMapperUtil;
+import co.fineants.api.domain.kis.properties.KisProperties;
+import co.fineants.price.domain.stockprice.aop.RequiredWebSocketApprovalKey;
+import co.fineants.price.domain.stockprice.factory.StockPriceWebSocketMessageFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import reactor.core.publisher.Mono;
-import reactor.util.retry.Retry;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class StockPriceWebSocketClient {
-
-	private static final String KIS_WEBSOCKET_CURRENT_PRICE_URI =
-		"ws://ops.koreainvestment.com:21000/websocket/tryitout/H0STCNT0";
-
 	private final StockPriceWebSocketHandler stockPriceWebSocketHandler;
-	private final WebSocketApprovalKeyRedisRepository approvalKeyRepository;
-	private final KisClient kisClient;
-	private final DelayManager delayManager;
-
+	private final WebSocketClient webSocketClient;
+	private final ApplicationEventPublisher eventPublisher;
+	private final KisProperties kisProperties;
+	private final StockPriceWebSocketMessageFactory factory;
 	@Value("${kis.websocket.auto-connect:true}")
 	private boolean websocketAutoConnect;
-	private final WebSocketClient webSocketClient = new StandardWebSocketClient();
 	private WebSocketSession session = null;
 
 	@PostConstruct
@@ -51,36 +38,14 @@ public class StockPriceWebSocketClient {
 		if (!websocketAutoConnect) {
 			return;
 		}
-		connect();
+		connect(kisProperties.getWebsocketCurrentPriceUrl());
 	}
 
-	private Optional<String> fetchApprovalKey() {
-		return kisClient.fetchWebSocketApprovalKey()
-			.retryWhen(Retry.fixedDelay(5, delayManager.fixedAccessTokenDelay()))
-			.onErrorResume(throwable -> {
-				log.error(throwable.getMessage());
-				return Mono.empty();
-			})
-			.log()
-			.blockOptional(delayManager.timeout())
-			.map(KisWebSocketApprovalKey::getApprovalKey);
-	}
-
-	public void connect() {
-		fetchApprovalKeyIfEmpty();
-		connect(KIS_WEBSOCKET_CURRENT_PRICE_URI);
-	}
-
-	private void fetchApprovalKeyIfEmpty() {
-		String approvalKey = approvalKeyRepository.fetchApprovalKey().orElse(null);
-		if (approvalKey == null) {
-			this.fetchApprovalKey().ifPresent(approvalKeyRepository::saveApprovalKey);
-		}
-	}
-
-	public void connect(String uri) {
+	@RequiredWebSocketApprovalKey
+	public void connect(@NotNull String url) {
 		try {
-			session = webSocketClient.execute(stockPriceWebSocketHandler, uri).get();
+			session = webSocketClient.execute(stockPriceWebSocketHandler, url).get();
+			log.info("connect Session : {}, uri : {}", session, url);
 		} catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
 			log.warn("Thread interrupted during connection, errorMessage={}", e.getMessage());
@@ -91,47 +56,52 @@ public class StockPriceWebSocketClient {
 		}
 	}
 
-	public boolean sendMessage(String ticker) {
-		if (session != null && session.isOpen()) {
-			try {
-				log.info("StockPriceWebStockClient sendMessage, ticker={}", ticker);
-				session.sendMessage(new TextMessage(createCurrentPriceRequest(ticker)));
-				return true;
-			} catch (IOException e) {
-				log.error("StockPriceWebStockClient fail sendMessage, errorMessage={}", e.getMessage());
-				return false;
-			}
-		} else {
+	public boolean sendSubscribeMessage(String ticker) {
+		return sendMessage(ticker, factory.currentPriceSubscribeMessage(ticker));
+	}
+
+	private boolean sendMessage(String ticker, WebSocketMessage<String> message) {
+		if (!isConnect()) {
 			log.info("WebSocket session is not open");
+			return false;
+		}
+		try {
+			session.sendMessage(message);
+			log.info("StockPriceWebStockClient sendMessage, ticker={}", ticker);
+			return true;
+		} catch (Exception e) {
+			log.error("StockPriceWebStockClient fail sendMessage, errorMessage={}", e.getMessage());
+			closeSession(session, CloseStatus.SERVER_ERROR);
+			publishSessionReconnectEvent(session);
 			return false;
 		}
 	}
 
-	private String createCurrentPriceRequest(String ticker) {
-		Map<String, Object> requestMap = new HashMap<>();
-		Map<String, String> headerMap = new HashMap<>();
-		headerMap.put(KisHeader.APPROVAL_KEY.name(), approvalKeyRepository.fetchApprovalKey().orElseThrow());
-		headerMap.put(KisHeader.CUSTOMER_TYPE.getHeaderName(), CustomerType.INDIVIDUAL.getCode());
-		headerMap.put(KisHeader.TR_TYPE.name(), "1");
-		headerMap.put(KisHeader.CONTENT_TYPE.name(), "utf-8");
+	private void closeSession(WebSocketSession session, CloseStatus status) {
+		if (!isConnect()) {
+			return;
+		}
+		try {
+			session.close(status);
+			log.info("close session={}", session);
+		} catch (IOException ex) {
+			log.error("StockPriceWebSocketClient fail close session, errorMessage={}", ex.getMessage());
+			this.session = null;
+		}
+	}
 
-		Map<String, Object> bodyMap = new HashMap<>();
-		Map<String, String> input = new HashMap<>();
-		input.put("tr_id", "H0STCNT0");
-		input.put("tr_key", ticker);
-		bodyMap.put("input", input);
-
-		requestMap.put("header", headerMap);
-		requestMap.put("body", bodyMap);
-
-		return ObjectMapperUtil.serialize(requestMap);
+	private void publishSessionReconnectEvent(@NotNull WebSocketSession session) {
+		eventPublisher.publishEvent(WebSocketSessionConnectEvent.from(session));
 	}
 
 	public void disconnect(CloseStatus status) {
-		try {
-			this.session.close(status);
-		} catch (IOException e) {
-			log.warn("StockPriceWebSocketClient fail close, error message is {}", e.getMessage());
+		closeSession(this.session, status);
+	}
+
+	public boolean isConnect() {
+		if (session == null) {
+			return false;
 		}
+		return session.isOpen();
 	}
 }
