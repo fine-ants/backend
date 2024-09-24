@@ -13,7 +13,11 @@ public class StockPrice {
 	private final LocalDateTime expiration;
 
 	public static StockPrice newInstance(String ticker) {
-		return new StockPrice(ticker, LocalDateTime.now().plusMinutes(1));
+		return newInstance(ticker, LocalDateTime.now().plusMinutes(1));
+	}
+
+	public static StockPrice newInstance(String ticker, LocalDateTime expiration) {
+		return new StockPrice(ticker, expiration);
 	}
 
 	public boolean isExpired() {

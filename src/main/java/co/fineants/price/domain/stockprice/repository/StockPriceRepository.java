@@ -45,4 +45,8 @@ public class StockPriceRepository {
 	public boolean canSubscribe(String ticker) {
 		return tickerSymbolSet.size() < 20 && !tickerSymbolSet.contains(StockPrice.newInstance(ticker));
 	}
+
+	public void refreshExpiration(String ticker) {
+		tickerSymbolSet.add(StockPrice.newInstance(ticker));
+	}
 }

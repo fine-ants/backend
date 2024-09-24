@@ -15,8 +15,11 @@ public class StockPriceService {
 
 	public void pushStocks(Set<String> tickerSymbols) {
 		for (String ticker : tickerSymbols) {
-			// 구독 가능한 종목들에 대해서 종목 실시간 체결가에 대한 저장 및 구독 요청
-			if (repository.canSubscribe(ticker)) {
+			if (repository.contains(ticker)) {
+				// 종목이 이미 포함되어 있다면 만료시간 갱신
+				repository.refreshExpiration(ticker);
+			} else if (repository.canSubscribe(ticker)) {
+				// 구독 가능한 종목들에 대해서 종목 실시간 체결가에 대한 저장 및 구독 요청
 				repository.save(ticker);
 				dispatcher.dispatch(ticker);
 			} else {
