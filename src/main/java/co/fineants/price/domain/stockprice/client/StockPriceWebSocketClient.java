@@ -73,6 +73,10 @@ public class StockPriceWebSocketClient {
 		return sendMessage(ticker, factory.currentPriceSubscribeMessage(ticker));
 	}
 
+	public boolean sendUnsubscribeMessage(String ticker) {
+		return sendMessage(ticker, factory.currentPriceUnsubscribeMessage(ticker));
+	}
+
 	private boolean sendMessage(String ticker, WebSocketMessage<String> message) {
 		if (!isConnect()) {
 			log.info("WebSocket session is not open");

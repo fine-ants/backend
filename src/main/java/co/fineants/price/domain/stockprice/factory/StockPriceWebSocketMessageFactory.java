@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.TextMessage;
+import org.springframework.web.socket.WebSocketMessage;
 
 import co.fineants.api.domain.kis.properties.KisHeader;
 import co.fineants.api.domain.kis.properties.kiscodevalue.imple.CustomerType;
@@ -20,6 +21,11 @@ public class StockPriceWebSocketMessageFactory {
 
 	public TextMessage currentPriceSubscribeMessage(String ticker) {
 		String tradeType = "1";
+		return new TextMessage(currentPriceSubScribeRequest(ticker, tradeType));
+	}
+
+	public WebSocketMessage<String> currentPriceUnsubscribeMessage(String ticker) {
+		String tradeType = "0";
 		return new TextMessage(currentPriceSubScribeRequest(ticker, tradeType));
 	}
 
@@ -42,5 +48,4 @@ public class StockPriceWebSocketMessageFactory {
 
 		return ObjectMapperUtil.serialize(requestMap);
 	}
-
 }
