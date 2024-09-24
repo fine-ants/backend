@@ -17,8 +17,8 @@ public class StockPriceRepository {
 
 	private static final Set<StockPrice> tickerSymbolSet = ConcurrentHashMap.newKeySet();
 
-	public boolean save(String tickerSymbol) {
-		return tickerSymbolSet.add(StockPrice.newInstance(tickerSymbol));
+	public boolean save(StockPrice stockPrice) {
+		return tickerSymbolSet.add(stockPrice);
 	}
 
 	public Set<StockPrice> findAll() {
@@ -33,20 +33,21 @@ public class StockPriceRepository {
 		tickerSymbolSet.clear();
 	}
 
-	public void remove(String ticker) {
-		tickerSymbolSet.remove(StockPrice.newInstance(ticker));
-		log.info("remove ticker={}", ticker);
+	public void remove(StockPrice stockPrice) {
+		tickerSymbolSet.remove(stockPrice);
+		log.info("remove stockPrice={}", stockPrice);
 	}
 
-	public boolean contains(String ticker) {
-		return tickerSymbolSet.contains(StockPrice.newInstance(ticker));
+	public boolean contains(StockPrice stockPrice) {
+		return tickerSymbolSet.contains(stockPrice);
 	}
 
-	public boolean canSubscribe(String ticker) {
-		return tickerSymbolSet.size() < 20 && !tickerSymbolSet.contains(StockPrice.newInstance(ticker));
+	public boolean canSubscribe(StockPrice stockPrice) {
+		return tickerSymbolSet.size() < 20 && !tickerSymbolSet.contains(stockPrice);
 	}
 
-	public void refreshExpiration(String ticker) {
-		tickerSymbolSet.add(StockPrice.newInstance(ticker));
+	public void refreshExpiration(StockPrice stockPrice) {
+		tickerSymbolSet.remove(stockPrice);
+		tickerSymbolSet.add(stockPrice);
 	}
 }

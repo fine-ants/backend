@@ -5,6 +5,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import co.fineants.api.domain.kis.properties.KisProperties;
+import co.fineants.price.domain.stockprice.domain.StockPrice;
 import co.fineants.price.domain.stockprice.repository.StockPriceRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,7 +30,7 @@ public class StockPriceEventListener {
 	@EventListener
 	public void onStockPriceDeleteEvent(StockPriceDeleteEvent event) {
 		log.info("StockPriceDeleteEvent : {}", event);
-		stockPriceRepository.remove(event.getTicker());
+		stockPriceRepository.remove(StockPrice.newInstance(event.getTicker()));
 	}
 
 	@EventListener
