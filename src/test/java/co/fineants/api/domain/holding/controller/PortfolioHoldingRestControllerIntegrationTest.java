@@ -39,6 +39,7 @@ import co.fineants.api.domain.purchasehistory.repository.PurchaseHistoryReposito
 import co.fineants.api.domain.stock.domain.entity.Stock;
 import co.fineants.api.domain.stock.repository.StockRepository;
 import co.fineants.api.global.common.time.LocalDateTimeService;
+import co.fineants.price.domain.stockprice.domain.StockPrice;
 import co.fineants.price.domain.stockprice.repository.StockPriceRepository;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
@@ -120,7 +121,13 @@ class PortfolioHoldingRestControllerIntegrationTest extends AbstractContainerBas
 		requestPortfolioHoldingWithSse(uri, loginCookies);
 
 		// then
-		assertThat(stockPriceRepository.size()).isEqualTo(1);
+		assertThat(stockPriceRepository.size())
+			.as("The number of stock prices stored in the repository must be 1.")
+			.isEqualTo(1);
+		assertThat(stockPriceRepository.findAll().stream()
+			.noneMatch(StockPrice::isExpired))
+			.as("All stored stock prices must not be expired.")
+			.isTrue();
 	}
 
 	@DisplayName("사용자가 포트폴리오 종목 조회(SSE)을 계속 요청할 때 포트폴리오의 종목 정보가 동일하면 캐시된 종목 정보를 반환해야 한다")
