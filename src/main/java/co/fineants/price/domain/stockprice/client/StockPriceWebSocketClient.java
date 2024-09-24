@@ -72,7 +72,7 @@ public class StockPriceWebSocketClient {
 		} catch (Exception e) {
 			log.error("StockPriceWebStockClient fail sendMessage, errorMessage={}", e.getMessage());
 			closeSession(session, CloseStatus.SERVER_ERROR);
-			publishReconnectEvent(session);
+			publishSessionReconnectEvent(session);
 			return false;
 		}
 	}
@@ -90,7 +90,7 @@ public class StockPriceWebSocketClient {
 		}
 	}
 
-	private void publishReconnectEvent(@NotNull WebSocketSession session) {
+	private void publishSessionReconnectEvent(@NotNull WebSocketSession session) {
 		eventPublisher.publishEvent(WebSocketSessionConnectEvent.from(session));
 	}
 
