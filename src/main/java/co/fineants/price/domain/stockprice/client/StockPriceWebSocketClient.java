@@ -1,8 +1,6 @@
 package co.fineants.price.domain.stockprice.client;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 import javax.annotation.PostConstruct;
@@ -12,17 +10,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
-import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.client.WebSocketClient;
 
-import co.fineants.api.domain.kis.properties.KisHeader;
 import co.fineants.api.domain.kis.properties.KisProperties;
-import co.fineants.api.domain.kis.properties.kiscodevalue.imple.CustomerType;
-import co.fineants.api.domain.kis.repository.WebSocketApprovalKeyRedisRepository;
-import co.fineants.api.global.util.ObjectMapperUtil;
 import co.fineants.price.domain.stockprice.aop.RequiredWebSocketApprovalKey;
+import co.fineants.price.domain.stockprice.factory.StockPriceWebSocketMessageFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -31,10 +25,10 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class StockPriceWebSocketClient {
 	private final StockPriceWebSocketHandler stockPriceWebSocketHandler;
-	private final WebSocketApprovalKeyRedisRepository approvalKeyRepository;
 	private final WebSocketClient webSocketClient;
 	private final ApplicationEventPublisher eventPublisher;
 	private final KisProperties kisProperties;
+	private final StockPriceWebSocketMessageFactory factory;
 	@Value("${kis.websocket.auto-connect:true}")
 	private boolean websocketAutoConnect;
 	private WebSocketSession session = null;
@@ -63,7 +57,7 @@ public class StockPriceWebSocketClient {
 	}
 
 	public boolean sendSubscribeMessage(String ticker) {
-		return sendMessage(ticker, new TextMessage(createCurrentPriceSubscribeRequest(ticker)));
+		return sendMessage(ticker, factory.currentPriceSubscribeMessage(ticker));
 	}
 
 	private boolean sendMessage(String ticker, WebSocketMessage<String> message) {
@@ -98,30 +92,6 @@ public class StockPriceWebSocketClient {
 
 	private void publishReconnectEvent(@NotNull WebSocketSession session) {
 		eventPublisher.publishEvent(WebSocketSessionConnectEvent.from(session));
-	}
-
-	private String createCurrentPriceSubscribeRequest(String ticker) {
-		return createCurrentPriceRequest(ticker);
-	}
-
-	private String createCurrentPriceRequest(String ticker) {
-		Map<String, Object> requestMap = new HashMap<>();
-		Map<String, String> headerMap = new HashMap<>();
-		headerMap.put(KisHeader.APPROVAL_KEY.name(), approvalKeyRepository.fetchApprovalKey().orElseThrow());
-		headerMap.put(KisHeader.CUSTOMER_TYPE.getHeaderName(), CustomerType.INDIVIDUAL.getCode());
-		headerMap.put(KisHeader.TR_TYPE.name(), "1"); // 거래 타입, 1:'등록', 0:'해제'
-		headerMap.put(KisHeader.CONTENT_TYPE.name(), "utf-8");
-
-		Map<String, Object> bodyMap = new HashMap<>();
-		Map<String, String> input = new HashMap<>();
-		input.put("tr_id", "H0STCNT0");
-		input.put("tr_key", ticker);
-		bodyMap.put("input", input);
-
-		requestMap.put("header", headerMap);
-		requestMap.put("body", bodyMap);
-
-		return ObjectMapperUtil.serialize(requestMap);
 	}
 
 	public void disconnect(CloseStatus status) {

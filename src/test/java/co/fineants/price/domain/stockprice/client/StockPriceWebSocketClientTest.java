@@ -27,6 +27,7 @@ import co.fineants.AbstractContainerBaseTest;
 import co.fineants.api.domain.kis.properties.KisProperties;
 import co.fineants.api.domain.kis.repository.CurrentPriceRedisRepository;
 import co.fineants.api.domain.kis.repository.WebSocketApprovalKeyRedisRepository;
+import co.fineants.price.domain.stockprice.factory.StockPriceWebSocketMessageFactory;
 
 class StockPriceWebSocketClientTest extends AbstractContainerBaseTest {
 
@@ -47,6 +48,9 @@ class StockPriceWebSocketClientTest extends AbstractContainerBaseTest {
 
 	@Autowired
 	private KisProperties kisProperties;
+
+	@Autowired
+	private StockPriceWebSocketMessageFactory factory;
 
 	@LocalServerPort
 	private int port;
@@ -84,8 +88,8 @@ class StockPriceWebSocketClientTest extends AbstractContainerBaseTest {
 		given(session.isOpen()).willReturn(true);
 		BDDMockito.willThrow(new IOException("broken pipe"))
 			.given(session).sendMessage(ArgumentMatchers.any(WebSocketMessage.class));
-		StockPriceWebSocketClient stockPriceWebSocketClient = new StockPriceWebSocketClient(handler,
-			webSocketApprovalKeyRedisRepository, webSocketClient, eventPublisher, kisProperties);
+		StockPriceWebSocketClient stockPriceWebSocketClient = new StockPriceWebSocketClient(handler, webSocketClient,
+			eventPublisher, kisProperties, factory);
 		stockPriceWebSocketClient.connect(url);
 
 		String ticker = "005930";
@@ -132,8 +136,8 @@ class StockPriceWebSocketClientTest extends AbstractContainerBaseTest {
 		BDDMockito.willThrow(new IOException("error"))
 			.given(session).close(CloseStatus.NORMAL);
 
-		StockPriceWebSocketClient stockPriceWebSocketClient = new StockPriceWebSocketClient(handler,
-			webSocketApprovalKeyRedisRepository, webSocketClient, eventPublisher, kisProperties);
+		StockPriceWebSocketClient stockPriceWebSocketClient = new StockPriceWebSocketClient(handler, webSocketClient,
+			eventPublisher, kisProperties, factory);
 		stockPriceWebSocketClient.connect(url);
 
 		// when
