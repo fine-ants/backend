@@ -83,19 +83,23 @@ public class StockPriceWebSocketClient {
 			return true;
 		} catch (Exception e) {
 			log.error("StockPriceWebStockClient fail sendMessage, errorMessage={}", e.getMessage());
-			handleSessionCloseAndReconnect(session);
+			closeSession(session, CloseStatus.SERVER_ERROR);
+			publishReconnectEvent(session);
 			return false;
 		}
 	}
 
-	private void handleSessionCloseAndReconnect(@NotNull WebSocketSession session) {
+	private void closeSession(WebSocketSession session, CloseStatus status) {
 		try {
-			session.close(CloseStatus.SERVER_ERROR);
+			session.close(status);
 			log.info("close session={}", session);
 		} catch (IOException ex) {
 			log.error("StockPriceWebSocketClient fail close session, errorMessage={}", ex.getMessage());
+			this.session = null;
 		}
-		// reconnect
+	}
+
+	private void publishReconnectEvent(@NotNull WebSocketSession session) {
 		eventPublisher.publishEvent(WebSocketSessionConnectEvent.from(session));
 	}
 
@@ -124,11 +128,6 @@ public class StockPriceWebSocketClient {
 	}
 
 	public void disconnect(CloseStatus status) {
-		try {
-			this.session.close(status);
-		} catch (IOException e) {
-			log.warn("StockPriceWebSocketClient fail close, error message is {}", e.getMessage());
-			this.session = null;
-		}
+		closeSession(this.session, status);
 	}
 }
