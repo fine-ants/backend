@@ -4,6 +4,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
+import co.fineants.api.domain.kis.properties.KisProperties;
 import co.fineants.price.domain.stockprice.repository.StockPriceRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,12 +16,13 @@ public class StockPriceEventListener {
 
 	private final StockPriceWebSocketClient client;
 	private final StockPriceRepository stockPriceRepository;
+	private final KisProperties kisProperties;
 
 	@Async
 	@EventListener
 	public void onWebSocketSessionConnectEvent(WebSocketSessionConnectEvent event) {
 		log.info("WebSocketSessionEvent : {}", event);
-		client.connect();
+		client.connect(kisProperties.getWebsocketCurrentPriceUrl());
 	}
 
 	@Async

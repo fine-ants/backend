@@ -44,18 +44,14 @@ public class StockPriceWebSocketClient {
 		if (!websocketAutoConnect) {
 			return;
 		}
-		connect();
-	}
-
-	public void connect() {
 		connect(kisProperties.getWebsocketCurrentPriceUrl());
 	}
 
 	@RequiredWebSocketApprovalKey
-	public void connect(@NotNull String uri) {
+	public void connect(@NotNull String url) {
 		try {
-			session = webSocketClient.execute(stockPriceWebSocketHandler, uri).get();
-			log.info("connect Session : {}, uri : {}", session, uri);
+			session = webSocketClient.execute(stockPriceWebSocketHandler, url).get();
+			log.info("connect Session : {}, uri : {}", session, url);
 		} catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
 			log.warn("Thread interrupted during connection, errorMessage={}", e.getMessage());
@@ -88,6 +84,9 @@ public class StockPriceWebSocketClient {
 	}
 
 	private void closeSession(WebSocketSession session, CloseStatus status) {
+		if (session == null || !session.isOpen()) {
+			return;
+		}
 		try {
 			session.close(status);
 			log.info("close session={}", session);
@@ -127,5 +126,12 @@ public class StockPriceWebSocketClient {
 
 	public void disconnect(CloseStatus status) {
 		closeSession(this.session, status);
+	}
+
+	public boolean isConnect() {
+		if (session == null) {
+			return false;
+		}
+		return session.isOpen();
 	}
 }
