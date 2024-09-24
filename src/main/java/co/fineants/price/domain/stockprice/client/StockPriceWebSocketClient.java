@@ -3,7 +3,6 @@ package co.fineants.price.domain.stockprice.client;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
 import javax.annotation.PostConstruct;
@@ -18,17 +17,13 @@ import org.springframework.web.socket.WebSocketMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.client.WebSocketClient;
 
-import co.fineants.api.domain.kis.client.KisClient;
-import co.fineants.api.domain.kis.client.KisWebSocketApprovalKey;
 import co.fineants.api.domain.kis.properties.KisHeader;
 import co.fineants.api.domain.kis.properties.kiscodevalue.imple.CustomerType;
 import co.fineants.api.domain.kis.repository.WebSocketApprovalKeyRedisRepository;
-import co.fineants.api.global.common.delay.DelayManager;
 import co.fineants.api.global.util.ObjectMapperUtil;
+import co.fineants.price.domain.stockprice.aop.RequiredWebSocketApprovalKey;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import reactor.core.publisher.Mono;
-import reactor.util.retry.Retry;
 
 @Component
 @RequiredArgsConstructor
@@ -40,8 +35,6 @@ public class StockPriceWebSocketClient {
 
 	private final StockPriceWebSocketHandler stockPriceWebSocketHandler;
 	private final WebSocketApprovalKeyRedisRepository approvalKeyRepository;
-	private final KisClient kisClient;
-	private final DelayManager delayManager;
 	private final WebSocketClient webSocketClient;
 	private final ApplicationEventPublisher eventPublisher;
 	@Value("${kis.websocket.auto-connect:true}")
@@ -56,33 +49,15 @@ public class StockPriceWebSocketClient {
 		connect();
 	}
 
-	private Optional<String> fetchApprovalKey() {
-		return kisClient.fetchWebSocketApprovalKey()
-			.retryWhen(Retry.fixedDelay(5, delayManager.fixedAccessTokenDelay()))
-			.onErrorResume(throwable -> {
-				log.error(throwable.getMessage());
-				return Mono.empty();
-			})
-			.log()
-			.blockOptional(delayManager.timeout())
-			.map(KisWebSocketApprovalKey::getApprovalKey);
-	}
-
 	public void connect() {
-		fetchApprovalKeyIfEmpty();
 		connect(KIS_WEBSOCKET_CURRENT_PRICE_URI);
 	}
 
-	private void fetchApprovalKeyIfEmpty() {
-		String approvalKey = approvalKeyRepository.fetchApprovalKey().orElse(null);
-		if (approvalKey == null) {
-			this.fetchApprovalKey().ifPresent(approvalKeyRepository::saveApprovalKey);
-		}
-	}
-
+	@RequiredWebSocketApprovalKey
 	public void connect(String uri) {
 		try {
 			session = webSocketClient.execute(stockPriceWebSocketHandler, uri).get();
+			log.info("connect Session : {}, uri : {}", session, uri);
 		} catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
 			log.warn("Thread interrupted during connection, errorMessage={}", e.getMessage());

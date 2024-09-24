@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -14,6 +15,7 @@ import co.fineants.api.domain.holding.repository.PortfolioHoldingRepository;
 import co.fineants.api.domain.kis.client.KisAccessToken;
 import co.fineants.api.domain.kis.client.KisClient;
 import co.fineants.api.domain.kis.client.KisCurrentPrice;
+import co.fineants.api.domain.kis.client.KisWebSocketApprovalKey;
 import co.fineants.api.domain.kis.domain.dto.response.KisClosingPrice;
 import co.fineants.api.domain.kis.domain.dto.response.KisDividend;
 import co.fineants.api.domain.kis.domain.dto.response.KisDividendWrapper;
@@ -22,7 +24,6 @@ import co.fineants.api.domain.kis.domain.dto.response.KisIpoResponse;
 import co.fineants.api.domain.kis.domain.dto.response.KisSearchStockInfo;
 import co.fineants.api.domain.kis.repository.ClosingPriceRepository;
 import co.fineants.api.domain.kis.repository.CurrentPriceRedisRepository;
-import co.fineants.api.domain.kis.repository.HolidayRepository;
 import co.fineants.api.domain.kis.repository.KisAccessTokenRepository;
 import co.fineants.api.domain.notification.event.publisher.PortfolioPublisher;
 import co.fineants.api.domain.stock.domain.dto.response.StockDataResponse;
@@ -51,7 +52,6 @@ public class KisService {
 	private final PortfolioHoldingRepository portFolioHoldingRepository;
 	private final CurrentPriceRedisRepository currentPriceRedisRepository;
 	private final ClosingPriceRepository closingPriceRepository;
-	private final HolidayRepository holidayRepository;
 	private final StockTargetPricePublisher stockTargetPricePublisher;
 	private final PortfolioPublisher portfolioPublisher;
 	private final StockTargetPriceRepository stockTargetPriceRepository;
@@ -226,5 +226,17 @@ public class KisService {
 		KisAccessToken kisAccessToken = kisAccessTokenRedisService.getAccessTokenMap().orElse(null);
 		kisAccessTokenRedisService.deleteAccessTokenMap();
 		return kisAccessToken;
+	}
+
+	public Optional<String> fetchApprovalKey() {
+		return kisClient.fetchWebSocketApprovalKey()
+			.retryWhen(Retry.fixedDelay(5, delayManager.fixedAccessTokenDelay()))
+			.onErrorResume(throwable -> {
+				log.error(throwable.getMessage());
+				return Mono.empty();
+			})
+			.log()
+			.blockOptional(delayManager.timeout())
+			.map(KisWebSocketApprovalKey::getApprovalKey);
 	}
 }
