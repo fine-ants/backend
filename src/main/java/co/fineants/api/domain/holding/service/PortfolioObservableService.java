@@ -2,6 +2,7 @@ package co.fineants.api.domain.holding.service;
 
 import java.util.Set;
 
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -27,6 +28,7 @@ public class PortfolioObservableService {
 	private final StockPriceService stockPriceService;
 	private final PortfolioCacheService portfolioCacheService;
 
+	@Async
 	@Transactional(readOnly = true)
 	public void pushStockTickersBy(Long portfolioId) {
 		if (!stockMarketChecker.isMarketOpen(localDateTimeService.getLocalDateTimeWithNow())) {
