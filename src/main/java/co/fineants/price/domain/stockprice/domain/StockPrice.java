@@ -4,10 +4,14 @@ import java.time.LocalDateTime;
 
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 @EqualsAndHashCode(of = "ticker")
+@Getter
+@ToString
 public class StockPrice {
 	private final String ticker;
 	private final LocalDateTime expiration;
