@@ -154,7 +154,9 @@ class PortfolioHoldingRestControllerIntegrationTest extends AbstractContainerBas
 		requestPortfolioHoldingWithSse(uri, loginCookies);
 		// then
 		verify(portfolioCacheService, times(1)).getTickerSymbolsFromPortfolioBy(portfolioId);
-		assertThat(stockPriceRepository.size()).isEqualTo(1);
+		assertThat(stockPriceRepository.size())
+			.as("The number of stock prices stored in the repository must be 1.")
+			.isEqualTo(1);
 	}
 
 	private void requestPortfolioHoldingWithSse(String uri, Map<String, String> loginCookies) {
