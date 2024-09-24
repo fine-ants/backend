@@ -97,6 +97,18 @@ class StockPriceWebSocketClientTest extends AbstractContainerBaseTest {
 		assertThat(session.isOpen()).isTrue();
 	}
 
+	@DisplayName("구독 메시지 전송시 세션이 열려있지 않는다면 구독할 수 없다")
+	@Test
+	void sendMessage_whenSessionIsClose_thenUnAvailableSubscribe() {
+		// given
+		String ticker = "005930";
+		client.disconnect(CloseStatus.NORMAL);
+		// when
+		boolean result = client.sendSubscribeMessage(ticker);
+		// then
+		Assertions.assertThat(result).isFalse();
+	}
+
 	@DisplayName("웹소켓 연결을 성공적으로 해제하면 세션을 닫게된다")
 	@Test
 	void disconnect() {
