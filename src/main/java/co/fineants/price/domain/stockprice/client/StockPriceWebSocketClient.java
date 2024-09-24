@@ -67,7 +67,7 @@ public class StockPriceWebSocketClient {
 	}
 
 	private boolean sendMessage(String ticker, WebSocketMessage<String> message) {
-		if (session == null || !session.isOpen()) {
+		if (!isConnect()) {
 			log.info("WebSocket session is not open");
 			return false;
 		}
@@ -84,7 +84,7 @@ public class StockPriceWebSocketClient {
 	}
 
 	private void closeSession(WebSocketSession session, CloseStatus status) {
-		if (session == null || !session.isOpen()) {
+		if (!isConnect()) {
 			return;
 		}
 		try {
