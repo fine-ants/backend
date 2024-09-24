@@ -1,17 +1,16 @@
 package co.fineants.price.domain.stockprice.domain;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.ToString;
 
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 @EqualsAndHashCode(of = "ticker")
 @Getter
-@ToString
 public class StockPrice {
 	private final String ticker;
 	private final LocalDateTime expiration;
@@ -26,5 +25,11 @@ public class StockPrice {
 
 	public boolean isExpired() {
 		return LocalDateTime.now().isAfter(expiration);
+	}
+
+	@Override
+	public String toString() {
+		return String.format("StockPrice(ticker=%s, expiration=%s)", ticker,
+			expiration.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
 	}
 }
