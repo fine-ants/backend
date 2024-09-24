@@ -40,11 +40,14 @@ public class StockPriceScheduler {
 		Set<StockPrice> delStockPrices = repository.removeExpiredStockPrice();
 		log.info("remove the expired stock price, {}", delStockPrices);
 
-		delStockPrices.stream()
-			.map(StockPrice::getTicker)
-			.forEach(ticker -> {
-				boolean result = client.sendUnsubscribeMessage(ticker);
+		delStockPrices.forEach(stockPrice -> {
+			String ticker = stockPrice.getTicker();
+			boolean result = client.sendUnsubscribeMessage(ticker);
+			if (result) {
 				log.info("send the unsubscribe message, ticker={}, result={}", ticker, result);
-			});
+			} else {
+				repository.save(stockPrice);
+			}
+		});
 	}
 }

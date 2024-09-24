@@ -41,7 +41,7 @@ public class StockPriceWebSocketHandler implements WebSocketHandler {
 			log.debug("Received PingPong Message : {}", message.getPayload());
 			sendPongMessage(session, message);
 		} else if (isInvalidApprovalMessage(payload)) {
-			eventPublisher.publishEvent(new WebSocketApprovalKeyReissueEvent(session));
+			publishWebSocketApprovalKeyReissueEvent(session);
 		} else {
 			log.info("Received Message : {}", message.getPayload());
 		}
@@ -93,6 +93,10 @@ public class StockPriceWebSocketHandler implements WebSocketHandler {
 		KisCurrentPrice kisCurrentPrice = KisCurrentPrice.create(ticker, Long.valueOf(currentPrice));
 		currentPriceRedisRepository.savePrice(kisCurrentPrice);
 		log.info("save the stock currentPrice, {}", kisCurrentPrice);
+	}
+
+	private void publishWebSocketApprovalKeyReissueEvent(@NotNull WebSocketSession session) {
+		eventPublisher.publishEvent(new WebSocketApprovalKeyReissueEvent(session));
 	}
 
 	@Override
