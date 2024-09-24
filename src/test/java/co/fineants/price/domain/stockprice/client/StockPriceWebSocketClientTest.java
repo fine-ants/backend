@@ -22,6 +22,7 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.client.WebSocketClient;
 
 import co.fineants.AbstractContainerBaseTest;
+import co.fineants.api.domain.kis.properties.KisProperties;
 import co.fineants.api.domain.kis.repository.CurrentPriceRedisRepository;
 import co.fineants.api.domain.kis.repository.WebSocketApprovalKeyRedisRepository;
 
@@ -41,6 +42,9 @@ class StockPriceWebSocketClientTest extends AbstractContainerBaseTest {
 
 	@Autowired
 	private ApplicationEventPublisher eventPublisher;
+
+	@Autowired
+	private KisProperties kisProperties;
 
 	@LocalServerPort
 	private int port;
@@ -78,7 +82,7 @@ class StockPriceWebSocketClientTest extends AbstractContainerBaseTest {
 		BDDMockito.willThrow(new IOException("broken pipe"))
 			.given(session).sendMessage(ArgumentMatchers.any(WebSocketMessage.class));
 		StockPriceWebSocketClient stockPriceWebSocketClient = new StockPriceWebSocketClient(handler,
-			webSocketApprovalKeyRedisRepository, webSocketClient, eventPublisher);
+			webSocketApprovalKeyRedisRepository, webSocketClient, eventPublisher, kisProperties);
 		stockPriceWebSocketClient.connect(uri);
 
 		String ticker = "005930";

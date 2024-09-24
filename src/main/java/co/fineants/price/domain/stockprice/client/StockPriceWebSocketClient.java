@@ -18,6 +18,7 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.client.WebSocketClient;
 
 import co.fineants.api.domain.kis.properties.KisHeader;
+import co.fineants.api.domain.kis.properties.KisProperties;
 import co.fineants.api.domain.kis.properties.kiscodevalue.imple.CustomerType;
 import co.fineants.api.domain.kis.repository.WebSocketApprovalKeyRedisRepository;
 import co.fineants.api.global.util.ObjectMapperUtil;
@@ -29,14 +30,11 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Slf4j
 public class StockPriceWebSocketClient {
-
-	private static final String KIS_WEBSOCKET_CURRENT_PRICE_URI =
-		"ws://ops.koreainvestment.com:21000/websocket/tryitout/H0STCNT0";
-
 	private final StockPriceWebSocketHandler stockPriceWebSocketHandler;
 	private final WebSocketApprovalKeyRedisRepository approvalKeyRepository;
 	private final WebSocketClient webSocketClient;
 	private final ApplicationEventPublisher eventPublisher;
+	private final KisProperties kisProperties;
 	@Value("${kis.websocket.auto-connect:true}")
 	private boolean websocketAutoConnect;
 	private WebSocketSession session = null;
@@ -50,11 +48,11 @@ public class StockPriceWebSocketClient {
 	}
 
 	public void connect() {
-		connect(KIS_WEBSOCKET_CURRENT_PRICE_URI);
+		connect(kisProperties.getWebsocketCurrentPriceUrl());
 	}
 
 	@RequiredWebSocketApprovalKey
-	public void connect(String uri) {
+	public void connect(@NotNull String uri) {
 		try {
 			session = webSocketClient.execute(stockPriceWebSocketHandler, uri).get();
 			log.info("connect Session : {}, uri : {}", session, uri);
