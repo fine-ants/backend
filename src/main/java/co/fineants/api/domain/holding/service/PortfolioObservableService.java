@@ -31,7 +31,7 @@ public class PortfolioObservableService {
 	@Async
 	@Transactional(readOnly = true)
 	public void pushStockTickersBy(Long portfolioId) {
-		if (!stockMarketChecker.isMarketOpen(localDateTimeService.getLocalDateTimeWithNow())) {
+		if (stockMarketChecker.isMarketOpen(localDateTimeService.getLocalDateTimeWithNow())) {
 			return;
 		}
 		Set<String> tickers = portfolioCacheService.getTickerSymbolsFromPortfolioBy(portfolioId);
@@ -41,7 +41,7 @@ public class PortfolioObservableService {
 	public SseEmitter observePortfolioHoldings(Long portfolioId) {
 		SseEmitter emitter = createSseEmitter(portfolioId);
 
-		if (stockMarketChecker.isMarketOpen(localDateTimeService.getLocalDateTimeWithNow())) {
+		if (!stockMarketChecker.isMarketOpen(localDateTimeService.getLocalDateTimeWithNow())) {
 			portfolioObservable.getPortfolioInfo(portfolioId)
 				.subscribe(PortfolioObserver.create(emitter));
 			return emitter;

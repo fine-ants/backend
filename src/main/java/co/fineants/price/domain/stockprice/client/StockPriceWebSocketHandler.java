@@ -40,9 +40,15 @@ public class StockPriceWebSocketHandler implements WebSocketHandler {
 		} else if (isPingPongMessage(payload)) {
 			log.debug("Received PingPong Message : {}", message.getPayload());
 			sendPongMessage(session, message);
+		} else if (isInvalidApprovalMessage(payload)) {
+			eventPublisher.publishEvent(new WebSocketApprovalKeyReissueEvent(session));
 		} else {
 			log.info("Received Message : {}", message.getPayload());
 		}
+	}
+
+	private boolean isInvalidApprovalMessage(@NotNull String message) {
+		return message.contains("invalid approval");
 	}
 
 	private boolean isPingPongMessage(@NotNull String message) {
