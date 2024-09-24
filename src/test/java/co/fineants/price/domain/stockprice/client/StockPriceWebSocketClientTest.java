@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -17,6 +18,7 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.WebSocketMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.client.WebSocketClient;
@@ -49,11 +51,13 @@ class StockPriceWebSocketClientTest extends AbstractContainerBaseTest {
 	@LocalServerPort
 	private int port;
 
+	private String url;
+
 	@BeforeEach
 	void setup() {
 		webSocketApprovalKeyRedisRepository.saveApprovalKey("approvalKey");
-		String uri = "ws://localhost:" + port + "/ws/test";
-		client.connect(uri);
+		url = "ws://localhost:" + port + "/ws/test";
+		client.connect(url);
 	}
 
 	@DisplayName("웹소켓 연결된 상태에서 티커심볼을 전달하고 종목의 실시간 체결가를 응답받는다")
@@ -75,15 +79,14 @@ class StockPriceWebSocketClientTest extends AbstractContainerBaseTest {
 		// given
 		WebSocketClient webSocketClient = Mockito.mock(WebSocketClient.class);
 		WebSocketSession session = Mockito.mock(WebSocketSession.class);
-		String uri = "ws://localhost:" + port + "/ws/test";
-		given(webSocketClient.execute(handler, uri))
+		given(webSocketClient.execute(handler, url))
 			.willReturn(CompletableFuture.completedFuture(session));
 		given(session.isOpen()).willReturn(true);
 		BDDMockito.willThrow(new IOException("broken pipe"))
 			.given(session).sendMessage(ArgumentMatchers.any(WebSocketMessage.class));
 		StockPriceWebSocketClient stockPriceWebSocketClient = new StockPriceWebSocketClient(handler,
 			webSocketApprovalKeyRedisRepository, webSocketClient, eventPublisher, kisProperties);
-		stockPriceWebSocketClient.connect(uri);
+		stockPriceWebSocketClient.connect(url);
 
 		String ticker = "005930";
 
@@ -92,5 +95,38 @@ class StockPriceWebSocketClientTest extends AbstractContainerBaseTest {
 		// then
 		assertThat(result).isFalse();
 		assertThat(session.isOpen()).isTrue();
+	}
+
+	@DisplayName("웹소켓 연결을 성공적으로 해제하면 세션을 닫게된다")
+	@Test
+	void disconnect() {
+		// given
+		CloseStatus status = CloseStatus.NORMAL;
+		// when
+		client.disconnect(status);
+		// then
+		Assertions.assertThat(client.isConnect()).isFalse();
+	}
+
+	@DisplayName("세션을 해제에 실패하면 세션을 null로 저장한다")
+	@Test
+	void disconnect_whenSessionFailClose_thenSessionIsNull() throws IOException {
+		// given
+		WebSocketClient webSocketClient = Mockito.mock(WebSocketClient.class);
+		WebSocketSession session = Mockito.mock(WebSocketSession.class);
+		given(webSocketClient.execute(handler, url))
+			.willReturn(CompletableFuture.completedFuture(session));
+		given(session.isOpen()).willReturn(true);
+		BDDMockito.willThrow(new IOException("error"))
+			.given(session).close(CloseStatus.NORMAL);
+
+		StockPriceWebSocketClient stockPriceWebSocketClient = new StockPriceWebSocketClient(handler,
+			webSocketApprovalKeyRedisRepository, webSocketClient, eventPublisher, kisProperties);
+		stockPriceWebSocketClient.connect(url);
+
+		// when
+		stockPriceWebSocketClient.disconnect(CloseStatus.NORMAL);
+		// then
+		Assertions.assertThat(stockPriceWebSocketClient.isConnect()).isFalse();
 	}
 }
