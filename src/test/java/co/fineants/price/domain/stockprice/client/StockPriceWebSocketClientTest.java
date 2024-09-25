@@ -28,7 +28,7 @@ import co.fineants.api.domain.kis.properties.KisProperties;
 import co.fineants.api.domain.kis.repository.CurrentPriceRedisRepository;
 import co.fineants.api.domain.kis.repository.WebSocketApprovalKeyRedisRepository;
 import co.fineants.api.domain.kis.service.KisService;
-import co.fineants.price.domain.stockprice.factory.StockPriceWebSocketMessageFactory;
+import co.fineants.price.domain.stockprice.domain.factory.StockPriceWebSocketMessageFactory;
 
 class StockPriceWebSocketClientTest extends AbstractContainerBaseTest {
 

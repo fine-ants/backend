@@ -1,4 +1,4 @@
-package co.fineants.price.domain.stockprice.client;
+package co.fineants.price.domain.stockprice.service.listener;
 
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
@@ -7,7 +7,12 @@ import org.springframework.stereotype.Component;
 import co.fineants.api.domain.kis.properties.KisProperties;
 import co.fineants.api.domain.kis.repository.WebSocketApprovalKeyRedisRepository;
 import co.fineants.api.domain.kis.service.KisService;
+import co.fineants.price.domain.stockprice.client.StockPriceWebSocketClient;
 import co.fineants.price.domain.stockprice.domain.StockPrice;
+import co.fineants.price.domain.stockprice.domain.event.StockPriceDeleteEvent;
+import co.fineants.price.domain.stockprice.domain.event.StockPriceSubscribeEvent;
+import co.fineants.price.domain.stockprice.domain.event.WebSocketApprovalKeyReissueEvent;
+import co.fineants.price.domain.stockprice.domain.event.WebSocketSessionConnectEvent;
 import co.fineants.price.domain.stockprice.repository.StockPriceRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -1,4 +1,4 @@
-package co.fineants.price.domain.stockprice.client;
+package co.fineants.price.domain.stockprice.domain.event;
 
 import org.springframework.context.ApplicationEvent;
 import org.springframework.web.socket.WebSocketSession;

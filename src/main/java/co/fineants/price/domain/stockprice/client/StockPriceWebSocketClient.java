@@ -17,7 +17,8 @@ import org.springframework.web.socket.client.WebSocketClient;
 import co.fineants.api.domain.kis.properties.KisProperties;
 import co.fineants.api.domain.kis.repository.WebSocketApprovalKeyRedisRepository;
 import co.fineants.api.domain.kis.service.KisService;
-import co.fineants.price.domain.stockprice.factory.StockPriceWebSocketMessageFactory;
+import co.fineants.price.domain.stockprice.domain.event.WebSocketSessionConnectEvent;
+import co.fineants.price.domain.stockprice.domain.factory.StockPriceWebSocketMessageFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 

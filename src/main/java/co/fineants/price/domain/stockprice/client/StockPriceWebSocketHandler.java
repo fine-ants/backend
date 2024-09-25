@@ -12,6 +12,8 @@ import co.fineants.api.domain.kis.client.KisCurrentPrice;
 import co.fineants.api.domain.kis.domain.dto.response.KisSubscribeResponse;
 import co.fineants.api.domain.kis.repository.CurrentPriceRedisRepository;
 import co.fineants.api.global.util.ObjectMapperUtil;
+import co.fineants.price.domain.stockprice.domain.event.WebSocketApprovalKeyReissueEvent;
+import co.fineants.price.domain.stockprice.domain.event.WebSocketSessionConnectEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 

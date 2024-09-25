@@ -1,4 +1,4 @@
-package co.fineants.price.domain.stockprice.factory;
+package co.fineants.price.domain.stockprice.domain.factory;
 
 import java.util.HashMap;
 import java.util.Map;
