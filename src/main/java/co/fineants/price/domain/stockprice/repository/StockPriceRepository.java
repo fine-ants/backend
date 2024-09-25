@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class StockPriceRepository {
 
+	private static final int SUBSCRIBE_LIMIT = 20;
 	private static final Set<StockPrice> tickerSymbolSet = ConcurrentHashMap.newKeySet();
 
 	public boolean save(StockPrice stockPrice) {
@@ -43,7 +44,7 @@ public class StockPriceRepository {
 	}
 
 	public boolean canSubscribe(StockPrice stockPrice) {
-		return tickerSymbolSet.size() < 20 && !tickerSymbolSet.contains(stockPrice);
+		return tickerSymbolSet.size() < SUBSCRIBE_LIMIT && !tickerSymbolSet.contains(stockPrice);
 	}
 
 	public void refreshExpiration(StockPrice stockPrice) {
