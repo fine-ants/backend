@@ -26,6 +26,7 @@ import co.fineants.api.domain.portfolio.domain.dto.response.DashboardPieChartRes
 import co.fineants.api.domain.portfolio.domain.dto.response.OverviewResponse;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import co.fineants.api.domain.portfolio.repository.PortfolioRepository;
+import co.fineants.api.global.common.time.LocalDateTimeService;
 import co.fineants.api.global.errors.errorcode.MemberErrorCode;
 import co.fineants.api.global.errors.exception.BadRequestException;
 import lombok.RequiredArgsConstructor;
@@ -39,6 +40,7 @@ public class DashboardService {
 	private final MemberRepository memberRepository;
 	private final CurrentPriceRedisRepository currentPriceRedisRepository;
 	private final PortfolioGainHistoryRepository portfolioGainHistoryRepository;
+	private final LocalDateTimeService localDateTimeService;
 
 	@Transactional(readOnly = true)
 	@Secured("ROLE_USER")
@@ -60,7 +62,7 @@ public class DashboardService {
 			totalCurrentValuation = totalCurrentValuation.plus(portfolio.calculateTotalCurrentValuation());
 			totalInvestment = totalInvestment.plus(portfolio.calculateTotalInvestmentAmount());
 			totalGain = totalGain.plus(portfolio.calculateTotalGain());
-			totalAnnualDividend = totalAnnualDividend.plus(portfolio.calculateAnnualDividend());
+			totalAnnualDividend = totalAnnualDividend.plus(portfolio.calculateAnnualDividend(localDateTimeService));
 		}
 		RateDivision totalAnnualDividendYield = totalAnnualDividend.divide(totalCurrentValuation);
 		RateDivision totalGainRate = totalGain.divide(totalInvestment);

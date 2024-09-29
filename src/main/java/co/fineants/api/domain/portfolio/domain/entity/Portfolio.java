@@ -253,19 +253,19 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	}
 
 	// 총 연간 배당금 = 각 종목들의 연배당금의 합계
-	public Expression calculateAnnualDividend() {
+	public Expression calculateAnnualDividend(LocalDateTimeService dateTimeService) {
 		return portfolioHoldings.stream()
 			.map(portfolioHolding -> portfolioHolding.createMonthlyDividendMap(
-				localDateTimeService.getLocalDateWithNow()))
+				dateTimeService.getLocalDateWithNow()))
 			.map(map -> map.values().stream()
 				.reduce(Money.zero(), Expression::plus))
 			.reduce(Money.zero(), Expression::plus);
 	}
 
 	// 총 연간배당율 = 모든 종목들의 연 배당금 합계 / 모든 종목들의 총 가치의 합계) * 100
-	public RateDivision calculateAnnualDividendYield() {
+	public RateDivision calculateAnnualDividendYield(LocalDateTimeService dateTimeService) {
 		Expression currentValuation = calculateTotalCurrentValuation();
-		Expression totalAnnualDividend = calculateAnnualDividend();
+		Expression totalAnnualDividend = calculateAnnualDividend(dateTimeService);
 		return totalAnnualDividend.divide(currentValuation);
 	}
 
@@ -276,9 +276,9 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	}
 
 	// 투자대비 연간 배당율 = 포트폴리오 총 연배당금 / 포트폴리오 투자금액 * 100
-	public RateDivision calculateAnnualInvestmentDividendYield() {
+	public RateDivision calculateAnnualInvestmentDividendYield(LocalDateTimeService dateTimeService) {
 		Expression amount = calculateTotalInvestmentAmount();
-		Expression dividend = calculateAnnualDividend();
+		Expression dividend = calculateAnnualDividend(dateTimeService);
 		return dividend.divide(amount);
 	}
 
