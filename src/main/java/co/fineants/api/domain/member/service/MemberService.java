@@ -157,13 +157,13 @@ public class MemberService {
 	}
 
 	private void verifyEmail(String email) {
-		if (memberRepository.existsMemberByEmailAndProvider(email, LOCAL_PROVIDER)) {
+		if (memberRepository.findMemberByEmailAndProvider(email, LOCAL_PROVIDER).isPresent()) {
 			throw new BadRequestException(MemberErrorCode.REDUNDANT_EMAIL);
 		}
 	}
 
 	private void verifyNickname(String nickname) {
-		if (memberRepository.existsByNickname(nickname)) {
+		if (memberRepository.findMemberByNickname(nickname).isPresent()) {
 			throw new FineAntsException(MemberErrorCode.REDUNDANT_NICKNAME);
 		}
 	}
@@ -206,7 +206,7 @@ public class MemberService {
 		if (!NICKNAME_PATTERN.matcher(nickname).matches()) {
 			throw new BadRequestException(MemberErrorCode.BAD_SIGNUP_INPUT);
 		}
-		if (memberRepository.existsByNickname(nickname)) {
+		if (memberRepository.findMemberByNickname(nickname).isPresent()) {
 			throw new BadRequestException(MemberErrorCode.REDUNDANT_NICKNAME);
 		}
 
@@ -218,7 +218,7 @@ public class MemberService {
 		if (!EMAIL_PATTERN.matcher(email).matches()) {
 			throw new BadRequestException(MemberErrorCode.BAD_SIGNUP_INPUT);
 		}
-		if (memberRepository.existsMemberByEmailAndProvider(email, LOCAL_PROVIDER)) {
+		if (memberRepository.findMemberByEmailAndProvider(email, LOCAL_PROVIDER).isPresent()) {
 			throw new BadRequestException(MemberErrorCode.REDUNDANT_EMAIL);
 		}
 	}

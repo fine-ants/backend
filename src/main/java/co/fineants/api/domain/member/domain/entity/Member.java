@@ -31,7 +31,7 @@ import lombok.ToString;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @ToString(exclude = {"notificationPreference", "roles"})
-@EqualsAndHashCode(of = {"id"}, callSuper = false)
+@EqualsAndHashCode(of = {"profile"}, callSuper = false)
 public class Member extends BaseEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -134,5 +134,21 @@ public class Member extends BaseEntity {
 
 	public Set<MemberRole> getRoles() {
 		return Collections.unmodifiableSet(roles);
+	}
+
+	public String getPassword() {
+		return profile.getPassword();
+	}
+
+	public String getProvider() {
+		return profile.getProvider();
+	}
+
+	public String getNickname() {
+		return profile.getNickname();
+	}
+
+	public String getEmail() {
+		return profile.getEmail();
 	}
 }
