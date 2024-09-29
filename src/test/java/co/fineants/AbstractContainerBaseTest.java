@@ -36,6 +36,7 @@ import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
 import co.fineants.api.domain.kis.client.KisAccessToken;
 import co.fineants.api.domain.kis.repository.KisAccessTokenRepository;
 import co.fineants.api.domain.member.domain.entity.Member;
+import co.fineants.api.domain.member.domain.entity.MemberProfile;
 import co.fineants.api.domain.member.domain.entity.MemberRole;
 import co.fineants.api.domain.member.domain.entity.Role;
 import co.fineants.api.domain.member.repository.RoleRepository;
@@ -177,11 +178,10 @@ public abstract class AbstractContainerBaseTest {
 	protected Member createOauthMember() {
 		Role userRole = roleRepository.findRoleByRoleName("ROLE_USER")
 			.orElseThrow(() -> new FineAntsException(RoleErrorCode.NOT_EXIST_ROLE));
+		MemberProfile profile = MemberProfile.oauthMemberProfile("fineants1234@gmail.com", "fineants1234", "google");
 		// 회원 생성
 		Member member = Member.oauthMember(
-			"fineants1234@gmail.com",
-			"fineants1234",
-			"google",
+			profile,
 			"profileUrl1"
 		);
 		// 역할 설정

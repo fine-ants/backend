@@ -54,10 +54,8 @@ public class Member extends BaseEntity {
 		this.notificationPreference = notificationPreference;
 		this.roles = roles;
 	}
-
-	public static Member oauthMember(String email, String nickname, String provider,
-		String profileUrl) {
-		MemberProfile profile = MemberProfile.oauthMemberProfile(email, nickname, provider);
+	
+	public static Member oauthMember(MemberProfile profile, String profileUrl) {
 		return new Member(null, profile, profileUrl, null, new HashSet<>());
 	}
 

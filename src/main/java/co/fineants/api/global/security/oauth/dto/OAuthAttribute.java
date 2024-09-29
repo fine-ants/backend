@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import co.fineants.api.domain.member.domain.entity.Member;
+import co.fineants.api.domain.member.domain.entity.MemberProfile;
 import co.fineants.api.domain.member.repository.MemberRepository;
 import co.fineants.api.domain.member.service.NicknameGenerator;
 import lombok.Getter;
@@ -86,11 +87,7 @@ public class OAuthAttribute {
 
 	public Member toEntity(NicknameGenerator generator) {
 		String nickname = generator.generate();
-		return Member.oauthMember(
-			email,
-			nickname,
-			provider,
-			profileUrl
-		);
+		MemberProfile profile = MemberProfile.oauthMemberProfile(email, nickname, provider);
+		return Member.oauthMember(profile, profileUrl);
 	}
 }

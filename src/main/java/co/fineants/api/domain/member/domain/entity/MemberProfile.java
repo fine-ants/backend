@@ -25,12 +25,12 @@ public class MemberProfile {
 	@Column(name = "password")
 	private String password;
 
-	public static MemberProfile localMemberProfile(String email, String nickname, String password) {
-		return new MemberProfile(email, nickname, "local", password);
-	}
-
 	public static MemberProfile oauthMemberProfile(String email, String nickname, String provider) {
 		return new MemberProfile(email, nickname, provider, null);
+	}
+
+	public static MemberProfile localMemberProfile(String email, String nickname, String password) {
+		return new MemberProfile(email, nickname, "local", password);
 	}
 
 	public void changePassword(String password) {
