@@ -13,7 +13,7 @@ import org.springframework.security.core.GrantedAuthority;
 import co.fineants.api.domain.BaseEntity;
 import co.fineants.api.domain.notificationpreference.domain.entity.NotificationPreference;
 import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -31,16 +31,13 @@ import lombok.ToString;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @ToString(exclude = {"notificationPreference", "roles"})
-@EqualsAndHashCode(of = {"email", "nickname", "provider"}, callSuper = false)
+@EqualsAndHashCode(of = {"id"}, callSuper = false)
 public class Member extends BaseEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
-	private String email;
-	@Column(name = "nickname", unique = true, nullable = false)
-	private String nickname;
-	private String provider;
-	private String password;
+	@Embedded
+	private MemberProfile profile;
 	private String profileUrl;
 
 	@OneToOne(fetch = FetchType.LAZY, mappedBy = "member", orphanRemoval = true, cascade = CascadeType.ALL)
@@ -49,13 +46,10 @@ public class Member extends BaseEntity {
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "member", orphanRemoval = true, cascade = CascadeType.ALL)
 	private Set<MemberRole> roles;
 
-	private Member(Long id, String email, String nickname, String provider, String password, String profileUrl,
+	private Member(Long id, MemberProfile profile, String profileUrl,
 		NotificationPreference notificationPreference, Set<MemberRole> roles) {
 		this.id = id;
-		this.email = email;
-		this.nickname = nickname;
-		this.provider = provider;
-		this.password = password;
+		this.profile = profile;
 		this.profileUrl = profileUrl;
 		this.notificationPreference = notificationPreference;
 		this.roles = roles;
@@ -63,19 +57,23 @@ public class Member extends BaseEntity {
 
 	public static Member oauthMember(String email, String nickname, String provider,
 		String profileUrl) {
-		return new Member(null, email, nickname, provider, null, profileUrl, null, new HashSet<>());
+		MemberProfile profile = MemberProfile.oauthMemberProfile(email, nickname, provider);
+		return new Member(null, profile, profileUrl, null, new HashSet<>());
 	}
 
 	public static Member localMember(String email, String nickname, String password) {
-		return localMember(email, nickname, password, null);
+		MemberProfile profile = MemberProfile.localMemberProfile(email, nickname, password);
+		return new Member(null, profile, null, null, new HashSet<>());
 	}
 
 	public static Member localMember(String email, String nickname, String password, String profileUrl) {
-		return localMember(null, email, nickname, password, profileUrl);
+		MemberProfile profile = MemberProfile.localMemberProfile(email, nickname, password);
+		return new Member(null, profile, profileUrl, null, new HashSet<>());
 	}
 
 	public static Member localMember(Long id, String email, String nickname, String password, String profileUrl) {
-		return new Member(id, email, nickname, "local", password, profileUrl, null, new HashSet<>());
+		MemberProfile profile = MemberProfile.localMemberProfile(email, nickname, password);
+		return new Member(id, profile, profileUrl, null, new HashSet<>());
 	}
 
 	public void addMemberRole(MemberRole memberRole) {
@@ -109,12 +107,12 @@ public class Member extends BaseEntity {
 		return this;
 	}
 
-	public void updatePassword(String newEncodedPassword) {
-		this.password = newEncodedPassword;
+	public void changePassword(String password) {
+		this.profile.changePassword(password);
 	}
 
-	public void updateNickname(String nickname) {
-		this.nickname = nickname;
+	public void changeNickname(String nickname) {
+		this.profile.changeNickname(nickname);
 	}
 
 	public Collection<GrantedAuthority> getSimpleGrantedAuthorities() {
@@ -126,9 +124,7 @@ public class Member extends BaseEntity {
 	public Map<String, Object> toMemberAttributeMap() {
 		Map<String, Object> result = new HashMap<>();
 		result.put("id", id);
-		result.put("email", email);
-		result.put("nickname", nickname);
-		result.put("provider", provider);
+		result.putAll(profile.toMap());
 		result.put("profileUrl", profileUrl);
 		result.put("roleSet", roles.stream()
 			.map(MemberRole::getRoleName)

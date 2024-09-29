@@ -258,7 +258,7 @@ public class MemberService {
 		if (!request.getNickname().isBlank()) {
 			String nickname = request.getNickname();
 			verifyNickname(nickname, member.getId());
-			member.updateNickname(nickname);
+			member.changeNickname(nickname);
 		}
 		return ProfileChangeResponse.from(member);
 	}
@@ -279,7 +279,7 @@ public class MemberService {
 			throw new BadRequestException(MemberErrorCode.NEW_PASSWORD_CONFIRM_FAIL);
 		}
 		String newEncodedPassword = passwordEncoder.encode(request.getNewPassword());
-		member.updatePassword(newEncodedPassword);
+		member.changePassword(newEncodedPassword);
 		int count = memberRepository.modifyMemberPassword(member.getPassword(), member.getId());
 		log.info("회원 비밀번호 변경 결과 : {}", count);
 	}
