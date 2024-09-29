@@ -10,7 +10,9 @@ import org.assertj.core.data.Percentage;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.BDDMockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 
 import co.fineants.AbstractContainerBaseTest;
 import co.fineants.api.domain.common.count.Count;
@@ -34,6 +36,7 @@ import co.fineants.api.domain.purchasehistory.domain.entity.PurchaseHistory;
 import co.fineants.api.domain.purchasehistory.repository.PurchaseHistoryRepository;
 import co.fineants.api.domain.stock.domain.entity.Stock;
 import co.fineants.api.domain.stock.repository.StockRepository;
+import co.fineants.api.global.common.time.LocalDateTimeService;
 
 class DashboardServiceTest extends AbstractContainerBaseTest {
 	@Autowired
@@ -54,6 +57,8 @@ class DashboardServiceTest extends AbstractContainerBaseTest {
 	private StockDividendRepository stockDividendRepository;
 	@Autowired
 	private CurrentPriceRedisRepository currentPriceRedisRepository;
+	@SpyBean
+	private LocalDateTimeService localDateTimeService;
 
 	@Test
 	void getOverviewWhenNoPortfolio() {
@@ -99,7 +104,7 @@ class DashboardServiceTest extends AbstractContainerBaseTest {
 		PortfolioHolding portfolioHolding = portfolioHoldingRepository.save(
 			PortfolioHolding.of(portfolio, stock, Money.won(72900L)));
 
-		LocalDateTime purchaseDate = LocalDateTime.now();
+		LocalDateTime purchaseDate = LocalDateTime.of(2024, 9, 26, 0, 0, 0);
 		Count numShares = Count.from(3);
 		Money purchasePricePerShare = Money.won(50000.0);
 		String memo = "첫구매";
@@ -107,6 +112,7 @@ class DashboardServiceTest extends AbstractContainerBaseTest {
 			createPurchaseHistory(null, purchaseDate, numShares, purchasePricePerShare, memo, portfolioHolding));
 
 		currentPriceRedisRepository.savePrice(KisCurrentPrice.create(stock.getTickerSymbol(), 72900L));
+		BDDMockito.given(localDateTimeService.getLocalDateWithNow()).willReturn(purchaseDate.toLocalDate());
 		// when
 		OverviewResponse response = dashboardService.getOverview(member.getId());
 
