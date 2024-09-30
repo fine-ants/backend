@@ -54,14 +54,9 @@ public class Member extends BaseEntity {
 		this.notificationPreference = notificationPreference;
 		this.roles = roles;
 	}
-	
+
 	public static Member oauthMember(MemberProfile profile, String profileUrl) {
 		return new Member(null, profile, profileUrl, null, new HashSet<>());
-	}
-
-	public static Member localMember(String email, String nickname, String password) {
-		MemberProfile profile = MemberProfile.localMemberProfile(email, nickname, password);
-		return new Member(null, profile, null, null, new HashSet<>());
 	}
 
 	public static Member localMember(String email, String nickname, String password, String profileUrl) {
@@ -74,7 +69,6 @@ public class Member extends BaseEntity {
 		return new Member(id, profile, profileUrl, null, new HashSet<>());
 	}
 
-	// TODO: localMember 정적 팩토리 메서드 줄이기
 	public static Member localMember(Long id, MemberProfile profile, String profileUrl) {
 		return new Member(id, profile, profileUrl, null, new HashSet<>());
 	}
