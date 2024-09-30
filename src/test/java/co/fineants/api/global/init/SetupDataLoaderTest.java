@@ -22,8 +22,8 @@ import co.fineants.api.domain.dividend.repository.StockDividendRepository;
 import co.fineants.api.domain.exchangerate.domain.entity.ExchangeRate;
 import co.fineants.api.domain.exchangerate.repository.ExchangeRateRepository;
 import co.fineants.api.domain.exchangerate.service.ExchangeRateService;
-import co.fineants.api.domain.kis.service.KisService;
 import co.fineants.api.domain.member.domain.entity.Member;
+import co.fineants.api.domain.member.domain.entity.MemberProfile;
 import co.fineants.api.domain.member.domain.entity.Role;
 import co.fineants.api.domain.member.repository.MemberRepository;
 import co.fineants.api.domain.member.repository.RoleRepository;
@@ -77,10 +77,7 @@ class SetupDataLoaderTest extends AbstractContainerBaseTest {
 
 	@MockBean
 	private ExchangeRateService exchangeRateService;
-
-	@MockBean
-	private KisService kisService;
-
+	
 	@Transactional
 	@DisplayName("서버는 권한 및 역할 등의 리소스들을 생성한다")
 	@Test
@@ -104,12 +101,12 @@ class SetupDataLoaderTest extends AbstractContainerBaseTest {
 		assertThat(memberRepository.findAll())
 			.hasSize(3)
 			.containsExactlyInAnyOrder(
-				Member.localMember(adminProperties.getEmail(), adminProperties.getNickname(),
-					adminProperties.getPassword()),
-				Member.localMember(managerProperties.getEmail(), managerProperties.getNickname(),
-					managerProperties.getPassword()),
-				Member.localMember(userProperties.getEmail(), userProperties.getNickname(),
-					userProperties.getPassword())
+				Member.localMember(null, MemberProfile.localMemberProfile(adminProperties.getEmail(),
+					adminProperties.getNickname(), adminProperties.getPassword()), null),
+				Member.localMember(null, MemberProfile.localMemberProfile(managerProperties.getEmail(),
+					managerProperties.getNickname(), managerProperties.getPassword()), null),
+				Member.localMember(null, MemberProfile.localMemberProfile(userProperties.getEmail(),
+					userProperties.getNickname(), userProperties.getPassword()), null)
 			);
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		MemberAuthentication memberAuthentication = MemberAuthentication.from(

@@ -20,6 +20,7 @@ import co.fineants.api.domain.exchangerate.domain.entity.ExchangeRate;
 import co.fineants.api.domain.exchangerate.repository.ExchangeRateRepository;
 import co.fineants.api.domain.exchangerate.service.ExchangeRateUpdateService;
 import co.fineants.api.domain.member.domain.entity.Member;
+import co.fineants.api.domain.member.domain.entity.MemberProfile;
 import co.fineants.api.domain.member.domain.entity.MemberRole;
 import co.fineants.api.domain.member.domain.entity.Role;
 import co.fineants.api.domain.member.repository.MemberRepository;
@@ -136,7 +137,8 @@ public class SetupDataLoader {
 	@NotNull
 	private Supplier<Member> supplierNewMember(String email, String nickname, String password, Set<Role> roleSet) {
 		return () -> {
-			Member newMember = Member.localMember(email, nickname, passwordEncoder.encode(password));
+			MemberProfile profile = MemberProfile.localMemberProfile(email, nickname, passwordEncoder.encode(password));
+			Member newMember = Member.localMember(null, profile, null);
 			Set<MemberRole> memberRoles = roleSet.stream()
 				.map(r -> MemberRole.create(newMember, r))
 				.collect(Collectors.toUnmodifiableSet());

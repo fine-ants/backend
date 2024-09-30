@@ -74,6 +74,11 @@ public class Member extends BaseEntity {
 		return new Member(id, profile, profileUrl, null, new HashSet<>());
 	}
 
+	// TODO: localMember 정적 팩토리 메서드 줄이기
+	public static Member localMember(Long id, MemberProfile profile, String profileUrl) {
+		return new Member(id, profile, profileUrl, null, new HashSet<>());
+	}
+
 	public void addMemberRole(MemberRole memberRole) {
 		if (!this.roles.contains(memberRole)) {
 			roles.add(memberRole);
