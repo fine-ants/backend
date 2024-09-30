@@ -82,12 +82,9 @@ public abstract class ControllerTestSupport {
 	}
 
 	protected static Member createMember() {
-		MemberProfile profile = MemberProfile.localMemberProfile("dragonbead95@naver.com", "nemo1234", "nemo1234@");
-		return Member.localMember(
-			1L,
-			profile,
-			"profileUrl"
-		);
+		MemberProfile profile = MemberProfile.localMemberProfile("dragonbead95@naver.com", "nemo1234", "nemo1234@",
+			"profileUrl");
+		return Member.localMember(1L, profile);
 	}
 
 	protected Portfolio createPortfolio(Member member) {

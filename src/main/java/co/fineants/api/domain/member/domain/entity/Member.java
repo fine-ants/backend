@@ -36,9 +36,9 @@ public class Member extends BaseEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
+
 	@Embedded
 	private MemberProfile profile;
-	private String profileUrl;
 
 	@OneToOne(fetch = FetchType.LAZY, mappedBy = "member", orphanRemoval = true, cascade = CascadeType.ALL)
 	private NotificationPreference notificationPreference;
@@ -46,26 +46,25 @@ public class Member extends BaseEntity {
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "member", orphanRemoval = true, cascade = CascadeType.ALL)
 	private Set<MemberRole> roles = new HashSet<>();
 
-	private Member(MemberProfile profile, String profileUrl) {
-		this(null, profile, profileUrl);
+	private Member(MemberProfile profile) {
+		this(null, profile);
 	}
 
-	private Member(Long id, MemberProfile profile, String profileUrl) {
+	private Member(Long id, MemberProfile profile) {
 		this.id = id;
 		this.profile = profile;
-		this.profileUrl = profileUrl;
 	}
 
-	public static Member oauthMember(MemberProfile profile, String profileUrl) {
-		return new Member(null, profile, profileUrl);
+	public static Member oauthMember(MemberProfile profile) {
+		return new Member(null, profile);
 	}
 
-	public static Member localMember(MemberProfile profile, String profileUrl) {
-		return new Member(profile, profileUrl);
+	public static Member localMember(MemberProfile profile) {
+		return new Member(profile);
 	}
 
-	public static Member localMember(Long id, MemberProfile profile, String profileUrl) {
-		return new Member(id, profile, profileUrl);
+	public static Member localMember(Long id, MemberProfile profile) {
+		return new Member(id, profile);
 	}
 
 	public void addMemberRole(MemberRole memberRole) {
@@ -94,8 +93,8 @@ public class Member extends BaseEntity {
 		return id.equals(memberId);
 	}
 
-	public Member updateProfileUrl(String profileUrl) {
-		this.profileUrl = profileUrl;
+	public Member changeProfileUrl(String profileUrl) {
+		profile.changeProfileUrl(profileUrl);
 		return this;
 	}
 
@@ -117,7 +116,6 @@ public class Member extends BaseEntity {
 		Map<String, Object> result = new HashMap<>();
 		result.put("id", id);
 		result.putAll(profile.toMap());
-		result.put("profileUrl", profileUrl);
 		result.put("roleSet", roles.stream()
 			.map(MemberRole::getRoleName)
 			.collect(Collectors.toSet()));
@@ -142,5 +140,9 @@ public class Member extends BaseEntity {
 
 	public String getEmail() {
 		return profile.getEmail();
+	}
+
+	public String getProfileUrl() {
+		return profile.getProfileUrl();
 	}
 }

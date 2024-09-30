@@ -137,8 +137,9 @@ public class SetupDataLoader {
 	@NotNull
 	private Supplier<Member> supplierNewMember(String email, String nickname, String password, Set<Role> roleSet) {
 		return () -> {
-			MemberProfile profile = MemberProfile.localMemberProfile(email, nickname, passwordEncoder.encode(password));
-			Member newMember = Member.localMember(profile, null);
+			MemberProfile profile = MemberProfile.localMemberProfile(email, nickname, passwordEncoder.encode(password),
+				null);
+			Member newMember = Member.localMember(profile);
 			Set<MemberRole> memberRoles = roleSet.stream()
 				.map(r -> MemberRole.create(newMember, r))
 				.collect(Collectors.toUnmodifiableSet());

@@ -253,7 +253,7 @@ public class MemberService {
 			// 새로운 프로필 파일 저장
 			profileUrl = amazonS3Service.upload(profileImageFile);
 		}
-		member.updateProfileUrl(profileUrl);
+		member.changeProfileUrl(profileUrl);
 
 		if (!request.getNickname().isBlank()) {
 			String nickname = request.getNickname();

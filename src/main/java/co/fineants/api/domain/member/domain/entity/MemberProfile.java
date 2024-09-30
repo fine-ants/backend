@@ -24,13 +24,15 @@ public class MemberProfile {
 	private String provider;
 	@Column(name = "password")
 	private String password;
+	@Column(name = "profile_url")
+	private String profileUrl;
 
-	public static MemberProfile oauthMemberProfile(String email, String nickname, String provider) {
-		return new MemberProfile(email, nickname, provider, null);
+	public static MemberProfile oauthMemberProfile(String email, String nickname, String provider, String profileUrl) {
+		return new MemberProfile(email, nickname, provider, null, profileUrl);
 	}
 
-	public static MemberProfile localMemberProfile(String email, String nickname, String password) {
-		return new MemberProfile(email, nickname, "local", password);
+	public static MemberProfile localMemberProfile(String email, String nickname, String password, String profileUrl) {
+		return new MemberProfile(email, nickname, "local", password, profileUrl);
 	}
 
 	public void changePassword(String password) {
@@ -41,11 +43,16 @@ public class MemberProfile {
 		this.nickname = nickname;
 	}
 
+	public void changeProfileUrl(String profileUrl) {
+		this.profileUrl = profileUrl;
+	}
+
 	public Map<String, Object> toMap() {
 		return Map.ofEntries(
 			Map.entry("email", email),
 			Map.entry("nickname", nickname),
-			Map.entry("provider", provider)
+			Map.entry("provider", provider),
+			Map.entry("profileUrl", profileUrl)
 		);
 	}
 }

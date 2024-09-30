@@ -162,11 +162,8 @@ public abstract class AbstractContainerBaseTest {
 			.orElseThrow(() -> new FineAntsException(RoleErrorCode.NOT_EXIST_ROLE));
 		// 회원 생성
 		String password = passwordEncoder.encode("nemo1234@");
-		MemberProfile profile = MemberProfile.localMemberProfile(email, nickname, password);
-		Member member = Member.localMember(
-			profile,
-			"profileUrl"
-		);
+		MemberProfile profile = MemberProfile.localMemberProfile(email, nickname, password, "profileUrl");
+		Member member = Member.localMember(profile);
 		// 역할 설정
 		member.addMemberRole(MemberRole.create(member, userRole));
 
@@ -178,12 +175,10 @@ public abstract class AbstractContainerBaseTest {
 	protected Member createOauthMember() {
 		Role userRole = roleRepository.findRoleByRoleName("ROLE_USER")
 			.orElseThrow(() -> new FineAntsException(RoleErrorCode.NOT_EXIST_ROLE));
-		MemberProfile profile = MemberProfile.oauthMemberProfile("fineants1234@gmail.com", "fineants1234", "google");
+		MemberProfile profile = MemberProfile.oauthMemberProfile("fineants1234@gmail.com", "fineants1234", "google",
+			"profileUrl1");
 		// 회원 생성
-		Member member = Member.oauthMember(
-			profile,
-			"profileUrl1"
-		);
+		Member member = Member.oauthMember(profile);
 		// 역할 설정
 		member.addMemberRole(MemberRole.create(member, userRole));
 

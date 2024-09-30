@@ -78,16 +78,16 @@ public class OAuthAttribute {
 			.stream().findAny();
 	}
 
-	private Member updateProfileUrlIfAbsent(Member entity) {
-		if (entity.getProfileUrl() != null) {
-			return entity;
+	private Member updateProfileUrlIfAbsent(Member member) {
+		if (member.getProfileUrl() != null) {
+			return member;
 		}
-		return entity.updateProfileUrl(profileUrl);
+		return member.changeProfileUrl(profileUrl);
 	}
 
 	public Member toEntity(NicknameGenerator generator) {
 		String nickname = generator.generate();
-		MemberProfile profile = MemberProfile.oauthMemberProfile(email, nickname, provider);
-		return Member.oauthMember(profile, profileUrl);
+		MemberProfile profile = MemberProfile.oauthMemberProfile(email, nickname, provider, profileUrl);
+		return Member.oauthMember(profile);
 	}
 }

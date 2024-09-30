@@ -41,7 +41,7 @@ public class SignUpServiceRequest {
 	}
 
 	public Member toEntity(String profileUrl, String encodedPassword) {
-		MemberProfile profile = MemberProfile.localMemberProfile(email, nickname, encodedPassword);
-		return Member.localMember(profile, profileUrl);
+		MemberProfile profile = MemberProfile.localMemberProfile(email, nickname, encodedPassword, profileUrl);
+		return Member.localMember(profile);
 	}
 }
