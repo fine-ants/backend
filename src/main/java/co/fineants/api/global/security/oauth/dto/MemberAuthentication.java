@@ -37,14 +37,14 @@ public class MemberAuthentication {
 			member.getEmail(),
 			member.getNickname(),
 			member.getProvider(),
-			member.getProfileUrl(),
+			member.getProfileUrl().orElse(null),
 			member.getRoles().stream()
 				.map(MemberRole::getRole)
 				.map(Role::getRoleName)
 				.collect(Collectors.toSet())
 		);
 	}
-	
+
 	public Set<SimpleGrantedAuthority> getSimpleGrantedAuthority() {
 		return roleSet.stream()
 			.map(SimpleGrantedAuthority::new)

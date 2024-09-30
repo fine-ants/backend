@@ -1,6 +1,7 @@
 package co.fineants.api.domain.member.domain.entity;
 
 import java.util.Map;
+import java.util.Optional;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
@@ -11,15 +12,17 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Embeddable
-@Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @EqualsAndHashCode(of = {"email", "nickname", "provider"}, callSuper = false)
 public class MemberProfile {
+	@Getter
 	@Column(name = "email", nullable = false)
 	private String email;
+	@Getter
 	@Column(name = "nickname", unique = true, nullable = false)
 	private String nickname;
+	@Getter
 	@Column(name = "provider", nullable = false)
 	private String provider;
 	@Column(name = "password")
@@ -33,10 +36,6 @@ public class MemberProfile {
 
 	public static MemberProfile localMemberProfile(String email, String nickname, String password, String profileUrl) {
 		return new MemberProfile(email, nickname, "local", password, profileUrl);
-	}
-
-	public void changePassword(String password) {
-		this.password = password;
 	}
 
 	public void changeNickname(String nickname) {
@@ -54,5 +53,13 @@ public class MemberProfile {
 			Map.entry("provider", provider),
 			Map.entry("profileUrl", profileUrl)
 		);
+	}
+
+	public Optional<String> getPassword() {
+		return Optional.ofNullable(password);
+	}
+
+	public Optional<String> getProfileUrl() {
+		return Optional.ofNullable(profileUrl);
 	}
 }

@@ -51,9 +51,9 @@ public abstract class AbstractUserService {
 		}
 
 		Set<Role> findRoles = roleRepository.findRolesByRoleNames(roleNames);
-		Set<MemberRole> memberRoles = findRoles.stream()
+		MemberRole[] memberRoles = findRoles.stream()
 			.map(r -> MemberRole.create(member, r))
-			.collect(Collectors.toSet());
+			.toArray(MemberRole[]::new);
 		member.addMemberRole(memberRoles);
 
 		if (member.getNotificationPreference() == null) {

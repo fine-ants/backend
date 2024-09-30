@@ -237,18 +237,14 @@ public class MemberService {
 
 		// 기존 프로필 파일 유지
 		if (profileImageFile == null) {
-			profileUrl = member.getProfileUrl();
+			profileUrl = member.getProfileUrl().orElse(null);
 		} else if (profileImageFile.isEmpty()) { // 기본 프로필 파일로 변경인 경우
 			// 회원의 기존 프로필 사진 제거
 			// 기존 프로필 파일 삭제
-			if (member.getProfileUrl() != null) {
-				amazonS3Service.deleteFile(member.getProfileUrl());
-			}
+			member.getProfileUrl().ifPresent(amazonS3Service::deleteFile);
 		} else if (!profileImageFile.isEmpty()) { // 새로운 프로필 파일로 변경인 경우
 			// 기존 프로필 파일 삭제
-			if (member.getProfileUrl() != null) {
-				amazonS3Service.deleteFile(member.getProfileUrl());
-			}
+			member.getProfileUrl().ifPresent(amazonS3Service::deleteFile);
 
 			// 새로운 프로필 파일 저장
 			profileUrl = amazonS3Service.upload(profileImageFile);
@@ -272,15 +268,14 @@ public class MemberService {
 	@Secured("ROLE_USER")
 	public void modifyPassword(ModifyPasswordRequest request, Long memberId) {
 		Member member = findMember(memberId);
-		if (!passwordEncoder.matches(request.getCurrentPassword(), member.getPassword())) {
+		if (!passwordEncoder.matches(request.getCurrentPassword(), member.getPassword().orElse(null))) {
 			throw new BadRequestException(MemberErrorCode.PASSWORD_CHECK_FAIL);
 		}
 		if (!request.getNewPassword().equals(request.getNewPasswordConfirm())) {
 			throw new BadRequestException(MemberErrorCode.NEW_PASSWORD_CONFIRM_FAIL);
 		}
-		String newEncodedPassword = passwordEncoder.encode(request.getNewPassword());
-		member.changePassword(newEncodedPassword);
-		int count = memberRepository.modifyMemberPassword(member.getPassword(), member.getId());
+		String newPassword = passwordEncoder.encode(request.getNewPassword());
+		int count = memberRepository.modifyMemberPassword(newPassword, member.getId());
 		log.info("회원 비밀번호 변경 결과 : {}", count);
 	}
 

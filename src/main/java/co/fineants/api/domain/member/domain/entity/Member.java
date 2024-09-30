@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -44,7 +45,7 @@ public class Member extends BaseEntity {
 	private NotificationPreference notificationPreference;
 
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "member", orphanRemoval = true, cascade = CascadeType.ALL)
-	private Set<MemberRole> roles = new HashSet<>();
+	private final Set<MemberRole> roles = new HashSet<>();
 
 	private Member(MemberProfile profile) {
 		this(null, profile);
@@ -67,21 +68,14 @@ public class Member extends BaseEntity {
 		return new Member(id, profile);
 	}
 
-	public void addMemberRole(MemberRole memberRole) {
-		if (!this.roles.contains(memberRole)) {
-			roles.add(memberRole);
-			memberRole.setMember(this);
+	//** 연관 관계 엔티티 메서드 시작 **//
+	public void addMemberRole(MemberRole... memberRole) {
+		for (MemberRole role : memberRole) {
+			if (!this.roles.contains(role)) {
+				roles.add(role);
+				role.setMember(this);
+			}
 		}
-	}
-
-	public void addMemberRole(Set<MemberRole> memberRoleSet) {
-		for (MemberRole memberRole : memberRoleSet) {
-			addMemberRole(memberRole);
-		}
-	}
-
-	public void setMemberRoleSet(Set<MemberRole> memberRoleSet) {
-		this.roles = memberRoleSet;
 	}
 
 	public void setNotificationPreference(NotificationPreference newPreference) {
@@ -89,16 +83,14 @@ public class Member extends BaseEntity {
 		newPreference.setMember(this);
 	}
 
+	//** 연관 관계 엔티티 메서드 종료 **//
+
 	public boolean hasAuthorization(Long memberId) {
 		return id.equals(memberId);
 	}
 
 	public void changeProfileUrl(String profileUrl) {
 		profile.changeProfileUrl(profileUrl);
-	}
-
-	public void changePassword(String password) {
-		this.profile.changePassword(password);
 	}
 
 	public void changeNickname(String nickname) {
@@ -125,7 +117,7 @@ public class Member extends BaseEntity {
 		return Collections.unmodifiableSet(roles);
 	}
 
-	public String getPassword() {
+	public Optional<String> getPassword() {
 		return profile.getPassword();
 	}
 
@@ -141,7 +133,7 @@ public class Member extends BaseEntity {
 		return profile.getEmail();
 	}
 
-	public String getProfileUrl() {
+	public Optional<String> getProfileUrl() {
 		return profile.getProfileUrl();
 	}
 }

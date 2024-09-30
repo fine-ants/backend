@@ -3,7 +3,6 @@ package co.fineants.api.global.init;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.logging.log4j.util.Strings;
@@ -140,10 +139,10 @@ public class SetupDataLoader {
 			MemberProfile profile = MemberProfile.localMemberProfile(email, nickname, passwordEncoder.encode(password),
 				null);
 			Member newMember = Member.localMember(profile);
-			Set<MemberRole> memberRoles = roleSet.stream()
+			MemberRole[] memberRoles = roleSet.stream()
 				.map(r -> MemberRole.create(newMember, r))
-				.collect(Collectors.toUnmodifiableSet());
-			newMember.setMemberRoleSet(memberRoles);
+				.toArray(MemberRole[]::new);
+			newMember.addMemberRole(memberRoles);
 			return newMember;
 		};
 	}
