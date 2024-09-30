@@ -74,15 +74,13 @@ public class OAuthAttribute {
 
 	public Optional<Member> getMemberFrom(MemberRepository repository) {
 		return repository.findMemberByEmailAndProvider(email, provider)
-			.map(this::updateProfileUrlIfAbsent)
 			.stream().findAny();
 	}
 
-	private Member updateProfileUrlIfAbsent(Member member) {
-		if (member.getProfileUrl() != null) {
-			return member;
+	public void updateProfileUrlIfAbsent(Member member) {
+		if (member.getProfileUrl() == null) {
+			member.changeProfileUrl(profileUrl);
 		}
-		return member.changeProfileUrl(profileUrl);
 	}
 
 	public Member toEntity(NicknameGenerator generator) {

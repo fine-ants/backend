@@ -41,6 +41,8 @@ public abstract class AbstractUserService {
 	public Member saveOrUpdate(OAuthAttribute attributes) {
 		Member member = attributes.getMemberFrom(memberRepository)
 			.orElseGet(() -> attributes.toEntity(nicknameGenerator));
+		attributes.updateProfileUrlIfAbsent(member);
+
 		Set<String> roleNames = member.getRoles().stream()
 			.map(MemberRole::getRoleName)
 			.collect(Collectors.toSet());

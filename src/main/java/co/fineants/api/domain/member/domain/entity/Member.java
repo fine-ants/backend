@@ -93,9 +93,8 @@ public class Member extends BaseEntity {
 		return id.equals(memberId);
 	}
 
-	public Member changeProfileUrl(String profileUrl) {
+	public void changeProfileUrl(String profileUrl) {
 		profile.changeProfileUrl(profileUrl);
-		return this;
 	}
 
 	public void changePassword(String password) {
