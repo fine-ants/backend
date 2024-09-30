@@ -161,10 +161,10 @@ public abstract class AbstractContainerBaseTest {
 		Role userRole = roleRepository.findRoleByRoleName("ROLE_USER")
 			.orElseThrow(() -> new FineAntsException(RoleErrorCode.NOT_EXIST_ROLE));
 		// 회원 생성
+		String password = passwordEncoder.encode("nemo1234@");
+		MemberProfile profile = MemberProfile.localMemberProfile(email, nickname, password);
 		Member member = Member.localMember(
-			email,
-			nickname,
-			passwordEncoder.encode("nemo1234@"),
+			profile,
 			"profileUrl"
 		);
 		// 역할 설정

@@ -27,6 +27,7 @@ import co.fineants.api.domain.dividend.domain.entity.StockDividend;
 import co.fineants.api.domain.gainhistory.domain.entity.PortfolioGainHistory;
 import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
 import co.fineants.api.domain.member.domain.entity.Member;
+import co.fineants.api.domain.member.domain.entity.MemberProfile;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import co.fineants.api.domain.purchasehistory.domain.entity.PurchaseHistory;
 import co.fineants.api.domain.stock.domain.entity.Market;
@@ -81,11 +82,10 @@ public abstract class ControllerTestSupport {
 	}
 
 	protected static Member createMember() {
+		MemberProfile profile = MemberProfile.localMemberProfile("dragonbead95@naver.com", "nemo1234", "nemo1234@");
 		return Member.localMember(
 			1L,
-			"dragonbead95@naver.com",
-			"nemo1234",
-			"nemo1234@",
+			profile,
 			"profileUrl"
 		);
 	}

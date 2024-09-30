@@ -44,33 +44,28 @@ public class Member extends BaseEntity {
 	private NotificationPreference notificationPreference;
 
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "member", orphanRemoval = true, cascade = CascadeType.ALL)
-	private Set<MemberRole> roles;
+	private Set<MemberRole> roles = new HashSet<>();
 
-	private Member(Long id, MemberProfile profile, String profileUrl,
-		NotificationPreference notificationPreference, Set<MemberRole> roles) {
+	private Member(MemberProfile profile, String profileUrl) {
+		this(null, profile, profileUrl);
+	}
+
+	private Member(Long id, MemberProfile profile, String profileUrl) {
 		this.id = id;
 		this.profile = profile;
 		this.profileUrl = profileUrl;
-		this.notificationPreference = notificationPreference;
-		this.roles = roles;
 	}
 
 	public static Member oauthMember(MemberProfile profile, String profileUrl) {
-		return new Member(null, profile, profileUrl, null, new HashSet<>());
+		return new Member(null, profile, profileUrl);
 	}
 
-	public static Member localMember(String email, String nickname, String password, String profileUrl) {
-		MemberProfile profile = MemberProfile.localMemberProfile(email, nickname, password);
-		return new Member(null, profile, profileUrl, null, new HashSet<>());
-	}
-
-	public static Member localMember(Long id, String email, String nickname, String password, String profileUrl) {
-		MemberProfile profile = MemberProfile.localMemberProfile(email, nickname, password);
-		return new Member(id, profile, profileUrl, null, new HashSet<>());
+	public static Member localMember(MemberProfile profile, String profileUrl) {
+		return new Member(profile, profileUrl);
 	}
 
 	public static Member localMember(Long id, MemberProfile profile, String profileUrl) {
-		return new Member(id, profile, profileUrl, null, new HashSet<>());
+		return new Member(id, profile, profileUrl);
 	}
 
 	public void addMemberRole(MemberRole memberRole) {

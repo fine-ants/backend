@@ -34,6 +34,7 @@ import co.fineants.api.domain.dividend.domain.entity.StockDividend;
 import co.fineants.api.domain.gainhistory.domain.entity.PortfolioGainHistory;
 import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
 import co.fineants.api.domain.member.domain.entity.Member;
+import co.fineants.api.domain.member.domain.entity.MemberProfile;
 import co.fineants.api.domain.notification.domain.dto.response.NotifyMessage;
 import co.fineants.api.domain.notification.domain.dto.response.PortfolioNotifyMessage;
 import co.fineants.api.domain.notification.domain.dto.response.StockNotifyMessage;
@@ -87,11 +88,10 @@ public abstract class RestDocsSupport {
 	}
 
 	protected Member createMember() {
+		MemberProfile profile = MemberProfile.localMemberProfile("kim1234@gmail.com", "일개미1234", "kim1234@");
 		return Member.localMember(
 			1L,
-			"kim1234@gmail.com",
-			"일개미1234",
-			"kim1234@",
+			profile,
 			"profileUrl"
 		);
 	}

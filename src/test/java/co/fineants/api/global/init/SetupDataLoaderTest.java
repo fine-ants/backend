@@ -77,7 +77,7 @@ class SetupDataLoaderTest extends AbstractContainerBaseTest {
 
 	@MockBean
 	private ExchangeRateService exchangeRateService;
-	
+
 	@Transactional
 	@DisplayName("서버는 권한 및 역할 등의 리소스들을 생성한다")
 	@Test
@@ -101,11 +101,11 @@ class SetupDataLoaderTest extends AbstractContainerBaseTest {
 		assertThat(memberRepository.findAll())
 			.hasSize(3)
 			.containsExactlyInAnyOrder(
-				Member.localMember(null, MemberProfile.localMemberProfile(adminProperties.getEmail(),
+				Member.localMember(MemberProfile.localMemberProfile(adminProperties.getEmail(),
 					adminProperties.getNickname(), adminProperties.getPassword()), null),
-				Member.localMember(null, MemberProfile.localMemberProfile(managerProperties.getEmail(),
+				Member.localMember(MemberProfile.localMemberProfile(managerProperties.getEmail(),
 					managerProperties.getNickname(), managerProperties.getPassword()), null),
-				Member.localMember(null, MemberProfile.localMemberProfile(userProperties.getEmail(),
+				Member.localMember(MemberProfile.localMemberProfile(userProperties.getEmail(),
 					userProperties.getNickname(), userProperties.getPassword()), null)
 			);
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
