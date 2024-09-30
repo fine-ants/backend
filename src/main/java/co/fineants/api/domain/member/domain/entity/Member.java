@@ -78,9 +78,15 @@ public class Member extends BaseEntity {
 		}
 	}
 
-	public void setNotificationPreference(NotificationPreference newPreference) {
-		this.notificationPreference = newPreference;
-		newPreference.setMember(this);
+	public void changeNotificationPreference(NotificationPreference notificationPreference) {
+		if (this.notificationPreference != null) {
+			this.notificationPreference.changeMember(null);
+		}
+
+		this.notificationPreference = notificationPreference;
+		if (notificationPreference != null && notificationPreference.getMember() != this) {
+			notificationPreference.changeMember(this);
+		}
 	}
 
 	//** 연관 관계 엔티티 메서드 종료 **//

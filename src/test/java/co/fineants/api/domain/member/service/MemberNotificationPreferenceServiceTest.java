@@ -41,7 +41,7 @@ class MemberNotificationPreferenceServiceTest extends AbstractContainerBaseTest 
 		// given
 		Member member = memberRepository.save(createMember());
 		NotificationPreference preference = member.getNotificationPreference();
-		preference.changePreference(createNotificationPreference(false, false, false, false, member));
+		preference.changePreference(createNotificationPreference(false, false, false, false));
 		repository.save(preference);
 
 		// when
@@ -103,7 +103,10 @@ class MemberNotificationPreferenceServiceTest extends AbstractContainerBaseTest 
 	@Test
 	void updateNotificationPreference_whenNotExistPreference_thenRegisterPreference() {
 		// given
-		Member member = memberRepository.save(createMember());
+		Member member = createMember();
+		member.changeNotificationPreference(null);
+		member = memberRepository.save(member);
+
 		MemberNotificationPreferenceRequest request = MemberNotificationPreferenceRequest.builder()
 			.browserNotify(false)
 			.targetGainNotify(false)

@@ -57,7 +57,7 @@ public abstract class AbstractUserService {
 		member.addMemberRole(memberRoles);
 
 		if (member.getNotificationPreference() == null) {
-			NotificationPreference notificationPreference = NotificationPreference.defaultSetting(member);
+			NotificationPreference notificationPreference = NotificationPreference.defaultSetting();
 			notificationPreferenceRepository.save(notificationPreference);
 		}
 		return memberRepository.save(member);

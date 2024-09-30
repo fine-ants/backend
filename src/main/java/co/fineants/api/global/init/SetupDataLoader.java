@@ -127,8 +127,8 @@ public class SetupDataLoader {
 
 	private void initializeNotificationPreferenceIfNotExists(Member member) {
 		if (member.getNotificationPreference() == null) {
-			NotificationPreference newPreference = NotificationPreference.allActive(member);
-			member.setNotificationPreference(newPreference);
+			NotificationPreference newPreference = NotificationPreference.allActive();
+			member.changeNotificationPreference(newPreference);
 			notificationPreferenceRepository.save(newPreference);
 		}
 	}

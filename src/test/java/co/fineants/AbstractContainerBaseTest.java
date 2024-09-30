@@ -168,7 +168,7 @@ public abstract class AbstractContainerBaseTest {
 		member.addMemberRole(MemberRole.create(member, userRole));
 
 		// 계정 알림 설정
-		member.setNotificationPreference(NotificationPreference.allActive(member));
+		member.changeNotificationPreference(NotificationPreference.allActive());
 		return member;
 	}
 
@@ -183,18 +183,17 @@ public abstract class AbstractContainerBaseTest {
 		member.addMemberRole(MemberRole.create(member, userRole));
 
 		// 계정 알림 설정
-		member.setNotificationPreference(NotificationPreference.allActive(member));
+		member.changeNotificationPreference(NotificationPreference.allActive());
 		return member;
 	}
 
 	protected NotificationPreference createNotificationPreference(boolean browserNotify, boolean targetGainNotify,
-		boolean maxLossNotify, boolean targetPriceNotify, Member member) {
+		boolean maxLossNotify, boolean targetPriceNotify) {
 		return NotificationPreference.create(
 			browserNotify,
 			targetGainNotify,
 			maxLossNotify,
-			targetPriceNotify,
-			member
+			targetPriceNotify
 		);
 	}
 

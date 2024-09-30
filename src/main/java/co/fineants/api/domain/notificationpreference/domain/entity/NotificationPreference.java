@@ -35,36 +35,37 @@ public class NotificationPreference extends BaseEntity {
 	private Member member;
 
 	private NotificationPreference(boolean browserNotify, boolean targetGainNotify, boolean maxLossNotify,
-		boolean targetPriceNotify, Member member) {
-		this(null, browserNotify, targetGainNotify, maxLossNotify, targetPriceNotify, member);
+		boolean targetPriceNotify) {
+		this(null, browserNotify, targetGainNotify, maxLossNotify, targetPriceNotify);
 	}
 
 	private NotificationPreference(Long id, boolean browserNotify, boolean targetGainNotify, boolean maxLossNotify,
-		boolean targetPriceNotify,
-		Member member) {
+		boolean targetPriceNotify) {
 		this.id = id;
 		this.browserNotify = browserNotify;
 		this.targetGainNotify = targetGainNotify;
 		this.maxLossNotify = maxLossNotify;
 		this.targetPriceNotify = targetPriceNotify;
-		this.member = member;
 	}
 
-	public static NotificationPreference allActive(Member member) {
-		return new NotificationPreference(true, true, true, true, member);
+	public static NotificationPreference allActive() {
+		return new NotificationPreference(true, true, true, true);
 	}
 
-	public static NotificationPreference defaultSetting(Member member) {
-		return new NotificationPreference(false, false, false, false, member);
+	public static NotificationPreference defaultSetting() {
+		return new NotificationPreference(false, false, false, false);
 	}
 
 	public static NotificationPreference create(boolean browserNotify, boolean targetGainNotify, boolean maxLossNotify,
-		boolean targetPriceNotify, Member member) {
-		return new NotificationPreference(browserNotify, targetGainNotify, maxLossNotify, targetPriceNotify, member);
+		boolean targetPriceNotify) {
+		return new NotificationPreference(browserNotify, targetGainNotify, maxLossNotify, targetPriceNotify);
 	}
 
-	public void setMember(Member member) {
+	public void changeMember(Member member) {
 		this.member = member;
+		if (member != null && member.getNotificationPreference() != this) {
+			member.changeNotificationPreference(this);
+		}
 	}
 
 	public void changePreference(NotificationPreference notificationPreference) {
