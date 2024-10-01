@@ -9,15 +9,11 @@ import org.springframework.transaction.annotation.Transactional;
 import co.fineants.AbstractContainerBaseTest;
 import co.fineants.api.domain.member.repository.MemberRepository;
 import co.fineants.api.domain.notificationpreference.domain.entity.NotificationPreference;
-import co.fineants.api.domain.notificationpreference.repository.NotificationPreferenceRepository;
 
 class MemberTest extends AbstractContainerBaseTest {
 
 	@Autowired
 	private MemberRepository repository;
-
-	@Autowired
-	private NotificationPreferenceRepository notificationPreferenceRepository;
 
 	@Transactional
 	@DisplayName("회원에 매니저 역할을 추가한다")
@@ -25,14 +21,17 @@ class MemberTest extends AbstractContainerBaseTest {
 	void addMemberRole() {
 		// given
 		Member member = createMember();
+		Role memberRole = Role.create("ROLE_USER", "회원");
+		Role managerRole = Role.create("ROLE_MANAGER", "매니저");
+		MemberRole memberMemberRole = MemberRole.create(member, memberRole);
+		MemberRole managerMemberRole = MemberRole.create(member, managerRole);
 		// when
-		member.addMemberRole(MemberRole.create(member, Role.create("ROLE_MANAGER", "manager")));
+		member.addMemberRole(managerMemberRole);
 		// then
 		Member saveMember = repository.save(member);
 		Assertions.assertThat(saveMember.getRoles())
 			.hasSize(2)
-			.map(MemberRole::getRoleName)
-			.containsExactly("ROLE_USER", "ROLE_MANAGER");
+			.containsExactly(memberMemberRole, managerMemberRole);
 	}
 
 	@Transactional

@@ -71,11 +71,17 @@ public class Member extends BaseEntity {
 	//** 연관 관계 엔티티 메서드 시작 **//
 	public void addMemberRole(MemberRole... memberRole) {
 		for (MemberRole role : memberRole) {
-			if (!this.roles.contains(role)) {
-				roles.add(role);
-				role.setMember(this);
+			if (this.roles.contains(role)) {
+				continue;
 			}
+			this.roles.add(role);
+			role.setMember(this);
 		}
+	}
+
+	public void removeMemberRole(MemberRole memberRole) {
+		this.roles.remove(memberRole);
+		memberRole.setMember(null);
 	}
 
 	public void changeNotificationPreference(NotificationPreference notificationPreference) {
