@@ -140,7 +140,7 @@ public class SetupDataLoader {
 				null);
 			Member newMember = Member.localMember(profile);
 			MemberRole[] memberRoles = roleSet.stream()
-				.map(r -> MemberRole.create(newMember, r))
+				.map(r -> MemberRole.of(newMember, r))
 				.toArray(MemberRole[]::new);
 			newMember.addMemberRole(memberRoles);
 			return newMember;

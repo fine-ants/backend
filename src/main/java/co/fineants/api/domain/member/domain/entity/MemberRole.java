@@ -11,7 +11,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,7 +19,6 @@ import lombok.ToString;
 @Entity
 @Table(name = "member_role")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @EqualsAndHashCode(of = {"member", "role"})
 @Getter
 @ToString
@@ -36,8 +34,13 @@ public class MemberRole {
 	@ManyToOne(fetch = FetchType.LAZY)
 	private Role role;
 
-	public static MemberRole create(Member member, Role role) {
-		return new MemberRole(null, member, role);
+	public MemberRole(Member member, Role role) {
+		this.member = member;
+		this.role = role;
+	}
+
+	public static MemberRole of(Member member, Role role) {
+		return new MemberRole(member, role);
 	}
 
 	//** 연관 관계 메서드 시작 **//

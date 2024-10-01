@@ -165,7 +165,7 @@ public abstract class AbstractContainerBaseTest {
 		MemberProfile profile = MemberProfile.localMemberProfile(email, nickname, password, "profileUrl");
 		Member member = Member.localMember(profile);
 		// 역할 설정
-		member.addMemberRole(MemberRole.create(member, userRole));
+		member.addMemberRole(MemberRole.of(member, userRole));
 
 		// 계정 알림 설정
 		member.changeNotificationPreference(NotificationPreference.allActive());
@@ -180,7 +180,7 @@ public abstract class AbstractContainerBaseTest {
 		// 회원 생성
 		Member member = Member.oauthMember(profile);
 		// 역할 설정
-		member.addMemberRole(MemberRole.create(member, userRole));
+		member.addMemberRole(MemberRole.of(member, userRole));
 
 		// 계정 알림 설정
 		member.changeNotificationPreference(NotificationPreference.allActive());

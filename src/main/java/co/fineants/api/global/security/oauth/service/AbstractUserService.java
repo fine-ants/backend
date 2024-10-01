@@ -52,7 +52,7 @@ public abstract class AbstractUserService {
 
 		Set<Role> findRoles = roleRepository.findRolesByRoleNames(roleNames);
 		MemberRole[] memberRoles = findRoles.stream()
-			.map(r -> MemberRole.create(member, r))
+			.map(r -> MemberRole.of(member, r))
 			.toArray(MemberRole[]::new);
 		member.addMemberRole(memberRoles);
 

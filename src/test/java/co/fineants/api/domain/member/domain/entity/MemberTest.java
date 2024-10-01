@@ -23,8 +23,8 @@ class MemberTest extends AbstractContainerBaseTest {
 		Member member = createMember();
 		Role memberRole = Role.create("ROLE_USER", "회원");
 		Role managerRole = Role.create("ROLE_MANAGER", "매니저");
-		MemberRole memberMemberRole = MemberRole.create(member, memberRole);
-		MemberRole managerMemberRole = MemberRole.create(member, managerRole);
+		MemberRole memberMemberRole = MemberRole.of(member, memberRole);
+		MemberRole managerMemberRole = MemberRole.of(member, managerRole);
 		// when
 		member.addMemberRole(managerMemberRole);
 		// then
