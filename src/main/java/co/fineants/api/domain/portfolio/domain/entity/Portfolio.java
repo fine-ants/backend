@@ -56,7 +56,6 @@ import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
 @NamedEntityGraph(name = "Portfolio.withAll", attributeNodes = {
@@ -69,7 +68,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@ToString(exclude = {"member", "portfolioHoldings"})
 @Entity
 @Table(name = "portfolio", uniqueConstraints = {
 	@UniqueConstraint(columnNames = {"name", "member_id"})
@@ -540,5 +538,10 @@ public class Portfolio extends BaseEntity implements Notifiable {
 
 	public void setLocalDateTimeService(LocalDateTimeService localDateTimeService) {
 		this.localDateTimeService = localDateTimeService;
+	}
+
+	@Override
+	public String toString() {
+		return String.format("Portfolio(id=%d, name=%s, memberNickname=%s)", id, name, member.getNickname());
 	}
 }
