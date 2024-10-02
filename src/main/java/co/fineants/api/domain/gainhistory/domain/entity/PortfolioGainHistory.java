@@ -1,6 +1,9 @@
 package co.fineants.api.domain.gainhistory.domain.entity;
 
+import java.time.format.DateTimeFormatter;
+
 import co.fineants.api.domain.BaseEntity;
+import co.fineants.api.domain.common.money.Expression;
 import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.common.money.MoneyConverter;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
@@ -42,6 +45,8 @@ public class PortfolioGainHistory extends BaseEntity {
 	@JoinColumn(name = "portfolio_id")
 	private Portfolio portfolio;
 
+	private static final DateTimeFormatter LINE_CHART_KEY_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
 	private PortfolioGainHistory(Money totalGain, Money dailyGain, Money cash, Money currentValuation,
 		Portfolio portfolio) {
 		this(null, totalGain, dailyGain, cash, currentValuation, portfolio);
@@ -64,5 +69,18 @@ public class PortfolioGainHistory extends BaseEntity {
 	public static PortfolioGainHistory create(Money totalGain, Money dailyGain, Money cash, Money currentValuation,
 		Portfolio portfolio) {
 		return new PortfolioGainHistory(totalGain, dailyGain, cash, currentValuation, portfolio);
+	}
+
+	public String getLineChartKey() {
+		return LINE_CHART_KEY_FORMATTER.format(super.getCreateAt());
+	}
+
+	/**
+	 * Return cash + currentValuation
+	 *
+	 * @return cash + currentValuation
+	 */
+	public Expression calculateTotalPortfolioValue() {
+		return cash.plus(currentValuation);
 	}
 }

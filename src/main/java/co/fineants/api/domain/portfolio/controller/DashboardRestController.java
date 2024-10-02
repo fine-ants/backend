@@ -41,6 +41,8 @@ public class DashboardRestController {
 	@GetMapping("/lineChart")
 	public ApiResponse<List<DashboardLineChartResponse>> readLineChart(
 		@MemberAuthenticationPrincipal MemberAuthentication authentication) {
+		List<DashboardLineChartResponse> response = dashboardService.getLineChart(authentication.getId());
+		log.debug("response = {}", response);
 		return ApiResponse.success(DashboardSuccessCode.OK_LINE_CHART,
 			dashboardService.getLineChart(authentication.getId()));
 	}
