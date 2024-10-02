@@ -104,7 +104,6 @@ public class Member extends BaseEntity {
 	}
 
 	//** 연관 관계 엔티티 메서드 종료 **//
-
 	public boolean hasAuthorization(Long memberId) {
 		return id.equals(memberId);
 	}
@@ -123,7 +122,7 @@ public class Member extends BaseEntity {
 			.collect(Collectors.toSet());
 	}
 
-	public Map<String, Object> toMemberAttributeMap() {
+	public Map<String, Object> toAttributeMap() {
 		Map<String, Object> result = new HashMap<>();
 		result.put("id", id);
 		result.putAll(profile.toMap());
