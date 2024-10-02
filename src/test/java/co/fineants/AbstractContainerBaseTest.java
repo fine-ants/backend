@@ -36,6 +36,7 @@ import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
 import co.fineants.api.domain.kis.client.KisAccessToken;
 import co.fineants.api.domain.kis.repository.KisAccessTokenRepository;
 import co.fineants.api.domain.member.domain.entity.Member;
+import co.fineants.api.domain.member.domain.entity.MemberProfile;
 import co.fineants.api.domain.member.domain.entity.MemberRole;
 import co.fineants.api.domain.member.domain.entity.Role;
 import co.fineants.api.domain.member.repository.RoleRepository;
@@ -160,46 +161,39 @@ public abstract class AbstractContainerBaseTest {
 		Role userRole = roleRepository.findRoleByRoleName("ROLE_USER")
 			.orElseThrow(() -> new FineAntsException(RoleErrorCode.NOT_EXIST_ROLE));
 		// 회원 생성
-		Member member = Member.localMember(
-			email,
-			nickname,
-			passwordEncoder.encode("nemo1234@"),
-			"profileUrl"
-		);
+		String password = passwordEncoder.encode("nemo1234@");
+		MemberProfile profile = MemberProfile.localMemberProfile(email, nickname, password, "profileUrl");
+		Member member = Member.localMember(profile);
 		// 역할 설정
-		member.addMemberRole(MemberRole.create(member, userRole));
+		member.addMemberRole(MemberRole.of(member, userRole));
 
 		// 계정 알림 설정
-		member.setNotificationPreference(NotificationPreference.allActive(member));
+		member.setNotificationPreference(NotificationPreference.allActive());
 		return member;
 	}
 
 	protected Member createOauthMember() {
 		Role userRole = roleRepository.findRoleByRoleName("ROLE_USER")
 			.orElseThrow(() -> new FineAntsException(RoleErrorCode.NOT_EXIST_ROLE));
+		MemberProfile profile = MemberProfile.oauthMemberProfile("fineants1234@gmail.com", "fineants1234", "google",
+			"profileUrl1");
 		// 회원 생성
-		Member member = Member.oauthMember(
-			"fineants1234@gmail.com",
-			"fineants1234",
-			"google",
-			"profileUrl1"
-		);
+		Member member = Member.oauthMember(profile);
 		// 역할 설정
-		member.addMemberRole(MemberRole.create(member, userRole));
+		member.addMemberRole(MemberRole.of(member, userRole));
 
 		// 계정 알림 설정
-		member.setNotificationPreference(NotificationPreference.allActive(member));
+		member.setNotificationPreference(NotificationPreference.allActive());
 		return member;
 	}
 
 	protected NotificationPreference createNotificationPreference(boolean browserNotify, boolean targetGainNotify,
-		boolean maxLossNotify, boolean targetPriceNotify, Member member) {
+		boolean maxLossNotify, boolean targetPriceNotify) {
 		return NotificationPreference.create(
 			browserNotify,
 			targetGainNotify,
 			maxLossNotify,
-			targetPriceNotify,
-			member
+			targetPriceNotify
 		);
 	}
 

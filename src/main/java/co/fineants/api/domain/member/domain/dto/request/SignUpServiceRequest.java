@@ -3,6 +3,7 @@ package co.fineants.api.domain.member.domain.dto.request;
 import org.springframework.web.multipart.MultipartFile;
 
 import co.fineants.api.domain.member.domain.entity.Member;
+import co.fineants.api.domain.member.domain.entity.MemberProfile;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -40,6 +41,7 @@ public class SignUpServiceRequest {
 	}
 
 	public Member toEntity(String profileUrl, String encodedPassword) {
-		return Member.localMember(email, nickname, encodedPassword, profileUrl);
+		MemberProfile profile = MemberProfile.localMemberProfile(email, nickname, encodedPassword, profileUrl);
+		return Member.localMember(profile);
 	}
 }

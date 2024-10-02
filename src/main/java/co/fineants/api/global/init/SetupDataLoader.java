@@ -3,7 +3,6 @@ package co.fineants.api.global.init;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.logging.log4j.util.Strings;
@@ -20,6 +19,7 @@ import co.fineants.api.domain.exchangerate.domain.entity.ExchangeRate;
 import co.fineants.api.domain.exchangerate.repository.ExchangeRateRepository;
 import co.fineants.api.domain.exchangerate.service.ExchangeRateUpdateService;
 import co.fineants.api.domain.member.domain.entity.Member;
+import co.fineants.api.domain.member.domain.entity.MemberProfile;
 import co.fineants.api.domain.member.domain.entity.MemberRole;
 import co.fineants.api.domain.member.domain.entity.Role;
 import co.fineants.api.domain.member.repository.MemberRepository;
@@ -127,7 +127,7 @@ public class SetupDataLoader {
 
 	private void initializeNotificationPreferenceIfNotExists(Member member) {
 		if (member.getNotificationPreference() == null) {
-			NotificationPreference newPreference = NotificationPreference.allActive(member);
+			NotificationPreference newPreference = NotificationPreference.allActive();
 			member.setNotificationPreference(newPreference);
 			notificationPreferenceRepository.save(newPreference);
 		}
@@ -136,11 +136,13 @@ public class SetupDataLoader {
 	@NotNull
 	private Supplier<Member> supplierNewMember(String email, String nickname, String password, Set<Role> roleSet) {
 		return () -> {
-			Member newMember = Member.localMember(email, nickname, passwordEncoder.encode(password));
-			Set<MemberRole> memberRoles = roleSet.stream()
-				.map(r -> MemberRole.create(newMember, r))
-				.collect(Collectors.toUnmodifiableSet());
-			newMember.setMemberRoleSet(memberRoles);
+			MemberProfile profile = MemberProfile.localMemberProfile(email, nickname, passwordEncoder.encode(password),
+				null);
+			Member newMember = Member.localMember(profile);
+			MemberRole[] memberRoles = roleSet.stream()
+				.map(r -> MemberRole.of(newMember, r))
+				.toArray(MemberRole[]::new);
+			newMember.addMemberRole(memberRoles);
 			return newMember;
 		};
 	}

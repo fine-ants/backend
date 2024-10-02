@@ -49,6 +49,8 @@ import co.fineants.api.domain.kis.repository.CurrentPriceRedisRepository;
 import co.fineants.api.domain.member.domain.entity.Member;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import co.fineants.api.domain.stock.domain.entity.Stock;
+import co.fineants.api.global.common.time.DefaultLocalDateTimeService;
+import co.fineants.api.global.common.time.LocalDateTimeService;
 import co.fineants.api.global.errors.errorcode.PortfolioErrorCode;
 import co.fineants.api.global.errors.exception.NotFoundResourceException;
 import co.fineants.api.global.util.ObjectMapperUtil;
@@ -91,9 +93,11 @@ class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 		PortfolioGainHistory history = createEmptyPortfolioGainHistory(portfolio);
 
 		Map<String, Money> lastDayClosingPriceMap = Map.of("005930", Money.won(50000L));
+		LocalDateTimeService localDateTimeService = new DefaultLocalDateTimeService();
 		PortfolioHoldingsResponse mockResponse = PortfolioHoldingsResponse.of(portfolio, history,
 			List.of(portfolioHolding),
-			lastDayClosingPriceMap);
+			lastDayClosingPriceMap,
+			localDateTimeService);
 
 		given(portfolioHoldingService.readPortfolioHoldings(anyLong())).willReturn(mockResponse);
 		// when & then

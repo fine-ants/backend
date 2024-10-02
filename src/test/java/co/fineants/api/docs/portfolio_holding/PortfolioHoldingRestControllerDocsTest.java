@@ -43,6 +43,8 @@ import co.fineants.api.domain.holding.service.PortfolioObservableService;
 import co.fineants.api.domain.member.domain.entity.Member;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import co.fineants.api.domain.stock.domain.entity.Stock;
+import co.fineants.api.global.common.time.DefaultLocalDateTimeService;
+import co.fineants.api.global.common.time.LocalDateTimeService;
 import co.fineants.api.global.util.ObjectMapperUtil;
 
 class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
@@ -137,9 +139,11 @@ class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 		PortfolioGainHistory history = createEmptyPortfolioGainHistory(portfolio);
 
 		Map<String, Money> lastDayClosingPriceMap = Map.of("005930", Money.won(50000L));
+		LocalDateTimeService localDateTimeService = new DefaultLocalDateTimeService();
 		PortfolioHoldingsResponse mockResponse = PortfolioHoldingsResponse.of(portfolio, history,
 			List.of(portfolioHolding),
-			lastDayClosingPriceMap);
+			lastDayClosingPriceMap,
+			localDateTimeService);
 
 		given(service.readPortfolioHoldings(anyLong())).willReturn(mockResponse);
 		// when & then

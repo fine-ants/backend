@@ -6,6 +6,7 @@ import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.common.money.Percentage;
 import co.fineants.api.domain.gainhistory.domain.entity.PortfolioGainHistory;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
+import co.fineants.api.global.common.time.LocalDateTimeService;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -41,7 +42,8 @@ public class PortfolioDetailResponse {
 	private Boolean targetGainNotify;
 	private Boolean maxLossNotify;
 
-	public static PortfolioDetailResponse from(Portfolio portfolio, PortfolioGainHistory history) {
+	public static PortfolioDetailResponse from(Portfolio portfolio, PortfolioGainHistory history,
+		LocalDateTimeService localDateTimeService) {
 		Bank bank = Bank.getInstance();
 		Currency to = Currency.KRW;
 		return PortfolioDetailResponse.builder()
@@ -60,11 +62,12 @@ public class PortfolioDetailResponse {
 			.dailyGain(portfolio.calculateDailyGain(history).reduce(bank, to))
 			.dailyGainRate(portfolio.calculateDailyGainRate(history).toPercentage(Bank.getInstance(), to))
 			.balance(portfolio.calculateBalance().reduce(bank, to))
-			.annualDividend(portfolio.calculateAnnualDividend().reduce(bank, to))
+			.annualDividend(portfolio.calculateAnnualDividend(localDateTimeService).reduce(bank, to))
 			.annualDividendYield(
-				portfolio.calculateAnnualDividendYield().toPercentage(Bank.getInstance(), to))
+				portfolio.calculateAnnualDividendYield(localDateTimeService).toPercentage(Bank.getInstance(), to))
 			.annualInvestmentDividendYield(
-				portfolio.calculateAnnualInvestmentDividendYield().toPercentage(Bank.getInstance(), to))
+				portfolio.calculateAnnualInvestmentDividendYield(localDateTimeService)
+					.toPercentage(Bank.getInstance(), to))
 			.provisionalLossBalance(Money.zero())
 			.targetGainNotify(portfolio.getTargetGainIsActive())
 			.maxLossNotify(portfolio.getMaximumLossIsActive())

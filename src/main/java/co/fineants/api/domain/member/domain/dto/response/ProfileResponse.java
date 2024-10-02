@@ -20,7 +20,7 @@ public class ProfileResponse {
 			.id(member.getId())
 			.nickname(member.getNickname())
 			.email(member.getEmail())
-			.profileUrl(member.getProfileUrl())
+			.profileUrl(member.getProfileUrl().orElse(null))
 			.provider(member.getProvider())
 			.notificationPreferences(preference)
 			.build();

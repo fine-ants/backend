@@ -33,7 +33,7 @@ public class OauthMemberResponse {
 			member.getId(),
 			member.getNickname(),
 			member.getEmail(),
-			member.getProfileUrl(),
+			member.getProfileUrl().orElse(null),
 			member.getProvider(),
 			response);
 	}

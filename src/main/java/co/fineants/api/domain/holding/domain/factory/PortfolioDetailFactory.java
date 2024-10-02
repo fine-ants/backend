@@ -10,6 +10,7 @@ import co.fineants.api.domain.holding.domain.dto.response.PortfolioDetailRealTim
 import co.fineants.api.domain.holding.domain.dto.response.PortfolioDetailResponse;
 import co.fineants.api.domain.kis.repository.CurrentPriceRedisRepository;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
+import co.fineants.api.global.common.time.LocalDateTimeService;
 import lombok.RequiredArgsConstructor;
 
 @Component
@@ -18,6 +19,7 @@ public class PortfolioDetailFactory {
 
 	private final CurrentPriceRedisRepository manager;
 	private final PortfolioGainHistoryRepository portfolioGainHistoryRepository;
+	private final LocalDateTimeService localDateTimeService;
 
 	public PortfolioDetailResponse createPortfolioDetailItem(Portfolio portfolio) {
 		portfolio.applyCurrentPriceAllHoldingsBy(manager);
@@ -27,7 +29,7 @@ public class PortfolioDetailFactory {
 				.stream()
 				.findFirst()
 				.orElseGet(() -> PortfolioGainHistory.empty(portfolio));
-		return PortfolioDetailResponse.from(portfolio, history);
+		return PortfolioDetailResponse.from(portfolio, history, localDateTimeService);
 	}
 
 	public PortfolioDetailRealTimeItem createPortfolioDetailRealTimeItem(Portfolio portfolio) {
