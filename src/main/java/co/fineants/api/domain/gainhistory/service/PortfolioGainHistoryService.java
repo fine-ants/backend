@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +27,7 @@ public class PortfolioGainHistoryService {
 	private final CurrentPriceRedisRepository currentPriceRedisRepository;
 
 	@Transactional
+	@CacheEvict(value = "lineChartCache", allEntries = true)
 	public PortfolioGainHistoryCreateResponse addPortfolioGainHistory() {
 		List<Portfolio> portfolios = portfolioRepository.findAll();
 		List<PortfolioGainHistory> portfolioGainHistories = new ArrayList<>();
