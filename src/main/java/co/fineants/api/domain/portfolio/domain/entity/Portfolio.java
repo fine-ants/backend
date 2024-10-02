@@ -54,6 +54,7 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -72,6 +73,7 @@ import lombok.extern.slf4j.Slf4j;
 @Table(name = "portfolio", uniqueConstraints = {
 	@UniqueConstraint(columnNames = {"name", "member_id"})
 })
+@EqualsAndHashCode(of = {"name", "member"}, callSuper = false)
 public class Portfolio extends BaseEntity implements Notifiable {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -145,13 +147,14 @@ public class Portfolio extends BaseEntity implements Notifiable {
 		return new Portfolio(null, name, securitiesFirm, budget, targetGain, maximumLoss, false, false, member);
 	}
 
-	//== 연관관계 메소드 ==//
+	//== 연관 관계 메소드 ==//
 	public void addHolding(PortfolioHolding portFolioHolding) {
 		if (!portfolioHoldings.contains(portFolioHolding)) {
 			portfolioHoldings.add(portFolioHolding);
 			portFolioHolding.setPortfolio(this);
 		}
 	}
+	//== 연관 관계 편의 메소드 종료 ==//
 
 	public void change(Portfolio changePortfolio) {
 		this.name = changePortfolio.name;

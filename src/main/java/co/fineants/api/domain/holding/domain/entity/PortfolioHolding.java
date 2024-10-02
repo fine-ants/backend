@@ -34,6 +34,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Transient;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
@@ -42,6 +43,7 @@ import lombok.extern.slf4j.Slf4j;
 @Getter
 @ToString(exclude = {"stock", "portfolio", "purchaseHistory"})
 @Entity
+@EqualsAndHashCode(of = {"portfolio", "stock"}, callSuper = false)
 public class PortfolioHolding extends BaseEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
