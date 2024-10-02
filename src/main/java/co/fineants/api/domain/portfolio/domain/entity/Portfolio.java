@@ -148,11 +148,19 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	}
 
 	//== 연관 관계 메소드 ==//
-	public void addHolding(PortfolioHolding portFolioHolding) {
-		if (!portfolioHoldings.contains(portFolioHolding)) {
-			portfolioHoldings.add(portFolioHolding);
-			portFolioHolding.setPortfolio(this);
+	public void addHolding(PortfolioHolding holding) {
+		if (portfolioHoldings.contains(holding)) {
+			return;
 		}
+		portfolioHoldings.add(holding);
+		if (holding.getPortfolio() != this) {
+			holding.setPortfolio(this);
+		}
+	}
+
+	public void removeHolding(PortfolioHolding holding) {
+		this.portfolioHoldings.remove(holding);
+		holding.setPortfolio(null);
 	}
 	//== 연관 관계 편의 메소드 종료 ==//
 

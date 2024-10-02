@@ -102,7 +102,13 @@ public class PortfolioHolding extends BaseEntity {
 	}
 
 	public void setPortfolio(Portfolio portfolio) {
+		if (this.portfolio != null && this.portfolio.getPortfolioHoldings().contains(this)) {
+			this.portfolio.removeHolding(this);
+		}
 		this.portfolio = portfolio;
+		if (portfolio != null && !portfolio.getPortfolioHoldings().contains(this)) {
+			portfolio.addHolding(this);
+		}
 	}
 
 	// 종목 총 손익 = (종목 현재가 - 종목 평균 매입가) * 개수
