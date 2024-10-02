@@ -131,12 +131,7 @@ public class Portfolio extends BaseEntity implements Notifiable {
 			throw new BadRequestException(PortfolioErrorCode.MAXIMUM_LOSS_IS_EQUAL_GREATER_THAN_BUDGET);
 		}
 	}
-
-	public static Portfolio active(String name, String securitiesFirm, Money budget, Money targetGain,
-		Money maximumLoss, Member member) {
-		return active(null, name, securitiesFirm, budget, targetGain, maximumLoss, member);
-	}
-
+	
 	public static Portfolio active(Long id, String name, String securitiesFirm, Money budget, Money targetGain,
 		Money maximumLoss, Member member) {
 		return new Portfolio(id, name, securitiesFirm, budget, targetGain, maximumLoss, true, true, member);

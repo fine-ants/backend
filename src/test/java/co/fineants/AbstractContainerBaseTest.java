@@ -226,6 +226,7 @@ public abstract class AbstractContainerBaseTest {
 
 	protected Portfolio createPortfolio(Member member, String name, Money budget, Money targetGain, Money maximumLoss) {
 		return Portfolio.active(
+			null,
 			name,
 			"토스증권",
 			budget,
