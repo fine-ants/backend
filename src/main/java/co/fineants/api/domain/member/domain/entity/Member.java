@@ -26,12 +26,10 @@ import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-@ToString(exclude = {"notificationPreference", "roles"})
 @EqualsAndHashCode(of = {"profile"}, callSuper = false)
 public class Member extends BaseEntity {
 	@Id
@@ -57,7 +55,7 @@ public class Member extends BaseEntity {
 	}
 
 	public static Member oauthMember(MemberProfile profile) {
-		return new Member(null, profile);
+		return new Member(profile);
 	}
 
 	public static Member localMember(MemberProfile profile) {
@@ -159,4 +157,9 @@ public class Member extends BaseEntity {
 		return profile.getProfileUrl();
 	}
 
+	@Override
+	public String toString() {
+		return String.format("Member(id=%d, nickname=%s, email=%s, roles=%s)", id, getNickname(), getEmail(),
+			getSimpleGrantedAuthorities());
+	}
 }
