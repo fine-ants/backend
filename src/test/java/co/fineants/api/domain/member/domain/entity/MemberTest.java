@@ -31,18 +31,40 @@ class MemberTest extends AbstractContainerBaseTest {
 		Member saveMember = repository.save(member);
 		Assertions.assertThat(saveMember.getRoles())
 			.hasSize(2)
-			.containsExactly(memberMemberRole, managerMemberRole);
+			.containsExactlyInAnyOrder(memberMemberRole, managerMemberRole);
+	}
+
+	@DisplayName("MemberRole을 다른 회원의 역할에 추가하면 기존 연관관계를 해제한다")
+	@Test
+	void addMemberRole_whenAssignMemberRoleToOtherMember_thenReleaseEntityRelationShip() {
+		// given
+		Member member = createMember();
+		Role memberRole = Role.create("ROLE_USER", "회원");
+		Role managerRole = Role.create("ROLE_MANAGER", "매니저");
+		MemberRole managerMemberRole = MemberRole.of(member, managerRole);
+		member.addMemberRole(managerMemberRole);
+
+		Member otherMember = createMember("other1", "other1@gmail.com");
+		// when
+		otherMember.addMemberRole(managerMemberRole);
+		// then
+		Assertions.assertThat(member.getRoles())
+			.hasSize(1)
+			.containsExactly(MemberRole.of(member, memberRole));
+		Assertions.assertThat(otherMember.getRoles())
+			.hasSize(2)
+			.containsExactlyInAnyOrder(MemberRole.of(otherMember, memberRole), MemberRole.of(otherMember, managerRole));
 	}
 
 	@Transactional
 	@DisplayName("회원의 알림 설정을 변경한다")
 	@Test
-	void changeNotificationPreference() {
+	void setNotificationPreference() {
 		// given
 		Member member = createMember();
 		NotificationPreference preference = NotificationPreference.create(false, false, false, false);
 		// when
-		member.changeNotificationPreference(preference);
+		member.setNotificationPreference(preference);
 		// then
 		Assertions.assertThat(member.getNotificationPreference()).isEqualTo(preference);
 		Assertions.assertThat(preference.getMember()).isEqualTo(member);
@@ -50,12 +72,12 @@ class MemberTest extends AbstractContainerBaseTest {
 
 	@DisplayName("알림이 회원을 변경한다")
 	@Test
-	void changeMember() {
+	void setMember() {
 		// given
 		Member member = createMember();
 		NotificationPreference preference = NotificationPreference.create(false, false, false, false);
 		// when
-		preference.changeMember(member);
+		preference.setMember(member);
 		// then
 		Assertions.assertThat(member.getNotificationPreference()).isEqualTo(preference);
 		Assertions.assertThat(preference.getMember()).isEqualTo(member);

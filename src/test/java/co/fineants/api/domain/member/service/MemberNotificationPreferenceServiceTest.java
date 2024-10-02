@@ -104,7 +104,7 @@ class MemberNotificationPreferenceServiceTest extends AbstractContainerBaseTest 
 	void updateNotificationPreference_whenNotExistPreference_thenRegisterPreference() {
 		// given
 		Member member = createMember();
-		member.changeNotificationPreference(null);
+		member.setNotificationPreference(null);
 		member = memberRepository.save(member);
 
 		MemberNotificationPreferenceRequest request = MemberNotificationPreferenceRequest.builder()

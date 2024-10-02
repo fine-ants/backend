@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-@EqualsAndHashCode(of = {"email", "nickname", "provider"}, callSuper = false)
+@EqualsAndHashCode(of = {"email", "provider"}, callSuper = false)
 public class MemberProfile {
 	@Getter
 	@Column(name = "email", nullable = false)

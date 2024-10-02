@@ -168,7 +168,7 @@ public abstract class AbstractContainerBaseTest {
 		member.addMemberRole(MemberRole.of(member, userRole));
 
 		// 계정 알림 설정
-		member.changeNotificationPreference(NotificationPreference.allActive());
+		member.setNotificationPreference(NotificationPreference.allActive());
 		return member;
 	}
 
@@ -183,7 +183,7 @@ public abstract class AbstractContainerBaseTest {
 		member.addMemberRole(MemberRole.of(member, userRole));
 
 		// 계정 알림 설정
-		member.changeNotificationPreference(NotificationPreference.allActive());
+		member.setNotificationPreference(NotificationPreference.allActive());
 		return member;
 	}
 

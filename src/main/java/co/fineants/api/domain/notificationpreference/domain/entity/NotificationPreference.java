@@ -61,10 +61,10 @@ public class NotificationPreference extends BaseEntity {
 		return new NotificationPreference(browserNotify, targetGainNotify, maxLossNotify, targetPriceNotify);
 	}
 
-	public void changeMember(Member member) {
+	public void setMember(Member member) {
 		this.member = member;
 		if (member != null && member.getNotificationPreference() != this) {
-			member.changeNotificationPreference(this);
+			member.setNotificationPreference(this);
 		}
 	}
 

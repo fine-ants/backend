@@ -36,7 +36,7 @@ public class MemberNotificationPreferenceService {
 	public MemberNotificationPreferenceResponse registerDefaultNotificationPreference(Member member) {
 		NotificationPreference preference = notificationPreferenceRepository.findByMemberId(member.getId())
 			.orElseGet(NotificationPreference::defaultSetting);
-		preference.changeMember(member);
+		preference.setMember(member);
 		NotificationPreference saveNotificationPreference = notificationPreferenceRepository.save(preference);
 		return MemberNotificationPreferenceResponse.from(saveNotificationPreference);
 	}
@@ -53,7 +53,7 @@ public class MemberNotificationPreferenceService {
 			.ifPresentOrElse(preference -> preference.changePreference(request.toEntity()),
 				() -> {
 					NotificationPreference preference = NotificationPreference.defaultSetting();
-					preference.changeMember(member);
+					preference.setMember(member);
 					notificationPreferenceRepository.save(preference);
 				});
 		NotificationPreference preference = notificationPreferenceRepository.findByMemberId(memberId)
