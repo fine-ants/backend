@@ -129,12 +129,8 @@ public class Member extends BaseEntity {
 		result.putAll(profile.toMap());
 		result.put("roles", roles.stream()
 			.map(MemberRole::getRoleName)
-			.collect(Collectors.toSet()));
+			.collect(Collectors.toUnmodifiableSet()));
 		return result;
-	}
-
-	public Set<MemberRole> getRoles() {
-		return Collections.unmodifiableSet(roles);
 	}
 
 	public Optional<String> getPassword() {
@@ -155,6 +151,10 @@ public class Member extends BaseEntity {
 
 	public Optional<String> getProfileUrl() {
 		return profile.getProfileUrl();
+	}
+
+	public Set<MemberRole> getRoles() {
+		return Collections.unmodifiableSet(roles);
 	}
 
 	@Override
