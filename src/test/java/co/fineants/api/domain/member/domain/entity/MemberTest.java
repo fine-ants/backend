@@ -93,6 +93,5 @@ class MemberTest extends AbstractContainerBaseTest {
 		// then
 		Assertions.assertThat(actual)
 			.isEqualTo("Member(id=null, nickname=nemo1234, email=dragonbead95@naver.com, roles=[ROLE_USER])");
-
 	}
 }

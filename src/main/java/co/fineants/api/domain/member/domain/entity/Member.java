@@ -127,7 +127,7 @@ public class Member extends BaseEntity {
 		Map<String, Object> result = new HashMap<>();
 		result.put("id", id);
 		result.putAll(profile.toMap());
-		result.put("roleSet", roles.stream()
+		result.put("roles", roles.stream()
 			.map(MemberRole::getRoleName)
 			.collect(Collectors.toSet()));
 		return result;

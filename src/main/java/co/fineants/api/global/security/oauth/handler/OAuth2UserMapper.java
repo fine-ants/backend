@@ -16,7 +16,7 @@ public class OAuth2UserMapper {
 		String nickname = oAuth2User.getAttribute("nickname");
 		String provider = oAuth2User.getAttribute("provider");
 		String profileUrl = oAuth2User.getAttribute("profileUrl");
-		Set<String> roleSet = oAuth2User.getAttribute("roleSet");
+		Set<String> roleSet = oAuth2User.getAttribute("roles");
 		return MemberAuthentication.create(id, email, nickname, provider, profileUrl, roleSet);
 	}
 }

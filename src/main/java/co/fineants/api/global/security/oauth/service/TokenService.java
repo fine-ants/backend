@@ -55,7 +55,7 @@ public class TokenService {
 		claims.put("nickname", authentication.getNickname());
 		claims.put("provider", authentication.getProvider());
 		claims.put("profileUrl", authentication.getProfileUrl());
-		claims.put("roleSet", String.join(" ", authentication.getRoleSet()));
+		claims.put("roles", String.join(" ", authentication.getRoleSet()));
 		return claims;
 	}
 
@@ -102,7 +102,7 @@ public class TokenService {
 		String nickname = body.get("nickname", String.class);
 		String provider = body.get("provider", String.class);
 		String profileUrl = body.get("profileUrl", String.class);
-		Set<String> roleSet = Arrays.stream(body.get("roleSet", String.class).split(" "))
+		Set<String> roleSet = Arrays.stream(body.get("roles", String.class).split(" "))
 			.collect(Collectors.toSet());
 		return MemberAuthentication.create(id, email, nickname, provider, profileUrl, roleSet);
 	}
