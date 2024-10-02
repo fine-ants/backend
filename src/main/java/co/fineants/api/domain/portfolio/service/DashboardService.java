@@ -2,6 +2,7 @@ package co.fineants.api.domain.portfolio.service;
 
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -115,20 +116,18 @@ public class DashboardService {
 	@Transactional(readOnly = true)
 	@Secured("ROLE_USER")
 	public List<DashboardLineChartResponse> getLineChart(Long memberId) {
-		List<Portfolio> portfolios = portfolioRepository.findAllByMemberId(memberId);
-		if (portfolios.isEmpty()) {
-			return new ArrayList<>();
-		}
-		List<PortfolioGainHistory> portfolioGainHistories = new ArrayList<>();
-		for (Portfolio portfolio : portfolios) {
-			portfolioGainHistories.addAll(portfolioGainHistoryRepository.findAllByPortfolioId(portfolio.getId()));
-		}
+		List<PortfolioGainHistory> histories = portfolioRepository.findAllByMemberId(memberId).stream()
+			.map(Portfolio::getId)
+			.map(portfolioGainHistoryRepository::findAllByPortfolioId)
+			.flatMap(Collection::stream)
+			.toList();
+		
 		Map<String, Expression> timeValueMap = new HashMap<>();
-		for (PortfolioGainHistory portfolioGainHistory : portfolioGainHistories) {
-			String time = portfolioGainHistory.getCreateAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+		for (PortfolioGainHistory history : histories) {
+			String time = history.getCreateAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 			timeValueMap.put(time, timeValueMap.getOrDefault(time, Money.zero())
-				.plus(portfolioGainHistory.getCash())
-				.plus(portfolioGainHistory.getCurrentValuation()));
+				.plus(history.getCash())
+				.plus(history.getCurrentValuation()));
 		}
 		return timeValueMap.keySet()
 			.stream()
