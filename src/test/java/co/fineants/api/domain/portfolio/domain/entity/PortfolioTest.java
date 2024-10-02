@@ -166,4 +166,20 @@ class PortfolioTest extends AbstractContainerBaseTest {
 			.extracting("sector")
 			.containsExactlyInAnyOrder("현금", "의약품", "전기전자");
 	}
+
+	@DisplayName("포트폴리오에 포트폴리오 종목을 추가한다")
+	@Test
+	void addHoldings() {
+		// given
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createSamsungStock();
+		PortfolioHolding holding1 = PortfolioHolding.of(portfolio, stock, Money.won(20000L));
+		// when
+		portfolio.addHolding(holding1);
+		// then
+		assertThat(portfolio.getPortfolioHoldings())
+			.hasSize(1)
+			.containsExactlyInAnyOrder(PortfolioHolding.of(portfolio, stock, Money.won(20000L)));
+		assertThat(holding1.getPortfolio()).isEqualTo(portfolio);
+	}
 }
