@@ -17,7 +17,6 @@ import co.fineants.api.domain.common.money.Bank;
 import co.fineants.api.domain.common.money.Currency;
 import co.fineants.api.domain.common.money.Expression;
 import co.fineants.api.domain.common.money.Money;
-import co.fineants.api.domain.common.money.MoneyConverter;
 import co.fineants.api.domain.common.money.Percentage;
 import co.fineants.api.domain.common.money.RateDivision;
 import co.fineants.api.domain.common.notification.Notifiable;
@@ -35,10 +34,8 @@ import co.fineants.api.domain.notificationpreference.domain.entity.NotificationP
 import co.fineants.api.global.common.time.DefaultLocalDateTimeService;
 import co.fineants.api.global.common.time.LocalDateTimeService;
 import co.fineants.api.global.errors.errorcode.PortfolioErrorCode;
-import co.fineants.api.global.errors.exception.BadRequestException;
 import co.fineants.api.global.errors.exception.FineAntsException;
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -82,15 +79,8 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	private Long id;
 	@Embedded
 	private PortfolioDetail detail;
-	@Convert(converter = MoneyConverter.class)
-	@Column(precision = 19, nullable = false)
-	private Money budget;
-	@Convert(converter = MoneyConverter.class)
-	@Column(precision = 19, nullable = false)
-	private Money targetGain;
-	@Convert(converter = MoneyConverter.class)
-	@Column(precision = 19, nullable = false)
-	private Money maximumLoss;
+	@Embedded
+	private PortfolioFinancial financial;
 	private Boolean targetGainIsActive;
 	private Boolean maximumLossIsActive;
 
@@ -105,42 +95,27 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	@Transient
 	private LocalDateTimeService localDateTimeService = new DefaultLocalDateTimeService();
 
-	private Portfolio(Long id, PortfolioDetail detail, Money budget, Money targetGain, Money maximumLoss,
-		Boolean targetGainIsActive, Boolean maximumLossIsActive) {
-		validateBudget(budget, targetGain, maximumLoss);
+	private Portfolio(Long id, PortfolioDetail detail, PortfolioFinancial financial, Boolean targetGainIsActive,
+		Boolean maximumLossIsActive) {
 		this.id = id;
 		this.detail = detail;
-		this.budget = budget;
-		this.targetGain = targetGain;
-		this.maximumLoss = maximumLoss;
+		this.financial = financial;
 		this.targetGainIsActive = targetGainIsActive;
 		this.maximumLossIsActive = maximumLossIsActive;
 	}
 
-	private void validateBudget(Money budget, Money targetGain, Money maximumLoss) {
-		if (budget.isZero()) {
-			return;
-		}
-		// 목표 수익 금액이 0원이 아닌 상태에서 예산 보다 큰지 검증
-		if (!targetGain.isZero() && budget.compareTo(targetGain) >= 0) {
-			throw new FineAntsException(PortfolioErrorCode.TARGET_GAIN_LOSS_IS_EQUAL_LESS_THAN_BUDGET);
-		}
-		// 최대 손실 금액이 예산 보다 작은지 검증
-		if (!maximumLoss.isZero() && budget.compareTo(maximumLoss) <= 0) {
-			throw new BadRequestException(PortfolioErrorCode.MAXIMUM_LOSS_IS_EQUAL_GREATER_THAN_BUDGET);
-		}
-	}
-
 	public static Portfolio active(Long id, PortfolioDetail detail, Money budget, Money targetGain,
 		Money maximumLoss, Member member) {
-		Portfolio portfolio = new Portfolio(id, detail, budget, targetGain, maximumLoss, true, true);
+		PortfolioFinancial financial = PortfolioFinancial.of(budget, targetGain, maximumLoss);
+		Portfolio portfolio = new Portfolio(id, detail, financial, true, true);
 		portfolio.setMember(member);
 		return portfolio;
 	}
 
 	public static Portfolio noActive(PortfolioDetail detail, Money budget, Money targetGain, Money maximumLoss,
 		Member member) {
-		Portfolio portfolio = new Portfolio(null, detail, budget, targetGain, maximumLoss, false, false);
+		PortfolioFinancial financial = PortfolioFinancial.of(budget, targetGain, maximumLoss);
+		Portfolio portfolio = new Portfolio(null, detail, financial, false, false);
 		portfolio.setMember(member);
 		return portfolio;
 	}
@@ -168,9 +143,7 @@ public class Portfolio extends BaseEntity implements Notifiable {
 
 	public void change(Portfolio changePortfolio) {
 		this.detail.change(changePortfolio.detail);
-		this.budget = changePortfolio.budget;
-		this.targetGain = changePortfolio.targetGain;
-		this.maximumLoss = changePortfolio.maximumLoss;
+		this.financial.change(changePortfolio.financial);
 	}
 
 	public boolean hasAuthorization(Long memberId) {
@@ -259,7 +232,7 @@ public class Portfolio extends BaseEntity implements Notifiable {
 
 	// 잔고 = 예산 - 총 투자 금액
 	public Expression calculateBalance() {
-		return budget.minus(calculateTotalInvestmentAmount());
+		return this.financial.getBudget().minus(calculateTotalInvestmentAmount());
 	}
 
 	// 총 연간 배당금 = 각 종목들의 연배당금의 합계
@@ -281,8 +254,8 @@ public class Portfolio extends BaseEntity implements Notifiable {
 
 	// 최대손실율 = ((예산 - 최대손실금액) / 예산) * 100
 	public RateDivision calculateMaximumLossRate() {
-		return budget.minus(maximumLoss)
-			.divide(budget);
+		return this.financial.getBudget().minus(this.financial.getMaximumLoss())
+			.divide(this.financial.getBudget());
 	}
 
 	// 투자대비 연간 배당율 = 포트폴리오 총 연배당금 / 포트폴리오 투자금액 * 100
@@ -312,8 +285,8 @@ public class Portfolio extends BaseEntity implements Notifiable {
 
 	// 목표 수익률 = ((목표 수익 금액 - 예산) / 예산) * 100
 	public RateDivision calculateTargetReturnRate() {
-		return targetGain.minus(budget)
-			.divide(budget);
+		return this.financial.getTargetGain().minus(this.financial.getBudget())
+			.divide(this.financial.getBudget());
 	}
 
 	// 총 자산 = 잔고 + 평가금액 합계
@@ -332,7 +305,7 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	 * - 목표 수익 금액이 0원인 경우 변경 불가능
 	 */
 	private void validateTargetGainNotification() {
-		if (targetGain.isZero()) {
+		if (this.financial.getTargetGain().isZero()) {
 			throw new FineAntsException(PortfolioErrorCode.TARGET_GAIN_IS_ZERO_WITH_NOTIFY_UPDATE);
 		}
 	}
@@ -348,7 +321,7 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	 * - 최대 손실 금액이 0원인 경우 변경 불가능
 	 */
 	private void validateMaxLossNotification() {
-		if (maximumLoss.isZero()) {
+		if (this.financial.getMaximumLoss().isZero()) {
 			throw new FineAntsException(PortfolioErrorCode.MAX_LOSS_IS_ZERO_WITH_NOTIFY_UPDATE);
 		}
 	}
@@ -357,8 +330,9 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	public boolean reachedTargetGain() {
 		Bank bank = Bank.getInstance();
 		Money currentValuation = bank.toWon(calculateTotalCurrentValuation());
-		log.debug("reachedTargetGain currentValuation={}, targetGain={}", currentValuation, targetGain);
-		return currentValuation.compareTo(bank.toWon(targetGain)) >= 0;
+		log.debug("reachedTargetGain currentValuation={}, targetGain={}", currentValuation,
+			this.financial.getTargetGain());
+		return currentValuation.compareTo(bank.toWon(this.financial.getTargetGain())) >= 0;
 	}
 
 	// 포트폴리오가 최대손실금액에 도달했는지 검사 (예산 + 총손익이 최대손실금액보다 작은 경우)
@@ -366,8 +340,8 @@ public class Portfolio extends BaseEntity implements Notifiable {
 		Bank bank = Bank.getInstance();
 		Expression totalGain = calculateTotalGain();
 		log.debug("reachedTargetGain totalGain={}", totalGain);
-		Money amount = bank.toWon(budget.plus(totalGain));
-		return amount.compareTo(bank.toWon(maximumLoss)) <= 0;
+		Money amount = bank.toWon(this.financial.getBudget().plus(totalGain));
+		return amount.compareTo(bank.toWon(this.financial.getMaximumLoss())) <= 0;
 	}
 
 	// 파이 차트 생성
@@ -456,7 +430,7 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	// 매입 이력을 포트폴리오에 추가시 현금이 충분한지 판단
 	public boolean isCashSufficientForPurchase(Money money) {
 		Expression amount = calculateTotalInvestmentAmount().plus(money);
-		return Bank.getInstance().toWon(amount).compareTo(budget) > 0;
+		return Bank.getInstance().toWon(amount).compareTo(this.financial.getBudget()) > 0;
 	}
 
 	public boolean isSameTargetGainActive(boolean active) {
@@ -516,17 +490,17 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	}
 
 	public Boolean isTargetGainSet() {
-		return !targetGain.isZero();
+		return !this.financial.getTargetGain().isZero();
 	}
 
 	public Boolean isMaximumLossSet() {
-		return !maximumLoss.isZero();
+		return !this.financial.getMaximumLoss().isZero();
 	}
 
 	public boolean isExceedBudgetByPurchasedAmount(Expression amount) {
 		Bank bank = Bank.getInstance();
 		Expression investAmount = calculateTotalInvestmentAmount().plus(amount);
-		return budget.compareTo(bank.toWon(investAmount)) < 0;
+		return this.financial.getBudget().compareTo(bank.toWon(investAmount)) < 0;
 	}
 
 	@Override
@@ -558,6 +532,18 @@ public class Portfolio extends BaseEntity implements Notifiable {
 
 	public String getName() {
 		return detail.getName();
+	}
+
+	public Money getBudget() {
+		return this.financial.getBudget();
+	}
+
+	public Money getTargetGain() {
+		return this.financial.getTargetGain();
+	}
+
+	public Money getMaximumLoss() {
+		return this.financial.getMaximumLoss();
 	}
 
 	@Override

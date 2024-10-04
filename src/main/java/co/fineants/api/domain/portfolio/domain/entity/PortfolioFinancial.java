@@ -6,10 +6,12 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Getter
 public class PortfolioFinancial {
 	@Convert(converter = MoneyConverter.class)
 	@Column(precision = 19, nullable = false)
