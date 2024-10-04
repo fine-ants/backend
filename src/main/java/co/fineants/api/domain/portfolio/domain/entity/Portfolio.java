@@ -104,6 +104,7 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	@Transient
 	private LocalDateTimeService localDateTimeService = new DefaultLocalDateTimeService();
 
+	// TODO: name, securitiesFirm을 묶은 PortfolioDetail 클래스 추가
 	private Portfolio(Long id, String name, String securitiesFirm, Money budget, Money targetGain, Money maximumLoss,
 		Boolean targetGainIsActive, Boolean maximumLossIsActive, Member member) {
 		validateBudget(budget, targetGain, maximumLoss);
@@ -131,7 +132,7 @@ public class Portfolio extends BaseEntity implements Notifiable {
 			throw new BadRequestException(PortfolioErrorCode.MAXIMUM_LOSS_IS_EQUAL_GREATER_THAN_BUDGET);
 		}
 	}
-	
+
 	public static Portfolio active(Long id, String name, String securitiesFirm, Money budget, Money targetGain,
 		Money maximumLoss, Member member) {
 		return new Portfolio(id, name, securitiesFirm, budget, targetGain, maximumLoss, true, true, member);
