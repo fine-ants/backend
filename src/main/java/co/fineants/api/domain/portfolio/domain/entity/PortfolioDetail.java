@@ -91,21 +91,4 @@ public class PortfolioDetail {
 	public String toString() {
 		return String.format("(name=%s, securitiesFirm=%s)", name, securitiesFirm);
 	}
-
-	public void change(PortfolioDetail detail) {
-		this.name = detail.name;
-		this.securitiesFirm = detail.securitiesFirm;
-	}
-
-	public boolean equalName(PortfolioDetail detail) {
-		return this.name.equals(detail.name);
-	}
-
-	public String getTargetGainReachMessage() {
-		return String.format("%s의 목표 수익률을 달성했습니다", name);
-	}
-
-	public String getMaximumLossReachMessage() {
-		return String.format("%s이(가) 최대 손실율에 도달했습니다", name);
-	}
 }
