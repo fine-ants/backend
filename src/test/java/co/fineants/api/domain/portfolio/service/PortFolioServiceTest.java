@@ -104,7 +104,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 	}
 
 	@DisplayName("회원은 포트폴리오를 추가할때 목표수익금액이 예산보다 같거나 작으면 안된다")
-	@MethodSource("provideInvalidTargetGain")
+	@MethodSource("invalidTargetGain")
 	@ParameterizedTest
 	void addPortfolioWithTargetGainIsEqualLessThanBudget(Long targetGain) {
 		// given
@@ -129,7 +129,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 	}
 
 	@DisplayName("회원은 포트폴리오를 추가할때 최대손실율이 예산보다 같거나 크면 안된다")
-	@MethodSource("provideInvalidMaximumLoss")
+	@MethodSource("invalidMaximumLoss")
 	@ParameterizedTest
 	void addPortfolioWithMaximumLossIsEqualGreaterThanBudget(Long maximumLoss) {
 		// given
@@ -540,14 +540,14 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 			.hasMessage(MemberErrorCode.FORBIDDEN_MEMBER.getMessage());
 	}
 
-	private static Stream<Arguments> provideInvalidTargetGain() {
+	private static Stream<Arguments> invalidTargetGain() {
 		return Stream.of(
 			Arguments.of(900000L),
 			Arguments.of(1000000L)
 		);
 	}
 
-	private static Stream<Arguments> provideInvalidMaximumLoss() {
+	private static Stream<Arguments> invalidMaximumLoss() {
 		return Stream.of(
 			Arguments.of(1000000L),
 			Arguments.of(1100000L)
