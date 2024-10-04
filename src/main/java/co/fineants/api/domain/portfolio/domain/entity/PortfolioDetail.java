@@ -57,7 +57,7 @@ public class PortfolioDetail {
 		this.securitiesFirm = detail.securitiesFirm;
 	}
 
-	public boolean isSameName(PortfolioDetail detail) {
+	public boolean equalName(PortfolioDetail detail) {
 		return this.name.equals(detail.name);
 	}
 

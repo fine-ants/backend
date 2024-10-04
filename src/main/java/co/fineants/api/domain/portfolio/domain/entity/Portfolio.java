@@ -446,8 +446,8 @@ public class Portfolio extends BaseEntity implements Notifiable {
 		};
 	}
 
-	public boolean isSameName(Portfolio changePortfolio) {
-		return detail.isSameName(changePortfolio.detail);
+	public boolean equalName(Portfolio changePortfolio) {
+		return detail.equalName(changePortfolio.detail);
 	}
 
 	// 매입 이력을 포트폴리오에 추가시 현금이 충분한지 판단
