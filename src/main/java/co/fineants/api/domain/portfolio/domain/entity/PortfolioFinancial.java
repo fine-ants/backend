@@ -61,12 +61,6 @@ public class PortfolioFinancial {
 		return money.compareTo(Money.zero()) < 0;
 	}
 
-	private void throwIllegalArgumentException(Money budget, Money targetGain, Money maximumLoss) {
-		String message = String.format("invalid PortfolioFinancial budget: %s, targetGain: %s, maximumLoss: %s",
-			budget, targetGain, maximumLoss);
-		throw new IllegalArgumentException(message);
-	}
-
 	/**
 	 * PortfolioFinancial 객체를 생성하여 반환한다.
 	 *
@@ -74,7 +68,7 @@ public class PortfolioFinancial {
 	 * @param targetGain 목표수익금액
 	 * @param maximumLoss 최대손실금액
 	 * @return PortfolioFinancial 객체
-	 * @throws IllegalArgumentException 예산, 목표수익금액, 최대손실금액 조합이 유효하지 않는 경우 예외 발생, 입력 정보가 음수인 경우 에외 발생
+	 * @throws IllegalPortfolioFinancialArgumentException 예산, 목표수익금액, 최대손실금액 조합이 유효하지 않는 경우 예외 발생, 입력 정보가 음수인 경우 에외 발생
 	 */
 	public static PortfolioFinancial of(Money budget, Money targetGain, Money maximumLoss) {
 		return new PortfolioFinancial(budget, targetGain, maximumLoss);
