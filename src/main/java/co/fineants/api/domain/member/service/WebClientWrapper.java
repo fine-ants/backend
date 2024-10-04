@@ -9,7 +9,7 @@ import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import co.fineants.api.global.errors.errorcode.OauthErrorCode;
-import co.fineants.api.global.errors.exception.BadRequestException;
+import co.fineants.api.global.errors.exception.ApiRequestException;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
@@ -56,7 +56,7 @@ public class WebClientWrapper {
 			if (clientResponse.statusCode().is4xxClientError() || clientResponse.statusCode().is5xxServerError()) {
 				return clientResponse.bodyToMono(String.class).handle((body, sink) -> {
 					log.info("responseBody : {}", body);
-					sink.error(new BadRequestException(OauthErrorCode.FAIL_REQUEST, body));
+					sink.error(new ApiRequestException(OauthErrorCode.FAIL_REQUEST, body));
 				});
 			}
 			return clientResponse.bodyToMono(responseType);
