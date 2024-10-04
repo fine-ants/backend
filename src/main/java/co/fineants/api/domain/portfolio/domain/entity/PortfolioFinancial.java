@@ -4,6 +4,8 @@ import java.util.List;
 
 import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.common.money.MoneyConverter;
+import co.fineants.api.global.errors.errorcode.PortfolioErrorCode;
+import co.fineants.api.global.errors.exception.portfolio.IllegalPortfolioFinancialArgumentException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Embeddable;
@@ -39,16 +41,19 @@ public class PortfolioFinancial {
 		// 음수가 아닌지 검증
 		for (Money money : List.of(budget, targetGain, maximumLoss)) {
 			if (isNegative(money)) {
-				throwIllegalArgumentException(budget, targetGain, maximumLoss);
+				throw new IllegalPortfolioFinancialArgumentException(budget, targetGain, maximumLoss,
+					PortfolioErrorCode.INVALID_PORTFOLIO_FINANCIAL_INFO);
 			}
 		}
 		// 목표 수익 금액이 0원이 아닌 상태에서 예산 보다 큰지 검증
 		if (!targetGain.isZero() && budget.compareTo(targetGain) >= 0) {
-			throwIllegalArgumentException(budget, targetGain, maximumLoss);
+			throw new IllegalPortfolioFinancialArgumentException(budget, targetGain, maximumLoss,
+				PortfolioErrorCode.TARGET_GAIN_LOSS_IS_EQUAL_LESS_THAN_BUDGET);
 		}
 		// 최대 손실 금액이 예산 보다 작은지 검증
 		if (!maximumLoss.isZero() && budget.compareTo(maximumLoss) <= 0) {
-			throwIllegalArgumentException(budget, targetGain, maximumLoss);
+			throw new IllegalPortfolioFinancialArgumentException(budget, targetGain, maximumLoss,
+				PortfolioErrorCode.MAXIMUM_LOSS_IS_EQUAL_GREATER_THAN_BUDGET);
 		}
 	}
 
@@ -62,6 +67,15 @@ public class PortfolioFinancial {
 		throw new IllegalArgumentException(message);
 	}
 
+	/**
+	 * PortfolioFinancial 객체를 생성하여 반환한다.
+	 *
+	 * @param budget 예산
+	 * @param targetGain 목표수익금액
+	 * @param maximumLoss 최대손실금액
+	 * @return PortfolioFinancial 객체
+	 * @throws IllegalArgumentException 예산, 목표수익금액, 최대손실금액 조합이 유효하지 않는 경우 예외 발생, 입력 정보가 음수인 경우 에외 발생
+	 */
 	public static PortfolioFinancial of(Money budget, Money targetGain, Money maximumLoss) {
 		return new PortfolioFinancial(budget, targetGain, maximumLoss);
 	}

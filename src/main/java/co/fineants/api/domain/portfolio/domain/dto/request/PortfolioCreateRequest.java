@@ -6,6 +6,8 @@ import co.fineants.api.domain.member.domain.entity.Member;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import co.fineants.api.domain.portfolio.domain.entity.PortfolioDetail;
 import co.fineants.api.domain.portfolio.properties.PortfolioProperties;
+import co.fineants.api.global.errors.exception.BadRequestException;
+import co.fineants.api.global.errors.exception.portfolio.IllegalPortfolioFinancialArgumentException;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.AccessLevel;
@@ -40,6 +42,10 @@ public class PortfolioCreateRequest {
 
 	public Portfolio toEntity(Member member, PortfolioProperties properties) {
 		PortfolioDetail detail = PortfolioDetail.of(name, securitiesFirm, properties);
-		return Portfolio.noActive(detail, budget, targetGain, maximumLoss, member);
+		try {
+			return Portfolio.noActive(detail, budget, targetGain, maximumLoss, member);
+		} catch (IllegalPortfolioFinancialArgumentException e) {
+			throw new BadRequestException(e.getErrorCode(), e.getErrorCode().getMessage());
+		}
 	}
 }
