@@ -18,8 +18,10 @@ public class PortfolioDetail {
 	// 한글 또는 영문자로 시작하고 최대 100글자
 	public static final String NAME_REGEXP = "^[가-힣a-zA-Z0-9][가-힣a-zA-Z0-9 ]{0,99}$";
 	private static final Pattern NAME_PATTERN = Pattern.compile(NAME_REGEXP);
+	// 포트폴리오 이름
 	@Column(name = "name", nullable = false)
 	private String name;
+	// 증권사 이름
 	@Column(name = "securities_firm", nullable = false)
 	private String securitiesFirm;
 
