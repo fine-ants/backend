@@ -25,6 +25,15 @@ public class PortfolioDetail {
 		this.securitiesFirm = securitiesFirm;
 	}
 
+	/**
+	 * Return a PortfolioDetail instance.
+	 *
+	 * @param name the name 포트폴리오 이름
+	 * @param securitiesFirm the securities firm 증권사 이름
+	 * @param properties the properties 증권사 목록이 담긴 포트폴리오 프로퍼티
+	 * @return the portfolio detail 포트폴리오 상세 정보 객체
+	 * @throws IllegalArgumentException 포트폴리오 이름이 형식에 유효하지 않거나 증권사 이름이 properties 목록에 포함되지 않으면 예외 발생한다
+	 */
 	public static PortfolioDetail of(String name, String securitiesFirm, PortfolioProperties properties) {
 		return new PortfolioDetail(name, securitiesFirm, properties);
 	}
