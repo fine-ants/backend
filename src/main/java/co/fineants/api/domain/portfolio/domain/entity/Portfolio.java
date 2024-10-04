@@ -107,7 +107,7 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	private LocalDateTimeService localDateTimeService = new DefaultLocalDateTimeService();
 
 	private Portfolio(Long id, PortfolioDetail detail, Money budget, Money targetGain, Money maximumLoss,
-		Boolean targetGainIsActive, Boolean maximumLossIsActive, Member member) {
+		Boolean targetGainIsActive, Boolean maximumLossIsActive) {
 		validateBudget(budget, targetGain, maximumLoss);
 		this.id = id;
 		this.detail = detail;
@@ -116,7 +116,6 @@ public class Portfolio extends BaseEntity implements Notifiable {
 		this.maximumLoss = maximumLoss;
 		this.targetGainIsActive = targetGainIsActive;
 		this.maximumLossIsActive = maximumLossIsActive;
-		this.member = member;
 	}
 
 	private void validateBudget(Money budget, Money targetGain, Money maximumLoss) {
@@ -135,13 +134,17 @@ public class Portfolio extends BaseEntity implements Notifiable {
 
 	public static Portfolio active(Long id, PortfolioDetail detail, Money budget, Money targetGain,
 		Money maximumLoss, Member member) {
-		return new Portfolio(id, detail, budget, targetGain, maximumLoss, true, true, member);
+		Portfolio portfolio = new Portfolio(id, detail, budget, targetGain, maximumLoss, true, true);
+		portfolio.setMember(member);
+		return portfolio;
 	}
 
 	public static Portfolio noActive(String name, String securitiesFirm, Money budget, Money targetGain,
 		Money maximumLoss, Member member, PortfolioProperties properties) {
 		PortfolioDetail detail = PortfolioDetail.of(name, securitiesFirm, properties);
-		return new Portfolio(null, detail, budget, targetGain, maximumLoss, false, false, member);
+		Portfolio portfolio = new Portfolio(null, detail, budget, targetGain, maximumLoss, false, false);
+		portfolio.setMember(member);
+		return portfolio;
 	}
 
 	//== 연관 관계 메소드 ==//
@@ -158,6 +161,10 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	public void removeHolding(PortfolioHolding holding) {
 		this.portfolioHoldings.remove(holding);
 		holding.setPortfolio(null);
+	}
+
+	public void setMember(Member member) {
+		this.member = member;
 	}
 	//== 연관 관계 편의 메소드 종료 ==//
 
