@@ -4,7 +4,16 @@ import java.util.regex.Pattern;
 
 import co.fineants.api.domain.portfolio.properties.PortfolioProperties;
 import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
+import lombok.AccessLevel;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
+@Embeddable
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@EqualsAndHashCode(of = {"name", "securitiesFirm"})
+@Getter
 public class PortfolioDetail {
 	// 한글 또는 영문자로 시작하고 최대 100글자
 	public static final String NAME_REGEXP = "^[가-힣a-zA-Z0-9][가-힣a-zA-Z0-9 ]{0,99}$";
@@ -41,5 +50,22 @@ public class PortfolioDetail {
 	@Override
 	public String toString() {
 		return String.format("(name=%s, securitiesFirm=%s)", name, securitiesFirm);
+	}
+
+	public void change(PortfolioDetail detail) {
+		this.name = detail.name;
+		this.securitiesFirm = detail.securitiesFirm;
+	}
+
+	public boolean isSameName(PortfolioDetail detail) {
+		return this.name.equals(detail.name);
+	}
+
+	public String getTargetGainReachMessage() {
+		return String.format("%s의 목표 수익률을 달성했습니다", name);
+	}
+
+	public String getMaximumLossReachMessage() {
+		return String.format("%s이(가) 최대 손실율에 도달했습니다", name);
 	}
 }
