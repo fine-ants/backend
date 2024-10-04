@@ -5,6 +5,7 @@ import co.fineants.api.domain.common.money.valiator.MoneyNumberWithZero;
 import co.fineants.api.domain.member.domain.entity.Member;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import co.fineants.api.domain.portfolio.domain.entity.PortfolioDetail;
+import co.fineants.api.domain.portfolio.properties.PortfolioProperties;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.AccessLevel;
@@ -37,7 +38,7 @@ public class PortfolioCreateRequest {
 		return new PortfolioCreateRequest(name, securitiesFirm, budget, targetGain, maximumLoss);
 	}
 
-	public Portfolio toEntity(Member member) {
-		return Portfolio.noActive(name, securitiesFirm, budget, targetGain, maximumLoss, member);
+	public Portfolio toEntity(Member member, PortfolioProperties properties) {
+		return Portfolio.noActive(name, securitiesFirm, budget, targetGain, maximumLoss, member, properties);
 	}
 }

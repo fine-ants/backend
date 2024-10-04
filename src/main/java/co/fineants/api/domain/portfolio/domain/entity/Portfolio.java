@@ -32,6 +32,7 @@ import co.fineants.api.domain.notification.domain.dto.response.NotifyMessage;
 import co.fineants.api.domain.notification.domain.entity.type.NotificationType;
 import co.fineants.api.domain.notification.repository.NotificationSentRepository;
 import co.fineants.api.domain.notificationpreference.domain.entity.NotificationPreference;
+import co.fineants.api.domain.portfolio.properties.PortfolioProperties;
 import co.fineants.api.global.common.time.DefaultLocalDateTimeService;
 import co.fineants.api.global.common.time.LocalDateTimeService;
 import co.fineants.api.global.errors.errorcode.PortfolioErrorCode;
@@ -39,6 +40,7 @@ import co.fineants.api.global.errors.exception.BadRequestException;
 import co.fineants.api.global.errors.exception.FineAntsException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -73,14 +75,14 @@ import lombok.extern.slf4j.Slf4j;
 @Table(name = "portfolio", uniqueConstraints = {
 	@UniqueConstraint(columnNames = {"name", "member_id"})
 })
-@EqualsAndHashCode(of = {"name", "member"}, callSuper = false)
+@EqualsAndHashCode(of = {"detail", "member"}, callSuper = false)
 public class Portfolio extends BaseEntity implements Notifiable {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "id")
 	private Long id;
-	private String name;
-	private String securitiesFirm;
+	@Embedded
+	private PortfolioDetail detail;
 	@Convert(converter = MoneyConverter.class)
 	@Column(precision = 19, nullable = false)
 	private Money budget;
@@ -104,13 +106,12 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	@Transient
 	private LocalDateTimeService localDateTimeService = new DefaultLocalDateTimeService();
 
-	// TODO: name, securitiesFirm을 묶은 PortfolioDetail 클래스 추가
-	private Portfolio(Long id, String name, String securitiesFirm, Money budget, Money targetGain, Money maximumLoss,
+	private Portfolio(Long id, PortfolioDetail detail, Money budget,
+		Money targetGain, Money maximumLoss,
 		Boolean targetGainIsActive, Boolean maximumLossIsActive, Member member) {
 		validateBudget(budget, targetGain, maximumLoss);
 		this.id = id;
-		this.name = name;
-		this.securitiesFirm = securitiesFirm;
+		this.detail = detail;
 		this.budget = budget;
 		this.targetGain = targetGain;
 		this.maximumLoss = maximumLoss;
@@ -134,13 +135,15 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	}
 
 	public static Portfolio active(Long id, String name, String securitiesFirm, Money budget, Money targetGain,
-		Money maximumLoss, Member member) {
-		return new Portfolio(id, name, securitiesFirm, budget, targetGain, maximumLoss, true, true, member);
+		Money maximumLoss, Member member, PortfolioProperties properties) {
+		PortfolioDetail detail = PortfolioDetail.of(name, securitiesFirm, properties);
+		return new Portfolio(id, detail, budget, targetGain, maximumLoss, true, true, member);
 	}
 
 	public static Portfolio noActive(String name, String securitiesFirm, Money budget, Money targetGain,
-		Money maximumLoss, Member member) {
-		return new Portfolio(null, name, securitiesFirm, budget, targetGain, maximumLoss, false, false, member);
+		Money maximumLoss, Member member, PortfolioProperties properties) {
+		PortfolioDetail detail = PortfolioDetail.of(name, securitiesFirm, properties);
+		return new Portfolio(null, detail, budget, targetGain, maximumLoss, false, false, member);
 	}
 
 	//== 연관 관계 메소드 ==//
@@ -161,8 +164,7 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	//== 연관 관계 편의 메소드 종료 ==//
 
 	public void change(Portfolio changePortfolio) {
-		this.name = changePortfolio.name;
-		this.securitiesFirm = changePortfolio.securitiesFirm;
+		this.detail.change(changePortfolio.detail);
 		this.budget = changePortfolio.budget;
 		this.targetGain = changePortfolio.targetGain;
 		this.maximumLoss = changePortfolio.maximumLoss;
@@ -445,7 +447,7 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	}
 
 	public boolean isSameName(Portfolio changePortfolio) {
-		return this.name.equals(changePortfolio.name);
+		return detail.isSameName(changePortfolio.detail);
 	}
 
 	// 매입 이력을 포트폴리오에 추가시 현금이 충분한지 판단
@@ -473,7 +475,7 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	@Override
 	public NotifyMessage createTargetGainMessageWith(String token) {
 		String title = "포트폴리오";
-		String content = String.format("%s의 목표 수익률을 달성했습니다", name);
+		String content = detail.getTargetGainReachMessage();
 		NotificationType type = NotificationType.PORTFOLIO_TARGET_GAIN;
 		String referenceId = id.toString();
 		Long memberId = member.getId();
@@ -486,14 +488,14 @@ public class Portfolio extends BaseEntity implements Notifiable {
 			memberId,
 			token,
 			link,
-			name
+			detail.getName()
 		);
 	}
 
 	@Override
 	public NotifyMessage createMaxLossMessageWith(String token) {
 		String title = "포트폴리오";
-		String content = String.format("%s이(가) 최대 손실율에 도달했습니다", name);
+		String content = detail.getMaximumLossReachMessage();
 		NotificationType type = NotificationType.PORTFOLIO_MAX_LOSS;
 		String referenceId = id.toString();
 		Long memberId = member.getId();
@@ -506,7 +508,7 @@ public class Portfolio extends BaseEntity implements Notifiable {
 			memberId,
 			token,
 			link,
-			name
+			detail.getName()
 		);
 	}
 
@@ -547,8 +549,16 @@ public class Portfolio extends BaseEntity implements Notifiable {
 		this.localDateTimeService = localDateTimeService;
 	}
 
+	public String getSecuritiesFirm() {
+		return detail.getSecuritiesFirm();
+	}
+
+	public String getName() {
+		return detail.getName();
+	}
+
 	@Override
 	public String toString() {
-		return String.format("Portfolio(id=%d, name=%s, memberNickname=%s)", id, name, member.getNickname());
+		return String.format("Portfolio(id=%d, detail=%s, memberNickname=%s)", id, detail, member.getNickname());
 	}
 }

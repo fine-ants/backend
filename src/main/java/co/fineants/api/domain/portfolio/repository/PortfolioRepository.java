@@ -13,8 +13,10 @@ import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 
 public interface PortfolioRepository extends JpaRepository<Portfolio, Long> {
 
-	boolean existsByNameAndMember(String name, Member member);
+	@Query("select p from Portfolio p where p.detail.name = :name and p.member = :member")
+	Optional<Portfolio> findByNameAndMember(@Param("name") String name, @Param("member") Member member);
 
+	@Query("select p from Portfolio p where p.member.id = :memberId order by p.id desc")
 	List<Portfolio> findAllByMemberIdOrderByIdDesc(@Param("memberId") Long memberId);
 
 	@Query("select p from Portfolio p where p.member.id = :memberId order by p.createAt asc")
