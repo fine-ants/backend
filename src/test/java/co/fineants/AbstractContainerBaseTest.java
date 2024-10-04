@@ -11,7 +11,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -42,6 +41,7 @@ import co.fineants.api.domain.member.domain.entity.Role;
 import co.fineants.api.domain.member.repository.RoleRepository;
 import co.fineants.api.domain.notificationpreference.domain.entity.NotificationPreference;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
+import co.fineants.api.domain.portfolio.properties.PortfolioProperties;
 import co.fineants.api.domain.purchasehistory.domain.entity.PurchaseHistory;
 import co.fineants.api.domain.stock.domain.entity.Market;
 import co.fineants.api.domain.stock.domain.entity.Stock;
@@ -101,8 +101,8 @@ public abstract class AbstractContainerBaseTest {
 	@Autowired
 	private RedisRepository redisRepository;
 
-	@LocalServerPort
-	private int port;
+	@Autowired
+	private PortfolioProperties properties;
 
 	@DynamicPropertySource
 	public static void overrideProps(DynamicPropertyRegistry registry) {
@@ -232,7 +232,8 @@ public abstract class AbstractContainerBaseTest {
 			budget,
 			targetGain,
 			maximumLoss,
-			member
+			member,
+			properties
 		);
 	}
 

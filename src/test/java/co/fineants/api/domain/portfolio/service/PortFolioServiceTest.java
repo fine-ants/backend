@@ -10,7 +10,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.UUID;
 import java.util.stream.Stream;
 
 import org.assertj.core.groups.Tuple;
@@ -326,7 +325,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 
 		long budget = 1000000L;
 		long maximumLoss = 900000L;
-		Map<String, Object> body = createModifiedPortfolioRequestBodyMap("내꿈은 찰리몽거", "미래애셋증권", budget, targetGain,
+		Map<String, Object> body = createModifiedPortfolioRequestBodyMap("내꿈은 찰리몽거", "미래에셋증권", budget, targetGain,
 			maximumLoss);
 
 		PortfolioModifyRequest request = ObjectMapperUtil.deserialize(ObjectMapperUtil.serialize(body),
@@ -380,7 +379,8 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 		Member member = memberRepository.save(createMember());
 		List<Portfolio> portfolios = new ArrayList<>();
 		for (int i = 1; i <= 25; i++) {
-			portfolios.add(createPortfolioWithRandomName(member));
+			String name = String.format("portfolio%d", i);
+			portfolios.add(createPortfolio(member, name));
 		}
 		portfolioRepository.saveAll(portfolios);
 
@@ -504,7 +504,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 
 		PortfolioGainHistory portfolioGainHistory = portfolioGainHistoryRepository.save(
 			PortfolioGainHistory.empty(portfolio));
-		Portfolio portfolio2 = portfolioRepository.save(createPortfolioWithRandomName(member));
+		Portfolio portfolio2 = portfolioRepository.save(createPortfolio(member, "portfolio2"));
 
 		List<Long> portfolioIds = Arrays.asList(portfolio.getId(), portfolio2.getId());
 		setAuthentication(member);
@@ -527,7 +527,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 		Member member = memberRepository.save(createMember());
 		Member hacker = memberRepository.save(createMember("hacker"));
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
-		Portfolio portfolio2 = portfolioRepository.save(createPortfolioWithRandomName(member));
+		Portfolio portfolio2 = portfolioRepository.save(createPortfolio(member, "portfolio2"));
 		List<Long> portfolioIds = Arrays.asList(portfolio.getId(), portfolio2.getId());
 
 		setAuthentication(hacker);
@@ -538,17 +538,6 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 		assertThat(throwable)
 			.isInstanceOf(FineAntsException.class)
 			.hasMessage(MemberErrorCode.FORBIDDEN_MEMBER.getMessage());
-	}
-
-	private Portfolio createPortfolioWithRandomName(Member member) {
-		String randomPostfix = UUID.randomUUID().toString().substring(0, 10);
-		return createPortfolio(
-			member,
-			"내꿈은 워렙퍼빗" + randomPostfix,
-			Money.won(1000000L),
-			Money.won(1500000L),
-			Money.won(900000L)
-		);
 	}
 
 	private static Stream<Arguments> provideInvalidTargetGain() {

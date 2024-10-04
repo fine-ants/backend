@@ -42,6 +42,7 @@ import co.fineants.api.domain.notification.domain.entity.Notification;
 import co.fineants.api.domain.notification.domain.entity.PortfolioNotification;
 import co.fineants.api.domain.notification.domain.entity.StockTargetPriceNotification;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
+import co.fineants.api.domain.portfolio.properties.PortfolioProperties;
 import co.fineants.api.domain.purchasehistory.domain.entity.PurchaseHistory;
 import co.fineants.api.domain.stock.domain.entity.Market;
 import co.fineants.api.domain.stock.domain.entity.Stock;
@@ -60,6 +61,8 @@ public abstract class RestDocsSupport {
 	protected MockMvc mockMvc;
 
 	protected MemberAuthenticationArgumentResolver memberAuthenticationArgumentResolver;
+
+	private final PortfolioProperties properties = new PortfolioProperties(new String[] {"토스증권", "FineAnts"});
 
 	@BeforeEach
 	void setUp(RestDocumentationContextProvider provider) throws Exception {
@@ -105,7 +108,8 @@ public abstract class RestDocsSupport {
 			Money.won(1000000L),
 			Money.won(1500000L),
 			Money.won(900000L),
-			member
+			member,
+			properties
 		);
 	}
 
