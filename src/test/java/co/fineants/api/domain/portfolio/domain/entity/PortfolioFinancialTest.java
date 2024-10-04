@@ -63,7 +63,10 @@ class PortfolioFinancialTest extends AbstractContainerBaseTest {
 	public static Stream<Arguments> invalidPortfolioFinancialInfo() {
 		return Stream.of(
 			Arguments.of(1_000_000, 900_000, 900_000, "목표수익금액은 예산보다 작거나 같으면 안된다"),
-			Arguments.of(1_000_000, 1_500_000, 1_500_000, "최대손실금액은 예산보다 크거나 같으면 안된다")
+			Arguments.of(1_000_000, 1_500_000, 1_500_000, "최대손실금액은 예산보다 크거나 같으면 안된다"),
+			Arguments.of(-1_000_000, 1_500_000, 900_000, "예산은 음수이면 안된다"),
+			Arguments.of(1_000_000, -1_500_000, 900_000, "목표수익금액은 음수이면 안된다"),
+			Arguments.of(1_000_000, 1_500_000, -900_000, "최대손실금액은 음수이면 안된다")
 		);
 	}
 }

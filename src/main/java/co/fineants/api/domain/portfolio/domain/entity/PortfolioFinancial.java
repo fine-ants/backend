@@ -1,5 +1,7 @@
 package co.fineants.api.domain.portfolio.domain.entity;
 
+import java.util.List;
+
 import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.common.money.MoneyConverter;
 import jakarta.persistence.Column;
@@ -34,6 +36,12 @@ public class PortfolioFinancial {
 		if (budget.isZero()) {
 			return;
 		}
+		// 음수가 아닌지 검증
+		for (Money money : List.of(budget, targetGain, maximumLoss)) {
+			if (isNegative(money)) {
+				throwIllegalArgumentException(budget, targetGain, maximumLoss);
+			}
+		}
 		// 목표 수익 금액이 0원이 아닌 상태에서 예산 보다 큰지 검증
 		if (!targetGain.isZero() && budget.compareTo(targetGain) >= 0) {
 			throwIllegalArgumentException(budget, targetGain, maximumLoss);
@@ -42,6 +50,10 @@ public class PortfolioFinancial {
 		if (!maximumLoss.isZero() && budget.compareTo(maximumLoss) <= 0) {
 			throwIllegalArgumentException(budget, targetGain, maximumLoss);
 		}
+	}
+
+	private boolean isNegative(Money money) {
+		return money.compareTo(Money.zero()) < 0;
 	}
 
 	private void throwIllegalArgumentException(Money budget, Money targetGain, Money maximumLoss) {
