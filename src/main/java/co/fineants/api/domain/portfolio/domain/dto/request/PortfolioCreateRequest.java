@@ -45,7 +45,7 @@ public class PortfolioCreateRequest {
 		try {
 			return Portfolio.noActive(detail, budget, targetGain, maximumLoss, member);
 		} catch (IllegalPortfolioFinancialArgumentException e) {
-			throw new BadRequestException(e.getErrorCode(), e.getErrorCode().getMessage());
+			throw new BadRequestException(e.getErrorCode(), e);
 		}
 	}
 }
