@@ -35,7 +35,7 @@ public class PortfolioDetail {
 	}
 
 	/**
-	 * Return a PortfolioDetail instance.
+	 * PortfolioDetail 객체를 생성하여 반환.
 	 *
 	 * @param name 포트폴리오 이름
 	 * @param securitiesFirm 증권사 이름
@@ -47,19 +47,40 @@ public class PortfolioDetail {
 		return new PortfolioDetail(name, securitiesFirm, properties);
 	}
 
+	/**
+	 * PortfolioDetail 객체의 name, securitiesFirm 필드를 변경한다.
+	 *
+	 * @param detail 변경하고자 하는 포트폴리오 상세 정보 객체
+	 */
 	public void change(PortfolioDetail detail) {
 		this.name = detail.name;
 		this.securitiesFirm = detail.securitiesFirm;
 	}
 
+	/**
+	 * PortfolioDetail 객체의 name 필드가 같은지 비교한다.
+	 *
+	 * @param detail 비교하고자 하는 PortfolioDetail 객체
+	 * @return name 필드가 같으면 true, 다르면 false
+	 */
 	public boolean equalName(PortfolioDetail detail) {
 		return this.name.equals(detail.name);
 	}
 
+	/**
+	 * 포트폴리오의 목표 수익율 달성 메시지를 생성하여 반환한다.
+	 *
+	 * @return 포트폴리오 목표 수익율 달성 메시지 (ex, 'portfolio1의 목표 수익률을 달성했습니다')
+	 */
 	public String getTargetGainReachMessage() {
 		return String.format("%s의 목표 수익률을 달성했습니다", name);
 	}
 
+	/**
+	 * 포트폴리오의 최대 손실율 도달 메시지를 생성하여 반환한다.
+	 *
+	 * @return 포트폴리오 최대 손실율 도달 메시지 (ex, 'portfolio1의 최대 손실율에 도달했습니다')
+	 */
 	public String getMaximumLossReachMessage() {
 		return String.format("%s이(가) 최대 손실율에 도달했습니다", name);
 	}
