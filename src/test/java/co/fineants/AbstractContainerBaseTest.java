@@ -41,6 +41,7 @@ import co.fineants.api.domain.member.domain.entity.Role;
 import co.fineants.api.domain.member.repository.RoleRepository;
 import co.fineants.api.domain.notificationpreference.domain.entity.NotificationPreference;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
+import co.fineants.api.domain.portfolio.domain.entity.PortfolioDetail;
 import co.fineants.api.domain.portfolio.properties.PortfolioProperties;
 import co.fineants.api.domain.purchasehistory.domain.entity.PurchaseHistory;
 import co.fineants.api.domain.stock.domain.entity.Market;
@@ -225,15 +226,14 @@ public abstract class AbstractContainerBaseTest {
 	}
 
 	protected Portfolio createPortfolio(Member member, String name, Money budget, Money targetGain, Money maximumLoss) {
+		PortfolioDetail detail = PortfolioDetail.of(name, "토스증권", properties);
 		return Portfolio.active(
 			null,
-			name,
-			"토스증권",
+			detail,
 			budget,
 			targetGain,
 			maximumLoss,
-			member,
-			properties
+			member
 		);
 	}
 

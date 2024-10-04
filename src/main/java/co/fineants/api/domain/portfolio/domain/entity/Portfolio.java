@@ -106,8 +106,7 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	@Transient
 	private LocalDateTimeService localDateTimeService = new DefaultLocalDateTimeService();
 
-	private Portfolio(Long id, PortfolioDetail detail, Money budget,
-		Money targetGain, Money maximumLoss,
+	private Portfolio(Long id, PortfolioDetail detail, Money budget, Money targetGain, Money maximumLoss,
 		Boolean targetGainIsActive, Boolean maximumLossIsActive, Member member) {
 		validateBudget(budget, targetGain, maximumLoss);
 		this.id = id;
@@ -134,9 +133,8 @@ public class Portfolio extends BaseEntity implements Notifiable {
 		}
 	}
 
-	public static Portfolio active(Long id, String name, String securitiesFirm, Money budget, Money targetGain,
-		Money maximumLoss, Member member, PortfolioProperties properties) {
-		PortfolioDetail detail = PortfolioDetail.of(name, securitiesFirm, properties);
+	public static Portfolio active(Long id, PortfolioDetail detail, Money budget, Money targetGain,
+		Money maximumLoss, Member member) {
 		return new Portfolio(id, detail, budget, targetGain, maximumLoss, true, true, member);
 	}
 
