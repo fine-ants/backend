@@ -19,9 +19,6 @@ public class Money implements Expression {
 	protected final Currency currency;
 
 	public Money(BigDecimal amount, Currency currency) {
-		if (amount.compareTo(BigDecimal.ZERO) <= 0) {
-			throw new IllegalArgumentException("Money amount must be greater than zero");
-		}
 		this.amount = amount;
 		this.currency = currency;
 	}

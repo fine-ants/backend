@@ -428,18 +428,4 @@ class MoneyTest {
 		Percentage actual = result.toPercentage(Bank.getInstance(), USD);
 		assertEquals(expected, actual);
 	}
-
-	@DisplayName("음수를 가진 Money를 생성할 수 없다")
-	@Test
-	void testConstructor_givenNegativeInfo_whenCreatingInstance_thenThrowException() {
-		// given
-		int amount = -1000;
-		// when
-		Throwable throwable = Assertions.catchThrowable(() -> Money.won(amount));
-		// then
-		Assertions.assertThat(throwable)
-			.isInstanceOf(IllegalArgumentException.class)
-			.hasMessage("Money amount must be greater than zero");
-
-	}
 }
