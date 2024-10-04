@@ -22,13 +22,13 @@ public class PortfolioFinancial {
 	private Money maximumLoss;
 
 	private PortfolioFinancial(Money budget, Money targetGain, Money maximumLoss) {
-		validateBudget(budget, targetGain, maximumLoss);
+		validateArguments(budget, targetGain, maximumLoss);
 		this.budget = budget;
 		this.targetGain = targetGain;
 		this.maximumLoss = maximumLoss;
 	}
 
-	private void validateBudget(Money budget, Money targetGain, Money maximumLoss) {
+	private void validateArguments(Money budget, Money targetGain, Money maximumLoss) {
 		if (budget.isZero()) {
 			return;
 		}
@@ -50,6 +50,17 @@ public class PortfolioFinancial {
 
 	public static PortfolioFinancial of(Money budget, Money targetGain, Money maximumLoss) {
 		return new PortfolioFinancial(budget, targetGain, maximumLoss);
+	}
+
+	/**
+	 * 포트폴리오 금융 정보인 예산, 목표수익금액, 최대손실금액을 변경한다.
+	 *
+	 * @param financial 변경하고자 하는 포트폴리오 금융 정보
+	 */
+	public void change(PortfolioFinancial financial) {
+		this.budget = financial.budget;
+		this.targetGain = financial.targetGain;
+		this.maximumLoss = financial.maximumLoss;
 	}
 
 	@Override
