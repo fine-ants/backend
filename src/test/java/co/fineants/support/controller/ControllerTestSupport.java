@@ -29,6 +29,8 @@ import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
 import co.fineants.api.domain.member.domain.entity.Member;
 import co.fineants.api.domain.member.domain.entity.MemberProfile;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
+import co.fineants.api.domain.portfolio.domain.entity.PortfolioDetail;
+import co.fineants.api.domain.portfolio.properties.PortfolioProperties;
 import co.fineants.api.domain.purchasehistory.domain.entity.PurchaseHistory;
 import co.fineants.api.domain.stock.domain.entity.Market;
 import co.fineants.api.domain.stock.domain.entity.Stock;
@@ -51,6 +53,9 @@ public abstract class ControllerTestSupport {
 
 	@Autowired
 	protected ObjectMapper objectMapper;
+
+	@Autowired
+	private PortfolioProperties properties;
 
 	@MockBean
 	protected MemberAuthenticationArgumentResolver memberAuthenticationArgumentResolver;
@@ -110,10 +115,10 @@ public abstract class ControllerTestSupport {
 
 	protected Portfolio createPortfolio(Long id, Member member, String name, Money budget, Money targetGain,
 		Money maximumLoss) {
+		PortfolioDetail detail = PortfolioDetail.of(name, "토스증권", properties);
 		return Portfolio.active(
 			id,
-			name,
-			"토스증권",
+			detail,
 			budget,
 			targetGain,
 			maximumLoss,

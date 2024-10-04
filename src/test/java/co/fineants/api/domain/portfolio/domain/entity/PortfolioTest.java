@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.*;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.assertj.core.api.Assertions;
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -18,6 +19,7 @@ import co.fineants.api.domain.common.money.RateDivision;
 import co.fineants.api.domain.holding.domain.dto.response.PortfolioPieChartItem;
 import co.fineants.api.domain.holding.domain.dto.response.PortfolioSectorChartItem;
 import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
+import co.fineants.api.domain.member.domain.entity.Member;
 import co.fineants.api.domain.purchasehistory.domain.entity.PurchaseHistory;
 import co.fineants.api.domain.stock.domain.entity.Stock;
 
@@ -165,5 +167,32 @@ class PortfolioTest extends AbstractContainerBaseTest {
 			.hasSize(3)
 			.extracting("sector")
 			.containsExactlyInAnyOrder("현금", "의약품", "전기전자");
+	}
+
+	@DisplayName("포트폴리오에 포트폴리오 종목을 추가한다")
+	@Test
+	void addHoldings() {
+		// given
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createSamsungStock();
+		PortfolioHolding holding1 = PortfolioHolding.of(portfolio, stock, Money.won(20000L));
+		// when
+		portfolio.addHolding(holding1);
+		// then
+		assertThat(portfolio.getPortfolioHoldings())
+			.hasSize(1)
+			.containsExactlyInAnyOrder(PortfolioHolding.of(portfolio, stock, Money.won(20000L)));
+		assertThat(holding1.getPortfolio()).isEqualTo(portfolio);
+	}
+
+	@DisplayName("포트폴리오 인스턴스 생성시 회원 객체 전달하면 회원도 같이 설정된다")
+	@Test
+	void setMember_givenMember_whenCreatingInstance_thenSetMember() {
+		// given
+		Member member = createMember();
+		// when
+		Portfolio portfolio = createPortfolio(member);
+		// then
+		Assertions.assertThat(portfolio.getMember()).isEqualTo(createMember());
 	}
 }

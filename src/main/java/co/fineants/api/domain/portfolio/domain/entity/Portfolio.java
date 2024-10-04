@@ -39,6 +39,7 @@ import co.fineants.api.global.errors.exception.BadRequestException;
 import co.fineants.api.global.errors.exception.FineAntsException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -54,9 +55,9 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
 @NamedEntityGraph(name = "Portfolio.withAll", attributeNodes = {
@@ -69,18 +70,18 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@ToString(exclude = {"member", "portfolioHoldings"})
 @Entity
 @Table(name = "portfolio", uniqueConstraints = {
 	@UniqueConstraint(columnNames = {"name", "member_id"})
 })
+@EqualsAndHashCode(of = {"detail", "member"}, callSuper = false)
 public class Portfolio extends BaseEntity implements Notifiable {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "id")
 	private Long id;
-	private String name;
-	private String securitiesFirm;
+	@Embedded
+	private PortfolioDetail detail;
 	@Convert(converter = MoneyConverter.class)
 	@Column(precision = 19, nullable = false)
 	private Money budget;
@@ -104,18 +105,16 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	@Transient
 	private LocalDateTimeService localDateTimeService = new DefaultLocalDateTimeService();
 
-	private Portfolio(Long id, String name, String securitiesFirm, Money budget, Money targetGain, Money maximumLoss,
-		Boolean targetGainIsActive, Boolean maximumLossIsActive, Member member) {
+	private Portfolio(Long id, PortfolioDetail detail, Money budget, Money targetGain, Money maximumLoss,
+		Boolean targetGainIsActive, Boolean maximumLossIsActive) {
 		validateBudget(budget, targetGain, maximumLoss);
 		this.id = id;
-		this.name = name;
-		this.securitiesFirm = securitiesFirm;
+		this.detail = detail;
 		this.budget = budget;
 		this.targetGain = targetGain;
 		this.maximumLoss = maximumLoss;
 		this.targetGainIsActive = targetGainIsActive;
 		this.maximumLossIsActive = maximumLossIsActive;
-		this.member = member;
 	}
 
 	private void validateBudget(Money budget, Money targetGain, Money maximumLoss) {
@@ -132,32 +131,43 @@ public class Portfolio extends BaseEntity implements Notifiable {
 		}
 	}
 
-	public static Portfolio active(String name, String securitiesFirm, Money budget, Money targetGain,
+	public static Portfolio active(Long id, PortfolioDetail detail, Money budget, Money targetGain,
 		Money maximumLoss, Member member) {
-		return active(null, name, securitiesFirm, budget, targetGain, maximumLoss, member);
+		Portfolio portfolio = new Portfolio(id, detail, budget, targetGain, maximumLoss, true, true);
+		portfolio.setMember(member);
+		return portfolio;
 	}
 
-	public static Portfolio active(Long id, String name, String securitiesFirm, Money budget, Money targetGain,
-		Money maximumLoss, Member member) {
-		return new Portfolio(id, name, securitiesFirm, budget, targetGain, maximumLoss, true, true, member);
+	public static Portfolio noActive(PortfolioDetail detail, Money budget, Money targetGain, Money maximumLoss,
+		Member member) {
+		Portfolio portfolio = new Portfolio(null, detail, budget, targetGain, maximumLoss, false, false);
+		portfolio.setMember(member);
+		return portfolio;
 	}
 
-	public static Portfolio noActive(String name, String securitiesFirm, Money budget, Money targetGain,
-		Money maximumLoss, Member member) {
-		return new Portfolio(null, name, securitiesFirm, budget, targetGain, maximumLoss, false, false, member);
-	}
-
-	//== 연관관계 메소드 ==//
-	public void addHolding(PortfolioHolding portFolioHolding) {
-		if (!portfolioHoldings.contains(portFolioHolding)) {
-			portfolioHoldings.add(portFolioHolding);
-			portFolioHolding.setPortfolio(this);
+	//== 연관 관계 메소드 ==//
+	public void addHolding(PortfolioHolding holding) {
+		if (portfolioHoldings.contains(holding)) {
+			return;
+		}
+		portfolioHoldings.add(holding);
+		if (holding.getPortfolio() != this) {
+			holding.setPortfolio(this);
 		}
 	}
 
+	public void removeHolding(PortfolioHolding holding) {
+		this.portfolioHoldings.remove(holding);
+		holding.setPortfolio(null);
+	}
+
+	public void setMember(Member member) {
+		this.member = member;
+	}
+	//== 연관 관계 편의 메소드 종료 ==//
+
 	public void change(Portfolio changePortfolio) {
-		this.name = changePortfolio.name;
-		this.securitiesFirm = changePortfolio.securitiesFirm;
+		this.detail.change(changePortfolio.detail);
 		this.budget = changePortfolio.budget;
 		this.targetGain = changePortfolio.targetGain;
 		this.maximumLoss = changePortfolio.maximumLoss;
@@ -439,8 +449,8 @@ public class Portfolio extends BaseEntity implements Notifiable {
 		};
 	}
 
-	public boolean isSameName(Portfolio changePortfolio) {
-		return this.name.equals(changePortfolio.name);
+	public boolean equalName(Portfolio changePortfolio) {
+		return detail.equalName(changePortfolio.detail);
 	}
 
 	// 매입 이력을 포트폴리오에 추가시 현금이 충분한지 판단
@@ -468,7 +478,7 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	@Override
 	public NotifyMessage createTargetGainMessageWith(String token) {
 		String title = "포트폴리오";
-		String content = String.format("%s의 목표 수익률을 달성했습니다", name);
+		String content = detail.getTargetGainReachMessage();
 		NotificationType type = NotificationType.PORTFOLIO_TARGET_GAIN;
 		String referenceId = id.toString();
 		Long memberId = member.getId();
@@ -481,14 +491,14 @@ public class Portfolio extends BaseEntity implements Notifiable {
 			memberId,
 			token,
 			link,
-			name
+			detail.getName()
 		);
 	}
 
 	@Override
 	public NotifyMessage createMaxLossMessageWith(String token) {
 		String title = "포트폴리오";
-		String content = String.format("%s이(가) 최대 손실율에 도달했습니다", name);
+		String content = detail.getMaximumLossReachMessage();
 		NotificationType type = NotificationType.PORTFOLIO_MAX_LOSS;
 		String referenceId = id.toString();
 		Long memberId = member.getId();
@@ -501,7 +511,7 @@ public class Portfolio extends BaseEntity implements Notifiable {
 			memberId,
 			token,
 			link,
-			name
+			detail.getName()
 		);
 	}
 
@@ -540,5 +550,18 @@ public class Portfolio extends BaseEntity implements Notifiable {
 
 	public void setLocalDateTimeService(LocalDateTimeService localDateTimeService) {
 		this.localDateTimeService = localDateTimeService;
+	}
+
+	public String getSecuritiesFirm() {
+		return detail.getSecuritiesFirm();
+	}
+
+	public String getName() {
+		return detail.getName();
+	}
+
+	@Override
+	public String toString() {
+		return String.format("Portfolio(id=%d, detail=%s, memberNickname=%s)", id, detail, member.getNickname());
 	}
 }

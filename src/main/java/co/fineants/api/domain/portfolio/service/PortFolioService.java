@@ -22,6 +22,7 @@ import co.fineants.api.domain.portfolio.domain.dto.response.PortFolioCreateRespo
 import co.fineants.api.domain.portfolio.domain.dto.response.PortfolioModifyResponse;
 import co.fineants.api.domain.portfolio.domain.dto.response.PortfoliosResponse;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
+import co.fineants.api.domain.portfolio.properties.PortfolioProperties;
 import co.fineants.api.domain.portfolio.repository.PortfolioPropertiesRepository;
 import co.fineants.api.domain.portfolio.repository.PortfolioRepository;
 import co.fineants.api.domain.purchasehistory.repository.PurchaseHistoryRepository;
@@ -50,6 +51,7 @@ public class PortFolioService {
 	private final PortfolioGainHistoryRepository portfolioGainHistoryRepository;
 	private final CurrentPriceRedisRepository currentPriceRedisRepository;
 	private final PortfolioPropertiesRepository portfolioPropertiesRepository;
+	private final PortfolioProperties properties;
 
 	@Transactional
 	@Secured("ROLE_USER")
@@ -59,7 +61,7 @@ public class PortFolioService {
 		Member member = findMember(memberId);
 
 		validateUniquePortfolioName(request.getName(), member);
-		Portfolio portfolio = request.toEntity(member);
+		Portfolio portfolio = request.toEntity(member, properties);
 		return PortFolioCreateResponse.from(portfolioRepository.save(portfolio));
 	}
 
@@ -75,7 +77,7 @@ public class PortFolioService {
 	}
 
 	private void validateUniquePortfolioName(String name, Member member) {
-		if (portfolioRepository.existsByNameAndMember(name, member)) {
+		if (portfolioRepository.findByNameAndMember(name, member).isPresent()) {
 			throw new ConflictException(PortfolioErrorCode.DUPLICATE_NAME);
 		}
 	}
@@ -88,9 +90,9 @@ public class PortFolioService {
 		log.info("포트폴리오 수정 서비스 요청 : request={}, portfolioId={}, memberId={}", request, portfolioId, memberId);
 		Member member = findMember(memberId);
 		Portfolio originalPortfolio = findPortfolio(portfolioId);
-		Portfolio changePortfolio = request.toEntity(member);
+		Portfolio changePortfolio = request.toEntity(member, properties);
 
-		if (!originalPortfolio.isSameName(changePortfolio)) {
+		if (!originalPortfolio.equalName(changePortfolio)) {
 			validateUniquePortfolioName(changePortfolio.getName(), member);
 		}
 		originalPortfolio.change(changePortfolio);

@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -19,6 +20,7 @@ import co.fineants.api.domain.common.money.Expression;
 import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.common.money.RateDivision;
 import co.fineants.api.domain.dividend.domain.entity.StockDividend;
+import co.fineants.api.domain.member.domain.entity.Member;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import co.fineants.api.domain.purchasehistory.domain.entity.PurchaseHistory;
 import co.fineants.api.domain.stock.domain.entity.Stock;
@@ -166,6 +168,26 @@ class PortfolioHoldingTest extends AbstractContainerBaseTest {
 		assertThat(moneys)
 			.usingComparatorForType(Expression::compareTo, Expression.class)
 			.isEqualTo(expected.values());
+	}
+
+	@DisplayName("포트폴리오 종목에 포트폴리오를 설정한다")
+	@Test
+	void setPortfolio() {
+		// given
+		Member member = createMember();
+		Portfolio portfolio = createPortfolio(member);
+		Stock stock = createSamsungStock();
+		PortfolioHolding holding = createPortfolioHolding(portfolio, stock, 20000L);
+
+		Portfolio other = createPortfolio(member, "other");
+		// when
+		holding.setPortfolio(other);
+		// then
+		Assertions.assertThat(portfolio.getPortfolioHoldings()).isEmpty();
+		Assertions.assertThat(other.getPortfolioHoldings())
+			.hasSize(1)
+			.containsExactlyInAnyOrder(createPortfolioHolding(other, stock, 20000L));
+		Assertions.assertThat(holding.getPortfolio()).isEqualTo(other);
 	}
 
 	private List<StockDividend> createStockDividends(Stock stock) {

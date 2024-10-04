@@ -3,6 +3,7 @@ package co.fineants.api.domain.portfolio.repository;
 import static org.assertj.core.api.Assertions.*;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -43,10 +44,10 @@ class PortfolioRepositoryTest extends AbstractContainerBaseTest {
 		portfolioRepository.save(createPortfolio(member));
 
 		// when
-		boolean actual = portfolioRepository.existsByNameAndMember("내꿈은 워렌버핏", member);
+		Optional<Portfolio> portfolio = portfolioRepository.findByNameAndMember("내꿈은 워렌버핏", member);
 
 		// then
-		assertThat(actual).isTrue();
+		assertThat(portfolio).isPresent();
 	}
 
 	@DisplayName("회원 등록번호에 따른 포트폴리오들을 등록번호를 기준으로 내림차순으로 조회한다")

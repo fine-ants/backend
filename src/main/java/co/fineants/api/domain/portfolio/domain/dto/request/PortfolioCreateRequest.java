@@ -4,7 +4,10 @@ import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.common.money.valiator.MoneyNumberWithZero;
 import co.fineants.api.domain.member.domain.entity.Member;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
+import co.fineants.api.domain.portfolio.domain.entity.PortfolioDetail;
+import co.fineants.api.domain.portfolio.properties.PortfolioProperties;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -15,6 +18,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class PortfolioCreateRequest {
 	@NotBlank(message = "포트폴리오 이름은 필수 정보입니다")
+	@Pattern(regexp = PortfolioDetail.NAME_REGEXP, message = "유효하지 않은 포트폴리오 이름입니다.")
 	private String name;
 
 	@NotBlank(message = "증권사는 필수 정보입니다")
@@ -34,7 +38,8 @@ public class PortfolioCreateRequest {
 		return new PortfolioCreateRequest(name, securitiesFirm, budget, targetGain, maximumLoss);
 	}
 
-	public Portfolio toEntity(Member member) {
-		return Portfolio.noActive(name, securitiesFirm, budget, targetGain, maximumLoss, member);
+	public Portfolio toEntity(Member member, PortfolioProperties properties) {
+		PortfolioDetail detail = PortfolioDetail.of(name, securitiesFirm, properties);
+		return Portfolio.noActive(detail, budget, targetGain, maximumLoss, member);
 	}
 }
