@@ -39,6 +39,7 @@ public class PortfolioCreateRequest {
 	}
 
 	public Portfolio toEntity(Member member, PortfolioProperties properties) {
-		return Portfolio.noActive(name, securitiesFirm, budget, targetGain, maximumLoss, member, properties);
+		PortfolioDetail detail = PortfolioDetail.of(name, securitiesFirm, properties);
+		return Portfolio.noActive(detail, budget, targetGain, maximumLoss, member);
 	}
 }

@@ -32,7 +32,6 @@ import co.fineants.api.domain.notification.domain.dto.response.NotifyMessage;
 import co.fineants.api.domain.notification.domain.entity.type.NotificationType;
 import co.fineants.api.domain.notification.repository.NotificationSentRepository;
 import co.fineants.api.domain.notificationpreference.domain.entity.NotificationPreference;
-import co.fineants.api.domain.portfolio.properties.PortfolioProperties;
 import co.fineants.api.global.common.time.DefaultLocalDateTimeService;
 import co.fineants.api.global.common.time.LocalDateTimeService;
 import co.fineants.api.global.errors.errorcode.PortfolioErrorCode;
@@ -139,9 +138,8 @@ public class Portfolio extends BaseEntity implements Notifiable {
 		return portfolio;
 	}
 
-	public static Portfolio noActive(String name, String securitiesFirm, Money budget, Money targetGain,
-		Money maximumLoss, Member member, PortfolioProperties properties) {
-		PortfolioDetail detail = PortfolioDetail.of(name, securitiesFirm, properties);
+	public static Portfolio noActive(PortfolioDetail detail, Money budget, Money targetGain, Money maximumLoss,
+		Member member) {
 		Portfolio portfolio = new Portfolio(null, detail, budget, targetGain, maximumLoss, false, false);
 		portfolio.setMember(member);
 		return portfolio;
