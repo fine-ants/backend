@@ -23,7 +23,7 @@ public class IllegalPortfolioFinancialArgumentException extends IllegalPortfolio
 	@Override
 	public String toString() {
 		return String.format(
-			"IllegalPortfolioFinancialArgumentException(budget=%s, targetGain=%s, maximumLoss=%s, errorCode=%s)",
-			budget, targetGain, maximumLoss, getErrorCode());
+			"IllegalPortfolioFinancialArgumentException(budget=%s, targetGain=%s, maximumLoss=%s, %s)",
+			budget, targetGain, maximumLoss, super.toString());
 	}
 }
