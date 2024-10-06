@@ -31,6 +31,7 @@ import co.fineants.api.domain.notification.domain.dto.response.NotifyMessage;
 import co.fineants.api.domain.notification.domain.entity.type.NotificationType;
 import co.fineants.api.domain.notification.repository.NotificationSentRepository;
 import co.fineants.api.domain.notificationpreference.domain.entity.NotificationPreference;
+import co.fineants.api.domain.portfolio.domain.calculator.PortfolioCalculator;
 import co.fineants.api.global.common.time.DefaultLocalDateTimeService;
 import co.fineants.api.global.common.time.LocalDateTimeService;
 import co.fineants.api.global.errors.errorcode.PortfolioErrorCode;
@@ -571,5 +572,9 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	@Override
 	public String toString() {
 		return String.format("Portfolio(id=%d, detail=%s, memberNickname=%s)", id, detail, member.getNickname());
+	}
+
+	public Expression calTotalGain(PortfolioCalculator calculator) {
+		return calculator.calTotalGain(Collections.unmodifiableList(portfolioHoldings));
 	}
 }
