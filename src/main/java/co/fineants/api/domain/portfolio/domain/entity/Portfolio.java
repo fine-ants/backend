@@ -421,8 +421,8 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	}
 
 	// 매입 이력을 포트폴리오에 추가시 현금이 충분한지 판단
-	public boolean isCashSufficientForPurchase(Money money) {
-		Expression amount = calculateTotalInvestmentAmount().plus(money);
+	public boolean isCashSufficientForPurchase(Money money, Expression totalInvestment) {
+		Expression amount = totalInvestment.plus(money);
 		return Bank.getInstance().toWon(amount).compareTo(this.financial.getBudget()) > 0;
 	}
 
