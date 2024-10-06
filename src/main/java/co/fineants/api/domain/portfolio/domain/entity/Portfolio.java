@@ -316,8 +316,7 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	}
 
 	// 파이 차트 생성
-	public List<PortfolioPieChartItem> createPieChart(Expression balance, Expression totalCurrentValuation,
-		Expression totalAsset) {
+	public List<PortfolioPieChartItem> createPieChart(Expression balance, Expression totalAsset) {
 		List<PortfolioPieChartItem> stocks = portfolioHoldings.stream()
 			.map(portfolioHolding -> portfolioHolding.createPieChartItem(
 				calculateWeightBy(portfolioHolding, totalAsset)))
@@ -542,10 +541,8 @@ public class Portfolio extends BaseEntity implements Notifiable {
 		return calculator.calTotalGainRate(Collections.unmodifiableList(portfolioHoldings));
 	}
 
-	public Expression calBalance(PortfolioCalculator calculator) {
-		Expression budget = this.financial.getBudget();
-		Expression totalInvestment = calculator.calTotalInvestmentBy(this);
-		return calculator.calBalance(budget, totalInvestment);
+	public Expression calBalance(Expression totalInvestment) {
+		return this.financial.calBalance(totalInvestment);
 	}
 
 	public Expression calTotalCurrentValuation(PortfolioCalculator calculator) {

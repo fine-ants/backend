@@ -2,6 +2,7 @@ package co.fineants.api.domain.portfolio.domain.entity;
 
 import java.util.List;
 
+import co.fineants.api.domain.common.money.Expression;
 import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.common.money.MoneyConverter;
 import co.fineants.api.global.errors.errorcode.PortfolioErrorCode;
@@ -85,6 +86,10 @@ public class PortfolioFinancial {
 		this.budget = financial.budget;
 		this.targetGain = financial.targetGain;
 		this.maximumLoss = financial.maximumLoss;
+	}
+
+	public Expression calBalance(Expression totalInvestment) {
+		return budget.minus(totalInvestment);
 	}
 
 	@Override
