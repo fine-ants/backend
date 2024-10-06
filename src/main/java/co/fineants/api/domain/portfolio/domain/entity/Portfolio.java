@@ -165,26 +165,6 @@ public class Portfolio extends BaseEntity implements Notifiable {
 		return member.hasAuthorization(memberId);
 	}
 	
-	// 포트폴리오 당일 손익율 = (당일 포트폴리오 가치 총합 - 이전 포트폴리오 가치 총합) / 이전 포트폴리오 가치 총합
-	// 단, 이전 포트폴리오가 없는 경우 ((당일 포트폴리오 가치 총합 - 당일 포트폴리오 총 투자 금액) / 당일 포트폴리오 총 투자 금액) * 100%
-	public RateDivision calculateDailyGainRate(PortfolioGainHistory prevHistory, Expression totalInvestment,
-		Expression totalCurrentValuation) {
-		Money prevCurrentValuation = prevHistory.getCurrentValuation();
-		if (prevCurrentValuation.isZero()) {
-			return totalCurrentValuation.minus(totalInvestment)
-				.divide(totalInvestment);
-		}
-		return totalCurrentValuation.minus(prevCurrentValuation)
-			.divide(prevCurrentValuation);
-	}
-
-	// 포트폴리오 당월 예상 배당금 = 각 종목들에 해당월의 배당금 합계
-	public Expression calculateCurrentMonthDividend() {
-		return portfolioHoldings.stream()
-			.map(PortfolioHolding::calculateCurrentMonthDividend)
-			.reduce(Money.zero(), Expression::plus);
-	}
-
 	public Count getNumberOfShares() {
 		return Count.from(portfolioHoldings.size());
 	}
@@ -535,5 +515,9 @@ public class Portfolio extends BaseEntity implements Notifiable {
 		Expression balance = calculator.calBalanceBy(this);
 		Expression totalCurrentValuation = calculator.calTotalCurrentValuationBy(this);
 		return calculator.calTotalAsset(balance, totalCurrentValuation);
+	}
+
+	public Expression calCurrentMonthDividend(PortfolioCalculator calculator) {
+		return calculator.calCurrentMonthDividend(Collections.unmodifiableList(portfolioHoldings));
 	}
 }

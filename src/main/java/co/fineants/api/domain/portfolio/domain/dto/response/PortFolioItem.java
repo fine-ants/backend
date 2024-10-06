@@ -43,9 +43,10 @@ public class PortFolioItem {
 		PortfolioCalculator calculator = new PortfolioCalculator();
 		Expression totalGain = calculator.calTotalGainBy(portfolio);
 		Expression totalGainRate = calculator.calTotalGainRateBy(portfolio);
-		Expression totalInvestment = calculator.calTotalInvestmentBy(portfolio);
 		Expression totalCurrentValuation = calculator.calTotalCurrentValuationBy(portfolio);
 		Expression dailyGain = calculator.calDailyGain(prevHistory, portfolio);
+		Expression dailyGainRate = calculator.calDailyGainRateBy(prevHistory, portfolio);
+		Expression currentMonthDividend = calculator.calCurrentMonthDividendBy(portfolio);
 		return PortFolioItem.builder()
 			.id(portfolio.getId())
 			.securitiesFirm(portfolio.getSecuritiesFirm())
@@ -54,10 +55,9 @@ public class PortFolioItem {
 			.totalGain(totalGain.reduce(bank, to))
 			.totalGainRate(totalGainRate.toPercentage(Bank.getInstance(), Currency.KRW))
 			.dailyGain(dailyGain.reduce(bank, to))
-			.dailyGainRate(portfolio.calculateDailyGainRate(prevHistory, totalInvestment, totalCurrentValuation)
-				.toPercentage(Bank.getInstance(), Currency.KRW))
+			.dailyGainRate(dailyGainRate.toPercentage(Bank.getInstance(), Currency.KRW))
 			.currentValuation(totalCurrentValuation.reduce(bank, to))
-			.expectedMonthlyDividend(portfolio.calculateCurrentMonthDividend().reduce(bank, to))
+			.expectedMonthlyDividend(currentMonthDividend.reduce(bank, to))
 			.numShares(portfolio.getNumberOfShares())
 			.dateCreated(portfolio.getCreateAt())
 			.build();

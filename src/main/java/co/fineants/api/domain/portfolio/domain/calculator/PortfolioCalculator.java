@@ -124,4 +124,48 @@ public class PortfolioCalculator {
 		}
 		return totalCurrentValuation.minus(previousCurrentValuation);
 	}
+
+	/**
+	 * 포트폴리오의 당일 손익율을 계산하여 반환.
+	 *
+	 * <p>
+	 * 이전 포트폴리오 내역이 없는 경우
+	 * dailyGainRate = (totalCurrentValuation - totalInvestment) / totalInvestment
+	 * 이전 포트폴리오 내역이 있는 경우
+	 * dailyGainRate = (totalCurrentValuation - previousCurrentValuation) / previousCurrentValuation
+	 * </p>
+	 *
+	 * @param history 이전 포트폴리오 내역
+	 * @param portfolio 포트폴리오 객체
+	 * @return 포트폴리오의 당일 손익율
+	 */
+	public Expression calDailyGainRateBy(PortfolioGainHistory history, Portfolio portfolio) {
+		Money prevCurrentValuation = history.getCurrentValuation();
+		Expression totalCurrentValuation = calTotalCurrentValuationBy(portfolio);
+		if (prevCurrentValuation.isZero()) {
+			Expression totalInvestment = calTotalInvestmentBy(portfolio);
+			return totalCurrentValuation.minus(totalInvestment)
+				.divide(totalInvestment);
+		}
+		return totalCurrentValuation.minus(prevCurrentValuation)
+			.divide(prevCurrentValuation);
+	}
+
+	public Expression calCurrentMonthDividendBy(Portfolio portfolio) {
+		return portfolio.calCurrentMonthDividend(this);
+	}
+
+	/**
+	 * 포트폴리오의 당월 예상 배당금 계산후 반환한다.
+	 * <p>
+	 * 당월 예상 배당금 = 각 종목들(holdings)의 해당월의 배당금 합계
+	 * </p>
+	 * @param holdings 포트폴리오 종목 리스트
+	 * @return 포트폴리오의 당월 예상 배당금 합계
+	 */
+	public Expression calCurrentMonthDividend(List<PortfolioHolding> holdings) {
+		return holdings.stream()
+			.map(PortfolioHolding::calculateCurrentMonthDividend)
+			.reduce(Money.zero(), Expression::plus);
+	}
 }
