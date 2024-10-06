@@ -233,7 +233,7 @@ public abstract class AbstractContainerBaseTest {
 	protected Portfolio createPortfolio(Member member, String name, Money budget, Money targetGain, Money maximumLoss) {
 		PortfolioDetail detail = PortfolioDetail.of(name, "토스증권", properties);
 		PortfolioFinancial financial = PortfolioFinancial.of(budget, targetGain, maximumLoss);
-		return Portfolio.active(
+		return Portfolio.allActive(
 			null,
 			detail,
 			financial,

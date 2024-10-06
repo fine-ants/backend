@@ -113,7 +113,7 @@ public abstract class RestDocsSupport {
 		Money maximumLoss = Money.won(900000L);
 		PortfolioFinancial financial = PortfolioFinancial.of(budget, targetGain, maximumLoss);
 
-		return Portfolio.active(1L, detail, financial, member);
+		return Portfolio.allActive(1L, detail, financial, member);
 	}
 
 	protected PortfolioHolding createPortfolioHolding(Portfolio portfolio, Stock stock) {

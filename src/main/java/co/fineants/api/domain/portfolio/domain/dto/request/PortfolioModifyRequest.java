@@ -37,7 +37,7 @@ public class PortfolioModifyRequest {
 		try {
 			PortfolioDetail detail = PortfolioDetail.of(name, securitiesFirm, properties);
 			PortfolioFinancial financial = PortfolioFinancial.of(budget, targetGain, maximumLoss);
-			return Portfolio.noActive(detail, financial, member);
+			return Portfolio.allInActive(detail, financial, member);
 		} catch (IllegalPortfolioArgumentException e) {
 			throw new BadRequestException(e.getErrorCode(), e);
 		}

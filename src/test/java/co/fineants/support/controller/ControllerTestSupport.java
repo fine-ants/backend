@@ -118,7 +118,7 @@ public abstract class ControllerTestSupport {
 		Money maximumLoss) {
 		PortfolioDetail detail = PortfolioDetail.of(name, "토스증권", properties);
 		PortfolioFinancial financial = PortfolioFinancial.of(budget, targetGain, maximumLoss);
-		return Portfolio.active(id, detail, financial, member);
+		return Portfolio.allActive(id, detail, financial, member);
 	}
 
 	protected PortfolioHolding createPortfolioHolding(Portfolio portfolio, Stock stock) {

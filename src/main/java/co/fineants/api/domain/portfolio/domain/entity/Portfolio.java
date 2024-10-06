@@ -112,7 +112,7 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	 * @param member 포트폴리오를 소유한 회원 객체
 	 * @return 포트폴리오 객체
 	 */
-	public static Portfolio active(Long id, PortfolioDetail detail, PortfolioFinancial financial, Member member) {
+	public static Portfolio allActive(Long id, PortfolioDetail detail, PortfolioFinancial financial, Member member) {
 		PortfolioNotificationPreference preference = PortfolioNotificationPreference.allActive();
 		Portfolio portfolio = new Portfolio(id, detail, financial, preference);
 		portfolio.setMember(member);
@@ -127,7 +127,7 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	 * @param member 포트폴리오를 소유한 회원 객체
 	 * @return 생성한 포트폴리오 객체
 	 */
-	public static Portfolio noActive(PortfolioDetail detail, PortfolioFinancial financial, Member member) {
+	public static Portfolio allInActive(PortfolioDetail detail, PortfolioFinancial financial, Member member) {
 		PortfolioNotificationPreference preference = PortfolioNotificationPreference.allInactive();
 		Portfolio portfolio = new Portfolio(null, detail, financial, preference);
 		portfolio.setMember(member);
