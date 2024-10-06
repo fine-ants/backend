@@ -61,8 +61,9 @@ public class DashboardService {
 		PortfolioCalculator calculator = new PortfolioCalculator();
 		for (Portfolio portfolio : portfolios) {
 			portfolio.applyCurrentPriceAllHoldingsBy(currentPriceRedisRepository);
-			totalValuation = totalValuation.plus(portfolio.calculateTotalAsset(calculator.calBalanceBy(portfolio)));
-			totalCurrentValuation = totalCurrentValuation.plus(portfolio.calculateTotalCurrentValuation());
+			Expression totalAsset = calculator.calTotalAssetBy(portfolio);
+			totalValuation = totalValuation.plus(totalAsset);
+			totalCurrentValuation = totalCurrentValuation.plus(calculator.calTotalCurrentValuationBy(portfolio));
 			totalInvestment = totalInvestment.plus(calculator.calTotalInvestmentBy(portfolio));
 			totalGain = totalGain.plus(calculator.calTotalGainBy(portfolio));
 			totalAnnualDividend = totalAnnualDividend.plus(portfolio.calculateAnnualDividend(localDateTimeService));
@@ -93,7 +94,8 @@ public class DashboardService {
 		for (Portfolio portfolio : portfolios) {
 			portfolio.applyCurrentPriceAllHoldingsBy(currentPriceRedisRepository);
 			Expression balance = calculator.calBalanceBy(portfolio);
-			totalValuation = totalValuation.plus(portfolio.calculateTotalAsset(balance));
+			totalValuation = totalValuation.plus(
+				portfolio.calculateTotalAsset(balance, calculator.calTotalCurrentValuationBy(portfolio)));
 		}
 		List<DashboardPieChartResponse> pieChartResponses = new ArrayList<>();
 		for (Portfolio portfolio : portfolios) {

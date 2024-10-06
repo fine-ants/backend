@@ -32,12 +32,14 @@ public class PortfolioDetailRealTimeItem {
 		Expression totalGain = calculator.calTotalGainBy(portfolio);
 		Expression totalGainRate = calculator.calTotalGainRateBy(portfolio);
 		Expression totalInvestment = calculator.calTotalInvestmentBy(portfolio);
+		Expression totalCurrentValuation = calculator.calTotalCurrentValuationBy(portfolio);
 		return new PortfolioDetailRealTimeItem(
-			portfolio.calculateTotalCurrentValuation().reduce(bank, Currency.KRW),
+			totalCurrentValuation.reduce(bank, Currency.KRW),
 			totalGain.reduce(bank, Currency.KRW),
 			totalGainRate.toPercentage(Bank.getInstance(), Currency.KRW),
-			portfolio.calculateDailyGain(history, totalInvestment).reduce(bank, Currency.KRW),
-			portfolio.calculateDailyGainRate(history, totalInvestment).toPercentage(Bank.getInstance(), Currency.KRW),
+			portfolio.calculateDailyGain(history, totalInvestment, totalCurrentValuation).reduce(bank, Currency.KRW),
+			portfolio.calculateDailyGainRate(history, totalInvestment, totalCurrentValuation)
+				.toPercentage(Bank.getInstance(), Currency.KRW),
 			Money.zero()
 		);
 	}

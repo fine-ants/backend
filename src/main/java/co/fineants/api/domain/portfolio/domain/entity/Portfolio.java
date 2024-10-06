@@ -172,13 +172,14 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	 * @param history 이전 포트폴리오 내역
 	 * @return 포트폴리오 당일 손익
 	 */
-	public Expression calculateDailyGain(PortfolioGainHistory history, Expression totalInvestment) {
+	public Expression calculateDailyGain(PortfolioGainHistory history, Expression totalInvestment,
+		Expression totalCurrentValuation) {
 		Expression previousCurrentValuation = history.getCurrentValuation();
 		Money won = Bank.getInstance().toWon(previousCurrentValuation);
 		if (won.isZero()) {
-			return calculateTotalCurrentValuation().minus(totalInvestment);
+			return totalCurrentValuation.minus(totalInvestment);
 		}
-		return calculateTotalCurrentValuation().minus(previousCurrentValuation);
+		return totalCurrentValuation.minus(previousCurrentValuation);
 	}
 
 	// 포트폴리오 평가 금액(현재 가치) = 모든 종목들의 평가금액 합계
@@ -190,14 +191,14 @@ public class Portfolio extends BaseEntity implements Notifiable {
 
 	// 포트폴리오 당일 손익율 = (당일 포트폴리오 가치 총합 - 이전 포트폴리오 가치 총합) / 이전 포트폴리오 가치 총합
 	// 단, 이전 포트폴리오가 없는 경우 ((당일 포트폴리오 가치 총합 - 당일 포트폴리오 총 투자 금액) / 당일 포트폴리오 총 투자 금액) * 100%
-	public RateDivision calculateDailyGainRate(PortfolioGainHistory prevHistory, Expression totalInvestment) {
+	public RateDivision calculateDailyGainRate(PortfolioGainHistory prevHistory, Expression totalInvestment,
+		Expression totalCurrentValuation) {
 		Money prevCurrentValuation = prevHistory.getCurrentValuation();
-		Expression currentValuation = calculateTotalCurrentValuation();
 		if (prevCurrentValuation.isZero()) {
-			return currentValuation.minus(totalInvestment)
+			return totalCurrentValuation.minus(totalInvestment)
 				.divide(totalInvestment);
 		}
-		return currentValuation.minus(prevCurrentValuation)
+		return totalCurrentValuation.minus(prevCurrentValuation)
 			.divide(prevCurrentValuation);
 	}
 
@@ -228,10 +229,10 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	}
 
 	// 총 연간배당율 = 모든 종목들의 연 배당금 합계 / 모든 종목들의 총 가치의 합계) * 100
-	public RateDivision calculateAnnualDividendYield(LocalDateTimeService dateTimeService) {
-		Expression currentValuation = calculateTotalCurrentValuation();
+	public RateDivision calculateAnnualDividendYield(LocalDateTimeService dateTimeService,
+		Expression totalCurrentValuation) {
 		Expression totalAnnualDividend = calculateAnnualDividend(dateTimeService);
-		return totalAnnualDividend.divide(currentValuation);
+		return totalAnnualDividend.divide(totalCurrentValuation);
 	}
 
 	// 최대손실율 = ((예산 - 최대손실금액) / 예산) * 100
@@ -248,12 +249,12 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	}
 
 	public PortfolioGainHistory createPortfolioGainHistory(PortfolioGainHistory history, Expression totalGainExpr,
-		Expression totalInvestment, Expression balance) {
+		Expression totalInvestment, Expression balance, Expression totalCurrentValuation) {
 		Bank bank = Bank.getInstance();
 		Money totalGain = bank.toWon(totalGainExpr);
-		Money dailyGain = bank.toWon(calculateDailyGain(history, totalInvestment));
+		Money dailyGain = bank.toWon(calculateDailyGain(history, totalInvestment, totalCurrentValuation));
 		Money cash = bank.toWon(balance);
-		Money currentValuation = bank.toWon(calculateTotalCurrentValuation());
+		Money currentValuation = bank.toWon(totalCurrentValuation);
 		return PortfolioGainHistory.create(totalGain, dailyGain, cash, currentValuation, this);
 	}
 
@@ -273,8 +274,8 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	}
 
 	// 총 자산 = 잔고 + 평가금액 합계
-	public Expression calculateTotalAsset(Expression balance) {
-		return balance.plus(calculateTotalCurrentValuation());
+	public Expression calculateTotalAsset(Expression balance, Expression totalCurrentValuation) {
+		return balance.plus(totalCurrentValuation);
 	}
 
 	// 목표수익금액 알림 변경
@@ -327,12 +328,14 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	}
 
 	// 파이 차트 생성
-	public List<PortfolioPieChartItem> createPieChart(Expression balance) {
+	public List<PortfolioPieChartItem> createPieChart(Expression balance, Expression totalCurrentValuation) {
+		Expression totalAsset = calculateTotalAsset(balance, totalCurrentValuation);
 		List<PortfolioPieChartItem> stocks = portfolioHoldings.stream()
-			.map(portfolioHolding -> portfolioHolding.createPieChartItem(calculateWeightBy(portfolioHolding, balance)))
+			.map(portfolioHolding -> portfolioHolding.createPieChartItem(
+				calculateWeightBy(portfolioHolding, totalAsset)))
 			.toList();
 		Bank bank = Bank.getInstance();
-		Percentage weight = calculateCashWeight(balance).toPercentage(bank, Currency.KRW);
+		Percentage weight = calculateCashWeight(balance, totalCurrentValuation).toPercentage(bank, Currency.KRW);
 		PortfolioPieChartItem cash = PortfolioPieChartItem.cash(weight, bank.toWon(balance));
 
 		List<PortfolioPieChartItem> result = new ArrayList<>(stocks);
@@ -347,18 +350,17 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	}
 
 	// 현금 비중 계산, 현금 비중 = 잔고 / 총자산
-	public RateDivision calculateCashWeight(Expression balance) {
-		Expression totalAsset = calculateTotalAsset(balance);
+	public RateDivision calculateCashWeight(Expression balance, Expression totalCurrentValuation) {
+		Expression totalAsset = calculateTotalAsset(balance, totalCurrentValuation);
 		return balance.divide(totalAsset);
 	}
 
 	// 포트폴리오 종목 비중 계산, 종목 비중 = 종목 평가 금액 / 총자산
-	private RateDivision calculateWeightBy(PortfolioHolding holding, Expression balance) {
-		return holding.calculateWeightBy(calculateTotalAsset(balance));
+	private RateDivision calculateWeightBy(PortfolioHolding holding, Expression totalAsset) {
+		return holding.calculateWeightBy(totalAsset);
 	}
 
-	private RateDivision calculateWeightBy(Money currentValuation, Expression balance) {
-		Expression totalAsset = calculateTotalAsset(balance);
+	private RateDivision calculateWeightBy(Money currentValuation, Expression totalAsset) {
 		return currentValuation.divide(totalAsset);
 	}
 
@@ -378,9 +380,9 @@ public class Portfolio extends BaseEntity implements Notifiable {
 			.toList();
 	}
 
-	public List<PortfolioSectorChartItem> createSectorChart(Expression balance) {
+	public List<PortfolioSectorChartItem> createSectorChart(Expression balance, Expression totalAsset) {
 		return calculateSectorCurrentValuationMap(balance).entrySet().stream()
-			.map(mappingSectorChartItem(balance))
+			.map(mappingSectorChartItem(totalAsset))
 			.sorted(PortfolioSectorChartItem::compareTo)
 			.toList();
 	}
@@ -395,11 +397,11 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	}
 
 	private Function<Map.Entry<String, List<Expression>>, PortfolioSectorChartItem> mappingSectorChartItem(
-		Expression balance) {
+		Expression totalAsset) {
 		return entry -> {
 			Expression currentValuation = entry.getValue().stream()
 				.reduce(Money.wonZero(), Expression::plus);
-			RateDivision weight = calculateWeightBy(Bank.getInstance().toWon(currentValuation), balance);
+			RateDivision weight = calculateWeightBy(Bank.getInstance().toWon(currentValuation), totalAsset);
 			Percentage weightPercentage = weight.toPercentage(Bank.getInstance(), Currency.KRW);
 			return PortfolioSectorChartItem.create(entry.getKey(), weightPercentage);
 		};
@@ -557,5 +559,15 @@ public class Portfolio extends BaseEntity implements Notifiable {
 		Expression budget = this.financial.getBudget();
 		Expression totalInvestment = calculator.calTotalInvestmentBy(this);
 		return calculator.calBalance(budget, totalInvestment);
+	}
+
+	public Expression calTotalCurrentValuation(PortfolioCalculator calculator) {
+		return calculator.calTotalCurrentValuation(Collections.unmodifiableList(portfolioHoldings));
+	}
+
+	public Expression calTotalAsset(PortfolioCalculator calculator) {
+		Expression balance = calculator.calBalanceBy(this);
+		Expression totalCurrentValuation = calculator.calTotalCurrentValuationBy(this);
+		return calculator.calTotalAsset(balance, totalCurrentValuation);
 	}
 }

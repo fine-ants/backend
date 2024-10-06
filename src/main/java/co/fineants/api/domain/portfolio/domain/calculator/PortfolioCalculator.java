@@ -67,7 +67,42 @@ public class PortfolioCalculator {
 		return portfolio.calBalance(this);
 	}
 
+	/**
+	 * 포트폴리오 잔고 계산
+	 * <p>
+	 * Balance = Budget - TotalInvestment
+	 * </p>
+	 * @param budget 예산
+	 * @param totalInvestment 총 투자 금액
+	 * @return 포트폴리오의 잔고
+	 */
 	public Expression calBalance(Expression budget, Expression totalInvestment) {
 		return budget.minus(totalInvestment);
+	}
+
+	public Expression calTotalCurrentValuationBy(Portfolio portfolio) {
+		return portfolio.calTotalCurrentValuation(this);
+	}
+
+	/**
+	 * 포트폴리오 평가 금액 계산
+	 * <p>
+	 * TotalCurrentValuation = 각 종목들(holdings)의 평가 금액 합계
+	 * </p>
+	 * @param holdings 포트폴리오에 등록된 종목 리스트
+	 * @return 포트폴리오 평가 금액
+	 */
+	public Expression calTotalCurrentValuation(List<PortfolioHolding> holdings) {
+		return holdings.stream()
+			.map(PortfolioHolding::calculateCurrentValuation)
+			.reduce(Money.zero(), Expression::plus);
+	}
+
+	public Expression calTotalAssetBy(Portfolio portfolio) {
+		return portfolio.calTotalAsset(this);
+	}
+
+	public Expression calTotalAsset(Expression balance, Expression totalCurrentValuation) {
+		return balance.plus(totalCurrentValuation);
 	}
 }

@@ -116,8 +116,9 @@ class PortfolioTest extends AbstractContainerBaseTest {
 
 		PortfolioCalculator calculator = new PortfolioCalculator();
 		Expression balance = calculator.calBalanceBy(portfolio);
+		Expression totalCurrentValuation = calculator.calTotalCurrentValuationBy(portfolio);
 		// when
-		List<PortfolioPieChartItem> items = portfolio.createPieChart(balance);
+		List<PortfolioPieChartItem> items = portfolio.createPieChart(balance, totalCurrentValuation);
 
 		// then
 		assertThat(items)
@@ -161,8 +162,10 @@ class PortfolioTest extends AbstractContainerBaseTest {
 
 		PortfolioCalculator calculator = new PortfolioCalculator();
 		Expression balance = calculator.calBalanceBy(portfolio);
+		Expression totalCurrentValuation = calculator.calTotalCurrentValuationBy(portfolio);
+		Expression totalAsset = calculator.calTotalAsset(balance, totalCurrentValuation);
 		// when
-		List<PortfolioSectorChartItem> items = portfolio.createSectorChart(balance);
+		List<PortfolioSectorChartItem> items = portfolio.createSectorChart(balance, totalAsset);
 
 		// then
 		assertThat(items)

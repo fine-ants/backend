@@ -52,6 +52,7 @@ public class PortfolioDetailResponse {
 		Expression totalGain = calculator.calTotalGainBy(portfolio);
 		Expression totalGainRate = calculator.calTotalGainRateBy(portfolio);
 		Expression totalInvestment = calculator.calTotalInvestmentBy(portfolio);
+		Expression totalCurrentValuation = calculator.calTotalCurrentValuationBy(portfolio);
 		return PortfolioDetailResponse.builder()
 			.id(portfolio.getId())
 			.securitiesFirm(portfolio.getSecuritiesFirm())
@@ -61,17 +62,19 @@ public class PortfolioDetailResponse {
 			.targetReturnRate(portfolio.calculateTargetReturnRate().toPercentage(Bank.getInstance(), to))
 			.maximumLoss(portfolio.getMaximumLoss())
 			.maximumLossRate(portfolio.calculateMaximumLossRate().toPercentage(Bank.getInstance(), to))
-			.currentValuation(portfolio.calculateTotalCurrentValuation().reduce(bank, to))
+			.currentValuation(totalCurrentValuation.reduce(bank, to))
 			.investedAmount(totalInvestment.reduce(bank, to))
 			.totalGain(totalGain.reduce(bank, to))
 			.totalGainRate(totalGainRate.toPercentage(Bank.getInstance(), to))
-			.dailyGain(portfolio.calculateDailyGain(history, totalInvestment).reduce(bank, to))
+			.dailyGain(portfolio.calculateDailyGain(history, totalInvestment, totalCurrentValuation).reduce(bank, to))
 			.dailyGainRate(
-				portfolio.calculateDailyGainRate(history, totalInvestment).toPercentage(Bank.getInstance(), to))
+				portfolio.calculateDailyGainRate(history, totalInvestment, totalCurrentValuation)
+					.toPercentage(Bank.getInstance(), to))
 			.balance(portfolio.calculateBalance(totalInvestment).reduce(bank, to))
 			.annualDividend(portfolio.calculateAnnualDividend(localDateTimeService).reduce(bank, to))
 			.annualDividendYield(
-				portfolio.calculateAnnualDividendYield(localDateTimeService).toPercentage(Bank.getInstance(), to))
+				portfolio.calculateAnnualDividendYield(localDateTimeService, totalCurrentValuation)
+					.toPercentage(Bank.getInstance(), to))
 			.annualInvestmentDividendYield(
 				portfolio.calculateAnnualInvestmentDividendYield(localDateTimeService, totalInvestment)
 					.toPercentage(Bank.getInstance(), to))

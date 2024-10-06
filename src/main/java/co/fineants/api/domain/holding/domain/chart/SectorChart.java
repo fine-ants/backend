@@ -20,6 +20,7 @@ public class SectorChart {
 		portfolio.applyCurrentPriceAllHoldingsBy(manager);
 		PortfolioCalculator calculator = new PortfolioCalculator();
 		Expression balance = calculator.calBalanceBy(portfolio);
-		return portfolio.createSectorChart(balance);
+		Expression totalAsset = calculator.calTotalAssetBy(portfolio);
+		return portfolio.createSectorChart(balance, totalAsset);
 	}
 }
