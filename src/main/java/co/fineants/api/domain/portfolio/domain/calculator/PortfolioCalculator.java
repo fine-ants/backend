@@ -174,6 +174,16 @@ public class PortfolioCalculator {
 		return portfolio.calAnnualDividend(dateTimeService, this);
 	}
 
+	/**
+	 * 포트폴리오의 총 연간 배당금 계산 후 반환한다.
+	 *
+	 * <p>
+	 * AnnualDividend = 각 종목들(holdings)의 연간 배당금 합계
+	 * </p>
+	 * @param dateTimeService 시간 서비스
+	 * @param holdings 포트폴리오의 종목 리스트
+	 * @return 포트폴리오의 총 연간 배당금
+	 */
 	public Expression calAnnualDividend(LocalDateTimeService dateTimeService, List<PortfolioHolding> holdings) {
 		return holdings.stream()
 			.map(portfolioHolding -> portfolioHolding.createMonthlyDividendMap(
@@ -197,5 +207,35 @@ public class PortfolioCalculator {
 		Expression totalAnnualDividend = calAnnualDividendBy(localDateTimeService, portfolio);
 		Expression totalCurrentValuation = calTotalCurrentValuationBy(portfolio);
 		return totalAnnualDividend.divide(totalCurrentValuation);
+	}
+
+	public Expression calAnnualInvestmentDividendYieldBy(LocalDateTimeService localDateTimeService,
+		Portfolio portfolio) {
+		return portfolio.calAnnualInvestmentDividendYield(localDateTimeService, this);
+	}
+
+	/**
+	 * 포트폴리오의 투자 대비 연간 배당율 계산 후 반환한다.
+	 * <p>
+	 * AnnualInvestmentDividendYield = AnnualDividend / TotalInvestment
+	 * </p>
+	 * @param annualDividend 포트폴리오 연간 배당금
+	 * @param totalInvestment 포트폴리오 총 투자 금액
+	 * @return 포트폴리오의 투자 대비 연간 배당율
+	 */
+	public Expression calAnnualInvestmentDividendYield(Expression annualDividend, Expression totalInvestment) {
+		return annualDividend.divide(totalInvestment);
+	}
+
+	/**
+	 * 포트폴리오의 최대손실율 계산 후 반환.
+	 * <p>
+	 * MaximumLossRate = ((Budget - MaximumLoss) / Budget)
+	 * </p>
+	 * @param portfolio 포트폴리오 객체
+	 * @return 포트폴리오의 최대손실율
+	 */
+	public Expression calMaximumLossRateBy(Portfolio portfolio) {
+		return portfolio.calculateMaximumLossRate();
 	}
 }

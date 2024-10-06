@@ -58,6 +58,8 @@ public class PortfolioDetailResponse {
 		Expression dailyGainRate = calculator.calDailyGainRateBy(history, portfolio);
 		Expression annualDividend = calculator.calAnnualDividendBy(localDateTimeService, portfolio);
 		Expression annualDividendYield = calculator.calAnnualDividendYieldBy(localDateTimeService, portfolio);
+		Expression annualInvestmentDividendYield = calculator.calAnnualInvestmentDividendYieldBy(localDateTimeService,
+			portfolio);
 		return PortfolioDetailResponse.builder()
 			.id(portfolio.getId())
 			.securitiesFirm(portfolio.getSecuritiesFirm())
@@ -76,9 +78,7 @@ public class PortfolioDetailResponse {
 			.balance(balance.reduce(bank, to))
 			.annualDividend(annualDividend.reduce(bank, to))
 			.annualDividendYield(annualDividendYield.toPercentage(Bank.getInstance(), to))
-			.annualInvestmentDividendYield(
-				portfolio.calculateAnnualInvestmentDividendYield(localDateTimeService, totalInvestment)
-					.toPercentage(Bank.getInstance(), to))
+			.annualInvestmentDividendYield(annualInvestmentDividendYield.toPercentage(Bank.getInstance(), to))
 			.provisionalLossBalance(Money.zero())
 			.targetGainNotify(portfolio.getTargetGainIsActive())
 			.maxLossNotify(portfolio.getMaximumLossIsActive())

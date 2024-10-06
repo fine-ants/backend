@@ -5,6 +5,7 @@ import java.util.List;
 import co.fineants.api.domain.common.money.Expression;
 import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.common.money.MoneyConverter;
+import co.fineants.api.domain.common.money.RateDivision;
 import co.fineants.api.global.errors.errorcode.PortfolioErrorCode;
 import co.fineants.api.global.errors.exception.portfolio.IllegalPortfolioFinancialArgumentException;
 import jakarta.persistence.Column;
@@ -90,6 +91,10 @@ public class PortfolioFinancial {
 
 	public Expression calBalance(Expression totalInvestment) {
 		return budget.minus(totalInvestment);
+	}
+
+	public RateDivision calMaximumLossRate() {
+		return budget.minus(maximumLoss).divide(budget);
 	}
 
 	@Override

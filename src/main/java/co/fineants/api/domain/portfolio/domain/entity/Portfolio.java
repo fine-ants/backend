@@ -164,32 +164,9 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	public boolean hasAuthorization(Long memberId) {
 		return member.hasAuthorization(memberId);
 	}
-	
+
 	public Count getNumberOfShares() {
 		return Count.from(portfolioHoldings.size());
-	}
-
-	// 총 연간 배당금 = 각 종목들의 연배당금의 합계
-	public Expression calculateAnnualDividend(LocalDateTimeService dateTimeService) {
-		return portfolioHoldings.stream()
-			.map(portfolioHolding -> portfolioHolding.createMonthlyDividendMap(
-				dateTimeService.getLocalDateWithNow()))
-			.map(map -> map.values().stream()
-				.reduce(Money.zero(), Expression::plus))
-			.reduce(Money.zero(), Expression::plus);
-	}
-
-	// 최대손실율 = ((예산 - 최대손실금액) / 예산) * 100
-	public RateDivision calculateMaximumLossRate() {
-		return this.financial.getBudget().minus(this.financial.getMaximumLoss())
-			.divide(this.financial.getBudget());
-	}
-
-	// 투자대비 연간 배당율 = 포트폴리오 총 연배당금 / 포트폴리오 투자금액 * 100
-	public RateDivision calculateAnnualInvestmentDividendYield(LocalDateTimeService dateTimeService,
-		Expression totalInvestment) {
-		Expression dividend = calculateAnnualDividend(dateTimeService);
-		return dividend.divide(totalInvestment);
 	}
 
 	public PortfolioGainHistory createPortfolioGainHistory(PortfolioGainHistory history,
@@ -516,5 +493,16 @@ public class Portfolio extends BaseEntity implements Notifiable {
 
 	public Expression calAnnualDividend(LocalDateTimeService dateTimeService, PortfolioCalculator calculator) {
 		return calculator.calAnnualDividend(dateTimeService, Collections.unmodifiableList(portfolioHoldings));
+	}
+
+	public Expression calAnnualInvestmentDividendYield(LocalDateTimeService localDateTimeService,
+		PortfolioCalculator calculator) {
+		Expression annualDividend = calculator.calAnnualDividend(localDateTimeService, portfolioHoldings);
+		Expression totalInvestment = calculator.calTotalInvestment(portfolioHoldings);
+		return calculator.calAnnualInvestmentDividendYield(annualDividend, totalInvestment);
+	}
+
+	public RateDivision calculateMaximumLossRate() {
+		return this.financial.calMaximumLossRate();
 	}
 }
