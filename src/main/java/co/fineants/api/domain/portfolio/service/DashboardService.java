@@ -22,6 +22,7 @@ import co.fineants.api.domain.gainhistory.repository.PortfolioGainHistoryReposit
 import co.fineants.api.domain.kis.repository.CurrentPriceRedisRepository;
 import co.fineants.api.domain.member.domain.entity.Member;
 import co.fineants.api.domain.member.repository.MemberRepository;
+import co.fineants.api.domain.portfolio.domain.calculator.PortfolioCalculator;
 import co.fineants.api.domain.portfolio.domain.dto.response.DashboardLineChartResponse;
 import co.fineants.api.domain.portfolio.domain.dto.response.DashboardPieChartResponse;
 import co.fineants.api.domain.portfolio.domain.dto.response.OverviewResponse;
@@ -57,12 +58,13 @@ public class DashboardService {
 		if (portfolios.isEmpty()) {
 			return OverviewResponse.empty(member.getNickname());
 		}
+		PortfolioCalculator calculator = new PortfolioCalculator();
 		for (Portfolio portfolio : portfolios) {
 			portfolio.applyCurrentPriceAllHoldingsBy(currentPriceRedisRepository);
 			totalValuation = totalValuation.plus(portfolio.calculateTotalAsset());
 			totalCurrentValuation = totalCurrentValuation.plus(portfolio.calculateTotalCurrentValuation());
 			totalInvestment = totalInvestment.plus(portfolio.calculateTotalInvestmentAmount());
-			totalGain = totalGain.plus(portfolio.calculateTotalGain());
+			totalGain = totalGain.plus(calculator.calTotalGainBy(portfolio));
 			totalAnnualDividend = totalAnnualDividend.plus(portfolio.calculateAnnualDividend(localDateTimeService));
 		}
 		RateDivision totalAnnualDividendYield = totalAnnualDividend.divide(totalCurrentValuation);

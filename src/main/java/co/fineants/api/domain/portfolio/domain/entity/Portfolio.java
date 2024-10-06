@@ -170,20 +170,8 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	 * 포트폴리오 총 손익 / 포트폴리오 총 투자 금액 * 100
 	 * @return 포트폴리오 총 손익율의 백분율
 	 */
-	public RateDivision calculateTotalGainRate() {
-		Expression amount = calculateTotalInvestmentAmount();
-		return calculateTotalGain().divide(amount);
-	}
-
-	/**
-	 * 포트폴리오 총 손익
-	 * 모든 종목(PortfolioHolding)의 총 손익 합
-	 * @return 포트폴리오 총 손익
-	 */
-	public Expression calculateTotalGain() {
-		return portfolioHoldings.stream()
-			.map(PortfolioHolding::calculateTotalGain)
-			.reduce(Money.wonZero(), Expression::plus);
+	public RateDivision calculateTotalGainRate(Expression totalGain, Expression totalInvestment) {
+		return totalGain.divide(totalInvestment);
 	}
 
 	/**
@@ -280,9 +268,9 @@ public class Portfolio extends BaseEntity implements Notifiable {
 		return dividend.divide(amount);
 	}
 
-	public PortfolioGainHistory createPortfolioGainHistory(PortfolioGainHistory history) {
+	public PortfolioGainHistory createPortfolioGainHistory(PortfolioGainHistory history, Expression totalGainExpr) {
 		Bank bank = Bank.getInstance();
-		Money totalGain = bank.toWon(calculateTotalGain());
+		Money totalGain = bank.toWon(totalGainExpr);
 		Money dailyGain = bank.toWon(calculateDailyGain(history));
 		Money cash = bank.toWon(calculateBalance());
 		Money currentValuation = bank.toWon(calculateTotalCurrentValuation());
@@ -351,9 +339,8 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	}
 
 	// 포트폴리오가 최대손실금액에 도달했는지 검사 (예산 + 총손익이 최대손실금액보다 작은 경우)
-	public boolean reachedMaximumLoss() {
+	public boolean reachedMaximumLoss(Expression totalGain) {
 		Bank bank = Bank.getInstance();
-		Expression totalGain = calculateTotalGain();
 		log.debug("reachedTargetGain totalGain={}", totalGain);
 		Money amount = bank.toWon(this.financial.getBudget().plus(totalGain));
 		return amount.compareTo(bank.toWon(this.financial.getMaximumLoss())) <= 0;
@@ -576,5 +563,9 @@ public class Portfolio extends BaseEntity implements Notifiable {
 
 	public Expression calTotalGain(PortfolioCalculator calculator) {
 		return calculator.calTotalGain(Collections.unmodifiableList(portfolioHoldings));
+	}
+
+	public Expression calTotalInvestment(PortfolioCalculator calculator) {
+		return calculator.calTotalInvestment(Collections.unmodifiableList(portfolioHoldings));
 	}
 }

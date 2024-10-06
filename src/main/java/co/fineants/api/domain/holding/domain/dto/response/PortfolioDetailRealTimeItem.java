@@ -2,9 +2,11 @@ package co.fineants.api.domain.holding.domain.dto.response;
 
 import co.fineants.api.domain.common.money.Bank;
 import co.fineants.api.domain.common.money.Currency;
+import co.fineants.api.domain.common.money.Expression;
 import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.common.money.Percentage;
 import co.fineants.api.domain.gainhistory.domain.entity.PortfolioGainHistory;
+import co.fineants.api.domain.portfolio.domain.calculator.PortfolioCalculator;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -26,10 +28,13 @@ public class PortfolioDetailRealTimeItem {
 
 	public static PortfolioDetailRealTimeItem of(Portfolio portfolio, PortfolioGainHistory history) {
 		Bank bank = Bank.getInstance();
+		PortfolioCalculator calculator = new PortfolioCalculator();
+		Expression totalGain = calculator.calTotalGainBy(portfolio);
+		Expression totalInvestment = calculator.calTotalInvestmentBy(portfolio);
 		return new PortfolioDetailRealTimeItem(
 			portfolio.calculateTotalCurrentValuation().reduce(bank, Currency.KRW),
-			portfolio.calculateTotalGain().reduce(bank, Currency.KRW),
-			portfolio.calculateTotalGainRate().toPercentage(Bank.getInstance(), Currency.KRW),
+			totalGain.reduce(bank, Currency.KRW),
+			portfolio.calculateTotalGainRate(totalGain, totalInvestment).toPercentage(Bank.getInstance(), Currency.KRW),
 			portfolio.calculateDailyGain(history).reduce(bank, Currency.KRW),
 			portfolio.calculateDailyGainRate(history).toPercentage(Bank.getInstance(), Currency.KRW),
 			Money.zero()

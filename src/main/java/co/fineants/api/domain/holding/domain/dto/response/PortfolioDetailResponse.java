@@ -2,9 +2,11 @@ package co.fineants.api.domain.holding.domain.dto.response;
 
 import co.fineants.api.domain.common.money.Bank;
 import co.fineants.api.domain.common.money.Currency;
+import co.fineants.api.domain.common.money.Expression;
 import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.common.money.Percentage;
 import co.fineants.api.domain.gainhistory.domain.entity.PortfolioGainHistory;
+import co.fineants.api.domain.portfolio.domain.calculator.PortfolioCalculator;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import co.fineants.api.global.common.time.LocalDateTimeService;
 import lombok.AccessLevel;
@@ -46,6 +48,9 @@ public class PortfolioDetailResponse {
 		LocalDateTimeService localDateTimeService) {
 		Bank bank = Bank.getInstance();
 		Currency to = Currency.KRW;
+		PortfolioCalculator calculator = new PortfolioCalculator();
+		Expression totalGain = calculator.calTotalGainBy(portfolio);
+		Expression totalInvestment = calculator.calTotalInvestmentBy(portfolio);
 		return PortfolioDetailResponse.builder()
 			.id(portfolio.getId())
 			.securitiesFirm(portfolio.getSecuritiesFirm())
@@ -57,8 +62,9 @@ public class PortfolioDetailResponse {
 			.maximumLossRate(portfolio.calculateMaximumLossRate().toPercentage(Bank.getInstance(), to))
 			.currentValuation(portfolio.calculateTotalCurrentValuation().reduce(bank, to))
 			.investedAmount(portfolio.calculateTotalInvestmentAmount().reduce(bank, to))
-			.totalGain(portfolio.calculateTotalGain().reduce(bank, to))
-			.totalGainRate(portfolio.calculateTotalGainRate().toPercentage(Bank.getInstance(), to))
+			.totalGain(totalGain.reduce(bank, to))
+			.totalGainRate(
+				portfolio.calculateTotalGainRate(totalGain, totalInvestment).toPercentage(Bank.getInstance(), to))
 			.dailyGain(portfolio.calculateDailyGain(history).reduce(bank, to))
 			.dailyGainRate(portfolio.calculateDailyGainRate(history).toPercentage(Bank.getInstance(), to))
 			.balance(portfolio.calculateBalance().reduce(bank, to))

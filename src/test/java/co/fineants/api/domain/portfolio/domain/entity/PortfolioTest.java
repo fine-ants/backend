@@ -12,7 +12,6 @@ import org.junit.jupiter.api.Test;
 
 import co.fineants.AbstractContainerBaseTest;
 import co.fineants.api.domain.common.count.Count;
-import co.fineants.api.domain.common.money.Bank;
 import co.fineants.api.domain.common.money.Expression;
 import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.common.money.RateDivision;
@@ -20,6 +19,7 @@ import co.fineants.api.domain.holding.domain.dto.response.PortfolioPieChartItem;
 import co.fineants.api.domain.holding.domain.dto.response.PortfolioSectorChartItem;
 import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
 import co.fineants.api.domain.member.domain.entity.Member;
+import co.fineants.api.domain.portfolio.domain.calculator.PortfolioCalculator;
 import co.fineants.api.domain.purchasehistory.domain.entity.PurchaseHistory;
 import co.fineants.api.domain.stock.domain.entity.Stock;
 
@@ -46,13 +46,12 @@ class PortfolioTest extends AbstractContainerBaseTest {
 		portFolioHolding.addPurchaseHistory(purchaseHistory2);
 
 		portfolio.addHolding(portFolioHolding);
-
+		PortfolioCalculator calculator = new PortfolioCalculator();
 		// when
-		Expression result = portfolio.calculateTotalGain();
+		Expression result = calculator.calTotalGainBy(portfolio);
 
 		// then
-		Money amount = Bank.getInstance().toWon(result);
-		assertThat(amount).isEqualByComparingTo(Money.won(100000L));
+		assertThat(result).isEqualByComparingTo(Money.won(100000L));
 	}
 
 	@DisplayName("포트폴리오의 총 손익율 계산한다")
@@ -77,8 +76,11 @@ class PortfolioTest extends AbstractContainerBaseTest {
 
 		portfolio.addHolding(portFolioHolding);
 
+		PortfolioCalculator calculator = new PortfolioCalculator();
+		Expression totalGain = calculator.calTotalGainBy(portfolio);
+		Expression totalInvestment = calculator.calTotalInvestmentBy(portfolio);
 		// when
-		RateDivision result = portfolio.calculateTotalGainRate();
+		RateDivision result = portfolio.calculateTotalGainRate(totalGain, totalInvestment);
 
 		// then
 		Money totalGainAmount = Money.won(100000);
