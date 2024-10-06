@@ -3,6 +3,8 @@ package co.fineants.api.domain.portfolio.domain.entity;
 import java.util.regex.Pattern;
 
 import co.fineants.api.domain.portfolio.properties.PortfolioProperties;
+import co.fineants.api.global.errors.errorcode.PortfolioErrorCode;
+import co.fineants.api.global.errors.exception.portfolio.IllegalPortfolioDetailArgumentException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
@@ -27,10 +29,12 @@ public class PortfolioDetail {
 
 	private PortfolioDetail(String name, String securitiesFirm, PortfolioProperties properties) {
 		if (name == null || !NAME_PATTERN.matcher(name).matches()) {
-			throw new IllegalArgumentException("Invalid Portfolio name: " + name);
+			String message = String.format("Invalid Portfolio name: %s", name);
+			throw new IllegalPortfolioDetailArgumentException(message, PortfolioErrorCode.INVALID_PORTFOLIO_NAME);
 		}
 		if (!properties.contains(securitiesFirm)) {
-			throw new IllegalArgumentException("Unlisted securitiesFirm: " + securitiesFirm);
+			String message = String.format("Unlisted securitiesFirm: %s", securitiesFirm);
+			throw new IllegalPortfolioDetailArgumentException(message, PortfolioErrorCode.UNLISTED_SECURITIES_FIRM);
 		}
 		this.name = name;
 		this.securitiesFirm = securitiesFirm;
@@ -43,7 +47,7 @@ public class PortfolioDetail {
 	 * @param securitiesFirm 증권사 이름
 	 * @param properties 증권사 목록이 담긴 포트폴리오 프로퍼티
 	 * @return 포트폴리오 상세 정보 객체
-	 * @throws IllegalArgumentException 포트폴리오 이름이 형식에 유효하지 않거나 증권사 이름이 목록에 포함되지 않으면 예외 발생한다
+	 * @throws IllegalPortfolioDetailArgumentException 포트폴리오 이름이 형식에 유효하지 않거나 증권사 이름이 목록에 포함되지 않으면 예외 발생한다
 	 */
 	public static PortfolioDetail of(String name, String securitiesFirm, PortfolioProperties properties) {
 		return new PortfolioDetail(name, securitiesFirm, properties);
