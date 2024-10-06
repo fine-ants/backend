@@ -490,9 +490,9 @@ public class Portfolio extends BaseEntity implements Notifiable {
 		return !this.financial.getMaximumLoss().isZero();
 	}
 
-	public boolean isExceedBudgetByPurchasedAmount(Expression amount) {
+	public boolean isExceedBudgetByPurchasedAmount(Expression amount, Expression totalInvestment) {
 		Bank bank = Bank.getInstance();
-		Expression investAmount = calculateTotalInvestmentAmount().plus(amount);
+		Expression investAmount = totalInvestment.plus(amount);
 		return this.financial.getBudget().compareTo(bank.toWon(investAmount)) < 0;
 	}
 

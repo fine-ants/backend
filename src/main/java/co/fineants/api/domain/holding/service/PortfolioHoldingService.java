@@ -33,6 +33,7 @@ import co.fineants.api.domain.holding.domain.factory.PortfolioDetailFactory;
 import co.fineants.api.domain.holding.domain.factory.PortfolioHoldingDetailFactory;
 import co.fineants.api.domain.holding.event.publisher.PortfolioHoldingEventPublisher;
 import co.fineants.api.domain.holding.repository.PortfolioHoldingRepository;
+import co.fineants.api.domain.portfolio.domain.calculator.PortfolioCalculator;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import co.fineants.api.domain.portfolio.repository.PortfolioRepository;
 import co.fineants.api.domain.portfolio.service.PortfolioCacheService;
@@ -145,7 +146,9 @@ public class PortfolioHoldingService {
 	private void validateInvestAmountNotExceedsBudget(PortfolioHoldingCreateRequest request, Portfolio portfolio) {
 		Expression purchasedAmount = request.getPurchaseHistory().getNumShares()
 			.multiply(request.getPurchaseHistory().getPurchasePricePerShare());
-		if (portfolio.isExceedBudgetByPurchasedAmount(purchasedAmount)) {
+		PortfolioCalculator calculator = new PortfolioCalculator();
+		Expression portfolioTotalInvestment = calculator.calTotalInvestmentBy(portfolio);
+		if (portfolio.isExceedBudgetByPurchasedAmount(purchasedAmount, portfolioTotalInvestment)) {
 			throw new FineAntsException(PortfolioErrorCode.TOTAL_INVESTMENT_PRICE_EXCEEDS_BUDGET);
 		}
 	}
