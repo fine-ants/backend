@@ -14,7 +14,6 @@ import co.fineants.AbstractContainerBaseTest;
 import co.fineants.api.domain.common.count.Count;
 import co.fineants.api.domain.common.money.Expression;
 import co.fineants.api.domain.common.money.Money;
-import co.fineants.api.domain.common.money.RateDivision;
 import co.fineants.api.domain.holding.domain.dto.response.PortfolioPieChartItem;
 import co.fineants.api.domain.holding.domain.dto.response.PortfolioSectorChartItem;
 import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
@@ -77,15 +76,13 @@ class PortfolioTest extends AbstractContainerBaseTest {
 		portfolio.addHolding(portFolioHolding);
 
 		PortfolioCalculator calculator = new PortfolioCalculator();
-		Expression totalGain = calculator.calTotalGainBy(portfolio);
-		Expression totalInvestment = calculator.calTotalInvestmentBy(portfolio);
 		// when
-		RateDivision result = portfolio.calculateTotalGainRate(totalGain, totalInvestment);
+		Expression result = calculator.calTotalGainRateBy(portfolio);
 
 		// then
 		Money totalGainAmount = Money.won(100000);
 		Money totalInvestmentAmount = Money.won(100000);
-		RateDivision expected = totalGainAmount.divide(totalInvestmentAmount);
+		Expression expected = totalGainAmount.divide(totalInvestmentAmount);
 		assertThat(result).isEqualByComparingTo(expected);
 	}
 

@@ -50,7 +50,7 @@ public class PortfolioDetailResponse {
 		Currency to = Currency.KRW;
 		PortfolioCalculator calculator = new PortfolioCalculator();
 		Expression totalGain = calculator.calTotalGainBy(portfolio);
-		Expression totalInvestment = calculator.calTotalInvestmentBy(portfolio);
+		Expression totalGainRate = calculator.calTotalGainRateBy(portfolio);
 		return PortfolioDetailResponse.builder()
 			.id(portfolio.getId())
 			.securitiesFirm(portfolio.getSecuritiesFirm())
@@ -63,8 +63,7 @@ public class PortfolioDetailResponse {
 			.currentValuation(portfolio.calculateTotalCurrentValuation().reduce(bank, to))
 			.investedAmount(portfolio.calculateTotalInvestmentAmount().reduce(bank, to))
 			.totalGain(totalGain.reduce(bank, to))
-			.totalGainRate(
-				portfolio.calculateTotalGainRate(totalGain, totalInvestment).toPercentage(Bank.getInstance(), to))
+			.totalGainRate(totalGainRate.toPercentage(Bank.getInstance(), to))
 			.dailyGain(portfolio.calculateDailyGain(history).reduce(bank, to))
 			.dailyGainRate(portfolio.calculateDailyGainRate(history).toPercentage(Bank.getInstance(), to))
 			.balance(portfolio.calculateBalance().reduce(bank, to))

@@ -30,11 +30,11 @@ public class PortfolioDetailRealTimeItem {
 		Bank bank = Bank.getInstance();
 		PortfolioCalculator calculator = new PortfolioCalculator();
 		Expression totalGain = calculator.calTotalGainBy(portfolio);
-		Expression totalInvestment = calculator.calTotalInvestmentBy(portfolio);
+		Expression totalGainRate = calculator.calTotalGainRateBy(portfolio);
 		return new PortfolioDetailRealTimeItem(
 			portfolio.calculateTotalCurrentValuation().reduce(bank, Currency.KRW),
 			totalGain.reduce(bank, Currency.KRW),
-			portfolio.calculateTotalGainRate(totalGain, totalInvestment).toPercentage(Bank.getInstance(), Currency.KRW),
+			totalGainRate.toPercentage(Bank.getInstance(), Currency.KRW),
 			portfolio.calculateDailyGain(history).reduce(bank, Currency.KRW),
 			portfolio.calculateDailyGainRate(history).toPercentage(Bank.getInstance(), Currency.KRW),
 			Money.zero()

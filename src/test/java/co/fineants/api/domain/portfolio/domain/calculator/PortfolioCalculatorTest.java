@@ -10,6 +10,7 @@ import co.fineants.AbstractContainerBaseTest;
 import co.fineants.api.domain.common.count.Count;
 import co.fineants.api.domain.common.money.Expression;
 import co.fineants.api.domain.common.money.Money;
+import co.fineants.api.domain.common.money.RateDivision;
 import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import co.fineants.api.domain.purchasehistory.domain.entity.PurchaseHistory;
@@ -37,4 +38,45 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 			.isEqualByComparingTo(Money.won(30000L));
 	}
 
+	@DisplayName("포트폴리오 총 투자금액을 계산한다")
+	@Test
+	void calTotalInvestmentBy() {
+		// given
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createSamsungStock();
+		PortfolioHolding holding = createPortfolioHolding(portfolio, stock, 50000L);
+		PurchaseHistory history = createPurchaseHistory(null, LocalDateTime.now(), Count.from(3), Money.won(40000L),
+			"메모", holding);
+		holding.addPurchaseHistory(history);
+		portfolio.addHolding(holding);
+
+		PortfolioCalculator calculator = new PortfolioCalculator();
+		// when
+		Expression result = calculator.calTotalInvestmentBy(portfolio);
+		// then
+		Assertions.assertThat(result)
+			.isEqualByComparingTo(Money.won(120_000L));
+	}
+
+	@DisplayName("포트폴리오 총 손익율을 계산한다")
+	@Test
+	void calTotalGainRateBy() {
+		// given
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createSamsungStock();
+		PortfolioHolding holding = createPortfolioHolding(portfolio, stock, 50000L);
+		PurchaseHistory history = createPurchaseHistory(null, LocalDateTime.now(), Count.from(3), Money.won(40000L),
+			"메모", holding);
+		holding.addPurchaseHistory(history);
+		portfolio.addHolding(holding);
+
+		PortfolioCalculator calculator = new PortfolioCalculator();
+		// when
+		Expression result = calculator.calTotalGainRateBy(portfolio);
+		// then
+		Expression totalGain = Money.won(30_000L);
+		Expression totalInvestment = Money.won(120_000L);
+		RateDivision expected = RateDivision.of(totalGain, totalInvestment);
+		Assertions.assertThat(result).isEqualByComparingTo(expected);
+	}
 }

@@ -118,7 +118,7 @@ class DashboardRestControllerDocsTest extends RestDocsSupport {
 		Expression valuation = portfolio.calculateTotalAsset();
 		PortfolioCalculator calculator = new PortfolioCalculator();
 		Expression totalGain = calculator.calTotalGainBy(portfolio);
-		Expression totalInvestment = calculator.calTotalInvestmentBy(portfolio);
+		Expression totalGainRate = calculator.calTotalGainRateBy(portfolio);
 		given(service.getPieChart(anyLong()))
 			.willReturn(List.of(
 				DashboardPieChartResponse.create(
@@ -128,9 +128,7 @@ class DashboardRestControllerDocsTest extends RestDocsSupport {
 					portfolio.calculateTotalAsset()
 						.divide(valuation)
 						.toPercentage(Bank.getInstance(), Currency.KRW),
-					totalGain,
-					portfolio.calculateTotalGainRate(totalGain, totalInvestment)
-						.toPercentage(Bank.getInstance(), Currency.KRW)
+					totalGain, totalGainRate.toPercentage(Bank.getInstance(), Currency.KRW)
 				)
 			));
 

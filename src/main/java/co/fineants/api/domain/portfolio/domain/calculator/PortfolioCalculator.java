@@ -28,6 +28,24 @@ public class PortfolioCalculator {
 			.reduce(Money.zero(), Expression::plus);
 	}
 
+	public Expression calTotalGainRateBy(Portfolio portfolio) {
+		return portfolio.calTotalGainRate(this);
+	}
+
+	/**
+	 * 포트폴리오 총 손익율(TotalGainRate) 계산.
+	 * <p>
+	 * TotalGainRate = (TotalGain / TotalInvestment)
+	 * </p>
+	 * @param holdings 포트폴리오 종목 리스트
+	 * @return 포트폴리오 총 손익율(TotalGainRate)
+	 */
+	public Expression calTotalGainRate(List<PortfolioHolding> holdings) {
+		Expression totalGain = calTotalGain(holdings);
+		Expression totalInvestment = calTotalInvestment(holdings);
+		return totalGain.divide(totalInvestment);
+	}
+
 	public Expression calTotalInvestmentBy(Portfolio portfolio) {
 		return portfolio.calTotalInvestment(this);
 	}

@@ -166,15 +166,6 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	}
 
 	/**
-	 * 포트폴리오 총 손익율
-	 * 포트폴리오 총 손익 / 포트폴리오 총 투자 금액 * 100
-	 * @return 포트폴리오 총 손익율의 백분율
-	 */
-	public RateDivision calculateTotalGainRate(Expression totalGain, Expression totalInvestment) {
-		return totalGain.divide(totalInvestment);
-	}
-
-	/**
 	 * 포트폴리오 총 투자 금액
 	 * 각 종목들의 총 투자 금액 합계
 	 * @return 포트폴리오 총 투자 금액
@@ -567,5 +558,9 @@ public class Portfolio extends BaseEntity implements Notifiable {
 
 	public Expression calTotalInvestment(PortfolioCalculator calculator) {
 		return calculator.calTotalInvestment(Collections.unmodifiableList(portfolioHoldings));
+	}
+
+	public Expression calTotalGainRate(PortfolioCalculator calculator) {
+		return calculator.calTotalGainRate(Collections.unmodifiableList(portfolioHoldings));
 	}
 }

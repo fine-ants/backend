@@ -42,16 +42,14 @@ public class PortFolioItem {
 		Currency to = Currency.KRW;
 		PortfolioCalculator calculator = new PortfolioCalculator();
 		Expression totalGain = calculator.calTotalGainBy(portfolio);
-		Expression totalInvestment = calculator.calTotalInvestmentBy(portfolio);
+		Expression totalGainRate = calculator.calTotalGainRateBy(portfolio);
 		return PortFolioItem.builder()
 			.id(portfolio.getId())
 			.securitiesFirm(portfolio.getSecuritiesFirm())
 			.name(portfolio.getName())
 			.budget(portfolio.getBudget())
 			.totalGain(totalGain.reduce(bank, to))
-			.totalGainRate(
-				portfolio.calculateTotalGainRate(totalGain, totalInvestment)
-					.toPercentage(Bank.getInstance(), Currency.KRW))
+			.totalGainRate(totalGainRate.toPercentage(Bank.getInstance(), Currency.KRW))
 			.dailyGain(portfolio.calculateDailyGain(prevHistory).reduce(bank, to))
 			.dailyGainRate(portfolio.calculateDailyGainRate(prevHistory).toPercentage(Bank.getInstance(), Currency.KRW))
 			.currentValuation(portfolio.calculateTotalCurrentValuation().reduce(bank, to))
