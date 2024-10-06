@@ -116,16 +116,11 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	 * 알림 설정이 전부 비활성화된 포트폴리오 객체를 생성하여 반환한다.
 	 *
 	 * @param detail 포트폴리오 상세 정보 객체
-	 * @param budget 예산
-	 * @param targetGain 목표수익금액
-	 * @param maximumLoss 최대손실금액
+	 * @param financial 포트폴리오 금융 정보 객체
 	 * @param member 포트폴리오를 소유한 회원 객체
 	 * @return 생성한 포트폴리오 객체
-	 * @throws co.fineants.api.global.errors.exception.portfolio.IllegalPortfolioFinancialArgumentException 유효하지 않은 금융 정보(budget, targetGain, maximumLoss) 전달시 예외 발생
 	 */
-	public static Portfolio noActive(PortfolioDetail detail, Money budget, Money targetGain, Money maximumLoss,
-		Member member) {
-		PortfolioFinancial financial = PortfolioFinancial.of(budget, targetGain, maximumLoss);
+	public static Portfolio noActive(PortfolioDetail detail, PortfolioFinancial financial, Member member) {
 		Portfolio portfolio = new Portfolio(null, detail, financial, false, false);
 		portfolio.setMember(member);
 		return portfolio;
