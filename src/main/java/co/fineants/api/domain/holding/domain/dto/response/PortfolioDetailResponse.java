@@ -51,6 +51,7 @@ public class PortfolioDetailResponse {
 		PortfolioCalculator calculator = new PortfolioCalculator();
 		Expression totalGain = calculator.calTotalGainBy(portfolio);
 		Expression totalGainRate = calculator.calTotalGainRateBy(portfolio);
+		Expression totalInvestment = calculator.calTotalInvestmentBy(portfolio);
 		return PortfolioDetailResponse.builder()
 			.id(portfolio.getId())
 			.securitiesFirm(portfolio.getSecuritiesFirm())
@@ -61,11 +62,12 @@ public class PortfolioDetailResponse {
 			.maximumLoss(portfolio.getMaximumLoss())
 			.maximumLossRate(portfolio.calculateMaximumLossRate().toPercentage(Bank.getInstance(), to))
 			.currentValuation(portfolio.calculateTotalCurrentValuation().reduce(bank, to))
-			.investedAmount(portfolio.calculateTotalInvestmentAmount().reduce(bank, to))
+			.investedAmount(totalInvestment.reduce(bank, to))
 			.totalGain(totalGain.reduce(bank, to))
 			.totalGainRate(totalGainRate.toPercentage(Bank.getInstance(), to))
-			.dailyGain(portfolio.calculateDailyGain(history).reduce(bank, to))
-			.dailyGainRate(portfolio.calculateDailyGainRate(history).toPercentage(Bank.getInstance(), to))
+			.dailyGain(portfolio.calculateDailyGain(history, totalInvestment).reduce(bank, to))
+			.dailyGainRate(
+				portfolio.calculateDailyGainRate(history, totalInvestment).toPercentage(Bank.getInstance(), to))
 			.balance(portfolio.calculateBalance().reduce(bank, to))
 			.annualDividend(portfolio.calculateAnnualDividend(localDateTimeService).reduce(bank, to))
 			.annualDividendYield(

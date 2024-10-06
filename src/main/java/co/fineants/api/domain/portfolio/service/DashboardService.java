@@ -63,7 +63,7 @@ public class DashboardService {
 			portfolio.applyCurrentPriceAllHoldingsBy(currentPriceRedisRepository);
 			totalValuation = totalValuation.plus(portfolio.calculateTotalAsset());
 			totalCurrentValuation = totalCurrentValuation.plus(portfolio.calculateTotalCurrentValuation());
-			totalInvestment = totalInvestment.plus(portfolio.calculateTotalInvestmentAmount());
+			totalInvestment = totalInvestment.plus(calculator.calTotalInvestmentBy(portfolio));
 			totalGain = totalGain.plus(calculator.calTotalGainBy(portfolio));
 			totalAnnualDividend = totalAnnualDividend.plus(portfolio.calculateAnnualDividend(localDateTimeService));
 		}

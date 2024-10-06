@@ -43,7 +43,9 @@ public class PortfolioGainHistoryService {
 					.findFirst()
 					.orElseGet(() -> PortfolioGainHistory.empty(portfolio));
 			Expression totalGainExpr = calculator.calTotalGainBy(portfolio);
-			PortfolioGainHistory history = portfolio.createPortfolioGainHistory(latestHistory, totalGainExpr);
+			Expression totalInvestment = calculator.calTotalInvestmentBy(portfolio);
+			PortfolioGainHistory history = portfolio.createPortfolioGainHistory(latestHistory, totalGainExpr,
+				totalInvestment);
 			portfolioGainHistories.add(repository.save(history));
 		}
 

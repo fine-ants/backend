@@ -183,11 +183,11 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	 * @param history 이전 포트폴리오 내역
 	 * @return 포트폴리오 당일 손익
 	 */
-	public Expression calculateDailyGain(PortfolioGainHistory history) {
+	public Expression calculateDailyGain(PortfolioGainHistory history, Expression totalInvestment) {
 		Expression previousCurrentValuation = history.getCurrentValuation();
 		Money won = Bank.getInstance().toWon(previousCurrentValuation);
 		if (won.isZero()) {
-			return calculateTotalCurrentValuation().minus(calculateTotalInvestmentAmount());
+			return calculateTotalCurrentValuation().minus(totalInvestment);
 		}
 		return calculateTotalCurrentValuation().minus(previousCurrentValuation);
 	}
@@ -201,13 +201,12 @@ public class Portfolio extends BaseEntity implements Notifiable {
 
 	// 포트폴리오 당일 손익율 = (당일 포트폴리오 가치 총합 - 이전 포트폴리오 가치 총합) / 이전 포트폴리오 가치 총합
 	// 단, 이전 포트폴리오가 없는 경우 ((당일 포트폴리오 가치 총합 - 당일 포트폴리오 총 투자 금액) / 당일 포트폴리오 총 투자 금액) * 100%
-	public RateDivision calculateDailyGainRate(PortfolioGainHistory prevHistory) {
+	public RateDivision calculateDailyGainRate(PortfolioGainHistory prevHistory, Expression totalInvestment) {
 		Money prevCurrentValuation = prevHistory.getCurrentValuation();
 		Expression currentValuation = calculateTotalCurrentValuation();
 		if (prevCurrentValuation.isZero()) {
-			Expression amount = calculateTotalInvestmentAmount();
-			return currentValuation.minus(amount)
-				.divide(amount);
+			return currentValuation.minus(totalInvestment)
+				.divide(totalInvestment);
 		}
 		return currentValuation.minus(prevCurrentValuation)
 			.divide(prevCurrentValuation);
@@ -259,10 +258,11 @@ public class Portfolio extends BaseEntity implements Notifiable {
 		return dividend.divide(amount);
 	}
 
-	public PortfolioGainHistory createPortfolioGainHistory(PortfolioGainHistory history, Expression totalGainExpr) {
+	public PortfolioGainHistory createPortfolioGainHistory(PortfolioGainHistory history, Expression totalGainExpr,
+		Expression totalInvestment) {
 		Bank bank = Bank.getInstance();
 		Money totalGain = bank.toWon(totalGainExpr);
-		Money dailyGain = bank.toWon(calculateDailyGain(history));
+		Money dailyGain = bank.toWon(calculateDailyGain(history, totalInvestment));
 		Money cash = bank.toWon(calculateBalance());
 		Money currentValuation = bank.toWon(calculateTotalCurrentValuation());
 		return PortfolioGainHistory.create(totalGain, dailyGain, cash, currentValuation, this);
