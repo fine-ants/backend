@@ -2,8 +2,10 @@ package co.fineants.api.domain.portfolio.domain.calculator;
 
 import java.util.List;
 
+import co.fineants.api.domain.common.money.Bank;
 import co.fineants.api.domain.common.money.Expression;
 import co.fineants.api.domain.common.money.Money;
+import co.fineants.api.domain.gainhistory.domain.entity.PortfolioGainHistory;
 import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 
@@ -100,5 +102,26 @@ public class PortfolioCalculator {
 
 	public Expression calTotalAsset(Expression balance, Expression totalCurrentValuation) {
 		return balance.plus(totalCurrentValuation);
+	}
+
+	/**
+	 * 포트폴리오 당일 손익을 계산하여 반환.
+	 *
+	 * <p>
+	 * dailyGain = totalCurrentValuation - previousCurrentValuation
+	 * 이전일의 포트포릴오 내역의 각 종목들의 평가 금액이 없는 경우 총 투자금액으로 뺀다
+	 * </p>
+	 * @param history 이전 포트폴리오 내역
+	 * @return 포트폴리오 당일 손익
+	 */
+	public Expression calDailyGain(PortfolioGainHistory history, Portfolio portfolio) {
+		Expression previousCurrentValuation = history.getCurrentValuation();
+		Money previousCurrentValuationMoney = Bank.getInstance().toWon(previousCurrentValuation);
+		Expression totalCurrentValuation = calTotalCurrentValuationBy(portfolio);
+		if (previousCurrentValuationMoney.isZero()) {
+			Expression totalInvestment = calTotalInvestmentBy(portfolio);
+			return totalCurrentValuation.minus(totalInvestment);
+		}
+		return totalCurrentValuation.minus(previousCurrentValuation);
 	}
 }

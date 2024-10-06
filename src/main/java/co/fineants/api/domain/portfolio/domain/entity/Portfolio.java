@@ -164,24 +164,7 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	public boolean hasAuthorization(Long memberId) {
 		return member.hasAuthorization(memberId);
 	}
-
-	/**
-	 * 포트폴리오 당일 손익
-	 * 각 종목들의 평가 금액 합계 - 이전 포트폴리오 내역의 각 종목들의 평가 금액 합계
-	 * 단, 이전일의 포트포릴오 내역의 각 종목들의 평가 금액이 없는 경우 총 투자금액으로 뺀다
-	 * @param history 이전 포트폴리오 내역
-	 * @return 포트폴리오 당일 손익
-	 */
-	public Expression calculateDailyGain(PortfolioGainHistory history, Expression totalInvestment,
-		Expression totalCurrentValuation) {
-		Expression previousCurrentValuation = history.getCurrentValuation();
-		Money won = Bank.getInstance().toWon(previousCurrentValuation);
-		if (won.isZero()) {
-			return totalCurrentValuation.minus(totalInvestment);
-		}
-		return totalCurrentValuation.minus(previousCurrentValuation);
-	}
-
+	
 	// 포트폴리오 당일 손익율 = (당일 포트폴리오 가치 총합 - 이전 포트폴리오 가치 총합) / 이전 포트폴리오 가치 총합
 	// 단, 이전 포트폴리오가 없는 경우 ((당일 포트폴리오 가치 총합 - 당일 포트폴리오 총 투자 금액) / 당일 포트폴리오 총 투자 금액) * 100%
 	public RateDivision calculateDailyGainRate(PortfolioGainHistory prevHistory, Expression totalInvestment,
@@ -239,13 +222,12 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	public PortfolioGainHistory createPortfolioGainHistory(PortfolioGainHistory history,
 		PortfolioCalculator calculator) {
 		Expression totalGainExpr = calculator.calTotalGainBy(this);
-		Expression totalInvestment = calculator.calTotalInvestmentBy(this);
 		Expression totalCurrentValuation = calculator.calTotalCurrentValuationBy(this);
 		Expression balance = calculator.calBalanceBy(this);
-
+		Expression dailyGainExpr = calculator.calDailyGain(history, this);
 		Bank bank = Bank.getInstance();
 		Money totalGain = bank.toWon(totalGainExpr);
-		Money dailyGain = bank.toWon(calculateDailyGain(history, totalInvestment, totalCurrentValuation));
+		Money dailyGain = bank.toWon(dailyGainExpr);
 		Money cash = bank.toWon(balance);
 		Money currentValuation = bank.toWon(totalCurrentValuation);
 		return PortfolioGainHistory.create(totalGain, dailyGain, cash, currentValuation, this);

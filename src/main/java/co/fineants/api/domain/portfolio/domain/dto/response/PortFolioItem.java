@@ -45,6 +45,7 @@ public class PortFolioItem {
 		Expression totalGainRate = calculator.calTotalGainRateBy(portfolio);
 		Expression totalInvestment = calculator.calTotalInvestmentBy(portfolio);
 		Expression totalCurrentValuation = calculator.calTotalCurrentValuationBy(portfolio);
+		Expression dailyGain = calculator.calDailyGain(prevHistory, portfolio);
 		return PortFolioItem.builder()
 			.id(portfolio.getId())
 			.securitiesFirm(portfolio.getSecuritiesFirm())
@@ -52,8 +53,7 @@ public class PortFolioItem {
 			.budget(portfolio.getBudget())
 			.totalGain(totalGain.reduce(bank, to))
 			.totalGainRate(totalGainRate.toPercentage(Bank.getInstance(), Currency.KRW))
-			.dailyGain(
-				portfolio.calculateDailyGain(prevHistory, totalInvestment, totalCurrentValuation).reduce(bank, to))
+			.dailyGain(dailyGain.reduce(bank, to))
 			.dailyGainRate(portfolio.calculateDailyGainRate(prevHistory, totalInvestment, totalCurrentValuation)
 				.toPercentage(Bank.getInstance(), Currency.KRW))
 			.currentValuation(totalCurrentValuation.reduce(bank, to))
