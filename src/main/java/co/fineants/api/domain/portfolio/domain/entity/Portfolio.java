@@ -182,13 +182,6 @@ public class Portfolio extends BaseEntity implements Notifiable {
 		return totalCurrentValuation.minus(previousCurrentValuation);
 	}
 
-	// 포트폴리오 평가 금액(현재 가치) = 모든 종목들의 평가금액 합계
-	public Expression calculateTotalCurrentValuation() {
-		return portfolioHoldings.stream()
-			.map(PortfolioHolding::calculateCurrentValuation)
-			.reduce(Money.wonZero(), Expression::plus);
-	}
-
 	// 포트폴리오 당일 손익율 = (당일 포트폴리오 가치 총합 - 이전 포트폴리오 가치 총합) / 이전 포트폴리오 가치 총합
 	// 단, 이전 포트폴리오가 없는 경우 ((당일 포트폴리오 가치 총합 - 당일 포트폴리오 총 투자 금액) / 당일 포트폴리오 총 투자 금액) * 100%
 	public RateDivision calculateDailyGainRate(PortfolioGainHistory prevHistory, Expression totalInvestment,
@@ -311,9 +304,9 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	}
 
 	// 포트폴리오가 목표수익금액에 도달했는지 검사 (평가금액이 목표수익금액보다 같거나 큰 경우)
-	public boolean reachedTargetGain() {
+	public boolean reachedTargetGain(Expression totalCurrentValuation) {
 		Bank bank = Bank.getInstance();
-		Money currentValuation = bank.toWon(calculateTotalCurrentValuation());
+		Money currentValuation = bank.toWon(totalCurrentValuation);
 		log.debug("reachedTargetGain currentValuation={}, targetGain={}", currentValuation,
 			this.financial.getTargetGain());
 		return currentValuation.compareTo(bank.toWon(this.financial.getTargetGain())) >= 0;
