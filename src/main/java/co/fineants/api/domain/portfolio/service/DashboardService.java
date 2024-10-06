@@ -93,9 +93,8 @@ public class DashboardService {
 		PortfolioCalculator calculator = new PortfolioCalculator();
 		for (Portfolio portfolio : portfolios) {
 			portfolio.applyCurrentPriceAllHoldingsBy(currentPriceRedisRepository);
-			Expression balance = calculator.calBalanceBy(portfolio);
-			totalValuation = totalValuation.plus(
-				portfolio.calculateTotalAsset(balance, calculator.calTotalCurrentValuationBy(portfolio)));
+			Expression totalAsset = calculator.calTotalAssetBy(portfolio);
+			totalValuation = totalValuation.plus(totalAsset);
 		}
 		List<DashboardPieChartResponse> pieChartResponses = new ArrayList<>();
 		for (Portfolio portfolio : portfolios) {

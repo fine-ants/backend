@@ -266,11 +266,6 @@ public class Portfolio extends BaseEntity implements Notifiable {
 			.divide(this.financial.getBudget());
 	}
 
-	// 총 자산 = 잔고 + 평가금액 합계
-	public Expression calculateTotalAsset(Expression balance, Expression totalCurrentValuation) {
-		return balance.plus(totalCurrentValuation);
-	}
-
 	// 목표수익금액 알림 변경
 	public void changeTargetGainNotification(Boolean isActive) {
 		validateTargetGainNotification();
@@ -328,7 +323,7 @@ public class Portfolio extends BaseEntity implements Notifiable {
 				calculateWeightBy(portfolioHolding, totalAsset)))
 			.toList();
 		Bank bank = Bank.getInstance();
-		Percentage weight = calculateCashWeight(balance, totalCurrentValuation).toPercentage(bank, Currency.KRW);
+		Percentage weight = calculateCashWeight(balance, totalAsset).toPercentage(bank, Currency.KRW);
 		PortfolioPieChartItem cash = PortfolioPieChartItem.cash(weight, bank.toWon(balance));
 
 		List<PortfolioPieChartItem> result = new ArrayList<>(stocks);
@@ -343,8 +338,7 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	}
 
 	// 현금 비중 계산, 현금 비중 = 잔고 / 총자산
-	public RateDivision calculateCashWeight(Expression balance, Expression totalCurrentValuation) {
-		Expression totalAsset = calculateTotalAsset(balance, totalCurrentValuation);
+	public RateDivision calculateCashWeight(Expression balance, Expression totalAsset) {
 		return balance.divide(totalAsset);
 	}
 
