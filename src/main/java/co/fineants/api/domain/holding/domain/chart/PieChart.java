@@ -22,6 +22,7 @@ public class PieChart {
 		PortfolioCalculator calculator = new PortfolioCalculator();
 		Expression balance = calculator.calBalanceBy(portfolio);
 		Expression totalCurrentValuation = calculator.calTotalCurrentValuationBy(portfolio);
-		return portfolio.createPieChart(balance, totalCurrentValuation);
+		Expression totalAsset = calculator.calTotalAssetBy(portfolio);
+		return portfolio.createPieChart(balance, totalCurrentValuation, totalAsset);
 	}
 }

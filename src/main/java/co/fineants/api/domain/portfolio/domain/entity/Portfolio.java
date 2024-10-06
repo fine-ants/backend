@@ -321,8 +321,8 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	}
 
 	// 파이 차트 생성
-	public List<PortfolioPieChartItem> createPieChart(Expression balance, Expression totalCurrentValuation) {
-		Expression totalAsset = calculateTotalAsset(balance, totalCurrentValuation);
+	public List<PortfolioPieChartItem> createPieChart(Expression balance, Expression totalCurrentValuation,
+		Expression totalAsset) {
 		List<PortfolioPieChartItem> stocks = portfolioHoldings.stream()
 			.map(portfolioHolding -> portfolioHolding.createPieChartItem(
 				calculateWeightBy(portfolioHolding, totalAsset)))
