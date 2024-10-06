@@ -97,6 +97,10 @@ public class PortfolioFinancial {
 		return budget.minus(maximumLoss).divide(budget);
 	}
 
+	public RateDivision calTargetGainRate() {
+		return targetGain.minus(budget).divide(budget);
+	}
+
 	@Override
 	public String toString() {
 		return String.format("(budget=%s, targetGain=%s, maximumLoss=%s)", budget, targetGain, maximumLoss);

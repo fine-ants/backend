@@ -238,4 +238,16 @@ public class PortfolioCalculator {
 	public Expression calMaximumLossRateBy(Portfolio portfolio) {
 		return portfolio.calculateMaximumLossRate();
 	}
+
+	/**
+	 * 포트폴리오의 목표수익금액율 계산 후 반환.
+	 * <p>
+	 * TargetGainRate = ((TargetGain - Budget) / Budget)
+	 * </p>
+	 * @param portfolio 포트폴리오 객체
+	 * @return 포트폴리오의 목표수익금액율
+	 */
+	public Expression calTargetGainRateBy(Portfolio portfolio) {
+		return portfolio.calculateTargetReturnRate();
+	}
 }

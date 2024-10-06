@@ -192,12 +192,6 @@ public class Portfolio extends BaseEntity implements Notifiable {
 		}
 	}
 
-	// 목표 수익률 = ((목표 수익 금액 - 예산) / 예산) * 100
-	public RateDivision calculateTargetReturnRate() {
-		return this.financial.getTargetGain().minus(this.financial.getBudget())
-			.divide(this.financial.getBudget());
-	}
-
 	// 목표수익금액 알림 변경
 	public void changeTargetGainNotification(Boolean isActive) {
 		validateTargetGainNotification();
@@ -504,5 +498,9 @@ public class Portfolio extends BaseEntity implements Notifiable {
 
 	public RateDivision calculateMaximumLossRate() {
 		return this.financial.calMaximumLossRate();
+	}
+
+	public RateDivision calculateTargetReturnRate() {
+		return this.financial.calTargetGainRate();
 	}
 }
