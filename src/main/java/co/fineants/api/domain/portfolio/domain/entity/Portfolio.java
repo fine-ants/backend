@@ -81,8 +81,8 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	private PortfolioDetail detail;
 	@Embedded
 	private PortfolioFinancial financial;
-	private Boolean targetGainIsActive;
-	private Boolean maximumLossIsActive;
+	@Embedded
+	private PortfolioNotificationPreference preference;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "member_id")
@@ -95,13 +95,12 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	@Transient
 	private LocalDateTimeService localDateTimeService = new DefaultLocalDateTimeService();
 
-	private Portfolio(Long id, PortfolioDetail detail, PortfolioFinancial financial, Boolean targetGainIsActive,
-		Boolean maximumLossIsActive) {
+	private Portfolio(Long id, PortfolioDetail detail, PortfolioFinancial financial,
+		PortfolioNotificationPreference preference) {
 		this.id = id;
 		this.detail = detail;
 		this.financial = financial;
-		this.targetGainIsActive = targetGainIsActive;
-		this.maximumLossIsActive = maximumLossIsActive;
+		this.preference = preference;
 	}
 
 	/**
@@ -114,7 +113,8 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	 * @return 포트폴리오 객체
 	 */
 	public static Portfolio active(Long id, PortfolioDetail detail, PortfolioFinancial financial, Member member) {
-		Portfolio portfolio = new Portfolio(id, detail, financial, true, true);
+		PortfolioNotificationPreference preference = PortfolioNotificationPreference.allActive();
+		Portfolio portfolio = new Portfolio(id, detail, financial, preference);
 		portfolio.setMember(member);
 		return portfolio;
 	}
@@ -128,7 +128,8 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	 * @return 생성한 포트폴리오 객체
 	 */
 	public static Portfolio noActive(PortfolioDetail detail, PortfolioFinancial financial, Member member) {
-		Portfolio portfolio = new Portfolio(null, detail, financial, false, false);
+		PortfolioNotificationPreference preference = PortfolioNotificationPreference.allInactive();
+		Portfolio portfolio = new Portfolio(null, detail, financial, preference);
 		portfolio.setMember(member);
 		return portfolio;
 	}
@@ -310,7 +311,7 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	// 목표수익금액 알림 변경
 	public void changeTargetGainNotification(Boolean isActive) {
 		validateTargetGainNotification();
-		this.targetGainIsActive = isActive;
+		this.preference.changeTargetGain(isActive);
 	}
 
 	/**
@@ -326,7 +327,7 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	// 최대손실금액의 알림 변경
 	public void changeMaximumLossNotification(Boolean isActive) {
 		validateMaxLossNotification();
-		this.maximumLossIsActive = isActive;
+		this.preference.changeMaximumLoss(isActive);
 	}
 
 	/**
@@ -447,11 +448,11 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	}
 
 	public boolean isSameTargetGainActive(boolean active) {
-		return this.targetGainIsActive == active;
+		return this.preference.isSameTargetGain(active);
 	}
 
 	public boolean isSameMaxLossActive(boolean active) {
-		return this.maximumLossIsActive == active;
+		return this.preference.isSameMaxLoss(active);
 	}
 
 	public boolean hasTargetGainSentHistory(NotificationSentRepository manager) {
@@ -557,6 +558,14 @@ public class Portfolio extends BaseEntity implements Notifiable {
 
 	public Money getMaximumLoss() {
 		return this.financial.getMaximumLoss();
+	}
+
+	public Boolean getTargetGainIsActive() {
+		return preference.getTargetGainIsActive();
+	}
+
+	public Boolean getMaximumLossIsActive() {
+		return preference.getMaximumLossIsActive();
 	}
 
 	@Override
