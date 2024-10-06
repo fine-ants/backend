@@ -8,7 +8,6 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import co.fineants.api.domain.common.money.Expression;
 import co.fineants.api.domain.gainhistory.domain.dto.response.PortfolioGainHistoryCreateResponse;
 import co.fineants.api.domain.gainhistory.domain.entity.PortfolioGainHistory;
 import co.fineants.api.domain.gainhistory.repository.PortfolioGainHistoryRepository;
@@ -42,12 +41,7 @@ public class PortfolioGainHistoryService {
 					.stream()
 					.findFirst()
 					.orElseGet(() -> PortfolioGainHistory.empty(portfolio));
-			Expression totalGainExpr = calculator.calTotalGainBy(portfolio);
-			Expression totalInvestment = calculator.calTotalInvestmentBy(portfolio);
-			Expression balance = calculator.calBalanceBy(portfolio);
-			Expression totalCurrentValuation = calculator.calTotalCurrentValuationBy(portfolio);
-			PortfolioGainHistory history = portfolio.createPortfolioGainHistory(latestHistory, totalGainExpr,
-				totalInvestment, balance, totalCurrentValuation);
+			PortfolioGainHistory history = portfolio.createPortfolioGainHistory(latestHistory, calculator);
 			portfolioGainHistories.add(repository.save(history));
 		}
 

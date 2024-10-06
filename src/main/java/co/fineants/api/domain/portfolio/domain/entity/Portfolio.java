@@ -206,11 +206,6 @@ public class Portfolio extends BaseEntity implements Notifiable {
 		return Count.from(portfolioHoldings.size());
 	}
 
-	// 잔고 = 예산 - 총 투자 금액
-	public Expression calculateBalance(Expression totalInvestment) {
-		return this.financial.getBudget().minus(totalInvestment);
-	}
-
 	// 총 연간 배당금 = 각 종목들의 연배당금의 합계
 	public Expression calculateAnnualDividend(LocalDateTimeService dateTimeService) {
 		return portfolioHoldings.stream()
@@ -241,8 +236,13 @@ public class Portfolio extends BaseEntity implements Notifiable {
 		return dividend.divide(totalInvestment);
 	}
 
-	public PortfolioGainHistory createPortfolioGainHistory(PortfolioGainHistory history, Expression totalGainExpr,
-		Expression totalInvestment, Expression balance, Expression totalCurrentValuation) {
+	public PortfolioGainHistory createPortfolioGainHistory(PortfolioGainHistory history,
+		PortfolioCalculator calculator) {
+		Expression totalGainExpr = calculator.calTotalGainBy(this);
+		Expression totalInvestment = calculator.calTotalInvestmentBy(this);
+		Expression totalCurrentValuation = calculator.calTotalCurrentValuationBy(this);
+		Expression balance = calculator.calBalanceBy(this);
+
 		Bank bank = Bank.getInstance();
 		Money totalGain = bank.toWon(totalGainExpr);
 		Money dailyGain = bank.toWon(calculateDailyGain(history, totalInvestment, totalCurrentValuation));
