@@ -179,13 +179,6 @@ public class Portfolio extends BaseEntity implements Notifiable {
 			.reduce(Money.zero(), Expression::plus);
 	}
 
-	// 총 연간배당율 = 모든 종목들의 연 배당금 합계 / 모든 종목들의 총 가치의 합계) * 100
-	public RateDivision calculateAnnualDividendYield(LocalDateTimeService dateTimeService,
-		Expression totalCurrentValuation) {
-		Expression totalAnnualDividend = calculateAnnualDividend(dateTimeService);
-		return totalAnnualDividend.divide(totalCurrentValuation);
-	}
-
 	// 최대손실율 = ((예산 - 최대손실금액) / 예산) * 100
 	public RateDivision calculateMaximumLossRate() {
 		return this.financial.getBudget().minus(this.financial.getMaximumLoss())
@@ -519,5 +512,9 @@ public class Portfolio extends BaseEntity implements Notifiable {
 
 	public Expression calCurrentMonthDividend(PortfolioCalculator calculator) {
 		return calculator.calCurrentMonthDividend(Collections.unmodifiableList(portfolioHoldings));
+	}
+
+	public Expression calAnnualDividend(LocalDateTimeService dateTimeService, PortfolioCalculator calculator) {
+		return calculator.calAnnualDividend(dateTimeService, Collections.unmodifiableList(portfolioHoldings));
 	}
 }

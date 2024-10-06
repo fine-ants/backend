@@ -8,6 +8,7 @@ import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.gainhistory.domain.entity.PortfolioGainHistory;
 import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
+import co.fineants.api.global.common.time.LocalDateTimeService;
 
 public class PortfolioCalculator {
 
@@ -167,5 +168,34 @@ public class PortfolioCalculator {
 		return holdings.stream()
 			.map(PortfolioHolding::calculateCurrentMonthDividend)
 			.reduce(Money.zero(), Expression::plus);
+	}
+
+	public Expression calAnnualDividendBy(LocalDateTimeService dateTimeService, Portfolio portfolio) {
+		return portfolio.calAnnualDividend(dateTimeService, this);
+	}
+
+	public Expression calAnnualDividend(LocalDateTimeService dateTimeService, List<PortfolioHolding> holdings) {
+		return holdings.stream()
+			.map(portfolioHolding -> portfolioHolding.createMonthlyDividendMap(
+				dateTimeService.getLocalDateWithNow()))
+			.map(map -> map.values().stream()
+				.reduce(Money.zero(), Expression::plus))
+			.reduce(Money.zero(), Expression::plus);
+	}
+
+	/**
+	 * 포트폴리오의 총 연간 배당율을 계산 후 반환한다.
+	 *
+	 * <p>
+	 * AnnualDividendYield = (TotalAnnualDividend / TotalCurrentValuation)
+	 * </p>
+	 * @param localDateTimeService 시간 서비스
+	 * @param portfolio 포트폴리오 객체
+	 * @return 포트폴리오의 총 연간 배당율
+	 */
+	public Expression calAnnualDividendYieldBy(LocalDateTimeService localDateTimeService, Portfolio portfolio) {
+		Expression totalAnnualDividend = calAnnualDividendBy(localDateTimeService, portfolio);
+		Expression totalCurrentValuation = calTotalCurrentValuationBy(portfolio);
+		return totalAnnualDividend.divide(totalCurrentValuation);
 	}
 }

@@ -66,7 +66,8 @@ public class DashboardService {
 			totalCurrentValuation = totalCurrentValuation.plus(calculator.calTotalCurrentValuationBy(portfolio));
 			totalInvestment = totalInvestment.plus(calculator.calTotalInvestmentBy(portfolio));
 			totalGain = totalGain.plus(calculator.calTotalGainBy(portfolio));
-			totalAnnualDividend = totalAnnualDividend.plus(portfolio.calculateAnnualDividend(localDateTimeService));
+			totalAnnualDividend = totalAnnualDividend.plus(
+				calculator.calAnnualDividendBy(localDateTimeService, portfolio));
 		}
 		RateDivision totalAnnualDividendYield = totalAnnualDividend.divide(totalCurrentValuation);
 		RateDivision totalGainRate = totalGain.divide(totalInvestment);
