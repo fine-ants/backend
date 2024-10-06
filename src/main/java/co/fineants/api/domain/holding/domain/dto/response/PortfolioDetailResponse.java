@@ -73,7 +73,7 @@ public class PortfolioDetailResponse {
 			.annualDividendYield(
 				portfolio.calculateAnnualDividendYield(localDateTimeService).toPercentage(Bank.getInstance(), to))
 			.annualInvestmentDividendYield(
-				portfolio.calculateAnnualInvestmentDividendYield(localDateTimeService)
+				portfolio.calculateAnnualInvestmentDividendYield(localDateTimeService, totalInvestment)
 					.toPercentage(Bank.getInstance(), to))
 			.provisionalLossBalance(Money.zero())
 			.targetGainNotify(portfolio.getTargetGainIsActive())

@@ -252,10 +252,10 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	}
 
 	// 투자대비 연간 배당율 = 포트폴리오 총 연배당금 / 포트폴리오 투자금액 * 100
-	public RateDivision calculateAnnualInvestmentDividendYield(LocalDateTimeService dateTimeService) {
-		Expression amount = calculateTotalInvestmentAmount();
+	public RateDivision calculateAnnualInvestmentDividendYield(LocalDateTimeService dateTimeService,
+		Expression totalInvestment) {
 		Expression dividend = calculateAnnualDividend(dateTimeService);
-		return dividend.divide(amount);
+		return dividend.divide(totalInvestment);
 	}
 
 	public PortfolioGainHistory createPortfolioGainHistory(PortfolioGainHistory history, Expression totalGainExpr,
