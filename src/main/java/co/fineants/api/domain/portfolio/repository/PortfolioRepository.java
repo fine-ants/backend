@@ -28,10 +28,4 @@ public interface PortfolioRepository extends JpaRepository<Portfolio, Long> {
 	@Query("select p from Portfolio p where p.id = :id")
 	@EntityGraph(value = "Portfolio.withAll", type = EntityGraph.EntityGraphType.LOAD)
 	Optional<Portfolio> findByPortfolioIdWithAll(@Param("id") Long id);
-
-	@Query("select distinct p from Portfolio p join fetch p.member m join fetch m.notificationPreference join fetch p.portfolioHoldings ph join fetch ph.stock s where p.id = :id")
-	Optional<Portfolio> findByIdWithAll(@Param("id") Long id);
-
-	@Query("select p from Portfolio p where p.id = :id")
-	Optional<Portfolio> findByPortfolioId(@Param("id") Long id);
 }
