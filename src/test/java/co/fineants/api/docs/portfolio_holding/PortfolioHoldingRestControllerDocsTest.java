@@ -338,7 +338,6 @@ class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 	void readPortfolioCharts() throws Exception {
 		// given
 		Portfolio portfolio = createPortfolio(createMember());
-		portfolio.calculateTotalAsset();
 		int samsungValuation = 600000;
 		int samsungTotalGain = 100000;
 		int cash = 500000;

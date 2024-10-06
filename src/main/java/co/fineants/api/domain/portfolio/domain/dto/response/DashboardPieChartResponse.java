@@ -44,11 +44,14 @@ public class DashboardPieChartResponse {
 		PortfolioCalculator calculator = new PortfolioCalculator();
 		Expression totalGain = calculator.calTotalGainBy(portfolio);
 		Expression totalGainRate = calculator.calTotalGainRateBy(portfolio);
+		Expression balance = calculator.calBalanceBy(portfolio);
 		return new DashboardPieChartResponse(
 			portfolio.getId(),
 			portfolio.getName(),
-			portfolio.calculateTotalAsset().reduce(bank, to),
-			portfolio.calculateTotalAsset().divide(totalValuation).toPercentage(Bank.getInstance(), Currency.KRW),
+			portfolio.calculateTotalAsset(balance).reduce(bank, to),
+			portfolio.calculateTotalAsset(balance)
+				.divide(totalValuation)
+				.toPercentage(Bank.getInstance(), Currency.KRW),
 			totalGain.reduce(bank, to),
 			totalGainRate.toPercentage(Bank.getInstance(), Currency.KRW)
 		);

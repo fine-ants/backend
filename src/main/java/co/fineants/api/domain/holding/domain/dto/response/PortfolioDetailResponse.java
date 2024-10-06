@@ -68,7 +68,7 @@ public class PortfolioDetailResponse {
 			.dailyGain(portfolio.calculateDailyGain(history, totalInvestment).reduce(bank, to))
 			.dailyGainRate(
 				portfolio.calculateDailyGainRate(history, totalInvestment).toPercentage(Bank.getInstance(), to))
-			.balance(portfolio.calculateBalance().reduce(bank, to))
+			.balance(portfolio.calculateBalance(totalInvestment).reduce(bank, to))
 			.annualDividend(portfolio.calculateAnnualDividend(localDateTimeService).reduce(bank, to))
 			.annualDividendYield(
 				portfolio.calculateAnnualDividendYield(localDateTimeService).toPercentage(Bank.getInstance(), to))

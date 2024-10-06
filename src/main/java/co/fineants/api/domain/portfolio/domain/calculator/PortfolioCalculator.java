@@ -62,4 +62,12 @@ public class PortfolioCalculator {
 			.map(PortfolioHolding::calculateTotalInvestmentAmount)
 			.reduce(Money.wonZero(), Expression::plus);
 	}
+
+	public Expression calBalanceBy(Portfolio portfolio) {
+		return portfolio.calBalance(this);
+	}
+
+	public Expression calBalance(Expression budget, Expression totalInvestment) {
+		return budget.minus(totalInvestment);
+	}
 }

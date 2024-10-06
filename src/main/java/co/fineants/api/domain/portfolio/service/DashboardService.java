@@ -61,7 +61,7 @@ public class DashboardService {
 		PortfolioCalculator calculator = new PortfolioCalculator();
 		for (Portfolio portfolio : portfolios) {
 			portfolio.applyCurrentPriceAllHoldingsBy(currentPriceRedisRepository);
-			totalValuation = totalValuation.plus(portfolio.calculateTotalAsset());
+			totalValuation = totalValuation.plus(portfolio.calculateTotalAsset(calculator.calBalanceBy(portfolio)));
 			totalCurrentValuation = totalCurrentValuation.plus(portfolio.calculateTotalCurrentValuation());
 			totalInvestment = totalInvestment.plus(calculator.calTotalInvestmentBy(portfolio));
 			totalGain = totalGain.plus(calculator.calTotalGainBy(portfolio));
@@ -89,9 +89,11 @@ public class DashboardService {
 			return new ArrayList<>();
 		}
 		Expression totalValuation = Money.wonZero(); // 평가 금액 + 현금
+		PortfolioCalculator calculator = new PortfolioCalculator();
 		for (Portfolio portfolio : portfolios) {
 			portfolio.applyCurrentPriceAllHoldingsBy(currentPriceRedisRepository);
-			totalValuation = totalValuation.plus(portfolio.calculateTotalAsset());
+			Expression balance = calculator.calBalanceBy(portfolio);
+			totalValuation = totalValuation.plus(portfolio.calculateTotalAsset(balance));
 		}
 		List<DashboardPieChartResponse> pieChartResponses = new ArrayList<>();
 		for (Portfolio portfolio : portfolios) {

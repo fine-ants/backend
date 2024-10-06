@@ -115,8 +115,9 @@ class DashboardRestControllerDocsTest extends RestDocsSupport {
 		holding.addPurchaseHistory(createPurchaseHistory(holding, LocalDateTime.now()));
 		portfolio.addHolding(holding);
 
-		Expression valuation = portfolio.calculateTotalAsset();
 		PortfolioCalculator calculator = new PortfolioCalculator();
+		Expression balance = calculator.calBalanceBy(portfolio);
+		Expression valuation = portfolio.calculateTotalAsset(balance);
 		Expression totalGain = calculator.calTotalGainBy(portfolio);
 		Expression totalGainRate = calculator.calTotalGainRateBy(portfolio);
 		given(service.getPieChart(anyLong()))
@@ -125,7 +126,7 @@ class DashboardRestControllerDocsTest extends RestDocsSupport {
 					1L,
 					"포트폴리오1",
 					valuation,
-					portfolio.calculateTotalAsset()
+					portfolio.calculateTotalAsset(balance)
 						.divide(valuation)
 						.toPercentage(Bank.getInstance(), Currency.KRW),
 					totalGain, totalGainRate.toPercentage(Bank.getInstance(), Currency.KRW)
