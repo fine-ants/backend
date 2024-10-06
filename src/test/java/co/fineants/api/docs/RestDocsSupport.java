@@ -43,6 +43,7 @@ import co.fineants.api.domain.notification.domain.entity.PortfolioNotification;
 import co.fineants.api.domain.notification.domain.entity.StockTargetPriceNotification;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import co.fineants.api.domain.portfolio.domain.entity.PortfolioDetail;
+import co.fineants.api.domain.portfolio.domain.entity.PortfolioFinancial;
 import co.fineants.api.domain.portfolio.properties.PortfolioProperties;
 import co.fineants.api.domain.purchasehistory.domain.entity.PurchaseHistory;
 import co.fineants.api.domain.stock.domain.entity.Market;
@@ -103,15 +104,16 @@ public abstract class RestDocsSupport {
 	}
 
 	protected Portfolio createPortfolio(Member member) {
-		PortfolioDetail detail = PortfolioDetail.of("내꿈은 워렌버핏", "토스증권", properties);
-		return Portfolio.active(
-			1L,
-			detail,
-			Money.won(1000000L),
-			Money.won(1500000L),
-			Money.won(900000L),
-			member
-		);
+		String name = "내꿈은 워렌버핏";
+		String securitiesFirm = "토스증권";
+		PortfolioDetail detail = PortfolioDetail.of(name, securitiesFirm, properties);
+
+		Money budget = Money.won(1000000L);
+		Money targetGain = Money.won(1500000L);
+		Money maximumLoss = Money.won(900000L);
+		PortfolioFinancial financial = PortfolioFinancial.of(budget, targetGain, maximumLoss);
+
+		return Portfolio.active(1L, detail, financial, member);
 	}
 
 	protected PortfolioHolding createPortfolioHolding(Portfolio portfolio, Stock stock) {

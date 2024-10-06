@@ -104,9 +104,16 @@ public class Portfolio extends BaseEntity implements Notifiable {
 		this.maximumLossIsActive = maximumLossIsActive;
 	}
 
-	public static Portfolio active(Long id, PortfolioDetail detail, Money budget, Money targetGain,
-		Money maximumLoss, Member member) {
-		PortfolioFinancial financial = PortfolioFinancial.of(budget, targetGain, maximumLoss);
+	/**
+	 * 포트폴리오 알림 설정을 전부 활성화한 객체를 생성하여 반환한다.
+	 *
+	 * @param id 포트폴리오 식별번호
+	 * @param detail 포트폴리오 상세 정보
+	 * @param financial 포트폴리오 금융 정보
+	 * @param member 포트폴리오를 소유한 회원 객체
+	 * @return 포트폴리오 객체
+	 */
+	public static Portfolio active(Long id, PortfolioDetail detail, PortfolioFinancial financial, Member member) {
 		Portfolio portfolio = new Portfolio(id, detail, financial, true, true);
 		portfolio.setMember(member);
 		return portfolio;
