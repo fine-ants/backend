@@ -1,12 +1,15 @@
 package co.fineants.api.domain.portfolio.domain.calculator;
 
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Stream;
 
 import co.fineants.api.domain.common.money.Bank;
 import co.fineants.api.domain.common.money.Expression;
 import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.common.money.RateDivision;
 import co.fineants.api.domain.gainhistory.domain.entity.PortfolioGainHistory;
+import co.fineants.api.domain.holding.domain.dto.response.PortfolioPieChartItem;
 import co.fineants.api.domain.holding.domain.dto.response.PortfolioSectorChartItem;
 import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
@@ -295,5 +298,26 @@ public class PortfolioCalculator {
 
 	public boolean reachedMaximumLossBy(Portfolio portfolio) {
 		return portfolio.reachedMaximumLoss(this);
+	}
+
+	/**
+	 * 포트폴리오의 평가 금액의 종목 비중(현금 포함) 계산 후 파이 차트 리스트로 반환한다.
+	 * <p>
+	 * 각 파이 차트의 요소의 정렬 기준은 다음과 같습니다.
+	 * 1. 평가금액(CurrentValuation) 내림차순
+	 * 2. 총손익(TotalGain) 내림차순
+	 * </p>
+	 * @param portfolio 포트폴리오 객체
+	 * @return 파이 차트 요소 리스트
+	 */
+	public List<PortfolioPieChartItem> calCurrentValuationWeight(Portfolio portfolio) {
+		Expression balance = calBalanceBy(portfolio);
+		Expression weight = calCashWeightBy(portfolio);
+		PortfolioPieChartItem cash = PortfolioPieChartItem.cash(weight, balance);
+
+		return Stream.concat(portfolio.calCurrentValuationWeights(this).stream(), Stream.of(cash))
+			.sorted(Comparator.comparing(PortfolioPieChartItem::getValuation, Comparator.reverseOrder())
+				.thenComparing(PortfolioPieChartItem::getTotalGain, Comparator.reverseOrder()))
+			.toList();
 	}
 }

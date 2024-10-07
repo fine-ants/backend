@@ -351,7 +351,7 @@ class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 		SectorChart sectorChart = new SectorChart(currentPriceRedisRepository);
 
 		PortfolioDetails portfolioDetails = PortfolioDetails.from(portfolio);
-		List<PortfolioPieChartItem> pieChartItems = pieChart.createBy(portfolio);
+		List<PortfolioPieChartItem> pieChartItems = pieChart.createChartItemBy(portfolio);
 		List<PortfolioDividendChartItem> dividendChartItems = dividendChart.createBy(portfolio,
 			LocalDate.of(2024, 1, 16));
 		List<PortfolioSectorChartItem> sectorChartItems = sectorChart.createBy(portfolio);

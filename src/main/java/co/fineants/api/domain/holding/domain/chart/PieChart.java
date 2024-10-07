@@ -16,9 +16,9 @@ public class PieChart {
 
 	private final CurrentPriceRedisRepository manager;
 
-	public List<PortfolioPieChartItem> createBy(Portfolio portfolio) {
+	public List<PortfolioPieChartItem> createChartItemBy(Portfolio portfolio) {
 		portfolio.applyCurrentPriceAllHoldingsBy(manager);
 		PortfolioCalculator calculator = new PortfolioCalculator();
-		return portfolio.createPieChart(calculator);
+		return calculator.calCurrentValuationWeight(portfolio);
 	}
 }

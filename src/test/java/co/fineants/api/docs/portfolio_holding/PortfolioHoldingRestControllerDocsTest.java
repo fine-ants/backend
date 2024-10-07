@@ -41,6 +41,7 @@ import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
 import co.fineants.api.domain.holding.service.PortfolioHoldingService;
 import co.fineants.api.domain.holding.service.PortfolioObservableService;
 import co.fineants.api.domain.member.domain.entity.Member;
+import co.fineants.api.domain.portfolio.domain.calculator.PortfolioCalculator;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import co.fineants.api.domain.stock.domain.entity.Stock;
 import co.fineants.api.global.common.time.DefaultLocalDateTimeService;
@@ -342,6 +343,7 @@ class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 		int samsungTotalGain = 100000;
 		int cash = 500000;
 		PortfolioDetails portfolioDetails = PortfolioDetails.from(portfolio);
+		PortfolioCalculator calculator = new PortfolioCalculator();
 		List<PortfolioPieChartItem> pieChartItems = List.of(
 			PortfolioPieChartItem.stock(
 				"삼성전자보통주",
@@ -350,7 +352,7 @@ class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 				Money.won(samsungTotalGain),
 				Percentage.from(0.10)),
 			PortfolioPieChartItem.cash(
-				Percentage.from(0.4545),
+				calculator.calCashWeightBy(portfolio),
 				Money.won(cash))
 		);
 		List<PortfolioDividendChartItem> dividendChartItems = List.of(

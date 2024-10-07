@@ -3,11 +3,9 @@ package co.fineants.api.domain.portfolio.domain.entity;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.hibernate.annotations.BatchSize;
 
@@ -222,30 +220,6 @@ public class Portfolio extends BaseEntity implements Notifiable {
 		if (this.financial.getMaximumLoss().isZero()) {
 			throw new FineAntsException(PortfolioErrorCode.MAX_LOSS_IS_ZERO_WITH_NOTIFY_UPDATE);
 		}
-	}
-
-	// 파이 차트 생성
-	// TODO: 코드 개선
-	public List<PortfolioPieChartItem> createPieChart(PortfolioCalculator calculator) {
-		Expression totalAsset = calculator.calTotalAssetBy(this);
-		List<PortfolioPieChartItem> stocks = portfolioHoldings.stream()
-			.map(holding -> {
-				RateDivision weight = calculator.calCurrentValuationWeightBy(holding, totalAsset);
-				return holding.createPieChartItem(weight);
-			}).toList();
-
-		Bank bank = Bank.getInstance();
-		Percentage weight = calculator.calCashWeightBy(this).toPercentage(bank, Currency.KRW);
-		Money balance = bank.toWon(calculator.calBalanceBy(this));
-		PortfolioPieChartItem cash = PortfolioPieChartItem.cash(weight, balance);
-
-		// 정렬
-		// 평가금액(valuation) 기준 내림차순
-		// 총손익(totalGain) 기준 내림차순
-		return Stream.concat(stocks.stream(), Stream.of(cash))
-			.sorted(((Comparator<PortfolioPieChartItem>)(o1, o2) -> o2.getValuation().compareTo(o1.getValuation()))
-				.thenComparing((o1, o2) -> o2.getTotalGain().compareTo(o1.getTotalGain())))
-			.toList();
 	}
 
 	// 배당금 차트 생성
@@ -490,5 +464,14 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	public boolean reachedMaximumLoss(PortfolioCalculator calculator) {
 		Expression totalGain = calculator.calTotalGainBy(this);
 		return this.financial.reachedMaximumLoss(totalGain);
+	}
+
+	public List<PortfolioPieChartItem> calCurrentValuationWeights(PortfolioCalculator calculator) {
+		Expression totalAsset = calculator.calTotalAssetBy(this);
+		return portfolioHoldings.stream()
+			.map(holding -> {
+				RateDivision weight = calculator.calCurrentValuationWeightBy(holding, totalAsset);
+				return holding.createPieChartItem(weight);
+			}).toList();
 	}
 }
