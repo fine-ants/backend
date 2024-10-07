@@ -6,14 +6,14 @@ import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.common.money.Percentage;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-@ToString
+@EqualsAndHashCode
 public class PortfolioPieChartItem {
 	private String name;
 	private Money valuation;
@@ -40,5 +40,10 @@ public class PortfolioPieChartItem {
 			"현금",
 			balance,
 			weight);
+	}
+
+	@Override
+	public String toString() {
+		return String.format("PortfolioPieChartItem(name=%s, valuation=%s, totalGain=%s)", name, valuation, totalGain);
 	}
 }

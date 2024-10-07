@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.hibernate.annotations.BatchSize;
 
@@ -242,25 +243,25 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	}
 
 	// 파이 차트 생성
-	public List<PortfolioPieChartItem> createPieChart(Expression balance, Expression totalAsset,
-		PortfolioCalculator calculator) {
+	public List<PortfolioPieChartItem> createPieChart(PortfolioCalculator calculator) {
+		Expression totalAsset = calculator.calTotalAssetBy(this);
 		List<PortfolioPieChartItem> stocks = portfolioHoldings.stream()
 			.map(portfolioHolding -> portfolioHolding.createPieChartItem(
 				calculateWeightBy(portfolioHolding, totalAsset)))
 			.toList();
+
 		Bank bank = Bank.getInstance();
 		Percentage weight = calculator.calCashWeightBy(this).toPercentage(bank, Currency.KRW);
-		PortfolioPieChartItem cash = PortfolioPieChartItem.cash(weight, bank.toWon(balance));
-
-		List<PortfolioPieChartItem> result = new ArrayList<>(stocks);
-		result.add(cash);
+		Money balance = bank.toWon(calculator.calBalanceBy(this));
+		PortfolioPieChartItem cash = PortfolioPieChartItem.cash(weight, balance);
 
 		// 정렬
 		// 평가금액(valuation) 기준 내림차순
 		// 총손익(totalGain) 기준 내림차순
-		result.sort(((Comparator<PortfolioPieChartItem>)(o1, o2) -> o2.getValuation().compareTo(o1.getValuation()))
-			.thenComparing((o1, o2) -> o2.getTotalGain().compareTo(o1.getTotalGain())));
-		return result;
+		return Stream.concat(stocks.stream(), Stream.of(cash))
+			.sorted(((Comparator<PortfolioPieChartItem>)(o1, o2) -> o2.getValuation().compareTo(o1.getValuation()))
+				.thenComparing((o1, o2) -> o2.getTotalGain().compareTo(o1.getTotalGain())))
+			.toList();
 	}
 
 	// 포트폴리오 종목 비중 계산, 종목 비중 = 종목 평가 금액 / 총자산

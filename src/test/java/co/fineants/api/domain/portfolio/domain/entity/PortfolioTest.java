@@ -115,10 +115,8 @@ class PortfolioTest extends AbstractContainerBaseTest {
 		portfolio.addHolding(holding2);
 
 		PortfolioCalculator calculator = new PortfolioCalculator();
-		Expression balance = calculator.calBalanceBy(portfolio);
-		Expression totalAsset = calculator.calTotalAssetBy(portfolio);
 		// when
-		List<PortfolioPieChartItem> items = portfolio.createPieChart(balance, totalAsset, calculator);
+		List<PortfolioPieChartItem> items = portfolio.createPieChart(calculator);
 
 		// then
 		assertThat(items)
@@ -126,7 +124,7 @@ class PortfolioTest extends AbstractContainerBaseTest {
 			.hasSize(3)
 			.extracting("name", "valuation", "totalGain")
 			.usingComparatorForType(Money::compareTo, Money.class)
-			.containsExactlyInAnyOrder(
+			.containsExactly(
 				Tuple.tuple("현금", Money.won(850000), Money.zero()),
 				Tuple.tuple("삼성전자보통주", Money.won(100000), Money.won(50000)),
 				Tuple.tuple("동화약품보통주", Money.won(100000), Money.zero()));
