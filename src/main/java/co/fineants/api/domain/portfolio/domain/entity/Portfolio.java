@@ -224,15 +224,6 @@ public class Portfolio extends BaseEntity implements Notifiable {
 		}
 	}
 
-	// 포트폴리오가 목표수익금액에 도달했는지 검사 (평가금액이 목표수익금액보다 같거나 큰 경우)
-	public boolean reachedTargetGain(Expression totalCurrentValuation) {
-		Bank bank = Bank.getInstance();
-		Money currentValuation = bank.toWon(totalCurrentValuation);
-		log.debug("reachedTargetGain currentValuation={}, targetGain={}", currentValuation,
-			this.financial.getTargetGain());
-		return currentValuation.compareTo(bank.toWon(this.financial.getTargetGain())) >= 0;
-	}
-
 	// 포트폴리오가 최대손실금액에 도달했는지 검사 (예산 + 총손익이 최대손실금액보다 작은 경우)
 	public boolean reachedMaximumLoss(Expression totalGain) {
 		Bank bank = Bank.getInstance();
@@ -486,5 +477,16 @@ public class Portfolio extends BaseEntity implements Notifiable {
 			})
 			.sorted(PortfolioSectorChartItem::compareTo)
 			.toList();
+	}
+
+	/**
+	 * 포트폴리오가 목표수익금액에 도달했는지 여부 검사.
+	 * @param calculator 포트폴리오 계산기 객체
+	 * @return true: 평가금액이 목표수익금액보다 같거나 큰 경우, false: 평가금액이 목표수익금액보다 작은 경우
+	 */
+	// 포트폴리오가 목표수익금액에 도달했는지 검사 (평가금액이 목표수익금액보다 같거나 큰 경우)
+	public boolean reachedTargetGain(PortfolioCalculator calculator) {
+		Expression totalCurrentValuation = calculator.calTotalCurrentValuationBy(this);
+		return this.financial.reachedTargetGain(totalCurrentValuation);
 	}
 }

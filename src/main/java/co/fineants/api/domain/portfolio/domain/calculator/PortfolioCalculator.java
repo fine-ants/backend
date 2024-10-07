@@ -288,4 +288,8 @@ public class PortfolioCalculator {
 	public RateDivision calCurrentValuationWeight(Expression currentValuation, Expression totalAsset) {
 		return currentValuation.divide(totalAsset);
 	}
+
+	public boolean reachedTargetGainBy(Portfolio portfolio) {
+		return portfolio.reachedTargetGain(this);
+	}
 }

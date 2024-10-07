@@ -105,4 +105,8 @@ public class PortfolioFinancial {
 	public String toString() {
 		return String.format("(budget=%s, targetGain=%s, maximumLoss=%s)", budget, targetGain, maximumLoss);
 	}
+
+	public boolean reachedTargetGain(Expression totalCurrentValuation) {
+		return targetGain.compareTo(totalCurrentValuation) <= 0;
+	}
 }
