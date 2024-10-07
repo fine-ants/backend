@@ -242,13 +242,14 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	}
 
 	// 파이 차트 생성
-	public List<PortfolioPieChartItem> createPieChart(Expression balance, Expression totalAsset) {
+	public List<PortfolioPieChartItem> createPieChart(Expression balance, Expression totalAsset,
+		PortfolioCalculator calculator) {
 		List<PortfolioPieChartItem> stocks = portfolioHoldings.stream()
 			.map(portfolioHolding -> portfolioHolding.createPieChartItem(
 				calculateWeightBy(portfolioHolding, totalAsset)))
 			.toList();
 		Bank bank = Bank.getInstance();
-		Percentage weight = calculateCashWeight(balance, totalAsset).toPercentage(bank, Currency.KRW);
+		Percentage weight = calculator.calCashWeightBy(this).toPercentage(bank, Currency.KRW);
 		PortfolioPieChartItem cash = PortfolioPieChartItem.cash(weight, bank.toWon(balance));
 
 		List<PortfolioPieChartItem> result = new ArrayList<>(stocks);
@@ -260,11 +261,6 @@ public class Portfolio extends BaseEntity implements Notifiable {
 		result.sort(((Comparator<PortfolioPieChartItem>)(o1, o2) -> o2.getValuation().compareTo(o1.getValuation()))
 			.thenComparing((o1, o2) -> o2.getTotalGain().compareTo(o1.getTotalGain())));
 		return result;
-	}
-
-	// 현금 비중 계산, 현금 비중 = 잔고 / 총자산
-	public RateDivision calculateCashWeight(Expression balance, Expression totalAsset) {
-		return balance.divide(totalAsset);
 	}
 
 	// 포트폴리오 종목 비중 계산, 종목 비중 = 종목 평가 금액 / 총자산

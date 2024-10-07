@@ -118,7 +118,7 @@ class PortfolioTest extends AbstractContainerBaseTest {
 		Expression balance = calculator.calBalanceBy(portfolio);
 		Expression totalAsset = calculator.calTotalAssetBy(portfolio);
 		// when
-		List<PortfolioPieChartItem> items = portfolio.createPieChart(balance, totalAsset);
+		List<PortfolioPieChartItem> items = portfolio.createPieChart(balance, totalAsset, calculator);
 
 		// then
 		assertThat(items)

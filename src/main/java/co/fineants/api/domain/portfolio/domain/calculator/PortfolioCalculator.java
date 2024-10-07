@@ -5,6 +5,7 @@ import java.util.List;
 import co.fineants.api.domain.common.money.Bank;
 import co.fineants.api.domain.common.money.Expression;
 import co.fineants.api.domain.common.money.Money;
+import co.fineants.api.domain.common.money.RateDivision;
 import co.fineants.api.domain.gainhistory.domain.entity.PortfolioGainHistory;
 import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
@@ -249,5 +250,19 @@ public class PortfolioCalculator {
 	 */
 	public Expression calTargetGainRateBy(Portfolio portfolio) {
 		return portfolio.calculateTargetReturnRate();
+	}
+
+	/**
+	 * 포트폴리오의 현금 비중을 계산 후 반환.
+	 * <p>
+	 * CashWeight = Balance / TotalAsset
+	 * </p>
+	 * @param portfolio 포트폴리오 객체
+	 * @return 포트폴리오의 현금 비중
+	 */
+	public RateDivision calCashWeightBy(Portfolio portfolio) {
+		Expression balance = calBalanceBy(portfolio);
+		Expression totalAsset = calTotalAssetBy(portfolio);
+		return balance.divide(totalAsset);
 	}
 }
