@@ -7,6 +7,7 @@ import co.fineants.api.domain.common.money.Expression;
 import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.common.money.RateDivision;
 import co.fineants.api.domain.gainhistory.domain.entity.PortfolioGainHistory;
+import co.fineants.api.domain.holding.domain.dto.response.PortfolioSectorChartItem;
 import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import co.fineants.api.global.common.time.LocalDateTimeService;
@@ -264,5 +265,27 @@ public class PortfolioCalculator {
 		Expression balance = calBalanceBy(portfolio);
 		Expression totalAsset = calTotalAssetBy(portfolio);
 		return balance.divide(totalAsset);
+	}
+
+	/**
+	 * 포트폴리오 종목 비중 계산 후 반환
+	 * <p>
+	 * CurrentValuationWeight = CurrentValuation / TotalAsset
+	 * </p>
+	 * @param holding 포트폴리오 종목 객체
+	 * @param totalAsset 포트폴리오 총 자산
+	 * @return 포트폴리오 종목 비중
+	 */
+	public RateDivision calCurrentValuationWeightBy(PortfolioHolding holding, Expression totalAsset) {
+		Expression currentValuation = holding.calculateCurrentValuation();
+		return currentValuation.divide(totalAsset);
+	}
+
+	public List<PortfolioSectorChartItem> calSectorChartBy(Portfolio portfolio) {
+		return portfolio.createSectorChart(this);
+	}
+
+	public RateDivision calCurrentValuationWeight(Expression currentValuation, Expression totalAsset) {
+		return currentValuation.divide(totalAsset);
 	}
 }

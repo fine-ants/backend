@@ -4,7 +4,6 @@ import java.util.List;
 
 import org.springframework.stereotype.Component;
 
-import co.fineants.api.domain.common.money.Expression;
 import co.fineants.api.domain.holding.domain.dto.response.PortfolioSectorChartItem;
 import co.fineants.api.domain.kis.repository.CurrentPriceRedisRepository;
 import co.fineants.api.domain.portfolio.domain.calculator.PortfolioCalculator;
@@ -19,8 +18,6 @@ public class SectorChart {
 	public List<PortfolioSectorChartItem> createBy(Portfolio portfolio) {
 		portfolio.applyCurrentPriceAllHoldingsBy(manager);
 		PortfolioCalculator calculator = new PortfolioCalculator();
-		Expression balance = calculator.calBalanceBy(portfolio);
-		Expression totalAsset = calculator.calTotalAssetBy(portfolio);
-		return portfolio.createSectorChart(balance, totalAsset);
+		return calculator.calSectorChartBy(portfolio);
 	}
 }

@@ -6,7 +6,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -243,12 +242,14 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	}
 
 	// 파이 차트 생성
+	// TODO: 코드 개선
 	public List<PortfolioPieChartItem> createPieChart(PortfolioCalculator calculator) {
 		Expression totalAsset = calculator.calTotalAssetBy(this);
 		List<PortfolioPieChartItem> stocks = portfolioHoldings.stream()
-			.map(portfolioHolding -> portfolioHolding.createPieChartItem(
-				calculateWeightBy(portfolioHolding, totalAsset)))
-			.toList();
+			.map(holding -> {
+				RateDivision weight = calculator.calCurrentValuationWeightBy(holding, totalAsset);
+				return holding.createPieChartItem(weight);
+			}).toList();
 
 		Bank bank = Bank.getInstance();
 		Percentage weight = calculator.calCashWeightBy(this).toPercentage(bank, Currency.KRW);
@@ -262,15 +263,6 @@ public class Portfolio extends BaseEntity implements Notifiable {
 			.sorted(((Comparator<PortfolioPieChartItem>)(o1, o2) -> o2.getValuation().compareTo(o1.getValuation()))
 				.thenComparing((o1, o2) -> o2.getTotalGain().compareTo(o1.getTotalGain())))
 			.toList();
-	}
-
-	// 포트폴리오 종목 비중 계산, 종목 비중 = 종목 평가 금액 / 총자산
-	private RateDivision calculateWeightBy(PortfolioHolding holding, Expression totalAsset) {
-		return holding.calculateWeightBy(totalAsset);
-	}
-
-	private RateDivision calculateWeightBy(Money currentValuation, Expression totalAsset) {
-		return currentValuation.divide(totalAsset);
 	}
 
 	// 배당금 차트 생성
@@ -287,33 +279,6 @@ public class Portfolio extends BaseEntity implements Notifiable {
 		return totalDividendMap.entrySet().stream()
 			.map(entry -> PortfolioDividendChartItem.create(entry.getKey(), entry.getValue().reduce(bank, to)))
 			.toList();
-	}
-
-	public List<PortfolioSectorChartItem> createSectorChart(Expression balance, Expression totalAsset) {
-		return calculateSectorCurrentValuationMap(balance).entrySet().stream()
-			.map(mappingSectorChartItem(totalAsset))
-			.sorted(PortfolioSectorChartItem::compareTo)
-			.toList();
-	}
-
-	private Map<String, List<Expression>> calculateSectorCurrentValuationMap(Expression balance) {
-		Map<String, List<Expression>> sectorCurrentValuationMap = portfolioHoldings.stream()
-			.collect(Collectors.groupingBy(portfolioHolding -> portfolioHolding.getStock().getSector(),
-				Collectors.mapping(PortfolioHolding::calculateCurrentValuation, Collectors.toList())));
-		// 섹션 차트에 현금 추가
-		sectorCurrentValuationMap.put("현금", List.of(balance));
-		return sectorCurrentValuationMap;
-	}
-
-	private Function<Map.Entry<String, List<Expression>>, PortfolioSectorChartItem> mappingSectorChartItem(
-		Expression totalAsset) {
-		return entry -> {
-			Expression currentValuation = entry.getValue().stream()
-				.reduce(Money.wonZero(), Expression::plus);
-			RateDivision weight = calculateWeightBy(Bank.getInstance().toWon(currentValuation), totalAsset);
-			Percentage weightPercentage = weight.toPercentage(Bank.getInstance(), Currency.KRW);
-			return PortfolioSectorChartItem.create(entry.getKey(), weightPercentage);
-		};
 	}
 
 	public boolean equalName(Portfolio changePortfolio) {
@@ -499,5 +464,27 @@ public class Portfolio extends BaseEntity implements Notifiable {
 
 	public RateDivision calculateTargetReturnRate() {
 		return this.financial.calTargetGainRate();
+	}
+
+	public List<PortfolioSectorChartItem> createSectorChart(PortfolioCalculator calculator) {
+		Expression balance = calculator.calBalanceBy(this);
+		Expression totalAsset = calculator.calTotalAssetBy(this);
+
+		Map<String, List<Expression>> sector = portfolioHoldings.stream()
+			.collect(Collectors.groupingBy(portfolioHolding -> portfolioHolding.getStock().getSector(),
+				Collectors.mapping(PortfolioHolding::calculateCurrentValuation, Collectors.toList())));
+		sector.put("현금", List.of(balance));
+
+		return sector.entrySet().stream()
+			.map(entry -> {
+				Expression currentValuation = entry.getValue().stream()
+					.reduce(Money.wonZero(), Expression::plus);
+
+				Percentage weightPercentage = calculator.calCurrentValuationWeight(currentValuation, totalAsset)
+					.toPercentage(Bank.getInstance(), Currency.KRW);
+				return PortfolioSectorChartItem.create(entry.getKey(), weightPercentage);
+			})
+			.sorted(PortfolioSectorChartItem::compareTo)
+			.toList();
 	}
 }
