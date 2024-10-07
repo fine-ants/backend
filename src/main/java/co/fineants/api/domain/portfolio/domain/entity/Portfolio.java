@@ -227,7 +227,13 @@ public class Portfolio extends BaseEntity implements Notifiable {
 		return detail.equalName(changePortfolio.detail);
 	}
 
-	// 매입 이력을 포트폴리오에 추가시 현금이 충분한지 판단
+	/**
+	 * 포트폴리오의 잔고가 주문금액보다 충분한지 여부 검사.
+	 *
+	 * @param purchaseAmount 매입 이력 추가 위한 주문금액
+	 * @param calculator 포트폴리오 계산기 객체
+	 * @return true: 포트폴리오에 주문금액보다 같거나 큰 잔고를 가지고 있음, false: 구매금액보다 작은 잔고를 가지고 있음
+	 */
 	public boolean isCashSufficientForPurchase(Expression purchaseAmount, PortfolioCalculator calculator) {
 		return calculator.calBalanceBy(this).compareTo(purchaseAmount) >= 0;
 	}
