@@ -4,7 +4,6 @@ import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import co.fineants.api.domain.common.money.Expression;
 import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
 import co.fineants.api.domain.holding.repository.PortfolioHoldingRepository;
@@ -75,8 +74,7 @@ public class PurchaseHistoryService {
 
 	private void verifyCashSufficientForPurchase(Portfolio portfolio, Money investmentAmount) {
 		PortfolioCalculator calculator = new PortfolioCalculator();
-		Expression portfolioTotalInvestment = calculator.calTotalInvestmentBy(portfolio);
-		if (portfolio.isCashSufficientForPurchase(investmentAmount, portfolioTotalInvestment)) {
+		if (!portfolio.isCashSufficientForPurchase(investmentAmount, calculator)) {
 			throw new FineAntsException(PortfolioErrorCode.TOTAL_INVESTMENT_PRICE_EXCEEDS_BUDGET);
 		}
 	}

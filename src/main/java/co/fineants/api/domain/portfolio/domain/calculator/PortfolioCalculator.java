@@ -5,8 +5,10 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import co.fineants.api.domain.common.money.Bank;
+import co.fineants.api.domain.common.money.Currency;
 import co.fineants.api.domain.common.money.Expression;
 import co.fineants.api.domain.common.money.Money;
+import co.fineants.api.domain.common.money.Percentage;
 import co.fineants.api.domain.common.money.RateDivision;
 import co.fineants.api.domain.gainhistory.domain.entity.PortfolioGainHistory;
 import co.fineants.api.domain.holding.domain.dto.response.PortfolioPieChartItem;
@@ -311,8 +313,9 @@ public class PortfolioCalculator {
 	 * @return 파이 차트 요소 리스트
 	 */
 	public List<PortfolioPieChartItem> calCurrentValuationWeight(Portfolio portfolio) {
-		Expression balance = calBalanceBy(portfolio);
-		Expression weight = calCashWeightBy(portfolio);
+		Bank bank = Bank.getInstance();
+		Money balance = bank.toWon(calBalanceBy(portfolio));
+		Percentage weight = calCashWeightBy(portfolio).toPercentage(bank, Currency.KRW);
 		PortfolioPieChartItem cash = PortfolioPieChartItem.cash(weight, balance);
 
 		return Stream.concat(portfolio.calCurrentValuationWeights(this).stream(), Stream.of(cash))

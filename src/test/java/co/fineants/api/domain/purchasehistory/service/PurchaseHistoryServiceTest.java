@@ -8,6 +8,7 @@ import static org.mockito.BDDMockito.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -129,6 +130,30 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 				.usingComparatorForType(Count::compareTo, Count.class)
 				.containsExactlyInAnyOrder(response.getId(), now.toLocalDate(), Money.won(50000.0), numShares, "첫구매")
 		);
+	}
+
+	@DisplayName("포트폴리오의 잔고와 추가하는 매입 이력의 금액이 동일해도 매입 이력이 추가된다")
+	@Test
+	void addPurchaseHistory_givenPortfolio_whenBalanceEqualPurchaseAmount_thenAddPurchaseHistory() {
+		// given
+		Member member = memberRepository.save(createMember());
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
+		Stock stock = stockRepository.save(createSamsungStock());
+		PortfolioHolding holding = portFolioHoldingRepository.save(createPortfolioHolding(portfolio, stock, 50_000L));
+		PurchaseHistory history = purchaseHistoryRepository.save(
+			createPurchaseHistory(null, LocalDateTime.now(), Count.from(3), Money.won(50_000),
+				"메모", holding));
+		holding.addPurchaseHistory(history);
+		portfolio.addHolding(holding);
+
+		setAuthentication(member);
+		// when
+		PurchaseHistoryCreateRequest request = PurchaseHistoryCreateRequest.create(LocalDateTime.now(), Count.from(17),
+			Money.won(50_000), "메모");
+		PurchaseHistoryCreateResponse response = service.createPurchaseHistory(request, portfolio.getId(),
+			holding.getId(), member.getId());
+		// then
+		Assertions.assertThat(response).isNotNull();
 	}
 
 	@DisplayName("사용자가 매입 이력을 추가할 때 예산이 부족해 실패한다.")

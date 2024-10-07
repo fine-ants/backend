@@ -88,6 +88,12 @@ public class PortfolioGainHistory extends BaseEntity {
 		return cash.plus(currentValuation);
 	}
 
+	/**
+	 * 새로운 포트폴리오 손익 내역을 생성 후 반환.
+	 *
+	 * @param calculator 포트폴리오 계산기 객체
+	 * @return 새로운 포트폴리오 손익 내역
+	 */
 	public PortfolioGainHistory createNewHistory(PortfolioCalculator calculator) {
 		Bank bank = Bank.getInstance();
 		Money newTotalGain = bank.toWon(calculator.calTotalGainBy(portfolio));

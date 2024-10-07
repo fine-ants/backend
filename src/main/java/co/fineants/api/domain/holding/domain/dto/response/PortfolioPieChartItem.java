@@ -1,7 +1,6 @@
 package co.fineants.api.domain.holding.domain.dto.response;
 
 import co.fineants.api.domain.common.money.Bank;
-import co.fineants.api.domain.common.money.Currency;
 import co.fineants.api.domain.common.money.Expression;
 import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.common.money.Percentage;
@@ -36,14 +35,11 @@ public class PortfolioPieChartItem {
 			totalGainRate);
 	}
 
-	public static PortfolioPieChartItem cash(Expression weight, Expression balance) {
-		Bank bank = Bank.getInstance();
-		Money balanceMoney = bank.toWon(balance);
-		Percentage weightPercentage = weight.toPercentage(bank, Currency.KRW);
+	public static PortfolioPieChartItem cash(Percentage weight, Money balance) {
 		return new PortfolioPieChartItem(
 			"현금",
-			balanceMoney,
-			weightPercentage);
+			balance,
+			weight);
 	}
 
 	@Override
