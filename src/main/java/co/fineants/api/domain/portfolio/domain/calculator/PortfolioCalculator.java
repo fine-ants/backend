@@ -292,4 +292,8 @@ public class PortfolioCalculator {
 	public boolean reachedTargetGainBy(Portfolio portfolio) {
 		return portfolio.reachedTargetGain(this);
 	}
+
+	public boolean reachedMaximumLossBy(Portfolio portfolio) {
+		return portfolio.reachedMaximumLoss(this);
+	}
 }

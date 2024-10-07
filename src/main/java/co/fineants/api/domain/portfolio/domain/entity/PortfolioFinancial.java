@@ -109,4 +109,8 @@ public class PortfolioFinancial {
 	public boolean reachedTargetGain(Expression totalCurrentValuation) {
 		return targetGain.compareTo(totalCurrentValuation) <= 0;
 	}
+
+	public boolean reachedMaximumLoss(Expression totalGain) {
+		return maximumLoss.compareTo(totalGain) >= 0;
+	}
 }
