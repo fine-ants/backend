@@ -229,8 +229,7 @@ public class Portfolio extends BaseEntity implements Notifiable {
 
 	// 매입 이력을 포트폴리오에 추가시 현금이 충분한지 판단
 	public boolean isCashSufficientForPurchase(Expression purchaseAmount, PortfolioCalculator calculator) {
-		Expression balance = calculator.calBalanceBy(this);
-		return balance.compareTo(purchaseAmount) >= 0;
+		return calculator.calBalanceBy(this).compareTo(purchaseAmount) >= 0;
 	}
 
 	public boolean isSameTargetGainActive(boolean active) {
