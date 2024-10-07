@@ -18,7 +18,6 @@ import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.common.money.Percentage;
 import co.fineants.api.domain.common.money.RateDivision;
 import co.fineants.api.domain.common.notification.Notifiable;
-import co.fineants.api.domain.gainhistory.domain.entity.PortfolioGainHistory;
 import co.fineants.api.domain.holding.domain.dto.response.PortfolioDividendChartItem;
 import co.fineants.api.domain.holding.domain.dto.response.PortfolioPieChartItem;
 import co.fineants.api.domain.holding.domain.dto.response.PortfolioSectorChartItem;
@@ -165,20 +164,6 @@ public class Portfolio extends BaseEntity implements Notifiable {
 
 	public Count getNumberOfShares() {
 		return Count.from(portfolioHoldings.size());
-	}
-
-	public PortfolioGainHistory createPortfolioGainHistory(PortfolioGainHistory history,
-		PortfolioCalculator calculator) {
-		Expression totalGainExpr = calculator.calTotalGainBy(this);
-		Expression totalCurrentValuation = calculator.calTotalCurrentValuationBy(this);
-		Expression balance = calculator.calBalanceBy(this);
-		Expression dailyGainExpr = calculator.calDailyGain(history, this);
-		Bank bank = Bank.getInstance();
-		Money totalGain = bank.toWon(totalGainExpr);
-		Money dailyGain = bank.toWon(dailyGainExpr);
-		Money cash = bank.toWon(balance);
-		Money currentValuation = bank.toWon(totalCurrentValuation);
-		return PortfolioGainHistory.create(totalGain, dailyGain, cash, currentValuation, this);
 	}
 
 	// 포트폴리오 모든 종목들에 주식 현재가 적용
