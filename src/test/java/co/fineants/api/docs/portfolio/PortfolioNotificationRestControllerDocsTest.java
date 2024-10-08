@@ -44,7 +44,7 @@ class PortfolioNotificationRestControllerDocsTest extends RestDocsSupport {
 		given(service.updateNotificationTargetGain(
 			ArgumentMatchers.anyBoolean(),
 			anyLong()))
-			.willReturn(PortfolioNotificationUpdateResponse.targetGainIsActive(portfolio));
+			.willReturn(PortfolioNotificationUpdateResponse.targetGainIsActive(portfolio.getId(), true));
 
 		Map<String, Object> body = Map.of(
 			"isActive", true
