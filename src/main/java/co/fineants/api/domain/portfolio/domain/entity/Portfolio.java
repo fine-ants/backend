@@ -5,21 +5,16 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.hibernate.annotations.BatchSize;
 
 import co.fineants.api.domain.BaseEntity;
 import co.fineants.api.domain.common.count.Count;
-import co.fineants.api.domain.common.money.Bank;
-import co.fineants.api.domain.common.money.Currency;
 import co.fineants.api.domain.common.money.Expression;
 import co.fineants.api.domain.common.money.Money;
-import co.fineants.api.domain.common.money.Percentage;
 import co.fineants.api.domain.common.money.RateDivision;
 import co.fineants.api.domain.common.notification.Notifiable;
 import co.fineants.api.domain.holding.domain.dto.response.PortfolioPieChartItem;
-import co.fineants.api.domain.holding.domain.dto.response.PortfolioSectorChartItem;
 import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
 import co.fineants.api.domain.kis.repository.CurrentPriceRedisRepository;
 import co.fineants.api.domain.member.domain.entity.Member;
@@ -342,6 +337,7 @@ public class Portfolio extends BaseEntity implements Notifiable {
 		return manager.hasMaxLossSendHistory(id);
 	}
 
+	//== Portfolio 계산 메서드 시작 ==//
 	public Expression calTotalGain(PortfolioCalculator calculator) {
 		return calculator.calTotalGain(Collections.unmodifiableList(portfolioHoldings));
 	}
@@ -391,26 +387,9 @@ public class Portfolio extends BaseEntity implements Notifiable {
 		return this.financial.calTargetGainRate();
 	}
 
-	public List<PortfolioSectorChartItem> createSectorChart(PortfolioCalculator calculator) {
+	public Map<String, List<Expression>> createSectorChart(PortfolioCalculator calculator) {
 		Expression balance = calculator.calBalanceBy(this);
-		Expression totalAsset = calculator.calTotalAssetBy(this);
-
-		Map<String, List<Expression>> sector = portfolioHoldings.stream()
-			.collect(Collectors.groupingBy(portfolioHolding -> portfolioHolding.getStock().getSector(),
-				Collectors.mapping(PortfolioHolding::calculateCurrentValuation, Collectors.toList())));
-		sector.put("현금", List.of(balance));
-
-		return sector.entrySet().stream()
-			.map(entry -> {
-				Expression currentValuation = entry.getValue().stream()
-					.reduce(Money.wonZero(), Expression::plus);
-
-				Percentage weightPercentage = calculator.calCurrentValuationWeight(currentValuation, totalAsset)
-					.toPercentage(Bank.getInstance(), Currency.KRW);
-				return PortfolioSectorChartItem.create(entry.getKey(), weightPercentage);
-			})
-			.sorted(PortfolioSectorChartItem::compareTo)
-			.toList();
+		return calculator.calSectorChart(Collections.unmodifiableList(portfolioHoldings), balance);
 	}
 
 	/**
@@ -445,6 +424,7 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	public Map<Integer, Expression> calTotalDividend(PortfolioCalculator calculator, LocalDate currentLocalDate) {
 		return calculator.calTotalDividend(Collections.unmodifiableList(portfolioHoldings), currentLocalDate);
 	}
+	//== Portfolio 계산 메서드 시작 ==//
 
 	@Override
 	public String toString() {

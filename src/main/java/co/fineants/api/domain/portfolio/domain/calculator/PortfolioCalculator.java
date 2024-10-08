@@ -15,7 +15,6 @@ import co.fineants.api.domain.common.money.Percentage;
 import co.fineants.api.domain.common.money.RateDivision;
 import co.fineants.api.domain.gainhistory.domain.entity.PortfolioGainHistory;
 import co.fineants.api.domain.holding.domain.dto.response.PortfolioPieChartItem;
-import co.fineants.api.domain.holding.domain.dto.response.PortfolioSectorChartItem;
 import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import co.fineants.api.global.common.time.LocalDateTimeService;
@@ -289,8 +288,16 @@ public class PortfolioCalculator {
 		return currentValuation.divide(totalAsset);
 	}
 
-	public List<PortfolioSectorChartItem> calSectorChartBy(Portfolio portfolio) {
+	public Map<String, List<Expression>> calSectorChartBy(Portfolio portfolio) {
 		return portfolio.createSectorChart(this);
+	}
+
+	public Map<String, List<Expression>> calSectorChart(List<PortfolioHolding> holdings, Expression balance) {
+		Map<String, List<Expression>> sector = holdings.stream()
+			.collect(Collectors.groupingBy(portfolioHolding -> portfolioHolding.getStock().getSector(),
+				Collectors.mapping(PortfolioHolding::calculateCurrentValuation, Collectors.toList())));
+		sector.put("현금", List.of(balance));
+		return sector;
 	}
 
 	public RateDivision calCurrentValuationWeight(Expression currentValuation, Expression totalAsset) {

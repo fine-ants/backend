@@ -4,6 +4,8 @@ import static org.assertj.core.api.Assertions.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -11,9 +13,9 @@ import org.junit.jupiter.api.Test;
 
 import co.fineants.AbstractContainerBaseTest;
 import co.fineants.api.domain.common.count.Count;
+import co.fineants.api.domain.common.money.Bank;
 import co.fineants.api.domain.common.money.Expression;
 import co.fineants.api.domain.common.money.Money;
-import co.fineants.api.domain.holding.domain.dto.response.PortfolioSectorChartItem;
 import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
 import co.fineants.api.domain.member.domain.entity.Member;
 import co.fineants.api.domain.portfolio.domain.calculator.PortfolioCalculator;
@@ -114,14 +116,25 @@ class PortfolioTest extends AbstractContainerBaseTest {
 
 		PortfolioCalculator calculator = new PortfolioCalculator();
 		// when
-		List<PortfolioSectorChartItem> items = calculator.calSectorChartBy(portfolio);
+		Map<String, List<Expression>> result = calculator.calSectorChartBy(portfolio);
 
 		// then
-		assertThat(items)
-			.asList()
-			.hasSize(3)
-			.extracting("sector")
-			.containsExactlyInAnyOrder("현금", "의약품", "전기전자");
+		Map<String, List<Expression>> expected = Map.of(
+			"현금", List.of(Money.won(850_000)),
+			"의약품", List.of(Money.won(100_000)),
+			"전기전자", List.of(Money.won(100_000))
+		);
+		Bank bank = Bank.getInstance();
+		Map<String, List<Money>> actual = result.entrySet().stream()
+			.collect(Collectors.toMap(
+				Map.Entry::getKey,
+				entry -> entry.getValue().stream()
+					.map(bank::toWon)
+					.toList())
+			);
+		assertThat(actual)
+			.usingComparatorForType(Expression::compareTo, Expression.class)
+			.isEqualTo(expected);
 	}
 
 	@DisplayName("포트폴리오에 포트폴리오 종목을 추가한다")
