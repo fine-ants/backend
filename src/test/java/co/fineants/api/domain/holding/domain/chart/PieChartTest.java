@@ -60,7 +60,7 @@ class PieChartTest extends AbstractContainerBaseTest {
 		currentPriceRedisRepository.savePrice(KisCurrentPrice.create(stock.getTickerSymbol(), 20000L));
 		currentPriceRedisRepository.savePrice(KisCurrentPrice.create(stock2.getTickerSymbol(), 20000L));
 		// when
-		List<PortfolioPieChartItem> items = chart.createChartItemBy(portfolio);
+		List<PortfolioPieChartItem> items = chart.createItemsBy(portfolio);
 
 		// then
 		assertThat(items)

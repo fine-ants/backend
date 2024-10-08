@@ -191,8 +191,8 @@ public class PortfolioHoldingService {
 	public PortfolioChartResponse readPortfolioCharts(@ResourceId Long portfolioId, LocalDate currentLocalDate) {
 		Portfolio portfolio = findPortfolio(portfolioId);
 		PortfolioDetails portfolioDetails = PortfolioDetails.from(portfolio);
-		List<PortfolioPieChartItem> pieChartItems = pieChart.createChartItemBy(portfolio);
-		List<PortfolioDividendChartItem> dividendChartItems = dividendChart.createBy(portfolio, currentLocalDate);
+		List<PortfolioPieChartItem> pieChartItems = pieChart.createItemsBy(portfolio);
+		List<PortfolioDividendChartItem> dividendChartItems = dividendChart.createItemsBy(portfolio, currentLocalDate);
 		List<PortfolioSectorChartItem> sectorChartItems = sectorChart.createBy(portfolio);
 		return PortfolioChartResponse.create(portfolioDetails, pieChartItems, dividendChartItems, sectorChartItems);
 	}
