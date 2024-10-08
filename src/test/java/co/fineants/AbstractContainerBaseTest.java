@@ -52,6 +52,7 @@ import co.fineants.api.domain.watchlist.domain.entity.WatchList;
 import co.fineants.api.domain.watchlist.domain.entity.WatchStock;
 import co.fineants.api.global.errors.errorcode.RoleErrorCode;
 import co.fineants.api.global.errors.exception.FineAntsException;
+import co.fineants.api.global.security.factory.CookieDomainProvider;
 import co.fineants.api.global.security.factory.TokenFactory;
 import co.fineants.api.global.security.oauth.dto.MemberAuthentication;
 import co.fineants.api.global.security.oauth.dto.Token;
@@ -104,6 +105,9 @@ public abstract class AbstractContainerBaseTest {
 
 	@Autowired
 	private PortfolioProperties properties;
+
+	@Autowired
+	private CookieDomainProvider cookieDomainProvider;
 
 	@DynamicPropertySource
 	public static void overrideProps(DynamicPropertyRegistry registry) {
@@ -369,7 +373,7 @@ public abstract class AbstractContainerBaseTest {
 	}
 
 	protected Cookie[] createTokenCookies() {
-		TokenFactory tokenFactory = new TokenFactory();
+		TokenFactory tokenFactory = new TokenFactory(cookieDomainProvider);
 		Token token = Token.create("accessToken", "refreshToken");
 		ResponseCookie accessTokenCookie = tokenFactory.createAccessTokenCookie(token);
 		ResponseCookie refreshTokenCookie = tokenFactory.createRefreshTokenCookie(token);

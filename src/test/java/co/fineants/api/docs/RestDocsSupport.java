@@ -51,6 +51,7 @@ import co.fineants.api.domain.stock_target_price.domain.entity.StockTargetPrice;
 import co.fineants.api.domain.stock_target_price.domain.entity.TargetPriceNotification;
 import co.fineants.api.domain.watchlist.domain.entity.WatchList;
 import co.fineants.api.global.config.JacksonConfig;
+import co.fineants.api.global.security.factory.LocalCookieDomainProvider;
 import co.fineants.api.global.security.factory.TokenFactory;
 import co.fineants.api.global.security.oauth.dto.MemberAuthentication;
 import co.fineants.api.global.security.oauth.dto.Token;
@@ -233,7 +234,7 @@ public abstract class RestDocsSupport {
 	}
 
 	protected Cookie[] createTokenCookies() {
-		TokenFactory tokenFactory = new TokenFactory();
+		TokenFactory tokenFactory = new TokenFactory(new LocalCookieDomainProvider());
 		Token token = Token.create("accessToken", "refreshToken");
 		ResponseCookie accessTokenCookie = tokenFactory.createAccessTokenCookie(token);
 		ResponseCookie refreshTokenCookie = tokenFactory.createRefreshTokenCookie(token);
