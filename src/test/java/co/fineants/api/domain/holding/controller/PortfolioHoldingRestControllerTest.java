@@ -383,6 +383,8 @@ class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 			.andExpect(jsonPath("data.dividendChart[0].amount").value(equalTo(0)))
 			.andExpect(jsonPath("data.dividendChart[1].month").value(equalTo(2)))
 			.andExpect(jsonPath("data.dividendChart[1].amount").value(equalTo(0)))
+			.andExpect(jsonPath("data.dividendChart[2].month").value(equalTo(3)))
+			.andExpect(jsonPath("data.dividendChart[2].amount").value(equalTo(0)))
 			.andExpect(jsonPath("data.dividendChart[3].month").value(equalTo(4)))
 			.andExpect(jsonPath("data.dividendChart[3].amount").value(equalTo(1083)))
 			.andExpect(jsonPath("data.dividendChart[4].month").value(equalTo(5)))

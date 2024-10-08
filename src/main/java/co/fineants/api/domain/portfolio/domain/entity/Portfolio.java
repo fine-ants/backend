@@ -18,7 +18,6 @@ import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.common.money.Percentage;
 import co.fineants.api.domain.common.money.RateDivision;
 import co.fineants.api.domain.common.notification.Notifiable;
-import co.fineants.api.domain.holding.domain.dto.response.PortfolioDividendChartItem;
 import co.fineants.api.domain.holding.domain.dto.response.PortfolioPieChartItem;
 import co.fineants.api.domain.holding.domain.dto.response.PortfolioSectorChartItem;
 import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
@@ -205,22 +204,6 @@ public class Portfolio extends BaseEntity implements Notifiable {
 		if (this.financial.getMaximumLoss().isZero()) {
 			throw new FineAntsException(PortfolioErrorCode.MAX_LOSS_IS_ZERO_WITH_NOTIFY_UPDATE);
 		}
-	}
-
-	// 배당금 차트 생성
-	public List<PortfolioDividendChartItem> createDividendChart(LocalDate currentLocalDate) {
-		Map<Integer, Expression> totalDividendMap = portfolioHoldings.stream()
-			.flatMap(holding ->
-				holding.createMonthlyDividendMap(currentLocalDate).entrySet().stream()
-			)
-			.collect(Collectors.groupingBy(Map.Entry::getKey,
-				Collectors.reducing(Money.zero(), Map.Entry::getValue, Expression::plus))
-			);
-		Bank bank = Bank.getInstance();
-		Currency to = Currency.KRW;
-		return totalDividendMap.entrySet().stream()
-			.map(entry -> PortfolioDividendChartItem.create(entry.getKey(), entry.getValue().reduce(bank, to)))
-			.toList();
 	}
 
 	public boolean equalName(Portfolio changePortfolio) {
@@ -463,5 +446,9 @@ public class Portfolio extends BaseEntity implements Notifiable {
 				RateDivision weight = calculator.calCurrentValuationWeightBy(holding, totalAsset);
 				return holding.createPieChartItem(weight);
 			}).toList();
+	}
+
+	public Map<Integer, Expression> calTotalDividend(PortfolioCalculator calculator, LocalDate currentLocalDate) {
+		return calculator.calTotalDividend(Collections.unmodifiableList(portfolioHoldings), currentLocalDate);
 	}
 }

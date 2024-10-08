@@ -1,7 +1,10 @@
 package co.fineants.api.domain.portfolio.domain.calculator;
 
+import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import co.fineants.api.domain.common.money.Bank;
@@ -322,5 +325,19 @@ public class PortfolioCalculator {
 			.sorted(Comparator.comparing(PortfolioPieChartItem::getValuation, Comparator.reverseOrder())
 				.thenComparing(PortfolioPieChartItem::getTotalGain, Comparator.reverseOrder()))
 			.toList();
+	}
+
+	public Map<Integer, Expression> calTotalDividendBy(Portfolio portfolio, LocalDate currentLocalDate) {
+		return portfolio.calTotalDividend(this, currentLocalDate);
+	}
+
+	public Map<Integer, Expression> calTotalDividend(List<PortfolioHolding> holdings, LocalDate currentLocalDate) {
+		return holdings.stream()
+			.flatMap(holding ->
+				holding.createMonthlyDividendMap(currentLocalDate).entrySet().stream()
+			)
+			.collect(Collectors.groupingBy(Map.Entry::getKey,
+				Collectors.reducing(Money.zero(), Map.Entry::getValue, Expression::plus))
+			);
 	}
 }
