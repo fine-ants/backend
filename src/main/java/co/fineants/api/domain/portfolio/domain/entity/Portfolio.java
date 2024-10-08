@@ -176,18 +176,11 @@ public class Portfolio extends BaseEntity implements Notifiable {
 
 	// 목표수익금액 알림 변경
 	public void changeTargetGainNotification(Boolean isActive) {
-		validateTargetGainNotification();
-		this.preference.changeTargetGain(isActive);
-	}
-
-	/**
-	 * 목표 수익 금액에 따른 변경이 가능한 상태인지 검증
-	 * - 목표 수익 금액이 0원인 경우 변경 불가능
-	 */
-	private void validateTargetGainNotification() {
+		// 목표 수익 금액이 0원인 경우 변경 불가능
 		if (this.financial.getTargetGain().isZero()) {
 			throw new FineAntsException(PortfolioErrorCode.TARGET_GAIN_IS_ZERO_WITH_NOTIFY_UPDATE);
 		}
+		this.preference.changeTargetGain(isActive);
 	}
 
 	// 최대손실금액의 알림 변경
@@ -283,12 +276,6 @@ public class Portfolio extends BaseEntity implements Notifiable {
 
 	public Boolean isMaximumLossSet() {
 		return !this.financial.getMaximumLoss().isZero();
-	}
-
-	public boolean isExceedBudgetByPurchasedAmount(Expression amount, Expression totalInvestment) {
-		Bank bank = Bank.getInstance();
-		Expression investAmount = totalInvestment.plus(amount);
-		return this.financial.getBudget().compareTo(bank.toWon(investAmount)) < 0;
 	}
 
 	@Override

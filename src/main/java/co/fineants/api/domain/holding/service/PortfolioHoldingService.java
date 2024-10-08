@@ -90,7 +90,7 @@ public class PortfolioHoldingService {
 		PortfolioHolding saveHolding = portfolioHoldingRepository.save(holding);
 
 		if (request.isPurchaseHistoryComplete()) {
-			validateInvestAmountNotExceedsBudget(request, portfolio);
+			validateCashSufficientForPurchase(request, portfolio);
 			purchaseHistoryRepository.save(PurchaseHistory.of(saveHolding, request.getPurchaseHistory()));
 		} else if (!request.isPurchaseHistoryAllNull()) {
 			throw new FineAntsException(PurchaseHistoryErrorCode.BAD_INPUT);
@@ -143,12 +143,11 @@ public class PortfolioHoldingService {
 			.orElseThrow(() -> new NotFoundResourceException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
 	}
 
-	private void validateInvestAmountNotExceedsBudget(PortfolioHoldingCreateRequest request, Portfolio portfolio) {
+	private void validateCashSufficientForPurchase(PortfolioHoldingCreateRequest request, Portfolio portfolio) {
 		Expression purchasedAmount = request.getPurchaseHistory().getNumShares()
 			.multiply(request.getPurchaseHistory().getPurchasePricePerShare());
 		PortfolioCalculator calculator = new PortfolioCalculator();
-		Expression portfolioTotalInvestment = calculator.calTotalInvestmentBy(portfolio);
-		if (portfolio.isExceedBudgetByPurchasedAmount(purchasedAmount, portfolioTotalInvestment)) {
+		if (!portfolio.isCashSufficientForPurchase(purchasedAmount, calculator)) {
 			throw new FineAntsException(PortfolioErrorCode.TOTAL_INVESTMENT_PRICE_EXCEEDS_BUDGET);
 		}
 	}
