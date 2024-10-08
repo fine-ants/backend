@@ -52,6 +52,7 @@ import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 @NamedEntityGraph(name = "Portfolio.withAll", attributeNodes = {
@@ -90,6 +91,7 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	private final List<PortfolioHolding> portfolioHoldings = new ArrayList<>();
 
 	@Transient
+	@Setter
 	private LocalDateTimeService localDateTimeService = new DefaultLocalDateTimeService();
 
 	private Portfolio(Long id, PortfolioDetail detail, PortfolioFinancial financial,
@@ -131,6 +133,63 @@ public class Portfolio extends BaseEntity implements Notifiable {
 		return portfolio;
 	}
 
+	//== Notifiable Interface 시작 ==//
+	@Override
+	public NotifyMessage createTargetGainMessageWith(String token) {
+		String title = "포트폴리오";
+		String content = detail.getTargetGainReachMessage();
+		NotificationType type = NotificationType.PORTFOLIO_TARGET_GAIN;
+		String referenceId = id.toString();
+		Long memberId = member.getId();
+		String link = "/portfolio/" + referenceId;
+		return NotifyMessage.portfolio(
+			title,
+			content,
+			type,
+			referenceId,
+			memberId,
+			token,
+			link,
+			detail.name()
+		);
+	}
+
+	@Override
+	public NotifyMessage createMaxLossMessageWith(String token) {
+		String title = "포트폴리오";
+		String content = detail.getMaximumLossReachMessage();
+		NotificationType type = NotificationType.PORTFOLIO_MAX_LOSS;
+		String referenceId = id.toString();
+		Long memberId = member.getId();
+		String link = "/portfolio/" + referenceId;
+		return NotifyMessage.portfolio(
+			title,
+			content,
+			type,
+			referenceId,
+			memberId,
+			token,
+			link,
+			detail.name()
+		);
+	}
+
+	@Override
+	public Long fetchMemberId() {
+		return member.getId();
+	}
+
+	@Override
+	public NotificationPreference getNotificationPreference() {
+		return member.getNotificationPreference();
+	}
+
+	@Override
+	public NotifyMessage getTargetPriceMessage(String token) {
+		throw new UnsupportedOperationException("This method is not supported for Portfolio");
+	}
+	//== Notifiable Interface 종료 ==//
+
 	//== 연관 관계 메소드 ==//
 	public void addHolding(PortfolioHolding holding) {
 		if (portfolioHoldings.contains(holding)) {
@@ -150,7 +209,7 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	public void setMember(Member member) {
 		this.member = member;
 	}
-	//== 연관 관계 편의 메소드 종료 ==//
+	//== 연관 관계 메소드 ==//
 
 	public void change(Portfolio changePortfolio) {
 		this.detail.change(changePortfolio.detail);
@@ -161,7 +220,7 @@ public class Portfolio extends BaseEntity implements Notifiable {
 		return member.hasAuthorization(memberId);
 	}
 
-	public Count getNumberOfShares() {
+	public Count numberOfShares() {
 		return Count.from(portfolioHoldings.size());
 	}
 
@@ -217,95 +276,31 @@ public class Portfolio extends BaseEntity implements Notifiable {
 		return calculator.calBalanceBy(this).compareTo(purchaseAmount) >= 0;
 	}
 
-	public boolean hasTargetGainSentHistory(NotificationSentRepository manager) {
-		return manager.hasTargetGainSendHistory(id);
-	}
-
-	public boolean hasMaxLossSentHistory(NotificationSentRepository manager) {
-		return manager.hasMaxLossSendHistory(id);
-	}
-
-	@Override
-	public NotifyMessage createTargetGainMessageWith(String token) {
-		String title = "포트폴리오";
-		String content = detail.getTargetGainReachMessage();
-		NotificationType type = NotificationType.PORTFOLIO_TARGET_GAIN;
-		String referenceId = id.toString();
-		Long memberId = member.getId();
-		String link = "/portfolio/" + referenceId;
-		return NotifyMessage.portfolio(
-			title,
-			content,
-			type,
-			referenceId,
-			memberId,
-			token,
-			link,
-			detail.getName()
-		);
-	}
-
-	@Override
-	public NotifyMessage createMaxLossMessageWith(String token) {
-		String title = "포트폴리오";
-		String content = detail.getMaximumLossReachMessage();
-		NotificationType type = NotificationType.PORTFOLIO_MAX_LOSS;
-		String referenceId = id.toString();
-		Long memberId = member.getId();
-		String link = "/portfolio/" + referenceId;
-		return NotifyMessage.portfolio(
-			title,
-			content,
-			type,
-			referenceId,
-			memberId,
-			token,
-			link,
-			detail.getName()
-		);
-	}
-
-	public Boolean isTargetGainSet() {
-		return !this.financial.getTargetGain().isZero();
-	}
-
-	public Boolean isMaximumLossSet() {
-		return !this.financial.getMaximumLoss().isZero();
-	}
-
-	@Override
-	public Long fetchMemberId() {
-		return member.getId();
-	}
-
-	@Override
-	public NotificationPreference getNotificationPreference() {
-		return member.getNotificationPreference();
-	}
-
-	@Override
-	public NotifyMessage getTargetPriceMessage(String token) {
-		throw new UnsupportedOperationException("This method is not supported for Portfolio");
-	}
-
 	public List<PortfolioHolding> getPortfolioHoldings() {
 		return Collections.unmodifiableList(portfolioHoldings);
 	}
 
-	public void setLocalDateTimeService(LocalDateTimeService localDateTimeService) {
-		this.localDateTimeService = localDateTimeService;
-	}
-
+	//== PortfolioDetail 위임 메소드 시작 ==//
 	public boolean equalName(Portfolio portfolio) {
 		return detail.equalName(portfolio.detail);
 	}
 
-	public String getSecuritiesFirm() {
-		return detail.getSecuritiesFirm();
+	public String securitiesFirm() {
+		return detail.securitiesFirm();
 	}
 
-	public String getName() {
-		return detail.getName();
+	public String name() {
+		return detail.name();
+	}
+	//== PortfolioDetail 위임 메소드 종료 ==//
+
+	//== PortfolioFinancial 위임 메소드 시작 ==//
+	public Boolean isTargetGainSet() {
+		return !this.financial.isTargetGainZero();
+	}
+
+	public Boolean isMaximumLossSet() {
+		return !this.financial.isMaximumLossZero();
 	}
 
 	public Money getBudget() {
@@ -319,7 +314,9 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	public Money getMaximumLoss() {
 		return this.financial.getMaximumLoss();
 	}
+	//== PortfolioFinancial 위임 메소드 종료 ==//
 
+	//== PortfolioNotificationPreference 위임 메서드 시작 ==//
 	public boolean isSameTargetGainActive(boolean active) {
 		return this.preference.isSameTargetGain(active);
 	}
@@ -328,17 +325,21 @@ public class Portfolio extends BaseEntity implements Notifiable {
 		return this.preference.isSameMaxLoss(active);
 	}
 
-	public Boolean getTargetGainIsActive() {
-		return preference.getTargetGainIsActive();
+	public Boolean targetGainIsActive() {
+		return preference.targetGainIsActive();
 	}
 
-	public Boolean getMaximumLossIsActive() {
-		return preference.getMaximumLossIsActive();
+	public Boolean maximumLossIsActive() {
+		return preference.maximumLossIsActive();
+	}
+	//== PortfolioNotificationPreference 위임 메서드 종료 ==//
+
+	public boolean hasTargetGainSentHistory(NotificationSentRepository manager) {
+		return manager.hasTargetGainSendHistory(id);
 	}
 
-	@Override
-	public String toString() {
-		return String.format("Portfolio(id=%d, detail=%s, memberNickname=%s)", id, detail, member.getNickname());
+	public boolean hasMaxLossSentHistory(NotificationSentRepository manager) {
+		return manager.hasMaxLossSendHistory(id);
 	}
 
 	public Expression calTotalGain(PortfolioCalculator calculator) {
@@ -424,7 +425,6 @@ public class Portfolio extends BaseEntity implements Notifiable {
 
 	/**
 	 * 포트폴리오가 최대손실금액에 도달했는지 여부 검사.
-	 *
 	 * @param calculator 포트폴리오 계산기 객체
 	 * @return true: 총 손익이 최대손실금액보다 같거나 작은 경우, false: 총 손익이 최대손실금액보다 큰 경우
 	 */
@@ -444,5 +444,10 @@ public class Portfolio extends BaseEntity implements Notifiable {
 
 	public Map<Integer, Expression> calTotalDividend(PortfolioCalculator calculator, LocalDate currentLocalDate) {
 		return calculator.calTotalDividend(Collections.unmodifiableList(portfolioHoldings), currentLocalDate);
+	}
+
+	@Override
+	public String toString() {
+		return String.format("Portfolio(id=%d, detail=%s, memberNickname=%s)", id, detail, member.getNickname());
 	}
 }

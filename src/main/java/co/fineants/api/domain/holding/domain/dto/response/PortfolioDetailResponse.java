@@ -64,8 +64,8 @@ public class PortfolioDetailResponse {
 		Expression maximumLossRate = calculator.calMaximumLossRateBy(portfolio);
 		return PortfolioDetailResponse.builder()
 			.id(portfolio.getId())
-			.securitiesFirm(portfolio.getSecuritiesFirm())
-			.name(portfolio.getName())
+			.securitiesFirm(portfolio.securitiesFirm())
+			.name(portfolio.name())
 			.budget(portfolio.getBudget())
 			.targetGain(portfolio.getTargetGain())
 			.targetReturnRate(targetGainRate.toPercentage(Bank.getInstance(), to))
@@ -82,8 +82,8 @@ public class PortfolioDetailResponse {
 			.annualDividendYield(annualDividendYield.toPercentage(Bank.getInstance(), to))
 			.annualInvestmentDividendYield(annualInvestmentDividendYield.toPercentage(Bank.getInstance(), to))
 			.provisionalLossBalance(Money.zero())
-			.targetGainNotify(portfolio.getTargetGainIsActive())
-			.maxLossNotify(portfolio.getMaximumLossIsActive())
+			.targetGainNotify(portfolio.targetGainIsActive())
+			.maxLossNotify(portfolio.maximumLossIsActive())
 			.build();
 	}
 

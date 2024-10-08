@@ -10,13 +10,11 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EqualsAndHashCode(of = {"name", "securitiesFirm"})
-@Getter
 public class PortfolioDetail {
 	// 한글 또는 영문자로 시작하고 최대 100글자
 	public static final String NAME_REGEXP = "^[가-힣a-zA-Z0-9][가-힣a-zA-Z0-9 ]{0,99}$";
@@ -90,6 +88,14 @@ public class PortfolioDetail {
 	 */
 	public String getMaximumLossReachMessage() {
 		return String.format("%s이(가) 최대 손실율에 도달했습니다", name);
+	}
+
+	public String name() {
+		return name;
+	}
+
+	public String securitiesFirm() {
+		return securitiesFirm;
 	}
 
 	@Override

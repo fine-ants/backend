@@ -49,8 +49,8 @@ public class PortFolioItem {
 		Expression currentMonthDividend = calculator.calCurrentMonthDividendBy(portfolio);
 		return PortFolioItem.builder()
 			.id(portfolio.getId())
-			.securitiesFirm(portfolio.getSecuritiesFirm())
-			.name(portfolio.getName())
+			.securitiesFirm(portfolio.securitiesFirm())
+			.name(portfolio.name())
 			.budget(portfolio.getBudget())
 			.totalGain(totalGain.reduce(bank, to))
 			.totalGainRate(totalGainRate.toPercentage(Bank.getInstance(), Currency.KRW))
@@ -58,7 +58,7 @@ public class PortFolioItem {
 			.dailyGainRate(dailyGainRate.toPercentage(Bank.getInstance(), Currency.KRW))
 			.currentValuation(totalCurrentValuation.reduce(bank, to))
 			.expectedMonthlyDividend(currentMonthDividend.reduce(bank, to))
-			.numShares(portfolio.getNumberOfShares())
+			.numShares(portfolio.numberOfShares())
 			.dateCreated(portfolio.getCreateAt())
 			.build();
 	}

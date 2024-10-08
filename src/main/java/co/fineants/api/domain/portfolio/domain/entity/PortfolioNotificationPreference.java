@@ -3,12 +3,10 @@ package co.fineants.api.domain.portfolio.domain.entity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Getter
 public class PortfolioNotificationPreference {
 	@Column(name = "target_gain_is_active", nullable = false)
 	private Boolean targetGainIsActive;
@@ -74,5 +72,13 @@ public class PortfolioNotificationPreference {
 	 */
 	public boolean isSameMaxLoss(boolean active) {
 		return this.maximumLossIsActive == active;
+	}
+
+	public Boolean targetGainIsActive() {
+		return this.targetGainIsActive;
+	}
+
+	public Boolean maximumLossIsActive() {
+		return this.maximumLossIsActive;
 	}
 }

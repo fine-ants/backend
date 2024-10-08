@@ -47,7 +47,7 @@ public class DashboardPieChartResponse {
 		Expression totalAsset = calculator.calTotalAssetBy(portfolio);
 		return new DashboardPieChartResponse(
 			portfolio.getId(),
-			portfolio.getName(),
+			portfolio.name(),
 			totalAsset.reduce(bank, to),
 			totalAsset
 				.divide(totalValuation)

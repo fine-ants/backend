@@ -93,7 +93,7 @@ public class PortFolioService {
 		Portfolio changePortfolio = request.toEntity(member, properties);
 
 		if (!originalPortfolio.equalName(changePortfolio)) {
-			validateUniquePortfolioName(changePortfolio.getName(), member);
+			validateUniquePortfolioName(changePortfolio.name(), member);
 		}
 		originalPortfolio.change(changePortfolio);
 
