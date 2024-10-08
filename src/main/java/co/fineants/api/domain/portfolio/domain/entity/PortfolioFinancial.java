@@ -113,4 +113,8 @@ public class PortfolioFinancial {
 	public boolean reachedMaximumLoss(Expression totalGain) {
 		return maximumLoss.compareTo(totalGain) >= 0;
 	}
+
+	public boolean isTargetGainZero() {
+		return targetGain.isZero();
+	}
 }

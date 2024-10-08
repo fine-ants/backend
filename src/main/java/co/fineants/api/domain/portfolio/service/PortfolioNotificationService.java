@@ -12,7 +12,9 @@ import co.fineants.api.global.common.authorized.Authorized;
 import co.fineants.api.global.common.authorized.service.PortfolioAuthorizedService;
 import co.fineants.api.global.common.resource.ResourceId;
 import co.fineants.api.global.errors.errorcode.PortfolioErrorCode;
+import co.fineants.api.global.errors.exception.BadRequestException;
 import co.fineants.api.global.errors.exception.NotFoundResourceException;
+import co.fineants.api.global.errors.exception.portfolio.IllegalPortfolioStateException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -27,13 +29,20 @@ public class PortfolioNotificationService {
 	@Transactional
 	@Authorized(serviceClass = PortfolioAuthorizedService.class)
 	@Secured("ROLE_USER")
-	public PortfolioNotificationUpdateResponse updateNotificationTargetGain(PortfolioNotificationUpdateRequest request,
+	public PortfolioNotificationUpdateResponse updateNotificationTargetGain(boolean active,
 		@ResourceId Long portfolioId) {
-		log.info("포트폴리오 목표수익금액 알림 수정 서비스, request={}, portfolioId={}", request, portfolioId);
+		log.info("change the Portfolio's targetGainIsActive, active={}, portfolioId={}", active, portfolioId);
 		Portfolio portfolio = findPortfolio(portfolioId);
-		portfolio.changeTargetGainNotification(request.getIsActive());
-		log.info("포트폴리오 목표수익금액 알림 수정 서비스 결과 : portfolio={}", portfolio);
-		return PortfolioNotificationUpdateResponse.targetGainIsActive(portfolio);
+		changeTargetGainNotification(portfolio, active);
+		return PortfolioNotificationUpdateResponse.targetGainIsActive(portfolioId, active);
+	}
+
+	private void changeTargetGainNotification(Portfolio portfolio, boolean isActive) {
+		try {
+			portfolio.changeTargetGainNotification(isActive);
+		} catch (IllegalPortfolioStateException e) {
+			throw new BadRequestException(e.getErrorCode(), e);
+		}
 	}
 
 	private Portfolio findPortfolio(Long portfolioId) {

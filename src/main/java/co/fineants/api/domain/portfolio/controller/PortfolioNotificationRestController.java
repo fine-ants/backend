@@ -27,8 +27,9 @@ public class PortfolioNotificationRestController {
 	public ApiResponse<Void> updateNotificationTargetGain(
 		@PathVariable Long portfolioId,
 		@Valid @RequestBody PortfolioNotificationUpdateRequest request) {
-		log.info("포트폴리오 알림 설정 : request={}, portfolioId={}", request, portfolioId);
-		PortfolioNotificationUpdateResponse response = service.updateNotificationTargetGain(request, portfolioId);
+		log.info("request={}, portfolioId={}", request, portfolioId);
+		PortfolioNotificationUpdateResponse response = service.updateNotificationTargetGain(request.getIsActive(),
+			portfolioId);
 		if (Boolean.TRUE.equals(response.getIsActive())) {
 			return ApiResponse.success(PortfolioSuccessCode.OK_MODIFY_PORTFOLIO_TARGET_GAIN_ACTIVE_NOTIFICATION);
 		}

@@ -32,6 +32,7 @@ import co.fineants.api.global.common.time.DefaultLocalDateTimeService;
 import co.fineants.api.global.common.time.LocalDateTimeService;
 import co.fineants.api.global.errors.errorcode.PortfolioErrorCode;
 import co.fineants.api.global.errors.exception.FineAntsException;
+import co.fineants.api.global.errors.exception.portfolio.IllegalPortfolioFinancialStateException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
@@ -174,11 +175,17 @@ public class Portfolio extends BaseEntity implements Notifiable {
 		}
 	}
 
-	// 목표수익금액 알림 변경
+	/**
+	 * 포트폴리오의 목표수익금액 알림 설정을 변경합니다.
+	 *
+	 * @param isActive 변경하고자 하는 알림 설정, true: 알림 활성화, false: 알림 비활성화
+	 * @throws IllegalPortfolioFinancialStateException 목표수익금액이 0원인 경우 예외 발생
+	 */
 	public void changeTargetGainNotification(Boolean isActive) {
 		// 목표 수익 금액이 0원인 경우 변경 불가능
-		if (this.financial.getTargetGain().isZero()) {
-			throw new FineAntsException(PortfolioErrorCode.TARGET_GAIN_IS_ZERO_WITH_NOTIFY_UPDATE);
+		if (this.financial.isTargetGainZero()) {
+			throw new IllegalPortfolioFinancialStateException(this.financial,
+				PortfolioErrorCode.TARGET_GAIN_IS_ZERO_WITH_NOTIFY_UPDATE);
 		}
 		this.preference.changeTargetGain(isActive);
 	}
@@ -197,10 +204,6 @@ public class Portfolio extends BaseEntity implements Notifiable {
 		if (this.financial.getMaximumLoss().isZero()) {
 			throw new FineAntsException(PortfolioErrorCode.MAX_LOSS_IS_ZERO_WITH_NOTIFY_UPDATE);
 		}
-	}
-
-	public boolean equalName(Portfolio changePortfolio) {
-		return detail.equalName(changePortfolio.detail);
 	}
 
 	/**
@@ -291,6 +294,10 @@ public class Portfolio extends BaseEntity implements Notifiable {
 
 	public void setLocalDateTimeService(LocalDateTimeService localDateTimeService) {
 		this.localDateTimeService = localDateTimeService;
+	}
+
+	public boolean equalName(Portfolio portfolio) {
+		return detail.equalName(portfolio.detail);
 	}
 
 	public String getSecuritiesFirm() {

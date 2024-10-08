@@ -78,7 +78,8 @@ class PortfolioNotificationServiceTest extends AbstractContainerBaseTest {
 
 		setAuthentication(member);
 		// when
-		PortfolioNotificationUpdateResponse response = service.updateNotificationTargetGain(request, portfolio.getId());
+		PortfolioNotificationUpdateResponse response = service.updateNotificationTargetGain(request.getIsActive(),
+			portfolio.getId());
 
 		// then
 		assertAll(
@@ -100,7 +101,8 @@ class PortfolioNotificationServiceTest extends AbstractContainerBaseTest {
 		setAuthentication(member);
 		PortfolioNotificationUpdateRequest request = PortfolioNotificationUpdateRequest.active();
 		// when
-		Throwable throwable = catchThrowable(() -> service.updateNotificationTargetGain(request, portfolio.getId()));
+		Throwable throwable = catchThrowable(
+			() -> service.updateNotificationTargetGain(request.getIsActive(), portfolio.getId()));
 
 		// then
 		assertThat(throwable)
@@ -119,7 +121,8 @@ class PortfolioNotificationServiceTest extends AbstractContainerBaseTest {
 
 		setAuthentication(hacker);
 		// when
-		Throwable throwable = catchThrowable(() -> service.updateNotificationTargetGain(request, portfolio.getId()));
+		Throwable throwable = catchThrowable(
+			() -> service.updateNotificationTargetGain(request.getIsActive(), portfolio.getId()));
 
 		// then
 		assertThat(throwable)

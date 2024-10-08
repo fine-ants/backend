@@ -42,7 +42,7 @@ class PortfolioNotificationRestControllerDocsTest extends RestDocsSupport {
 		Portfolio portfolio = createPortfolio(createMember());
 
 		given(service.updateNotificationTargetGain(
-			ArgumentMatchers.any(PortfolioNotificationUpdateRequest.class),
+			ArgumentMatchers.anyBoolean(),
 			anyLong()))
 			.willReturn(PortfolioNotificationUpdateResponse.targetGainIsActive(portfolio));
 

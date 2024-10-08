@@ -56,7 +56,7 @@ class PortfolioNotificationRestControllerTest extends ControllerTestSupport {
 			objectMapper.writeValueAsString(responseBodyMap), PortfolioNotificationUpdateResponse.class);
 		given(portfolioRepository.findById(anyLong())).willReturn(Optional.of(portfolio));
 		given(service.updateNotificationTargetGain(
-			any(PortfolioNotificationUpdateRequest.class),
+			anyBoolean(),
 			anyLong()
 		)).willReturn(response);
 
@@ -89,7 +89,7 @@ class PortfolioNotificationRestControllerTest extends ControllerTestSupport {
 			objectMapper.writeValueAsString(responseBodyMap), PortfolioNotificationUpdateResponse.class);
 		given(portfolioRepository.findById(anyLong())).willReturn(Optional.of(portfolio));
 		given(service.updateNotificationTargetGain(
-			any(PortfolioNotificationUpdateRequest.class),
+			anyBoolean(),
 			anyLong()
 		)).willReturn(response);
 

@@ -4,11 +4,10 @@ import co.fineants.api.global.errors.errorcode.ErrorCode;
 import lombok.Getter;
 
 @Getter
-public abstract class IllegalPortfolioArgumentException extends IllegalArgumentException {
-
+public class IllegalPortfolioStateException extends IllegalStateException {
 	private final ErrorCode errorCode;
 
-	IllegalPortfolioArgumentException(String message, ErrorCode errorCode) {
+	IllegalPortfolioStateException(String message, ErrorCode errorCode) {
 		super(message);
 		this.errorCode = errorCode;
 	}
