@@ -117,4 +117,8 @@ public class PortfolioFinancial {
 	public boolean isTargetGainZero() {
 		return targetGain.isZero();
 	}
+
+	public boolean isMaximumLossZero() {
+		return maximumLoss.isZero();
+	}
 }

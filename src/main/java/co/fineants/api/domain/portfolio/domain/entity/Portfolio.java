@@ -31,7 +31,6 @@ import co.fineants.api.domain.portfolio.domain.calculator.PortfolioCalculator;
 import co.fineants.api.global.common.time.DefaultLocalDateTimeService;
 import co.fineants.api.global.common.time.LocalDateTimeService;
 import co.fineants.api.global.errors.errorcode.PortfolioErrorCode;
-import co.fineants.api.global.errors.exception.FineAntsException;
 import co.fineants.api.global.errors.exception.portfolio.IllegalPortfolioFinancialStateException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
@@ -176,34 +175,35 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	}
 
 	/**
-	 * 포트폴리오의 목표수익금액 알림 설정을 변경합니다.
-	 *
-	 * @param isActive 변경하고자 하는 알림 설정, true: 알림 활성화, false: 알림 비활성화
+	 * 포트폴리오의 목표수익금액 알림 설정을 변경.
+	 * <p>
+	 * 포트폴리오의 목표수익금액이 0원이 경우에는 활성화 알림이 변경되지 않는다.
+	 * </p>
+	 * @param active 변경하고자 하는 알림 설정, true: 알림 활성화, false: 알림 비활성화
 	 * @throws IllegalPortfolioFinancialStateException 목표수익금액이 0원인 경우 예외 발생
 	 */
-	public void changeTargetGainNotification(Boolean isActive) {
-		// 목표 수익 금액이 0원인 경우 변경 불가능
+	public void changeTargetGainNotification(Boolean active) {
 		if (this.financial.isTargetGainZero()) {
 			throw new IllegalPortfolioFinancialStateException(this.financial,
 				PortfolioErrorCode.TARGET_GAIN_IS_ZERO_WITH_NOTIFY_UPDATE);
 		}
-		this.preference.changeTargetGain(isActive);
-	}
-
-	// 최대손실금액의 알림 변경
-	public void changeMaximumLossNotification(Boolean isActive) {
-		validateMaxLossNotification();
-		this.preference.changeMaximumLoss(isActive);
+		this.preference.changeTargetGain(active);
 	}
 
 	/**
-	 * 최대 손실 금액에 따른 변경이 가능한 상태인지 검증
-	 * - 최대 손실 금액이 0원인 경우 변경 불가능
+	 * 포트폴리오의 최대손실금액의 활성화 알림을 변경.
+	 *<p>
+	 * 포트폴리오의 최대손실금액이 0원인 경우 활성화 알림이 변경되지 않는다
+	 * </p>
+	 * @param active 변경하고자 하는 활성화 알림 여부, true: 알림 활성화, false: 알림 비활성화
+	 * @throws IllegalPortfolioFinancialStateException 최대손실금액이 0원인 경우 예외 발생
 	 */
-	private void validateMaxLossNotification() {
-		if (this.financial.getMaximumLoss().isZero()) {
-			throw new FineAntsException(PortfolioErrorCode.MAX_LOSS_IS_ZERO_WITH_NOTIFY_UPDATE);
+	public void changeMaximumLossNotification(Boolean active) {
+		if (this.financial.isMaximumLossZero()) {
+			throw new IllegalPortfolioFinancialStateException(this.financial,
+				PortfolioErrorCode.MAX_LOSS_IS_ZERO_WITH_NOTIFY_UPDATE);
 		}
+		this.preference.changeMaximumLoss(active);
 	}
 
 	/**

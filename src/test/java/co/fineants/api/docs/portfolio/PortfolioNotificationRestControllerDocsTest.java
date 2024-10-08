@@ -20,7 +20,6 @@ import org.springframework.restdocs.snippet.Attributes;
 
 import co.fineants.api.docs.RestDocsSupport;
 import co.fineants.api.domain.portfolio.controller.PortfolioNotificationRestController;
-import co.fineants.api.domain.portfolio.domain.dto.request.PortfolioNotificationUpdateRequest;
 import co.fineants.api.domain.portfolio.domain.dto.response.PortfolioNotificationUpdateResponse;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import co.fineants.api.domain.portfolio.service.PortfolioNotificationService;
@@ -97,7 +96,7 @@ class PortfolioNotificationRestControllerDocsTest extends RestDocsSupport {
 		Portfolio portfolio = createPortfolio(createMember());
 
 		given(service.updateNotificationMaximumLoss(
-			ArgumentMatchers.any(PortfolioNotificationUpdateRequest.class),
+			anyBoolean(),
 			anyLong()))
 			.willReturn(PortfolioNotificationUpdateResponse.maximumLossIsActive(portfolio));
 

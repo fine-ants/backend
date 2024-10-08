@@ -1,7 +1,6 @@
 package co.fineants.api.domain.portfolio.controller;
 
 import static org.hamcrest.Matchers.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -18,7 +17,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 
-import co.fineants.api.domain.portfolio.domain.dto.request.PortfolioNotificationUpdateRequest;
 import co.fineants.api.domain.portfolio.domain.dto.response.PortfolioNotificationUpdateResponse;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import co.fineants.api.domain.portfolio.repository.PortfolioRepository;
@@ -122,7 +120,7 @@ class PortfolioNotificationRestControllerTest extends ControllerTestSupport {
 			objectMapper.writeValueAsString(responseBodyMap), PortfolioNotificationUpdateResponse.class);
 		given(portfolioRepository.findById(anyLong())).willReturn(Optional.of(portfolio));
 		given(service.updateNotificationMaximumLoss(
-			any(PortfolioNotificationUpdateRequest.class),
+			anyBoolean(),
 			anyLong()
 		)).willReturn(response);
 
@@ -155,7 +153,7 @@ class PortfolioNotificationRestControllerTest extends ControllerTestSupport {
 			objectMapper.writeValueAsString(responseBodyMap), PortfolioNotificationUpdateResponse.class);
 		given(portfolioRepository.findById(anyLong())).willReturn(Optional.of(portfolio));
 		given(service.updateNotificationMaximumLoss(
-			any(PortfolioNotificationUpdateRequest.class),
+			anyBoolean(),
 			anyLong()
 		)).willReturn(response);
 

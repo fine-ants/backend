@@ -41,7 +41,8 @@ public class PortfolioNotificationRestController {
 		@PathVariable Long portfolioId,
 		@Valid @RequestBody PortfolioNotificationUpdateRequest request) {
 		log.info("포트폴리오 알림 설정 : request={}, portfolioId={}", request, portfolioId);
-		PortfolioNotificationUpdateResponse response = service.updateNotificationMaximumLoss(request, portfolioId);
+		PortfolioNotificationUpdateResponse response = service.updateNotificationMaximumLoss(request.getIsActive(),
+			portfolioId);
 		if (Boolean.TRUE.equals(response.getIsActive())) {
 			return ApiResponse.success(PortfolioSuccessCode.OK_MODIFY_PORTFOLIO_MAXIMUM_LOSS_ACTIVE_NOTIFICATION);
 		}
