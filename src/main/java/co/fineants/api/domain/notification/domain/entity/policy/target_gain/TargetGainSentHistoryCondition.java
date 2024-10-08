@@ -14,7 +14,7 @@ public class TargetGainSentHistoryCondition implements NotificationCondition<Por
 
 	@Override
 	public boolean isSatisfiedBy(Portfolio portfolio) {
-		boolean result = portfolio.hasTargetGainSentHistory(manager);
+		boolean result = manager.hasTargetGainSentHistoryBy(portfolio);
 		log.debug("SentHistoryCondition isSatisfiedBy: {}", result);
 		return !result;
 	}

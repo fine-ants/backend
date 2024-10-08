@@ -7,6 +7,7 @@ import java.util.Set;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
+import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -70,5 +71,13 @@ public class NotificationSentRepository {
 				redisTemplate.delete(key);
 			}
 		}
+	}
+
+	public boolean hasTargetGainSentHistoryBy(Portfolio portfolio) {
+		return portfolio.hasTargetGainSentHistory(this);
+	}
+
+	public boolean hasMaxLossSentHistoryBy(Portfolio portfolio) {
+		return portfolio.hasMaxLossSentHistory(this);
 	}
 }

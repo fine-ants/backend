@@ -214,14 +214,6 @@ public class Portfolio extends BaseEntity implements Notifiable {
 		return calculator.calBalanceBy(this).compareTo(purchaseAmount) >= 0;
 	}
 
-	public boolean isSameTargetGainActive(boolean active) {
-		return this.preference.isSameTargetGain(active);
-	}
-
-	public boolean isSameMaxLossActive(boolean active) {
-		return this.preference.isSameMaxLoss(active);
-	}
-
 	public boolean hasTargetGainSentHistory(NotificationSentRepository manager) {
 		return manager.hasTargetGainSendHistory(id);
 	}
@@ -319,6 +311,14 @@ public class Portfolio extends BaseEntity implements Notifiable {
 
 	public Money getMaximumLoss() {
 		return this.financial.getMaximumLoss();
+	}
+
+	public boolean isSameTargetGainActive(boolean active) {
+		return this.preference.isSameTargetGain(active);
+	}
+
+	public boolean isSameMaxLossActive(boolean active) {
+		return this.preference.isSameMaxLoss(active);
 	}
 
 	public Boolean getTargetGainIsActive() {
