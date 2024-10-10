@@ -2,12 +2,13 @@ package co.fineants.api.domain.common.money;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.Objects;
 
 import org.jetbrains.annotations.NotNull;
 
 import co.fineants.api.domain.common.count.Count;
+import lombok.EqualsAndHashCode;
 
+@EqualsAndHashCode(of = {"division", "divisor"})
 public class RateDivision implements Expression {
 
 	private final Expression division;
@@ -79,25 +80,11 @@ public class RateDivision implements Expression {
 	}
 
 	@Override
-	public int compareTo(@NotNull Expression o) {
-		Money won1 = Bank.getInstance().toWon(this);
-		Money won2 = Bank.getInstance().toWon(o);
+	public int compareTo(@NotNull Expression expression) {
+		Bank bank = Bank.getInstance();
+		Money won1 = bank.toWon(this);
+		Money won2 = bank.toWon(expression);
 		return won1.compareTo(won2);
-	}
-
-	@Override
-	public boolean equals(Object object) {
-		if (this == object)
-			return true;
-		if (object == null || getClass() != object.getClass())
-			return false;
-		RateDivision that = (RateDivision)object;
-		return Objects.equals(division, that.division) && Objects.equals(divisor, that.divisor);
-	}
-
-	@Override
-	public int hashCode() {
-		return Objects.hash(division, divisor);
 	}
 
 	@Override
