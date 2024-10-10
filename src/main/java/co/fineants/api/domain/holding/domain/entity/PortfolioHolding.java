@@ -141,8 +141,8 @@ public class PortfolioHolding extends BaseEntity {
 	}
 
 	// 종목 총 손익율 = 총 손익 / 총 투자 금액
-	public RateDivision calculateTotalReturnRate() {
-		Expression totalGain = calculateTotalGain();
+	public RateDivision calculateTotalReturnRate(Expression currentPrice) {
+		Expression totalGain = calculateTotalGain(currentPrice);
 		Expression totalInvestmentAmount = calculateTotalInvestmentAmount();
 		return totalGain.divide(totalInvestmentAmount);
 	}
@@ -230,15 +230,12 @@ public class PortfolioHolding extends BaseEntity {
 		this.currentPrice = stock.getCurrentPrice(manager).reduce(bank, to);
 	}
 
-	public PortfolioPieChartItem createPieChartItem(RateDivision weight) {
+	public PortfolioPieChartItem createPieChartItem(RateDivision weight, Expression currentValuation,
+		Expression totalGain, Percentage totalReturnPercentage) {
 		String name = stock.getCompanyName();
-		Expression currentValuation = calculateCurrentValuation();
-		Expression totalGain = calculateTotalGain();
-		RateDivision totalReturnRate = calculateTotalReturnRate();
 
 		Bank bank = Bank.getInstance();
 		Percentage weightPercentage = weight.toPercentage(bank, Currency.KRW);
-		Percentage totalReturnPercentage = totalReturnRate.toPercentage(bank, Currency.KRW);
 		return PortfolioPieChartItem.stock(name, currentValuation, weightPercentage, totalGain, totalReturnPercentage);
 	}
 

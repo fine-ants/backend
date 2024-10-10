@@ -18,6 +18,7 @@ import co.fineants.api.domain.common.count.Count;
 import co.fineants.api.domain.common.money.Bank;
 import co.fineants.api.domain.common.money.Expression;
 import co.fineants.api.domain.common.money.Money;
+import co.fineants.api.domain.common.money.Percentage;
 import co.fineants.api.domain.common.money.RateDivision;
 import co.fineants.api.domain.common.money.Sum;
 import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
@@ -191,6 +192,27 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		// then
 		RateDivision expected = RateDivision.of(Money.won(1083), Money.won(150_000));
 		Assertions.assertThat(result).isEqualByComparingTo(expected);
+	}
+
+	@DisplayName("포트폴리오 종목의 손익율을 계산한다")
+	@Test
+	void calTotalReturnRate() {
+		// given
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createSamsungStock();
+		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
+		PurchaseHistory history = createPurchaseHistory(null, LocalDateTime.now(), Count.from(3), Money.won(40000L),
+			"메모", holding);
+		holding.addPurchaseHistory(history);
+		portfolio.addHolding(holding);
+
+		long currentPrice = 50_000L;
+		currentPriceRepository.savePrice(stock, currentPrice);
+		// when
+		Percentage actual = calculator.calTotalReturnPercentage(holding);
+		// then
+		Percentage expected = Percentage.from(0.25);
+		Assertions.assertThat(actual).isEqualByComparingTo(expected);
 	}
 
 	@DisplayName("포트폴리오 총 투자금액을 계산한다")

@@ -13,6 +13,7 @@ import co.fineants.api.domain.BaseEntity;
 import co.fineants.api.domain.common.count.Count;
 import co.fineants.api.domain.common.money.Expression;
 import co.fineants.api.domain.common.money.Money;
+import co.fineants.api.domain.common.money.Percentage;
 import co.fineants.api.domain.common.money.RateDivision;
 import co.fineants.api.domain.common.notification.Notifiable;
 import co.fineants.api.domain.holding.domain.dto.response.PortfolioPieChartItem;
@@ -432,7 +433,10 @@ public class Portfolio extends BaseEntity implements Notifiable {
 		return portfolioHoldings.stream()
 			.map(holding -> {
 				RateDivision weight = calculator.calCurrentValuationWeightBy(holding, totalAsset);
-				return holding.createPieChartItem(weight);
+				Expression currentValuation = calculator.calTotalCurrentValuation(holding);
+				Expression totalGain = calculator.calTotalGain(holding);
+				Percentage totalReturnRate = calculator.calTotalReturnPercentage(holding);
+				return holding.createPieChartItem(weight, currentValuation, totalGain, totalReturnRate);
 			}).toList();
 	}
 

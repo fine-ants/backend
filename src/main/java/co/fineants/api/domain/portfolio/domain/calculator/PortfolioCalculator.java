@@ -59,8 +59,12 @@ public class PortfolioCalculator {
 	 */
 	public Expression calTotalGain(List<PortfolioHolding> holdings) {
 		return holdings.stream()
-			.map(holding -> this.calculateWithCurrentPrice(holding, holding::calculateTotalGain))
+			.map(this::calTotalGain)
 			.reduce(Money.zero(), Expression::plus);
+	}
+
+	public Expression calTotalGain(PortfolioHolding holding) {
+		return this.calculateWithCurrentPrice(holding, holding::calculateTotalGain);
 	}
 
 	private Expression calculateWithCurrentPrice(PortfolioHolding holding, Function<Money, Expression> calFunction) {
@@ -401,5 +405,11 @@ public class PortfolioCalculator {
 
 	public Expression calAnnualExpectedDividendYieldBy(PortfolioHolding holding) {
 		return this.calculateWithCurrentPrice(holding, holding::calculateAnnualExpectedDividendYield);
+	}
+
+	public Percentage calTotalReturnPercentage(PortfolioHolding holding) {
+		Bank bank = Bank.getInstance();
+		return this.calculateWithCurrentPrice(holding, holding::calculateTotalReturnRate)
+			.toPercentage(bank, Currency.KRW);
 	}
 }
