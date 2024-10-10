@@ -13,9 +13,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Stream;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -46,7 +46,7 @@ import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
 import co.fineants.api.domain.holding.service.PortfolioHoldingService;
 import co.fineants.api.domain.holding.service.PortfolioObservableService;
 import co.fineants.api.domain.kis.repository.CurrentPriceMemoryRepository;
-import co.fineants.api.domain.kis.repository.CurrentPriceRedisRepository;
+import co.fineants.api.domain.kis.repository.PriceRepository;
 import co.fineants.api.domain.member.domain.entity.Member;
 import co.fineants.api.domain.portfolio.domain.calculator.PortfolioCalculator;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
@@ -67,14 +67,18 @@ class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 	@MockBean
 	private PortfolioObservableService portfolioObservableService;
 
-	@MockBean
-	private CurrentPriceRedisRepository currentPriceRedisRepository;
-
-	private final PortfolioCalculator calculator = new PortfolioCalculator(new CurrentPriceMemoryRepository());
+	private PriceRepository currentPriceRepository;
+	private PortfolioCalculator calculator;
 
 	@Override
 	protected Object initController() {
 		return new PortfolioHoldingRestController(portfolioHoldingService, portfolioObservableService);
+	}
+
+	@BeforeEach
+	void setUp() {
+		currentPriceRepository = new CurrentPriceMemoryRepository();
+		calculator = new PortfolioCalculator(currentPriceRepository);
 	}
 
 	@DisplayName("사용자의 포트폴리오 상세 정보를 가져온다")
@@ -84,9 +88,10 @@ class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 		Member member = createMember();
 		Portfolio portfolio = createPortfolio(member);
 		Stock stock = createSamsungStock();
+		currentPriceRepository.savePrice(stock, 60_000L);
 		List<StockDividend> stockDividends = createStockDividendWith(stock);
 		stockDividends.forEach(stock::addStockDividend);
-		PortfolioHolding portfolioHolding = createPortfolioHolding(portfolio, stock, Money.won(60000L));
+		PortfolioHolding portfolioHolding = createPortfolioHolding(portfolio, stock, Money.won(60_000L));
 		LocalDateTime purchaseDate = LocalDateTime.of(2023, 11, 1, 9, 30, 0);
 		Count numShares = Count.from(3);
 		Money purchasePerShare = Money.won(50000);
@@ -337,9 +342,10 @@ class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 		Member member = createMember();
 		Portfolio portfolio = createPortfolio(member);
 		Stock stock = createSamsungStock();
+		currentPriceRepository.savePrice(stock, 60_000L);
 		List<StockDividend> stockDividends = createStockDividendWith(stock);
 		stockDividends.forEach(stock::addStockDividend);
-		PortfolioHolding portfolioHolding = createPortfolioHolding(portfolio, stock, Money.won(60000L));
+		PortfolioHolding portfolioHolding = createPortfolioHolding(portfolio, stock);
 		portfolio.addHolding(portfolioHolding);
 		LocalDateTime purchaseDate = LocalDateTime.of(2023, 9, 26, 9, 30, 0);
 		Count numShares = Count.from(3);
@@ -347,13 +353,9 @@ class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 		String memo = "첫구매";
 		portfolioHolding.addPurchaseHistory(
 			createPurchaseHistory(null, purchaseDate, numShares, purchasePerShare, memo, portfolioHolding));
-
-		given(currentPriceRedisRepository.fetchPriceBy(stock.getTickerSymbol()))
-			.willReturn(Optional.of(portfolioHolding.getCurrentPrice()));
-
-		PieChart pieChart = new PieChart(currentPriceRedisRepository, calculator);
-		DividendChart dividendChart = new DividendChart(currentPriceRedisRepository, calculator);
-		SectorChart sectorChart = new SectorChart(currentPriceRedisRepository, calculator);
+		PieChart pieChart = new PieChart(currentPriceRepository, calculator);
+		DividendChart dividendChart = new DividendChart(currentPriceRepository, calculator);
+		SectorChart sectorChart = new SectorChart(currentPriceRepository, calculator);
 
 		PortfolioDetails portfolioDetails = PortfolioDetails.from(portfolio);
 		List<PortfolioPieChartItem> pieChartItems = pieChart.createItemsBy(portfolio);

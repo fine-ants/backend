@@ -185,7 +185,7 @@ public class Stock extends BaseEntity {
 		return currentPrice.minus(lastDayClosingPrice).divide(lastDayClosingPrice);
 	}
 
-	public Expression getCurrentPrice(CurrentPriceRedisRepository manager) {
+	public Expression getCurrentPrice(PriceRepository manager) {
 		return manager.fetchPriceBy(tickerSymbol).orElseGet(Money::zero);
 	}
 

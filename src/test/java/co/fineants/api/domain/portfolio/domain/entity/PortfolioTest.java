@@ -5,15 +5,17 @@ import static org.assertj.core.api.Assertions.*;
 import java.time.LocalDateTime;
 
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import co.fineants.AbstractContainerBaseTest;
 import co.fineants.api.domain.common.count.Count;
 import co.fineants.api.domain.common.money.Expression;
 import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
+import co.fineants.api.domain.kis.repository.CurrentPriceMemoryRepository;
+import co.fineants.api.domain.kis.repository.PriceRepository;
 import co.fineants.api.domain.member.domain.entity.Member;
 import co.fineants.api.domain.portfolio.domain.calculator.PortfolioCalculator;
 import co.fineants.api.domain.purchasehistory.domain.entity.PurchaseHistory;
@@ -21,8 +23,14 @@ import co.fineants.api.domain.stock.domain.entity.Stock;
 
 class PortfolioTest extends AbstractContainerBaseTest {
 
-	@Autowired
+	private PriceRepository currentPriceRepository;
 	private PortfolioCalculator calculator;
+
+	@BeforeEach
+	void setUp() {
+		currentPriceRepository = new CurrentPriceMemoryRepository();
+		calculator = new PortfolioCalculator(currentPriceRepository);
+	}
 
 	@DisplayName("포트폴리오의 총 손익을 계산한다")
 	@Test
@@ -30,7 +38,8 @@ class PortfolioTest extends AbstractContainerBaseTest {
 		// given
 		Portfolio portfolio = createPortfolio(createMember());
 		Stock stock = createSamsungStock();
-		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock, Money.won(20000L));
+		currentPriceRepository.savePrice(stock, 20_000L);
+		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock);
 
 		LocalDateTime purchaseDate = LocalDateTime.of(2023, 9, 26, 9, 30, 0);
 		Count numShares = Count.from(5);
@@ -58,7 +67,8 @@ class PortfolioTest extends AbstractContainerBaseTest {
 		// given
 		Portfolio portfolio = createPortfolio(createMember());
 		Stock stock = createSamsungStock();
-		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock, Money.won(20000L));
+		currentPriceRepository.savePrice(stock, 20_000L);
+		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock);
 
 		LocalDateTime purchaseDate = LocalDateTime.of(2023, 9, 26, 9, 30, 0);
 		Count numShares = Count.from(5);

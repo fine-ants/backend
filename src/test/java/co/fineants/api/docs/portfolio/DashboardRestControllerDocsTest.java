@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -24,6 +25,7 @@ import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.common.money.Percentage;
 import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
 import co.fineants.api.domain.kis.repository.CurrentPriceMemoryRepository;
+import co.fineants.api.domain.kis.repository.PriceRepository;
 import co.fineants.api.domain.portfolio.controller.DashboardRestController;
 import co.fineants.api.domain.portfolio.domain.calculator.PortfolioCalculator;
 import co.fineants.api.domain.portfolio.domain.dto.response.DashboardLineChartResponse;
@@ -36,11 +38,18 @@ import co.fineants.api.domain.stock.domain.entity.Stock;
 class DashboardRestControllerDocsTest extends RestDocsSupport {
 
 	private final DashboardService service = Mockito.mock(DashboardService.class);
-	private final PortfolioCalculator calculator = new PortfolioCalculator(new CurrentPriceMemoryRepository());
+	private PriceRepository currentPriceRepository;
+	private PortfolioCalculator calculator;
 
 	@Override
 	protected Object initController() {
 		return new DashboardRestController(service);
+	}
+
+	@BeforeEach
+	void setUp() {
+		currentPriceRepository = new CurrentPriceMemoryRepository();
+		calculator = new PortfolioCalculator(currentPriceRepository);
 	}
 
 	@DisplayName("오버뷰 조회 API")
@@ -113,6 +122,7 @@ class DashboardRestControllerDocsTest extends RestDocsSupport {
 		// given
 		Portfolio portfolio = createPortfolio(createMember());
 		Stock stock = createSamsungStock();
+		currentPriceRepository.savePrice(stock, 60_000L);
 		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
 		holding.addPurchaseHistory(createPurchaseHistory(holding, LocalDateTime.now()));
 		portfolio.addHolding(holding);

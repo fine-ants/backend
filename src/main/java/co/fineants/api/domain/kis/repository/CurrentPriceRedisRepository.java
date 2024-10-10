@@ -78,7 +78,7 @@ public class CurrentPriceRedisRepository implements PriceRepository {
 
 	@Override
 	public Optional<Money> fetchPriceBy(PortfolioHolding holding) {
-		return Optional.empty();
+		return holding.fetchPrice(this);
 	}
 
 	@Override
