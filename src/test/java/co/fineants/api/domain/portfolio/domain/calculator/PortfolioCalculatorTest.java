@@ -172,6 +172,27 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 			.isEqualTo(expected);
 	}
 
+	@DisplayName("포트폴리오 종목의 예상되는 연간 배당금율을 계산한다")
+	@Test
+	void calAnnualExpectedDividendYieldBy() {
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createSamsungStock();
+		long currentPrice = 50_000L;
+		currentPriceRepository.savePrice(stock, currentPrice);
+		createStockDividendWith(stock).forEach(stock::addStockDividend);
+		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
+		PurchaseHistory history = createPurchaseHistory(null, LocalDateTime.now(), Count.from(3), Money.won(40000L),
+			"메모", holding);
+		holding.addPurchaseHistory(history);
+		portfolio.addHolding(holding);
+
+		// when
+		Expression result = calculator.calAnnualExpectedDividendYieldBy(holding);
+		// then
+		RateDivision expected = RateDivision.of(Money.won(1083), Money.won(150_000));
+		Assertions.assertThat(result).isEqualByComparingTo(expected);
+	}
+
 	@DisplayName("포트폴리오 총 투자금액을 계산한다")
 	@Test
 	void calTotalInvestmentBy() {
