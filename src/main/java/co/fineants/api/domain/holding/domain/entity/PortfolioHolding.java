@@ -147,11 +147,14 @@ public class PortfolioHolding extends BaseEntity {
 		return totalGain.divide(totalInvestmentAmount);
 	}
 
-	// 평가 금액(현재 가치) = 현재가 * 개수
-	public Expression calculateCurrentValuation() {
-		return currentPrice.times(calculateNumShares().getValue().intValue());
-	}
-
+	/**
+	 * 포트폴리오 종목의 평가 금액을 계산 후 반환.
+	 * <p>
+	 * CurrentValuation = CurrentPrice * NumShares
+	 * </p>
+	 * @param currentPrice the current price
+	 * @return the expression
+	 */
 	public Expression calculateCurrentValuation(@NotNull Expression currentPrice) {
 		return currentPrice.times(calculateNumShares().getValue().intValue());
 	}
