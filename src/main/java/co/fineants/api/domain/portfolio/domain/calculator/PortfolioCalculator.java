@@ -65,7 +65,9 @@ public class PortfolioCalculator {
 	private Expression calTotalGainForHolding(PortfolioHolding holding) {
 		return currentPriceRepository.fetchPriceBy(holding)
 			.map(holding::calculateTotalGain)
-			.orElseThrow(() -> new NoSuchElementException("No current price found for holding: " + holding));
+			.orElseThrow(() -> new NoSuchElementException(
+				String.format("No current price found for holding: %s, PriceRepository:%s", holding,
+					currentPriceRepository)));
 	}
 
 	public Expression calTotalGainRateBy(Portfolio portfolio) {
