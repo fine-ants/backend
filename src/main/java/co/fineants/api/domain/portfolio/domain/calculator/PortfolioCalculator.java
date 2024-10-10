@@ -5,6 +5,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -58,13 +59,13 @@ public class PortfolioCalculator {
 	 */
 	public Expression calTotalGain(List<PortfolioHolding> holdings) {
 		return holdings.stream()
-			.map(this::calTotalGainForHolding)
+			.map(holding -> this.calculateWithCurrentPrice(holding, holding::calculateTotalGain))
 			.reduce(Money.zero(), Expression::plus);
 	}
 
-	private Expression calTotalGainForHolding(PortfolioHolding holding) {
+	private Expression calculateWithCurrentPrice(PortfolioHolding holding, Function<Money, Expression> calFunction) {
 		return currentPriceRepository.fetchPriceBy(holding)
-			.map(holding::calculateTotalGain)
+			.map(calFunction)
 			.orElseThrow(() -> new NoSuchElementException(
 				String.format("No current price found for holding: %s, PriceRepository:%s", holding,
 					currentPriceRepository)));
