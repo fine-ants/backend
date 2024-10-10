@@ -121,7 +121,8 @@ public class PortfolioHolding extends BaseEntity {
 	 */
 	public Expression calculateTotalGain(@NotNull Expression currentPrice) {
 		Expression averageCostPerShare = calculateAverageCostPerShare();
-		return currentPrice.minus(averageCostPerShare).times(calculateNumShares().getValue().intValue());
+		int numShares = calculateNumShares().intValue();
+		return currentPrice.minus(averageCostPerShare).times(numShares);
 	}
 
 	// 종목 평균 매입가 = 총 투자 금액 / 개수
