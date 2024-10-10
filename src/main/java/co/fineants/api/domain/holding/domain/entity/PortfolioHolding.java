@@ -167,9 +167,9 @@ public class PortfolioHolding extends BaseEntity {
 	}
 
 	// 예상 연간 배당율 = (예상 연간 배당금 / 현재 가치) * 100
-	public RateDivision calculateAnnualExpectedDividendYield() {
+	public RateDivision calculateAnnualExpectedDividendYield(Expression currentPrice) {
 		Expression annualDividend = calculateAnnualExpectedDividend();
-		Expression currentValuation = calculateCurrentValuation();
+		Expression currentValuation = calculateCurrentValuation(currentPrice);
 		return annualDividend.divide(currentValuation);
 	}
 

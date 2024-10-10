@@ -398,4 +398,8 @@ public class PortfolioCalculator {
 				Collectors.reducing(Money.zero(), Map.Entry::getValue, Expression::plus))
 			);
 	}
+
+	public Expression calAnnualExpectedDividendYieldBy(PortfolioHolding holding) {
+		return this.calculateWithCurrentPrice(holding, holding::calculateAnnualExpectedDividendYield);
+	}
 }

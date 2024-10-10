@@ -41,6 +41,7 @@ public class PortfolioHoldingDetailItem {
 		Bank bank = Bank.getInstance();
 		Currency to = Currency.KRW;
 		Expression totalCurrentValuation = calculator.calTotalCurrentValuation(portfolioHolding);
+		Expression annualDividendYield = calculator.calAnnualExpectedDividendYieldBy(portfolioHolding);
 		return PortfolioHoldingDetailItem.builder()
 			.id(portfolioHolding.getId())
 			.currentValuation(totalCurrentValuation.reduce(bank, to))
@@ -53,8 +54,7 @@ public class PortfolioHoldingDetailItem {
 			.totalGain(portfolioHolding.calculateTotalGain().reduce(bank, to))
 			.totalReturnRate(portfolioHolding.calculateTotalReturnRate().toPercentage(Bank.getInstance(), to))
 			.annualDividend(portfolioHolding.calculateAnnualExpectedDividend().reduce(bank, to))
-			.annualDividendYield(
-				portfolioHolding.calculateAnnualExpectedDividendYield().toPercentage(Bank.getInstance(), to))
+			.annualDividendYield(annualDividendYield.toPercentage(Bank.getInstance(), to))
 			.dateAdded(portfolioHolding.getCreateAt())
 			.build();
 	}
