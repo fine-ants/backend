@@ -47,6 +47,7 @@ import co.fineants.api.domain.holding.service.PortfolioHoldingService;
 import co.fineants.api.domain.holding.service.PortfolioObservableService;
 import co.fineants.api.domain.kis.repository.CurrentPriceRedisRepository;
 import co.fineants.api.domain.member.domain.entity.Member;
+import co.fineants.api.domain.portfolio.domain.calculator.PortfolioCalculator;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import co.fineants.api.domain.stock.domain.entity.Stock;
 import co.fineants.api.global.common.time.DefaultLocalDateTimeService;
@@ -67,6 +68,9 @@ class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 
 	@MockBean
 	private CurrentPriceRedisRepository currentPriceRedisRepository;
+
+	@MockBean
+	private PortfolioCalculator calculator;
 
 	@Override
 	protected Object initController() {
@@ -97,7 +101,8 @@ class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 		PortfolioHoldingsResponse mockResponse = PortfolioHoldingsResponse.of(portfolio, history,
 			List.of(portfolioHolding),
 			lastDayClosingPriceMap,
-			localDateTimeService);
+			localDateTimeService,
+			calculator);
 
 		given(portfolioHoldingService.readPortfolioHoldings(anyLong())).willReturn(mockResponse);
 		// when & then
@@ -346,9 +351,9 @@ class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 		given(currentPriceRedisRepository.fetchPriceBy(stock.getTickerSymbol()))
 			.willReturn(Optional.of(portfolioHolding.getCurrentPrice()));
 
-		PieChart pieChart = new PieChart(currentPriceRedisRepository);
-		DividendChart dividendChart = new DividendChart(currentPriceRedisRepository);
-		SectorChart sectorChart = new SectorChart(currentPriceRedisRepository);
+		PieChart pieChart = new PieChart(currentPriceRedisRepository, calculator);
+		DividendChart dividendChart = new DividendChart(currentPriceRedisRepository, calculator);
+		SectorChart sectorChart = new SectorChart(currentPriceRedisRepository, calculator);
 
 		PortfolioDetails portfolioDetails = PortfolioDetails.from(portfolio);
 		List<PortfolioPieChartItem> pieChartItems = pieChart.createItemsBy(portfolio);

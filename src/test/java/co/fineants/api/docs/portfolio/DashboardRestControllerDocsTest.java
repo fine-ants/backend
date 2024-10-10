@@ -35,7 +35,8 @@ import co.fineants.api.domain.stock.domain.entity.Stock;
 class DashboardRestControllerDocsTest extends RestDocsSupport {
 
 	private final DashboardService service = Mockito.mock(DashboardService.class);
-
+	private final PortfolioCalculator calculator = Mockito.mock(PortfolioCalculator.class);
+	
 	@Override
 	protected Object initController() {
 		return new DashboardRestController(service);
@@ -114,8 +115,6 @@ class DashboardRestControllerDocsTest extends RestDocsSupport {
 		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
 		holding.addPurchaseHistory(createPurchaseHistory(holding, LocalDateTime.now()));
 		portfolio.addHolding(holding);
-
-		PortfolioCalculator calculator = new PortfolioCalculator();
 		Expression totalAsset = calculator.calTotalAssetBy(portfolio);
 		Expression totalGain = calculator.calTotalGainBy(portfolio);
 		Expression totalGainRate = calculator.calTotalGainRateBy(portfolio);

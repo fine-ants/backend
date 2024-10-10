@@ -72,6 +72,7 @@ public class PortfolioHoldingService {
 	private final PortfolioHoldingDetailFactory portfolioHoldingDetailFactory;
 	private final PortfolioHoldingEventPublisher publisher;
 	private final PortfolioCacheService portfolioCacheService;
+	private final PortfolioCalculator calculator;
 
 	@Transactional
 	@Authorized(serviceClass = PortfolioAuthorizedService.class)
@@ -146,7 +147,6 @@ public class PortfolioHoldingService {
 	private void validateCashSufficientForPurchase(PortfolioHoldingCreateRequest request, Portfolio portfolio) {
 		Expression purchasedAmount = request.getPurchaseHistory().getNumShares()
 			.multiply(request.getPurchaseHistory().getPurchasePricePerShare());
-		PortfolioCalculator calculator = new PortfolioCalculator();
 		if (!portfolio.isCashSufficientForPurchase(purchasedAmount, calculator)) {
 			throw new FineAntsException(PortfolioErrorCode.TOTAL_INVESTMENT_PRICE_EXCEEDS_BUDGET);
 		}

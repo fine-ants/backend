@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import co.fineants.AbstractContainerBaseTest;
 import co.fineants.api.domain.common.count.Count;
@@ -23,6 +24,9 @@ import co.fineants.api.domain.purchasehistory.domain.entity.PurchaseHistory;
 import co.fineants.api.domain.stock.domain.entity.Stock;
 
 class PortfolioTest extends AbstractContainerBaseTest {
+
+	@Autowired
+	private PortfolioCalculator calculator;
 
 	@DisplayName("포트폴리오의 총 손익을 계산한다")
 	@Test
@@ -45,7 +49,6 @@ class PortfolioTest extends AbstractContainerBaseTest {
 		portFolioHolding.addPurchaseHistory(purchaseHistory2);
 
 		portfolio.addHolding(portFolioHolding);
-		PortfolioCalculator calculator = new PortfolioCalculator();
 		// when
 		Expression result = calculator.calTotalGainBy(portfolio);
 
@@ -75,7 +78,6 @@ class PortfolioTest extends AbstractContainerBaseTest {
 
 		portfolio.addHolding(portFolioHolding);
 
-		PortfolioCalculator calculator = new PortfolioCalculator();
 		// when
 		Expression result = calculator.calTotalGainRateBy(portfolio);
 
@@ -114,7 +116,6 @@ class PortfolioTest extends AbstractContainerBaseTest {
 		portfolio.addHolding(holding1);
 		portfolio.addHolding(holding2);
 
-		PortfolioCalculator calculator = new PortfolioCalculator();
 		// when
 		Map<String, List<Expression>> result = calculator.calSectorChartBy(portfolio);
 

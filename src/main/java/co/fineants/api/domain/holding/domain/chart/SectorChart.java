@@ -20,10 +20,10 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SectorChart {
 	private final CurrentPriceRedisRepository manager;
+	private final PortfolioCalculator calculator;
 
 	public List<PortfolioSectorChartItem> createBy(Portfolio portfolio) {
 		portfolio.applyCurrentPriceAllHoldingsBy(manager);
-		PortfolioCalculator calculator = new PortfolioCalculator();
 		Expression totalAsset = calculator.calTotalAssetBy(portfolio);
 
 		Map<String, List<Expression>> sector = calculator.calSectorChartBy(portfolio);

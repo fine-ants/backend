@@ -7,6 +7,7 @@ import java.util.Map;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import co.fineants.AbstractContainerBaseTest;
 import co.fineants.api.domain.common.count.Count;
@@ -22,19 +23,20 @@ import co.fineants.api.domain.stock.domain.entity.Stock;
 
 class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 
+	@Autowired
+	private PortfolioCalculator calculator;
+
 	@DisplayName("포트폴리오 총 손익을 계산한다")
 	@Test
 	void calTotalGainBy() {
 		// given
 		Portfolio portfolio = createPortfolio(createMember());
 		Stock stock = createSamsungStock();
-		PortfolioHolding holding = createPortfolioHolding(portfolio, stock, 50000L);
+		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
 		PurchaseHistory history = createPurchaseHistory(null, LocalDateTime.now(), Count.from(3), Money.won(40000L),
 			"메모", holding);
 		holding.addPurchaseHistory(history);
 		portfolio.addHolding(holding);
-
-		PortfolioCalculator calculator = new PortfolioCalculator();
 		// when
 		Expression result = calculator.calTotalGainBy(portfolio);
 		// then
@@ -54,7 +56,6 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		holding.addPurchaseHistory(history);
 		portfolio.addHolding(holding);
 
-		PortfolioCalculator calculator = new PortfolioCalculator();
 		// when
 		Expression result = calculator.calTotalInvestmentBy(portfolio);
 		// then
@@ -74,7 +75,6 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		holding.addPurchaseHistory(history);
 		portfolio.addHolding(holding);
 
-		PortfolioCalculator calculator = new PortfolioCalculator();
 		// when
 		Expression result = calculator.calTotalGainRateBy(portfolio);
 		// then
@@ -96,7 +96,6 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		holding.addPurchaseHistory(history);
 		portfolio.addHolding(holding);
 
-		PortfolioCalculator calculator = new PortfolioCalculator();
 		// when
 		Expression result = calculator.calCashWeightBy(portfolio);
 		// then
@@ -120,7 +119,6 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		holding.addPurchaseHistory(history);
 		portfolio.addHolding(holding);
 
-		PortfolioCalculator calculator = new PortfolioCalculator();
 		LocalDate currentLocalDate = LocalDate.of(2024, 1, 16);
 		// when
 		Map<Integer, Expression> actual = calculator.calTotalDividendBy(portfolio, currentLocalDate);

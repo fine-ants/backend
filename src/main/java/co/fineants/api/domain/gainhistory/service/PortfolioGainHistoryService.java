@@ -26,13 +26,13 @@ public class PortfolioGainHistoryService {
 	private final PortfolioGainHistoryRepository repository;
 	private final PortfolioRepository portfolioRepository;
 	private final CurrentPriceRedisRepository currentPriceRedisRepository;
+	private final PortfolioCalculator calculator;
 
 	@Transactional
 	@CacheEvict(value = "lineChartCache", allEntries = true)
 	public PortfolioGainHistoryCreateResponse addPortfolioGainHistory() {
 		List<Portfolio> portfolios = portfolioRepository.findAll();
 		List<PortfolioGainHistory> portfolioGainHistories = new ArrayList<>();
-		PortfolioCalculator calculator = new PortfolioCalculator();
 		for (Portfolio portfolio : portfolios) {
 			portfolio.applyCurrentPriceAllHoldingsBy(currentPriceRedisRepository);
 			PortfolioGainHistory latestHistory =

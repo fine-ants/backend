@@ -21,10 +21,11 @@ import lombok.RequiredArgsConstructor;
 public class DividendChart {
 
 	private final CurrentPriceRedisRepository manager;
+	private final PortfolioCalculator calculator;
 
 	public List<PortfolioDividendChartItem> createItemsBy(Portfolio portfolio, LocalDate currentLocalDate) {
 		portfolio.applyCurrentPriceAllHoldingsBy(manager);
-		PortfolioCalculator calculator = new PortfolioCalculator();
+
 		Map<Integer, Expression> totalDividendMap = calculator.calTotalDividendBy(portfolio, currentLocalDate);
 
 		Bank bank = Bank.getInstance();

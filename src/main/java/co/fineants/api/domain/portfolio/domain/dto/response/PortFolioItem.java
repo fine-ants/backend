@@ -37,10 +37,10 @@ public class PortFolioItem {
 	private Count numShares;
 	private LocalDateTime dateCreated;
 
-	public static PortFolioItem of(Portfolio portfolio, PortfolioGainHistory prevHistory) {
+	public static PortFolioItem of(Portfolio portfolio, PortfolioGainHistory prevHistory,
+		PortfolioCalculator calculator) {
 		Bank bank = Bank.getInstance();
 		Currency to = Currency.KRW;
-		PortfolioCalculator calculator = new PortfolioCalculator();
 		Expression totalGain = calculator.calTotalGainBy(portfolio);
 		Expression totalGainRate = calculator.calTotalGainRateBy(portfolio);
 		Expression totalCurrentValuation = calculator.calTotalCurrentValuationBy(portfolio);

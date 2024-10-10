@@ -26,9 +26,9 @@ public class PortfolioDetailRealTimeItem {
 	private Percentage dailyGainRate;
 	private Money provisionalLossBalance;
 
-	public static PortfolioDetailRealTimeItem of(Portfolio portfolio, PortfolioGainHistory history) {
+	public static PortfolioDetailRealTimeItem of(Portfolio portfolio, PortfolioGainHistory history,
+		PortfolioCalculator calculator) {
 		Bank bank = Bank.getInstance();
-		PortfolioCalculator calculator = new PortfolioCalculator();
 		Expression totalGain = calculator.calTotalGainBy(portfolio);
 		Expression totalGainRate = calculator.calTotalGainRateBy(portfolio);
 		Expression totalCurrentValuation = calculator.calTotalCurrentValuationBy(portfolio);

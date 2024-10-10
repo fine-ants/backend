@@ -41,6 +41,7 @@ import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
 import co.fineants.api.domain.holding.service.PortfolioHoldingService;
 import co.fineants.api.domain.holding.service.PortfolioObservableService;
 import co.fineants.api.domain.member.domain.entity.Member;
+import co.fineants.api.domain.portfolio.domain.calculator.PortfolioCalculator;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import co.fineants.api.domain.stock.domain.entity.Stock;
 import co.fineants.api.global.common.time.DefaultLocalDateTimeService;
@@ -52,6 +53,8 @@ class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 	private final PortfolioHoldingService service = Mockito.mock(PortfolioHoldingService.class);
 	private final PortfolioObservableService portfolioObservableService = Mockito.mock(
 		PortfolioObservableService.class);
+
+	private final PortfolioCalculator calculator = Mockito.mock(PortfolioCalculator.class);
 
 	@Override
 	protected Object initController() {
@@ -143,7 +146,8 @@ class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 		PortfolioHoldingsResponse mockResponse = PortfolioHoldingsResponse.of(portfolio, history,
 			List.of(portfolioHolding),
 			lastDayClosingPriceMap,
-			localDateTimeService);
+			localDateTimeService,
+			calculator);
 
 		given(service.readPortfolioHoldings(anyLong())).willReturn(mockResponse);
 		// when & then

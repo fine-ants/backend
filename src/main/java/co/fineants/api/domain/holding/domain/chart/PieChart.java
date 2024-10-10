@@ -15,10 +15,10 @@ import lombok.RequiredArgsConstructor;
 public class PieChart {
 
 	private final CurrentPriceRedisRepository manager;
+	private final PortfolioCalculator calculator;
 
 	public List<PortfolioPieChartItem> createItemsBy(Portfolio portfolio) {
 		portfolio.applyCurrentPriceAllHoldingsBy(manager);
-		PortfolioCalculator calculator = new PortfolioCalculator();
 		return calculator.calCurrentValuationWeight(portfolio);
 	}
 }

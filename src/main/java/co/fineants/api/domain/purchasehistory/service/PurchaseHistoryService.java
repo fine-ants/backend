@@ -38,6 +38,7 @@ public class PurchaseHistoryService {
 	private final PortfolioHoldingRepository portfolioHoldingRepository;
 	private final PurchaseHistoryEventPublisher purchaseHistoryEventPublisher;
 	private final PortfolioRepository portfolioRepository;
+	private final PortfolioCalculator calculator;
 
 	@Transactional
 	@Authorized(serviceClass = PortfolioHoldingAuthorizedService.class)
@@ -73,7 +74,6 @@ public class PurchaseHistoryService {
 	}
 
 	private void verifyCashSufficientForPurchase(Portfolio portfolio, Money investmentAmount) {
-		PortfolioCalculator calculator = new PortfolioCalculator();
 		if (!portfolio.isCashSufficientForPurchase(investmentAmount, calculator)) {
 			throw new FineAntsException(PortfolioErrorCode.TOTAL_INVESTMENT_PRICE_EXCEEDS_BUDGET);
 		}

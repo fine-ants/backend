@@ -6,6 +6,7 @@ import java.util.Map;
 import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.gainhistory.domain.entity.PortfolioGainHistory;
 import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
+import co.fineants.api.domain.portfolio.domain.calculator.PortfolioCalculator;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import co.fineants.api.global.common.time.LocalDateTimeService;
 import lombok.AccessLevel;
@@ -24,9 +25,9 @@ public class PortfolioHoldingsResponse {
 
 	public static PortfolioHoldingsResponse of(Portfolio portfolio, PortfolioGainHistory history,
 		List<PortfolioHolding> portfolioHoldings, Map<String, Money> lastDayClosingPriceMap,
-		LocalDateTimeService localDateTimeService) {
-		PortfolioDetailResponse portfolioDetailResponse = PortfolioDetailResponse.from(portfolio, history,
-			localDateTimeService);
+		LocalDateTimeService localDateTimeService, PortfolioCalculator calculator) {
+		PortfolioDetailResponse portfolioDetailResponse = PortfolioDetailResponse.of(portfolio, history,
+			localDateTimeService, calculator);
 		List<PortfolioHoldingItem> portfolioHoldingItems = portfolioHoldings.stream()
 			.map(portfolioHolding -> PortfolioHoldingItem.from(portfolioHolding,
 				lastDayClosingPriceMap.getOrDefault(portfolioHolding.getStock().getTickerSymbol(), Money.zero())))

@@ -38,10 +38,10 @@ public class DashboardPieChartResponse {
 			totalGainRate);
 	}
 
-	public static DashboardPieChartResponse of(Portfolio portfolio, Expression totalValuation) {
+	public static DashboardPieChartResponse of(Portfolio portfolio, Expression totalValuation,
+		PortfolioCalculator calculator) {
 		Bank bank = Bank.getInstance();
 		Currency to = Currency.KRW;
-		PortfolioCalculator calculator = new PortfolioCalculator();
 		Expression totalGain = calculator.calTotalGainBy(portfolio);
 		Expression totalGainRate = calculator.calTotalGainRateBy(portfolio);
 		Expression totalAsset = calculator.calTotalAssetBy(portfolio);

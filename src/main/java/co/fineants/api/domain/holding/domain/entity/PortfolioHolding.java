@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import org.hibernate.annotations.BatchSize;
+import org.jetbrains.annotations.NotNull;
 
 import co.fineants.api.domain.BaseEntity;
 import co.fineants.api.domain.common.count.Count;
@@ -113,6 +114,11 @@ public class PortfolioHolding extends BaseEntity {
 
 	// 종목 총 손익 = (종목 현재가 - 종목 평균 매입가) * 개수
 	public Expression calculateTotalGain() {
+		Expression averageCostPerShare = calculateAverageCostPerShare();
+		return currentPrice.minus(averageCostPerShare).times(calculateNumShares().getValue().intValue());
+	}
+
+	public Expression calculateTotalGain(@NotNull Money currentPrice) {
 		Expression averageCostPerShare = calculateAverageCostPerShare();
 		return currentPrice.minus(averageCostPerShare).times(calculateNumShares().getValue().intValue());
 	}

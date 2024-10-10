@@ -16,6 +16,7 @@ import co.fineants.api.domain.holding.repository.PortfolioHoldingRepository;
 import co.fineants.api.domain.kis.repository.CurrentPriceRedisRepository;
 import co.fineants.api.domain.member.domain.entity.Member;
 import co.fineants.api.domain.member.repository.MemberRepository;
+import co.fineants.api.domain.portfolio.domain.calculator.PortfolioCalculator;
 import co.fineants.api.domain.portfolio.domain.dto.request.PortfolioCreateRequest;
 import co.fineants.api.domain.portfolio.domain.dto.request.PortfolioModifyRequest;
 import co.fineants.api.domain.portfolio.domain.dto.response.PortFolioCreateResponse;
@@ -52,6 +53,7 @@ public class PortFolioService {
 	private final CurrentPriceRedisRepository currentPriceRedisRepository;
 	private final PortfolioPropertiesRepository portfolioPropertiesRepository;
 	private final PortfolioProperties properties;
+	private final PortfolioCalculator calculator;
 
 	@Transactional
 	@Secured("ROLE_USER")
@@ -162,6 +164,6 @@ public class PortFolioService {
 						.orElseGet(() -> PortfolioGainHistory.empty(portfolio))
 			));
 
-		return PortfoliosResponse.of(portfolios, portfolioGainHistoryMap, currentPriceRedisRepository);
+		return PortfoliosResponse.of(portfolios, portfolioGainHistoryMap, currentPriceRedisRepository, calculator);
 	}
 }

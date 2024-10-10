@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import co.fineants.AbstractContainerBaseTest;
 import co.fineants.api.domain.common.count.Count;
@@ -18,9 +19,12 @@ import co.fineants.api.domain.stock.domain.entity.Stock;
 
 class PortfolioGainHistoryTest extends AbstractContainerBaseTest {
 
+	@Autowired
+	private PortfolioCalculator calculator;
+
 	@DisplayName("빈 히스토리 상태에서 새로운 손익내역을 생성한다")
 	@Test
-	void test() {
+	void createNewHistory() {
 		// given
 		Member member = createMember();
 		Portfolio portfolio = createPortfolio(member);
@@ -48,7 +52,6 @@ class PortfolioGainHistoryTest extends AbstractContainerBaseTest {
 		portfolio.addHolding(holding2);
 
 		PortfolioGainHistory history = PortfolioGainHistory.empty(portfolio);
-		PortfolioCalculator calculator = new PortfolioCalculator();
 		// when
 		PortfolioGainHistory actual = history.createNewHistory(calculator);
 		// then
