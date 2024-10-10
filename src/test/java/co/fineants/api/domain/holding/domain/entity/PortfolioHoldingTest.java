@@ -82,7 +82,7 @@ class PortfolioHoldingTest extends AbstractContainerBaseTest {
 		// given
 		Portfolio portfolio = createPortfolio(createMember());
 		Stock stock = createSamsungStock();
-		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock, Money.won(20000L));
+		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock);
 
 		PurchaseHistory purchaseHistory1 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
 			Money.won(10000), "첫구매", portFolioHolding);
@@ -92,8 +92,9 @@ class PortfolioHoldingTest extends AbstractContainerBaseTest {
 		portFolioHolding.addPurchaseHistory(purchaseHistory1);
 		portFolioHolding.addPurchaseHistory(purchaseHistory2);
 
+		Expression currentPrice = Money.won(20_000L);
 		// when
-		Expression result = portFolioHolding.calculateTotalGain();
+		Expression result = portFolioHolding.calculateTotalGain(currentPrice);
 
 		// then
 		Money won = Bank.getInstance().toWon(result);

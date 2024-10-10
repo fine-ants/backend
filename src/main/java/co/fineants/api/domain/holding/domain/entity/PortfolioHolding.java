@@ -152,8 +152,8 @@ public class PortfolioHolding extends BaseEntity {
 	 * <p>
 	 * CurrentValuation = CurrentPrice * NumShares
 	 * </p>
-	 * @param currentPrice the current price
-	 * @return the expression
+	 * @param currentPrice 종목의 현재가
+	 * @return 포트폴리오 종목의 평가 금액
 	 */
 	public Expression calculateCurrentValuation(@NotNull Expression currentPrice) {
 		return currentPrice.times(calculateNumShares().getValue().intValue());
