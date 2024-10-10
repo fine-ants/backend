@@ -30,6 +30,13 @@ public class PortfolioCalculator {
 
 	private final PriceRepository currentPriceRepository;
 
+	/**
+	 * 포트폴리오의 총 손익을 계산 후 반환.
+	 *
+	 * @param portfolio 포트폴리오 객체
+	 * @return 포트폴리오의 총 손익
+	 * @throws IllegalStateException 포트폴리오의 총 손익 계산이 실패하면 예외 발생
+	 */
 	public Expression calTotalGainBy(Portfolio portfolio) {
 		try {
 			return portfolio.calTotalGain(this);
@@ -37,7 +44,6 @@ public class PortfolioCalculator {
 			throw new IllegalStateException(
 				String.format("Failed to calculate total gain for portfolio, portfolio:%s", portfolio), e);
 		}
-
 	}
 
 	/**
