@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -27,10 +28,16 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class PortfolioCalculator {
 
-	private final PriceRepository priceRepository;
+	private final PriceRepository currentPriceRepository;
 
 	public Expression calTotalGainBy(Portfolio portfolio) {
-		return portfolio.calTotalGain(this);
+		try {
+			return portfolio.calTotalGain(this);
+		} catch (NoSuchElementException e) {
+			throw new IllegalStateException(
+				String.format("Failed to calculate total gain for portfolio, portfolio:%s", portfolio), e);
+		}
+
 	}
 
 	/**
@@ -41,11 +48,15 @@ public class PortfolioCalculator {
 	 *
 	 * @param holdings 포트폴리오 종목 리스트
 	 * @return 포트폴리오 총 손익 계산 합계
+	 * @throws NoSuchElementException 포트폴리오 종목(PortfolioHolding)에 따른 현재가가 저장소에 없으면 예외 발생
 	 */
 	public Expression calTotalGain(List<PortfolioHolding> holdings) {
-		// TODO: redisRepository를 통해서 Money CurrentPrice 메서드 인수로 전달
 		return holdings.stream()
-			.map(PortfolioHolding::calculateTotalGain)
+			.map(holding -> {
+				Money currentPrice = currentPriceRepository.fetchPriceBy(holding)
+					.orElseThrow(() -> new NoSuchElementException("No current price found for holding: " + holding));
+				return holding.calculateTotalGain(currentPrice);
+			})
 			.reduce(Money.zero(), Expression::plus);
 	}
 

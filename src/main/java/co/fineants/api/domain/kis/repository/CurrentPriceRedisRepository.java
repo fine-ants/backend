@@ -8,6 +8,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
 import co.fineants.api.domain.common.money.Money;
+import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
 import co.fineants.api.domain.kis.client.KisClient;
 import co.fineants.api.domain.kis.client.KisCurrentPrice;
 import co.fineants.api.global.common.delay.DelayManager;
@@ -42,18 +43,14 @@ public class CurrentPriceRedisRepository implements PriceRepository {
 
 	@Override
 	public Optional<Money> fetchPriceBy(String tickerSymbol) {
-		Optional<String> currentPrice = getCachedPrice(tickerSymbol);
+		Optional<Money> currentPrice = getCachedPrice(tickerSymbol);
 		if (currentPrice.isEmpty()) {
 			Optional<KisCurrentPrice> kisCurrentPrice = fetchAndCachePriceFromKis(tickerSymbol);
 			return kisCurrentPrice
 				.map(KisCurrentPrice::getPrice)
 				.map(Money::won);
 		}
-		return currentPrice.map(Money::won);
-	}
-
-	public Optional<String> getCachedPrice(String tickerSymbol) {
-		return Optional.ofNullable(redisTemplate.opsForValue().get(String.format(CURRENT_PRICE_FORMAT, tickerSymbol)));
+		return currentPrice;
 	}
 
 	private Optional<KisCurrentPrice> fetchAndCachePriceFromKis(String tickerSymbol) {
@@ -66,5 +63,19 @@ public class CurrentPriceRedisRepository implements PriceRepository {
 			.onErrorResume(Exceptions::isRetryExhausted, throwable -> Mono.empty())
 			.blockOptional(delayManager.timeout())
 			.map(this::savePrice);
+	}
+
+	@Override
+	public Optional<Money> fetchPriceBy(PortfolioHolding holding) {
+		return Optional.empty();
+	}
+
+	@Override
+	public Optional<Money> getCachedPrice(String tickerSymbol) {
+		String value = redisTemplate.opsForValue().get(String.format(CURRENT_PRICE_FORMAT, tickerSymbol));
+		if (value == null) {
+			return Optional.empty();
+		}
+		return Optional.of(Money.won(value));
 	}
 }

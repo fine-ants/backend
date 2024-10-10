@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.hibernate.annotations.BatchSize;
@@ -23,6 +24,7 @@ import co.fineants.api.domain.dividend.domain.entity.StockDividend;
 import co.fineants.api.domain.holding.domain.dto.response.PortfolioPieChartItem;
 import co.fineants.api.domain.kis.repository.ClosingPriceRepository;
 import co.fineants.api.domain.kis.repository.CurrentPriceRedisRepository;
+import co.fineants.api.domain.kis.repository.PriceRepository;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import co.fineants.api.domain.purchasehistory.domain.entity.PurchaseHistory;
 import co.fineants.api.domain.stock.domain.entity.Stock;
@@ -37,12 +39,10 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Transient;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Getter
-@ToString(exclude = {"stock", "portfolio", "purchaseHistory"})
 @Entity
 @EqualsAndHashCode(of = {"portfolio", "stock"}, callSuper = false)
 public class PortfolioHolding extends BaseEntity {
@@ -250,5 +250,15 @@ public class PortfolioHolding extends BaseEntity {
 
 	public List<PurchaseHistory> getPurchaseHistory() {
 		return Collections.unmodifiableList(purchaseHistory);
+	}
+
+	public Optional<Money> fetchPrice(PriceRepository repository) {
+		return stock.fetchPrice(repository);
+	}
+
+	@Override
+	public String toString() {
+		return String.format("PortfolioHolding(id=%d, portfolio=%d, stock=%s)", id, portfolio.getId(),
+			stock.getTickerSymbol());
 	}
 }
