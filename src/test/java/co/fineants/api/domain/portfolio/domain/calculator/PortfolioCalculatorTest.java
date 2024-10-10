@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.Map;
 
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -16,14 +17,23 @@ import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.common.money.RateDivision;
 import co.fineants.api.domain.common.money.Sum;
 import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
+import co.fineants.api.domain.kis.client.KisCurrentPrice;
 import co.fineants.api.domain.kis.repository.CurrentPriceMemoryRepository;
+import co.fineants.api.domain.kis.repository.PriceRepository;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import co.fineants.api.domain.purchasehistory.domain.entity.PurchaseHistory;
 import co.fineants.api.domain.stock.domain.entity.Stock;
 
 class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 
-	private PortfolioCalculator calculator = new PortfolioCalculator(new CurrentPriceMemoryRepository());
+	private PriceRepository currentPriceRepository;
+	private PortfolioCalculator calculator;
+
+	@BeforeEach
+	void setUp() {
+		currentPriceRepository = new CurrentPriceMemoryRepository();
+		calculator = new PortfolioCalculator(currentPriceRepository);
+	}
 
 	@DisplayName("포트폴리오 총 손익을 계산한다")
 	@Test
@@ -36,11 +46,32 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 			"메모", holding);
 		holding.addPurchaseHistory(history);
 		portfolio.addHolding(holding);
+
+		currentPriceRepository.savePrice(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L));
 		// when
 		Expression result = calculator.calTotalGainBy(portfolio);
 		// then
 		Assertions.assertThat(result)
 			.isEqualByComparingTo(Money.won(30000L));
+	}
+
+	@DisplayName("단 한개의 포트폴리오 종목이라도 현재가를 가져오지 못하면 포트폴리오 총 손익을 계산하지 못한다")
+	@Test
+	void calTotalGainBy_givenNoCurrentPrice_whenCalTotalGain_thenThrowException() {
+		// given
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createSamsungStock();
+		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
+		PurchaseHistory history = createPurchaseHistory(null, LocalDateTime.now(), Count.from(3), Money.won(40000L),
+			"메모", holding);
+		holding.addPurchaseHistory(history);
+		portfolio.addHolding(holding);
+		// when
+		Throwable throwable = Assertions.catchThrowable(() -> calculator.calTotalGainBy(portfolio));
+		// then
+		Assertions.assertThat(throwable)
+			.isInstanceOf(IllegalStateException.class)
+			.hasMessage(String.format("Failed to calculate total gain for portfolio, portfolio:%s", portfolio));
 	}
 
 	@DisplayName("포트폴리오 총 투자금액을 계산한다")
