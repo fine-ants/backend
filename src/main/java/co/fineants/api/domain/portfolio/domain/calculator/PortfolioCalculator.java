@@ -58,12 +58,14 @@ public class PortfolioCalculator {
 	 */
 	public Expression calTotalGain(List<PortfolioHolding> holdings) {
 		return holdings.stream()
-			.map(holding -> {
-				Money currentPrice = currentPriceRepository.fetchPriceBy(holding)
-					.orElseThrow(() -> new NoSuchElementException("No current price found for holding: " + holding));
-				return holding.calculateTotalGain(currentPrice);
-			})
+			.map(this::calTotalGainForHolding)
 			.reduce(Money.zero(), Expression::plus);
+	}
+
+	private Expression calTotalGainForHolding(PortfolioHolding holding) {
+		return currentPriceRepository.fetchPriceBy(holding)
+			.map(holding::calculateTotalGain)
+			.orElseThrow(() -> new NoSuchElementException("No current price found for holding: " + holding));
 	}
 
 	public Expression calTotalGainRateBy(Portfolio portfolio) {
