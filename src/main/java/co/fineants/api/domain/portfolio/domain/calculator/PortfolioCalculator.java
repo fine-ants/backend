@@ -7,6 +7,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.springframework.stereotype.Component;
+
 import co.fineants.api.domain.common.money.Bank;
 import co.fineants.api.domain.common.money.Currency;
 import co.fineants.api.domain.common.money.Expression;
@@ -16,11 +18,17 @@ import co.fineants.api.domain.common.money.RateDivision;
 import co.fineants.api.domain.gainhistory.domain.entity.PortfolioGainHistory;
 import co.fineants.api.domain.holding.domain.dto.response.PortfolioPieChartItem;
 import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
+import co.fineants.api.domain.kis.repository.CurrentPriceRedisRepository;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import co.fineants.api.global.common.time.LocalDateTimeService;
+import lombok.RequiredArgsConstructor;
 
+@Component
+@RequiredArgsConstructor
 public class PortfolioCalculator {
 
+	private final CurrentPriceRedisRepository currentPriceRepository;
+	
 	public Expression calTotalGainBy(Portfolio portfolio) {
 		return portfolio.calTotalGain(this);
 	}
@@ -35,6 +43,7 @@ public class PortfolioCalculator {
 	 * @return 포트폴리오 총 손익 계산 합계
 	 */
 	public Expression calTotalGain(List<PortfolioHolding> holdings) {
+		// TODO: redisRepository를 통해서 Money CurrentPrice 메서드 인수로 전달
 		return holdings.stream()
 			.map(PortfolioHolding::calculateTotalGain)
 			.reduce(Money.zero(), Expression::plus);
