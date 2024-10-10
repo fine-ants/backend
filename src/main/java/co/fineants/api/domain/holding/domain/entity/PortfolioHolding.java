@@ -111,11 +111,14 @@ public class PortfolioHolding extends BaseEntity {
 		}
 	}
 
-	// 종목 총 손익 = (종목 현재가 - 종목 평균 매입가) * 개수
-	public Expression calculateTotalGain() {
-		return calculateTotalGain(currentPrice);
-	}
-
+	/**
+	 * 포트폴리오 종목의 총 손익을 계산 후 반환.
+	 * <p>
+	 * TotalGain = (CurrentPrice - AverageCostPerShare) * NumShares
+	 * </p>
+	 * @param currentPrice 종목의 현재가
+	 * @return 포트폴리오 종목의 총 손익
+	 */
 	public Expression calculateTotalGain(@NotNull Expression currentPrice) {
 		Expression averageCostPerShare = calculateAverageCostPerShare();
 		return currentPrice.minus(averageCostPerShare).times(calculateNumShares().getValue().intValue());
