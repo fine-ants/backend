@@ -81,6 +81,7 @@ public class PortfolioCalculator {
 	 * </p>
 	 * @param holdings 포트폴리오 종목 리스트
 	 * @return 포트폴리오 총 손익율(TotalGainRate)
+	 * @throws NoSuchElementException 포트폴리오 종목(PortfolioHolding)에 따른 현재가가 저장소에 없으면 예외 발생
 	 */
 	public Expression calTotalGainRate(List<PortfolioHolding> holdings) {
 		Expression totalGain = calTotalGain(holdings);

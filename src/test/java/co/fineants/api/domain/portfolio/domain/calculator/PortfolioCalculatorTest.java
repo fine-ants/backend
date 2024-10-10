@@ -105,6 +105,7 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		holding.addPurchaseHistory(history);
 		portfolio.addHolding(holding);
 
+		currentPriceRepository.savePrice(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L));
 		// when
 		Expression result = calculator.calTotalGainRateBy(portfolio);
 		// then
