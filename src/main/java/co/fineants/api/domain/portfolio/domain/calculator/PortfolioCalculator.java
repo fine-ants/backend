@@ -18,7 +18,7 @@ import co.fineants.api.domain.common.money.RateDivision;
 import co.fineants.api.domain.gainhistory.domain.entity.PortfolioGainHistory;
 import co.fineants.api.domain.holding.domain.dto.response.PortfolioPieChartItem;
 import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
-import co.fineants.api.domain.kis.repository.CurrentPriceRedisRepository;
+import co.fineants.api.domain.kis.repository.PriceRepository;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import co.fineants.api.global.common.time.LocalDateTimeService;
 import lombok.RequiredArgsConstructor;
@@ -27,8 +27,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class PortfolioCalculator {
 
-	private final CurrentPriceRedisRepository currentPriceRepository;
-	
+	private final PriceRepository priceRepository;
+
 	public Expression calTotalGainBy(Portfolio portfolio) {
 		return portfolio.calTotalGain(this);
 	}

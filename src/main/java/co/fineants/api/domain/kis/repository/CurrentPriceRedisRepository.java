@@ -3,6 +3,7 @@ package co.fineants.api.domain.kis.repository;
 import java.util.Arrays;
 import java.util.Optional;
 
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
@@ -21,6 +22,7 @@ import reactor.util.retry.Retry;
 
 @RequiredArgsConstructor
 @Component
+@Primary
 @Slf4j
 public class CurrentPriceRedisRepository implements PriceRepository {
 	private static final String CURRENT_PRICE_FORMAT = "cp:%s";
