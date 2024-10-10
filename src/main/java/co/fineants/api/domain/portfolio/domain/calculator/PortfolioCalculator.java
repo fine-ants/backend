@@ -120,8 +120,21 @@ public class PortfolioCalculator {
 		return portfolio.calBalance(totalInvestment);
 	}
 
+	/**
+	 * 포트폴리오의 총 평가금액 계산 후 반환.
+	 *
+	 * @param portfolio 포트폴리오 객체
+	 * @return 포트폴리오의 총 평가 금액
+	 * @throws IllegalStateException 포트폴리오의 총 평가금액 계산이 실패하면 예외 발생
+	 */
 	public Expression calTotalCurrentValuationBy(Portfolio portfolio) {
-		return portfolio.calTotalCurrentValuation(this);
+		try {
+			return portfolio.calTotalCurrentValuation(this);
+		} catch (NoSuchElementException e) {
+			throw new IllegalStateException(
+				String.format("Failed to calculate totalCurrentValuation for portfolio, portfolio:%s", portfolio), e);
+		}
+
 	}
 
 	/**
@@ -131,10 +144,11 @@ public class PortfolioCalculator {
 	 * </p>
 	 * @param holdings 포트폴리오에 등록된 종목 리스트
 	 * @return 포트폴리오 평가 금액
+	 * @throws NoSuchElementException 포트폴리오 종목(PortfolioHolding)에 따른 현재가가 저장소에 없으면 예외 발생
 	 */
 	public Expression calTotalCurrentValuation(List<PortfolioHolding> holdings) {
 		return holdings.stream()
-			.map(PortfolioHolding::calculateCurrentValuation)
+			.map(holding -> this.calculateWithCurrentPrice(holding, holding::calculateCurrentValuation))
 			.reduce(Money.zero(), Expression::plus);
 	}
 

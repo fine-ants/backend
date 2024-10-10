@@ -11,6 +11,7 @@ import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
 import co.fineants.api.domain.kis.client.KisClient;
 import co.fineants.api.domain.kis.client.KisCurrentPrice;
+import co.fineants.api.domain.stock.domain.entity.Stock;
 import co.fineants.api.global.common.delay.DelayManager;
 import co.fineants.api.global.errors.exception.kis.CredentialsTypeKisException;
 import co.fineants.api.global.errors.exception.kis.ExpiredAccessTokenKisException;
@@ -39,6 +40,16 @@ public class CurrentPriceRedisRepository implements PriceRepository {
 	private KisCurrentPrice savePrice(KisCurrentPrice currentPrice) {
 		redisTemplate.opsForValue().set(currentPrice.toRedisKey(CURRENT_PRICE_FORMAT), currentPrice.toRedisValue());
 		return currentPrice;
+	}
+
+	@Override
+	public void savePrice(Stock stock, long price) {
+		stock.savePrice(this, price);
+	}
+
+	@Override
+	public void savePrice(String tickerSymbol, long price) {
+		redisTemplate.opsForValue().set(CURRENT_PRICE_FORMAT.formatted(tickerSymbol), String.valueOf(price));
 	}
 
 	@Override

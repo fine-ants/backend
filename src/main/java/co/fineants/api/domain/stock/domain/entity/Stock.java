@@ -245,4 +245,8 @@ public class Stock extends BaseEntity {
 	public Optional<Money> fetchPrice(PriceRepository repository) {
 		return repository.fetchPriceBy(tickerSymbol);
 	}
+
+	public void savePrice(PriceRepository repository, long price) {
+		repository.savePrice(tickerSymbol, price);
+	}
 }

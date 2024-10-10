@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 import org.hibernate.annotations.BatchSize;
 
@@ -361,6 +362,13 @@ public class Portfolio extends BaseEntity implements Notifiable {
 		return this.financial.calBalance(totalInvestment);
 	}
 
+	/**
+	 * 포트폴리오 총 평가금액 계산 후 반환.
+	 *
+	 * @param calculator 포트폴리오 계산기 객체
+	 * @return 포트폴리오의 총 평가금액
+	 * @throws NoSuchElementException 포트폴리오 종목(PortfolioHolding)에 따른 현재가가 저장소에 없으면 예외 발생
+	 */
 	public Expression calTotalCurrentValuation(PortfolioCalculator calculator) {
 		return calculator.calTotalCurrentValuation(Collections.unmodifiableList(portfolioHoldings));
 	}

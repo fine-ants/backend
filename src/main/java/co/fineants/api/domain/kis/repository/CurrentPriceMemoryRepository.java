@@ -8,6 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
 import co.fineants.api.domain.kis.client.KisCurrentPrice;
+import co.fineants.api.domain.stock.domain.entity.Stock;
 
 public class CurrentPriceMemoryRepository implements PriceRepository {
 
@@ -20,6 +21,16 @@ public class CurrentPriceMemoryRepository implements PriceRepository {
 
 	private void savePrice(KisCurrentPrice price) {
 		store.put(price.toMemoryKey(), price.getPrice());
+	}
+
+	@Override
+	public void savePrice(Stock stock, long price) {
+		stock.savePrice(this, price);
+	}
+
+	@Override
+	public void savePrice(String tickerSymbol, long price) {
+		store.put(tickerSymbol, price);
 	}
 
 	@Override
