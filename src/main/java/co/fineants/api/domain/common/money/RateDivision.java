@@ -99,4 +99,13 @@ public class RateDivision implements Expression {
 	public int hashCode() {
 		return Objects.hash(division, divisor);
 	}
+
+	@Override
+	public String toString() {
+		Bank bank = Bank.getInstance();
+		Expression divisionSum = bank.toWon(division);
+		Expression divisorSum = bank.toWon(divisor);
+		return String.format("RateDivision(division=%s, divisor=%s)=%s", divisionSum, divisorSum,
+			toPercentage(bank, Currency.KRW));
+	}
 }
