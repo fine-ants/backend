@@ -176,7 +176,7 @@ public class PortfolioHoldingService {
 		PortfolioDetailRealTimeItem portfolioDetail = portfolioDetailFactory.createPortfolioDetailRealTimeItem(
 			portfolio);
 		List<PortfolioHoldingRealTimeItem> portfolioHoldingDetails =
-			portfolioHoldingDetailFactory.createPortfolioHoldingRealTimeItems(portfolio);
+			portfolioHoldingDetailFactory.createPortfolioHoldingRealTimeItems(portfolio, calculator);
 		return PortfolioHoldingsRealTimeResponse.of(portfolioDetail, portfolioHoldingDetails);
 	}
 

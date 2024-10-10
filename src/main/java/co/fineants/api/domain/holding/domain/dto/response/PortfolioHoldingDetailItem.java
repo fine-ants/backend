@@ -9,6 +9,7 @@ import co.fineants.api.domain.common.money.Expression;
 import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.common.money.Percentage;
 import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
+import co.fineants.api.domain.portfolio.domain.calculator.PortfolioCalculator;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -35,12 +36,14 @@ public class PortfolioHoldingDetailItem {
 	private Percentage annualDividendYield;
 	private LocalDateTime dateAdded;
 
-	public static PortfolioHoldingDetailItem from(PortfolioHolding portfolioHolding, Expression lastDayClosingPrice) {
+	public static PortfolioHoldingDetailItem from(PortfolioHolding portfolioHolding, Expression lastDayClosingPrice,
+		PortfolioCalculator calculator) {
 		Bank bank = Bank.getInstance();
 		Currency to = Currency.KRW;
+		Expression totalCurrentValuation = calculator.calTotalCurrentValuation(portfolioHolding);
 		return PortfolioHoldingDetailItem.builder()
 			.id(portfolioHolding.getId())
-			.currentValuation(portfolioHolding.calculateCurrentValuation().reduce(bank, to))
+			.currentValuation(totalCurrentValuation.reduce(bank, to))
 			.currentPrice(portfolioHolding.getCurrentPrice())
 			.averageCostPerShare(portfolioHolding.calculateAverageCostPerShare().reduce(bank, to))
 			.numShares(portfolioHolding.calculateNumShares())

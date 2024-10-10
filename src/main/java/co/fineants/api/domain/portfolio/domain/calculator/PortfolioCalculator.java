@@ -134,7 +134,6 @@ public class PortfolioCalculator {
 			throw new IllegalStateException(
 				String.format("Failed to calculate totalCurrentValuation for portfolio, portfolio:%s", portfolio), e);
 		}
-
 	}
 
 	/**
@@ -148,8 +147,12 @@ public class PortfolioCalculator {
 	 */
 	public Expression calTotalCurrentValuation(List<PortfolioHolding> holdings) {
 		return holdings.stream()
-			.map(holding -> this.calculateWithCurrentPrice(holding, holding::calculateCurrentValuation))
+			.map(this::calTotalCurrentValuation)
 			.reduce(Money.zero(), Expression::plus);
+	}
+
+	public Expression calTotalCurrentValuation(PortfolioHolding holding) {
+		return this.calculateWithCurrentPrice(holding, holding::calculateCurrentValuation);
 	}
 
 	public Expression calTotalAssetBy(Portfolio portfolio) {

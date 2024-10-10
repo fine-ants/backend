@@ -30,7 +30,8 @@ public class PortfolioHoldingsResponse {
 			localDateTimeService, calculator);
 		List<PortfolioHoldingItem> portfolioHoldingItems = portfolioHoldings.stream()
 			.map(portfolioHolding -> PortfolioHoldingItem.from(portfolioHolding,
-				lastDayClosingPriceMap.getOrDefault(portfolioHolding.getStock().getTickerSymbol(), Money.zero())))
+				lastDayClosingPriceMap.getOrDefault(portfolioHolding.getStock().getTickerSymbol(), Money.zero()),
+				calculator))
 			.toList();
 		return new PortfolioHoldingsResponse(portfolioDetailResponse, portfolioHoldingItems);
 	}
