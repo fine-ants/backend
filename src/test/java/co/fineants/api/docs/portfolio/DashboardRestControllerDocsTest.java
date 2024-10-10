@@ -24,6 +24,7 @@ import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.common.money.Percentage;
 import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
 import co.fineants.api.domain.portfolio.controller.DashboardRestController;
+import co.fineants.api.domain.portfolio.domain.calculator.PortfolioCalculator;
 import co.fineants.api.domain.portfolio.domain.dto.response.DashboardLineChartResponse;
 import co.fineants.api.domain.portfolio.domain.dto.response.DashboardPieChartResponse;
 import co.fineants.api.domain.portfolio.domain.dto.response.OverviewResponse;
@@ -114,18 +115,21 @@ class DashboardRestControllerDocsTest extends RestDocsSupport {
 		holding.addPurchaseHistory(createPurchaseHistory(holding, LocalDateTime.now()));
 		portfolio.addHolding(holding);
 
-		Expression valuation = portfolio.calculateTotalAsset();
+		PortfolioCalculator calculator = new PortfolioCalculator();
+		Expression totalAsset = calculator.calTotalAssetBy(portfolio);
+		Expression totalGain = calculator.calTotalGainBy(portfolio);
+		Expression totalGainRate = calculator.calTotalGainRateBy(portfolio);
+
 		given(service.getPieChart(anyLong()))
 			.willReturn(List.of(
 				DashboardPieChartResponse.create(
 					1L,
 					"포트폴리오1",
-					valuation,
-					portfolio.calculateTotalAsset()
-						.divide(valuation)
+					totalAsset,
+					totalAsset
+						.divide(totalAsset)
 						.toPercentage(Bank.getInstance(), Currency.KRW),
-					portfolio.calculateTotalGain(),
-					portfolio.calculateTotalGainRate().toPercentage(Bank.getInstance(), Currency.KRW)
+					totalGain, totalGainRate.toPercentage(Bank.getInstance(), Currency.KRW)
 				)
 			));
 

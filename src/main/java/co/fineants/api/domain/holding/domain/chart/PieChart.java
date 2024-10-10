@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 
 import co.fineants.api.domain.holding.domain.dto.response.PortfolioPieChartItem;
 import co.fineants.api.domain.kis.repository.CurrentPriceRedisRepository;
+import co.fineants.api.domain.portfolio.domain.calculator.PortfolioCalculator;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import lombok.RequiredArgsConstructor;
 
@@ -15,8 +16,9 @@ public class PieChart {
 
 	private final CurrentPriceRedisRepository manager;
 
-	public List<PortfolioPieChartItem> createBy(Portfolio portfolio) {
+	public List<PortfolioPieChartItem> createItemsBy(Portfolio portfolio) {
 		portfolio.applyCurrentPriceAllHoldingsBy(manager);
-		return portfolio.createPieChart();
+		PortfolioCalculator calculator = new PortfolioCalculator();
+		return calculator.calCurrentValuationWeight(portfolio);
 	}
 }

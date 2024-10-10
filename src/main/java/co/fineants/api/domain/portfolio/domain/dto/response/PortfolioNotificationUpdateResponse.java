@@ -13,11 +13,11 @@ public class PortfolioNotificationUpdateResponse {
 	private Long portfolioId;
 	private Boolean isActive;
 
-	public static PortfolioNotificationUpdateResponse targetGainIsActive(Portfolio portfolio) {
-		return new PortfolioNotificationUpdateResponse(portfolio.getId(), portfolio.getTargetGainIsActive());
+	public static PortfolioNotificationUpdateResponse targetGainIsActive(Long portfolioId, boolean active) {
+		return new PortfolioNotificationUpdateResponse(portfolioId, active);
 	}
 
 	public static PortfolioNotificationUpdateResponse maximumLossIsActive(Portfolio portfolio) {
-		return new PortfolioNotificationUpdateResponse(portfolio.getId(), portfolio.getMaximumLossIsActive());
+		return new PortfolioNotificationUpdateResponse(portfolio.getId(), portfolio.maximumLossIsActive());
 	}
 }

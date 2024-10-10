@@ -351,8 +351,8 @@ class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 		SectorChart sectorChart = new SectorChart(currentPriceRedisRepository);
 
 		PortfolioDetails portfolioDetails = PortfolioDetails.from(portfolio);
-		List<PortfolioPieChartItem> pieChartItems = pieChart.createBy(portfolio);
-		List<PortfolioDividendChartItem> dividendChartItems = dividendChart.createBy(portfolio,
+		List<PortfolioPieChartItem> pieChartItems = pieChart.createItemsBy(portfolio);
+		List<PortfolioDividendChartItem> dividendChartItems = dividendChart.createItemsBy(portfolio,
 			LocalDate.of(2024, 1, 16));
 		List<PortfolioSectorChartItem> sectorChartItems = sectorChart.createBy(portfolio);
 		PortfolioChartResponse response = PortfolioChartResponse.create(portfolioDetails, pieChartItems,
@@ -383,6 +383,8 @@ class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 			.andExpect(jsonPath("data.dividendChart[0].amount").value(equalTo(0)))
 			.andExpect(jsonPath("data.dividendChart[1].month").value(equalTo(2)))
 			.andExpect(jsonPath("data.dividendChart[1].amount").value(equalTo(0)))
+			.andExpect(jsonPath("data.dividendChart[2].month").value(equalTo(3)))
+			.andExpect(jsonPath("data.dividendChart[2].amount").value(equalTo(0)))
 			.andExpect(jsonPath("data.dividendChart[3].month").value(equalTo(4)))
 			.andExpect(jsonPath("data.dividendChart[3].amount").value(equalTo(1083)))
 			.andExpect(jsonPath("data.dividendChart[4].month").value(equalTo(5)))

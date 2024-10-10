@@ -10,6 +10,6 @@ public class PortfolioModifyResponse {
 	private String name;
 
 	public static PortfolioModifyResponse from(Portfolio portfolio) {
-		return new PortfolioModifyResponse(portfolio.getId(), portfolio.getName());
+		return new PortfolioModifyResponse(portfolio.getId(), portfolio.name());
 	}
 }

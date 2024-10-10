@@ -21,8 +21,4 @@ public class PortfolioNotificationUpdateRequest {
 	public static PortfolioNotificationUpdateRequest active() {
 		return new PortfolioNotificationUpdateRequest(true);
 	}
-
-	public static PortfolioNotificationUpdateRequest inactive() {
-		return new PortfolioNotificationUpdateRequest(false);
-	}
 }

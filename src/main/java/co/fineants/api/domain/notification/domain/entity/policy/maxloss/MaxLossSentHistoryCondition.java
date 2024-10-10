@@ -14,7 +14,7 @@ public class MaxLossSentHistoryCondition implements NotificationCondition<Portfo
 
 	@Override
 	public boolean isSatisfiedBy(Portfolio portfolio) {
-		boolean result = portfolio.hasMaxLossSentHistory(manager);
+		boolean result = manager.hasMaxLossSentHistoryBy(portfolio);
 		log.debug("SentHistoryCondition isSatisfiedBy: {}", result);
 		return !result;
 	}

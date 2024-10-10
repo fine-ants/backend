@@ -30,6 +30,7 @@ import co.fineants.api.domain.member.domain.entity.Member;
 import co.fineants.api.domain.member.domain.entity.MemberProfile;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import co.fineants.api.domain.portfolio.domain.entity.PortfolioDetail;
+import co.fineants.api.domain.portfolio.domain.entity.PortfolioFinancial;
 import co.fineants.api.domain.portfolio.properties.PortfolioProperties;
 import co.fineants.api.domain.purchasehistory.domain.entity.PurchaseHistory;
 import co.fineants.api.domain.stock.domain.entity.Market;
@@ -116,14 +117,8 @@ public abstract class ControllerTestSupport {
 	protected Portfolio createPortfolio(Long id, Member member, String name, Money budget, Money targetGain,
 		Money maximumLoss) {
 		PortfolioDetail detail = PortfolioDetail.of(name, "토스증권", properties);
-		return Portfolio.active(
-			id,
-			detail,
-			budget,
-			targetGain,
-			maximumLoss,
-			member
-		);
+		PortfolioFinancial financial = PortfolioFinancial.of(budget, targetGain, maximumLoss);
+		return Portfolio.allActive(id, detail, financial, member);
 	}
 
 	protected PortfolioHolding createPortfolioHolding(Portfolio portfolio, Stock stock) {

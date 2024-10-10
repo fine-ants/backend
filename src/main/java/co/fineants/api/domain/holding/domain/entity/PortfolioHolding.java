@@ -222,9 +222,9 @@ public class PortfolioHolding extends BaseEntity {
 		this.currentPrice = stock.getCurrentPrice(manager).reduce(bank, to);
 	}
 
-	public RateDivision calculateWeightBy(Expression portfolioAsset) {
+	public RateDivision calCurrentValuationWeight(Expression totalAsset) {
 		Expression currentValuation = calculateCurrentValuation();
-		return currentValuation.divide(portfolioAsset);
+		return currentValuation.divide(totalAsset);
 	}
 
 	public PortfolioPieChartItem createPieChartItem(RateDivision weight) {

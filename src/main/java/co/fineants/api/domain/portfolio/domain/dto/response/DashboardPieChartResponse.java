@@ -5,6 +5,7 @@ import co.fineants.api.domain.common.money.Currency;
 import co.fineants.api.domain.common.money.Expression;
 import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.common.money.Percentage;
+import co.fineants.api.domain.portfolio.domain.calculator.PortfolioCalculator;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -40,13 +41,19 @@ public class DashboardPieChartResponse {
 	public static DashboardPieChartResponse of(Portfolio portfolio, Expression totalValuation) {
 		Bank bank = Bank.getInstance();
 		Currency to = Currency.KRW;
+		PortfolioCalculator calculator = new PortfolioCalculator();
+		Expression totalGain = calculator.calTotalGainBy(portfolio);
+		Expression totalGainRate = calculator.calTotalGainRateBy(portfolio);
+		Expression totalAsset = calculator.calTotalAssetBy(portfolio);
 		return new DashboardPieChartResponse(
 			portfolio.getId(),
-			portfolio.getName(),
-			portfolio.calculateTotalAsset().reduce(bank, to),
-			portfolio.calculateTotalAsset().divide(totalValuation).toPercentage(Bank.getInstance(), Currency.KRW),
-			portfolio.calculateTotalGain().reduce(bank, to),
-			portfolio.calculateTotalGainRate().toPercentage(Bank.getInstance(), Currency.KRW)
+			portfolio.name(),
+			totalAsset.reduce(bank, to),
+			totalAsset
+				.divide(totalValuation)
+				.toPercentage(Bank.getInstance(), Currency.KRW),
+			totalGain.reduce(bank, to),
+			totalGainRate.toPercentage(Bank.getInstance(), Currency.KRW)
 		);
 	}
 }

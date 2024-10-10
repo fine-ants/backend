@@ -221,8 +221,8 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 
 		// then
 		Portfolio changePortfolio = portfolioRepository.findById(portfolioId).orElseThrow();
-		assertThat(changePortfolio.getName()).isEqualTo(name);
-		assertThat(changePortfolio.getSecuritiesFirm()).isEqualTo(securitiesFirm);
+		assertThat(changePortfolio.name()).isEqualTo(name);
+		assertThat(changePortfolio.securitiesFirm()).isEqualTo(securitiesFirm);
 		assertThat(changePortfolio.getBudget())
 			.isEqualByComparingTo(Money.won(budget));
 		assertThat(changePortfolio.getTargetGain()).isEqualByComparingTo(Money.won(targetGain));
@@ -236,7 +236,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 		Member member = memberRepository.save(createMember());
 		Portfolio originPortfolio = portfolioRepository.save(createPortfolio(member));
 
-		Map<String, Object> body = createModifiedPortfolioRequestBodyMap(originPortfolio.getName());
+		Map<String, Object> body = createModifiedPortfolioRequestBodyMap(originPortfolio.name());
 
 		PortfolioModifyRequest request = ObjectMapperUtil.deserialize(ObjectMapperUtil.serialize(body),
 			PortfolioModifyRequest.class);
@@ -250,7 +250,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 		Portfolio changePortfolio = portfolioRepository.findById(portfolioId).orElseThrow();
 
 		assertThat(changePortfolio)
-			.extracting(Portfolio::getName, Portfolio::getSecuritiesFirm, Portfolio::getBudget,
+			.extracting(Portfolio::name, Portfolio::securitiesFirm, Portfolio::getBudget,
 				Portfolio::getTargetGain, Portfolio::getMaximumLoss)
 			.usingComparatorForType(Money::compareTo, Money.class)
 			.containsExactly("내꿈은 워렌버핏", "미래에셋증권", Money.won(1500000L), Money.won(2000000L), Money.won(900000L));
@@ -367,6 +367,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 			() -> service.updatePortfolio(request, portfolioId, member.getId()));
 
 		// then
+		throwable.printStackTrace(System.out);
 		assertThat(throwable)
 			.isInstanceOf(BadRequestException.class)
 			.hasMessage("최대 손실 금액은 예산 보다 작아야 합니다");

@@ -12,6 +12,7 @@ import co.fineants.api.domain.gainhistory.domain.dto.response.PortfolioGainHisto
 import co.fineants.api.domain.gainhistory.domain.entity.PortfolioGainHistory;
 import co.fineants.api.domain.gainhistory.repository.PortfolioGainHistoryRepository;
 import co.fineants.api.domain.kis.repository.CurrentPriceRedisRepository;
+import co.fineants.api.domain.portfolio.domain.calculator.PortfolioCalculator;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import co.fineants.api.domain.portfolio.repository.PortfolioRepository;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +32,7 @@ public class PortfolioGainHistoryService {
 	public PortfolioGainHistoryCreateResponse addPortfolioGainHistory() {
 		List<Portfolio> portfolios = portfolioRepository.findAll();
 		List<PortfolioGainHistory> portfolioGainHistories = new ArrayList<>();
-
+		PortfolioCalculator calculator = new PortfolioCalculator();
 		for (Portfolio portfolio : portfolios) {
 			portfolio.applyCurrentPriceAllHoldingsBy(currentPriceRedisRepository);
 			PortfolioGainHistory latestHistory =
@@ -40,7 +41,7 @@ public class PortfolioGainHistoryService {
 					.stream()
 					.findFirst()
 					.orElseGet(() -> PortfolioGainHistory.empty(portfolio));
-			PortfolioGainHistory history = portfolio.createPortfolioGainHistory(latestHistory);
+			PortfolioGainHistory history = latestHistory.createNewHistory(calculator);
 			portfolioGainHistories.add(repository.save(history));
 		}
 

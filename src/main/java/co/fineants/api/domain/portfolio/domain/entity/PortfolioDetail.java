@@ -3,17 +3,18 @@ package co.fineants.api.domain.portfolio.domain.entity;
 import java.util.regex.Pattern;
 
 import co.fineants.api.domain.portfolio.properties.PortfolioProperties;
+import co.fineants.api.global.errors.errorcode.PortfolioErrorCode;
+import co.fineants.api.global.errors.exception.portfolio.IllegalPortfolioNameArgumentException;
+import co.fineants.api.global.errors.exception.portfolio.IllegalPortfolioSecuritiesFirmArgumentException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EqualsAndHashCode(of = {"name", "securitiesFirm"})
-@Getter
 public class PortfolioDetail {
 	// 한글 또는 영문자로 시작하고 최대 100글자
 	public static final String NAME_REGEXP = "^[가-힣a-zA-Z0-9][가-힣a-zA-Z0-9 ]{0,99}$";
@@ -27,10 +28,11 @@ public class PortfolioDetail {
 
 	private PortfolioDetail(String name, String securitiesFirm, PortfolioProperties properties) {
 		if (name == null || !NAME_PATTERN.matcher(name).matches()) {
-			throw new IllegalArgumentException("Invalid Portfolio name: " + name);
+			throw new IllegalPortfolioNameArgumentException(name, PortfolioErrorCode.INVALID_PORTFOLIO_NAME);
 		}
 		if (!properties.contains(securitiesFirm)) {
-			throw new IllegalArgumentException("Unlisted securitiesFirm: " + securitiesFirm);
+			throw new IllegalPortfolioSecuritiesFirmArgumentException(securitiesFirm,
+				PortfolioErrorCode.UNLISTED_SECURITIES_FIRM);
 		}
 		this.name = name;
 		this.securitiesFirm = securitiesFirm;
@@ -43,7 +45,8 @@ public class PortfolioDetail {
 	 * @param securitiesFirm 증권사 이름
 	 * @param properties 증권사 목록이 담긴 포트폴리오 프로퍼티
 	 * @return 포트폴리오 상세 정보 객체
-	 * @throws IllegalArgumentException 포트폴리오 이름이 형식에 유효하지 않거나 증권사 이름이 목록에 포함되지 않으면 예외 발생한다
+	 * @throws IllegalPortfolioNameArgumentException 포트폴리오 이름의 형식이 유효하지 않으면 예외 발생
+	 * @throws IllegalPortfolioSecuritiesFirmArgumentException 증권사 이름이 목록(properties)에 없으면 예외 발생
 	 */
 	public static PortfolioDetail of(String name, String securitiesFirm, PortfolioProperties properties) {
 		return new PortfolioDetail(name, securitiesFirm, properties);
@@ -85,6 +88,14 @@ public class PortfolioDetail {
 	 */
 	public String getMaximumLossReachMessage() {
 		return String.format("%s이(가) 최대 손실율에 도달했습니다", name);
+	}
+
+	public String name() {
+		return name;
+	}
+
+	public String securitiesFirm() {
+		return securitiesFirm;
 	}
 
 	@Override

@@ -3,28 +3,18 @@ package co.fineants.api.domain.portfolio.domain.entity;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import org.hibernate.annotations.BatchSize;
 
 import co.fineants.api.domain.BaseEntity;
 import co.fineants.api.domain.common.count.Count;
-import co.fineants.api.domain.common.money.Bank;
-import co.fineants.api.domain.common.money.Currency;
 import co.fineants.api.domain.common.money.Expression;
 import co.fineants.api.domain.common.money.Money;
-import co.fineants.api.domain.common.money.MoneyConverter;
-import co.fineants.api.domain.common.money.Percentage;
 import co.fineants.api.domain.common.money.RateDivision;
 import co.fineants.api.domain.common.notification.Notifiable;
-import co.fineants.api.domain.gainhistory.domain.entity.PortfolioGainHistory;
-import co.fineants.api.domain.holding.domain.dto.response.PortfolioDividendChartItem;
 import co.fineants.api.domain.holding.domain.dto.response.PortfolioPieChartItem;
-import co.fineants.api.domain.holding.domain.dto.response.PortfolioSectorChartItem;
 import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
 import co.fineants.api.domain.kis.repository.CurrentPriceRedisRepository;
 import co.fineants.api.domain.member.domain.entity.Member;
@@ -32,13 +22,12 @@ import co.fineants.api.domain.notification.domain.dto.response.NotifyMessage;
 import co.fineants.api.domain.notification.domain.entity.type.NotificationType;
 import co.fineants.api.domain.notification.repository.NotificationSentRepository;
 import co.fineants.api.domain.notificationpreference.domain.entity.NotificationPreference;
+import co.fineants.api.domain.portfolio.domain.calculator.PortfolioCalculator;
 import co.fineants.api.global.common.time.DefaultLocalDateTimeService;
 import co.fineants.api.global.common.time.LocalDateTimeService;
 import co.fineants.api.global.errors.errorcode.PortfolioErrorCode;
-import co.fineants.api.global.errors.exception.BadRequestException;
-import co.fineants.api.global.errors.exception.FineAntsException;
+import co.fineants.api.global.errors.exception.portfolio.IllegalPortfolioFinancialStateException;
 import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -58,6 +47,7 @@ import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 @NamedEntityGraph(name = "Portfolio.withAll", attributeNodes = {
@@ -82,17 +72,10 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	private Long id;
 	@Embedded
 	private PortfolioDetail detail;
-	@Convert(converter = MoneyConverter.class)
-	@Column(precision = 19, nullable = false)
-	private Money budget;
-	@Convert(converter = MoneyConverter.class)
-	@Column(precision = 19, nullable = false)
-	private Money targetGain;
-	@Convert(converter = MoneyConverter.class)
-	@Column(precision = 19, nullable = false)
-	private Money maximumLoss;
-	private Boolean targetGainIsActive;
-	private Boolean maximumLossIsActive;
+	@Embedded
+	private PortfolioFinancial financial;
+	@Embedded
+	private PortfolioNotificationPreference preference;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "member_id")
@@ -103,47 +86,104 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	private final List<PortfolioHolding> portfolioHoldings = new ArrayList<>();
 
 	@Transient
+	@Setter
 	private LocalDateTimeService localDateTimeService = new DefaultLocalDateTimeService();
 
-	private Portfolio(Long id, PortfolioDetail detail, Money budget, Money targetGain, Money maximumLoss,
-		Boolean targetGainIsActive, Boolean maximumLossIsActive) {
-		validateBudget(budget, targetGain, maximumLoss);
+	private Portfolio(Long id, PortfolioDetail detail, PortfolioFinancial financial,
+		PortfolioNotificationPreference preference) {
 		this.id = id;
 		this.detail = detail;
-		this.budget = budget;
-		this.targetGain = targetGain;
-		this.maximumLoss = maximumLoss;
-		this.targetGainIsActive = targetGainIsActive;
-		this.maximumLossIsActive = maximumLossIsActive;
+		this.financial = financial;
+		this.preference = preference;
 	}
 
-	private void validateBudget(Money budget, Money targetGain, Money maximumLoss) {
-		if (budget.isZero()) {
-			return;
-		}
-		// 목표 수익 금액이 0원이 아닌 상태에서 예산 보다 큰지 검증
-		if (!targetGain.isZero() && budget.compareTo(targetGain) >= 0) {
-			throw new FineAntsException(PortfolioErrorCode.TARGET_GAIN_LOSS_IS_EQUAL_LESS_THAN_BUDGET);
-		}
-		// 최대 손실 금액이 예산 보다 작은지 검증
-		if (!maximumLoss.isZero() && budget.compareTo(maximumLoss) <= 0) {
-			throw new BadRequestException(PortfolioErrorCode.MAXIMUM_LOSS_IS_EQUAL_GREATER_THAN_BUDGET);
-		}
-	}
-
-	public static Portfolio active(Long id, PortfolioDetail detail, Money budget, Money targetGain,
-		Money maximumLoss, Member member) {
-		Portfolio portfolio = new Portfolio(id, detail, budget, targetGain, maximumLoss, true, true);
+	/**
+	 * 포트폴리오 알림 설정을 전부 활성화한 객체를 생성하여 반환한다.
+	 *
+	 * @param id 포트폴리오 식별번호
+	 * @param detail 포트폴리오 상세 정보
+	 * @param financial 포트폴리오 금융 정보
+	 * @param member 포트폴리오를 소유한 회원 객체
+	 * @return 포트폴리오 객체
+	 */
+	public static Portfolio allActive(Long id, PortfolioDetail detail, PortfolioFinancial financial, Member member) {
+		PortfolioNotificationPreference preference = PortfolioNotificationPreference.allActive();
+		Portfolio portfolio = new Portfolio(id, detail, financial, preference);
 		portfolio.setMember(member);
 		return portfolio;
 	}
 
-	public static Portfolio noActive(PortfolioDetail detail, Money budget, Money targetGain, Money maximumLoss,
-		Member member) {
-		Portfolio portfolio = new Portfolio(null, detail, budget, targetGain, maximumLoss, false, false);
+	/**
+	 * 알림 설정이 전부 비활성화된 포트폴리오 객체를 생성하여 반환한다.
+	 *
+	 * @param detail 포트폴리오 상세 정보 객체
+	 * @param financial 포트폴리오 금융 정보 객체
+	 * @param member 포트폴리오를 소유한 회원 객체
+	 * @return 생성한 포트폴리오 객체
+	 */
+	public static Portfolio allInActive(PortfolioDetail detail, PortfolioFinancial financial, Member member) {
+		PortfolioNotificationPreference preference = PortfolioNotificationPreference.allInactive();
+		Portfolio portfolio = new Portfolio(null, detail, financial, preference);
 		portfolio.setMember(member);
 		return portfolio;
 	}
+
+	//== Notifiable Interface 시작 ==//
+	@Override
+	public NotifyMessage createTargetGainMessageWith(String token) {
+		String title = "포트폴리오";
+		String content = detail.getTargetGainReachMessage();
+		NotificationType type = NotificationType.PORTFOLIO_TARGET_GAIN;
+		String referenceId = id.toString();
+		Long memberId = member.getId();
+		String link = "/portfolio/" + referenceId;
+		return NotifyMessage.portfolio(
+			title,
+			content,
+			type,
+			referenceId,
+			memberId,
+			token,
+			link,
+			detail.name()
+		);
+	}
+
+	@Override
+	public NotifyMessage createMaxLossMessageWith(String token) {
+		String title = "포트폴리오";
+		String content = detail.getMaximumLossReachMessage();
+		NotificationType type = NotificationType.PORTFOLIO_MAX_LOSS;
+		String referenceId = id.toString();
+		Long memberId = member.getId();
+		String link = "/portfolio/" + referenceId;
+		return NotifyMessage.portfolio(
+			title,
+			content,
+			type,
+			referenceId,
+			memberId,
+			token,
+			link,
+			detail.name()
+		);
+	}
+
+	@Override
+	public Long fetchMemberId() {
+		return member.getId();
+	}
+
+	@Override
+	public NotificationPreference getNotificationPreference() {
+		return member.getNotificationPreference();
+	}
+
+	@Override
+	public NotifyMessage getTargetPriceMessage(String token) {
+		throw new UnsupportedOperationException("This method is not supported for Portfolio");
+	}
+	//== Notifiable Interface 종료 ==//
 
 	//== 연관 관계 메소드 ==//
 	public void addHolding(PortfolioHolding holding) {
@@ -164,141 +204,19 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	public void setMember(Member member) {
 		this.member = member;
 	}
-	//== 연관 관계 편의 메소드 종료 ==//
+	//== 연관 관계 메소드 ==//
 
 	public void change(Portfolio changePortfolio) {
 		this.detail.change(changePortfolio.detail);
-		this.budget = changePortfolio.budget;
-		this.targetGain = changePortfolio.targetGain;
-		this.maximumLoss = changePortfolio.maximumLoss;
+		this.financial.change(changePortfolio.financial);
 	}
 
 	public boolean hasAuthorization(Long memberId) {
 		return member.hasAuthorization(memberId);
 	}
 
-	/**
-	 * 포트폴리오 총 손익율
-	 * 포트폴리오 총 손익 / 포트폴리오 총 투자 금액 * 100
-	 * @return 포트폴리오 총 손익율의 백분율
-	 */
-	public RateDivision calculateTotalGainRate() {
-		Expression amount = calculateTotalInvestmentAmount();
-		return calculateTotalGain().divide(amount);
-	}
-
-	/**
-	 * 포트폴리오 총 손익
-	 * 모든 종목(PortfolioHolding)의 총 손익 합
-	 * @return 포트폴리오 총 손익
-	 */
-	public Expression calculateTotalGain() {
-		return portfolioHoldings.stream()
-			.map(PortfolioHolding::calculateTotalGain)
-			.reduce(Money.wonZero(), Expression::plus);
-	}
-
-	/**
-	 * 포트폴리오 총 투자 금액
-	 * 각 종목들의 총 투자 금액 합계
-	 * @return 포트폴리오 총 투자 금액
-	 */
-	public Expression calculateTotalInvestmentAmount() {
-		return portfolioHoldings.stream()
-			.map(PortfolioHolding::calculateTotalInvestmentAmount)
-			.reduce(Money.wonZero(), Expression::plus);
-	}
-
-	/**
-	 * 포트폴리오 당일 손익
-	 * 각 종목들의 평가 금액 합계 - 이전 포트폴리오 내역의 각 종목들의 평가 금액 합계
-	 * 단, 이전일의 포트포릴오 내역의 각 종목들의 평가 금액이 없는 경우 총 투자금액으로 뺀다
-	 * @param history 이전 포트폴리오 내역
-	 * @return 포트폴리오 당일 손익
-	 */
-	public Expression calculateDailyGain(PortfolioGainHistory history) {
-		Expression previousCurrentValuation = history.getCurrentValuation();
-		Money won = Bank.getInstance().toWon(previousCurrentValuation);
-		if (won.isZero()) {
-			return calculateTotalCurrentValuation().minus(calculateTotalInvestmentAmount());
-		}
-		return calculateTotalCurrentValuation().minus(previousCurrentValuation);
-	}
-
-	// 포트폴리오 평가 금액(현재 가치) = 모든 종목들의 평가금액 합계
-	public Expression calculateTotalCurrentValuation() {
-		return portfolioHoldings.stream()
-			.map(PortfolioHolding::calculateCurrentValuation)
-			.reduce(Money.wonZero(), Expression::plus);
-	}
-
-	// 포트폴리오 당일 손익율 = (당일 포트폴리오 가치 총합 - 이전 포트폴리오 가치 총합) / 이전 포트폴리오 가치 총합
-	// 단, 이전 포트폴리오가 없는 경우 ((당일 포트폴리오 가치 총합 - 당일 포트폴리오 총 투자 금액) / 당일 포트폴리오 총 투자 금액) * 100%
-	public RateDivision calculateDailyGainRate(PortfolioGainHistory prevHistory) {
-		Money prevCurrentValuation = prevHistory.getCurrentValuation();
-		Expression currentValuation = calculateTotalCurrentValuation();
-		if (prevCurrentValuation.isZero()) {
-			Expression amount = calculateTotalInvestmentAmount();
-			return currentValuation.minus(amount)
-				.divide(amount);
-		}
-		return currentValuation.minus(prevCurrentValuation)
-			.divide(prevCurrentValuation);
-	}
-
-	// 포트폴리오 당월 예상 배당금 = 각 종목들에 해당월의 배당금 합계
-	public Expression calculateCurrentMonthDividend() {
-		return portfolioHoldings.stream()
-			.map(PortfolioHolding::calculateCurrentMonthDividend)
-			.reduce(Money.zero(), Expression::plus);
-	}
-
-	public Count getNumberOfShares() {
+	public Count numberOfShares() {
 		return Count.from(portfolioHoldings.size());
-	}
-
-	// 잔고 = 예산 - 총 투자 금액
-	public Expression calculateBalance() {
-		return budget.minus(calculateTotalInvestmentAmount());
-	}
-
-	// 총 연간 배당금 = 각 종목들의 연배당금의 합계
-	public Expression calculateAnnualDividend(LocalDateTimeService dateTimeService) {
-		return portfolioHoldings.stream()
-			.map(portfolioHolding -> portfolioHolding.createMonthlyDividendMap(
-				dateTimeService.getLocalDateWithNow()))
-			.map(map -> map.values().stream()
-				.reduce(Money.zero(), Expression::plus))
-			.reduce(Money.zero(), Expression::plus);
-	}
-
-	// 총 연간배당율 = 모든 종목들의 연 배당금 합계 / 모든 종목들의 총 가치의 합계) * 100
-	public RateDivision calculateAnnualDividendYield(LocalDateTimeService dateTimeService) {
-		Expression currentValuation = calculateTotalCurrentValuation();
-		Expression totalAnnualDividend = calculateAnnualDividend(dateTimeService);
-		return totalAnnualDividend.divide(currentValuation);
-	}
-
-	// 최대손실율 = ((예산 - 최대손실금액) / 예산) * 100
-	public RateDivision calculateMaximumLossRate() {
-		return budget.minus(maximumLoss)
-			.divide(budget);
-	}
-
-	// 투자대비 연간 배당율 = 포트폴리오 총 연배당금 / 포트폴리오 투자금액 * 100
-	public RateDivision calculateAnnualInvestmentDividendYield(LocalDateTimeService dateTimeService) {
-		Expression amount = calculateTotalInvestmentAmount();
-		Expression dividend = calculateAnnualDividend(dateTimeService);
-		return dividend.divide(amount);
-	}
-
-	public PortfolioGainHistory createPortfolioGainHistory(PortfolioGainHistory history) {
-		Bank bank = Bank.getInstance();
-		Money totalGain = bank.toWon(calculateTotalGain());
-		Money dailyGain = bank.toWon(calculateDailyGain(history));
-		Money cash = bank.toWon(calculateBalance());
-		Money currentValuation = bank.toWon(calculateTotalCurrentValuation());
-		return PortfolioGainHistory.create(totalGain, dailyGain, cash, currentValuation, this);
 	}
 
 	// 포트폴리오 모든 종목들에 주식 현재가 적용
@@ -310,162 +228,106 @@ public class Portfolio extends BaseEntity implements Notifiable {
 		}
 	}
 
-	// 목표 수익률 = ((목표 수익 금액 - 예산) / 예산) * 100
-	public RateDivision calculateTargetReturnRate() {
-		return targetGain.minus(budget)
-			.divide(budget);
-	}
-
-	// 총 자산 = 잔고 + 평가금액 합계
-	public Expression calculateTotalAsset() {
-		return calculateBalance().plus(calculateTotalCurrentValuation());
-	}
-
-	// 목표수익금액 알림 변경
-	public void changeTargetGainNotification(Boolean isActive) {
-		validateTargetGainNotification();
-		this.targetGainIsActive = isActive;
+	/**
+	 * 포트폴리오의 목표수익금액 알림 설정을 변경.
+	 * <p>
+	 * 포트폴리오의 목표수익금액이 0원이 경우에는 활성화 알림이 변경되지 않는다.
+	 * </p>
+	 * @param active 변경하고자 하는 알림 설정, true: 알림 활성화, false: 알림 비활성화
+	 * @throws IllegalPortfolioFinancialStateException 목표수익금액이 0원인 경우 예외 발생
+	 */
+	public void changeTargetGainNotification(Boolean active) {
+		if (this.financial.isTargetGainZero()) {
+			throw new IllegalPortfolioFinancialStateException(this.financial,
+				PortfolioErrorCode.TARGET_GAIN_IS_ZERO_WITH_NOTIFY_UPDATE);
+		}
+		this.preference.changeTargetGain(active);
 	}
 
 	/**
-	 * 목표 수익 금액에 따른 변경이 가능한 상태인지 검증
-	 * - 목표 수익 금액이 0원인 경우 변경 불가능
+	 * 포트폴리오의 최대손실금액의 활성화 알림을 변경.
+	 *<p>
+	 * 포트폴리오의 최대손실금액이 0원인 경우 활성화 알림이 변경되지 않는다
+	 * </p>
+	 * @param active 변경하고자 하는 활성화 알림 여부, true: 알림 활성화, false: 알림 비활성화
+	 * @throws IllegalPortfolioFinancialStateException 최대손실금액이 0원인 경우 예외 발생
 	 */
-	private void validateTargetGainNotification() {
-		if (targetGain.isZero()) {
-			throw new FineAntsException(PortfolioErrorCode.TARGET_GAIN_IS_ZERO_WITH_NOTIFY_UPDATE);
+	public void changeMaximumLossNotification(Boolean active) {
+		if (this.financial.isMaximumLossZero()) {
+			throw new IllegalPortfolioFinancialStateException(this.financial,
+				PortfolioErrorCode.MAX_LOSS_IS_ZERO_WITH_NOTIFY_UPDATE);
 		}
-	}
-
-	// 최대손실금액의 알림 변경
-	public void changeMaximumLossNotification(Boolean isActive) {
-		validateMaxLossNotification();
-		this.maximumLossIsActive = isActive;
+		this.preference.changeMaximumLoss(active);
 	}
 
 	/**
-	 * 최대 손실 금액에 따른 변경이 가능한 상태인지 검증
-	 * - 최대 손실 금액이 0원인 경우 변경 불가능
+	 * 포트폴리오의 잔고가 주문금액보다 충분한지 여부 검사.
+	 *
+	 * @param purchaseAmount 매입 이력 추가 위한 주문금액
+	 * @param calculator 포트폴리오 계산기 객체
+	 * @return true: 포트폴리오에 주문금액보다 같거나 큰 잔고를 가지고 있음, false: 구매금액보다 작은 잔고를 가지고 있음
 	 */
-	private void validateMaxLossNotification() {
-		if (maximumLoss.isZero()) {
-			throw new FineAntsException(PortfolioErrorCode.MAX_LOSS_IS_ZERO_WITH_NOTIFY_UPDATE);
-		}
+	public boolean isCashSufficientForPurchase(Expression purchaseAmount, PortfolioCalculator calculator) {
+		return calculator.calBalanceBy(this).compareTo(purchaseAmount) >= 0;
 	}
 
-	// 포트폴리오가 목표수익금액에 도달했는지 검사 (평가금액이 목표수익금액보다 같거나 큰 경우)
-	public boolean reachedTargetGain() {
-		Bank bank = Bank.getInstance();
-		Money currentValuation = bank.toWon(calculateTotalCurrentValuation());
-		log.debug("reachedTargetGain currentValuation={}, targetGain={}", currentValuation, targetGain);
-		return currentValuation.compareTo(bank.toWon(targetGain)) >= 0;
+	public List<PortfolioHolding> getPortfolioHoldings() {
+		return Collections.unmodifiableList(portfolioHoldings);
 	}
 
-	// 포트폴리오가 최대손실금액에 도달했는지 검사 (예산 + 총손익이 최대손실금액보다 작은 경우)
-	public boolean reachedMaximumLoss() {
-		Bank bank = Bank.getInstance();
-		Expression totalGain = calculateTotalGain();
-		log.debug("reachedTargetGain totalGain={}", totalGain);
-		Money amount = bank.toWon(budget.plus(totalGain));
-		return amount.compareTo(bank.toWon(maximumLoss)) <= 0;
+	//== PortfolioDetail 위임 메소드 시작 ==//
+	public boolean equalName(Portfolio portfolio) {
+		return detail.equalName(portfolio.detail);
 	}
 
-	// 파이 차트 생성
-	public List<PortfolioPieChartItem> createPieChart() {
-		List<PortfolioPieChartItem> stocks = portfolioHoldings.stream()
-			.map(portfolioHolding -> portfolioHolding.createPieChartItem(calculateWeightBy(portfolioHolding)))
-			.toList();
-		Bank bank = Bank.getInstance();
-		Percentage weight = calculateCashWeight().toPercentage(bank, Currency.KRW);
-		PortfolioPieChartItem cash = PortfolioPieChartItem.cash(weight, bank.toWon(calculateBalance()));
-
-		List<PortfolioPieChartItem> result = new ArrayList<>(stocks);
-		result.add(cash);
-
-		// 정렬
-		// 평가금액(valuation) 기준 내림차순
-		// 총손익(totalGain) 기준 내림차순
-		result.sort(((Comparator<PortfolioPieChartItem>)(o1, o2) -> o2.getValuation().compareTo(o1.getValuation()))
-			.thenComparing((o1, o2) -> o2.getTotalGain().compareTo(o1.getTotalGain())));
-		return result;
+	public String securitiesFirm() {
+		return detail.securitiesFirm();
 	}
 
-	// 현금 비중 계산, 현금 비중 = 잔고 / 총자산
-	public RateDivision calculateCashWeight() {
-		Expression balance = calculateBalance();
-		Expression totalAsset = calculateTotalAsset();
-		return balance.divide(totalAsset);
+	public String name() {
+		return detail.name();
+	}
+	//== PortfolioDetail 위임 메소드 종료 ==//
+
+	//== PortfolioFinancial 위임 메소드 시작 ==//
+	public Boolean isTargetGainSet() {
+		return !this.financial.isTargetGainZero();
 	}
 
-	// 포트폴리오 종목 비중 계산, 종목 비중 = 종목 평가 금액 / 총자산
-	private RateDivision calculateWeightBy(PortfolioHolding holding) {
-		return holding.calculateWeightBy(calculateTotalAsset());
+	public Boolean isMaximumLossSet() {
+		return !this.financial.isMaximumLossZero();
 	}
 
-	private RateDivision calculateWeightBy(Money currentValuation) {
-		Expression totalAsset = calculateTotalAsset();
-		return currentValuation.divide(totalAsset);
+	public Money getBudget() {
+		return this.financial.getBudget();
 	}
 
-	// 배당금 차트 생성
-	public List<PortfolioDividendChartItem> createDividendChart(LocalDate currentLocalDate) {
-		Map<Integer, Expression> totalDividendMap = portfolioHoldings.stream()
-			.flatMap(holding ->
-				holding.createMonthlyDividendMap(currentLocalDate).entrySet().stream()
-			)
-			.collect(Collectors.groupingBy(Map.Entry::getKey,
-				Collectors.reducing(Money.zero(), Map.Entry::getValue, Expression::plus))
-			);
-		Bank bank = Bank.getInstance();
-		Currency to = Currency.KRW;
-		return totalDividendMap.entrySet().stream()
-			.map(entry -> PortfolioDividendChartItem.create(entry.getKey(), entry.getValue().reduce(bank, to)))
-			.toList();
+	public Money getTargetGain() {
+		return this.financial.getTargetGain();
 	}
 
-	public List<PortfolioSectorChartItem> createSectorChart() {
-		return calculateSectorCurrentValuationMap().entrySet().stream()
-			.map(mappingSectorChartItem())
-			.sorted(PortfolioSectorChartItem::compareTo)
-			.toList();
+	public Money getMaximumLoss() {
+		return this.financial.getMaximumLoss();
 	}
+	//== PortfolioFinancial 위임 메소드 종료 ==//
 
-	private Map<String, List<Expression>> calculateSectorCurrentValuationMap() {
-		Map<String, List<Expression>> sectorCurrentValuationMap = portfolioHoldings.stream()
-			.collect(Collectors.groupingBy(portfolioHolding -> portfolioHolding.getStock().getSector(),
-				Collectors.mapping(PortfolioHolding::calculateCurrentValuation, Collectors.toList())));
-		// 섹션 차트에 현금 추가
-		sectorCurrentValuationMap.put("현금", List.of(calculateBalance()));
-		return sectorCurrentValuationMap;
-	}
-
-	private Function<Map.Entry<String, List<Expression>>, PortfolioSectorChartItem> mappingSectorChartItem() {
-		return entry -> {
-			Expression currentValuation = entry.getValue().stream()
-				.reduce(Money.wonZero(), Expression::plus);
-			RateDivision weight = calculateWeightBy(Bank.getInstance().toWon(currentValuation));
-			Percentage weightPercentage = weight.toPercentage(Bank.getInstance(), Currency.KRW);
-			return PortfolioSectorChartItem.create(entry.getKey(), weightPercentage);
-		};
-	}
-
-	public boolean equalName(Portfolio changePortfolio) {
-		return detail.equalName(changePortfolio.detail);
-	}
-
-	// 매입 이력을 포트폴리오에 추가시 현금이 충분한지 판단
-	public boolean isCashSufficientForPurchase(Money money) {
-		Expression amount = calculateTotalInvestmentAmount().plus(money);
-		return Bank.getInstance().toWon(amount).compareTo(budget) > 0;
-	}
-
+	//== PortfolioNotificationPreference 위임 메서드 시작 ==//
 	public boolean isSameTargetGainActive(boolean active) {
-		return this.targetGainIsActive == active;
+		return this.preference.isSameTargetGain(active);
 	}
 
 	public boolean isSameMaxLossActive(boolean active) {
-		return this.maximumLossIsActive == active;
+		return this.preference.isSameMaxLoss(active);
 	}
+
+	public Boolean targetGainIsActive() {
+		return preference.targetGainIsActive();
+	}
+
+	public Boolean maximumLossIsActive() {
+		return preference.maximumLossIsActive();
+	}
+	//== PortfolioNotificationPreference 위임 메서드 종료 ==//
 
 	public boolean hasTargetGainSentHistory(NotificationSentRepository manager) {
 		return manager.hasTargetGainSendHistory(id);
@@ -475,90 +337,94 @@ public class Portfolio extends BaseEntity implements Notifiable {
 		return manager.hasMaxLossSendHistory(id);
 	}
 
-	@Override
-	public NotifyMessage createTargetGainMessageWith(String token) {
-		String title = "포트폴리오";
-		String content = detail.getTargetGainReachMessage();
-		NotificationType type = NotificationType.PORTFOLIO_TARGET_GAIN;
-		String referenceId = id.toString();
-		Long memberId = member.getId();
-		String link = "/portfolio/" + referenceId;
-		return NotifyMessage.portfolio(
-			title,
-			content,
-			type,
-			referenceId,
-			memberId,
-			token,
-			link,
-			detail.getName()
-		);
+	//== Portfolio 계산 메서드 시작 ==//
+	public Expression calTotalGain(PortfolioCalculator calculator) {
+		return calculator.calTotalGain(Collections.unmodifiableList(portfolioHoldings));
 	}
 
-	@Override
-	public NotifyMessage createMaxLossMessageWith(String token) {
-		String title = "포트폴리오";
-		String content = detail.getMaximumLossReachMessage();
-		NotificationType type = NotificationType.PORTFOLIO_MAX_LOSS;
-		String referenceId = id.toString();
-		Long memberId = member.getId();
-		String link = "/portfolio/" + referenceId;
-		return NotifyMessage.portfolio(
-			title,
-			content,
-			type,
-			referenceId,
-			memberId,
-			token,
-			link,
-			detail.getName()
-		);
+	public Expression calTotalInvestment(PortfolioCalculator calculator) {
+		return calculator.calTotalInvestment(Collections.unmodifiableList(portfolioHoldings));
 	}
 
-	public Boolean isTargetGainSet() {
-		return !targetGain.isZero();
+	public Expression calTotalGainRate(PortfolioCalculator calculator) {
+		return calculator.calTotalGainRate(Collections.unmodifiableList(portfolioHoldings));
 	}
 
-	public Boolean isMaximumLossSet() {
-		return !maximumLoss.isZero();
+	public Expression calBalance(Expression totalInvestment) {
+		return this.financial.calBalance(totalInvestment);
 	}
 
-	public boolean isExceedBudgetByPurchasedAmount(Expression amount) {
-		Bank bank = Bank.getInstance();
-		Expression investAmount = calculateTotalInvestmentAmount().plus(amount);
-		return budget.compareTo(bank.toWon(investAmount)) < 0;
+	public Expression calTotalCurrentValuation(PortfolioCalculator calculator) {
+		return calculator.calTotalCurrentValuation(Collections.unmodifiableList(portfolioHoldings));
 	}
 
-	@Override
-	public Long fetchMemberId() {
-		return member.getId();
+	public Expression calTotalAsset(PortfolioCalculator calculator) {
+		Expression balance = calculator.calBalanceBy(this);
+		Expression totalCurrentValuation = calculator.calTotalCurrentValuationBy(this);
+		return calculator.calTotalAsset(balance, totalCurrentValuation);
 	}
 
-	@Override
-	public NotificationPreference getNotificationPreference() {
-		return member.getNotificationPreference();
+	public Expression calCurrentMonthDividend(PortfolioCalculator calculator) {
+		return calculator.calCurrentMonthDividend(Collections.unmodifiableList(portfolioHoldings));
 	}
 
-	@Override
-	public NotifyMessage getTargetPriceMessage(String token) {
-		throw new UnsupportedOperationException("This method is not supported for Portfolio");
+	public Expression calAnnualDividend(LocalDateTimeService dateTimeService, PortfolioCalculator calculator) {
+		return calculator.calAnnualDividend(dateTimeService, Collections.unmodifiableList(portfolioHoldings));
 	}
 
-	public List<PortfolioHolding> getPortfolioHoldings() {
-		return Collections.unmodifiableList(portfolioHoldings);
+	public Expression calAnnualInvestmentDividendYield(LocalDateTimeService localDateTimeService,
+		PortfolioCalculator calculator) {
+		Expression annualDividend = calculator.calAnnualDividendBy(localDateTimeService, this);
+		Expression totalInvestment = calculator.calTotalInvestmentBy(this);
+		return calculator.calAnnualInvestmentDividendYield(annualDividend, totalInvestment);
 	}
 
-	public void setLocalDateTimeService(LocalDateTimeService localDateTimeService) {
-		this.localDateTimeService = localDateTimeService;
+	public RateDivision calculateMaximumLossRate() {
+		return this.financial.calMaximumLossRate();
 	}
 
-	public String getSecuritiesFirm() {
-		return detail.getSecuritiesFirm();
+	public RateDivision calculateTargetReturnRate() {
+		return this.financial.calTargetGainRate();
 	}
 
-	public String getName() {
-		return detail.getName();
+	public Map<String, List<Expression>> createSectorChart(PortfolioCalculator calculator) {
+		Expression balance = calculator.calBalanceBy(this);
+		return calculator.calSectorChart(Collections.unmodifiableList(portfolioHoldings), balance);
 	}
+
+	/**
+	 * 포트폴리오가 목표수익금액에 도달했는지 여부 검사.
+	 * @param calculator 포트폴리오 계산기 객체
+	 * @return true: 평가금액이 목표수익금액보다 같거나 큰 경우, false: 평가금액이 목표수익금액보다 작은 경우
+	 */
+	public boolean reachedTargetGain(PortfolioCalculator calculator) {
+		Expression totalCurrentValuation = calculator.calTotalCurrentValuationBy(this);
+		return this.financial.reachedTargetGain(totalCurrentValuation);
+	}
+
+	/**
+	 * 포트폴리오가 최대손실금액에 도달했는지 여부 검사.
+	 * @param calculator 포트폴리오 계산기 객체
+	 * @return true: 총 손익이 최대손실금액보다 같거나 작은 경우, false: 총 손익이 최대손실금액보다 큰 경우
+	 */
+	public boolean reachedMaximumLoss(PortfolioCalculator calculator) {
+		Expression totalGain = calculator.calTotalGainBy(this);
+		return this.financial.reachedMaximumLoss(totalGain);
+	}
+
+	public List<PortfolioPieChartItem> calCurrentValuationWeights(PortfolioCalculator calculator) {
+		Expression totalAsset = calculator.calTotalAssetBy(this);
+		return portfolioHoldings.stream()
+			.map(holding -> {
+				RateDivision weight = calculator.calCurrentValuationWeightBy(holding, totalAsset);
+				return holding.createPieChartItem(weight);
+			}).toList();
+	}
+
+	public Map<Integer, Expression> calTotalDividend(PortfolioCalculator calculator, LocalDate currentLocalDate) {
+		return calculator.calTotalDividend(Collections.unmodifiableList(portfolioHoldings), currentLocalDate);
+	}
+	//== Portfolio 계산 메서드 시작 ==//
 
 	@Override
 	public String toString() {

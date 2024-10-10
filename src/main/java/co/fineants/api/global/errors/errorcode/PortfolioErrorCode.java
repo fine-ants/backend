@@ -9,6 +9,9 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum PortfolioErrorCode implements ErrorCode {
 
+	INVALID_PORTFOLIO_FINANCIAL_INFO(HttpStatus.BAD_REQUEST, "포트폴리오 금융 정보는 음수가 될수 없습니다"),
+	INVALID_PORTFOLIO_NAME(HttpStatus.BAD_REQUEST, "유효하지 않은 포트폴리오 이름 형식입니다"),
+	UNLISTED_SECURITIES_FIRM(HttpStatus.BAD_REQUEST, "목록에 없는 증권사입니다"),
 	TARGET_GAIN_LOSS_IS_EQUAL_LESS_THAN_BUDGET(HttpStatus.BAD_REQUEST, "목표 수익금액은 예산보다 커야 합니다"),
 	MAXIMUM_LOSS_IS_EQUAL_GREATER_THAN_BUDGET(HttpStatus.BAD_REQUEST, "최대 손실 금액은 예산 보다 작아야 합니다"),
 	SECURITIES_FIRM_IS_NOT_CONTAINS(HttpStatus.BAD_REQUEST, "해당 증권사는 포함되어 있지 않습니다"),
@@ -24,10 +27,6 @@ public enum PortfolioErrorCode implements ErrorCode {
 
 	@Override
 	public String toString() {
-		return String.format("%s, %s(name=%s, httpStatus=%s, message=%s)", "포트폴리오 에러 코드",
-			this.getClass().getSimpleName(),
-			name(),
-			httpStatus,
-			message);
+		return String.format("PortfolioErrorCode(httpStatus=%s, message=%s)", httpStatus, message);
 	}
 }

@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
 import co.fineants.api.domain.holding.repository.PortfolioHoldingRepository;
+import co.fineants.api.domain.portfolio.domain.calculator.PortfolioCalculator;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import co.fineants.api.domain.portfolio.repository.PortfolioRepository;
 import co.fineants.api.domain.purchasehistory.domain.dto.request.PurchaseHistoryCreateRequest;
@@ -72,7 +73,8 @@ public class PurchaseHistoryService {
 	}
 
 	private void verifyCashSufficientForPurchase(Portfolio portfolio, Money investmentAmount) {
-		if (portfolio.isCashSufficientForPurchase(investmentAmount)) {
+		PortfolioCalculator calculator = new PortfolioCalculator();
+		if (!portfolio.isCashSufficientForPurchase(investmentAmount, calculator)) {
 			throw new FineAntsException(PortfolioErrorCode.TOTAL_INVESTMENT_PRICE_EXCEEDS_BUDGET);
 		}
 	}

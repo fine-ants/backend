@@ -22,6 +22,7 @@ import co.fineants.api.domain.gainhistory.repository.PortfolioGainHistoryReposit
 import co.fineants.api.domain.kis.repository.CurrentPriceRedisRepository;
 import co.fineants.api.domain.member.domain.entity.Member;
 import co.fineants.api.domain.member.repository.MemberRepository;
+import co.fineants.api.domain.portfolio.domain.calculator.PortfolioCalculator;
 import co.fineants.api.domain.portfolio.domain.dto.response.DashboardLineChartResponse;
 import co.fineants.api.domain.portfolio.domain.dto.response.DashboardPieChartResponse;
 import co.fineants.api.domain.portfolio.domain.dto.response.OverviewResponse;
@@ -57,13 +58,16 @@ public class DashboardService {
 		if (portfolios.isEmpty()) {
 			return OverviewResponse.empty(member.getNickname());
 		}
+		PortfolioCalculator calculator = new PortfolioCalculator();
 		for (Portfolio portfolio : portfolios) {
 			portfolio.applyCurrentPriceAllHoldingsBy(currentPriceRedisRepository);
-			totalValuation = totalValuation.plus(portfolio.calculateTotalAsset());
-			totalCurrentValuation = totalCurrentValuation.plus(portfolio.calculateTotalCurrentValuation());
-			totalInvestment = totalInvestment.plus(portfolio.calculateTotalInvestmentAmount());
-			totalGain = totalGain.plus(portfolio.calculateTotalGain());
-			totalAnnualDividend = totalAnnualDividend.plus(portfolio.calculateAnnualDividend(localDateTimeService));
+			Expression totalAsset = calculator.calTotalAssetBy(portfolio);
+			totalValuation = totalValuation.plus(totalAsset);
+			totalCurrentValuation = totalCurrentValuation.plus(calculator.calTotalCurrentValuationBy(portfolio));
+			totalInvestment = totalInvestment.plus(calculator.calTotalInvestmentBy(portfolio));
+			totalGain = totalGain.plus(calculator.calTotalGainBy(portfolio));
+			totalAnnualDividend = totalAnnualDividend.plus(
+				calculator.calAnnualDividendBy(localDateTimeService, portfolio));
 		}
 		RateDivision totalAnnualDividendYield = totalAnnualDividend.divide(totalCurrentValuation);
 		RateDivision totalGainRate = totalGain.divide(totalInvestment);
@@ -87,9 +91,11 @@ public class DashboardService {
 			return new ArrayList<>();
 		}
 		Expression totalValuation = Money.wonZero(); // 평가 금액 + 현금
+		PortfolioCalculator calculator = new PortfolioCalculator();
 		for (Portfolio portfolio : portfolios) {
 			portfolio.applyCurrentPriceAllHoldingsBy(currentPriceRedisRepository);
-			totalValuation = totalValuation.plus(portfolio.calculateTotalAsset());
+			Expression totalAsset = calculator.calTotalAssetBy(portfolio);
+			totalValuation = totalValuation.plus(totalAsset);
 		}
 		List<DashboardPieChartResponse> pieChartResponses = new ArrayList<>();
 		for (Portfolio portfolio : portfolios) {

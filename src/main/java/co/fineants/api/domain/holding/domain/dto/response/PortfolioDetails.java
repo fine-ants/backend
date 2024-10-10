@@ -17,6 +17,6 @@ public class PortfolioDetails {
 	private String name;
 
 	public static PortfolioDetails from(Portfolio portfolio) {
-		return new PortfolioDetails(portfolio.getId(), portfolio.getSecuritiesFirm(), portfolio.getName());
+		return new PortfolioDetails(portfolio.getId(), portfolio.securitiesFirm(), portfolio.name());
 	}
 }

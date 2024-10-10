@@ -20,7 +20,7 @@ public final class ObjectMapperUtil {
 			return objectMapper.writeValueAsString(obj);
 		} catch (JsonProcessingException e) {
 			log.error("Serialization failed: {}", e.getMessage());
-			throw new ServerInternalException(ObjectMapperErrorCode.FAIL_SERIALIZE);
+			throw new ServerInternalException(ObjectMapperErrorCode.FAIL_SERIALIZE, e);
 		}
 	}
 
@@ -29,7 +29,7 @@ public final class ObjectMapperUtil {
 			return objectMapper.readValue(json, returnType);
 		} catch (JsonProcessingException e) {
 			log.error("Deserialization failed: {}", e.getMessage());
-			throw new ServerInternalException(ObjectMapperErrorCode.FAIL_DESERIALIZE);
+			throw new ServerInternalException(ObjectMapperErrorCode.FAIL_DESERIALIZE, e);
 		}
 	}
 }
