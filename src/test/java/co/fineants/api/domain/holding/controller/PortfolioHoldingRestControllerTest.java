@@ -45,6 +45,7 @@ import co.fineants.api.domain.holding.domain.dto.response.PortfolioStockDeletesR
 import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
 import co.fineants.api.domain.holding.service.PortfolioHoldingService;
 import co.fineants.api.domain.holding.service.PortfolioObservableService;
+import co.fineants.api.domain.kis.repository.CurrentPriceMemoryRepository;
 import co.fineants.api.domain.kis.repository.CurrentPriceRedisRepository;
 import co.fineants.api.domain.member.domain.entity.Member;
 import co.fineants.api.domain.portfolio.domain.calculator.PortfolioCalculator;
@@ -69,8 +70,7 @@ class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 	@MockBean
 	private CurrentPriceRedisRepository currentPriceRedisRepository;
 
-	@MockBean
-	private PortfolioCalculator calculator;
+	private final PortfolioCalculator calculator = new PortfolioCalculator(new CurrentPriceMemoryRepository());
 
 	@Override
 	protected Object initController() {

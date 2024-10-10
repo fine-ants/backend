@@ -7,7 +7,6 @@ import java.util.Map;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import co.fineants.AbstractContainerBaseTest;
 import co.fineants.api.domain.common.count.Count;
@@ -17,14 +16,14 @@ import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.common.money.RateDivision;
 import co.fineants.api.domain.common.money.Sum;
 import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
+import co.fineants.api.domain.kis.repository.CurrentPriceMemoryRepository;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import co.fineants.api.domain.purchasehistory.domain.entity.PurchaseHistory;
 import co.fineants.api.domain.stock.domain.entity.Stock;
 
 class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 
-	@Autowired
-	private PortfolioCalculator calculator;
+	private PortfolioCalculator calculator = new PortfolioCalculator(new CurrentPriceMemoryRepository());
 
 	@DisplayName("포트폴리오 총 손익을 계산한다")
 	@Test
@@ -32,7 +31,7 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		// given
 		Portfolio portfolio = createPortfolio(createMember());
 		Stock stock = createSamsungStock();
-		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
+		PortfolioHolding holding = createPortfolioHolding(portfolio, stock, 50000L);
 		PurchaseHistory history = createPurchaseHistory(null, LocalDateTime.now(), Count.from(3), Money.won(40000L),
 			"메모", holding);
 		holding.addPurchaseHistory(history);

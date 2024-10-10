@@ -23,6 +23,7 @@ import co.fineants.api.domain.common.money.Expression;
 import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.common.money.Percentage;
 import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
+import co.fineants.api.domain.kis.repository.CurrentPriceMemoryRepository;
 import co.fineants.api.domain.portfolio.controller.DashboardRestController;
 import co.fineants.api.domain.portfolio.domain.calculator.PortfolioCalculator;
 import co.fineants.api.domain.portfolio.domain.dto.response.DashboardLineChartResponse;
@@ -35,8 +36,8 @@ import co.fineants.api.domain.stock.domain.entity.Stock;
 class DashboardRestControllerDocsTest extends RestDocsSupport {
 
 	private final DashboardService service = Mockito.mock(DashboardService.class);
-	private final PortfolioCalculator calculator = Mockito.mock(PortfolioCalculator.class);
-	
+	private final PortfolioCalculator calculator = new PortfolioCalculator(new CurrentPriceMemoryRepository());
+
 	@Override
 	protected Object initController() {
 		return new DashboardRestController(service);

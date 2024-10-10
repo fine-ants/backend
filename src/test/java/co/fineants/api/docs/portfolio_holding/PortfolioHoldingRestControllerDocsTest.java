@@ -40,6 +40,7 @@ import co.fineants.api.domain.holding.domain.dto.response.PortfolioStockCreateRe
 import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
 import co.fineants.api.domain.holding.service.PortfolioHoldingService;
 import co.fineants.api.domain.holding.service.PortfolioObservableService;
+import co.fineants.api.domain.kis.repository.CurrentPriceMemoryRepository;
 import co.fineants.api.domain.member.domain.entity.Member;
 import co.fineants.api.domain.portfolio.domain.calculator.PortfolioCalculator;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
@@ -54,7 +55,7 @@ class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 	private final PortfolioObservableService portfolioObservableService = Mockito.mock(
 		PortfolioObservableService.class);
 
-	private final PortfolioCalculator calculator = Mockito.mock(PortfolioCalculator.class);
+	private final PortfolioCalculator calculator = new PortfolioCalculator(new CurrentPriceMemoryRepository());
 
 	@Override
 	protected Object initController() {
