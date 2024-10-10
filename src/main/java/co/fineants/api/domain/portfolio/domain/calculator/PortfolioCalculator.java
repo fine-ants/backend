@@ -330,7 +330,7 @@ public class PortfolioCalculator {
 	 * @return 포트폴리오 종목 비중
 	 */
 	public RateDivision calCurrentValuationWeightBy(PortfolioHolding holding, Expression totalAsset) {
-		Expression currentValuation = holding.calculateCurrentValuation();
+		Expression currentValuation = this.calculateWithCurrentPrice(holding, holding::calculateCurrentValuation);
 		return currentValuation.divide(totalAsset);
 	}
 

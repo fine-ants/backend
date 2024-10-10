@@ -51,8 +51,7 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		// when
 		Expression result = calculator.calTotalGainBy(portfolio);
 		// then
-		Assertions.assertThat(result)
-			.isEqualByComparingTo(Money.won(30000L));
+		Assertions.assertThat(result).isEqualByComparingTo(Money.won(30000L));
 	}
 
 	@DisplayName("단 한개의 포트폴리오 종목이라도 현재가를 가져오지 못하면 포트폴리오 총 손익을 계산하지 못한다")
@@ -72,6 +71,27 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		Assertions.assertThat(throwable)
 			.isInstanceOf(IllegalStateException.class)
 			.hasMessage(String.format("Failed to calculate total gain for portfolio, portfolio:%s", portfolio));
+	}
+
+	@DisplayName("포트폴리오의 총 평가 금액을 계산한다")
+	@Test
+	void calTotalCurrentValuation() {
+		// given
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createSamsungStock();
+		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
+		PurchaseHistory history = createPurchaseHistory(null, LocalDateTime.now(), Count.from(3), Money.won(40000L),
+			"메모", holding);
+		holding.addPurchaseHistory(history);
+		portfolio.addHolding(holding);
+
+		long currentPrice = 50_000L;
+		currentPriceRepository.savePrice(stock, currentPrice);
+		// when
+		Expression result = calculator.calTotalCurrentValuationBy(portfolio);
+		// then
+		Expression expected = Money.won(150_000L);
+		Assertions.assertThat(result).isEqualByComparingTo(expected);
 	}
 
 	@DisplayName("포트폴리오 총 투자금액을 계산한다")
@@ -127,6 +147,7 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		holding.addPurchaseHistory(history);
 		portfolio.addHolding(holding);
 
+		currentPriceRepository.savePrice(stock, 50000L);
 		// when
 		Expression result = calculator.calCashWeightBy(portfolio);
 		// then
