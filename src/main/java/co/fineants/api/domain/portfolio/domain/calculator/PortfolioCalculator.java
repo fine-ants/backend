@@ -341,7 +341,9 @@ public class PortfolioCalculator {
 	public Map<String, List<Expression>> calSectorChart(List<PortfolioHolding> holdings, Expression balance) {
 		Map<String, List<Expression>> sector = holdings.stream()
 			.collect(Collectors.groupingBy(portfolioHolding -> portfolioHolding.getStock().getSector(),
-				Collectors.mapping(PortfolioHolding::calculateCurrentValuation, Collectors.toList())));
+				Collectors.mapping(
+					holding -> this.calculateWithCurrentPrice(holding, holding::calculateCurrentValuation),
+					Collectors.toList())));
 		sector.put("현금", List.of(balance));
 		return sector;
 	}

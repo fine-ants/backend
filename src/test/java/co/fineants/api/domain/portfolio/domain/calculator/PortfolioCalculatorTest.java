@@ -1,8 +1,12 @@
 package co.fineants.api.domain.portfolio.domain.calculator;
 
+import static org.assertj.core.api.Assertions.*;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -114,6 +118,58 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		// then
 		Expression expected = RateDivision.of(Money.won(150_000L), Money.won(1_030_000L));
 		Assertions.assertThat(result).isEqualByComparingTo(expected);
+	}
+
+	@DisplayName("사용자는 포트폴리오의 섹터 차트를 요청한다")
+	@Test
+	void calSectorChartBy() {
+		// given
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createSamsungStock();
+		Stock stock2 = createDongwhaPharmStock();
+		PortfolioHolding holding1 = PortfolioHolding.of(portfolio, stock, Money.won(20000L));
+		PortfolioHolding holding2 = PortfolioHolding.of(portfolio, stock2, Money.won(20000L));
+
+		LocalDateTime purchaseDate = LocalDateTime.of(2023, 9, 26, 9, 30, 0);
+		Count numShares = Count.from(5);
+		Money purchasePerShare = Money.won(10000);
+		String memo = "첫구매";
+		PurchaseHistory purchaseHistory1 = createPurchaseHistory(null, purchaseDate, numShares, purchasePerShare, memo,
+			holding1);
+
+		numShares = Count.from(5);
+		purchasePerShare = Money.won(20000);
+		PurchaseHistory purchaseHistory2 = createPurchaseHistory(null, purchaseDate, numShares, purchasePerShare, memo,
+			holding2);
+
+		holding1.addPurchaseHistory(purchaseHistory1);
+		holding2.addPurchaseHistory(purchaseHistory2);
+
+		portfolio.addHolding(holding1);
+		portfolio.addHolding(holding2);
+
+		currentPriceRepository.savePrice(stock, 20_000L);
+		currentPriceRepository.savePrice(stock2, 20_000L);
+		// when
+		Map<String, List<Expression>> result = calculator.calSectorChartBy(portfolio);
+
+		// then
+		Map<String, List<Expression>> expected = Map.of(
+			"현금", List.of(Money.won(850_000)),
+			"의약품", List.of(Money.won(100_000)),
+			"전기전자", List.of(Money.won(100_000))
+		);
+		Bank bank = Bank.getInstance();
+		Map<String, List<Money>> actual = result.entrySet().stream()
+			.collect(Collectors.toMap(
+				Map.Entry::getKey,
+				entry -> entry.getValue().stream()
+					.map(bank::toWon)
+					.toList())
+			);
+		assertThat(actual)
+			.usingComparatorForType(Expression::compareTo, Expression.class)
+			.isEqualTo(expected);
 	}
 
 	@DisplayName("포트폴리오 총 투자금액을 계산한다")
