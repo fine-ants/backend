@@ -194,7 +194,7 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 			() -> assertThat(response.getPortfolioHoldings())
 				.hasSize(1)
 				.extracting("portfolioHolding")
-				.extracting("id", "currentValuation", "currentPrice", "averageCostPerShare",
+				.extracting("id", "currentValuation", "averageCostPerShare",
 					"numShares", "dailyChange", "dailyChangeRate", "totalGain", "totalReturnRate", "annualDividend")
 				.usingComparatorForType(Money::compareTo, Money.class)
 				.usingComparatorForType(Count::compareTo, Count.class)
@@ -203,7 +203,6 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 					Tuple.tuple(
 						portfolioHolding.getId(),
 						Money.won(180000),
-						Money.won(60000),
 						Money.won(50000),
 						Count.from(3L),
 						Money.won(10000),
@@ -436,15 +435,15 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 			() -> assertThat(response).extracting(PortfolioHoldingsRealTimeResponse::getPortfolioHoldings)
 				.asList()
 				.hasSize(2)
-				.extracting("currentValuation", "currentPrice", "dailyChange", "dailyChangeRate", "totalGain",
+				.extracting("currentValuation", "dailyChange", "dailyChangeRate", "totalGain",
 					"totalReturnRate")
 				.usingComparatorForType(Money::compareTo, Money.class)
 				.usingComparatorForType(Percentage::compareTo, Percentage.class)
 				.containsExactlyInAnyOrder(
-					Tuple.tuple(Money.won(360000L), Money.won(60000L), Money.won(10000L), Percentage.from(0.2),
+					Tuple.tuple(Money.won(360000L), Money.won(10000L), Percentage.from(0.2),
 						Money.won(60000L),
 						Percentage.from(0.2)),
-					Tuple.tuple(Money.won(360000L), Money.won(60000L), Money.won(10000L), Percentage.from(0.2),
+					Tuple.tuple(Money.won(360000L), Money.won(10000L), Percentage.from(0.2),
 						Money.won(60000L),
 						Percentage.from(0.2)))
 		);
