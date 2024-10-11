@@ -56,10 +56,10 @@ public class PortfolioHolding extends BaseEntity {
 
 	@BatchSize(size = 1000)
 	@OneToMany(mappedBy = "portfolioHolding", fetch = FetchType.LAZY)
-	private List<PurchaseHistory> purchaseHistory = new ArrayList<>();
+	private List<PurchaseHistory> purchaseHistories = new ArrayList<>();
 
 	protected PortfolioHolding() {
-		this.purchaseHistory = new ArrayList<>();
+		this.purchaseHistories = new ArrayList<>();
 	}
 
 	private PortfolioHolding(LocalDateTime createAt, LocalDateTime modifiedAt, Long id, Portfolio portfolio,
@@ -84,8 +84,8 @@ public class PortfolioHolding extends BaseEntity {
 
 	//== 연관관계 메소드 ==//
 	public void addPurchaseHistory(PurchaseHistory purchaseHistory) {
-		if (!this.purchaseHistory.contains(purchaseHistory)) {
-			this.purchaseHistory.add(purchaseHistory);
+		if (!this.purchaseHistories.contains(purchaseHistory)) {
+			this.purchaseHistories.add(purchaseHistory);
 			purchaseHistory.setHolding(this);
 		}
 	}
@@ -133,7 +133,7 @@ public class PortfolioHolding extends BaseEntity {
 	 * @return 종목 매입 합계
 	 */
 	public Count calculateNumShares() {
-		return purchaseHistory.stream()
+		return purchaseHistories.stream()
 			.map(PurchaseHistory::getNumShares)
 			.reduce(Count.zero(), Count::add);
 	}
@@ -146,7 +146,7 @@ public class PortfolioHolding extends BaseEntity {
 	 * @return 총 투자금액 합계
 	 */
 	public Expression calculateTotalInvestmentAmount() {
-		return purchaseHistory.stream()
+		return purchaseHistories.stream()
 			.map(PurchaseHistory::calculateInvestmentAmount)
 			.reduce(Money.wonZero(), Expression::plus);
 	}
@@ -192,7 +192,7 @@ public class PortfolioHolding extends BaseEntity {
 	}
 
 	private Expression calculateAnnualDividend() {
-		return purchaseHistory.stream()
+		return purchaseHistories.stream()
 			.flatMap(history -> stock.getCurrentYearDividends().stream()
 				.filter(stockDividend -> stockDividend.isSatisfiedBy(history))
 				.map(stockDividend -> stockDividend.calculateDividendSum(history.getNumShares())))
@@ -211,7 +211,7 @@ public class PortfolioHolding extends BaseEntity {
 	 */
 	public Expression calculateAnnualExpectedDividend() {
 		Expression annualDividend = calculateAnnualDividend();
-		Expression annualExpectedDividend = stock.createMonthlyExpectedDividends(purchaseHistory, LocalDate.now())
+		Expression annualExpectedDividend = stock.createMonthlyExpectedDividends(purchaseHistories, LocalDate.now())
 			.values()
 			.stream()
 			.reduce(Money.zero(), Expression::plus);
@@ -227,7 +227,7 @@ public class PortfolioHolding extends BaseEntity {
 	 */
 	public Expression calculateCurrentMonthDividend() {
 		return stock.getCurrentMonthDividends().stream()
-			.map(stockDividend -> purchaseHistory.stream()
+			.map(stockDividend -> purchaseHistories.stream()
 				.filter(stockDividend::isPurchaseDateBeforeExDividendDate)
 				.map(PurchaseHistory::getNumShares)
 				.reduce(Count.zero(), Count::add)
@@ -237,8 +237,8 @@ public class PortfolioHolding extends BaseEntity {
 
 	// 월별 배당금 계산, key=월, value=배당금 합계
 	public Map<Integer, Expression> createMonthlyDividendMap(LocalDate currentLocalDate) {
-		Map<Integer, Expression> monthlyDividends = stock.createMonthlyDividends(purchaseHistory, currentLocalDate);
-		Map<Integer, Expression> monthlyExpectedDividends = stock.createMonthlyExpectedDividends(purchaseHistory,
+		Map<Integer, Expression> monthlyDividends = stock.createMonthlyDividends(purchaseHistories, currentLocalDate);
+		Map<Integer, Expression> monthlyExpectedDividends = stock.createMonthlyExpectedDividends(purchaseHistories,
 			currentLocalDate);
 		monthlyExpectedDividends.forEach(
 			(month, dividend) -> monthlyDividends.merge(month, dividend, Expression::plus));
@@ -254,6 +254,10 @@ public class PortfolioHolding extends BaseEntity {
 		return PortfolioPieChartItem.stock(name, currentValuation, weightPercentage, totalGain, totalReturnPercentage);
 	}
 
+	public Optional<Money> fetchPrice(PriceRepository repository) {
+		return stock.fetchPrice(repository);
+	}
+
 	public Expression fetchClosingPrice(ClosingPriceRepository manager) {
 		return stock.getClosingPrice(manager);
 	}
@@ -262,12 +266,8 @@ public class PortfolioHolding extends BaseEntity {
 		return portfolio.hasAuthorization(memberId);
 	}
 
-	public List<PurchaseHistory> getPurchaseHistory() {
-		return Collections.unmodifiableList(purchaseHistory);
-	}
-
-	public Optional<Money> fetchPrice(PriceRepository repository) {
-		return stock.fetchPrice(repository);
+	public List<PurchaseHistory> getPurchaseHistories() {
+		return Collections.unmodifiableList(purchaseHistories);
 	}
 
 	@Override
