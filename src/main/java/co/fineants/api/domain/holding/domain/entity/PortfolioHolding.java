@@ -163,9 +163,17 @@ public class PortfolioHolding extends BaseEntity {
 		return currentPrice.times(calculateNumShares().getValue().intValue());
 	}
 
-	// 당일 변동 금액 = 종목 현재가 - 직전 거래일의 종가
-	public Expression calculateDailyChange(Expression lastDayClosingPrice) {
-		return currentPrice.minus(lastDayClosingPrice);
+	/**
+	 * 포트폴리오 종목의 당일 변동 금액 계산 후 반환.
+	 * <p>
+	 * DailyChange = CurrentPrice - ClosingPrice
+	 * </p>
+	 * @param currentPrice 종목 현재가
+	 * @param closingPrice 종목 종가
+	 * @return 당일 변동 금액
+	 */
+	public Expression calculateDailyChange(@NotNull Expression currentPrice, @NotNull Expression closingPrice) {
+		return currentPrice.minus(closingPrice);
 	}
 
 	// 당일 변동율 = ((종목 현재가 - 직전 거래일 종가) / 직전 거래일 종가) * 100%
