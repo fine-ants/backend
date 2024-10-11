@@ -179,7 +179,14 @@ public class PortfolioHolding extends BaseEntity {
 		return currentPrice.times(calculateNumShares().intValue());
 	}
 
-	// 예상 연간 배당율 = (예상 연간 배당금 / 현재 가치) * 100
+	/**
+	 * 포트폴리오 종목의 예상 연간 배당율을 계산 후 반환.
+	 * <p>
+	 * AnnualExpectedDividendYield = (AnnualExpectedDividend / CurrentValuation)
+	 * </p>
+	 * @param currentPrice 종목 현재가
+	 * @return 예상 연간 배당율
+	 */
 	public RateDivision calculateAnnualExpectedDividendYield(Expression currentPrice) {
 		Expression annualDividend = calculateAnnualExpectedDividend();
 		Expression currentValuation = calculateCurrentValuation(currentPrice);
@@ -187,7 +194,7 @@ public class PortfolioHolding extends BaseEntity {
 	}
 
 	// 연간 배당금 = 종목의 배당금 합계
-	public Expression calculateAnnualDividend() {
+	private Expression calculateAnnualDividend() {
 		List<StockDividend> stockDividends = stock.getCurrentYearDividends();
 
 		Expression totalDividend = Money.zero();
@@ -228,7 +235,6 @@ public class PortfolioHolding extends BaseEntity {
 
 	// 월별 배당금 계산, key=월, value=배당금 합계
 	public Map<Integer, Expression> createMonthlyDividendMap(LocalDate currentLocalDate) {
-		log.debug("currentLocalDate : {}", currentLocalDate);
 		Map<Integer, Expression> monthlyDividends = stock.createMonthlyDividends(purchaseHistory, currentLocalDate);
 		Map<Integer, Expression> monthlyExpectedDividends = stock.createMonthlyExpectedDividends(purchaseHistory,
 			currentLocalDate);
