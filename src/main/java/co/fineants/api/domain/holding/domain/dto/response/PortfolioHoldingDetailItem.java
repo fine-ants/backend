@@ -42,7 +42,7 @@ public class PortfolioHoldingDetailItem {
 		Currency to = Currency.KRW;
 		Expression totalCurrentValuation = calculator.calTotalCurrentValuation(portfolioHolding);
 		Expression annualDividendYield = calculator.calAnnualExpectedDividendYieldBy(portfolioHolding);
-		Expression totalGain = calculator.calTotalGain(portfolioHolding);
+		Expression totalGain = calculator.calTotalGainBy(portfolioHolding);
 		Percentage totalReturnPercentage = calculator.calTotalReturnPercentage(portfolioHolding);
 		return PortfolioHoldingDetailItem.builder()
 			.id(portfolioHolding.getId())

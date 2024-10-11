@@ -34,7 +34,7 @@ public class PortfolioHoldingRealTimeItem {
 		Bank bank = Bank.getInstance();
 		Currency to = Currency.KRW;
 		Expression totalCurrentValuation = calculator.calTotalCurrentValuation(portfolioHolding);
-		Expression totalGain = calculator.calTotalGain(portfolioHolding);
+		Expression totalGain = calculator.calTotalGainBy(portfolioHolding);
 		Percentage totalReturnPercentage = calculator.calTotalReturnPercentage(portfolioHolding);
 		return new PortfolioHoldingRealTimeItem(
 			portfolioHolding.getId(),

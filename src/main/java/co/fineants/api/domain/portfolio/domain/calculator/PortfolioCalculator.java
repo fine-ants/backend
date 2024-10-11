@@ -57,13 +57,13 @@ public class PortfolioCalculator {
 	 * @return 포트폴리오 총 손익 계산 합계
 	 * @throws NoSuchElementException 포트폴리오 종목(PortfolioHolding)에 따른 현재가가 저장소에 없으면 예외 발생
 	 */
-	public Expression calTotalGain(List<PortfolioHolding> holdings) {
+	public Expression calTotalGainBy(List<PortfolioHolding> holdings) {
 		return holdings.stream()
-			.map(this::calTotalGain)
+			.map(this::calTotalGainBy)
 			.reduce(Money.zero(), Expression::plus);
 	}
 
-	public Expression calTotalGain(PortfolioHolding holding) {
+	public Expression calTotalGainBy(PortfolioHolding holding) {
 		return this.calculateWithCurrentPrice(holding, holding::calculateTotalGain);
 	}
 
@@ -89,7 +89,7 @@ public class PortfolioCalculator {
 	 * @throws NoSuchElementException 포트폴리오 종목(PortfolioHolding)에 따른 현재가가 저장소에 없으면 예외 발생
 	 */
 	public Expression calTotalGainRate(List<PortfolioHolding> holdings) {
-		Expression totalGain = calTotalGain(holdings);
+		Expression totalGain = calTotalGainBy(holdings);
 		Expression totalInvestment = calTotalInvestment(holdings);
 		return totalGain.divide(totalInvestment);
 	}

@@ -348,7 +348,7 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	 */
 	//== Portfolio 계산 메서드 시작 ==//
 	public Expression calTotalGain(PortfolioCalculator calculator) {
-		return calculator.calTotalGain(Collections.unmodifiableList(portfolioHoldings));
+		return calculator.calTotalGainBy(Collections.unmodifiableList(portfolioHoldings));
 	}
 
 	public Expression calTotalInvestment(PortfolioCalculator calculator) {
@@ -434,7 +434,7 @@ public class Portfolio extends BaseEntity implements Notifiable {
 			.map(holding -> {
 				RateDivision weight = calculator.calCurrentValuationWeightBy(holding, totalAsset);
 				Expression currentValuation = calculator.calTotalCurrentValuation(holding);
-				Expression totalGain = calculator.calTotalGain(holding);
+				Expression totalGain = calculator.calTotalGainBy(holding);
 				Percentage totalReturnRate = calculator.calTotalReturnPercentage(holding);
 				return holding.createPieChartItem(weight, currentValuation, totalGain, totalReturnRate);
 			}).toList();
