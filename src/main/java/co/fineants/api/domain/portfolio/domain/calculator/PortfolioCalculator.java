@@ -227,7 +227,7 @@ public class PortfolioCalculator {
 	 * @param holdings 포트폴리오 종목 리스트
 	 * @return 포트폴리오의 당월 예상 배당금 합계
 	 */
-	public Expression calCurrentMonthDividend(List<PortfolioHolding> holdings) {
+	public Expression calCurrentMonthDividendBy(List<PortfolioHolding> holdings) {
 		return holdings.stream()
 			.map(PortfolioHolding::calculateCurrentMonthDividend)
 			.reduce(Money.zero(), Expression::plus);

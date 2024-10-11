@@ -371,7 +371,7 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	}
 
 	public Expression calCurrentMonthDividend(PortfolioCalculator calculator) {
-		return calculator.calCurrentMonthDividend(Collections.unmodifiableList(portfolioHoldings));
+		return calculator.calCurrentMonthDividendBy(Collections.unmodifiableList(portfolioHoldings));
 	}
 
 	public Expression calAnnualDividend(LocalDateTimeService dateTimeService, PortfolioCalculator calculator) {

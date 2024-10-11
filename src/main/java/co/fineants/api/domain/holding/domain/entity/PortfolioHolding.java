@@ -7,7 +7,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 import org.hibernate.annotations.BatchSize;
 import org.jetbrains.annotations.NotNull;
@@ -20,7 +19,6 @@ import co.fineants.api.domain.common.money.Expression;
 import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.common.money.Percentage;
 import co.fineants.api.domain.common.money.RateDivision;
-import co.fineants.api.domain.dividend.domain.entity.StockDividend;
 import co.fineants.api.domain.holding.domain.dto.response.PortfolioPieChartItem;
 import co.fineants.api.domain.kis.repository.ClosingPriceRepository;
 import co.fineants.api.domain.kis.repository.PriceRepository;
@@ -201,7 +199,16 @@ public class PortfolioHolding extends BaseEntity {
 			.reduce(Money.zero(), Expression::plus);
 	}
 
-	// 예상 연간 배당금 계산
+	/**
+	 * 포트폴리오 종목의 예상 연배당금 계산 후 반환.
+	 * <p>
+	 * AnnualExpectedDividend = AnnualDividend + AnnualExpectedDividend
+	 * </p>
+	 * <p>
+	 * 예상 연배당금(AnnualExpectedDividend)에는 실제 연배당금(AnnualDividend)이 포함되어 있습니다.
+	 * </p>
+	 * @return 예상 연배당금
+	 */
 	public Expression calculateAnnualExpectedDividend() {
 		Expression annualDividend = calculateAnnualDividend();
 		Expression annualExpectedDividend = stock.createMonthlyExpectedDividends(purchaseHistory, LocalDate.now())
@@ -211,18 +218,20 @@ public class PortfolioHolding extends BaseEntity {
 		return annualDividend.plus(annualExpectedDividend);
 	}
 
+	/**
+	 * 포트폴리오 종목의 이번달 배당금 계산 후 반환
+	 * <p>
+	 * CurrentMonthDividend = sum(PurchaseHistory.NumShares * StockDividend)
+	 * </p>
+	 * @return 이번달 배당금
+	 */
 	public Expression calculateCurrentMonthDividend() {
-		List<StockDividend> stockDividends = stock.getCurrentMonthDividends();
-		return stockDividends.stream()
-			.flatMap(stockDividend ->
-				Stream.of(
-					purchaseHistory.stream()
-						.filter(stockDividend::isPurchaseDateBeforeExDividendDate)
-						.map(PurchaseHistory::getNumShares)
-						.reduce(Count.zero(), Count::add)
-						.multiply(stockDividend.getDividend())
-				)
-			)
+		return stock.getCurrentMonthDividends().stream()
+			.map(stockDividend -> purchaseHistory.stream()
+				.filter(stockDividend::isPurchaseDateBeforeExDividendDate)
+				.map(PurchaseHistory::getNumShares)
+				.reduce(Count.zero(), Count::add)
+				.multiply(stockDividend.getDividend()))
 			.reduce(Money.zero(), Expression::plus);
 	}
 
