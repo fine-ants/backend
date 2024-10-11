@@ -431,4 +431,8 @@ public class PortfolioCalculator {
 		return this.calculateWithCurrentPrice(holding,
 			currentPrice -> currentPrice.minus(closingPrice).divide(closingPrice));
 	}
+
+	public Expression fetchCurrentPrice(PortfolioHolding holding) {
+		return this.calculateWithCurrentPrice(holding, currentPrice -> currentPrice);
+	}
 }

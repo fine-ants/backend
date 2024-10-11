@@ -41,6 +41,7 @@ public class PortfolioHoldingDetailItem {
 		Bank bank = Bank.getInstance();
 		Currency to = Currency.KRW;
 		Expression totalCurrentValuation = calculator.calTotalCurrentValuation(holding);
+		Expression currentPrice = calculator.fetchCurrentPrice(holding);
 		Expression annualDividendYield = calculator.calAnnualExpectedDividendYieldBy(holding);
 		Expression dailyChange = calculator.calDailyChange(holding, closingPrice);
 		Expression dailyChangeRate = calculator.calDailyChangeRate(holding, closingPrice);
@@ -48,17 +49,25 @@ public class PortfolioHoldingDetailItem {
 		Percentage totalReturnPercentage = calculator.calTotalReturnPercentage(holding);
 		return PortfolioHoldingDetailItem.builder()
 			.id(holding.getId())
-			.currentValuation(totalCurrentValuation.reduce(bank, to))
-			.currentPrice(holding.getCurrentPrice())
-			.averageCostPerShare(holding.calculateAverageCostPerShare().reduce(bank, to))
+			.currentValuation(toWon(totalCurrentValuation))
+			.currentPrice(toWon(currentPrice.reduce(bank, to)))
+			.averageCostPerShare(toWon(holding.calculateAverageCostPerShare()))
 			.numShares(holding.calculateNumShares())
-			.dailyChange(dailyChange.reduce(bank, to))
-			.dailyChangeRate(dailyChangeRate.toPercentage(bank, to))
-			.totalGain(totalGain.reduce(bank, to))
+			.dailyChange(toWon(dailyChange))
+			.dailyChangeRate(toPercentage(dailyChangeRate))
+			.totalGain(toWon(totalGain))
 			.totalReturnRate(totalReturnPercentage)
-			.annualDividend(holding.calculateAnnualExpectedDividend().reduce(bank, to))
-			.annualDividendYield(annualDividendYield.toPercentage(Bank.getInstance(), to))
+			.annualDividend(toWon(holding.calculateAnnualExpectedDividend()))
+			.annualDividendYield(toPercentage(annualDividendYield))
 			.dateAdded(holding.getCreateAt())
 			.build();
+	}
+
+	private static Money toWon(Expression expression) {
+		return expression.reduce(Bank.getInstance(), Currency.KRW);
+	}
+
+	private static Percentage toPercentage(Expression expression) {
+		return expression.toPercentage(Bank.getInstance(), Currency.KRW);
 	}
 }
