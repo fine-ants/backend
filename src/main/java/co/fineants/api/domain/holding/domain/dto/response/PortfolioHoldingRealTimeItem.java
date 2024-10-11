@@ -35,6 +35,7 @@ public class PortfolioHoldingRealTimeItem {
 		Currency to = Currency.KRW;
 		Expression totalCurrentValuation = calculator.calTotalCurrentValuation(portfolioHolding);
 		Expression dailyChange = calculator.calDailyChange(portfolioHolding, lastDayClosingPrice);
+		Expression dailyChangeRate = calculator.calDailyChangeRate(portfolioHolding, lastDayClosingPrice);
 		Expression totalGain = calculator.calTotalGainBy(portfolioHolding);
 		Percentage totalReturnPercentage = calculator.calTotalReturnPercentage(portfolioHolding);
 		return new PortfolioHoldingRealTimeItem(
@@ -42,7 +43,7 @@ public class PortfolioHoldingRealTimeItem {
 			totalCurrentValuation.reduce(bank, to),
 			portfolioHolding.getCurrentPrice(),
 			dailyChange.reduce(bank, to),
-			portfolioHolding.calculateDailyChangeRate(lastDayClosingPrice).toPercentage(bank, to),
+			dailyChangeRate.toPercentage(bank, to),
 			totalGain.reduce(bank, to),
 			totalReturnPercentage,
 			portfolioHolding.getCreateAt());

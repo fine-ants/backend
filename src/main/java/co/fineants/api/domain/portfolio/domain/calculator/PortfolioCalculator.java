@@ -9,7 +9,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import co.fineants.api.domain.common.money.Bank;
@@ -24,6 +23,7 @@ import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
 import co.fineants.api.domain.kis.repository.PriceRepository;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import co.fineants.api.global.common.time.LocalDateTimeService;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 
 @Component
@@ -416,5 +416,19 @@ public class PortfolioCalculator {
 
 	public Expression calDailyChange(@NotNull PortfolioHolding holding, @NotNull Expression closingPrice) {
 		return this.calculateWithCurrentPrice(holding, currentPrice -> currentPrice.minus(closingPrice));
+	}
+
+	/**
+	 * 포트폴리오 종목의 당일 변동율 계산 후 반환.
+	 * <p>
+	 * DailyChangeRate = ((CurrentPrice - ClosingPrice) / ClosingPrice)
+	 * </p>
+	 * @param holding 포트폴리오 종목
+	 * @param closingPrice 종목 종가
+	 * @return 당일 변동율
+	 */
+	public Expression calDailyChangeRate(@NotNull PortfolioHolding holding, @NotNull Expression closingPrice) {
+		return this.calculateWithCurrentPrice(holding,
+			currentPrice -> currentPrice.minus(closingPrice).divide(closingPrice));
 	}
 }

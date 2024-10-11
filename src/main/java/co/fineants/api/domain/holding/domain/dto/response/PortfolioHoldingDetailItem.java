@@ -43,6 +43,7 @@ public class PortfolioHoldingDetailItem {
 		Expression totalCurrentValuation = calculator.calTotalCurrentValuation(portfolioHolding);
 		Expression annualDividendYield = calculator.calAnnualExpectedDividendYieldBy(portfolioHolding);
 		Expression dailyChange = calculator.calDailyChange(portfolioHolding, lastDayClosingPrice);
+		Expression dailyChangeRate = calculator.calDailyChangeRate(portfolioHolding, lastDayClosingPrice);
 		Expression totalGain = calculator.calTotalGainBy(portfolioHolding);
 		Percentage totalReturnPercentage = calculator.calTotalReturnPercentage(portfolioHolding);
 		return PortfolioHoldingDetailItem.builder()
@@ -52,8 +53,7 @@ public class PortfolioHoldingDetailItem {
 			.averageCostPerShare(portfolioHolding.calculateAverageCostPerShare().reduce(bank, to))
 			.numShares(portfolioHolding.calculateNumShares())
 			.dailyChange(dailyChange.reduce(bank, to))
-			.dailyChangeRate(portfolioHolding.calculateDailyChangeRate(lastDayClosingPrice)
-				.toPercentage(bank, to))
+			.dailyChangeRate(dailyChangeRate.toPercentage(bank, to))
 			.totalGain(totalGain.reduce(bank, to))
 			.totalReturnRate(totalReturnPercentage)
 			.annualDividend(portfolioHolding.calculateAnnualExpectedDividend().reduce(bank, to))

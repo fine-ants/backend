@@ -188,11 +188,6 @@ public class PortfolioHolding extends BaseEntity {
 		return currentPrice.times(calculateNumShares().intValue());
 	}
 
-	// 당일 변동율 = ((종목 현재가 - 직전 거래일 종가) / 직전 거래일 종가) * 100%
-	public RateDivision calculateDailyChangeRate(Expression closingPrice) {
-		return currentPrice.minus(closingPrice).divide(closingPrice);
-	}
-
 	// 예상 연간 배당율 = (예상 연간 배당금 / 현재 가치) * 100
 	public RateDivision calculateAnnualExpectedDividendYield(Expression currentPrice) {
 		Expression annualDividend = calculateAnnualExpectedDividend();
