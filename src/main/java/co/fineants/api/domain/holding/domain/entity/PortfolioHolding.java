@@ -62,9 +62,8 @@ public class PortfolioHolding extends BaseEntity {
 		this.purchaseHistories = new ArrayList<>();
 	}
 
-	private PortfolioHolding(LocalDateTime createAt, LocalDateTime modifiedAt, Long id, Portfolio portfolio,
-		Stock stock) {
-		super(createAt, modifiedAt);
+	private PortfolioHolding(Long id, Portfolio portfolio, Stock stock) {
+		super(LocalDateTime.now(), LocalDateTime.now());
 		this.id = id;
 		this.portfolio = portfolio;
 		this.stock = stock;
@@ -79,7 +78,7 @@ public class PortfolioHolding extends BaseEntity {
 	}
 
 	public static PortfolioHolding of(Long id, Portfolio portfolio, Stock stock) {
-		return new PortfolioHolding(LocalDateTime.now(), null, id, portfolio, stock);
+		return new PortfolioHolding(id, portfolio, stock);
 	}
 
 	//== 연관관계 메소드 ==//
