@@ -93,7 +93,7 @@ public class PurchaseHistory extends BaseEntity {
 
 	// 투자 금액 = 주당 매입가 * 개수
 	public Expression calculateInvestmentAmount() {
-		return purchasePricePerShare.times(numShares.getValue().intValue());
+		return purchasePricePerShare.times(numShares.intValue());
 	}
 
 	public PurchaseHistory change(PurchaseHistory history) {

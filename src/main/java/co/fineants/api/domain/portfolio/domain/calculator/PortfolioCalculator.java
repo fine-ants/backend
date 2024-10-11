@@ -48,10 +48,28 @@ public class PortfolioCalculator {
 		}
 	}
 
+	/**
+	 * 포트폴리오의 총 손익율 계산 후 반환.
+	 *
+	 * @param portfolio 포트폴리오 객체
+	 * @return 포트폴리오 총 손익율
+	 * @throws IllegalStateException 포트폴리오의 총 손익율 계산이 실패하면 예외 발생
+	 */
 	public Expression calTotalGainRateBy(Portfolio portfolio) {
-		return portfolio.calTotalGainRate(this);
+		try {
+			return portfolio.calTotalGainRate(this);
+		} catch (NoSuchElementException e) {
+			throw new IllegalStateException(
+				String.format("Failed to calculate totalGainRate for portfolio, portfolio:%s", portfolio), e);
+		}
 	}
 
+	/**
+	 * 포트폴리오의 총 투자 금액 계산 후 반환.
+	 *
+	 * @param portfolio 포트폴리오 객체
+	 * @return 포트폴리오의 총 투자 금액
+	 */
 	public Expression calTotalInvestmentBy(Portfolio portfolio) {
 		return portfolio.calTotalInvestment(this);
 	}
@@ -101,8 +119,20 @@ public class PortfolioCalculator {
 			.reduce(Money.zero(), Expression::plus);
 	}
 
+	/**
+	 * 포트폴리오 종목의 총 손익을 계산 후 반환.
+	 *
+	 * @param holding 포트폴리오 종목 객체
+	 * @return 포트폴리오 종목의 총 손익
+	 * @throws IllegalStateException 포트폴리오 종목의 총 손익 계산 실패시 예외 발생
+	 */
 	public Expression calTotalGainBy(PortfolioHolding holding) {
-		return this.calculateWithCurrentPrice(holding, holding::calculateTotalGain);
+		try {
+			return this.calculateWithCurrentPrice(holding, holding::calculateTotalGain);
+		} catch (NoSuchElementException e) {
+			throw new IllegalStateException(
+				String.format("Failed to calculate totalGain for holding, holding:%s", holding), e);
+		}
 	}
 
 	private Expression calculateWithCurrentPrice(PortfolioHolding holding, Function<Money, Expression> calFunction) {
@@ -148,7 +178,7 @@ public class PortfolioCalculator {
 	 * </p>
 	 * @param holdings 포트폴리오에 등록된 종목 리스트
 	 * @return 포트폴리오 평가 금액
-	 * @throws NoSuchElementException 포트폴리오 종목(PortfolioHolding)에 따른 현재가가 저장소에 없으면 예외 발생
+	 * @throws IllegalStateException 포트폴리오 평가 금액 계산이 실패하면 예외 발생
 	 */
 	public Expression calTotalCurrentValuation(List<PortfolioHolding> holdings) {
 		return holdings.stream()
@@ -156,10 +186,27 @@ public class PortfolioCalculator {
 			.reduce(Money.zero(), Expression::plus);
 	}
 
+	/**
+	 * 포트폴리오 종목의 총 평가 금액 계산 후 반환.
+	 *
+	 * @param holding 포트폴리오 종목 객체
+	 * @return 포트폴리오 종목의 총 평가 금액
+	 * @throws IllegalStateException 포트폴리오 종목의 총 평가 금액 계산 실패시 예외 발생
+	 */
 	public Expression calTotalCurrentValuation(PortfolioHolding holding) {
-		return this.calculateWithCurrentPrice(holding, holding::calculateCurrentValuation);
+		try {
+			return this.calculateWithCurrentPrice(holding, holding::calculateCurrentValuation);
+		} catch (NoSuchElementException e) {
+			throw new IllegalStateException(
+				String.format("Failed to calculate totalCurrentValuation for holding, holding:%s", holding), e);
+		}
 	}
 
+	/**
+	 * 포트폴리오의 총 자산 계산 후 반환.
+	 * @param portfolio 포트폴리오 객체
+	 * @return 포트폴리오 총 자산
+	 */
 	public Expression calTotalAssetBy(Portfolio portfolio) {
 		return portfolio.calTotalAsset(this);
 	}

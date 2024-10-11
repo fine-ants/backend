@@ -345,6 +345,13 @@ public class Portfolio extends BaseEntity implements Notifiable {
 		return calculator.calTotalInvestment(Collections.unmodifiableList(portfolioHoldings));
 	}
 
+	/**
+	 * 포트폴리오의 총 손익율을 계산 후 반환.
+	 *
+	 * @param calculator 포트폴리오 계산기 객체
+	 * @return 포트폴리오 총 손익율
+	 * @throws java.util.NoSuchElementException 포트폴리오 종목(PortfolioHolding)에 따른 현재가가 저장소에 없으면 예외 발생
+	 */
 	public Expression calTotalGainRate(PortfolioCalculator calculator) {
 		return calculator.calTotalGainRate(Collections.unmodifiableList(portfolioHoldings));
 	}
