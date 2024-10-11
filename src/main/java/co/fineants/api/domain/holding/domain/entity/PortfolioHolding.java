@@ -69,10 +69,6 @@ public class PortfolioHolding extends BaseEntity {
 		this.stock = stock;
 	}
 
-	public static PortfolioHolding empty(Portfolio portfolio, Stock stock) {
-		return of(portfolio, stock);
-	}
-
 	public static PortfolioHolding of(Portfolio portfolio, Stock stock) {
 		return of(null, portfolio, stock);
 	}
@@ -234,6 +230,15 @@ public class PortfolioHolding extends BaseEntity {
 			.reduce(Money.zero(), Expression::plus);
 	}
 
+	/**
+	 * 포트폴리오 종목의 월별 배당금 합계를 가진 맵을 생성 후 반환.
+	 * <p>
+	 * 결과 맵의 배당금 합계에는 실제 월별 배당금과 예상되는 월별 배당금 합계가 포함되어 있습니다.
+	 * </p>
+	 *
+	 * @param currentLocalDate 기준 일자
+	 * @return 월별 배당금 합계 맵
+	 */
 	// 월별 배당금 계산, key=월, value=배당금 합계
 	public Map<Integer, Expression> createMonthlyDividendMap(LocalDate currentLocalDate) {
 		Map<Integer, Expression> monthlyDividends = stock.createMonthlyDividends(purchaseHistories, currentLocalDate);
@@ -244,13 +249,21 @@ public class PortfolioHolding extends BaseEntity {
 		return monthlyDividends;
 	}
 
+	/**
+	 * 포트폴리오 종목의 파이차트 요소를 생성후 반환.
+	 * @param weight 종목의 비중
+	 * @param currentValuation 현재 평가금액
+	 * @param totalGain 총 손익
+	 * @param totalGainRate 총 손익율
+	 * @return 파이차트 요소
+	 */
 	public PortfolioPieChartItem createPieChartItem(RateDivision weight, Expression currentValuation,
-		Expression totalGain, Percentage totalReturnPercentage) {
+		Expression totalGain, Percentage totalGainRate) {
 		String name = stock.getCompanyName();
 
 		Bank bank = Bank.getInstance();
 		Percentage weightPercentage = weight.toPercentage(bank, Currency.KRW);
-		return PortfolioPieChartItem.stock(name, currentValuation, weightPercentage, totalGain, totalReturnPercentage);
+		return PortfolioPieChartItem.stock(name, currentValuation, weightPercentage, totalGain, totalGainRate);
 	}
 
 	public Optional<Money> fetchPrice(PriceRepository repository) {

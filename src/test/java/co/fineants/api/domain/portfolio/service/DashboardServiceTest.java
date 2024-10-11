@@ -148,7 +148,7 @@ class DashboardServiceTest extends AbstractContainerBaseTest {
 		Member member = memberRepository.save(createMember());
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Stock stock = stockRepository.save(createSamsungStock());
-		portfolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
+		portfolioHoldingRepository.save(PortfolioHolding.of(portfolio, stock));
 
 		currentPriceRedisRepository.savePrice(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L));
 		// when
