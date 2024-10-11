@@ -142,7 +142,7 @@ public class PortfolioHolding extends BaseEntity {
 	 */
 	public Expression calculateTotalInvestmentAmount() {
 		return purchaseHistories.stream()
-			.map(PurchaseHistory::calculateInvestmentAmount)
+			.map(PurchaseHistory::calInvestmentAmount)
 			.reduce(Money.wonZero(), Expression::plus);
 	}
 
@@ -239,7 +239,6 @@ public class PortfolioHolding extends BaseEntity {
 	 * @param currentLocalDate 기준 일자
 	 * @return 월별 배당금 합계 맵
 	 */
-	// 월별 배당금 계산, key=월, value=배당금 합계
 	public Map<Integer, Expression> createMonthlyDividendMap(LocalDate currentLocalDate) {
 		Map<Integer, Expression> monthlyDividends = stock.createMonthlyDividends(purchaseHistories, currentLocalDate);
 		Map<Integer, Expression> monthlyExpectedDividends = stock.createMonthlyExpectedDividends(purchaseHistories,

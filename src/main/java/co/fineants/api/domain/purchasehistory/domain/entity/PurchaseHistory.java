@@ -91,8 +91,14 @@ public class PurchaseHistory extends BaseEntity {
 		this.portfolioHolding = holding;
 	}
 
-	// 투자 금액 = 주당 매입가 * 개수
-	public Expression calculateInvestmentAmount() {
+	/**
+	 * 매입 이력 투자 금액 계산 후 반환.
+	 * <p>
+	 * InvestmentAmount = PurchasePricePerShare * NumShares
+	 * </p>
+	 * @return 매입 이력 투자 금액
+	 */
+	public Expression calInvestmentAmount() {
 		return purchasePricePerShare.times(numShares.intValue());
 	}
 
