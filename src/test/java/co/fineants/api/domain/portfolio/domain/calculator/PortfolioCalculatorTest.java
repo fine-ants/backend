@@ -316,4 +316,25 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 			.usingComparatorForType(Expression::compareTo, Expression.class)
 			.isEqualTo(expected);
 	}
+
+	@DisplayName("포트폴리오 종목의 당일 변동 금액을 계산한다")
+	@Test
+	void calDailyChange() {
+		// given
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createSamsungStock();
+		PortfolioHolding holding = createPortfolioHolding(portfolio, stock, 50_000L);
+		PurchaseHistory history = createPurchaseHistory(null, LocalDateTime.now(), Count.from(3), Money.won(40000L),
+			"메모", holding);
+		holding.addPurchaseHistory(history);
+		portfolio.addHolding(holding);
+
+		currentPriceRepository.savePrice(stock, 50_000L);
+		Expression closingPrice = Money.won(40_000L);
+		// when
+		Expression actual = calculator.calDailyChange(holding, closingPrice);
+		// then
+		Expression expected = Money.won(10_000L);
+		Assertions.assertThat(actual).isEqualByComparingTo(expected);
+	}
 }
