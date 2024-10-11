@@ -24,8 +24,6 @@ public class DividendChart {
 	private final PortfolioCalculator calculator;
 
 	public List<PortfolioDividendChartItem> createItemsBy(Portfolio portfolio, LocalDate currentLocalDate) {
-		portfolio.applyCurrentPriceAllHoldingsBy(manager);
-
 		Map<Integer, Expression> totalDividendMap = calculator.calTotalDividendBy(portfolio, currentLocalDate);
 
 		Bank bank = Bank.getInstance();

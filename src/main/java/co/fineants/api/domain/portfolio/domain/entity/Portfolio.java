@@ -18,7 +18,6 @@ import co.fineants.api.domain.common.money.RateDivision;
 import co.fineants.api.domain.common.notification.Notifiable;
 import co.fineants.api.domain.holding.domain.dto.response.PortfolioPieChartItem;
 import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
-import co.fineants.api.domain.kis.repository.PriceRepository;
 import co.fineants.api.domain.member.domain.entity.Member;
 import co.fineants.api.domain.notification.domain.dto.response.NotifyMessage;
 import co.fineants.api.domain.notification.domain.entity.type.NotificationType;
@@ -219,15 +218,6 @@ public class Portfolio extends BaseEntity implements Notifiable {
 
 	public Count numberOfShares() {
 		return Count.from(portfolioHoldings.size());
-	}
-
-	// 포트폴리오 모든 종목들에 주식 현재가 적용
-	public void applyCurrentPriceAllHoldingsBy(PriceRepository manager) {
-		for (PortfolioHolding portfolioHolding : portfolioHoldings) {
-			portfolioHolding.applyCurrentPrice(manager);
-			log.debug("portfolioHolding : {}, purchaseHistory : {}", portfolioHolding,
-				portfolioHolding.getPurchaseHistory());
-		}
 	}
 
 	/**

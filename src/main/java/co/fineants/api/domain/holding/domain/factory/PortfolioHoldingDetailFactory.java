@@ -21,8 +21,6 @@ public class PortfolioHoldingDetailFactory {
 	private final PortfolioCalculator calculator;
 
 	public List<PortfolioHoldingItem> createPortfolioHoldingItems(Portfolio portfolio) {
-		portfolio.applyCurrentPriceAllHoldingsBy(manager);
-
 		return portfolio.getPortfolioHoldings().stream()
 			.map(portfolioHolding -> PortfolioHoldingItem.from(
 				portfolioHolding,
@@ -34,7 +32,6 @@ public class PortfolioHoldingDetailFactory {
 
 	public List<PortfolioHoldingRealTimeItem> createPortfolioHoldingRealTimeItems(Portfolio portfolio,
 		PortfolioCalculator calculator) {
-		portfolio.applyCurrentPriceAllHoldingsBy(manager);
 		return portfolio.getPortfolioHoldings().stream()
 			.map(portfolioHolding -> PortfolioHoldingRealTimeItem.of(
 				portfolioHolding,

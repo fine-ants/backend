@@ -24,7 +24,6 @@ public class PortfolioDetailFactory {
 	private final PortfolioCalculator calculator;
 
 	public PortfolioDetailResponse createPortfolioDetailItem(Portfolio portfolio) {
-		portfolio.applyCurrentPriceAllHoldingsBy(manager);
 		PortfolioGainHistory history =
 			portfolioGainHistoryRepository.findFirstByPortfolioAndCreateAtIsLessThanEqualOrderByCreateAtDesc(
 					portfolio.getId(), LocalDateTime.now())
@@ -35,7 +34,6 @@ public class PortfolioDetailFactory {
 	}
 
 	public PortfolioDetailRealTimeItem createPortfolioDetailRealTimeItem(Portfolio portfolio) {
-		portfolio.applyCurrentPriceAllHoldingsBy(manager);
 		PortfolioGainHistory history =
 			portfolioGainHistoryRepository.findFirstByPortfolioAndCreateAtIsLessThanEqualOrderByCreateAtDesc(
 					portfolio.getId(), LocalDateTime.now())

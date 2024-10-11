@@ -60,7 +60,6 @@ public class DashboardService {
 			return OverviewResponse.empty(member.getNickname());
 		}
 		for (Portfolio portfolio : portfolios) {
-			portfolio.applyCurrentPriceAllHoldingsBy(currentPriceRedisRepository);
 			Expression totalAsset = calculator.calTotalAssetBy(portfolio);
 			totalValuation = totalValuation.plus(totalAsset);
 			totalCurrentValuation = totalCurrentValuation.plus(calculator.calTotalCurrentValuationBy(portfolio));
@@ -92,7 +91,6 @@ public class DashboardService {
 		}
 		Expression totalValuation = Money.wonZero(); // 평가 금액 + 현금
 		for (Portfolio portfolio : portfolios) {
-			portfolio.applyCurrentPriceAllHoldingsBy(currentPriceRedisRepository);
 			Expression totalAsset = calculator.calTotalAssetBy(portfolio);
 			totalValuation = totalValuation.plus(totalAsset);
 		}

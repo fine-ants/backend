@@ -32,10 +32,7 @@ public class PortfoliosResponse {
 		Map<Portfolio, PortfolioGainHistory> portfolioGainHistoryMap, CurrentPriceRedisRepository manager,
 		PortfolioCalculator calculator) {
 		return portfolios.stream()
-			.map(portfolio -> {
-				portfolio.applyCurrentPriceAllHoldingsBy(manager);
-				return PortFolioItem.of(portfolio, portfolioGainHistoryMap.get(portfolio), calculator);
-			})
+			.map(portfolio -> PortFolioItem.of(portfolio, portfolioGainHistoryMap.get(portfolio), calculator))
 			.toList();
 	}
 }
