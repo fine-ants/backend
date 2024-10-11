@@ -435,4 +435,8 @@ public class PortfolioCalculator {
 	public Expression fetchCurrentPrice(PortfolioHolding holding) {
 		return this.calculateWithCurrentPrice(holding, currentPrice -> currentPrice);
 	}
+
+	public Expression calAnnualExpectedDividendBy(PortfolioHolding holding) {
+		return holding.calculateAnnualExpectedDividend();
+	}
 }

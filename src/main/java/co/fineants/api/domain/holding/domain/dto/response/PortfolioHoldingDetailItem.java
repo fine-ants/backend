@@ -47,6 +47,7 @@ public class PortfolioHoldingDetailItem {
 		Expression dailyChangeRate = calculator.calDailyChangeRate(holding, closingPrice);
 		Expression totalGain = calculator.calTotalGainBy(holding);
 		Percentage totalReturnPercentage = calculator.calTotalReturnPercentage(holding);
+		Expression annualExpectedDividend = calculator.calAnnualExpectedDividendBy(holding);
 		return PortfolioHoldingDetailItem.builder()
 			.id(holding.getId())
 			.currentValuation(toWon(totalCurrentValuation))
@@ -57,7 +58,7 @@ public class PortfolioHoldingDetailItem {
 			.dailyChangeRate(toPercentage(dailyChangeRate))
 			.totalGain(toWon(totalGain))
 			.totalReturnRate(totalReturnPercentage)
-			.annualDividend(toWon(holding.calculateAnnualExpectedDividend()))
+			.annualDividend(toWon(annualExpectedDividend))
 			.annualDividendYield(toPercentage(annualDividendYield))
 			.dateAdded(holding.getCreateAt())
 			.build();

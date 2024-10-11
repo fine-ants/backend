@@ -193,19 +193,12 @@ public class PortfolioHolding extends BaseEntity {
 		return annualDividend.divide(currentValuation);
 	}
 
-	// 연간 배당금 = 종목의 배당금 합계
 	private Expression calculateAnnualDividend() {
-		List<StockDividend> stockDividends = stock.getCurrentYearDividends();
-
-		Expression totalDividend = Money.zero();
-		for (PurchaseHistory history : purchaseHistory) {
-			for (StockDividend stockDividend : stockDividends) {
-				if (stockDividend.isSatisfiedBy(history)) {
-					totalDividend = totalDividend.plus(stockDividend.calculateDividendSum(history.getNumShares()));
-				}
-			}
-		}
-		return totalDividend;
+		return purchaseHistory.stream()
+			.flatMap(history -> stock.getCurrentYearDividends().stream()
+				.filter(stockDividend -> stockDividend.isSatisfiedBy(history))
+				.map(stockDividend -> stockDividend.calculateDividendSum(history.getNumShares())))
+			.reduce(Money.zero(), Expression::plus);
 	}
 
 	// 예상 연간 배당금 계산
