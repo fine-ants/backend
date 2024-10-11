@@ -119,7 +119,7 @@ class PortfolioHoldingTest extends AbstractContainerBaseTest {
 
 		Expression currentPrice = Money.won(20_000L);
 		// when
-		RateDivision result = portFolioHolding.calculateTotalReturnRate(currentPrice);
+		RateDivision result = portFolioHolding.calculateTotalGainRate(currentPrice);
 
 		// then
 		Expression totalGain = Money.won(100000);

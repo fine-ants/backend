@@ -409,7 +409,7 @@ public class PortfolioCalculator {
 
 	public Percentage calTotalReturnPercentage(PortfolioHolding holding) {
 		Bank bank = Bank.getInstance();
-		return this.calculateWithCurrentPrice(holding, holding::calculateTotalReturnRate)
+		return this.calculateWithCurrentPrice(holding, holding::calculateTotalGainRate)
 			.toPercentage(bank, Currency.KRW);
 	}
 

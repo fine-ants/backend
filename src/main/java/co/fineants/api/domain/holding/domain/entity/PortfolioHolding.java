@@ -125,27 +125,52 @@ public class PortfolioHolding extends BaseEntity {
 		return currentPrice.minus(averageCostPerShare).times(numShares);
 	}
 
-	// 종목 평균 매입가 = 총 투자 금액 / 개수
+	/**
+	 * 포트폴리오 종목의 평균 매입가 계산 후 반환.
+	 * <p>
+	 * AverageCostPerShare = TotalInvestmentAmount / NumShares
+	 * </p>
+	 * @return 종목 평균 매입가
+	 */
 	public Expression calculateAverageCostPerShare() {
 		return calculateTotalInvestmentAmount().divide(calculateNumShares());
 	}
 
-	// 총 매입 개수 = 매입 내역들의 매입개수의 합계
+	/**
+	 * 포트폴리오 종목 매입 개수 계산 후 반환.
+	 * <p>
+	 * NumShares = sum(PurchaseHistory.NumShares)
+	 * </p>
+	 * @return 종목 매입 합계
+	 */
 	public Count calculateNumShares() {
 		return purchaseHistory.stream()
 			.map(PurchaseHistory::getNumShares)
 			.reduce(Count.zero(), Count::add);
 	}
 
-	// 총 투자 금액 = 투자 금액들의 합계
+	/**
+	 * 포트폴리오 종목의 총 투자금액 계산 후 반환.
+	 * <p>
+	 * TotalInvestmentAmount = sum(PurchaseHistory.InvestmentAmount)
+	 * </p>
+	 * @return 총 투자금액 합계
+	 */
 	public Expression calculateTotalInvestmentAmount() {
 		return purchaseHistory.stream()
 			.map(PurchaseHistory::calculateInvestmentAmount)
 			.reduce(Money.wonZero(), Expression::plus);
 	}
 
-	// 종목 총 손익율 = 총 손익 / 총 투자 금액
-	public RateDivision calculateTotalReturnRate(Expression currentPrice) {
+	/**
+	 * 포트폴리오 종목의 총 손익율 계산 후 반환.
+	 * <p>
+	 * TotalGainRate = (TotalGain / TotalInvestmentAmount)
+	 * </p>
+	 * @param currentPrice 종목의 현재가
+	 * @return 종목의 총 손익율
+	 */
+	public RateDivision calculateTotalGainRate(Expression currentPrice) {
 		Expression totalGain = calculateTotalGain(currentPrice);
 		Expression totalInvestmentAmount = calculateTotalInvestmentAmount();
 		return totalGain.divide(totalInvestmentAmount);
