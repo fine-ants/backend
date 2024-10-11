@@ -35,7 +35,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
-import jakarta.persistence.Transient;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -61,36 +60,28 @@ public class PortfolioHolding extends BaseEntity {
 	@OneToMany(mappedBy = "portfolioHolding", fetch = FetchType.LAZY)
 	private List<PurchaseHistory> purchaseHistory = new ArrayList<>();
 
-	@Transient
-	private Money currentPrice;    // 현재가
-
 	protected PortfolioHolding() {
 		this.purchaseHistory = new ArrayList<>();
 	}
 
-	private PortfolioHolding(LocalDateTime createAt, LocalDateTime modifiedAt, Long id,
-		Portfolio portfolio, Stock stock, Money currentPrice) {
+	private PortfolioHolding(LocalDateTime createAt, LocalDateTime modifiedAt, Long id, Portfolio portfolio,
+		Stock stock) {
 		super(createAt, modifiedAt);
 		this.id = id;
 		this.portfolio = portfolio;
 		this.stock = stock;
-		this.currentPrice = currentPrice;
 	}
 
 	public static PortfolioHolding empty(Portfolio portfolio, Stock stock) {
-		return of(portfolio, stock, Money.zero());
+		return of(portfolio, stock);
 	}
 
 	public static PortfolioHolding of(Portfolio portfolio, Stock stock) {
-		return of(portfolio, stock, null);
+		return of(null, portfolio, stock);
 	}
 
-	public static PortfolioHolding of(Portfolio portfolio, Stock stock, Money currentPrice) {
-		return of(null, portfolio, stock, currentPrice);
-	}
-
-	public static PortfolioHolding of(Long id, Portfolio portfolio, Stock stock, Money currentPrice) {
-		return new PortfolioHolding(LocalDateTime.now(), null, id, portfolio, stock, currentPrice);
+	public static PortfolioHolding of(Long id, Portfolio portfolio, Stock stock) {
+		return new PortfolioHolding(LocalDateTime.now(), null, id, portfolio, stock);
 	}
 
 	//== 연관관계 메소드 ==//
@@ -244,12 +235,6 @@ public class PortfolioHolding extends BaseEntity {
 		monthlyExpectedDividends.forEach(
 			(month, dividend) -> monthlyDividends.merge(month, dividend, Expression::plus));
 		return monthlyDividends;
-	}
-
-	public void applyCurrentPrice(PriceRepository manager) {
-		Bank bank = Bank.getInstance();
-		Currency to = Currency.KRW;
-		this.currentPrice = stock.getCurrentPrice(manager).reduce(bank, to);
 	}
 
 	public PortfolioPieChartItem createPieChartItem(RateDivision weight, Expression currentValuation,
