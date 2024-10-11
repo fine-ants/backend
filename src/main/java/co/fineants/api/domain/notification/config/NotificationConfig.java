@@ -28,6 +28,7 @@ import co.fineants.api.domain.notification.repository.NotificationSentRepository
 import co.fineants.api.domain.notification.service.disptacher.NotificationDispatcher;
 import co.fineants.api.domain.notification.service.provider.FirebaseNotificationProvider;
 import co.fineants.api.domain.notificationpreference.domain.entity.NotificationPreference;
+import co.fineants.api.domain.portfolio.domain.calculator.PortfolioCalculator;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import lombok.RequiredArgsConstructor;
 
@@ -38,6 +39,7 @@ public class NotificationConfig {
 	private final NotificationSentRepository sentManager;
 	private final CurrentPriceRedisRepository currentPriceRedisRepository;
 	private final FirebaseNotificationProvider firebaseNotificationProvider;
+	private final PortfolioCalculator calculator;
 
 	@Bean
 	public TargetGainNotificationPolicy targetGainNotificationPolicy() {
@@ -53,7 +55,7 @@ public class NotificationConfig {
 	@Bean
 	public ConditionEvaluator<Portfolio> portfolioConditionEvaluator() {
 		return new ConditionEvaluator<>(List.of(
-			new TargetGainCondition(),
+			new TargetGainCondition(calculator),
 			new TargetGainActiveCondition(),
 			new TargetGainSentHistoryCondition(sentManager)
 		));
@@ -68,7 +70,7 @@ public class NotificationConfig {
 	public MaxLossNotificationPolicy maxLossNotificationPolicy() {
 		return new MaxLossNotificationPolicy(
 			List.of(
-				new MaxLossCondition(),
+				new MaxLossCondition(calculator),
 				new MaxLossActiveCondition(),
 				new MaxLossSentHistoryCondition(sentManager)
 			),

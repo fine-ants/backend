@@ -271,12 +271,7 @@ public abstract class AbstractContainerBaseTest {
 		return PortfolioHolding.of(portfolio, stock);
 	}
 
-	protected PortfolioHolding createPortfolioHolding(Portfolio portfolio, Stock stock, Long currentPrice) {
-		return PortfolioHolding.of(portfolio, stock, Money.won(currentPrice));
-	}
-
-	protected StockDividend createStockDividend(LocalDate recordDate, LocalDate paymentDate,
-		Stock stock) {
+	protected StockDividend createStockDividend(LocalDate recordDate, LocalDate paymentDate, Stock stock) {
 		return StockDividend.create(Money.won(361), recordDate, paymentDate, stock);
 	}
 

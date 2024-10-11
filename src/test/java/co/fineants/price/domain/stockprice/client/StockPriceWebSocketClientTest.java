@@ -24,6 +24,7 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.client.WebSocketClient;
 
 import co.fineants.AbstractContainerBaseTest;
+import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.kis.properties.KisProperties;
 import co.fineants.api.domain.kis.repository.CurrentPriceRedisRepository;
 import co.fineants.api.domain.kis.repository.WebSocketApprovalKeyRedisRepository;
@@ -78,7 +79,8 @@ class StockPriceWebSocketClientTest extends AbstractContainerBaseTest {
 		// then
 		await().atMost(Duration.ofSeconds(5))
 			.until(() -> currentPriceRedisRepository.getCachedPrice(ticker).isPresent());
-		assertThat(currentPriceRedisRepository.getCachedPrice(ticker).orElseThrow()).isEqualTo("70100");
+		assertThat(currentPriceRedisRepository.getCachedPrice(ticker).orElseThrow()).isEqualByComparingTo(
+			Money.won(70_100L));
 	}
 
 	@DisplayName("세션을 통해서 메시지를 전송하다가 파이프가 부러지면 세션을 종료하고 재연결한다")

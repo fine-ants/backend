@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 import org.hibernate.annotations.BatchSize;
 
@@ -12,11 +13,11 @@ import co.fineants.api.domain.BaseEntity;
 import co.fineants.api.domain.common.count.Count;
 import co.fineants.api.domain.common.money.Expression;
 import co.fineants.api.domain.common.money.Money;
+import co.fineants.api.domain.common.money.Percentage;
 import co.fineants.api.domain.common.money.RateDivision;
 import co.fineants.api.domain.common.notification.Notifiable;
 import co.fineants.api.domain.holding.domain.dto.response.PortfolioPieChartItem;
 import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
-import co.fineants.api.domain.kis.repository.CurrentPriceRedisRepository;
 import co.fineants.api.domain.member.domain.entity.Member;
 import co.fineants.api.domain.notification.domain.dto.response.NotifyMessage;
 import co.fineants.api.domain.notification.domain.entity.type.NotificationType;
@@ -219,15 +220,6 @@ public class Portfolio extends BaseEntity implements Notifiable {
 		return Count.from(portfolioHoldings.size());
 	}
 
-	// 포트폴리오 모든 종목들에 주식 현재가 적용
-	public void applyCurrentPriceAllHoldingsBy(CurrentPriceRedisRepository manager) {
-		for (PortfolioHolding portfolioHolding : portfolioHoldings) {
-			portfolioHolding.applyCurrentPrice(manager);
-			log.debug("portfolioHolding : {}, purchaseHistory : {}", portfolioHolding,
-				portfolioHolding.getPurchaseHistory());
-		}
-	}
-
 	/**
 	 * 포트폴리오의 목표수익금액 알림 설정을 변경.
 	 * <p>
@@ -337,9 +329,16 @@ public class Portfolio extends BaseEntity implements Notifiable {
 		return manager.hasMaxLossSendHistory(id);
 	}
 
+	/**
+	 * 포트폴리오의 총 손익을 계산 후 반환.
+	 *
+	 * @param calculator 포트폴리오 계산기 객체
+	 * @return 포트폴리오 총 손익
+	 * @throws java.util.NoSuchElementException 포트폴리오 종목(PortfolioHolding)에 따른 현재가가 저장소에 없으면 예외 발생
+	 */
 	//== Portfolio 계산 메서드 시작 ==//
 	public Expression calTotalGain(PortfolioCalculator calculator) {
-		return calculator.calTotalGain(Collections.unmodifiableList(portfolioHoldings));
+		return calculator.calTotalGainBy(Collections.unmodifiableList(portfolioHoldings));
 	}
 
 	public Expression calTotalInvestment(PortfolioCalculator calculator) {
@@ -354,6 +353,13 @@ public class Portfolio extends BaseEntity implements Notifiable {
 		return this.financial.calBalance(totalInvestment);
 	}
 
+	/**
+	 * 포트폴리오 총 평가금액 계산 후 반환.
+	 *
+	 * @param calculator 포트폴리오 계산기 객체
+	 * @return 포트폴리오의 총 평가금액
+	 * @throws NoSuchElementException 포트폴리오 종목(PortfolioHolding)에 따른 현재가가 저장소에 없으면 예외 발생
+	 */
 	public Expression calTotalCurrentValuation(PortfolioCalculator calculator) {
 		return calculator.calTotalCurrentValuation(Collections.unmodifiableList(portfolioHoldings));
 	}
@@ -417,7 +423,10 @@ public class Portfolio extends BaseEntity implements Notifiable {
 		return portfolioHoldings.stream()
 			.map(holding -> {
 				RateDivision weight = calculator.calCurrentValuationWeightBy(holding, totalAsset);
-				return holding.createPieChartItem(weight);
+				Expression currentValuation = calculator.calTotalCurrentValuation(holding);
+				Expression totalGain = calculator.calTotalGainBy(holding);
+				Percentage totalReturnRate = calculator.calTotalReturnPercentage(holding);
+				return holding.createPieChartItem(weight, currentValuation, totalGain, totalReturnRate);
 			}).toList();
 	}
 

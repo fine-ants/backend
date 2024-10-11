@@ -122,13 +122,9 @@ public abstract class ControllerTestSupport {
 	}
 
 	protected PortfolioHolding createPortfolioHolding(Portfolio portfolio, Stock stock) {
-		return PortfolioHolding.of(1L, portfolio, stock, null);
+		return PortfolioHolding.of(1L, portfolio, stock);
 	}
-
-	protected PortfolioHolding createPortfolioHolding(Portfolio portfolio, Stock stock, Money currentPrice) {
-		return PortfolioHolding.of(1L, portfolio, stock, currentPrice);
-	}
-
+	
 	protected Stock createSamsungStock() {
 		return Stock.of("005930", "삼성전자보통주", "SamsungElectronics", "KR7005930003", "전기전자", Market.KOSPI);
 	}

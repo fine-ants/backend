@@ -96,9 +96,7 @@ public class NotificationService {
 	@Transactional
 	public NotifyMessageResponse notifyTargetGainAll() {
 		// 모든 회원의 포트폴리오 중에서 입력으로 받은 종목들을 가진 포트폴리오들을 조회
-		List<Notifiable> portfolios = portfolioRepository.findAllWithAll().stream()
-			.peek(portfolio -> portfolio.applyCurrentPriceAllHoldingsBy(currentPriceRedisRepository))
-			.collect(Collectors.toList());
+		List<Notifiable> portfolios = new ArrayList<>(portfolioRepository.findAllWithAll());
 		Consumer<Long> sentFunction = sentManager::addTargetGainSendHistory;
 		return PortfolioNotifyMessagesResponse.create(
 			notifyMessage(portfolios, targetGainNotificationPolicy, sentFunction)
@@ -114,7 +112,6 @@ public class NotificationService {
 	@Transactional
 	public NotifyMessageResponse notifyTargetGain(Long portfolioId) {
 		Portfolio portfolio = portfolioRepository.findByPortfolioIdWithAll(portfolioId).stream()
-			.peek(p -> p.applyCurrentPriceAllHoldingsBy(currentPriceRedisRepository))
 			.findFirst()
 			.orElseThrow(() -> new FineAntsException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
 		Consumer<Long> sentFunction = sentManager::addTargetGainSendHistory;
@@ -174,9 +171,7 @@ public class NotificationService {
 	 */
 	@Transactional
 	public NotifyMessageResponse notifyMaxLossAll() {
-		List<Notifiable> portfolios = portfolioRepository.findAllWithAll().stream()
-			.peek(portfolio -> portfolio.applyCurrentPriceAllHoldingsBy(currentPriceRedisRepository))
-			.collect(Collectors.toList());
+		List<Notifiable> portfolios = new ArrayList<>(portfolioRepository.findAllWithAll());
 		Consumer<Long> sentFunction = sentManager::addMaxLossSendHistory;
 		return PortfolioNotifyMessagesResponse.create(
 			notifyMessage(portfolios, maximumLossNotificationPolicy, sentFunction)
@@ -191,8 +186,7 @@ public class NotificationService {
 	 */
 	@Transactional
 	public NotifyMessageResponse notifyMaxLoss(Long portfolioId) {
-		Portfolio portfolio = portfolioRepository.findByPortfolioIdWithAll(portfolioId)
-			.stream().peek(p -> p.applyCurrentPriceAllHoldingsBy(currentPriceRedisRepository))
+		Portfolio portfolio = portfolioRepository.findByPortfolioIdWithAll(portfolioId).stream()
 			.findAny()
 			.orElseThrow(() -> new FineAntsException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
 		Consumer<Long> sentFunction = sentManager::addMaxLossSendHistory;

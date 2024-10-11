@@ -43,6 +43,7 @@ public class DashboardService {
 	private final CurrentPriceRedisRepository currentPriceRedisRepository;
 	private final PortfolioGainHistoryRepository portfolioGainHistoryRepository;
 	private final LocalDateTimeService localDateTimeService;
+	private final PortfolioCalculator calculator;
 
 	@Transactional(readOnly = true)
 	@Secured("ROLE_USER")
@@ -58,9 +59,7 @@ public class DashboardService {
 		if (portfolios.isEmpty()) {
 			return OverviewResponse.empty(member.getNickname());
 		}
-		PortfolioCalculator calculator = new PortfolioCalculator();
 		for (Portfolio portfolio : portfolios) {
-			portfolio.applyCurrentPriceAllHoldingsBy(currentPriceRedisRepository);
 			Expression totalAsset = calculator.calTotalAssetBy(portfolio);
 			totalValuation = totalValuation.plus(totalAsset);
 			totalCurrentValuation = totalCurrentValuation.plus(calculator.calTotalCurrentValuationBy(portfolio));
@@ -91,15 +90,13 @@ public class DashboardService {
 			return new ArrayList<>();
 		}
 		Expression totalValuation = Money.wonZero(); // 평가 금액 + 현금
-		PortfolioCalculator calculator = new PortfolioCalculator();
 		for (Portfolio portfolio : portfolios) {
-			portfolio.applyCurrentPriceAllHoldingsBy(currentPriceRedisRepository);
 			Expression totalAsset = calculator.calTotalAssetBy(portfolio);
 			totalValuation = totalValuation.plus(totalAsset);
 		}
 		List<DashboardPieChartResponse> pieChartResponses = new ArrayList<>();
 		for (Portfolio portfolio : portfolios) {
-			pieChartResponses.add(DashboardPieChartResponse.of(portfolio, totalValuation));
+			pieChartResponses.add(DashboardPieChartResponse.of(portfolio, totalValuation, calculator));
 		}
 		// 정렬
 		// 1. 가치(평가금액+현금) 기준 내림차순

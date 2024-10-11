@@ -11,7 +11,7 @@ import co.fineants.api.domain.common.money.Currency;
 import co.fineants.api.domain.common.money.Expression;
 import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.holding.domain.dto.response.PortfolioDividendChartItem;
-import co.fineants.api.domain.kis.repository.CurrentPriceRedisRepository;
+import co.fineants.api.domain.kis.repository.PriceRepository;
 import co.fineants.api.domain.portfolio.domain.calculator.PortfolioCalculator;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import lombok.RequiredArgsConstructor;
@@ -20,11 +20,10 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class DividendChart {
 
-	private final CurrentPriceRedisRepository manager;
+	private final PriceRepository manager;
+	private final PortfolioCalculator calculator;
 
 	public List<PortfolioDividendChartItem> createItemsBy(Portfolio portfolio, LocalDate currentLocalDate) {
-		portfolio.applyCurrentPriceAllHoldingsBy(manager);
-		PortfolioCalculator calculator = new PortfolioCalculator();
 		Map<Integer, Expression> totalDividendMap = calculator.calTotalDividendBy(portfolio, currentLocalDate);
 
 		Bank bank = Bank.getInstance();

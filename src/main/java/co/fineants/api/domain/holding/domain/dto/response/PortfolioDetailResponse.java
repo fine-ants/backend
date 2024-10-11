@@ -44,11 +44,10 @@ public class PortfolioDetailResponse {
 	private Boolean targetGainNotify;
 	private Boolean maxLossNotify;
 
-	public static PortfolioDetailResponse from(Portfolio portfolio, PortfolioGainHistory history,
-		LocalDateTimeService localDateTimeService) {
+	public static PortfolioDetailResponse of(Portfolio portfolio, PortfolioGainHistory history,
+		LocalDateTimeService localDateTimeService, PortfolioCalculator calculator) {
 		Bank bank = Bank.getInstance();
 		Currency to = Currency.KRW;
-		PortfolioCalculator calculator = new PortfolioCalculator();
 		Expression totalGain = calculator.calTotalGainBy(portfolio);
 		Expression totalGainRate = calculator.calTotalGainRateBy(portfolio);
 		Expression totalInvestment = calculator.calTotalInvestmentBy(portfolio);

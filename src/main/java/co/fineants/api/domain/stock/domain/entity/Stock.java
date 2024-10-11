@@ -17,6 +17,7 @@ import co.fineants.api.domain.common.money.RateDivision;
 import co.fineants.api.domain.dividend.domain.entity.StockDividend;
 import co.fineants.api.domain.kis.repository.ClosingPriceRepository;
 import co.fineants.api.domain.kis.repository.CurrentPriceRedisRepository;
+import co.fineants.api.domain.kis.repository.PriceRepository;
 import co.fineants.api.domain.purchasehistory.domain.entity.PurchaseHistory;
 import co.fineants.api.domain.stock.converter.MarketConverter;
 import co.fineants.api.global.common.time.DefaultLocalDateTimeService;
@@ -184,7 +185,7 @@ public class Stock extends BaseEntity {
 		return currentPrice.minus(lastDayClosingPrice).divide(lastDayClosingPrice);
 	}
 
-	public Expression getCurrentPrice(CurrentPriceRedisRepository manager) {
+	public Expression getCurrentPrice(PriceRepository manager) {
 		return manager.fetchPriceBy(tickerSymbol).orElseGet(Money::zero);
 	}
 
@@ -239,5 +240,13 @@ public class Stock extends BaseEntity {
 
 	public void setLocalDateTimeService(LocalDateTimeService localDateTimeService) {
 		this.localDateTimeService = localDateTimeService;
+	}
+
+	public Optional<Money> fetchPrice(PriceRepository repository) {
+		return repository.fetchPriceBy(tickerSymbol);
+	}
+
+	public void savePrice(PriceRepository repository, long price) {
+		repository.savePrice(tickerSymbol, price);
 	}
 }

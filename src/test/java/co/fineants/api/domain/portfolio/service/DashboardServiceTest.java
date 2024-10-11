@@ -101,8 +101,7 @@ class DashboardServiceTest extends AbstractContainerBaseTest {
 		Stock stock = stockRepository.save(createSamsungStock());
 		stockDividendRepository.saveAll(createStockDividendWith(stock));
 
-		PortfolioHolding portfolioHolding = portfolioHoldingRepository.save(
-			PortfolioHolding.of(portfolio, stock, Money.won(72900L)));
+		PortfolioHolding portfolioHolding = portfolioHoldingRepository.save(PortfolioHolding.of(portfolio, stock));
 
 		LocalDateTime purchaseDate = LocalDateTime.of(2024, 9, 26, 0, 0, 0);
 		Count numShares = Count.from(3);
@@ -204,10 +203,8 @@ class DashboardServiceTest extends AbstractContainerBaseTest {
 		);
 		Stock stock = stockRepository.save(createSamsungStock());
 
-		PortfolioHolding holding1 = portfolioHoldingRepository.save(
-			PortfolioHolding.of(portfolio, stock, Money.won(100L)));
-		PortfolioHolding holding2 = portfolioHoldingRepository.save(
-			PortfolioHolding.of(portfolio1, stock, Money.won(100L)));
+		PortfolioHolding holding1 = portfolioHoldingRepository.save(PortfolioHolding.of(portfolio, stock));
+		PortfolioHolding holding2 = portfolioHoldingRepository.save(PortfolioHolding.of(portfolio1, stock));
 
 		purchaseHistoryRepository.save(PurchaseHistory.of(holding1,
 			PurchaseHistoryCreateRequest.create(
