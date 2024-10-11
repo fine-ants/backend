@@ -254,7 +254,7 @@ public class PortfolioHolding extends BaseEntity {
 		return PortfolioPieChartItem.stock(name, currentValuation, weightPercentage, totalGain, totalReturnPercentage);
 	}
 
-	public Expression getLastDayClosingPrice(ClosingPriceRepository manager) {
+	public Expression fetchClosingPrice(ClosingPriceRepository manager) {
 		return stock.getClosingPrice(manager);
 	}
 
