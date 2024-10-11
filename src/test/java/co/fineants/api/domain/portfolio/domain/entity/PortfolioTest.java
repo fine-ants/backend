@@ -100,13 +100,13 @@ class PortfolioTest extends AbstractContainerBaseTest {
 		// given
 		Portfolio portfolio = createPortfolio(createMember());
 		Stock stock = createSamsungStock();
-		PortfolioHolding holding1 = PortfolioHolding.of(portfolio, stock, Money.won(20000L));
+		PortfolioHolding holding1 = PortfolioHolding.of(portfolio, stock);
 		// when
 		portfolio.addHolding(holding1);
 		// then
 		assertThat(portfolio.getPortfolioHoldings())
 			.hasSize(1)
-			.containsExactlyInAnyOrder(PortfolioHolding.of(portfolio, stock, Money.won(20000L)));
+			.containsExactlyInAnyOrder(PortfolioHolding.of(portfolio, stock));
 		assertThat(holding1.getPortfolio()).isEqualTo(portfolio);
 	}
 

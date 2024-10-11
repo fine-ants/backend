@@ -33,7 +33,7 @@ class PortfolioHoldingTest extends AbstractContainerBaseTest {
 		// given
 		Portfolio portfolio = createPortfolio(createMember());
 		Stock stock = createSamsungStock();
-		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock, Money.won(10000L));
+		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock);
 
 		PurchaseHistory purchaseHistory1 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
 			Money.won(10000), "첫구매", portFolioHolding);
@@ -59,7 +59,7 @@ class PortfolioHoldingTest extends AbstractContainerBaseTest {
 		// given
 		Portfolio portfolio = createPortfolio(createMember());
 		Stock stock = createSamsungStock();
-		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock, Money.won(10000L));
+		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock);
 
 		PurchaseHistory purchaseHistory1 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
 			Money.won(10000), "첫구매", portFolioHolding);
@@ -107,7 +107,7 @@ class PortfolioHoldingTest extends AbstractContainerBaseTest {
 		// given
 		Portfolio portfolio = createPortfolio(createMember());
 		Stock stock = createSamsungStock();
-		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock, Money.won(20000L));
+		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock);
 
 		PurchaseHistory purchaseHistory1 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
 			Money.won(10000), "첫구매", portFolioHolding);
@@ -137,7 +137,7 @@ class PortfolioHoldingTest extends AbstractContainerBaseTest {
 		List<StockDividend> stockDividends = createStockDividends(stock);
 		stockDividends.forEach(stock::addStockDividend);
 		Long currentPrice = 60000L;
-		PortfolioHolding portfolioHolding = createPortfolioHolding(portfolio, stock, currentPrice);
+		PortfolioHolding portfolioHolding = createPortfolioHolding(portfolio, stock);
 
 		PurchaseHistory purchaseHistory = createPurchaseHistory(null, LocalDateTime.of(2023, 3, 1, 9, 30),
 			Count.from(3), Money.won(50000), "첫구매", portfolioHolding);
@@ -179,7 +179,7 @@ class PortfolioHoldingTest extends AbstractContainerBaseTest {
 		Member member = createMember();
 		Portfolio portfolio = createPortfolio(member);
 		Stock stock = createSamsungStock();
-		PortfolioHolding holding = createPortfolioHolding(portfolio, stock, 20000L);
+		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
 
 		Portfolio other = createPortfolio(member, "other");
 		// when
@@ -188,7 +188,7 @@ class PortfolioHoldingTest extends AbstractContainerBaseTest {
 		Assertions.assertThat(portfolio.getPortfolioHoldings()).isEmpty();
 		Assertions.assertThat(other.getPortfolioHoldings())
 			.hasSize(1)
-			.containsExactlyInAnyOrder(createPortfolioHolding(other, stock, 20000L));
+			.containsExactlyInAnyOrder(createPortfolioHolding(other, stock));
 		Assertions.assertThat(holding.getPortfolio()).isEqualTo(other);
 	}
 

@@ -91,7 +91,7 @@ class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 		currentPriceRepository.savePrice(stock, 60_000L);
 		List<StockDividend> stockDividends = createStockDividendWith(stock);
 		stockDividends.forEach(stock::addStockDividend);
-		PortfolioHolding portfolioHolding = createPortfolioHolding(portfolio, stock, Money.won(60_000L));
+		PortfolioHolding portfolioHolding = createPortfolioHolding(portfolio, stock);
 		LocalDateTime purchaseDate = LocalDateTime.of(2023, 11, 1, 9, 30, 0);
 		Count numShares = Count.from(3);
 		Money purchasePerShare = Money.won(50000);
@@ -185,7 +185,7 @@ class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 		Stock stock = createSamsungStock();
 
 		PortfolioStockCreateResponse response = PortfolioStockCreateResponse.from(
-			PortfolioHolding.of(1L, portfolio, stock, Money.won(50000)));
+			PortfolioHolding.of(1L, portfolio, stock));
 		given(portfolioHoldingService.createPortfolioHolding(anyLong(),
 			any(PortfolioHoldingCreateRequest.class))).willReturn(response);
 
@@ -220,7 +220,7 @@ class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 		Stock stock = createSamsungStock();
 
 		PortfolioStockCreateResponse response = PortfolioStockCreateResponse.from(
-			PortfolioHolding.of(1L, portfolio, stock, Money.won(50000)));
+			PortfolioHolding.of(1L, portfolio, stock));
 		given(portfolioHoldingService.createPortfolioHolding(anyLong(),
 			any(PortfolioHoldingCreateRequest.class))).willReturn(response);
 

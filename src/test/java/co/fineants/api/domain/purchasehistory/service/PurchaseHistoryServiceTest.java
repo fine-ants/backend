@@ -139,7 +139,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 		Member member = memberRepository.save(createMember());
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Stock stock = stockRepository.save(createSamsungStock());
-		PortfolioHolding holding = portFolioHoldingRepository.save(createPortfolioHolding(portfolio, stock, 50_000L));
+		PortfolioHolding holding = portFolioHoldingRepository.save(createPortfolioHolding(portfolio, stock));
 		PurchaseHistory history = purchaseHistoryRepository.save(
 			createPurchaseHistory(null, LocalDateTime.now(), Count.from(3), Money.won(50_000),
 				"메모", holding));

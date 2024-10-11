@@ -36,8 +36,8 @@ class PieChartTest extends AbstractContainerBaseTest {
 		Portfolio portfolio = createPortfolio(createMember());
 		Stock stock = createSamsungStock();
 		Stock stock2 = createDongwhaPharmStock();
-		PortfolioHolding holding1 = PortfolioHolding.of(portfolio, stock, Money.won(20000L));
-		PortfolioHolding holding2 = PortfolioHolding.of(portfolio, stock2, Money.won(20000L));
+		PortfolioHolding holding1 = PortfolioHolding.of(portfolio, stock);
+		PortfolioHolding holding2 = PortfolioHolding.of(portfolio, stock2);
 
 		LocalDateTime purchaseDate = LocalDateTime.of(2023, 9, 26, 9, 30, 0);
 		Count numShares = Count.from(5);

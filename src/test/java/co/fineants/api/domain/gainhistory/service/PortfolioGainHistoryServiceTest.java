@@ -64,8 +64,7 @@ class PortfolioGainHistoryServiceTest extends AbstractContainerBaseTest {
 		Member member = memberRepository.save(createMember());
 		Portfolio savePortfolio = portfolioRepository.save(createPortfolio(member));
 		Stock stock = stockRepository.save(createSamsungStock());
-		PortfolioHolding portfolioHolding = portFolioHoldingRepository.save(
-			PortfolioHolding.of(savePortfolio, stock, Money.won(60000L)));
+		PortfolioHolding portfolioHolding = portFolioHoldingRepository.save(PortfolioHolding.of(savePortfolio, stock));
 
 		LocalDateTime purchaseDate = LocalDateTime.of(2023, 9, 26, 9, 30, 0);
 		Count numShares = Count.from(3);

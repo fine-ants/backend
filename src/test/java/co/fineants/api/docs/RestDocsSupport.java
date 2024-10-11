@@ -117,7 +117,7 @@ public abstract class RestDocsSupport {
 	}
 
 	protected PortfolioHolding createPortfolioHolding(Portfolio portfolio, Stock stock) {
-		return PortfolioHolding.of(1L, portfolio, stock, Money.won(60000L));
+		return PortfolioHolding.of(1L, portfolio, stock);
 	}
 
 	protected PurchaseHistory createPurchaseHistory(PortfolioHolding portfolioHolding, LocalDateTime purchaseDate) {
