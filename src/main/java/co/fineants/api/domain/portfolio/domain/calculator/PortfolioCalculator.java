@@ -9,6 +9,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import co.fineants.api.domain.common.money.Bank;
@@ -413,8 +414,7 @@ public class PortfolioCalculator {
 			.toPercentage(bank, Currency.KRW);
 	}
 
-	public Expression calDailyChange(PortfolioHolding holding, Expression closingPrice) {
-		return this.calculateWithCurrentPrice(holding,
-			currentPrice -> holding.calculateDailyChange(currentPrice, closingPrice));
+	public Expression calDailyChange(@NotNull PortfolioHolding holding, @NotNull Expression closingPrice) {
+		return this.calculateWithCurrentPrice(holding, currentPrice -> currentPrice.minus(closingPrice));
 	}
 }
