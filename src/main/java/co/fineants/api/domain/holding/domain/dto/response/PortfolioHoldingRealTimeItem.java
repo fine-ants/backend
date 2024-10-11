@@ -29,23 +29,23 @@ public class PortfolioHoldingRealTimeItem {
 	private Percentage totalReturnRate;
 	private LocalDateTime dateAdded;
 
-	public static PortfolioHoldingRealTimeItem of(PortfolioHolding portfolioHolding, Expression lastDayClosingPrice,
+	public static PortfolioHoldingRealTimeItem of(PortfolioHolding holding, Expression closingPrice,
 		PortfolioCalculator calculator) {
 		Bank bank = Bank.getInstance();
 		Currency to = Currency.KRW;
-		Expression totalCurrentValuation = calculator.calTotalCurrentValuation(portfolioHolding);
-		Expression dailyChange = calculator.calDailyChange(portfolioHolding, lastDayClosingPrice);
-		Expression dailyChangeRate = calculator.calDailyChangeRate(portfolioHolding, lastDayClosingPrice);
-		Expression totalGain = calculator.calTotalGainBy(portfolioHolding);
-		Percentage totalReturnPercentage = calculator.calTotalReturnPercentage(portfolioHolding);
+		Expression totalCurrentValuation = calculator.calTotalCurrentValuation(holding);
+		Expression dailyChange = calculator.calDailyChange(holding, closingPrice);
+		Expression dailyChangeRate = calculator.calDailyChangeRate(holding, closingPrice);
+		Expression totalGain = calculator.calTotalGainBy(holding);
+		Percentage totalReturnPercentage = calculator.calTotalReturnPercentage(holding);
 		return new PortfolioHoldingRealTimeItem(
-			portfolioHolding.getId(),
+			holding.getId(),
 			totalCurrentValuation.reduce(bank, to),
-			portfolioHolding.getCurrentPrice(),
+			holding.getCurrentPrice(),
 			dailyChange.reduce(bank, to),
 			dailyChangeRate.toPercentage(bank, to),
 			totalGain.reduce(bank, to),
 			totalReturnPercentage,
-			portfolioHolding.getCreateAt());
+			holding.getCreateAt());
 	}
 }
