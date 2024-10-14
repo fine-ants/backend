@@ -357,4 +357,27 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		Expression expected = Money.won(1083);
 		Assertions.assertThat(actual).isEqualByComparingTo(expected);
 	}
+
+	@DisplayName("한 종목의 평균 매입가를 계산한다")
+	@Test
+	void calculateAverageCostPerShare() {
+		// given
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createSamsungStock();
+		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock);
+
+		PurchaseHistory purchaseHistory1 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
+			Money.won(10000), "첫구매", portFolioHolding);
+		PurchaseHistory purchaseHistory2 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
+			Money.won(10000), "첫구매", portFolioHolding);
+
+		portFolioHolding.addPurchaseHistory(purchaseHistory1);
+		portFolioHolding.addPurchaseHistory(purchaseHistory2);
+
+		// when
+		Expression money = calculator.calAverageCostPerShareBy(portFolioHolding);
+
+		// then
+		assertThat(money).isEqualByComparingTo(Money.won(10000.0));
+	}
 }

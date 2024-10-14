@@ -22,6 +22,7 @@ import co.fineants.api.domain.common.money.RateDivision;
 import co.fineants.api.domain.holding.domain.dto.response.PortfolioPieChartItem;
 import co.fineants.api.domain.kis.repository.ClosingPriceRepository;
 import co.fineants.api.domain.kis.repository.PriceRepository;
+import co.fineants.api.domain.portfolio.domain.calculator.PortfolioCalculator;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import co.fineants.api.domain.purchasehistory.domain.entity.PurchaseHistory;
 import co.fineants.api.domain.stock.domain.entity.Stock;
@@ -100,6 +101,10 @@ public class PortfolioHolding extends BaseEntity {
 	 * <p>
 	 * TotalGain = (CurrentPrice - AverageCostPerShare) * NumShares
 	 * </p>
+	 * <p>
+	 * calculateAverageCostPerShare()와 calculateNumShares()를 사용하여 계산된다.
+	 * 두 메서드는 public API로써 제공되어 변경시 영향을 받는다
+	 * </p>
 	 * @param currentPrice 종목의 현재가
 	 * @return 포트폴리오 종목의 총 손익
 	 */
@@ -118,6 +123,16 @@ public class PortfolioHolding extends BaseEntity {
 	 */
 	public Expression calculateAverageCostPerShare() {
 		return calculateTotalInvestmentAmount().divide(calculateNumShares());
+	}
+
+	/**
+	 * 매입 이력들의 평균 매입가 계산 후 반환.
+	 *
+	 * @param calculator 포트폴리오 계산기 객체
+	 * @return 평균 매입가
+	 */
+	public Expression calculateAverageCostPerShare(PortfolioCalculator calculator) {
+		return calculator.calAverageCostPerShare(purchaseHistories);
 	}
 
 	/**

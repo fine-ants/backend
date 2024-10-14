@@ -11,6 +11,7 @@ import java.util.stream.Stream;
 
 import org.springframework.stereotype.Component;
 
+import co.fineants.api.domain.common.count.Count;
 import co.fineants.api.domain.common.money.Bank;
 import co.fineants.api.domain.common.money.Currency;
 import co.fineants.api.domain.common.money.Expression;
@@ -22,6 +23,7 @@ import co.fineants.api.domain.holding.domain.dto.response.PortfolioPieChartItem;
 import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
 import co.fineants.api.domain.kis.repository.PriceRepository;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
+import co.fineants.api.domain.purchasehistory.domain.entity.PurchaseHistory;
 import co.fineants.api.global.common.time.LocalDateTimeService;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
@@ -154,7 +156,7 @@ public class PortfolioCalculator {
 	 */
 	public Expression calTotalGainRate(List<PortfolioHolding> holdings) {
 		Expression totalGain = calTotalGainBy(holdings);
-		Expression totalInvestment = calTotalInvestment(holdings);
+		Expression totalInvestment = calTotalInvestmentOfHolding(holdings);
 		return totalGain.divide(totalInvestment);
 	}
 
@@ -165,7 +167,7 @@ public class PortfolioCalculator {
 	 * </p>
 	 * @return 포트폴리오 총 투자 금액 합계
 	 */
-	public Expression calTotalInvestment(List<PortfolioHolding> holdings) {
+	public Expression calTotalInvestmentOfHolding(List<PortfolioHolding> holdings) {
 		return holdings.stream()
 			.map(PortfolioHolding::calculateTotalInvestmentAmount)
 			.reduce(Money.wonZero(), Expression::plus);
@@ -485,5 +487,39 @@ public class PortfolioCalculator {
 
 	public Expression calAnnualExpectedDividendBy(PortfolioHolding holding) {
 		return holding.calculateAnnualExpectedDividend();
+	}
+
+	/**
+	 * 포트폴리오 종목의 평균 매입가를 계산 후 반환.
+	 *
+	 * @param holding 포트폴리오 종목 객체
+	 * @return 평균 매입가
+	 */
+	public Expression calAverageCostPerShareBy(PortfolioHolding holding) {
+		return holding.calculateAverageCostPerShare(this);
+	}
+
+	/**
+	 * 매입 이력들의 평균 매입가를 계산 후 반환.
+	 * <p>
+	 * AverageCostPerShare = TotalInvestment / NumShares
+	 * </p>
+	 * @param histories 매입 이력 리스트
+	 * @return 평균 매입가
+	 */
+	public Expression calAverageCostPerShare(List<PurchaseHistory> histories) {
+		return calTotalInvestmentOfPurchaseHistories(histories).divide(calNumShares(histories));
+	}
+
+	private Expression calTotalInvestmentOfPurchaseHistories(List<PurchaseHistory> histories) {
+		return histories.stream()
+			.map(PurchaseHistory::calInvestmentAmount)
+			.reduce(Money.wonZero(), Expression::plus);
+	}
+
+	private Count calNumShares(List<PurchaseHistory> histories) {
+		return histories.stream()
+			.map(PurchaseHistory::getNumShares)
+			.reduce(Count.zero(), Count::add);
 	}
 }

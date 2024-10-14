@@ -42,6 +42,7 @@ public class PortfolioHoldingDetailItem {
 		Currency to = Currency.KRW;
 		Expression totalCurrentValuation = calculator.calTotalCurrentValuation(holding);
 		Expression currentPrice = calculator.fetchCurrentPrice(holding);
+		Expression averageCostPerShare = calculator.calAverageCostPerShareBy(holding);
 		Expression annualDividendYield = calculator.calAnnualExpectedDividendYieldBy(holding);
 		Expression dailyChange = calculator.calDailyChange(holding, closingPrice);
 		Expression dailyChangeRate = calculator.calDailyChangeRate(holding, closingPrice);
@@ -52,7 +53,7 @@ public class PortfolioHoldingDetailItem {
 			.id(holding.getId())
 			.currentValuation(toWon(totalCurrentValuation))
 			.currentPrice(toWon(currentPrice.reduce(bank, to)))
-			.averageCostPerShare(toWon(holding.calculateAverageCostPerShare()))
+			.averageCostPerShare(toWon(averageCostPerShare))
 			.numShares(holding.calculateNumShares())
 			.dailyChange(toWon(dailyChange))
 			.dailyChangeRate(toPercentage(dailyChangeRate))
