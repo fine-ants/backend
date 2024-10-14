@@ -111,7 +111,7 @@ public class PortfolioCalculator {
 	 *
 	 * @param holdings 포트폴리오 종목 리스트
 	 * @return 포트폴리오 총 손익 계산 합계
-	 * @throws NoSuchElementException 포트폴리오 종목(PortfolioHolding)에 따른 현재가가 저장소에 없으면 예외 발생
+	 * @throws IllegalStateException 포트폴리오 종목(PortfolioHolding) 중 하나라도 계산에 실패하면 예외 발생
 	 */
 	public Expression calTotalGainBy(List<PortfolioHolding> holdings) {
 		return holdings.stream()
