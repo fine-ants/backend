@@ -85,7 +85,6 @@ class PortfolioHoldingTest extends AbstractContainerBaseTest {
 		Stock stock = createSamsungStock();
 		List<StockDividend> stockDividends = createStockDividends(stock);
 		stockDividends.forEach(stock::addStockDividend);
-		Long currentPrice = 60000L;
 		PortfolioHolding portfolioHolding = createPortfolioHolding(portfolio, stock);
 
 		PurchaseHistory purchaseHistory = createPurchaseHistory(null, LocalDateTime.of(2023, 3, 1, 9, 30),
