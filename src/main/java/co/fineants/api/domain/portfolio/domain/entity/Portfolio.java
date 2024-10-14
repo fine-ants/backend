@@ -334,7 +334,7 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	 *
 	 * @param calculator 포트폴리오 계산기 객체
 	 * @return 포트폴리오 총 손익
-	 * @throws java.util.NoSuchElementException 포트폴리오 종목(PortfolioHolding)에 따른 현재가가 저장소에 없으면 예외 발생
+	 * @throws IllegalStateException 포트폴리오 종목(PortfolioHolding)에 따른 현재가가 저장소에 없으면 예외 발생
 	 */
 	//== Portfolio 계산 메서드 시작 ==//
 	public Expression calTotalGain(PortfolioCalculator calculator) {

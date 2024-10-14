@@ -42,7 +42,7 @@ public class PortfolioCalculator {
 	public Expression calTotalGainBy(Portfolio portfolio) {
 		try {
 			return portfolio.calTotalGain(this);
-		} catch (NoSuchElementException e) {
+		} catch (IllegalStateException e) {
 			throw new IllegalStateException(
 				String.format("Failed to calculate total gain for portfolio, portfolio:%s", portfolio), e);
 		}
