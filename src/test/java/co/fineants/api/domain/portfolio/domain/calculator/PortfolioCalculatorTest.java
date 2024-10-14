@@ -209,7 +209,7 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		long currentPrice = 50_000L;
 		currentPriceRepository.savePrice(stock, currentPrice);
 		// when
-		Percentage actual = calculator.calTotalReturnPercentage(holding);
+		Percentage actual = calculator.calTotalGainPercentage(holding);
 		// then
 		Percentage expected = Percentage.from(0.25);
 		Assertions.assertThat(actual).isEqualByComparingTo(expected);

@@ -76,6 +76,10 @@ public class PortfolioCalculator {
 		return portfolio.calTotalInvestment(this);
 	}
 
+	public Expression calTotalInvestmentBy(PortfolioHolding holding) {
+		return holding.calculateTotalInvestmentAmount(this);
+	}
+
 	/**
 	 * 포트폴리오 잔고 계산
 	 * <p>
@@ -129,8 +133,11 @@ public class PortfolioCalculator {
 	 * @throws IllegalStateException 포트폴리오 종목의 총 손익 계산 실패시 예외 발생
 	 */
 	public Expression calTotalGainBy(PortfolioHolding holding) {
+		Expression averageCostPerShare = calAverageCostPerShareBy(holding);
+		int numShares = calNumSharesBy(holding).intValue();
 		try {
-			return this.calculateWithCurrentPrice(holding, holding::calculateTotalGain);
+			return this.calculateWithCurrentPrice(holding,
+				currentPrice -> currentPrice.minus(averageCostPerShare).times(numShares));
 		} catch (NoSuchElementException e) {
 			throw new IllegalStateException(
 				String.format("Failed to calculate totalGain for holding, holding:%s", holding), e);
@@ -457,10 +464,11 @@ public class PortfolioCalculator {
 		return this.calculateWithCurrentPrice(holding, holding::calculateAnnualExpectedDividendYield);
 	}
 
-	public Percentage calTotalReturnPercentage(PortfolioHolding holding) {
+	public Percentage calTotalGainPercentage(PortfolioHolding holding) {
 		Bank bank = Bank.getInstance();
-		return this.calculateWithCurrentPrice(holding, holding::calculateTotalGainRate)
-			.toPercentage(bank, Currency.KRW);
+		Expression totalGain = calTotalGainBy(holding);
+		Expression totalInvestment = calTotalInvestmentBy(holding);
+		return totalGain.divide(totalInvestment).toPercentage(bank, Currency.KRW);
 	}
 
 	public Expression calDailyChange(@NotNull PortfolioHolding holding, @NotNull Expression closingPrice) {
@@ -517,9 +525,19 @@ public class PortfolioCalculator {
 			.reduce(Money.wonZero(), Expression::plus);
 	}
 
-	private Count calNumShares(List<PurchaseHistory> histories) {
+	public Count calNumShares(List<PurchaseHistory> histories) {
 		return histories.stream()
 			.map(PurchaseHistory::getNumShares)
 			.reduce(Count.zero(), Count::add);
+	}
+
+	private Count calNumSharesBy(PortfolioHolding holding) {
+		return holding.calculateNumShares(this);
+	}
+
+	public Expression calTotalInvestment(List<PurchaseHistory> histories) {
+		return histories.stream()
+			.map(PurchaseHistory::calInvestmentAmount)
+			.reduce(Money.wonZero(), Expression::plus);
 	}
 }

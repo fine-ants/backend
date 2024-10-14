@@ -148,6 +148,10 @@ public class PortfolioHolding extends BaseEntity {
 			.reduce(Count.zero(), Count::add);
 	}
 
+	public Count calculateNumShares(PortfolioCalculator calculator) {
+		return calculator.calNumShares(purchaseHistories);
+	}
+
 	/**
 	 * 포트폴리오 종목의 총 투자금액 계산 후 반환.
 	 * <p>
@@ -300,5 +304,9 @@ public class PortfolioHolding extends BaseEntity {
 	public String toString() {
 		return String.format("PortfolioHolding(id=%d, portfolio=%d, stock=%s)", id, portfolio.getId(),
 			stock.getTickerSymbol());
+	}
+
+	public Expression calculateTotalInvestmentAmount(PortfolioCalculator calculator) {
+		return calculator.calTotalInvestment(purchaseHistories);
 	}
 }

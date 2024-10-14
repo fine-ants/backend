@@ -38,7 +38,7 @@ public class PortfolioHoldingRealTimeItem {
 		Expression dailyChange = calculator.calDailyChange(holding, closingPrice);
 		Expression dailyChangeRate = calculator.calDailyChangeRate(holding, closingPrice);
 		Expression totalGain = calculator.calTotalGainBy(holding);
-		Percentage totalReturnPercentage = calculator.calTotalReturnPercentage(holding);
+		Percentage totalReturnPercentage = calculator.calTotalGainPercentage(holding);
 		return new PortfolioHoldingRealTimeItem(
 			holding.getId(),
 			totalCurrentValuation.reduce(bank, to),

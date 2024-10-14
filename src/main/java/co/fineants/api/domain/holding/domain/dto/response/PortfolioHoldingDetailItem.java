@@ -47,7 +47,7 @@ public class PortfolioHoldingDetailItem {
 		Expression dailyChange = calculator.calDailyChange(holding, closingPrice);
 		Expression dailyChangeRate = calculator.calDailyChangeRate(holding, closingPrice);
 		Expression totalGain = calculator.calTotalGainBy(holding);
-		Percentage totalReturnPercentage = calculator.calTotalReturnPercentage(holding);
+		Percentage totalReturnPercentage = calculator.calTotalGainPercentage(holding);
 		Expression annualExpectedDividend = calculator.calAnnualExpectedDividendBy(holding);
 		return PortfolioHoldingDetailItem.builder()
 			.id(holding.getId())

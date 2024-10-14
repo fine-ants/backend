@@ -433,7 +433,7 @@ public class Portfolio extends BaseEntity implements Notifiable {
 				RateDivision weight = calculator.calCurrentValuationWeightBy(holding, totalAsset);
 				Expression currentValuation = calculator.calTotalCurrentValuation(holding);
 				Expression totalGain = calculator.calTotalGainBy(holding);
-				Percentage totalReturnRate = calculator.calTotalReturnPercentage(holding);
+				Percentage totalReturnRate = calculator.calTotalGainPercentage(holding);
 				return holding.createPieChartItem(weight, currentValuation, totalGain, totalReturnRate);
 			}).toList();
 	}
