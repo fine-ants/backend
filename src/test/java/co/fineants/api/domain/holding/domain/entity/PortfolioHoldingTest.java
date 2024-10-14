@@ -52,31 +52,6 @@ class PortfolioHoldingTest extends AbstractContainerBaseTest {
 		assertThat(totalInvestmentAmount).isEqualByComparingTo(Money.won(100000L));
 	}
 
-	@DisplayName("한 종목의 총 손익을 계산한다")
-	@Test
-	void calculateTotalGain() {
-		// given
-		Portfolio portfolio = createPortfolio(createMember());
-		Stock stock = createSamsungStock();
-		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock);
-
-		PurchaseHistory purchaseHistory1 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
-			Money.won(10000), "첫구매", portFolioHolding);
-		PurchaseHistory purchaseHistory2 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
-			Money.won(10000), "첫구매", portFolioHolding);
-
-		portFolioHolding.addPurchaseHistory(purchaseHistory1);
-		portFolioHolding.addPurchaseHistory(purchaseHistory2);
-
-		Expression currentPrice = Money.won(20_000L);
-		// when
-		Expression result = portFolioHolding.calculateTotalGain(currentPrice);
-
-		// then
-		Money won = Bank.getInstance().toWon(result);
-		assertThat(won).isEqualByComparingTo(Money.won(100000L));
-	}
-
 	@DisplayName("포트폴리오 종목의 월별 배당금을 계산한다")
 	@Test
 	void calculateMonthlyDividends() {

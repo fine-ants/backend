@@ -164,21 +164,7 @@ public class PortfolioHolding extends BaseEntity {
 			.map(PurchaseHistory::calInvestmentAmount)
 			.reduce(Money.wonZero(), Expression::plus);
 	}
-
-	/**
-	 * 포트폴리오 종목의 총 손익율 계산 후 반환.
-	 * <p>
-	 * TotalGainRate = (TotalGain / TotalInvestmentAmount)
-	 * </p>
-	 * @param currentPrice 종목의 현재가
-	 * @return 종목의 총 손익율
-	 */
-	public RateDivision calculateTotalGainRate(Expression currentPrice) {
-		Expression totalGain = calculateTotalGain(currentPrice);
-		Expression totalInvestmentAmount = calculateTotalInvestmentAmount();
-		return totalGain.divide(totalInvestmentAmount);
-	}
-
+	
 	/**
 	 * 포트폴리오 종목의 평가 금액을 계산 후 반환.
 	 * <p>
