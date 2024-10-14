@@ -18,7 +18,6 @@ import co.fineants.api.domain.common.money.Bank;
 import co.fineants.api.domain.common.money.Currency;
 import co.fineants.api.domain.common.money.Expression;
 import co.fineants.api.domain.common.money.Money;
-import co.fineants.api.domain.common.money.RateDivision;
 import co.fineants.api.domain.dividend.domain.entity.StockDividend;
 import co.fineants.api.domain.member.domain.entity.Member;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
@@ -76,33 +75,6 @@ class PortfolioHoldingTest extends AbstractContainerBaseTest {
 		// then
 		Money won = Bank.getInstance().toWon(result);
 		assertThat(won).isEqualByComparingTo(Money.won(100000L));
-	}
-
-	@DisplayName("한 종목의 총 손익율 계산한다")
-	@Test
-	void calculateTotalReturnRate() {
-		// given
-		Portfolio portfolio = createPortfolio(createMember());
-		Stock stock = createSamsungStock();
-		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock);
-
-		PurchaseHistory purchaseHistory1 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
-			Money.won(10000), "첫구매", portFolioHolding);
-		PurchaseHistory purchaseHistory2 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
-			Money.won(10000), "첫구매", portFolioHolding);
-
-		portFolioHolding.addPurchaseHistory(purchaseHistory1);
-		portFolioHolding.addPurchaseHistory(purchaseHistory2);
-
-		Expression currentPrice = Money.won(20_000L);
-		// when
-		RateDivision result = portFolioHolding.calculateTotalGainRate(currentPrice);
-
-		// then
-		Expression totalGain = Money.won(100000);
-		Expression totalInvestmentAmount = Money.won(100000);
-		RateDivision expected = totalGain.divide(totalInvestmentAmount);
-		assertThat(result).isEqualByComparingTo(expected);
 	}
 
 	@DisplayName("포트폴리오 종목의 월별 배당금을 계산한다")

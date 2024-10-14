@@ -196,7 +196,7 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 
 	@DisplayName("포트폴리오 종목의 손익율을 계산한다")
 	@Test
-	void calTotalGainRate() {
+	void calTotalGainPercentage() {
 		// given
 		Portfolio portfolio = createPortfolio(createMember());
 		Stock stock = createSamsungStock();
