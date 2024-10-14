@@ -127,7 +127,9 @@ public class PortfolioCalculator {
 
 	/**
 	 * 포트폴리오 종목의 총 손익을 계산 후 반환.
-	 *
+	 * <p>
+	 * TotalGain = (CurrentPrice - AverageCostPerShare) * NumShares
+	 * </p>
 	 * @param holding 포트폴리오 종목 객체
 	 * @return 포트폴리오 종목의 총 손익
 	 * @throws IllegalStateException 포트폴리오 종목의 총 손익 계산 실패시 예외 발생
