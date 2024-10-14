@@ -95,36 +95,7 @@ public class PortfolioHolding extends BaseEntity {
 			portfolio.addHolding(this);
 		}
 	}
-
-	/**
-	 * 포트폴리오 종목의 총 손익을 계산 후 반환.
-	 * <p>
-	 * TotalGain = (CurrentPrice - AverageCostPerShare) * NumShares
-	 * </p>
-	 * <p>
-	 * calculateAverageCostPerShare()와 calculateNumShares()를 사용하여 계산된다.
-	 * 두 메서드는 public API로써 제공되어 변경시 영향을 받는다
-	 * </p>
-	 * @param currentPrice 종목의 현재가
-	 * @return 포트폴리오 종목의 총 손익
-	 */
-	public Expression calculateTotalGain(@NotNull Expression currentPrice) {
-		Expression averageCostPerShare = calculateAverageCostPerShare();
-		int numShares = calculateNumShares().intValue();
-		return currentPrice.minus(averageCostPerShare).times(numShares);
-	}
-
-	/**
-	 * 포트폴리오 종목의 평균 매입가 계산 후 반환.
-	 * <p>
-	 * AverageCostPerShare = TotalInvestmentAmount / NumShares
-	 * </p>
-	 * @return 종목 평균 매입가
-	 */
-	public Expression calculateAverageCostPerShare() {
-		return calculateTotalInvestmentAmount().divide(calculateNumShares());
-	}
-
+	
 	/**
 	 * 매입 이력들의 평균 매입가 계산 후 반환.
 	 *
@@ -164,7 +135,7 @@ public class PortfolioHolding extends BaseEntity {
 			.map(PurchaseHistory::calInvestmentAmount)
 			.reduce(Money.wonZero(), Expression::plus);
 	}
-	
+
 	/**
 	 * 포트폴리오 종목의 평가 금액을 계산 후 반환.
 	 * <p>
