@@ -321,7 +321,9 @@ public class PortfolioCalculator {
 	 * @return 포트폴리오의 당월 예상 배당금 합계
 	 */
 	public Expression calCurrentMonthDividendBy(List<PortfolioHolding> holdings) {
-		return sumExpressions(holdings, holding -> holding.calCurrentMonthDividend(this));
+		return holdings.stream()
+			.map(holding -> holding.calCurrentMonthDividend(this))
+			.reduce(Money.zero(), Expression::plus);
 	}
 
 	/**
@@ -792,7 +794,7 @@ public class PortfolioCalculator {
 	}
 
 	public Map<Month, Expression> calMonthlyDividendMapBy(PortfolioHolding holding, LocalDate currentLocalDate) {
-		return holding.createMonthlyDividendMap(this, currentLocalDate);
+		return holding.calMonthlyDividendMap(this, currentLocalDate);
 	}
 
 	/**

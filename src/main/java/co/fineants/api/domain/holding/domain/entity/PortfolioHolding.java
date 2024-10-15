@@ -116,11 +116,11 @@ public class PortfolioHolding extends BaseEntity {
 		return calculator.calCurrentMonthExpectedDividend(stock, purchaseHistories);
 	}
 
-	public Map<Month, Expression> createMonthlyDividendMap(PortfolioCalculator calculator, LocalDate currentLocalDate) {
+	public Map<Month, Expression> calMonthlyDividendMap(PortfolioCalculator calculator, LocalDate currentLocalDate) {
 		return calculator.calMonthlyDividendMap(stock, purchaseHistories, currentLocalDate);
 	}
 
-	public Expression calculateTotalInvestmentAmount(PortfolioCalculator calculator) {
+	public Expression calTotalInvestment(PortfolioCalculator calculator) {
 		return calculator.calTotalInvestment(purchaseHistories);
 	}
 	//== 계산 메서드 종료 ==//
