@@ -145,7 +145,7 @@ public class PortfolioCalculator {
 		Expression averageCostPerShare = calAverageCostPerShareBy(holding);
 		int numShares = calNumSharesBy(holding).intValue();
 		try {
-			return this.calculateWithCurrentPrice(holding,
+			return this.calWithCurrentPriceBy(holding,
 				currentPrice -> currentPrice.minus(averageCostPerShare).times(numShares));
 		} catch (NoSuchElementException e) {
 			throw new IllegalStateException(
@@ -153,7 +153,7 @@ public class PortfolioCalculator {
 		}
 	}
 
-	private Expression calculateWithCurrentPrice(PortfolioHolding holding, Function<Money, Expression> calFunction) {
+	private Expression calWithCurrentPriceBy(PortfolioHolding holding, Function<Money, Expression> calFunction) {
 		return currentPriceRepository.fetchPriceBy(holding)
 			.map(calFunction)
 			.orElseThrow(() -> new NoSuchElementException(
@@ -212,7 +212,7 @@ public class PortfolioCalculator {
 	public Expression calTotalCurrentValuationBy(PortfolioHolding holding) {
 		try {
 			int numShares = this.calNumSharesBy(holding).intValue();
-			return this.calculateWithCurrentPrice(holding, currentPrice -> currentPrice.times(numShares));
+			return this.calWithCurrentPriceBy(holding, currentPrice -> currentPrice.times(numShares));
 		} catch (NoSuchElementException e) {
 			throw new IllegalStateException(
 				String.format("Failed to calculate totalCurrentValuation for holding, holding:%s", holding), e);
@@ -504,7 +504,7 @@ public class PortfolioCalculator {
 	}
 
 	public Expression calDailyChange(@NotNull PortfolioHolding holding, @NotNull Expression closingPrice) {
-		return this.calculateWithCurrentPrice(holding, currentPrice -> currentPrice.minus(closingPrice));
+		return this.calWithCurrentPriceBy(holding, currentPrice -> currentPrice.minus(closingPrice));
 	}
 
 	/**
@@ -517,12 +517,12 @@ public class PortfolioCalculator {
 	 * @return 당일 변동율
 	 */
 	public Expression calDailyChangeRate(@NotNull PortfolioHolding holding, @NotNull Expression closingPrice) {
-		return this.calculateWithCurrentPrice(holding,
+		return this.calWithCurrentPriceBy(holding,
 			currentPrice -> currentPrice.minus(closingPrice).divide(closingPrice));
 	}
 
 	public Expression fetchCurrentPrice(PortfolioHolding holding) {
-		return this.calculateWithCurrentPrice(holding, currentPrice -> currentPrice);
+		return this.calWithCurrentPriceBy(holding, currentPrice -> currentPrice);
 	}
 
 	public Expression calAnnualExpectedDividendBy(PortfolioHolding holding) {
