@@ -2,8 +2,10 @@ package co.fineants.api.domain.holding.domain.entity;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -127,13 +129,16 @@ public class PortfolioHolding extends BaseEntity {
 	 * @param currentLocalDate 기준 일자
 	 * @return 월별 배당금 합계 맵
 	 */
-	public Map<Integer, Expression> createMonthlyDividendMap(LocalDate currentLocalDate) {
-		Map<Integer, Expression> monthlyDividends = stock.createMonthlyDividends(purchaseHistories, currentLocalDate);
-		Map<Integer, Expression> monthlyExpectedDividends = stock.createMonthlyExpectedDividends(purchaseHistories,
+	public Map<Month, Expression> createMonthlyDividendMap(LocalDate currentLocalDate) {
+		Map<Month, Expression> result = new EnumMap<>(Month.class);
+		Map<Month, Expression> monthlyDividends = stock.createMonthlyDividends(purchaseHistories, currentLocalDate);
+		Map<Month, Expression> monthlyExpectedDividends = stock.createMonthlyExpectedDividends(purchaseHistories,
 			currentLocalDate);
+		monthlyDividends.forEach(
+			(month, dividend) -> result.merge(month, dividend, Expression::plus));
 		monthlyExpectedDividends.forEach(
-			(month, dividend) -> monthlyDividends.merge(month, dividend, Expression::plus));
-		return monthlyDividends;
+			(month, dividend) -> result.merge(month, dividend, Expression::plus));
+		return result;
 	}
 
 	/**

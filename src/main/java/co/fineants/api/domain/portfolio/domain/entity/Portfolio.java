@@ -1,6 +1,7 @@
 package co.fineants.api.domain.portfolio.domain.entity;
 
 import java.time.LocalDate;
+import java.time.Month;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -438,7 +439,7 @@ public class Portfolio extends BaseEntity implements Notifiable {
 			}).toList();
 	}
 
-	public Map<Integer, Expression> calTotalDividend(PortfolioCalculator calculator, LocalDate currentLocalDate) {
+	public Map<Month, Expression> calTotalDividend(PortfolioCalculator calculator, LocalDate currentLocalDate) {
 		return calculator.calTotalDividend(Collections.unmodifiableList(portfolioHoldings), currentLocalDate);
 	}
 	//== Portfolio 계산 메서드 시작 ==//

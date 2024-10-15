@@ -5,6 +5,8 @@ import static org.mockito.BDDMockito.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Month;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -300,22 +302,17 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 
 		LocalDate currentLocalDate = LocalDate.of(2024, 1, 16);
 		// when
-		Map<Integer, Expression> actual = calculator.calTotalDividendBy(portfolio, currentLocalDate);
+		Map<Month, Expression> actual = calculator.calTotalDividendBy(portfolio, currentLocalDate);
 		// then
-		Map<Integer, Expression> expected = Map.ofEntries(
-			Map.entry(1, Money.zero()),
-			Map.entry(2, Money.zero()),
-			Map.entry(3, Money.zero()),
-			Map.entry(4, Money.won(1083)),
-			Map.entry(5, Money.won(1083)),
-			Map.entry(6, Money.zero()),
-			Map.entry(7, Money.zero()),
-			Map.entry(8, Money.won(1083)),
-			Map.entry(9, Money.zero()),
-			Map.entry(10, Money.zero()),
-			Map.entry(11, Money.won(1083)),
-			Map.entry(12, Money.zero())
-		);
+		Map<Month, Expression> expected = new EnumMap<>(Month.class);
+		for (Month month : Month.values()) {
+			expected.put(month, Money.zero());
+		}
+		expected.put(Month.APRIL, Money.won(1083L));
+		expected.put(Month.MAY, Money.won(1083L));
+		expected.put(Month.AUGUST, Money.won(1083L));
+		expected.put(Month.NOVEMBER, Money.won(1083L));
+
 		Bank bank = Bank.getInstance();
 		actual.replaceAll((k, v) -> v instanceof Sum ? bank.toWon(v) : v);
 		Assertions.assertThat(actual)

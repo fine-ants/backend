@@ -1,9 +1,10 @@
 package co.fineants.api.domain.stock.domain.entity;
 
 import java.time.LocalDate;
+import java.time.Month;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -94,15 +95,15 @@ public class Stock extends BaseEntity {
 			.toList();
 	}
 
-	public Map<Integer, Expression> createMonthlyDividends(List<PurchaseHistory> purchaseHistories,
+	public Map<Month, Expression> createMonthlyDividends(List<PurchaseHistory> purchaseHistories,
 		LocalDate currentLocalDate) {
-		Map<Integer, Expression> result = initMonthlyDividendMap();
+		Map<Month, Expression> result = initMonthlyDividendMap();
 		List<StockDividend> currentYearStockDividends = getStockDividendsWithCurrentYearRecordDateBy(currentLocalDate);
 
 		for (StockDividend stockDividend : currentYearStockDividends) {
 			for (PurchaseHistory purchaseHistory : purchaseHistories) {
 				if (stockDividend.canReceiveDividendOn(purchaseHistory)) {
-					int paymentMonth = stockDividend.getMonthValueByPaymentDate();
+					Month paymentMonth = stockDividend.getMonthByPaymentDate();
 					Expression dividendSum = stockDividend.calculateDividendSum(purchaseHistory.getNumShares());
 					Expression sum = result.getOrDefault(paymentMonth, Money.zero()).plus(dividendSum);
 					result.put(paymentMonth, sum);
@@ -119,9 +120,9 @@ public class Stock extends BaseEntity {
 			.toList();
 	}
 
-	public Map<Integer, Expression> createMonthlyExpectedDividends(List<PurchaseHistory> purchaseHistories,
+	public Map<Month, Expression> createMonthlyExpectedDividends(List<PurchaseHistory> purchaseHistories,
 		LocalDate currentLocalDate) {
-		Map<Integer, Expression> result = initMonthlyDividendMap();
+		Map<Month, Expression> result = initMonthlyDividendMap();
 		// 0. 현재년도에 해당하는 배당금 정보를 필터링하여 별도 저장합니다.
 		List<StockDividend> currentYearStockDividends = getStockDividendsWithCurrentYearRecordDateBy(currentLocalDate);
 
@@ -134,7 +135,7 @@ public class Stock extends BaseEntity {
 			.forEach(stockDividend -> {
 				// 3. 필터링한 배당금 정보들을 이용하여 배당금을 계산합니다.
 				for (PurchaseHistory purchaseHistory : purchaseHistories) {
-					int paymentMonth = stockDividend.getMonthValueByPaymentDate();
+					Month paymentMonth = stockDividend.getMonthByPaymentDate();
 					Expression dividendSum = stockDividend.calculateDividendSum(purchaseHistory.getNumShares());
 					result.put(paymentMonth, result.getOrDefault(paymentMonth, Money.zero()).plus(dividendSum));
 				}
@@ -143,9 +144,9 @@ public class Stock extends BaseEntity {
 	}
 
 	@NotNull
-	private static Map<Integer, Expression> initMonthlyDividendMap() {
-		Map<Integer, Expression> result = new HashMap<>();
-		for (int month = 1; month <= 12; month++) {
+	private static Map<Month, Expression> initMonthlyDividendMap() {
+		Map<Month, Expression> result = new EnumMap<>(Month.class);
+		for (Month month : Month.values()) {
 			result.put(month, Money.zero());
 		}
 		return result;
@@ -193,10 +194,10 @@ public class Stock extends BaseEntity {
 		return manager.fetchPrice(tickerSymbol).orElseGet(Money::zero);
 	}
 
-	public List<Integer> getDividendMonths() {
+	public List<Month> getDividendMonths() {
 		return stockDividends.stream()
 			.filter(dividend -> dividend.isCurrentYearPaymentDate(localDateTimeService.getLocalDateWithNow()))
-			.map(StockDividend::getMonthValueByPaymentDate)
+			.map(StockDividend::getMonthByPaymentDate)
 			.toList();
 	}
 	// ticker 및 recordDate 기준으로 KisDividend가 매치되어 있는지 확인

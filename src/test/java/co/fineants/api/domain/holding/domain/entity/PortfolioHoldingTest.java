@@ -4,7 +4,8 @@ import static org.assertj.core.api.Assertions.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.HashMap;
+import java.time.Month;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
@@ -25,7 +26,7 @@ import co.fineants.api.domain.purchasehistory.domain.entity.PurchaseHistory;
 import co.fineants.api.domain.stock.domain.entity.Stock;
 
 class PortfolioHoldingTest extends AbstractContainerBaseTest {
-
+	
 	@DisplayName("포트폴리오 종목의 월별 배당금을 계산한다")
 	@Test
 	void calculateMonthlyDividends() {
@@ -40,22 +41,16 @@ class PortfolioHoldingTest extends AbstractContainerBaseTest {
 			Count.from(3), Money.won(50000), "첫구매", portfolioHolding);
 		portfolioHolding.addPurchaseHistory(purchaseHistory);
 		// when
-		Map<Integer, Expression> result = portfolioHolding.createMonthlyDividendMap(LocalDate.of(2023, 12, 15));
+		Map<Month, Expression> result = portfolioHolding.createMonthlyDividendMap(LocalDate.of(2023, 12, 15));
 
 		// then
-		Map<Integer, Expression> expected = new HashMap<>();
-		expected.put(1, Money.zero());
-		expected.put(2, Money.zero());
-		expected.put(3, Money.zero());
-		expected.put(4, Money.zero());
-		expected.put(5, Money.won(1083L));
-		expected.put(6, Money.zero());
-		expected.put(7, Money.zero());
-		expected.put(8, Money.won(1083L));
-		expected.put(9, Money.zero());
-		expected.put(10, Money.zero());
-		expected.put(11, Money.won(1083L));
-		expected.put(12, Money.zero());
+		Map<Month, Expression> expected = new EnumMap<>(Month.class);
+		for (Month month : Month.values()) {
+			expected.put(month, Money.zero());
+		}
+		expected.put(Month.MAY, Money.won(1083L));
+		expected.put(Month.AUGUST, Money.won(1083L));
+		expected.put(Month.NOVEMBER, Money.won(1083L));
 		assertThat(result.keySet())
 			.isEqualTo(expected.keySet());
 

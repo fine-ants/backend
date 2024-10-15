@@ -1,6 +1,7 @@
 package co.fineants.api.domain.portfolio.domain.calculator;
 
 import java.time.LocalDate;
+import java.time.Month;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -468,11 +469,11 @@ public class PortfolioCalculator {
 			.toList();
 	}
 
-	public Map<Integer, Expression> calTotalDividendBy(Portfolio portfolio, LocalDate currentLocalDate) {
+	public Map<Month, Expression> calTotalDividendBy(Portfolio portfolio, LocalDate currentLocalDate) {
 		return portfolio.calTotalDividend(this, currentLocalDate);
 	}
 
-	public Map<Integer, Expression> calTotalDividend(List<PortfolioHolding> holdings, LocalDate currentLocalDate) {
+	public Map<Month, Expression> calTotalDividend(List<PortfolioHolding> holdings, LocalDate currentLocalDate) {
 		return holdings.stream()
 			.flatMap(holding ->
 				holding.createMonthlyDividendMap(currentLocalDate).entrySet().stream()
