@@ -25,6 +25,7 @@ import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.common.money.Percentage;
 import co.fineants.api.domain.common.money.RateDivision;
 import co.fineants.api.domain.common.money.Sum;
+import co.fineants.api.domain.dividend.domain.entity.StockDividend;
 import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
 import co.fineants.api.domain.kis.client.KisCurrentPrice;
 import co.fineants.api.domain.kis.repository.CurrentPriceMemoryRepository;
@@ -452,5 +453,36 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		// then
 		Expression expected = Money.won(1083);
 		Assertions.assertThat(actual).isEqualByComparingTo(expected);
+	}
+
+	@DisplayName("포트폴리오 종목의 월별 배당금을 계산한다")
+	@Test
+	void calculateMonthlyDividends() {
+		// given
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createSamsungStock();
+		List<StockDividend> stockDividends = createStockDividendWith(stock);
+		stockDividends.forEach(stock::addStockDividend);
+		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
+
+		PurchaseHistory purchaseHistory = createPurchaseHistory(null, LocalDateTime.of(2023, 3, 1, 9, 30),
+			Count.from(3), Money.won(50000), "첫구매", holding);
+		holding.addPurchaseHistory(purchaseHistory);
+		LocalDate currentLocalDate = LocalDate.of(2023, 12, 15);
+		// when
+		Map<Month, Expression> actual = calculator.calMonthlyDividendMapBy(holding, currentLocalDate);
+
+		// then
+		Map<Month, Expression> expected = new EnumMap<>(Month.class);
+		for (Month month : Month.values()) {
+			expected.put(month, Money.zero());
+		}
+		expected.put(Month.MAY, Money.won(1083L));
+		expected.put(Month.AUGUST, Money.won(1083L));
+		expected.put(Month.NOVEMBER, Money.won(1083L));
+
+		assertThat(actual.values())
+			.usingElementComparator(Expression::compareTo)
+			.containsExactlyElementsOf(expected.values());
 	}
 }
