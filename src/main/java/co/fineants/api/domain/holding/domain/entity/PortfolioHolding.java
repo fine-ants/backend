@@ -116,28 +116,6 @@ public class PortfolioHolding extends BaseEntity {
 		return calculator.calCurrentMonthExpectedDividend(stock, purchaseHistories);
 	}
 
-	public Map<Month, Expression> calMonthlyDividendMap(PortfolioCalculator calculator, LocalDate currentLocalDate) {
-		return calculator.calMonthlyDividendMap(stock, purchaseHistories, currentLocalDate);
-	}
-
-	/**
-	 * 포트폴리오 종목의 총 투자 금액 계산 후 반환.
-	 *
-	 * @param calculator 포트폴리오 계산기 객체
-	 * @return 포트폴리오 종목들의 총 투자 금액 합계
-	 */
-	public Map<Month, Expression> createMonthlyDividendMap(LocalDate currentLocalDate) {
-		Map<Month, Expression> result = new EnumMap<>(Month.class);
-		Map<Month, Expression> monthlyDividends = stock.createMonthlyDividends(purchaseHistories, currentLocalDate);
-		Map<Month, Expression> monthlyExpectedDividends = stock.createMonthlyExpectedDividends(purchaseHistories,
-			currentLocalDate);
-		monthlyDividends.forEach(
-			(month, dividend) -> result.merge(month, dividend, Expression::plus));
-		monthlyExpectedDividends.forEach(
-			(month, dividend) -> result.merge(month, dividend, Expression::plus));
-		return result;
-	}
-
 	public Map<Month, Expression> createMonthlyDividendMap(PortfolioCalculator calculator, LocalDate currentLocalDate) {
 		return calculator.calMonthlyDividendMap(stock, purchaseHistories, currentLocalDate);
 	}
