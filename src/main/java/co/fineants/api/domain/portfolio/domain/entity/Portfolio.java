@@ -431,7 +431,7 @@ public class Portfolio extends BaseEntity implements Notifiable {
 		return portfolioHoldings.stream()
 			.map(holding -> {
 				RateDivision weight = calculator.calCurrentValuationWeightBy(holding, totalAsset);
-				Expression currentValuation = calculator.calTotalCurrentValuation(holding);
+				Expression currentValuation = calculator.calTotalCurrentValuationBy(holding);
 				Expression totalGain = calculator.calTotalGainBy(holding);
 				Percentage totalReturnRate = calculator.calTotalGainPercentage(holding);
 				return holding.createPieChartItem(weight, currentValuation, totalGain, totalReturnRate);

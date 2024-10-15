@@ -193,7 +193,7 @@ public class PortfolioCalculator {
 	 */
 	public Expression calTotalCurrentValuation(List<PortfolioHolding> holdings) {
 		return holdings.stream()
-			.map(this::calTotalCurrentValuation)
+			.map(this::calTotalCurrentValuationBy)
 			.reduce(Money.zero(), Expression::plus);
 	}
 
@@ -204,9 +204,10 @@ public class PortfolioCalculator {
 	 * @return 포트폴리오 종목의 총 평가 금액
 	 * @throws IllegalStateException 포트폴리오 종목의 총 평가 금액 계산 실패시 예외 발생
 	 */
-	public Expression calTotalCurrentValuation(PortfolioHolding holding) {
+	public Expression calTotalCurrentValuationBy(PortfolioHolding holding) {
 		try {
-			return this.calculateWithCurrentPrice(holding, holding::calculateCurrentValuation);
+			int numShares = this.calNumSharesBy(holding).intValue();
+			return this.calculateWithCurrentPrice(holding, currentPrice -> currentPrice.times(numShares));
 		} catch (NoSuchElementException e) {
 			throw new IllegalStateException(
 				String.format("Failed to calculate totalCurrentValuation for holding, holding:%s", holding), e);

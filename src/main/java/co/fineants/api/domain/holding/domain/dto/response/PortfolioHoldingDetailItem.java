@@ -40,7 +40,7 @@ public class PortfolioHoldingDetailItem {
 		PortfolioCalculator calculator) {
 		Bank bank = Bank.getInstance();
 		Currency to = Currency.KRW;
-		Expression totalCurrentValuation = calculator.calTotalCurrentValuation(holding);
+		Expression totalCurrentValuation = calculator.calTotalCurrentValuationBy(holding);
 		Expression currentPrice = calculator.fetchCurrentPrice(holding);
 		Expression averageCostPerShare = calculator.calAverageCostPerShareBy(holding);
 		Count numShares = calculator.calNumSharesBy(holding);
