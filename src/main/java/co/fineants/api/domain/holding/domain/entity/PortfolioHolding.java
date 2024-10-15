@@ -78,7 +78,7 @@ public class PortfolioHolding extends BaseEntity {
 		return new PortfolioHolding(id, portfolio, stock);
 	}
 
-	//== 연관관계 메소드 ==//
+	//== 연관관계 메소드 시작 ==//
 	public void addPurchaseHistory(PurchaseHistory purchaseHistory) {
 		if (!this.purchaseHistories.contains(purchaseHistory)) {
 			this.purchaseHistories.add(purchaseHistory);
@@ -95,7 +95,8 @@ public class PortfolioHolding extends BaseEntity {
 			portfolio.addHolding(this);
 		}
 	}
-	
+	//== 연관관계 메소드 종료 ==//
+
 	/**
 	 * 매입 이력들의 평균 매입가 계산 후 반환.
 	 *

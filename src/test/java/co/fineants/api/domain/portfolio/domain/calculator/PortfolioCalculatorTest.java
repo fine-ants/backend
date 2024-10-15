@@ -364,20 +364,44 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		// given
 		Portfolio portfolio = createPortfolio(createMember());
 		Stock stock = createSamsungStock();
-		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock);
+		PortfolioHolding holding = PortfolioHolding.of(portfolio, stock);
 
 		PurchaseHistory purchaseHistory1 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
-			Money.won(10000), "첫구매", portFolioHolding);
+			Money.won(10000), "첫구매", holding);
 		PurchaseHistory purchaseHistory2 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
-			Money.won(10000), "첫구매", portFolioHolding);
+			Money.won(10000), "첫구매", holding);
 
-		portFolioHolding.addPurchaseHistory(purchaseHistory1);
-		portFolioHolding.addPurchaseHistory(purchaseHistory2);
+		holding.addPurchaseHistory(purchaseHistory1);
+		holding.addPurchaseHistory(purchaseHistory2);
 
 		// when
-		Expression money = calculator.calAverageCostPerShareBy(portFolioHolding);
+		Expression money = calculator.calAverageCostPerShareBy(holding);
 
 		// then
 		assertThat(money).isEqualByComparingTo(Money.won(10000.0));
+	}
+
+	@DisplayName("포트폴리오 종목의 주식 개수를 계산한다")
+	@Test
+	void calNumSharesBy() {
+		// given
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createSamsungStock();
+		PortfolioHolding holding = PortfolioHolding.of(portfolio, stock);
+
+		PurchaseHistory purchaseHistory1 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
+			Money.won(10000), "첫구매", holding);
+		PurchaseHistory purchaseHistory2 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
+			Money.won(10000), "첫구매", holding);
+
+		holding.addPurchaseHistory(purchaseHistory1);
+		holding.addPurchaseHistory(purchaseHistory2);
+
+		// when
+		Count actual = calculator.calNumSharesBy(holding);
+
+		// then
+		Count expected = Count.from(10);
+		assertThat(actual).isEqualByComparingTo(expected);
 	}
 }

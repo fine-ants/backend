@@ -533,7 +533,7 @@ public class PortfolioCalculator {
 			.reduce(Count.zero(), Count::add);
 	}
 
-	private Count calNumSharesBy(PortfolioHolding holding) {
+	public Count calNumSharesBy(PortfolioHolding holding) {
 		return holding.calculateNumShares(this);
 	}
 
