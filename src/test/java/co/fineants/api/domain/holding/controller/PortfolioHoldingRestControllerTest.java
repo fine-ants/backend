@@ -353,9 +353,9 @@ class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 		String memo = "첫구매";
 		portfolioHolding.addPurchaseHistory(
 			createPurchaseHistory(null, purchaseDate, numShares, purchasePerShare, memo, portfolioHolding));
-		PieChart pieChart = new PieChart(currentPriceRepository, calculator);
-		DividendChart dividendChart = new DividendChart(currentPriceRepository, calculator);
-		SectorChart sectorChart = new SectorChart(currentPriceRepository, calculator);
+		PieChart pieChart = new PieChart(calculator);
+		DividendChart dividendChart = new DividendChart(calculator);
+		SectorChart sectorChart = new SectorChart(calculator);
 
 		PortfolioDetails portfolioDetails = PortfolioDetails.from(portfolio);
 		List<PortfolioPieChartItem> pieChartItems = pieChart.createItemsBy(portfolio);
