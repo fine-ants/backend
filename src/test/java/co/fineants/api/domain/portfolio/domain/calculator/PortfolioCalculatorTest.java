@@ -534,4 +534,29 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		Money expected = Money.won(400_000);
 		assertThat(actual).isEqualByComparingTo(expected);
 	}
+
+	@DisplayName("포트폴리오 종목들의 총 투자금액 계산한다")
+	@Test
+	void calTotalInvestmentOfHolding() {
+		// given
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createSamsungStock();
+		currentPriceRepository.savePrice(stock, 50_000L);
+		PortfolioHolding holding = PortfolioHolding.of(portfolio, stock);
+
+		PurchaseHistory purchaseHistory1 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
+			Money.won(10000), "첫구매", holding);
+		PurchaseHistory purchaseHistory2 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
+			Money.won(10000), "첫구매", holding);
+
+		holding.addPurchaseHistory(purchaseHistory1);
+		holding.addPurchaseHistory(purchaseHistory2);
+		portfolio.addHolding(holding);
+		// when
+		Expression actual = calculator.calTotalInvestmentOfHolding(List.of(holding));
+
+		// then
+		Money expected = Money.won(100_000);
+		assertThat(actual).isEqualByComparingTo(expected);
+	}
 }
