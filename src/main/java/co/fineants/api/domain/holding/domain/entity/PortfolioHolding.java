@@ -120,6 +120,12 @@ public class PortfolioHolding extends BaseEntity {
 		return calculator.calMonthlyDividendMap(stock, purchaseHistories, currentLocalDate);
 	}
 
+	public Expression calculateTotalInvestmentAmount(PortfolioCalculator calculator) {
+		return calculator.calTotalInvestment(purchaseHistories);
+	}
+	//== 계산 메서드 종료 ==//
+
+	//== 위임 메서드 시작 ==//
 	public Optional<Money> fetchPrice(PriceRepository repository) {
 		return stock.fetchPrice(repository);
 	}
@@ -139,14 +145,6 @@ public class PortfolioHolding extends BaseEntity {
 
 	public List<PurchaseHistory> getPurchaseHistories() {
 		return Collections.unmodifiableList(purchaseHistories);
-	}
-
-	public String getCompanyName() {
-		return stock.getCompanyName();
-	}
-
-	public Expression calculateTotalInvestmentAmount(PortfolioCalculator calculator) {
-		return calculator.calTotalInvestment(purchaseHistories);
 	}
 
 	@Override
