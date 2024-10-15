@@ -12,12 +12,12 @@ import org.jetbrains.annotations.NotNull;
 
 import co.fineants.api.domain.common.count.Count;
 
-public class Money implements Expression {
+public final class Money implements Expression {
 	private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("#,###");
 	private static final Money ZERO = new Money(BigDecimal.ZERO, KRW);
-	protected final BigDecimal amount;
+	final BigDecimal amount;
 
-	protected final Currency currency;
+	final Currency currency;
 
 	public Money(BigDecimal amount, Currency currency) {
 		this.amount = amount;
@@ -63,7 +63,7 @@ public class Money implements Expression {
 	public static Money zero() {
 		return ZERO;
 	}
-	
+
 	@Override
 	public Money reduce(Bank bank, Currency to) {
 		double rate = bank.rate(currency, to);
