@@ -110,61 +110,12 @@ public class PortfolioHolding extends BaseEntity {
 		return calculator.calNumShares(purchaseHistories);
 	}
 
-	/**
-	 * 포트폴리오 종목의 총 투자금액 계산 후 반환.
-	 * <p>
-	 * TotalInvestmentAmount = sum(PurchaseHistory.InvestmentAmount)
-	 * </p>
-	 * @return 총 투자금액 합계
-	 */
-	public Expression calculateTotalInvestmentAmount() {
-		return purchaseHistories.stream()
-			.map(PurchaseHistory::calInvestmentAmount)
-			.reduce(Money.wonZero(), Expression::plus);
+	public Expression calculateAnnualExpectedDividend(PortfolioCalculator calculator) {
+		return calculator.calAnnualExpectedDividend(stock, purchaseHistories);
 	}
 
-	private Expression calculateAnnualDividend() {
-		return purchaseHistories.stream()
-			.flatMap(history -> stock.getCurrentYearDividends().stream()
-				.filter(stockDividend -> stockDividend.isSatisfiedBy(history))
-				.map(stockDividend -> stockDividend.calculateDividendSum(history.getNumShares())))
-			.reduce(Money.zero(), Expression::plus);
-	}
-
-	/**
-	 * 포트폴리오 종목의 예상 연배당금 계산 후 반환.
-	 * <p>
-	 * AnnualExpectedDividend = AnnualDividend + AnnualExpectedDividend
-	 * </p>
-	 * <p>
-	 * 예상 연배당금(AnnualExpectedDividend)에는 실제 연배당금(AnnualDividend)이 포함되어 있습니다.
-	 * </p>
-	 * @return 예상 연배당금
-	 */
-	public Expression calculateAnnualExpectedDividend() {
-		Expression annualDividend = calculateAnnualDividend();
-		Expression annualExpectedDividend = stock.createMonthlyExpectedDividends(purchaseHistories, LocalDate.now())
-			.values()
-			.stream()
-			.reduce(Money.zero(), Expression::plus);
-		return annualDividend.plus(annualExpectedDividend);
-	}
-
-	/**
-	 * 포트폴리오 종목의 이번달 배당금 계산 후 반환
-	 * <p>
-	 * CurrentMonthDividend = sum(PurchaseHistory.NumShares * StockDividend)
-	 * </p>
-	 * @return 이번달 배당금
-	 */
-	public Expression calculateCurrentMonthDividend() {
-		return stock.getCurrentMonthDividends().stream()
-			.map(stockDividend -> purchaseHistories.stream()
-				.filter(stockDividend::isPurchaseDateBeforeExDividendDate)
-				.map(PurchaseHistory::getNumShares)
-				.reduce(Count.zero(), Count::add)
-				.multiply(stockDividend.getDividend()))
-			.reduce(Money.zero(), Expression::plus);
+	public Expression calculateCurrentMonthDividend(PortfolioCalculator calculator) {
+		return calculator.calCurrentMonthExpectedDividend(stock, purchaseHistories);
 	}
 
 	/**

@@ -24,6 +24,7 @@ import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
 import co.fineants.api.domain.kis.repository.PriceRepository;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import co.fineants.api.domain.purchasehistory.domain.entity.PurchaseHistory;
+import co.fineants.api.domain.stock.domain.entity.Stock;
 import co.fineants.api.global.common.time.LocalDateTimeService;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
@@ -290,7 +291,24 @@ public class PortfolioCalculator {
 	 */
 	public Expression calCurrentMonthDividendBy(List<PortfolioHolding> holdings) {
 		return holdings.stream()
-			.map(PortfolioHolding::calculateCurrentMonthDividend)
+			.map(holding -> holding.calculateCurrentMonthDividend(this))
+			.reduce(Money.zero(), Expression::plus);
+	}
+
+	/**
+	 * 포트폴리오 종목의 이번달 배당금 계산 후 반환
+	 * <p>
+	 * CurrentMonthDividend = sum(PurchaseHistory.NumShares * StockDividend)
+	 * </p>
+	 * @return 이번달 배당금
+	 */
+	public Expression calCurrentMonthExpectedDividend(Stock stock, List<PurchaseHistory> histories) {
+		return stock.getCurrentMonthDividends().stream()
+			.map(stockDividend -> histories.stream()
+				.filter(stockDividend::isPurchaseDateBeforeExDividendDate)
+				.map(PurchaseHistory::getNumShares)
+				.reduce(Count.zero(), Count::add)
+				.multiply(stockDividend.getDividend()))
 			.reduce(Money.zero(), Expression::plus);
 	}
 
@@ -508,7 +526,7 @@ public class PortfolioCalculator {
 	}
 
 	public Expression calAnnualExpectedDividendBy(PortfolioHolding holding) {
-		return holding.calculateAnnualExpectedDividend();
+		return holding.calculateAnnualExpectedDividend(this);
 	}
 
 	/**
@@ -557,9 +575,44 @@ public class PortfolioCalculator {
 		return holding.calculateNumShares(this);
 	}
 
+	/**
+	 * 포트폴리오 종목의 총 투자금액 계산 후 반환.
+	 * <p>
+	 * TotalInvestmentAmount = sum(PurchaseHistory.InvestmentAmount)
+	 * </p>
+	 * @param histories 매입 이력 리스트
+	 * @return 총 투자금액 합계
+	 */
 	public Expression calTotalInvestment(List<PurchaseHistory> histories) {
 		return histories.stream()
 			.map(PurchaseHistory::calInvestmentAmount)
 			.reduce(Money.wonZero(), Expression::plus);
+	}
+
+	/**
+	 * 포트폴리오 종목의 예상 연배당금 계산 후 반환.
+	 * <p>
+	 * AnnualExpectedDividend = AnnualDividend + AnnualExpectedDividend
+	 * </p>
+	 * <p>
+	 * 예상 연배당금(AnnualExpectedDividend)에는 실제 연배당금(AnnualDividend)이 포함되어 있습니다.
+	 * </p>
+	 * @return 예상 연배당금
+	 */
+	public Expression calAnnualExpectedDividend(Stock stock, List<PurchaseHistory> histories) {
+		Expression annualDividend = this.calAnnualDividend(stock, histories);
+		Expression annualExpectedDividend = stock.createMonthlyExpectedDividends(histories, LocalDate.now())
+			.values()
+			.stream()
+			.reduce(Money.zero(), Expression::plus);
+		return annualDividend.plus(annualExpectedDividend);
+	}
+
+	private Expression calAnnualDividend(Stock stock, List<PurchaseHistory> histories) {
+		return histories.stream()
+			.flatMap(history -> stock.getCurrentYearDividends().stream()
+				.filter(stockDividend -> stockDividend.isSatisfiedBy(history))
+				.map(stockDividend -> stockDividend.calculateDividendSum(history.getNumShares())))
+			.reduce(Money.zero(), Expression::plus);
 	}
 }

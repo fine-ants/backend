@@ -164,4 +164,8 @@ public class StockDividend extends BaseEntity {
 	public boolean isPurchaseDateBeforeExDividendDate(PurchaseHistory history) {
 		return dividendDates.isPurchaseDateBeforeExDividendDate(history);
 	}
+
+	public boolean isCurrentMonthPaymentDate(LocalDate today) {
+		return dividendDates.isCurrentMonthPaymentDate(today);
+	}
 }

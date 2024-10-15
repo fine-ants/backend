@@ -83,7 +83,7 @@ public class Stock extends BaseEntity {
 	public List<StockDividend> getCurrentMonthDividends() {
 		LocalDate today = localDateTimeService.getLocalDateWithNow();
 		return stockDividends.stream()
-			.filter(dividend -> dividend.equalPaymentDate(today))
+			.filter(dividend -> dividend.isCurrentMonthPaymentDate(today))
 			.toList();
 	}
 
