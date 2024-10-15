@@ -26,32 +26,6 @@ import co.fineants.api.domain.stock.domain.entity.Stock;
 
 class PortfolioHoldingTest extends AbstractContainerBaseTest {
 
-	@DisplayName("한 종목의 총 투자 금액을 계산한다")
-	@Test
-	void calculateTotalInvestmentAmount() {
-		// given
-		Portfolio portfolio = createPortfolio(createMember());
-		Stock stock = createSamsungStock();
-		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock);
-
-		PurchaseHistory purchaseHistory1 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
-			Money.won(10000), "첫구매", portFolioHolding);
-		PurchaseHistory purchaseHistory2 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
-			Money.dollar(10), "첫구매", portFolioHolding);
-
-		portFolioHolding.addPurchaseHistory(purchaseHistory1);
-		portFolioHolding.addPurchaseHistory(purchaseHistory2);
-
-		Bank.getInstance().addRate(Currency.KRW, Currency.USD, 1000);
-		Bank.getInstance().addRate(Currency.USD, Currency.KRW, (double)1 / 1000);
-		// when
-		Expression result = portFolioHolding.calculateTotalInvestmentAmount();
-
-		// then
-		Money totalInvestmentAmount = Bank.getInstance().reduce(result, Currency.KRW);
-		assertThat(totalInvestmentAmount).isEqualByComparingTo(Money.won(100000L));
-	}
-
 	@DisplayName("포트폴리오 종목의 월별 배당금을 계산한다")
 	@Test
 	void calculateMonthlyDividends() {

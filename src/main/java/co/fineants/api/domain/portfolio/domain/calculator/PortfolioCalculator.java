@@ -178,7 +178,7 @@ public class PortfolioCalculator {
 	 */
 	public Expression calTotalInvestmentOfHolding(List<PortfolioHolding> holdings) {
 		return holdings.stream()
-			.map(PortfolioHolding::calculateTotalInvestmentAmount)
+			.map(this::calTotalInvestmentBy)
 			.reduce(Money.wonZero(), Expression::plus);
 	}
 
