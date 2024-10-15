@@ -79,6 +79,12 @@ public class PortfolioCalculator {
 		return portfolio.calTotalInvestment(this);
 	}
 
+	/**
+	 * 포트폴리오 종목의 총 투자 금액 계산 후 반환.
+	 *
+	 * @param holding 포트폴리오 종목 객체
+	 * @return 포트폴리오 종목의 총 투자 금액
+	 */
 	public Expression calTotalInvestmentBy(PortfolioHolding holding) {
 		return holding.calTotalInvestment(this);
 	}
@@ -123,10 +129,7 @@ public class PortfolioCalculator {
 	 * @throws IllegalStateException 포트폴리오 종목(PortfolioHolding) 중 하나라도 계산에 실패하면 예외 발생
 	 */
 	public Expression calTotalGainBy(List<PortfolioHolding> holdings) {
-		return holdings.stream()
-			.map(this::calTotalGainBy)
-			.reduce(Expression::plus)
-			.orElseGet(Money::zero);
+		return sumExpressions(holdings, this::calTotalGainBy);
 	}
 
 	/**
@@ -181,10 +184,7 @@ public class PortfolioCalculator {
 	 * @return 포트폴리오 총 투자 금액 합계
 	 */
 	public Expression calTotalInvestmentOfHolding(List<PortfolioHolding> holdings) {
-		return holdings.stream()
-			.map(this::calTotalInvestmentBy)
-			.reduce(Expression::plus)
-			.orElseGet(Money::zero);
+		return sumExpressions(holdings, this::calTotalInvestmentBy);
 	}
 
 	/**
@@ -197,10 +197,7 @@ public class PortfolioCalculator {
 	 * @throws IllegalStateException 포트폴리오 평가 금액 계산이 실패하면 예외 발생
 	 */
 	public Expression calTotalCurrentValuation(List<PortfolioHolding> holdings) {
-		return holdings.stream()
-			.map(this::calTotalCurrentValuationBy)
-			.reduce(Expression::plus)
-			.orElseGet(Money::zero);
+		return sumExpressions(holdings, this::calTotalCurrentValuationBy);
 	}
 
 	/**
@@ -295,10 +292,7 @@ public class PortfolioCalculator {
 	 * @return 포트폴리오의 당월 예상 배당금 합계
 	 */
 	public Expression calCurrentMonthDividendBy(List<PortfolioHolding> holdings) {
-		return holdings.stream()
-			.map(holding -> holding.calCurrentMonthDividend(this))
-			.reduce(Expression::plus)
-			.orElseGet(Money::zero);
+		return sumExpressions(holdings, holding -> holding.calCurrentMonthDividend(this));
 	}
 
 	/**
@@ -560,10 +554,7 @@ public class PortfolioCalculator {
 	}
 
 	private Expression calTotalInvestmentOfPurchaseHistories(List<PurchaseHistory> histories) {
-		return histories.stream()
-			.map(PurchaseHistory::calInvestmentAmount)
-			.reduce(Expression::plus)
-			.orElseGet(Money::zero);
+		return sumExpressions(histories, PurchaseHistory::calInvestmentAmount);
 	}
 
 	/**
@@ -575,10 +566,7 @@ public class PortfolioCalculator {
 	 * @return 종목 매입 합계
 	 */
 	public Count calNumShares(List<PurchaseHistory> histories) {
-		return histories.stream()
-			.map(PurchaseHistory::getNumShares)
-			.reduce(Count::add)
-			.orElseGet(Count::zero);
+		return countExpressions(histories, PurchaseHistory::getNumShares);
 	}
 
 	public Count calNumSharesBy(PortfolioHolding holding) {
@@ -594,10 +582,21 @@ public class PortfolioCalculator {
 	 * @return 총 투자금액 합계
 	 */
 	public Expression calTotalInvestment(List<PurchaseHistory> histories) {
-		return histories.stream()
-			.map(PurchaseHistory::calInvestmentAmount)
+		return sumExpressions(histories, PurchaseHistory::calInvestmentAmount);
+	}
+
+	private static <T> Expression sumExpressions(List<T> data, Function<T, Expression> mapper) {
+		return data.stream()
+			.map(mapper)
 			.reduce(Expression::plus)
 			.orElseGet(Money::zero);
+	}
+
+	private static <T> Count countExpressions(List<T> data, Function<T, Count> mapper) {
+		return data.stream()
+			.map(mapper)
+			.reduce(Count::add)
+			.orElseGet(Count::zero);
 	}
 
 	/**
