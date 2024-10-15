@@ -33,7 +33,7 @@ public final class Money implements Expression {
 	}
 
 	public static Money franc(int amount) {
-		return franc(new BigDecimal(amount));
+		return franc(BigDecimal.valueOf(amount));
 	}
 
 	public static Money franc(BigDecimal amount) {
@@ -45,7 +45,7 @@ public final class Money implements Expression {
 	}
 
 	public static Money won(int amount) {
-		return won(new BigDecimal(amount));
+		return won(BigDecimal.valueOf(amount));
 	}
 
 	public static Money won(BigDecimal amount) {
@@ -53,7 +53,7 @@ public final class Money implements Expression {
 	}
 
 	public static Money won(long amount) {
-		return won(new BigDecimal(amount));
+		return won(BigDecimal.valueOf(amount));
 	}
 
 	public static Money won(double amount) {
@@ -82,7 +82,7 @@ public final class Money implements Expression {
 
 	@Override
 	public Expression times(int multiplier) {
-		return new Money(amount.multiply(new BigDecimal(multiplier)), currency);
+		return new Money(amount.multiply(BigDecimal.valueOf(multiplier)), currency);
 	}
 
 	@Override
