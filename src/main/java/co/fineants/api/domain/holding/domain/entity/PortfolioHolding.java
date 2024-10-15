@@ -106,19 +106,6 @@ public class PortfolioHolding extends BaseEntity {
 		return calculator.calAverageCostPerShare(purchaseHistories);
 	}
 
-	/**
-	 * 포트폴리오 종목 매입 개수 계산 후 반환.
-	 * <p>
-	 * NumShares = sum(PurchaseHistory.NumShares)
-	 * </p>
-	 * @return 종목 매입 합계
-	 */
-	public Count calculateNumShares() {
-		return purchaseHistories.stream()
-			.map(PurchaseHistory::getNumShares)
-			.reduce(Count.zero(), Count::add);
-	}
-
 	public Count calculateNumShares(PortfolioCalculator calculator) {
 		return calculator.calNumShares(purchaseHistories);
 	}

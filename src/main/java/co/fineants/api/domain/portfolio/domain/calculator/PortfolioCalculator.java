@@ -539,6 +539,14 @@ public class PortfolioCalculator {
 			.reduce(Money.wonZero(), Expression::plus);
 	}
 
+	/**
+	 * 포트폴리오 종목 매입 개수 계산 후 반환.
+	 * <p>
+	 * NumShares = sum(PurchaseHistory.NumShares)
+	 * </p>
+	 * @param histories 매입 이력 리스트
+	 * @return 종목 매입 합계
+	 */
 	public Count calNumShares(List<PurchaseHistory> histories) {
 		return histories.stream()
 			.map(PurchaseHistory::getNumShares)
