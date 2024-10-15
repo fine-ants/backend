@@ -485,4 +485,28 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 			.usingElementComparator(Expression::compareTo)
 			.containsExactlyElementsOf(expected.values());
 	}
+
+	@DisplayName("포트폴리오의 잔고를 계산한다")
+	@Test
+	void calBalanceBy() {
+		// given
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createSamsungStock();
+		PortfolioHolding holding = PortfolioHolding.of(portfolio, stock);
+
+		PurchaseHistory purchaseHistory1 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
+			Money.won(10000), "첫구매", holding);
+		PurchaseHistory purchaseHistory2 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
+			Money.won(10000), "첫구매", holding);
+
+		holding.addPurchaseHistory(purchaseHistory1);
+		holding.addPurchaseHistory(purchaseHistory2);
+		portfolio.addHolding(holding);
+		// when
+		Expression actual = calculator.calBalanceBy(portfolio);
+
+		// then
+		Money expected = Money.won(900_000);
+		assertThat(actual).isEqualByComparingTo(expected);
+	}
 }
