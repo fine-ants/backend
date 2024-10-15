@@ -14,7 +14,6 @@ import co.fineants.api.domain.BaseEntity;
 import co.fineants.api.domain.common.count.Count;
 import co.fineants.api.domain.common.money.Expression;
 import co.fineants.api.domain.common.money.Money;
-import co.fineants.api.domain.common.money.Percentage;
 import co.fineants.api.domain.common.money.RateDivision;
 import co.fineants.api.domain.common.notification.Notifiable;
 import co.fineants.api.domain.holding.domain.dto.response.PortfolioPieChartItem;
@@ -430,13 +429,8 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	public List<PortfolioPieChartItem> calCurrentValuationWeights(PortfolioCalculator calculator) {
 		Expression totalAsset = calculator.calTotalAssetBy(this);
 		return portfolioHoldings.stream()
-			.map(holding -> {
-				RateDivision weight = calculator.calCurrentValuationWeightBy(holding, totalAsset);
-				Expression currentValuation = calculator.calTotalCurrentValuationBy(holding);
-				Expression totalGain = calculator.calTotalGainBy(holding);
-				Percentage totalReturnRate = calculator.calTotalGainPercentage(holding);
-				return holding.createPieChartItem(weight, currentValuation, totalGain, totalReturnRate);
-			}).toList();
+			.map(holding -> calculator.calPortfolioPieChartItemBy(holding, totalAsset))
+			.toList();
 	}
 
 	public Map<Month, Expression> calTotalDividend(PortfolioCalculator calculator, LocalDate currentLocalDate) {

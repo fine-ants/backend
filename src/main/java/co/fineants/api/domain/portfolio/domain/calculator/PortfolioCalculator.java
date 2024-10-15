@@ -642,4 +642,20 @@ public class PortfolioCalculator {
 			(month, dividend) -> result.merge(month, dividend, Expression::plus));
 		return result;
 	}
+
+	/**
+	 * 포트폴리오 종목의 파이차트 요소를 생성후 반환.
+	 * @param holding 포트폴리오 종목 객체
+	 * @param totalAsset 포트폴리오 총 자산
+	 * @return 파이차트 요소
+	 */
+	public PortfolioPieChartItem calPortfolioPieChartItemBy(PortfolioHolding holding, Expression totalAsset) {
+		String name = holding.getCompanyName();
+		Percentage weightPercentage = this.calCurrentValuationWeightBy(holding, totalAsset)
+			.toPercentage(Bank.getInstance(), Currency.KRW);
+		Expression currentValuation = this.calTotalCurrentValuationBy(holding);
+		Expression totalGain = this.calTotalGainBy(holding);
+		Percentage totalGainRate = this.calTotalGainPercentage(holding);
+		return PortfolioPieChartItem.stock(name, currentValuation, weightPercentage, totalGain, totalGainRate);
+	}
 }

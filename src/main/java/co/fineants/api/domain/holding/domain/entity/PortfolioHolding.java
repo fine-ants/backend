@@ -13,13 +13,8 @@ import org.hibernate.annotations.BatchSize;
 
 import co.fineants.api.domain.BaseEntity;
 import co.fineants.api.domain.common.count.Count;
-import co.fineants.api.domain.common.money.Bank;
-import co.fineants.api.domain.common.money.Currency;
 import co.fineants.api.domain.common.money.Expression;
 import co.fineants.api.domain.common.money.Money;
-import co.fineants.api.domain.common.money.Percentage;
-import co.fineants.api.domain.common.money.RateDivision;
-import co.fineants.api.domain.holding.domain.dto.response.PortfolioPieChartItem;
 import co.fineants.api.domain.kis.repository.ClosingPriceRepository;
 import co.fineants.api.domain.kis.repository.PriceRepository;
 import co.fineants.api.domain.portfolio.domain.calculator.PortfolioCalculator;
@@ -123,23 +118,6 @@ public class PortfolioHolding extends BaseEntity {
 		return calculator.calMonthlyDividendMap(stock, purchaseHistories, currentLocalDate);
 	}
 
-	/**
-	 * 포트폴리오 종목의 파이차트 요소를 생성후 반환.
-	 * @param weight 종목의 비중
-	 * @param currentValuation 현재 평가금액
-	 * @param totalGain 총 손익
-	 * @param totalGainRate 총 손익율
-	 * @return 파이차트 요소
-	 */
-	public PortfolioPieChartItem createPieChartItem(RateDivision weight, Expression currentValuation,
-		Expression totalGain, Percentage totalGainRate) {
-		String name = stock.getCompanyName();
-
-		Bank bank = Bank.getInstance();
-		Percentage weightPercentage = weight.toPercentage(bank, Currency.KRW);
-		return PortfolioPieChartItem.stock(name, currentValuation, weightPercentage, totalGain, totalGainRate);
-	}
-
 	public Optional<Money> fetchPrice(PriceRepository repository) {
 		return stock.fetchPrice(repository);
 	}
@@ -156,13 +134,17 @@ public class PortfolioHolding extends BaseEntity {
 		return Collections.unmodifiableList(purchaseHistories);
 	}
 
-	@Override
-	public String toString() {
-		return String.format("PortfolioHolding(id=%d, portfolio=%d, stock=%s)", id, portfolio.getId(),
-			stock.getTickerSymbol());
+	public String getCompanyName() {
+		return stock.getCompanyName();
 	}
 
 	public Expression calculateTotalInvestmentAmount(PortfolioCalculator calculator) {
 		return calculator.calTotalInvestment(purchaseHistories);
+	}
+
+	@Override
+	public String toString() {
+		return String.format("PortfolioHolding(id=%d, portfolio=%d, stock=%s)", id, portfolio.getId(),
+			stock.getTickerSymbol());
 	}
 }
