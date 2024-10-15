@@ -141,6 +141,10 @@ public class PortfolioHolding extends BaseEntity {
 		return result;
 	}
 
+	public Map<Month, Expression> createMonthlyDividendMap(PortfolioCalculator calculator, LocalDate currentLocalDate) {
+		return calculator.calMonthlyDividendMap(stock, purchaseHistories, currentLocalDate);
+	}
+
 	/**
 	 * 포트폴리오 종목의 파이차트 요소를 생성후 반환.
 	 * @param weight 종목의 비중

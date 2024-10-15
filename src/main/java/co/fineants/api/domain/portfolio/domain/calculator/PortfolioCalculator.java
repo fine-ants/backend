@@ -3,6 +3,7 @@ package co.fineants.api.domain.portfolio.domain.calculator;
 import java.time.LocalDate;
 import java.time.Month;
 import java.util.Comparator;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -329,8 +330,7 @@ public class PortfolioCalculator {
 	 */
 	public Expression calAnnualDividend(LocalDateTimeService dateTimeService, List<PortfolioHolding> holdings) {
 		return holdings.stream()
-			.map(portfolioHolding -> portfolioHolding.createMonthlyDividendMap(
-				dateTimeService.getLocalDateWithNow()))
+			.map(holding -> this.calMonthlyDividendMapBy(holding, dateTimeService.getLocalDateWithNow()))
 			.map(map -> map.values().stream()
 				.reduce(Money.zero(), Expression::plus))
 			.reduce(Money.zero(), Expression::plus);
@@ -475,9 +475,7 @@ public class PortfolioCalculator {
 
 	public Map<Month, Expression> calTotalDividend(List<PortfolioHolding> holdings, LocalDate currentLocalDate) {
 		return holdings.stream()
-			.flatMap(holding ->
-				holding.createMonthlyDividendMap(currentLocalDate).entrySet().stream()
-			)
+			.flatMap(holding -> this.calMonthlyDividendMapBy(holding, currentLocalDate).entrySet().stream())
 			.collect(Collectors.groupingBy(Map.Entry::getKey,
 				Collectors.reducing(Money.zero(), Map.Entry::getValue, Expression::plus))
 			);
@@ -615,5 +613,22 @@ public class PortfolioCalculator {
 				.filter(stockDividend -> stockDividend.isSatisfiedBy(history))
 				.map(stockDividend -> stockDividend.calculateDividendSum(history.getNumShares())))
 			.reduce(Money.zero(), Expression::plus);
+	}
+
+	public Map<Month, Expression> calMonthlyDividendMapBy(PortfolioHolding holding, LocalDate currentLocalDate) {
+		return holding.createMonthlyDividendMap(this, currentLocalDate);
+	}
+
+	public Map<Month, Expression> calMonthlyDividendMap(Stock stock, List<PurchaseHistory> purchaseHistories,
+		LocalDate currentLocalDate) {
+		Map<Month, Expression> result = new EnumMap<>(Month.class);
+		Map<Month, Expression> monthlyDividends = stock.createMonthlyDividends(purchaseHistories, currentLocalDate);
+		Map<Month, Expression> monthlyExpectedDividends = stock.createMonthlyExpectedDividends(purchaseHistories,
+			currentLocalDate);
+		monthlyDividends.forEach(
+			(month, dividend) -> result.merge(month, dividend, Expression::plus));
+		monthlyExpectedDividends.forEach(
+			(month, dividend) -> result.merge(month, dividend, Expression::plus));
+		return result;
 	}
 }
