@@ -20,7 +20,6 @@ public final class Count implements Comparable<Count> {
 		this.value = BigInteger.ZERO;
 	}
 
-	// TODO: 캐싱 인스턴스 반환
 	public static Count zero() {
 		return ZERO;
 	}
