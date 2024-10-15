@@ -125,7 +125,8 @@ public class PortfolioCalculator {
 	public Expression calTotalGainBy(List<PortfolioHolding> holdings) {
 		return holdings.stream()
 			.map(this::calTotalGainBy)
-			.reduce(Money.zero(), Expression::plus);
+			.reduce(Expression::plus)
+			.orElseGet(Money::zero);
 	}
 
 	/**
@@ -182,7 +183,8 @@ public class PortfolioCalculator {
 	public Expression calTotalInvestmentOfHolding(List<PortfolioHolding> holdings) {
 		return holdings.stream()
 			.map(this::calTotalInvestmentBy)
-			.reduce(Money.wonZero(), Expression::plus);
+			.reduce(Expression::plus)
+			.orElseGet(Money::zero);
 	}
 
 	/**
@@ -197,7 +199,8 @@ public class PortfolioCalculator {
 	public Expression calTotalCurrentValuation(List<PortfolioHolding> holdings) {
 		return holdings.stream()
 			.map(this::calTotalCurrentValuationBy)
-			.reduce(Money.zero(), Expression::plus);
+			.reduce(Expression::plus)
+			.orElseGet(Money::zero);
 	}
 
 	/**
@@ -294,7 +297,8 @@ public class PortfolioCalculator {
 	public Expression calCurrentMonthDividendBy(List<PortfolioHolding> holdings) {
 		return holdings.stream()
 			.map(holding -> holding.calCurrentMonthDividend(this))
-			.reduce(Money.zero(), Expression::plus);
+			.reduce(Expression::plus)
+			.orElseGet(Money::zero);
 	}
 
 	/**
@@ -311,7 +315,8 @@ public class PortfolioCalculator {
 				.map(PurchaseHistory::getNumShares)
 				.reduce(Count.zero(), Count::add)
 				.multiply(stockDividend.getDividend()))
-			.reduce(Money.zero(), Expression::plus);
+			.reduce(Expression::plus)
+			.orElseGet(Money::zero);
 	}
 
 	public Expression calAnnualDividendBy(LocalDateTimeService dateTimeService, Portfolio portfolio) {
@@ -332,8 +337,10 @@ public class PortfolioCalculator {
 		return holdings.stream()
 			.map(holding -> this.calMonthlyDividendMapBy(holding, dateTimeService.getLocalDateWithNow()))
 			.map(map -> map.values().stream()
-				.reduce(Money.zero(), Expression::plus))
-			.reduce(Money.zero(), Expression::plus);
+				.reduce(Expression::plus)
+				.orElseGet(Money::zero))
+			.reduce(Expression::plus)
+			.orElseGet(Money::zero);
 	}
 
 	/**
@@ -555,7 +562,8 @@ public class PortfolioCalculator {
 	private Expression calTotalInvestmentOfPurchaseHistories(List<PurchaseHistory> histories) {
 		return histories.stream()
 			.map(PurchaseHistory::calInvestmentAmount)
-			.reduce(Money.wonZero(), Expression::plus);
+			.reduce(Expression::plus)
+			.orElseGet(Money::zero);
 	}
 
 	/**
@@ -569,7 +577,8 @@ public class PortfolioCalculator {
 	public Count calNumShares(List<PurchaseHistory> histories) {
 		return histories.stream()
 			.map(PurchaseHistory::getNumShares)
-			.reduce(Count.zero(), Count::add);
+			.reduce(Count::add)
+			.orElseGet(Count::zero);
 	}
 
 	public Count calNumSharesBy(PortfolioHolding holding) {
@@ -587,7 +596,8 @@ public class PortfolioCalculator {
 	public Expression calTotalInvestment(List<PurchaseHistory> histories) {
 		return histories.stream()
 			.map(PurchaseHistory::calInvestmentAmount)
-			.reduce(Money.wonZero(), Expression::plus);
+			.reduce(Expression::plus)
+			.orElseGet(Money::zero);
 	}
 
 	/**
@@ -605,7 +615,8 @@ public class PortfolioCalculator {
 		Expression annualExpectedDividend = stock.createMonthlyExpectedDividends(histories, LocalDate.now())
 			.values()
 			.stream()
-			.reduce(Money.zero(), Expression::plus);
+			.reduce(Expression::plus)
+			.orElseGet(Money::zero);
 		return annualDividend.plus(annualExpectedDividend);
 	}
 
@@ -614,7 +625,8 @@ public class PortfolioCalculator {
 			.flatMap(history -> stock.getCurrentYearDividends().stream()
 				.filter(stockDividend -> stockDividend.isSatisfiedBy(history))
 				.map(stockDividend -> stockDividend.calculateDividendSum(history.getNumShares())))
-			.reduce(Money.zero(), Expression::plus);
+			.reduce(Expression::plus)
+			.orElseGet(Money::zero);
 	}
 
 	public Map<Month, Expression> calMonthlyDividendMapBy(PortfolioHolding holding, LocalDate currentLocalDate) {
