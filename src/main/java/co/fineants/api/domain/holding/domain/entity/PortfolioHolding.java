@@ -120,25 +120,6 @@ public class PortfolioHolding extends BaseEntity {
 		return calculator.calMonthlyDividendMap(stock, purchaseHistories, currentLocalDate);
 	}
 
-	/**
-	 * 포트폴리오 종목의 파이차트 요소를 생성후 반환.
-	 * @param weight 종목의 비중
-	 * @param currentValuation 현재 평가금액
-	 * @param totalGain 총 손익
-	 * @param totalGainRate 총 손익율
-	 * @return 파이차트 요소
-	 */
-	public PortfolioPieChartItem createPieChartItem(RateDivision weight, Expression currentValuation,
-		Expression totalGain, Percentage totalGainRate) {
-		String name = stock.getCompanyName();
-
-		Bank bank = Bank.getInstance();
-		Percentage weightPercentage = weight.toPercentage(bank, Currency.KRW);
-		return PortfolioPieChartItem.stock(name, currentValuation, weightPercentage, totalGain, totalGainRate);
-	}
-	//== 계산 메서드 종료 ==//
-
-	//== 위임 메서드 시작 ==//
 	public Optional<Money> fetchPrice(PriceRepository repository) {
 		return stock.fetchPrice(repository);
 	}
@@ -158,6 +139,14 @@ public class PortfolioHolding extends BaseEntity {
 
 	public List<PurchaseHistory> getPurchaseHistories() {
 		return Collections.unmodifiableList(purchaseHistories);
+	}
+
+	public String getCompanyName() {
+		return stock.getCompanyName();
+	}
+
+	public Expression calculateTotalInvestmentAmount(PortfolioCalculator calculator) {
+		return calculator.calTotalInvestment(purchaseHistories);
 	}
 
 	@Override
