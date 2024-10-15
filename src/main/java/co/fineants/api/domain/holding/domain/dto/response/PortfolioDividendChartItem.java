@@ -1,7 +1,5 @@
 package co.fineants.api.domain.holding.domain.dto.response;
 
-import org.jetbrains.annotations.NotNull;
-
 import co.fineants.api.domain.common.money.Money;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -13,7 +11,7 @@ import lombok.ToString;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @ToString
-public class PortfolioDividendChartItem implements Comparable<PortfolioDividendChartItem> {
+public class PortfolioDividendChartItem {
 	private int month;
 	private Money amount;
 
@@ -26,10 +24,5 @@ public class PortfolioDividendChartItem implements Comparable<PortfolioDividendC
 			month,
 			amount
 		);
-	}
-
-	@Override
-	public int compareTo(@NotNull PortfolioDividendChartItem item) {
-		return Integer.compare(this.month, item.month);
 	}
 }

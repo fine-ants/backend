@@ -2,15 +2,15 @@ package co.fineants.api.domain.holding.domain.entity;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.Month;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import org.hibernate.annotations.BatchSize;
+import org.jetbrains.annotations.NotNull;
 
 import co.fineants.api.domain.BaseEntity;
 import co.fineants.api.domain.common.count.Count;
@@ -20,10 +20,10 @@ import co.fineants.api.domain.common.money.Expression;
 import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.common.money.Percentage;
 import co.fineants.api.domain.common.money.RateDivision;
+import co.fineants.api.domain.dividend.domain.entity.StockDividend;
 import co.fineants.api.domain.holding.domain.dto.response.PortfolioPieChartItem;
 import co.fineants.api.domain.kis.repository.ClosingPriceRepository;
 import co.fineants.api.domain.kis.repository.PriceRepository;
-import co.fineants.api.domain.portfolio.domain.calculator.PortfolioCalculator;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import co.fineants.api.domain.purchasehistory.domain.entity.PurchaseHistory;
 import co.fineants.api.domain.stock.domain.entity.Stock;
@@ -58,17 +58,22 @@ public class PortfolioHolding extends BaseEntity {
 
 	@BatchSize(size = 1000)
 	@OneToMany(mappedBy = "portfolioHolding", fetch = FetchType.LAZY)
-	private List<PurchaseHistory> purchaseHistories = new ArrayList<>();
+	private List<PurchaseHistory> purchaseHistory = new ArrayList<>();
 
 	protected PortfolioHolding() {
-		this.purchaseHistories = new ArrayList<>();
+		this.purchaseHistory = new ArrayList<>();
 	}
 
-	private PortfolioHolding(Long id, Portfolio portfolio, Stock stock) {
-		super(LocalDateTime.now(), LocalDateTime.now());
+	private PortfolioHolding(LocalDateTime createAt, LocalDateTime modifiedAt, Long id, Portfolio portfolio,
+		Stock stock) {
+		super(createAt, modifiedAt);
 		this.id = id;
 		this.portfolio = portfolio;
 		this.stock = stock;
+	}
+
+	public static PortfolioHolding empty(Portfolio portfolio, Stock stock) {
+		return of(portfolio, stock);
 	}
 
 	public static PortfolioHolding of(Portfolio portfolio, Stock stock) {
@@ -76,13 +81,13 @@ public class PortfolioHolding extends BaseEntity {
 	}
 
 	public static PortfolioHolding of(Long id, Portfolio portfolio, Stock stock) {
-		return new PortfolioHolding(id, portfolio, stock);
+		return new PortfolioHolding(LocalDateTime.now(), null, id, portfolio, stock);
 	}
 
-	//== 연관관계 메소드 시작 ==//
+	//== 연관관계 메소드 ==//
 	public void addPurchaseHistory(PurchaseHistory purchaseHistory) {
-		if (!this.purchaseHistories.contains(purchaseHistory)) {
-			this.purchaseHistories.add(purchaseHistory);
+		if (!this.purchaseHistory.contains(purchaseHistory)) {
+			this.purchaseHistory.add(purchaseHistory);
 			purchaseHistory.setHolding(this);
 		}
 	}
@@ -96,73 +101,152 @@ public class PortfolioHolding extends BaseEntity {
 			portfolio.addHolding(this);
 		}
 	}
-	//== 연관관계 메소드 종료 ==//
 
 	/**
-	 * 매입 이력들의 평균 매입가 계산 후 반환.
-	 *
-	 * @param calculator 포트폴리오 계산기 객체
-	 * @return 평균 매입가
-	 */
-	public Expression calculateAverageCostPerShare(PortfolioCalculator calculator) {
-		return calculator.calAverageCostPerShare(purchaseHistories);
-	}
-
-	public Count calculateNumShares(PortfolioCalculator calculator) {
-		return calculator.calNumShares(purchaseHistories);
-	}
-
-	public Expression calculateAnnualExpectedDividend(PortfolioCalculator calculator) {
-		return calculator.calAnnualExpectedDividend(stock, purchaseHistories);
-	}
-
-	public Expression calculateCurrentMonthDividend(PortfolioCalculator calculator) {
-		return calculator.calCurrentMonthExpectedDividend(stock, purchaseHistories);
-	}
-
-	/**
-	 * 포트폴리오 종목의 월별 배당금 합계를 가진 맵을 생성 후 반환.
+	 * 포트폴리오 종목의 총 손익을 계산 후 반환.
 	 * <p>
-	 * 결과 맵의 배당금 합계에는 실제 월별 배당금과 예상되는 월별 배당금 합계가 포함되어 있습니다.
+	 * TotalGain = (CurrentPrice - AverageCostPerShare) * NumShares
 	 * </p>
-	 *
-	 * @param currentLocalDate 기준 일자
-	 * @return 월별 배당금 합계 맵
+	 * @param currentPrice 종목의 현재가
+	 * @return 포트폴리오 종목의 총 손익
 	 */
-	public Map<Month, Expression> createMonthlyDividendMap(LocalDate currentLocalDate) {
-		Map<Month, Expression> result = new EnumMap<>(Month.class);
-		Map<Month, Expression> monthlyDividends = stock.createMonthlyDividends(purchaseHistories, currentLocalDate);
-		Map<Month, Expression> monthlyExpectedDividends = stock.createMonthlyExpectedDividends(purchaseHistories,
-			currentLocalDate);
-		monthlyDividends.forEach(
-			(month, dividend) -> result.merge(month, dividend, Expression::plus));
-		monthlyExpectedDividends.forEach(
-			(month, dividend) -> result.merge(month, dividend, Expression::plus));
-		return result;
+	public Expression calculateTotalGain(@NotNull Expression currentPrice) {
+		Expression averageCostPerShare = calculateAverageCostPerShare();
+		int numShares = calculateNumShares().intValue();
+		return currentPrice.minus(averageCostPerShare).times(numShares);
 	}
 
 	/**
-	 * 포트폴리오 종목의 파이차트 요소를 생성후 반환.
-	 * @param weight 종목의 비중
-	 * @param currentValuation 현재 평가금액
-	 * @param totalGain 총 손익
-	 * @param totalGainRate 총 손익율
-	 * @return 파이차트 요소
+	 * 포트폴리오 종목의 평균 매입가 계산 후 반환.
+	 * <p>
+	 * AverageCostPerShare = TotalInvestmentAmount / NumShares
+	 * </p>
+	 * @return 종목 평균 매입가
 	 */
+	public Expression calculateAverageCostPerShare() {
+		return calculateTotalInvestmentAmount().divide(calculateNumShares());
+	}
+
+	/**
+	 * 포트폴리오 종목 매입 개수 계산 후 반환.
+	 * <p>
+	 * NumShares = sum(PurchaseHistory.NumShares)
+	 * </p>
+	 * @return 종목 매입 합계
+	 */
+	public Count calculateNumShares() {
+		return purchaseHistory.stream()
+			.map(PurchaseHistory::getNumShares)
+			.reduce(Count.zero(), Count::add);
+	}
+
+	/**
+	 * 포트폴리오 종목의 총 투자금액 계산 후 반환.
+	 * <p>
+	 * TotalInvestmentAmount = sum(PurchaseHistory.InvestmentAmount)
+	 * </p>
+	 * @return 총 투자금액 합계
+	 */
+	public Expression calculateTotalInvestmentAmount() {
+		return purchaseHistory.stream()
+			.map(PurchaseHistory::calculateInvestmentAmount)
+			.reduce(Money.wonZero(), Expression::plus);
+	}
+
+	/**
+	 * 포트폴리오 종목의 총 손익율 계산 후 반환.
+	 * <p>
+	 * TotalGainRate = (TotalGain / TotalInvestmentAmount)
+	 * </p>
+	 * @param currentPrice 종목의 현재가
+	 * @return 종목의 총 손익율
+	 */
+	public RateDivision calculateTotalGainRate(Expression currentPrice) {
+		Expression totalGain = calculateTotalGain(currentPrice);
+		Expression totalInvestmentAmount = calculateTotalInvestmentAmount();
+		return totalGain.divide(totalInvestmentAmount);
+	}
+
+	/**
+	 * 포트폴리오 종목의 평가 금액을 계산 후 반환.
+	 * <p>
+	 * CurrentValuation = CurrentPrice * NumShares
+	 * </p>
+	 * @param currentPrice 종목의 현재가
+	 * @return 포트폴리오 종목의 평가 금액
+	 */
+	public Expression calculateCurrentValuation(@NotNull Expression currentPrice) {
+		return currentPrice.times(calculateNumShares().intValue());
+	}
+
+	// 예상 연간 배당율 = (예상 연간 배당금 / 현재 가치) * 100
+	public RateDivision calculateAnnualExpectedDividendYield(Expression currentPrice) {
+		Expression annualDividend = calculateAnnualExpectedDividend();
+		Expression currentValuation = calculateCurrentValuation(currentPrice);
+		return annualDividend.divide(currentValuation);
+	}
+
+	// 연간 배당금 = 종목의 배당금 합계
+	public Expression calculateAnnualDividend() {
+		List<StockDividend> stockDividends = stock.getCurrentYearDividends();
+
+		Expression totalDividend = Money.zero();
+		for (PurchaseHistory history : purchaseHistory) {
+			for (StockDividend stockDividend : stockDividends) {
+				if (stockDividend.isSatisfiedBy(history)) {
+					totalDividend = totalDividend.plus(stockDividend.calculateDividendSum(history.getNumShares()));
+				}
+			}
+		}
+		return totalDividend;
+	}
+
+	// 예상 연간 배당금 계산
+	public Expression calculateAnnualExpectedDividend() {
+		Expression annualDividend = calculateAnnualDividend();
+		Expression annualExpectedDividend = stock.createMonthlyExpectedDividends(purchaseHistory, LocalDate.now())
+			.values()
+			.stream()
+			.reduce(Money.zero(), Expression::plus);
+		return annualDividend.plus(annualExpectedDividend);
+	}
+
+	public Expression calculateCurrentMonthDividend() {
+		List<StockDividend> stockDividends = stock.getCurrentMonthDividends();
+		return stockDividends.stream()
+			.flatMap(stockDividend ->
+				Stream.of(
+					purchaseHistory.stream()
+						.filter(stockDividend::isPurchaseDateBeforeExDividendDate)
+						.map(PurchaseHistory::getNumShares)
+						.reduce(Count.zero(), Count::add)
+						.multiply(stockDividend.getDividend())
+				)
+			)
+			.reduce(Money.zero(), Expression::plus);
+	}
+
+	// 월별 배당금 계산, key=월, value=배당금 합계
+	public Map<Integer, Expression> createMonthlyDividendMap(LocalDate currentLocalDate) {
+		log.debug("currentLocalDate : {}", currentLocalDate);
+		Map<Integer, Expression> monthlyDividends = stock.createMonthlyDividends(purchaseHistory, currentLocalDate);
+		Map<Integer, Expression> monthlyExpectedDividends = stock.createMonthlyExpectedDividends(purchaseHistory,
+			currentLocalDate);
+		monthlyExpectedDividends.forEach(
+			(month, dividend) -> monthlyDividends.merge(month, dividend, Expression::plus));
+		return monthlyDividends;
+	}
+
 	public PortfolioPieChartItem createPieChartItem(RateDivision weight, Expression currentValuation,
-		Expression totalGain, Percentage totalGainRate) {
+		Expression totalGain, Percentage totalReturnPercentage) {
 		String name = stock.getCompanyName();
 
 		Bank bank = Bank.getInstance();
 		Percentage weightPercentage = weight.toPercentage(bank, Currency.KRW);
-		return PortfolioPieChartItem.stock(name, currentValuation, weightPercentage, totalGain, totalGainRate);
+		return PortfolioPieChartItem.stock(name, currentValuation, weightPercentage, totalGain, totalReturnPercentage);
 	}
 
-	public Optional<Money> fetchPrice(PriceRepository repository) {
-		return stock.fetchPrice(repository);
-	}
-
-	public Expression fetchClosingPrice(ClosingPriceRepository manager) {
+	public Expression getLastDayClosingPrice(ClosingPriceRepository manager) {
 		return stock.getClosingPrice(manager);
 	}
 
@@ -170,17 +254,17 @@ public class PortfolioHolding extends BaseEntity {
 		return portfolio.hasAuthorization(memberId);
 	}
 
-	public List<PurchaseHistory> getPurchaseHistories() {
-		return Collections.unmodifiableList(purchaseHistories);
+	public List<PurchaseHistory> getPurchaseHistory() {
+		return Collections.unmodifiableList(purchaseHistory);
+	}
+
+	public Optional<Money> fetchPrice(PriceRepository repository) {
+		return stock.fetchPrice(repository);
 	}
 
 	@Override
 	public String toString() {
 		return String.format("PortfolioHolding(id=%d, portfolio=%d, stock=%s)", id, portfolio.getId(),
 			stock.getTickerSymbol());
-	}
-
-	public Expression calculateTotalInvestmentAmount(PortfolioCalculator calculator) {
-		return calculator.calTotalInvestment(purchaseHistories);
 	}
 }

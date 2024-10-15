@@ -40,27 +40,24 @@ public class PortfolioHoldingDetailItem {
 		PortfolioCalculator calculator) {
 		Bank bank = Bank.getInstance();
 		Currency to = Currency.KRW;
-		Expression totalCurrentValuation = calculator.calTotalCurrentValuationBy(holding);
+		Expression totalCurrentValuation = calculator.calTotalCurrentValuation(holding);
 		Expression currentPrice = calculator.fetchCurrentPrice(holding);
-		Expression averageCostPerShare = calculator.calAverageCostPerShareBy(holding);
-		Count numShares = calculator.calNumSharesBy(holding);
 		Expression annualDividendYield = calculator.calAnnualExpectedDividendYieldBy(holding);
 		Expression dailyChange = calculator.calDailyChange(holding, closingPrice);
 		Expression dailyChangeRate = calculator.calDailyChangeRate(holding, closingPrice);
 		Expression totalGain = calculator.calTotalGainBy(holding);
-		Percentage totalReturnPercentage = calculator.calTotalGainPercentage(holding);
-		Expression annualExpectedDividend = calculator.calAnnualExpectedDividendBy(holding);
+		Percentage totalReturnPercentage = calculator.calTotalReturnPercentage(holding);
 		return PortfolioHoldingDetailItem.builder()
 			.id(holding.getId())
 			.currentValuation(toWon(totalCurrentValuation))
 			.currentPrice(toWon(currentPrice.reduce(bank, to)))
-			.averageCostPerShare(toWon(averageCostPerShare))
-			.numShares(numShares)
+			.averageCostPerShare(toWon(holding.calculateAverageCostPerShare()))
+			.numShares(holding.calculateNumShares())
 			.dailyChange(toWon(dailyChange))
 			.dailyChangeRate(toPercentage(dailyChangeRate))
 			.totalGain(toWon(totalGain))
 			.totalReturnRate(totalReturnPercentage)
-			.annualDividend(toWon(annualExpectedDividend))
+			.annualDividend(toWon(holding.calculateAnnualExpectedDividend()))
 			.annualDividendYield(toPercentage(annualDividendYield))
 			.dateAdded(holding.getCreateAt())
 			.build();

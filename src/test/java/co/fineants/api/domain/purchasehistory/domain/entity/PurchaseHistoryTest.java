@@ -26,7 +26,7 @@ class PurchaseHistoryTest {
 		);
 		Bank bank = Bank.getInstance();
 		// when
-		Expression result = purchaseHistory.calInvestmentAmount();
+		Expression result = purchaseHistory.calculateInvestmentAmount();
 
 		// then
 		Money actual = bank.reduce(result, KRW);
