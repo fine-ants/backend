@@ -92,6 +92,8 @@ public class PortfolioHolding extends BaseEntity {
 	}
 	//== 연관관계 메소드 종료 ==//
 
+	//== 계산 메서드 시작 ==//
+
 	/**
 	 * 매입 이력들의 평균 매입가 계산 후 반환.
 	 *
@@ -118,6 +120,12 @@ public class PortfolioHolding extends BaseEntity {
 		return calculator.calMonthlyDividendMap(stock, purchaseHistories, currentLocalDate);
 	}
 
+	public Expression calculateTotalInvestmentAmount(PortfolioCalculator calculator) {
+		return calculator.calTotalInvestment(purchaseHistories);
+	}
+	//== 계산 메서드 종료 ==//
+
+	//== 위임 메서드 시작 ==//
 	public Optional<Money> fetchPrice(PriceRepository repository) {
 		return stock.fetchPrice(repository);
 	}
@@ -130,16 +138,13 @@ public class PortfolioHolding extends BaseEntity {
 		return portfolio.hasAuthorization(memberId);
 	}
 
-	public List<PurchaseHistory> getPurchaseHistories() {
-		return Collections.unmodifiableList(purchaseHistories);
-	}
-
 	public String getCompanyName() {
 		return stock.getCompanyName();
 	}
+	//== 위임 메서드 시작 ==//
 
-	public Expression calculateTotalInvestmentAmount(PortfolioCalculator calculator) {
-		return calculator.calTotalInvestment(purchaseHistories);
+	public List<PurchaseHistory> getPurchaseHistories() {
+		return Collections.unmodifiableList(purchaseHistories);
 	}
 
 	@Override
