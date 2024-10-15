@@ -790,4 +790,21 @@ public class PortfolioCalculator {
 		Percentage totalGainRate = this.calTotalGainPercentage(holding);
 		return PortfolioPieChartItem.stock(name, currentValuation, weightPercentage, totalGain, totalGainRate);
 	}
+
+	public Map<Month, Expression> calMonthlyDividendMapBy(PortfolioHolding holding, LocalDate currentLocalDate) {
+		return holding.createMonthlyDividendMap(this, currentLocalDate);
+	}
+
+	public Map<Month, Expression> calMonthlyDividendMap(Stock stock, List<PurchaseHistory> purchaseHistories,
+		LocalDate currentLocalDate) {
+		Map<Month, Expression> result = new EnumMap<>(Month.class);
+		Map<Month, Expression> monthlyDividends = stock.createMonthlyDividends(purchaseHistories, currentLocalDate);
+		Map<Month, Expression> monthlyExpectedDividends = stock.createMonthlyExpectedDividends(purchaseHistories,
+			currentLocalDate);
+		monthlyDividends.forEach(
+			(month, dividend) -> result.merge(month, dividend, Expression::plus));
+		monthlyExpectedDividends.forEach(
+			(month, dividend) -> result.merge(month, dividend, Expression::plus));
+		return result;
+	}
 }
