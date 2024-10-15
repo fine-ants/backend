@@ -5,7 +5,6 @@ import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -14,13 +13,8 @@ import org.hibernate.annotations.BatchSize;
 
 import co.fineants.api.domain.BaseEntity;
 import co.fineants.api.domain.common.count.Count;
-import co.fineants.api.domain.common.money.Bank;
-import co.fineants.api.domain.common.money.Currency;
 import co.fineants.api.domain.common.money.Expression;
 import co.fineants.api.domain.common.money.Money;
-import co.fineants.api.domain.common.money.Percentage;
-import co.fineants.api.domain.common.money.RateDivision;
-import co.fineants.api.domain.holding.domain.dto.response.PortfolioPieChartItem;
 import co.fineants.api.domain.kis.repository.ClosingPriceRepository;
 import co.fineants.api.domain.kis.repository.PriceRepository;
 import co.fineants.api.domain.portfolio.domain.calculator.PortfolioCalculator;
@@ -98,66 +92,46 @@ public class PortfolioHolding extends BaseEntity {
 	}
 	//== 연관관계 메소드 종료 ==//
 
+	//== 계산 메서드 시작 ==//
+
 	/**
 	 * 매입 이력들의 평균 매입가 계산 후 반환.
 	 *
 	 * @param calculator 포트폴리오 계산기 객체
 	 * @return 평균 매입가
 	 */
-	public Expression calculateAverageCostPerShare(PortfolioCalculator calculator) {
+	public Expression calAverageCostPerShare(PortfolioCalculator calculator) {
 		return calculator.calAverageCostPerShare(purchaseHistories);
 	}
 
-	public Count calculateNumShares(PortfolioCalculator calculator) {
+	public Count calNumShares(PortfolioCalculator calculator) {
 		return calculator.calNumShares(purchaseHistories);
 	}
 
-	public Expression calculateAnnualExpectedDividend(PortfolioCalculator calculator) {
+	public Expression calAnnualExpectedDividend(PortfolioCalculator calculator) {
 		return calculator.calAnnualExpectedDividend(stock, purchaseHistories);
 	}
 
-	public Expression calculateCurrentMonthDividend(PortfolioCalculator calculator) {
+	public Expression calCurrentMonthDividend(PortfolioCalculator calculator) {
 		return calculator.calCurrentMonthExpectedDividend(stock, purchaseHistories);
 	}
 
+	public Map<Month, Expression> calMonthlyDividendMap(PortfolioCalculator calculator, LocalDate currentLocalDate) {
+		return calculator.calMonthlyDividendMap(stock, purchaseHistories, currentLocalDate);
+	}
+
 	/**
-	 * 포트폴리오 종목의 월별 배당금 합계를 가진 맵을 생성 후 반환.
-	 * <p>
-	 * 결과 맵의 배당금 합계에는 실제 월별 배당금과 예상되는 월별 배당금 합계가 포함되어 있습니다.
-	 * </p>
+	 * 포트폴리오 종목의 총 투자 금액 계산 후 반환.
 	 *
-	 * @param currentLocalDate 기준 일자
-	 * @return 월별 배당금 합계 맵
+	 * @param calculator 포트폴리오 계산기 객체
+	 * @return 포트폴리오 종목들의 총 투자 금액 합계
 	 */
-	public Map<Month, Expression> createMonthlyDividendMap(LocalDate currentLocalDate) {
-		Map<Month, Expression> result = new EnumMap<>(Month.class);
-		Map<Month, Expression> monthlyDividends = stock.createMonthlyDividends(purchaseHistories, currentLocalDate);
-		Map<Month, Expression> monthlyExpectedDividends = stock.createMonthlyExpectedDividends(purchaseHistories,
-			currentLocalDate);
-		monthlyDividends.forEach(
-			(month, dividend) -> result.merge(month, dividend, Expression::plus));
-		monthlyExpectedDividends.forEach(
-			(month, dividend) -> result.merge(month, dividend, Expression::plus));
-		return result;
+	public Expression calTotalInvestment(PortfolioCalculator calculator) {
+		return calculator.calTotalInvestment(purchaseHistories);
 	}
+	//== 계산 메서드 종료 ==//
 
-	/**
-	 * 포트폴리오 종목의 파이차트 요소를 생성후 반환.
-	 * @param weight 종목의 비중
-	 * @param currentValuation 현재 평가금액
-	 * @param totalGain 총 손익
-	 * @param totalGainRate 총 손익율
-	 * @return 파이차트 요소
-	 */
-	public PortfolioPieChartItem createPieChartItem(RateDivision weight, Expression currentValuation,
-		Expression totalGain, Percentage totalGainRate) {
-		String name = stock.getCompanyName();
-
-		Bank bank = Bank.getInstance();
-		Percentage weightPercentage = weight.toPercentage(bank, Currency.KRW);
-		return PortfolioPieChartItem.stock(name, currentValuation, weightPercentage, totalGain, totalGainRate);
-	}
-
+	//== 위임 메서드 시작 ==//
 	public Optional<Money> fetchPrice(PriceRepository repository) {
 		return stock.fetchPrice(repository);
 	}
@@ -170,6 +144,11 @@ public class PortfolioHolding extends BaseEntity {
 		return portfolio.hasAuthorization(memberId);
 	}
 
+	public String getCompanyName() {
+		return stock.getCompanyName();
+	}
+	//== 위임 메서드 시작 ==//
+
 	public List<PurchaseHistory> getPurchaseHistories() {
 		return Collections.unmodifiableList(purchaseHistories);
 	}
@@ -178,9 +157,5 @@ public class PortfolioHolding extends BaseEntity {
 	public String toString() {
 		return String.format("PortfolioHolding(id=%d, portfolio=%d, stock=%s)", id, portfolio.getId(),
 			stock.getTickerSymbol());
-	}
-
-	public Expression calculateTotalInvestmentAmount(PortfolioCalculator calculator) {
-		return calculator.calTotalInvestment(purchaseHistories);
 	}
 }

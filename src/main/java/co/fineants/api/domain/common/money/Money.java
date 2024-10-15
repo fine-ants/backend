@@ -12,11 +12,12 @@ import org.jetbrains.annotations.NotNull;
 
 import co.fineants.api.domain.common.count.Count;
 
-public class Money implements Expression {
+public final class Money implements Expression {
 	private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("#,###");
-	protected final BigDecimal amount;
+	private static final Money ZERO = new Money(BigDecimal.ZERO, KRW);
+	final BigDecimal amount;
 
-	protected final Currency currency;
+	final Currency currency;
 
 	public Money(BigDecimal amount, Currency currency) {
 		this.amount = amount;
@@ -32,7 +33,7 @@ public class Money implements Expression {
 	}
 
 	public static Money franc(int amount) {
-		return franc(new BigDecimal(amount));
+		return franc(BigDecimal.valueOf(amount));
 	}
 
 	public static Money franc(BigDecimal amount) {
@@ -44,7 +45,7 @@ public class Money implements Expression {
 	}
 
 	public static Money won(int amount) {
-		return won(new BigDecimal(amount));
+		return won(BigDecimal.valueOf(amount));
 	}
 
 	public static Money won(BigDecimal amount) {
@@ -52,7 +53,7 @@ public class Money implements Expression {
 	}
 
 	public static Money won(long amount) {
-		return won(new BigDecimal(amount));
+		return won(BigDecimal.valueOf(amount));
 	}
 
 	public static Money won(double amount) {
@@ -60,11 +61,7 @@ public class Money implements Expression {
 	}
 
 	public static Money zero() {
-		return won(BigDecimal.ZERO);
-	}
-
-	public static Expression wonZero() {
-		return won(BigDecimal.ZERO);
+		return ZERO;
 	}
 
 	@Override
@@ -85,7 +82,7 @@ public class Money implements Expression {
 
 	@Override
 	public Expression times(int multiplier) {
-		return new Money(amount.multiply(new BigDecimal(multiplier)), currency);
+		return new Money(amount.multiply(BigDecimal.valueOf(multiplier)), currency);
 	}
 
 	@Override

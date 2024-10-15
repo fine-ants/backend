@@ -3,6 +3,7 @@ package co.fineants.api.domain.portfolio.domain.calculator;
 import java.time.LocalDate;
 import java.time.Month;
 import java.util.Comparator;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -35,6 +36,20 @@ import lombok.RequiredArgsConstructor;
 public class PortfolioCalculator {
 
 	private final PriceRepository currentPriceRepository;
+
+	private static <T> Expression sumExpressions(List<T> data, Function<T, Expression> mapper) {
+		return data.stream()
+			.map(mapper)
+			.reduce(Expression::plus)
+			.orElseGet(Money::zero);
+	}
+
+	private static <T> Count countExpressions(List<T> data, Function<T, Count> mapper) {
+		return data.stream()
+			.map(mapper)
+			.reduce(Count::add)
+			.orElseGet(Count::zero);
+	}
 
 	/**
 	 * 포트폴리오의 총 손익을 계산 후 반환.
@@ -78,8 +93,14 @@ public class PortfolioCalculator {
 		return portfolio.calTotalInvestment(this);
 	}
 
+	/**
+	 * 포트폴리오 종목의 총 투자 금액 계산 후 반환.
+	 *
+	 * @param holding 포트폴리오 종목 객체
+	 * @return 포트폴리오 종목의 총 투자 금액
+	 */
 	public Expression calTotalInvestmentBy(PortfolioHolding holding) {
-		return holding.calculateTotalInvestmentAmount(this);
+		return holding.calTotalInvestment(this);
 	}
 
 	/**
@@ -122,9 +143,7 @@ public class PortfolioCalculator {
 	 * @throws IllegalStateException 포트폴리오 종목(PortfolioHolding) 중 하나라도 계산에 실패하면 예외 발생
 	 */
 	public Expression calTotalGainBy(List<PortfolioHolding> holdings) {
-		return holdings.stream()
-			.map(this::calTotalGainBy)
-			.reduce(Money.zero(), Expression::plus);
+		return sumExpressions(holdings, this::calTotalGainBy);
 	}
 
 	/**
@@ -140,7 +159,7 @@ public class PortfolioCalculator {
 		Expression averageCostPerShare = calAverageCostPerShareBy(holding);
 		int numShares = calNumSharesBy(holding).intValue();
 		try {
-			return this.calculateWithCurrentPrice(holding,
+			return this.calWithCurrentPriceBy(holding,
 				currentPrice -> currentPrice.minus(averageCostPerShare).times(numShares));
 		} catch (NoSuchElementException e) {
 			throw new IllegalStateException(
@@ -148,7 +167,7 @@ public class PortfolioCalculator {
 		}
 	}
 
-	private Expression calculateWithCurrentPrice(PortfolioHolding holding, Function<Money, Expression> calFunction) {
+	private Expression calWithCurrentPriceBy(PortfolioHolding holding, Function<Money, Expression> calFunction) {
 		return currentPriceRepository.fetchPriceBy(holding)
 			.map(calFunction)
 			.orElseThrow(() -> new NoSuchElementException(
@@ -176,12 +195,11 @@ public class PortfolioCalculator {
 	 * <p>
 	 * TotalInvestment = 각 종목들(holdings)의 총 투자 금액 합계
 	 * </p>
+	 * @param holdings the holdings
 	 * @return 포트폴리오 총 투자 금액 합계
 	 */
 	public Expression calTotalInvestmentOfHolding(List<PortfolioHolding> holdings) {
-		return holdings.stream()
-			.map(this::calTotalInvestmentBy)
-			.reduce(Money.wonZero(), Expression::plus);
+		return sumExpressions(holdings, this::calTotalInvestmentBy);
 	}
 
 	/**
@@ -194,9 +212,7 @@ public class PortfolioCalculator {
 	 * @throws IllegalStateException 포트폴리오 평가 금액 계산이 실패하면 예외 발생
 	 */
 	public Expression calTotalCurrentValuation(List<PortfolioHolding> holdings) {
-		return holdings.stream()
-			.map(this::calTotalCurrentValuationBy)
-			.reduce(Money.zero(), Expression::plus);
+		return sumExpressions(holdings, this::calTotalCurrentValuationBy);
 	}
 
 	/**
@@ -211,7 +227,7 @@ public class PortfolioCalculator {
 	public Expression calTotalCurrentValuationBy(PortfolioHolding holding) {
 		try {
 			int numShares = this.calNumSharesBy(holding).intValue();
-			return this.calculateWithCurrentPrice(holding, currentPrice -> currentPrice.times(numShares));
+			return this.calWithCurrentPriceBy(holding, currentPrice -> currentPrice.times(numShares));
 		} catch (NoSuchElementException e) {
 			throw new IllegalStateException(
 				String.format("Failed to calculate totalCurrentValuation for holding, holding:%s", holding), e);
@@ -227,6 +243,13 @@ public class PortfolioCalculator {
 		return portfolio.calTotalAsset(this);
 	}
 
+	/**
+	 * 총 자산을 계산 후 반환
+	 *
+	 * @param balance 잔고
+	 * @param totalCurrentValuation 총 평가 금액
+	 * @return 총 자산
+	 */
 	public Expression calTotalAsset(Expression balance, Expression totalCurrentValuation) {
 		return balance.plus(totalCurrentValuation);
 	}
@@ -239,6 +262,7 @@ public class PortfolioCalculator {
 	 * 이전일의 포트포릴오 내역의 각 종목들의 평가 금액이 없는 경우 총 투자금액으로 뺀다
 	 * </p>
 	 * @param history 이전 포트폴리오 내역
+	 * @param portfolio the portfolio
 	 * @return 포트폴리오 당일 손익
 	 */
 	public Expression calDailyGain(PortfolioGainHistory history, Portfolio portfolio) {
@@ -278,6 +302,12 @@ public class PortfolioCalculator {
 			.divide(prevCurrentValuation);
 	}
 
+	/**
+	 * 포트폴리오의 이번달 배당금 합계를 계산 후 반환.
+	 *
+	 * @param portfolio 포트폴리오
+	 * @return 배당금 합계
+	 */
 	public Expression calCurrentMonthDividendBy(Portfolio portfolio) {
 		return portfolio.calCurrentMonthDividend(this);
 	}
@@ -291,9 +321,7 @@ public class PortfolioCalculator {
 	 * @return 포트폴리오의 당월 예상 배당금 합계
 	 */
 	public Expression calCurrentMonthDividendBy(List<PortfolioHolding> holdings) {
-		return holdings.stream()
-			.map(holding -> holding.calculateCurrentMonthDividend(this))
-			.reduce(Money.zero(), Expression::plus);
+		return sumExpressions(holdings, holding -> holding.calCurrentMonthDividend(this));
 	}
 
 	/**
@@ -301,6 +329,8 @@ public class PortfolioCalculator {
 	 * <p>
 	 * CurrentMonthDividend = sum(PurchaseHistory.NumShares * StockDividend)
 	 * </p>
+	 * @param stock the stock
+	 * @param histories the histories
 	 * @return 이번달 배당금
 	 */
 	public Expression calCurrentMonthExpectedDividend(Stock stock, List<PurchaseHistory> histories) {
@@ -310,9 +340,17 @@ public class PortfolioCalculator {
 				.map(PurchaseHistory::getNumShares)
 				.reduce(Count.zero(), Count::add)
 				.multiply(stockDividend.getDividend()))
-			.reduce(Money.zero(), Expression::plus);
+			.reduce(Expression::plus)
+			.orElseGet(Money::zero);
 	}
 
+	/**
+	 * Cal annual dividend by expression.
+	 *
+	 * @param dateTimeService the date time service
+	 * @param portfolio the portfolio
+	 * @return the expression
+	 */
 	public Expression calAnnualDividendBy(LocalDateTimeService dateTimeService, Portfolio portfolio) {
 		return portfolio.calAnnualDividend(dateTimeService, this);
 	}
@@ -329,11 +367,12 @@ public class PortfolioCalculator {
 	 */
 	public Expression calAnnualDividend(LocalDateTimeService dateTimeService, List<PortfolioHolding> holdings) {
 		return holdings.stream()
-			.map(portfolioHolding -> portfolioHolding.createMonthlyDividendMap(
-				dateTimeService.getLocalDateWithNow()))
+			.map(holding -> this.calMonthlyDividendMapBy(holding, dateTimeService.getLocalDateWithNow()))
 			.map(map -> map.values().stream()
-				.reduce(Money.zero(), Expression::plus))
-			.reduce(Money.zero(), Expression::plus);
+				.reduce(Expression::plus)
+				.orElseGet(Money::zero))
+			.reduce(Expression::plus)
+			.orElseGet(Money::zero);
 	}
 
 	/**
@@ -352,6 +391,13 @@ public class PortfolioCalculator {
 		return totalAnnualDividend.divide(totalCurrentValuation);
 	}
 
+	/**
+	 * 포트폴리오의 투자 대비 연간 배당금
+	 *
+	 * @param localDateTimeService 시간 서비스
+	 * @param portfolio 포트폴리오
+	 * @return 투자 대비 연간 배당금
+	 */
 	public Expression calAnnualInvestmentDividendYieldBy(LocalDateTimeService localDateTimeService,
 		Portfolio portfolio) {
 		return portfolio.calAnnualInvestmentDividendYield(localDateTimeService, this);
@@ -421,10 +467,23 @@ public class PortfolioCalculator {
 		return this.calTotalCurrentValuationBy(holding).divide(totalAsset);
 	}
 
+	/**
+	 * 포트폴리오의 섹터 맵 계산 후 반환.
+	 *
+	 * @param portfolio 포트폴리오
+	 * @return 섹터 맵
+	 */
 	public Map<String, List<Expression>> calSectorChartBy(Portfolio portfolio) {
 		return portfolio.createSectorChart(this);
 	}
 
+	/**
+	 * 포트폴리오 종목들의 섹터 맵 계산 후 반환.
+	 *
+	 * @param holdings 포트폴리오 종목 리스트
+	 * @param balance 잔고
+	 * @return 섹터별 총 평가금액 맵
+	 */
 	public Map<String, List<Expression>> calSectorChart(List<PortfolioHolding> holdings, Expression balance) {
 		Map<String, List<Expression>> sector = holdings.stream()
 			.collect(Collectors.groupingBy(portfolioHolding -> portfolioHolding.getStock().getSector(),
@@ -435,14 +494,35 @@ public class PortfolioCalculator {
 		return sector;
 	}
 
+	/**
+	 * 총 자산 대시 평가 금액 비중을 계산 후 반환.
+	 * <p>
+	 * CurrentValuationWeight = CurrentValuation / TotalAsset
+	 * </p>
+	 * @param currentValuation 평가 금액
+	 * @param totalAsset 총 자산
+	 * @return 평가 금액 비중
+	 */
 	public RateDivision calCurrentValuationWeight(Expression currentValuation, Expression totalAsset) {
 		return currentValuation.divide(totalAsset);
 	}
 
+	/**
+	 * 포트폴리오가 목표 수익금액에 도달했는지 여부 검사.
+	 *
+	 * @param portfolio 포트폴리오
+	 * @return 도달 여부
+	 */
 	public boolean reachedTargetGainBy(Portfolio portfolio) {
 		return portfolio.reachedTargetGain(this);
 	}
 
+	/**
+	 * 포트폴리오가 최대 손실금액에 도달했는지 여부 검사.
+	 *
+	 * @param portfolio 포트폴리오
+	 * @return 도달 여부
+	 */
 	public boolean reachedMaximumLossBy(Portfolio portfolio) {
 		return portfolio.reachedMaximumLoss(this);
 	}
@@ -469,15 +549,27 @@ public class PortfolioCalculator {
 			.toList();
 	}
 
+	/**
+	 * 포트폴리오의 월별 배당금액 합계 계산 후 반환.
+	 *
+	 * @param portfolio 포트폴리오
+	 * @param currentLocalDate 기준이 될 현재 일자
+	 * @return 월별 배당금액 합계 맵
+	 */
 	public Map<Month, Expression> calTotalDividendBy(Portfolio portfolio, LocalDate currentLocalDate) {
 		return portfolio.calTotalDividend(this, currentLocalDate);
 	}
 
+	/**
+	 * 월별 배당금 합계 계산 후 반환.
+	 *
+	 * @param holdings 포트폴리오 종목 리스트
+	 * @param currentLocalDate 기준이 될 현재 일자
+	 * @return 월별 배당금액 합계 맵
+	 */
 	public Map<Month, Expression> calTotalDividend(List<PortfolioHolding> holdings, LocalDate currentLocalDate) {
 		return holdings.stream()
-			.flatMap(holding ->
-				holding.createMonthlyDividendMap(currentLocalDate).entrySet().stream()
-			)
+			.flatMap(holding -> this.calMonthlyDividendMapBy(holding, currentLocalDate).entrySet().stream())
 			.collect(Collectors.groupingBy(Map.Entry::getKey,
 				Collectors.reducing(Money.zero(), Map.Entry::getValue, Expression::plus))
 			);
@@ -497,6 +589,12 @@ public class PortfolioCalculator {
 		return annualDividend.divide(currentValuation);
 	}
 
+	/**
+	 * 포트폴리오 종목의 총 손익 비중 계산후 반환.
+	 *
+	 * @param holding 포트폴리오 종목
+	 * @return 총 손익 비중
+	 */
 	public Percentage calTotalGainPercentage(PortfolioHolding holding) {
 		Bank bank = Bank.getInstance();
 		Expression totalGain = calTotalGainBy(holding);
@@ -504,8 +602,15 @@ public class PortfolioCalculator {
 		return totalGain.divide(totalInvestment).toPercentage(bank, Currency.KRW);
 	}
 
+	/**
+	 * 포트폴리오의 당일 변동 금액 계산 후 반환.
+	 *
+	 * @param holding 포트폴리오 종목
+	 * @param closingPrice 종가
+	 * @return 당일 변동 금액
+	 */
 	public Expression calDailyChange(@NotNull PortfolioHolding holding, @NotNull Expression closingPrice) {
-		return this.calculateWithCurrentPrice(holding, currentPrice -> currentPrice.minus(closingPrice));
+		return this.calWithCurrentPriceBy(holding, currentPrice -> currentPrice.minus(closingPrice));
 	}
 
 	/**
@@ -518,16 +623,28 @@ public class PortfolioCalculator {
 	 * @return 당일 변동율
 	 */
 	public Expression calDailyChangeRate(@NotNull PortfolioHolding holding, @NotNull Expression closingPrice) {
-		return this.calculateWithCurrentPrice(holding,
+		return this.calWithCurrentPriceBy(holding,
 			currentPrice -> currentPrice.minus(closingPrice).divide(closingPrice));
 	}
 
+	/**
+	 * 포트폴리오 종목의 현재가를 가져온 후 반환.
+	 *
+	 * @param holding 포트폴리오 종목
+	 * @return 현재가
+	 */
 	public Expression fetchCurrentPrice(PortfolioHolding holding) {
-		return this.calculateWithCurrentPrice(holding, currentPrice -> currentPrice);
+		return this.calWithCurrentPriceBy(holding, currentPrice -> currentPrice);
 	}
 
+	/**
+	 * 포트폴리오 종목의 예상되는 배당금액 계산 후 반환.
+	 *
+	 * @param holding 포트폴리오 종목
+	 * @return 연간 배당금액 합계
+	 */
 	public Expression calAnnualExpectedDividendBy(PortfolioHolding holding) {
-		return holding.calculateAnnualExpectedDividend(this);
+		return holding.calAnnualExpectedDividend(this);
 	}
 
 	/**
@@ -537,7 +654,7 @@ public class PortfolioCalculator {
 	 * @return 평균 매입가
 	 */
 	public Expression calAverageCostPerShareBy(PortfolioHolding holding) {
-		return holding.calculateAverageCostPerShare(this);
+		return holding.calAverageCostPerShare(this);
 	}
 
 	/**
@@ -549,13 +666,13 @@ public class PortfolioCalculator {
 	 * @return 평균 매입가
 	 */
 	public Expression calAverageCostPerShare(List<PurchaseHistory> histories) {
-		return calTotalInvestmentOfPurchaseHistories(histories).divide(calNumShares(histories));
+		Expression totalInvestment = this.calTotalInvestmentOfPurchaseHistories(histories);
+		Count numShares = this.calNumShares(histories);
+		return totalInvestment.divide(numShares);
 	}
 
 	private Expression calTotalInvestmentOfPurchaseHistories(List<PurchaseHistory> histories) {
-		return histories.stream()
-			.map(PurchaseHistory::calInvestmentAmount)
-			.reduce(Money.wonZero(), Expression::plus);
+		return sumExpressions(histories, PurchaseHistory::calInvestmentAmount);
 	}
 
 	/**
@@ -567,13 +684,17 @@ public class PortfolioCalculator {
 	 * @return 종목 매입 합계
 	 */
 	public Count calNumShares(List<PurchaseHistory> histories) {
-		return histories.stream()
-			.map(PurchaseHistory::getNumShares)
-			.reduce(Count.zero(), Count::add);
+		return countExpressions(histories, PurchaseHistory::getNumShares);
 	}
 
+	/**
+	 * Cal num shares by count.
+	 *
+	 * @param holding the holding
+	 * @return the count
+	 */
 	public Count calNumSharesBy(PortfolioHolding holding) {
-		return holding.calculateNumShares(this);
+		return holding.calNumShares(this);
 	}
 
 	/**
@@ -585,9 +706,7 @@ public class PortfolioCalculator {
 	 * @return 총 투자금액 합계
 	 */
 	public Expression calTotalInvestment(List<PurchaseHistory> histories) {
-		return histories.stream()
-			.map(PurchaseHistory::calInvestmentAmount)
-			.reduce(Money.wonZero(), Expression::plus);
+		return sumExpressions(histories, PurchaseHistory::calInvestmentAmount);
 	}
 
 	/**
@@ -598,6 +717,8 @@ public class PortfolioCalculator {
 	 * <p>
 	 * 예상 연배당금(AnnualExpectedDividend)에는 실제 연배당금(AnnualDividend)이 포함되어 있습니다.
 	 * </p>
+	 * @param stock the stock
+	 * @param histories the histories
 	 * @return 예상 연배당금
 	 */
 	public Expression calAnnualExpectedDividend(Stock stock, List<PurchaseHistory> histories) {
@@ -605,7 +726,8 @@ public class PortfolioCalculator {
 		Expression annualExpectedDividend = stock.createMonthlyExpectedDividends(histories, LocalDate.now())
 			.values()
 			.stream()
-			.reduce(Money.zero(), Expression::plus);
+			.reduce(Expression::plus)
+			.orElseGet(Money::zero);
 		return annualDividend.plus(annualExpectedDividend);
 	}
 
@@ -614,6 +736,58 @@ public class PortfolioCalculator {
 			.flatMap(history -> stock.getCurrentYearDividends().stream()
 				.filter(stockDividend -> stockDividend.isSatisfiedBy(history))
 				.map(stockDividend -> stockDividend.calculateDividendSum(history.getNumShares())))
-			.reduce(Money.zero(), Expression::plus);
+			.reduce(Expression::plus)
+			.orElseGet(Money::zero);
+	}
+
+	/**
+	 * 포트폴리오 종목의 월별 배당금액 계산 후 반환
+	 *
+	 * @param holding 포트폴리오 종목
+	 * @param currentLocalDate 기준이 될 현재 일자
+	 * @return 월별 배당금액
+	 */
+	public Map<Month, Expression> calMonthlyDividendMapBy(PortfolioHolding holding, LocalDate currentLocalDate) {
+		return holding.calMonthlyDividendMap(this, currentLocalDate);
+	}
+
+	/**
+	 * 포트폴리오 종목의 월별 배당금 합계를 가진 맵을 생성 후 반환.
+	 * <p>
+	 * 결과 맵의 배당금 합계에는 실제 월별 배당금과 예상되는 월별 배당금 합계가 포함되어 있습니다.
+	 * </p>
+	 *
+	 * @param stock 종목 객체
+	 * @param purchaseHistories 매입 이력 리스트
+	 * @param currentLocalDate 기준 일자
+	 * @return 월별 배당금 합계 맵
+	 */
+	public Map<Month, Expression> calMonthlyDividendMap(Stock stock, List<PurchaseHistory> purchaseHistories,
+		LocalDate currentLocalDate) {
+		Map<Month, Expression> result = new EnumMap<>(Month.class);
+		Map<Month, Expression> monthlyDividends = stock.createMonthlyDividends(purchaseHistories, currentLocalDate);
+		Map<Month, Expression> monthlyExpectedDividends = stock.createMonthlyExpectedDividends(purchaseHistories,
+			currentLocalDate);
+		monthlyDividends.forEach(
+			(month, dividend) -> result.merge(month, dividend, Expression::plus));
+		monthlyExpectedDividends.forEach(
+			(month, dividend) -> result.merge(month, dividend, Expression::plus));
+		return result;
+	}
+
+	/**
+	 * 포트폴리오 종목의 파이차트 요소를 생성후 반환.
+	 * @param holding 포트폴리오 종목 객체
+	 * @param totalAsset 포트폴리오 총 자산
+	 * @return 파이차트 요소
+	 */
+	public PortfolioPieChartItem calPortfolioPieChartItemBy(PortfolioHolding holding, Expression totalAsset) {
+		String name = holding.getCompanyName();
+		Percentage weightPercentage = this.calCurrentValuationWeightBy(holding, totalAsset)
+			.toPercentage(Bank.getInstance(), Currency.KRW);
+		Expression currentValuation = this.calTotalCurrentValuationBy(holding);
+		Expression totalGain = this.calTotalGainBy(holding);
+		Percentage totalGainRate = this.calTotalGainPercentage(holding);
+		return PortfolioPieChartItem.stock(name, currentValuation, weightPercentage, totalGain, totalGainRate);
 	}
 }
