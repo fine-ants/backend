@@ -100,27 +100,27 @@ public class PortfolioHolding extends BaseEntity {
 	 * @param calculator 포트폴리오 계산기 객체
 	 * @return 평균 매입가
 	 */
-	public Expression calculateAverageCostPerShare(PortfolioCalculator calculator) {
+	public Expression calAverageCostPerShare(PortfolioCalculator calculator) {
 		return calculator.calAverageCostPerShare(purchaseHistories);
 	}
 
-	public Count calculateNumShares(PortfolioCalculator calculator) {
+	public Count calNumShares(PortfolioCalculator calculator) {
 		return calculator.calNumShares(purchaseHistories);
 	}
 
-	public Expression calculateAnnualExpectedDividend(PortfolioCalculator calculator) {
+	public Expression calAnnualExpectedDividend(PortfolioCalculator calculator) {
 		return calculator.calAnnualExpectedDividend(stock, purchaseHistories);
 	}
 
-	public Expression calculateCurrentMonthDividend(PortfolioCalculator calculator) {
+	public Expression calCurrentMonthDividend(PortfolioCalculator calculator) {
 		return calculator.calCurrentMonthExpectedDividend(stock, purchaseHistories);
 	}
 
-	public Map<Month, Expression> createMonthlyDividendMap(PortfolioCalculator calculator, LocalDate currentLocalDate) {
+	public Map<Month, Expression> calMonthlyDividendMap(PortfolioCalculator calculator, LocalDate currentLocalDate) {
 		return calculator.calMonthlyDividendMap(stock, purchaseHistories, currentLocalDate);
 	}
 
-	public Expression calculateTotalInvestmentAmount(PortfolioCalculator calculator) {
+	public Expression calTotalInvestment(PortfolioCalculator calculator) {
 		return calculator.calTotalInvestment(purchaseHistories);
 	}
 	//== 계산 메서드 종료 ==//

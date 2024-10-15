@@ -80,7 +80,7 @@ public class PortfolioCalculator {
 	}
 
 	public Expression calTotalInvestmentBy(PortfolioHolding holding) {
-		return holding.calculateTotalInvestmentAmount(this);
+		return holding.calTotalInvestment(this);
 	}
 
 	/**
@@ -293,7 +293,7 @@ public class PortfolioCalculator {
 	 */
 	public Expression calCurrentMonthDividendBy(List<PortfolioHolding> holdings) {
 		return holdings.stream()
-			.map(holding -> holding.calculateCurrentMonthDividend(this))
+			.map(holding -> holding.calCurrentMonthDividend(this))
 			.reduce(Money.zero(), Expression::plus);
 	}
 
@@ -525,7 +525,7 @@ public class PortfolioCalculator {
 	}
 
 	public Expression calAnnualExpectedDividendBy(PortfolioHolding holding) {
-		return holding.calculateAnnualExpectedDividend(this);
+		return holding.calAnnualExpectedDividend(this);
 	}
 
 	/**
@@ -535,7 +535,7 @@ public class PortfolioCalculator {
 	 * @return 평균 매입가
 	 */
 	public Expression calAverageCostPerShareBy(PortfolioHolding holding) {
-		return holding.calculateAverageCostPerShare(this);
+		return holding.calAverageCostPerShare(this);
 	}
 
 	/**
@@ -547,7 +547,9 @@ public class PortfolioCalculator {
 	 * @return 평균 매입가
 	 */
 	public Expression calAverageCostPerShare(List<PurchaseHistory> histories) {
-		return calTotalInvestmentOfPurchaseHistories(histories).divide(calNumShares(histories));
+		Expression totalInvestment = this.calTotalInvestmentOfPurchaseHistories(histories);
+		Count numShares = this.calNumShares(histories);
+		return totalInvestment.divide(numShares);
 	}
 
 	private Expression calTotalInvestmentOfPurchaseHistories(List<PurchaseHistory> histories) {
@@ -571,7 +573,7 @@ public class PortfolioCalculator {
 	}
 
 	public Count calNumSharesBy(PortfolioHolding holding) {
-		return holding.calculateNumShares(this);
+		return holding.calNumShares(this);
 	}
 
 	/**
@@ -616,7 +618,7 @@ public class PortfolioCalculator {
 	}
 
 	public Map<Month, Expression> calMonthlyDividendMapBy(PortfolioHolding holding, LocalDate currentLocalDate) {
-		return holding.createMonthlyDividendMap(this, currentLocalDate);
+		return holding.calMonthlyDividendMap(this, currentLocalDate);
 	}
 
 	/**
