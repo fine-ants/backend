@@ -15,7 +15,7 @@ import co.fineants.api.domain.common.count.Count;
 public final class Money implements Expression {
 	private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("#,###");
 	private static final Money ZERO = new Money(BigDecimal.ZERO, KRW);
-	protected final BigDecimal amount;
+	final BigDecimal amount;
 
 	final Currency currency;
 
@@ -63,7 +63,7 @@ public final class Money implements Expression {
 	public static Money zero() {
 		return ZERO;
 	}
-	
+
 	@Override
 	public Money reduce(Bank bank, Currency to) {
 		double rate = bank.rate(currency, to);
