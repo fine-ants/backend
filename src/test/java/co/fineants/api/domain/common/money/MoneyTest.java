@@ -55,7 +55,7 @@ class MoneyTest {
 	@Test
 	void testEqualityForOtherType() {
 		Money won = Money.won(1000);
-		Sum sum = new Sum(Money.won(1000), Money.wonZero());
+		Sum sum = new Sum(Money.won(1000), Money.zero());
 		assertNotEquals(won, sum);
 	}
 

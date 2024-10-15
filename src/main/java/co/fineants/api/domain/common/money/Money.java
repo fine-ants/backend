@@ -63,11 +63,7 @@ public class Money implements Expression {
 	public static Money zero() {
 		return ZERO;
 	}
-
-	public static Expression wonZero() {
-		return ZERO;
-	}
-
+	
 	@Override
 	public Money reduce(Bank bank, Currency to) {
 		double rate = bank.rate(currency, to);

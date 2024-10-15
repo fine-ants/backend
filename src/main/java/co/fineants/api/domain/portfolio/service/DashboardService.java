@@ -51,11 +51,11 @@ public class DashboardService {
 		List<Portfolio> portfolios = portfolioRepository.findAllByMemberId(memberId);
 		Member member = memberRepository.findById(memberId)
 			.orElseThrow(() -> new BadRequestException(MemberErrorCode.NOT_FOUND_MEMBER));
-		Expression totalValuation = Money.wonZero();
-		Expression totalCurrentValuation = Money.wonZero();
-		Expression totalInvestment = Money.wonZero();
-		Expression totalGain = Money.wonZero();
-		Expression totalAnnualDividend = Money.wonZero();
+		Expression totalValuation = Money.zero();
+		Expression totalCurrentValuation = Money.zero();
+		Expression totalInvestment = Money.zero();
+		Expression totalGain = Money.zero();
+		Expression totalAnnualDividend = Money.zero();
 		if (portfolios.isEmpty()) {
 			return OverviewResponse.empty(member.getNickname());
 		}
@@ -89,7 +89,7 @@ public class DashboardService {
 		if (portfolios.isEmpty()) {
 			return new ArrayList<>();
 		}
-		Expression totalValuation = Money.wonZero(); // 평가 금액 + 현금
+		Expression totalValuation = Money.zero(); // 평가 금액 + 현금
 		for (Portfolio portfolio : portfolios) {
 			Expression totalAsset = calculator.calTotalAssetBy(portfolio);
 			totalValuation = totalValuation.plus(totalAsset);

@@ -27,7 +27,8 @@ public class SectorChart {
 		return sector.entrySet().stream()
 			.map(entry -> {
 				Expression currentValuation = entry.getValue().stream()
-					.reduce(Money.wonZero(), Expression::plus);
+					.reduce(Expression::plus)
+					.orElseGet(Money::zero);
 
 				Percentage weightPercentage = calculator.calCurrentValuationWeight(currentValuation, totalAsset)
 					.toPercentage(Bank.getInstance(), Currency.KRW);
