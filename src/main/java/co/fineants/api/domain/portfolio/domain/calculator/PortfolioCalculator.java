@@ -709,20 +709,6 @@ public class PortfolioCalculator {
 		return sumExpressions(histories, PurchaseHistory::calInvestmentAmount);
 	}
 
-	private static <T> Expression sumExpressions(List<T> data, Function<T, Expression> mapper) {
-		return data.stream()
-			.map(mapper)
-			.reduce(Expression::plus)
-			.orElseGet(Money::zero);
-	}
-
-	private static <T> Count countExpressions(List<T> data, Function<T, Count> mapper) {
-		return data.stream()
-			.map(mapper)
-			.reduce(Count::add)
-			.orElseGet(Count::zero);
-	}
-
 	/**
 	 * 포트폴리오 종목의 예상 연배당금 계산 후 반환.
 	 * <p>
@@ -754,6 +740,13 @@ public class PortfolioCalculator {
 			.orElseGet(Money::zero);
 	}
 
+	/**
+	 * 포트폴리오 종목의 월별 배당금액 계산 후 반환
+	 *
+	 * @param holding 포트폴리오 종목
+	 * @param currentLocalDate 기준이 될 현재 일자
+	 * @return 월별 배당금액
+	 */
 	public Map<Month, Expression> calMonthlyDividendMapBy(PortfolioHolding holding, LocalDate currentLocalDate) {
 		return holding.calMonthlyDividendMap(this, currentLocalDate);
 	}
