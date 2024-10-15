@@ -120,6 +120,12 @@ public class PortfolioHolding extends BaseEntity {
 		return calculator.calMonthlyDividendMap(stock, purchaseHistories, currentLocalDate);
 	}
 
+	/**
+	 * 포트폴리오 종목의 총 투자 금액 계산 후 반환.
+	 *
+	 * @param calculator 포트폴리오 계산기 객체
+	 * @return 포트폴리오 종목들의 총 투자 금액 합계
+	 */
 	public Expression calTotalInvestment(PortfolioCalculator calculator) {
 		return calculator.calTotalInvestment(purchaseHistories);
 	}
