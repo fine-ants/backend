@@ -132,4 +132,11 @@ public class DividendDates {
 	public boolean isPurchaseDateBeforeExDividendDate(PurchaseHistory history) {
 		return history.isPurchaseDateBeforeExDividendDate(exDividendDate.atStartOfDay());
 	}
+
+	public boolean isCurrentMonthPaymentDate(LocalDate today) {
+		if (paymentDate == null) {
+			return false;
+		}
+		return paymentDate.getMonth() == today.getMonth() && paymentDate.getYear() == today.getYear();
+	}
 }
