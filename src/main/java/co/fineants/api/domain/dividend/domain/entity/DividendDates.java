@@ -1,6 +1,7 @@
 package co.fineants.api.domain.dividend.domain.entity;
 
 import java.time.LocalDate;
+import java.time.Month;
 import java.time.format.DateTimeFormatter;
 
 import org.apache.logging.log4j.util.Strings;
@@ -54,8 +55,8 @@ public class DividendDates {
 		return purchaseDate.isBefore(exDividendDate);
 	}
 
-	public Integer getPaymentDateMonth() {
-		return paymentDate.getMonthValue();
+	public Month getPaymentDateMonth() {
+		return paymentDate.getMonth();
 	}
 
 	public boolean isCurrentYearRecordDate(LocalDate localDate) {
@@ -131,5 +132,12 @@ public class DividendDates {
 
 	public boolean isPurchaseDateBeforeExDividendDate(PurchaseHistory history) {
 		return history.isPurchaseDateBeforeExDividendDate(exDividendDate.atStartOfDay());
+	}
+
+	public boolean isCurrentMonthPaymentDate(LocalDate today) {
+		if (paymentDate == null) {
+			return false;
+		}
+		return paymentDate.getMonth() == today.getMonth() && paymentDate.getYear() == today.getYear();
 	}
 }

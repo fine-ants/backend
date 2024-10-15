@@ -1,6 +1,7 @@
 package co.fineants.api.domain.portfolio.domain.entity;
 
 import java.time.LocalDate;
+import java.time.Month;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -325,26 +326,34 @@ public class Portfolio extends BaseEntity implements Notifiable {
 		return manager.hasTargetGainSendHistory(id);
 	}
 
-	public boolean hasMaxLossSentHistory(NotificationSentRepository manager) {
-		return manager.hasMaxLossSendHistory(id);
-	}
+	//== Portfolio 계산 메서드 시작 ==//
 
 	/**
 	 * 포트폴리오의 총 손익을 계산 후 반환.
 	 *
 	 * @param calculator 포트폴리오 계산기 객체
 	 * @return 포트폴리오 총 손익
-	 * @throws java.util.NoSuchElementException 포트폴리오 종목(PortfolioHolding)에 따른 현재가가 저장소에 없으면 예외 발생
+	 * @throws IllegalStateException 포트폴리오 종목(PortfolioHolding)에 따른 현재가가 저장소에 없으면 예외 발생
 	 */
-	//== Portfolio 계산 메서드 시작 ==//
 	public Expression calTotalGain(PortfolioCalculator calculator) {
 		return calculator.calTotalGainBy(Collections.unmodifiableList(portfolioHoldings));
 	}
 
-	public Expression calTotalInvestment(PortfolioCalculator calculator) {
-		return calculator.calTotalInvestment(Collections.unmodifiableList(portfolioHoldings));
+	public boolean hasMaxLossSentHistory(NotificationSentRepository manager) {
+		return manager.hasMaxLossSendHistory(id);
 	}
 
+	public Expression calTotalInvestment(PortfolioCalculator calculator) {
+		return calculator.calTotalInvestmentOfHolding(Collections.unmodifiableList(portfolioHoldings));
+	}
+
+	/**
+	 * 포트폴리오의 총 손익율을 계산 후 반환.
+	 *
+	 * @param calculator 포트폴리오 계산기 객체
+	 * @return 포트폴리오 총 손익율
+	 * @throws java.util.NoSuchElementException 포트폴리오 종목(PortfolioHolding)에 따른 현재가가 저장소에 없으면 예외 발생
+	 */
 	public Expression calTotalGainRate(PortfolioCalculator calculator) {
 		return calculator.calTotalGainRate(Collections.unmodifiableList(portfolioHoldings));
 	}
@@ -371,7 +380,7 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	}
 
 	public Expression calCurrentMonthDividend(PortfolioCalculator calculator) {
-		return calculator.calCurrentMonthDividend(Collections.unmodifiableList(portfolioHoldings));
+		return calculator.calCurrentMonthDividendBy(Collections.unmodifiableList(portfolioHoldings));
 	}
 
 	public Expression calAnnualDividend(LocalDateTimeService dateTimeService, PortfolioCalculator calculator) {
@@ -423,14 +432,14 @@ public class Portfolio extends BaseEntity implements Notifiable {
 		return portfolioHoldings.stream()
 			.map(holding -> {
 				RateDivision weight = calculator.calCurrentValuationWeightBy(holding, totalAsset);
-				Expression currentValuation = calculator.calTotalCurrentValuation(holding);
+				Expression currentValuation = calculator.calTotalCurrentValuationBy(holding);
 				Expression totalGain = calculator.calTotalGainBy(holding);
-				Percentage totalReturnRate = calculator.calTotalReturnPercentage(holding);
+				Percentage totalReturnRate = calculator.calTotalGainPercentage(holding);
 				return holding.createPieChartItem(weight, currentValuation, totalGain, totalReturnRate);
 			}).toList();
 	}
 
-	public Map<Integer, Expression> calTotalDividend(PortfolioCalculator calculator, LocalDate currentLocalDate) {
+	public Map<Month, Expression> calTotalDividend(PortfolioCalculator calculator, LocalDate currentLocalDate) {
 		return calculator.calTotalDividend(Collections.unmodifiableList(portfolioHoldings), currentLocalDate);
 	}
 	//== Portfolio 계산 메서드 시작 ==//

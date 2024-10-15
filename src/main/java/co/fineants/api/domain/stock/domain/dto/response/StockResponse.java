@@ -1,6 +1,8 @@
 package co.fineants.api.domain.stock.domain.dto.response;
 
+import java.time.Month;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import co.fineants.api.domain.common.money.Bank;
 import co.fineants.api.domain.common.money.Currency;
@@ -77,7 +79,9 @@ public class StockResponse {
 			.annualDividend(stock.getAnnualDividend().reduce(bank, to))
 			.annualDividendYield(
 				stock.getAnnualDividendYield(currentPriceRedisRepository).toPercentage(bank, to))
-			.dividendMonths(stock.getDividendMonths())
+			.dividendMonths(stock.getDividendMonths().stream()
+				.map(Month::getValue)
+				.collect(Collectors.toList()))
 			.build();
 	}
 }

@@ -24,7 +24,7 @@ public class PortfolioHoldingItem {
 		StockItem stockItem = StockItem.from(portfolioHolding.getStock());
 		PortfolioHoldingDetailItem holdingDetailItem = PortfolioHoldingDetailItem.from(portfolioHolding,
 			lastDayClosingPrice, calculator);
-		List<PurchaseHistoryItem> purchaseHistory = portfolioHolding.getPurchaseHistory().stream()
+		List<PurchaseHistoryItem> purchaseHistory = portfolioHolding.getPurchaseHistories().stream()
 			.map(PurchaseHistoryItem::from)
 			.toList();
 		return new PortfolioHoldingItem(stockItem, holdingDetailItem, purchaseHistory);

@@ -87,7 +87,7 @@ public class PortfolioHoldingService {
 
 		PortfolioHolding holding = portfolioHoldingRepository.findByPortfolioIdAndTickerSymbol(portfolioId,
 				request.getTickerSymbol())
-			.orElseGet(() -> PortfolioHolding.empty(portfolio, stock));
+			.orElseGet(() -> PortfolioHolding.of(portfolio, stock));
 		PortfolioHolding saveHolding = portfolioHoldingRepository.save(holding);
 
 		if (request.isPurchaseHistoryComplete()) {

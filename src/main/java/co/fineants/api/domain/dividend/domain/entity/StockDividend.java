@@ -1,6 +1,7 @@
 package co.fineants.api.domain.dividend.domain.entity;
 
 import java.time.LocalDate;
+import java.time.Month;
 import java.util.List;
 
 import co.fineants.api.domain.BaseEntity;
@@ -117,7 +118,7 @@ public class StockDividend extends BaseEntity {
 		return history.canReceiveDividendOn(dividendDates);
 	}
 
-	public Integer getMonthValueByPaymentDate() {
+	public Month getMonthByPaymentDate() {
 		return dividendDates.getPaymentDateMonth();
 	}
 
@@ -163,5 +164,9 @@ public class StockDividend extends BaseEntity {
 
 	public boolean isPurchaseDateBeforeExDividendDate(PurchaseHistory history) {
 		return dividendDates.isPurchaseDateBeforeExDividendDate(history);
+	}
+
+	public boolean isCurrentMonthPaymentDate(LocalDate today) {
+		return dividendDates.isCurrentMonthPaymentDate(today);
 	}
 }

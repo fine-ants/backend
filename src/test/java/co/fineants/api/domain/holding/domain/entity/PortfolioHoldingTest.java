@@ -4,7 +4,8 @@ import static org.assertj.core.api.Assertions.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.HashMap;
+import java.time.Month;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
@@ -18,7 +19,6 @@ import co.fineants.api.domain.common.money.Bank;
 import co.fineants.api.domain.common.money.Currency;
 import co.fineants.api.domain.common.money.Expression;
 import co.fineants.api.domain.common.money.Money;
-import co.fineants.api.domain.common.money.RateDivision;
 import co.fineants.api.domain.dividend.domain.entity.StockDividend;
 import co.fineants.api.domain.member.domain.entity.Member;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
@@ -26,108 +26,7 @@ import co.fineants.api.domain.purchasehistory.domain.entity.PurchaseHistory;
 import co.fineants.api.domain.stock.domain.entity.Stock;
 
 class PortfolioHoldingTest extends AbstractContainerBaseTest {
-
-	@DisplayName("한 종목의 총 투자 금액을 계산한다")
-	@Test
-	void calculateTotalInvestmentAmount() {
-		// given
-		Portfolio portfolio = createPortfolio(createMember());
-		Stock stock = createSamsungStock();
-		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock);
-
-		PurchaseHistory purchaseHistory1 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
-			Money.won(10000), "첫구매", portFolioHolding);
-		PurchaseHistory purchaseHistory2 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
-			Money.dollar(10), "첫구매", portFolioHolding);
-
-		portFolioHolding.addPurchaseHistory(purchaseHistory1);
-		portFolioHolding.addPurchaseHistory(purchaseHistory2);
-
-		Bank.getInstance().addRate(Currency.KRW, Currency.USD, 1000);
-		Bank.getInstance().addRate(Currency.USD, Currency.KRW, (double)1 / 1000);
-		// when
-		Expression result = portFolioHolding.calculateTotalInvestmentAmount();
-
-		// then
-		Money totalInvestmentAmount = Bank.getInstance().reduce(result, Currency.KRW);
-		assertThat(totalInvestmentAmount).isEqualByComparingTo(Money.won(100000L));
-	}
-
-	@DisplayName("한 종목의 평균 매입가를 계산한다")
-	@Test
-	void calculateAverageCostPerShare() {
-		// given
-		Portfolio portfolio = createPortfolio(createMember());
-		Stock stock = createSamsungStock();
-		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock);
-
-		PurchaseHistory purchaseHistory1 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
-			Money.won(10000), "첫구매", portFolioHolding);
-		PurchaseHistory purchaseHistory2 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
-			Money.won(10000), "첫구매", portFolioHolding);
-
-		portFolioHolding.addPurchaseHistory(purchaseHistory1);
-		portFolioHolding.addPurchaseHistory(purchaseHistory2);
-
-		// when
-		Expression money = portFolioHolding.calculateAverageCostPerShare();
-
-		// then
-		assertThat(money).isEqualByComparingTo(Money.won(10000.0));
-	}
-
-	@DisplayName("한 종목의 총 손익을 계산한다")
-	@Test
-	void calculateTotalGain() {
-		// given
-		Portfolio portfolio = createPortfolio(createMember());
-		Stock stock = createSamsungStock();
-		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock);
-
-		PurchaseHistory purchaseHistory1 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
-			Money.won(10000), "첫구매", portFolioHolding);
-		PurchaseHistory purchaseHistory2 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
-			Money.won(10000), "첫구매", portFolioHolding);
-
-		portFolioHolding.addPurchaseHistory(purchaseHistory1);
-		portFolioHolding.addPurchaseHistory(purchaseHistory2);
-
-		Expression currentPrice = Money.won(20_000L);
-		// when
-		Expression result = portFolioHolding.calculateTotalGain(currentPrice);
-
-		// then
-		Money won = Bank.getInstance().toWon(result);
-		assertThat(won).isEqualByComparingTo(Money.won(100000L));
-	}
-
-	@DisplayName("한 종목의 총 손익율 계산한다")
-	@Test
-	void calculateTotalReturnRate() {
-		// given
-		Portfolio portfolio = createPortfolio(createMember());
-		Stock stock = createSamsungStock();
-		PortfolioHolding portFolioHolding = PortfolioHolding.of(portfolio, stock);
-
-		PurchaseHistory purchaseHistory1 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
-			Money.won(10000), "첫구매", portFolioHolding);
-		PurchaseHistory purchaseHistory2 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
-			Money.won(10000), "첫구매", portFolioHolding);
-
-		portFolioHolding.addPurchaseHistory(purchaseHistory1);
-		portFolioHolding.addPurchaseHistory(purchaseHistory2);
-
-		Expression currentPrice = Money.won(20_000L);
-		// when
-		RateDivision result = portFolioHolding.calculateTotalGainRate(currentPrice);
-
-		// then
-		Expression totalGain = Money.won(100000);
-		Expression totalInvestmentAmount = Money.won(100000);
-		RateDivision expected = totalGain.divide(totalInvestmentAmount);
-		assertThat(result).isEqualByComparingTo(expected);
-	}
-
+	
 	@DisplayName("포트폴리오 종목의 월별 배당금을 계산한다")
 	@Test
 	void calculateMonthlyDividends() {
@@ -136,29 +35,22 @@ class PortfolioHoldingTest extends AbstractContainerBaseTest {
 		Stock stock = createSamsungStock();
 		List<StockDividend> stockDividends = createStockDividends(stock);
 		stockDividends.forEach(stock::addStockDividend);
-		Long currentPrice = 60000L;
 		PortfolioHolding portfolioHolding = createPortfolioHolding(portfolio, stock);
 
 		PurchaseHistory purchaseHistory = createPurchaseHistory(null, LocalDateTime.of(2023, 3, 1, 9, 30),
 			Count.from(3), Money.won(50000), "첫구매", portfolioHolding);
 		portfolioHolding.addPurchaseHistory(purchaseHistory);
 		// when
-		Map<Integer, Expression> result = portfolioHolding.createMonthlyDividendMap(LocalDate.of(2023, 12, 15));
+		Map<Month, Expression> result = portfolioHolding.createMonthlyDividendMap(LocalDate.of(2023, 12, 15));
 
 		// then
-		Map<Integer, Expression> expected = new HashMap<>();
-		expected.put(1, Money.zero());
-		expected.put(2, Money.zero());
-		expected.put(3, Money.zero());
-		expected.put(4, Money.zero());
-		expected.put(5, Money.won(1083L));
-		expected.put(6, Money.zero());
-		expected.put(7, Money.zero());
-		expected.put(8, Money.won(1083L));
-		expected.put(9, Money.zero());
-		expected.put(10, Money.zero());
-		expected.put(11, Money.won(1083L));
-		expected.put(12, Money.zero());
+		Map<Month, Expression> expected = new EnumMap<>(Month.class);
+		for (Month month : Month.values()) {
+			expected.put(month, Money.zero());
+		}
+		expected.put(Month.MAY, Money.won(1083L));
+		expected.put(Month.AUGUST, Money.won(1083L));
+		expected.put(Month.NOVEMBER, Money.won(1083L));
 		assertThat(result.keySet())
 			.isEqualTo(expected.keySet());
 
