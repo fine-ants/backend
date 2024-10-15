@@ -619,6 +619,17 @@ public class PortfolioCalculator {
 		return holding.createMonthlyDividendMap(this, currentLocalDate);
 	}
 
+	/**
+	 * 포트폴리오 종목의 월별 배당금 합계를 가진 맵을 생성 후 반환.
+	 * <p>
+	 * 결과 맵의 배당금 합계에는 실제 월별 배당금과 예상되는 월별 배당금 합계가 포함되어 있습니다.
+	 * </p>
+	 *
+	 * @param stock 종목 객체
+	 * @param purchaseHistories 매입 이력 리스트
+	 * @param currentLocalDate 기준 일자
+	 * @return 월별 배당금 합계 맵
+	 */
 	public Map<Month, Expression> calMonthlyDividendMap(Stock stock, List<PurchaseHistory> purchaseHistories,
 		LocalDate currentLocalDate) {
 		Map<Month, Expression> result = new EnumMap<>(Month.class);

@@ -5,7 +5,6 @@ import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -118,27 +117,6 @@ public class PortfolioHolding extends BaseEntity {
 
 	public Expression calculateCurrentMonthDividend(PortfolioCalculator calculator) {
 		return calculator.calCurrentMonthExpectedDividend(stock, purchaseHistories);
-	}
-
-	/**
-	 * 포트폴리오 종목의 월별 배당금 합계를 가진 맵을 생성 후 반환.
-	 * <p>
-	 * 결과 맵의 배당금 합계에는 실제 월별 배당금과 예상되는 월별 배당금 합계가 포함되어 있습니다.
-	 * </p>
-	 *
-	 * @param currentLocalDate 기준 일자
-	 * @return 월별 배당금 합계 맵
-	 */
-	public Map<Month, Expression> createMonthlyDividendMap(LocalDate currentLocalDate) {
-		Map<Month, Expression> result = new EnumMap<>(Month.class);
-		Map<Month, Expression> monthlyDividends = stock.createMonthlyDividends(purchaseHistories, currentLocalDate);
-		Map<Month, Expression> monthlyExpectedDividends = stock.createMonthlyExpectedDividends(purchaseHistories,
-			currentLocalDate);
-		monthlyDividends.forEach(
-			(month, dividend) -> result.merge(month, dividend, Expression::plus));
-		monthlyExpectedDividends.forEach(
-			(month, dividend) -> result.merge(month, dividend, Expression::plus));
-		return result;
 	}
 
 	public Map<Month, Expression> createMonthlyDividendMap(PortfolioCalculator calculator, LocalDate currentLocalDate) {
