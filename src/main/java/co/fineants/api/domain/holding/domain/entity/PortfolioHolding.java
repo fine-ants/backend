@@ -9,7 +9,6 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.hibernate.annotations.BatchSize;
-import org.jetbrains.annotations.NotNull;
 
 import co.fineants.api.domain.BaseEntity;
 import co.fineants.api.domain.common.count.Count;
@@ -135,32 +134,6 @@ public class PortfolioHolding extends BaseEntity {
 		return purchaseHistories.stream()
 			.map(PurchaseHistory::calInvestmentAmount)
 			.reduce(Money.wonZero(), Expression::plus);
-	}
-
-	/**
-	 * 포트폴리오 종목의 평가 금액을 계산 후 반환.
-	 * <p>
-	 * CurrentValuation = CurrentPrice * NumShares
-	 * </p>
-	 * @param currentPrice 종목의 현재가
-	 * @return 포트폴리오 종목의 평가 금액
-	 */
-	public Expression calculateCurrentValuation(@NotNull Expression currentPrice) {
-		return currentPrice.times(calculateNumShares().intValue());
-	}
-
-	/**
-	 * 포트폴리오 종목의 예상 연간 배당율을 계산 후 반환.
-	 * <p>
-	 * AnnualExpectedDividendYield = (AnnualExpectedDividend / CurrentValuation)
-	 * </p>
-	 * @param currentPrice 종목 현재가
-	 * @return 예상 연간 배당율
-	 */
-	public RateDivision calculateAnnualExpectedDividendYield(Expression currentPrice) {
-		Expression annualDividend = calculateAnnualExpectedDividend();
-		Expression currentValuation = calculateCurrentValuation(currentPrice);
-		return annualDividend.divide(currentValuation);
 	}
 
 	private Expression calculateAnnualDividend() {

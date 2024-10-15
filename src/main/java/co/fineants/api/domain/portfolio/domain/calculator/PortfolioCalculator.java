@@ -199,7 +199,9 @@ public class PortfolioCalculator {
 
 	/**
 	 * 포트폴리오 종목의 총 평가 금액 계산 후 반환.
-	 *
+	 * <p>
+	 * CurrentValuation = CurrentPrice * NumShares
+	 * </p>
 	 * @param holding 포트폴리오 종목 객체
 	 * @return 포트폴리오 종목의 총 평가 금액
 	 * @throws IllegalStateException 포트폴리오 종목의 총 평가 금액 계산 실패시 예외 발생
@@ -408,7 +410,7 @@ public class PortfolioCalculator {
 		Map<String, List<Expression>> sector = holdings.stream()
 			.collect(Collectors.groupingBy(portfolioHolding -> portfolioHolding.getStock().getSector(),
 				Collectors.mapping(
-					holding -> this.calculateWithCurrentPrice(holding, holding::calculateCurrentValuation),
+					this::calTotalCurrentValuationBy,
 					Collectors.toList())));
 		sector.put("현금", List.of(balance));
 		return sector;
@@ -462,8 +464,18 @@ public class PortfolioCalculator {
 			);
 	}
 
+	/**
+	 * 포트폴리오 종목의 예상 연간 배당율을 계산 후 반환.
+	 * <p>
+	 * AnnualExpectedDividendYield = (AnnualExpectedDividend / CurrentValuation)
+	 * </p>
+	 * @param holding 포트폴리오 종목 객체
+	 * @return 예상 연간 배당율
+	 */
 	public Expression calAnnualExpectedDividendYieldBy(PortfolioHolding holding) {
-		return this.calculateWithCurrentPrice(holding, holding::calculateAnnualExpectedDividendYield);
+		Expression annualDividend = this.calAnnualExpectedDividendBy(holding);
+		Expression currentValuation = this.calTotalCurrentValuationBy(holding);
+		return annualDividend.divide(currentValuation);
 	}
 
 	public Percentage calTotalGainPercentage(PortfolioHolding holding) {
