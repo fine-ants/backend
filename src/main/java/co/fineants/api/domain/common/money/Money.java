@@ -6,6 +6,8 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.util.Locale;
 import java.util.Objects;
 
 import org.jetbrains.annotations.NotNull;
@@ -14,6 +16,7 @@ import co.fineants.api.domain.common.count.Count;
 
 public final class Money implements Expression {
 	private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("#,###");
+	private static final NumberFormat NUMBER_FORMAT = NumberFormat.getInstance(Locale.KOREA);
 	private static final Money ZERO = new Money(BigDecimal.ZERO, KRW);
 	final BigDecimal amount;
 
@@ -133,8 +136,7 @@ public final class Money implements Expression {
 		return currency.getSymbol();
 	}
 
-	@Override
-	public String toString() {
+	public String toRawAmount() {
 		return amount.toString();
 	}
 
@@ -168,5 +170,10 @@ public final class Money implements Expression {
 	@Override
 	public int hashCode() {
 		return Objects.hash(amount);
+	}
+
+	@Override
+	public String toString() {
+		return NUMBER_FORMAT.format(amount);
 	}
 }
