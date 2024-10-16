@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -26,6 +25,7 @@ import co.fineants.api.domain.common.money.Percentage;
 import co.fineants.api.domain.common.money.RateDivision;
 import co.fineants.api.domain.common.money.Sum;
 import co.fineants.api.domain.dividend.domain.entity.StockDividend;
+import co.fineants.api.domain.gainhistory.domain.entity.PortfolioGainHistory;
 import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
 import co.fineants.api.domain.kis.client.KisCurrentPrice;
 import co.fineants.api.domain.kis.repository.CurrentPriceMemoryRepository;
@@ -65,7 +65,7 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		// when
 		Expression result = calculator.calTotalGainBy(portfolio);
 		// then
-		Assertions.assertThat(result).isEqualByComparingTo(Money.won(30000L));
+		assertThat(result).isEqualByComparingTo(Money.won(30000L));
 	}
 
 	@DisplayName("단 한개의 포트폴리오 종목이라도 현재가를 가져오지 못하면 포트폴리오 총 손익을 계산하지 못한다")
@@ -80,9 +80,9 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		holding.addPurchaseHistory(history);
 		portfolio.addHolding(holding);
 		// when
-		Throwable throwable = Assertions.catchThrowable(() -> calculator.calTotalGainBy(portfolio));
+		Throwable throwable = catchThrowable(() -> calculator.calTotalGainBy(portfolio));
 		// then
-		Assertions.assertThat(throwable)
+		assertThat(throwable)
 			.isInstanceOf(IllegalStateException.class)
 			.hasMessage(String.format("Failed to calculate total gain for portfolio, portfolio:%s", portfolio));
 	}
@@ -105,7 +105,7 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		Expression result = calculator.calTotalCurrentValuationBy(portfolio);
 		// then
 		Expression expected = Money.won(150_000L);
-		Assertions.assertThat(result).isEqualByComparingTo(expected);
+		assertThat(result).isEqualByComparingTo(expected);
 	}
 
 	@DisplayName("포트폴리오 종목의 평가 금액 비중을 계산한다")
@@ -127,7 +127,7 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		Expression result = calculator.calCurrentValuationWeightBy(holding, totalAsset);
 		// then
 		Expression expected = RateDivision.of(Money.won(150_000L), Money.won(1_030_000L));
-		Assertions.assertThat(result).isEqualByComparingTo(expected);
+		assertThat(result).isEqualByComparingTo(expected);
 	}
 
 	@DisplayName("사용자는 포트폴리오의 섹터 차트를 요청한다")
@@ -200,7 +200,7 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		Expression result = calculator.calAnnualExpectedDividendYieldBy(holding);
 		// then
 		RateDivision expected = RateDivision.of(Money.won(1083), Money.won(150_000));
-		Assertions.assertThat(result).isEqualByComparingTo(expected);
+		assertThat(result).isEqualByComparingTo(expected);
 	}
 
 	@DisplayName("포트폴리오 종목의 손익율을 계산한다")
@@ -221,7 +221,7 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		Percentage actual = calculator.calTotalGainPercentage(holding);
 		// then
 		Percentage expected = Percentage.from(0.25);
-		Assertions.assertThat(actual).isEqualByComparingTo(expected);
+		assertThat(actual).isEqualByComparingTo(expected);
 	}
 
 	@DisplayName("포트폴리오 총 투자금액을 계산한다")
@@ -239,7 +239,7 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		// when
 		Expression result = calculator.calTotalInvestmentBy(portfolio);
 		// then
-		Assertions.assertThat(result)
+		assertThat(result)
 			.isEqualByComparingTo(Money.won(120_000L));
 	}
 
@@ -262,29 +262,7 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		Expression totalGain = Money.won(30_000L);
 		Expression totalInvestment = Money.won(120_000L);
 		RateDivision expected = RateDivision.of(totalGain, totalInvestment);
-		Assertions.assertThat(result).isEqualByComparingTo(expected);
-	}
-
-	@DisplayName("포트폴리오의 현금 비중 계산한다")
-	@Test
-	void calCashWeightBy() {
-		// given
-		Portfolio portfolio = createPortfolio(createMember());
-		Stock stock = createSamsungStock();
-		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
-		PurchaseHistory history = createPurchaseHistory(null, LocalDateTime.now(), Count.from(3), Money.won(40000L),
-			"메모", holding);
-		holding.addPurchaseHistory(history);
-		portfolio.addHolding(holding);
-
-		currentPriceRepository.savePrice(stock, 50000L);
-		// when
-		Expression result = calculator.calCashWeightBy(portfolio);
-		// then
-		Expression balance = Money.won(880_000L);
-		Expression totalAsset = Money.won(1_030_000L);
-		Expression expected = RateDivision.of(balance, totalAsset);
-		Assertions.assertThat(result).isEqualByComparingTo(expected);
+		assertThat(result).isEqualByComparingTo(expected);
 	}
 
 	@DisplayName("포트폴리오의 월별 전체 배당금 합계를 게산합니다.")
@@ -316,7 +294,7 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 
 		Bank bank = Bank.getInstance();
 		actual.replaceAll((k, v) -> v instanceof Sum ? bank.toWon(v) : v);
-		Assertions.assertThat(actual)
+		assertThat(actual)
 			.usingComparatorForType(Expression::compareTo, Expression.class)
 			.isEqualTo(expected);
 	}
@@ -339,7 +317,7 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		Expression actual = calculator.calDailyChange(holding, closingPrice);
 		// then
 		Expression expected = Money.won(10_000L);
-		Assertions.assertThat(actual).isEqualByComparingTo(expected);
+		assertThat(actual).isEqualByComparingTo(expected);
 	}
 
 	@DisplayName("포트폴리오 종목의 예상 연간 배당금을 계산한다")
@@ -359,7 +337,7 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		Expression actual = calculator.calAnnualExpectedDividendBy(holding);
 		// then
 		Expression expected = Money.won(1083);
-		Assertions.assertThat(actual).isEqualByComparingTo(expected);
+		assertThat(actual).isEqualByComparingTo(expected);
 	}
 
 	@DisplayName("한 종목의 평균 매입가를 계산한다")
@@ -432,29 +410,6 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		assertThat(actual).isEqualByComparingTo(expected);
 	}
 
-	@DisplayName("포트폴리오의 이번달 배당금을 계산 후 반환한다")
-	@Test
-	void calCurrentMonthDividendBy() {
-		Portfolio portfolio = createPortfolio(createMember());
-		Stock stock = createSamsungStock();
-		stock.setLocalDateTimeService(localDateTimeService);
-		createStockDividendWith(stock).forEach(stock::addStockDividend);
-		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
-		PurchaseHistory history = createPurchaseHistory(null, LocalDate.of(2024, 3, 28).atStartOfDay(), Count.from(3),
-			Money.won(40000L),
-			"메모", holding);
-		holding.addPurchaseHistory(history);
-		portfolio.addHolding(holding);
-
-		given(localDateTimeService.getLocalDateWithNow())
-			.willReturn(LocalDate.of(2024, 5, 1));
-		// when
-		Expression actual = calculator.calCurrentMonthDividendBy(portfolio);
-		// then
-		Expression expected = Money.won(1083);
-		Assertions.assertThat(actual).isEqualByComparingTo(expected);
-	}
-
 	@DisplayName("포트폴리오 종목의 월별 배당금을 계산한다")
 	@Test
 	void calculateMonthlyDividends() {
@@ -484,5 +439,468 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		assertThat(actual.values())
 			.usingElementComparator(Expression::compareTo)
 			.containsExactlyElementsOf(expected.values());
+	}
+
+	@DisplayName("포트폴리오의 잔고를 계산한다")
+	@Test
+	void calBalanceBy() {
+		// given
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createSamsungStock();
+		PortfolioHolding holding = PortfolioHolding.of(portfolio, stock);
+
+		PurchaseHistory purchaseHistory1 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
+			Money.won(10000), "첫구매", holding);
+		PurchaseHistory purchaseHistory2 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
+			Money.won(10000), "첫구매", holding);
+
+		holding.addPurchaseHistory(purchaseHistory1);
+		holding.addPurchaseHistory(purchaseHistory2);
+		portfolio.addHolding(holding);
+		// when
+		Expression actual = calculator.calBalanceBy(portfolio);
+
+		// then
+		Money expected = Money.won(900_000);
+		assertThat(actual).isEqualByComparingTo(expected);
+	}
+
+	@DisplayName("포트폴리오 종목들의 총 손익 계산한다")
+	@Test
+	void calTotalGainBy_givenHoldings() {
+		// given
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createSamsungStock();
+		currentPriceRepository.savePrice(stock, 50_000L);
+		PortfolioHolding holding = PortfolioHolding.of(portfolio, stock);
+
+		PurchaseHistory purchaseHistory1 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
+			Money.won(10000), "첫구매", holding);
+		PurchaseHistory purchaseHistory2 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
+			Money.won(10000), "첫구매", holding);
+
+		holding.addPurchaseHistory(purchaseHistory1);
+		holding.addPurchaseHistory(purchaseHistory2);
+		portfolio.addHolding(holding);
+		// when
+		Expression actual = calculator.calTotalGainBy(holding);
+
+		// then
+		Money expected = Money.won(400_000);
+		assertThat(actual).isEqualByComparingTo(expected);
+	}
+
+	@DisplayName("포트폴리오 종목들의 총 투자금액 계산한다")
+	@Test
+	void calTotalInvestmentOfHolding() {
+		// given
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createSamsungStock();
+		currentPriceRepository.savePrice(stock, 50_000L);
+		PortfolioHolding holding = PortfolioHolding.of(portfolio, stock);
+
+		PurchaseHistory purchaseHistory1 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
+			Money.won(10000), "첫구매", holding);
+		PurchaseHistory purchaseHistory2 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
+			Money.won(10000), "첫구매", holding);
+
+		holding.addPurchaseHistory(purchaseHistory1);
+		holding.addPurchaseHistory(purchaseHistory2);
+		portfolio.addHolding(holding);
+		// when
+		Expression actual = calculator.calTotalInvestmentOfHolding(List.of(holding));
+
+		// then
+		Money expected = Money.won(100_000);
+		assertThat(actual).isEqualByComparingTo(expected);
+	}
+
+	@DisplayName("포트폴리오 종목들의 총 평가 금액 합계를 계산한다")
+	@Test
+	void calTotalCurrentValuation_givenHoldingList_whenCalTotalCurrentValuation_thenReturnSumOfAllHoldings() {
+		// given
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createSamsungStock();
+		currentPriceRepository.savePrice(stock, 50_000L);
+		PortfolioHolding holding = PortfolioHolding.of(portfolio, stock);
+
+		PurchaseHistory purchaseHistory1 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
+			Money.won(10000), "첫구매", holding);
+		PurchaseHistory purchaseHistory2 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
+			Money.won(10000), "첫구매", holding);
+
+		holding.addPurchaseHistory(purchaseHistory1);
+		holding.addPurchaseHistory(purchaseHistory2);
+		portfolio.addHolding(holding);
+		// when
+		Expression actual = calculator.calTotalCurrentValuation(List.of(holding));
+
+		// then
+		Money expected = Money.won(500_000);
+		assertThat(actual).isEqualByComparingTo(expected);
+	}
+
+	@DisplayName("단일 포트폴리오 종목의 총 평가금액을 계산한다")
+	@Test
+	void calTotalCurrentValuationBy_whenCalTotalCurrentValuationByHolding_thenReturnSumOfHolding() {
+		// given
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createSamsungStock();
+		currentPriceRepository.savePrice(stock, 50_000L);
+		PortfolioHolding holding = PortfolioHolding.of(portfolio, stock);
+
+		PurchaseHistory purchaseHistory1 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
+			Money.won(10000), "첫구매", holding);
+		PurchaseHistory purchaseHistory2 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
+			Money.won(10000), "첫구매", holding);
+
+		holding.addPurchaseHistory(purchaseHistory1);
+		holding.addPurchaseHistory(purchaseHistory2);
+		portfolio.addHolding(holding);
+		// when
+		Expression actual = calculator.calTotalCurrentValuationBy(holding);
+
+		// then
+		Money expected = Money.won(500_000);
+		assertThat(actual).isEqualByComparingTo(expected);
+	}
+
+	@DisplayName("포트폴리오의 총 자산을 계산한다")
+	@Test
+	void calTotalAssetBy_givenPortfolio_whenCalTotalAssetBy_thenReturnSumOfPortfolio() {
+		// given
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createSamsungStock();
+		currentPriceRepository.savePrice(stock, 50_000L);
+		PortfolioHolding holding = PortfolioHolding.of(portfolio, stock);
+
+		PurchaseHistory purchaseHistory1 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
+			Money.won(10000), "첫구매", holding);
+		PurchaseHistory purchaseHistory2 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
+			Money.won(10000), "첫구매", holding);
+
+		holding.addPurchaseHistory(purchaseHistory1);
+		holding.addPurchaseHistory(purchaseHistory2);
+		portfolio.addHolding(holding);
+		// when
+		Expression actual = calculator.calTotalAssetBy(portfolio);
+
+		// then
+		Money expected = Money.won(1_400_000);
+		assertThat(actual).isEqualByComparingTo(expected);
+	}
+
+	@DisplayName("포트폴리오의 당일 손익을 계산한다")
+	@Test
+	void calDailyGain_givenPortfolio_whenCalDailyGain_thenReturnSumOfPortfolio() {
+		// given
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createSamsungStock();
+		currentPriceRepository.savePrice(stock, 50_000L);
+		PortfolioHolding holding = PortfolioHolding.of(portfolio, stock);
+
+		PurchaseHistory purchaseHistory1 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
+			Money.won(10000), "첫구매", holding);
+		PurchaseHistory purchaseHistory2 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
+			Money.won(10000), "첫구매", holding);
+
+		holding.addPurchaseHistory(purchaseHistory1);
+		holding.addPurchaseHistory(purchaseHistory2);
+		portfolio.addHolding(holding);
+
+		PortfolioGainHistory history = PortfolioGainHistory.empty(portfolio);
+		// when
+		Expression actual = calculator.calDailyGain(history, portfolio);
+		// then
+		Money expected = Money.won(400_000);
+		assertThat(actual).isEqualByComparingTo(expected);
+	}
+
+	@DisplayName("포트폴리오의 당일 손익율을 계산한다")
+	@Test
+	void calDailyGainRateBy() {
+		// given
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createSamsungStock();
+		currentPriceRepository.savePrice(stock, 50_000L);
+		PortfolioHolding holding = PortfolioHolding.of(portfolio, stock);
+
+		PurchaseHistory purchaseHistory1 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
+			Money.won(10000), "첫구매", holding);
+		PurchaseHistory purchaseHistory2 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
+			Money.won(10000), "첫구매", holding);
+
+		holding.addPurchaseHistory(purchaseHistory1);
+		holding.addPurchaseHistory(purchaseHistory2);
+		portfolio.addHolding(holding);
+
+		PortfolioGainHistory history = PortfolioGainHistory.empty(portfolio);
+		// when
+		Expression actual = calculator.calDailyGainRateBy(history, portfolio);
+		// then
+		Expression expected = RateDivision.of(Money.won(400_000), Money.won(100_000));
+		assertThat(actual).isEqualByComparingTo(expected);
+	}
+
+	@DisplayName("포트폴리오의 이번달 배당금을 계산 후 반환한다")
+	@Test
+	void calCurrentMonthDividendBy() {
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createSamsungStock();
+		stock.setLocalDateTimeService(localDateTimeService);
+		createStockDividendWith(stock).forEach(stock::addStockDividend);
+		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
+		PurchaseHistory history = createPurchaseHistory(null, LocalDate.of(2024, 3, 28).atStartOfDay(), Count.from(3),
+			Money.won(40000L),
+			"메모", holding);
+		holding.addPurchaseHistory(history);
+		portfolio.addHolding(holding);
+
+		given(localDateTimeService.getLocalDateWithNow())
+			.willReturn(LocalDate.of(2024, 5, 1));
+		// when
+		Expression actual = calculator.calCurrentMonthDividendBy(portfolio);
+		// then
+		Expression expected = Money.won(1083);
+		assertThat(actual).isEqualByComparingTo(expected);
+	}
+
+	@DisplayName("포트폴리오 종목들의 이번달의 월간 배당금 합계를 계산한다")
+	@Test
+	void calCurrentMonthDividendBy_givenHoldings_whenCalCurrentMonthDividend_thenReturnSumOfHoldings() {
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createSamsungStock();
+		stock.setLocalDateTimeService(localDateTimeService);
+		createStockDividendWith(stock).forEach(stock::addStockDividend);
+		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
+		PurchaseHistory history = createPurchaseHistory(null, LocalDate.of(2024, 3, 28).atStartOfDay(), Count.from(3),
+			Money.won(40000L),
+			"메모", holding);
+		holding.addPurchaseHistory(history);
+		portfolio.addHolding(holding);
+
+		given(localDateTimeService.getLocalDateWithNow())
+			.willReturn(LocalDate.of(2024, 5, 1));
+		// when
+		Expression actual = calculator.calCurrentMonthDividendBy(List.of(holding));
+		// then
+		Expression expected = Money.won(1083);
+		assertThat(actual).isEqualByComparingTo(expected);
+	}
+
+	@DisplayName("종목과 매입이력이 주어질때 이번달 배당금 합계를 계산한다")
+	@Test
+	void givenStockAndPurchaseHistories_whenCalCurrentMonthExpectDividend_thenReturnSumOfDividend() {
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createSamsungStock();
+		stock.setLocalDateTimeService(localDateTimeService);
+		createStockDividendWith(stock).forEach(stock::addStockDividend);
+		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
+		PurchaseHistory history = createPurchaseHistory(null, LocalDate.of(2024, 3, 28).atStartOfDay(), Count.from(3),
+			Money.won(40000L),
+			"메모", holding);
+		holding.addPurchaseHistory(history);
+		portfolio.addHolding(holding);
+
+		given(localDateTimeService.getLocalDateWithNow())
+			.willReturn(LocalDate.of(2024, 5, 1));
+		// when
+		Expression actual = calculator.calCurrentMonthExpectedDividend(stock, List.of(history));
+		// then
+		Expression expected = Money.won(1083);
+		assertThat(actual).isEqualByComparingTo(expected);
+	}
+
+	@DisplayName("포트폴리오의 연간 배당금을 계산한다")
+	@Test
+	void calAnnualDividendBy_givenPortfolio_whenCalAnnualDividend_thenReturnSumOfAnnualDividend() {
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createSamsungStock();
+		stock.setLocalDateTimeService(localDateTimeService);
+		createStockDividendWith(stock).forEach(stock::addStockDividend);
+		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
+		PurchaseHistory history = createPurchaseHistory(null, LocalDate.of(2024, 3, 28).atStartOfDay(), Count.from(3),
+			Money.won(40000L),
+			"메모", holding);
+		holding.addPurchaseHistory(history);
+		portfolio.addHolding(holding);
+
+		given(localDateTimeService.getLocalDateWithNow())
+			.willReturn(LocalDate.of(2024, 5, 1));
+		// when
+		Expression actual = calculator.calAnnualDividendBy(localDateTimeService, portfolio);
+		// then
+		Expression expected = Money.won(4_332);
+		assertThat(actual).isEqualByComparingTo(expected);
+	}
+
+	@DisplayName("포트폴리오의 연간 배당율을 계산한다")
+	@Test
+	void calAnnualDividendYieldBy_givenPortfolio_whenCalAnnualDividendYield_thenReturnPercentOfAnnualDividend() {
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createSamsungStock();
+		stock.setLocalDateTimeService(localDateTimeService);
+		createStockDividendWith(stock).forEach(stock::addStockDividend);
+		currentPriceRepository.savePrice(stock, 50_000);
+		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
+		PurchaseHistory history = createPurchaseHistory(null, LocalDate.of(2024, 3, 28).atStartOfDay(), Count.from(3),
+			Money.won(40_000),
+			"메모", holding);
+		holding.addPurchaseHistory(history);
+		portfolio.addHolding(holding);
+		given(localDateTimeService.getLocalDateWithNow())
+			.willReturn(LocalDate.of(2024, 5, 1));
+		// when
+		Expression actual = calculator.calAnnualDividendYieldBy(localDateTimeService, portfolio);
+		// then
+		Expression expected = RateDivision.of(Money.won(4_332), Money.won(150_000));
+		assertThat(actual).isEqualByComparingTo(expected);
+	}
+
+	@DisplayName("포트폴리오의 투자대비 연간배당율을 계산한다")
+	@Test
+	void calAnnualInvestmentDividendYieldBy() {
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createSamsungStock();
+		stock.setLocalDateTimeService(localDateTimeService);
+		createStockDividendWith(stock).forEach(stock::addStockDividend);
+		currentPriceRepository.savePrice(stock, 50_000);
+		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
+		PurchaseHistory history = createPurchaseHistory(null, LocalDate.of(2024, 3, 28).atStartOfDay(), Count.from(3),
+			Money.won(40_000),
+			"메모", holding);
+		holding.addPurchaseHistory(history);
+		portfolio.addHolding(holding);
+		given(localDateTimeService.getLocalDateWithNow())
+			.willReturn(LocalDate.of(2024, 5, 1));
+		// when
+		Expression actual = calculator.calAnnualInvestmentDividendYieldBy(localDateTimeService, portfolio);
+		// then
+		Expression expected = RateDivision.of(Money.won(4_332), Money.won(120_000));
+		assertThat(actual).isEqualByComparingTo(expected);
+	}
+
+	@DisplayName("연간 배당금과 총 투자금액을 이용하여 투자대비 연간 배당율을 계산한다")
+	@Test
+	void calAnnualInvestmentDividendYield() {
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createSamsungStock();
+		stock.setLocalDateTimeService(localDateTimeService);
+		createStockDividendWith(stock).forEach(stock::addStockDividend);
+		currentPriceRepository.savePrice(stock, 50_000);
+		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
+		PurchaseHistory history = createPurchaseHistory(null, LocalDate.of(2024, 3, 28).atStartOfDay(), Count.from(3),
+			Money.won(40_000),
+			"메모", holding);
+		holding.addPurchaseHistory(history);
+		portfolio.addHolding(holding);
+		given(localDateTimeService.getLocalDateWithNow())
+			.willReturn(LocalDate.of(2024, 5, 1));
+
+		Expression annualDividend = calculator.calAnnualDividendBy(localDateTimeService, portfolio);
+		Expression totalInvestment = calculator.calTotalInvestmentBy(portfolio);
+		// when
+		Expression actual = calculator.calAnnualInvestmentDividendYield(annualDividend, totalInvestment);
+		// then
+		Expression expected = RateDivision.of(Money.won(4_332), Money.won(120_000));
+		assertThat(actual).isEqualByComparingTo(expected);
+	}
+
+	@DisplayName("포트폴리오의 최대손실비율을 계산한다")
+	@Test
+	void calMaximumLossRateBy_givenPortfolio_whenCalMaximumLossRate_thenReturnPercentOfMaximumLoss() {
+		// given
+		Portfolio portfolio = createPortfolio(createMember());
+		// when
+		Expression actual = calculator.calMaximumLossRateBy(portfolio);
+		// then
+		Expression expected = RateDivision.of(Money.won(100_000), Money.won(1_000_000));
+		assertThat(actual).isEqualByComparingTo(expected);
+	}
+
+	@DisplayName("예산과 최대손실금액이 주어지고 최대 손실비율을 계산한다")
+	@Test
+	void calMaximumLossRate_givenBudgetAndMaximumLoss_whenCalMaximumLossRate_thenReturnPercentageOfMaximumLoss() {
+		// given
+		Money budget = Money.won(1_000_000);
+		Money maximumLoss = Money.won(900_000);
+		// when
+		Expression actual = calculator.calMaximumLossRate(budget, maximumLoss);
+		// then
+		Expression expected = RateDivision.of(Money.won(100_000), Money.won(1_000_000));
+		assertThat(actual).isEqualByComparingTo(expected);
+	}
+
+	@DisplayName("포트폴리오의 목표수익율을 계산한다")
+	@Test
+	void calTargetGainRateBy_givenPortfolio_whenCalTargetGainRate_thenReturnPercentageOfTargetGain() {
+		// given
+		Portfolio portfolio = createPortfolio(createMember());
+		// when
+		Expression actual = calculator.calTargetGainRateBy(portfolio);
+		// then
+		Expression expected = RateDivision.of(Money.won(500_000), Money.won(1_000_000));
+		assertThat(actual).isEqualByComparingTo(expected);
+	}
+
+	@DisplayName("예산과 목표수익금액이 주어지고 목표수익율을 계산한다")
+	@Test
+	void calTargetGainRate_givenBudgetAndTargetGain_whenCalTargetGainRate_thenReturnPercentageOfTargetGain() {
+		// given
+		Expression budget = Money.won(1_000_000);
+		Expression targetGain = Money.won(1_500_000);
+		// when
+		Expression actual = calculator.calTargetGainRate(budget, targetGain);
+		// then
+		Expression expected = RateDivision.of(Money.won(500_000), Money.won(1_000_000));
+		assertThat(actual).isEqualByComparingTo(expected);
+	}
+
+	@DisplayName("포트폴리오의 현금 비중 계산한다")
+	@Test
+	void calCashWeightBy_givenPortfolio_whenCalCashWeight_thenReturnPercentageOfCash() {
+		// given
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createSamsungStock();
+		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
+		PurchaseHistory history = createPurchaseHistory(null, LocalDateTime.now(), Count.from(3), Money.won(40000L),
+			"메모", holding);
+		holding.addPurchaseHistory(history);
+		portfolio.addHolding(holding);
+
+		currentPriceRepository.savePrice(stock, 50000L);
+		// when
+		Expression result = calculator.calCashWeightBy(portfolio);
+		// then
+		Expression balance = Money.won(880_000L);
+		Expression totalAsset = Money.won(1_030_000L);
+		Expression expected = RateDivision.of(balance, totalAsset);
+		assertThat(result).isEqualByComparingTo(expected);
+	}
+
+	@DisplayName("포트폴리오 종목의 평가 금액 비중을 계산한다")
+	@Test
+	void calCurrentValuationWeightBy_givenHolding_whenCalCurrentValuationWeight_thenReturnPercentageOfHolding() {
+		// given
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createSamsungStock();
+		currentPriceRepository.savePrice(stock, 50_000L);
+		PortfolioHolding holding = PortfolioHolding.of(portfolio, stock);
+
+		PurchaseHistory purchaseHistory1 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
+			Money.won(10000), "첫구매", holding);
+		PurchaseHistory purchaseHistory2 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
+			Money.won(10000), "첫구매", holding);
+
+		holding.addPurchaseHistory(purchaseHistory1);
+		holding.addPurchaseHistory(purchaseHistory2);
+		portfolio.addHolding(holding);
+
+		Expression totalAsset = calculator.calTotalAssetBy(portfolio);
+		// when
+		Expression actual = calculator.calCurrentValuationWeightBy(holding, totalAsset);
+		// then
+		Expression expected = RateDivision.of(Money.won(500_000), Money.won(1_400_000));
+		assertThat(actual).isEqualByComparingTo(expected);
 	}
 }

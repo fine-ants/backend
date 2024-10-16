@@ -60,6 +60,6 @@ public class Sum implements Expression {
 
 	@Override
 	public String toString() {
-		return String.format("Sum(augend=%s, addend=%s)", augend, addend);
+		return String.format("%s+%s", augend, addend);
 	}
 }

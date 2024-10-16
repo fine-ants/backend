@@ -60,6 +60,6 @@ public class Subtraction implements Expression {
 
 	@Override
 	public String toString() {
-		return String.format("Subtraction(augend=%s, addend=%s)", augend, addend);
+		return String.format("%s-%s", augend, addend);
 	}
 }

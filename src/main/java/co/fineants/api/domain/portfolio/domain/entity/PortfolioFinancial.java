@@ -6,6 +6,7 @@ import co.fineants.api.domain.common.money.Expression;
 import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.common.money.MoneyConverter;
 import co.fineants.api.domain.common.money.RateDivision;
+import co.fineants.api.domain.portfolio.domain.calculator.PortfolioCalculator;
 import co.fineants.api.global.errors.errorcode.PortfolioErrorCode;
 import co.fineants.api.global.errors.exception.portfolio.IllegalPortfolioFinancialArgumentException;
 import jakarta.persistence.Column;
@@ -93,12 +94,12 @@ public class PortfolioFinancial {
 		return budget.minus(totalInvestment);
 	}
 
-	public RateDivision calMaximumLossRate() {
-		return budget.minus(maximumLoss).divide(budget);
+	public RateDivision calMaximumLossRate(PortfolioCalculator calculator) {
+		return calculator.calMaximumLossRate(budget, maximumLoss);
 	}
 
-	public RateDivision calTargetGainRate() {
-		return targetGain.minus(budget).divide(budget);
+	public RateDivision calTargetGainRate(PortfolioCalculator calculator) {
+		return calculator.calTargetGainRate(budget, targetGain);
 	}
 
 	@Override

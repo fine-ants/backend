@@ -418,14 +418,33 @@ public class PortfolioCalculator {
 
 	/**
 	 * 포트폴리오의 최대손실율 계산 후 반환.
-	 * <p>
-	 * MaximumLossRate = ((Budget - MaximumLoss) / Budget)
-	 * </p>
 	 * @param portfolio 포트폴리오 객체
 	 * @return 포트폴리오의 최대손실율
 	 */
 	public Expression calMaximumLossRateBy(Portfolio portfolio) {
-		return portfolio.calculateMaximumLossRate();
+		return portfolio.calMaximumLossRate(this);
+	}
+
+	/**
+	 * 포트폴리오의 최대손실율 계산 후 반환.
+	 * <p>
+	 * MaximumLossRate = ((Budget - MaximumLoss) / Budget)
+	 * </p>
+	 * @param budget 예산
+	 * @param maximumLoss 최대손실금액
+	 * @return 포트폴리오의 최대손실율
+	 */
+	public RateDivision calMaximumLossRate(Money budget, Money maximumLoss) {
+		return budget.minus(maximumLoss).divide(budget);
+	}
+
+	/**
+	 * 포트폴리오의 목표수익금액율 계산 후 반환.
+	 * @param portfolio 포트폴리오 객체
+	 * @return 포트폴리오의 목표수익금액율
+	 */
+	public Expression calTargetGainRateBy(Portfolio portfolio) {
+		return portfolio.calTargetGainRate(this);
 	}
 
 	/**
@@ -433,11 +452,12 @@ public class PortfolioCalculator {
 	 * <p>
 	 * TargetGainRate = ((TargetGain - Budget) / Budget)
 	 * </p>
-	 * @param portfolio 포트폴리오 객체
+	 * @param budget 예산
+	 * @param targetGain 목표수익금액
 	 * @return 포트폴리오의 목표수익금액율
 	 */
-	public Expression calTargetGainRateBy(Portfolio portfolio) {
-		return portfolio.calculateTargetReturnRate();
+	public RateDivision calTargetGainRate(Expression budget, Expression targetGain) {
+		return targetGain.minus(budget).divide(budget);
 	}
 
 	/**
