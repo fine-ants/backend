@@ -426,7 +426,7 @@ public class PortfolioCalculator {
 	 * @return 포트폴리오의 최대손실율
 	 */
 	public Expression calMaximumLossRateBy(Portfolio portfolio) {
-		return portfolio.calculateMaximumLossRate(this);
+		return portfolio.calMaximumLossRate(this);
 	}
 
 	/**

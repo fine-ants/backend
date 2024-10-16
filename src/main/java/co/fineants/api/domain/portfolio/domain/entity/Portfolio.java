@@ -399,7 +399,7 @@ public class Portfolio extends BaseEntity implements Notifiable {
 		return calculator.calAnnualInvestmentDividendYield(annualDividend, totalInvestment);
 	}
 
-	public RateDivision calculateMaximumLossRate(PortfolioCalculator calculator) {
+	public RateDivision calMaximumLossRate(PortfolioCalculator calculator) {
 		return calculator.calMaximumLossRate(this.financial);
 	}
 
