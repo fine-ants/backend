@@ -31,6 +31,7 @@ import co.fineants.api.domain.kis.client.KisCurrentPrice;
 import co.fineants.api.domain.kis.repository.CurrentPriceMemoryRepository;
 import co.fineants.api.domain.kis.repository.PriceRepository;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
+import co.fineants.api.domain.portfolio.domain.entity.PortfolioFinancial;
 import co.fineants.api.domain.purchasehistory.domain.entity.PurchaseHistory;
 import co.fineants.api.domain.stock.domain.entity.Stock;
 import co.fineants.api.global.common.time.LocalDateTimeService;
@@ -835,6 +836,19 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		Portfolio portfolio = createPortfolio(createMember());
 		// when
 		Expression actual = calculator.calMaximumLossRateBy(portfolio);
+		// then
+		Expression expected = RateDivision.of(Money.won(100_000), Money.won(1_000_000));
+		assertThat(actual).isEqualByComparingTo(expected);
+	}
+
+	@DisplayName("포트폴리오 금융정보의 최대 손실비율을 계산한다")
+	@Test
+	void caleMaximumLossRate_givenPortfolioFinancial_whenCalMaximumLossRate_thenReturnPercentageOfMaximumLoss() {
+		// given
+		PortfolioFinancial financial = PortfolioFinancial.of(Money.won(1_000_000), Money.won(1_500_000),
+			Money.won(900_000));
+		// when
+		Expression actual = calculator.calMaximumLossRate(financial);
 		// then
 		Expression expected = RateDivision.of(Money.won(100_000), Money.won(1_000_000));
 		assertThat(actual).isEqualByComparingTo(expected);

@@ -429,7 +429,7 @@ public class PortfolioCalculator {
 		return portfolio.calculateMaximumLossRate(this);
 	}
 
-	public RateDivision calculateMaximumLossRate(PortfolioFinancial financial) {
+	public RateDivision calMaximumLossRate(PortfolioFinancial financial) {
 		return financial.calMaximumLossRate(this);
 	}
 
