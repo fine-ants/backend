@@ -733,4 +733,27 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		Expression expected = Money.won(1083);
 		Assertions.assertThat(actual).isEqualByComparingTo(expected);
 	}
+
+	@DisplayName("포트폴리오의 연간 배당금을 계산한다")
+	@Test
+	void calAnnualDividendBy_givenPortfolio_whenCalAnnualDividend_thenReturnSumOfAnnualDividend() {
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createSamsungStock();
+		stock.setLocalDateTimeService(localDateTimeService);
+		createStockDividendWith(stock).forEach(stock::addStockDividend);
+		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
+		PurchaseHistory history = createPurchaseHistory(null, LocalDate.of(2024, 3, 28).atStartOfDay(), Count.from(3),
+			Money.won(40000L),
+			"메모", holding);
+		holding.addPurchaseHistory(history);
+		portfolio.addHolding(holding);
+
+		given(localDateTimeService.getLocalDateWithNow())
+			.willReturn(LocalDate.of(2024, 5, 1));
+		// when
+		Expression actual = calculator.calAnnualDividendBy(localDateTimeService, portfolio);
+		// then
+		Expression expected = Money.won(4_332);
+		Assertions.assertThat(actual).isEqualByComparingTo(expected);
+	}
 }
