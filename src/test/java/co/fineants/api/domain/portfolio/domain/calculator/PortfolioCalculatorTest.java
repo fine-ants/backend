@@ -562,7 +562,7 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 
 	@DisplayName("포트폴리오 종목들의 총 평가 금액 합계를 계산한다")
 	@Test
-	void calTotalCurrentValuation_givenHoldingList() {
+	void calTotalCurrentValuation_givenHoldingList_whenCalTotalCurrentValuation_thenReturnSumOfAllHoldings() {
 		// given
 		Portfolio portfolio = createPortfolio(createMember());
 		Stock stock = createSamsungStock();
@@ -582,6 +582,56 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 
 		// then
 		Money expected = Money.won(500_000);
+		assertThat(actual).isEqualByComparingTo(expected);
+	}
+
+	@DisplayName("단일 포트폴리오 종목의 총 평가금액을 계산한다")
+	@Test
+	void calTotalCurrentValuationBy_whenCalTotalCurrentValuationByHolding_thenReturnSumOfHolding() {
+		// given
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createSamsungStock();
+		currentPriceRepository.savePrice(stock, 50_000L);
+		PortfolioHolding holding = PortfolioHolding.of(portfolio, stock);
+
+		PurchaseHistory purchaseHistory1 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
+			Money.won(10000), "첫구매", holding);
+		PurchaseHistory purchaseHistory2 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
+			Money.won(10000), "첫구매", holding);
+
+		holding.addPurchaseHistory(purchaseHistory1);
+		holding.addPurchaseHistory(purchaseHistory2);
+		portfolio.addHolding(holding);
+		// when
+		Expression actual = calculator.calTotalCurrentValuationBy(holding);
+
+		// then
+		Money expected = Money.won(500_000);
+		assertThat(actual).isEqualByComparingTo(expected);
+	}
+
+	@DisplayName("포트폴리오의 총 자산을 계산한다")
+	@Test
+	void calTotalAssetBy_givenPortfolio_whenCalTotalAssetBy_thenReturnSumOfPortfolio() {
+		// given
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createSamsungStock();
+		currentPriceRepository.savePrice(stock, 50_000L);
+		PortfolioHolding holding = PortfolioHolding.of(portfolio, stock);
+
+		PurchaseHistory purchaseHistory1 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
+			Money.won(10000), "첫구매", holding);
+		PurchaseHistory purchaseHistory2 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
+			Money.won(10000), "첫구매", holding);
+
+		holding.addPurchaseHistory(purchaseHistory1);
+		holding.addPurchaseHistory(purchaseHistory2);
+		portfolio.addHolding(holding);
+		// when
+		Expression actual = calculator.calTotalAssetBy(portfolio);
+
+		// then
+		Money expected = Money.won(1_400_000);
 		assertThat(actual).isEqualByComparingTo(expected);
 	}
 }
