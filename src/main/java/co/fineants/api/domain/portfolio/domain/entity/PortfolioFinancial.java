@@ -107,10 +107,22 @@ public class PortfolioFinancial {
 		return String.format("(budget=%s, targetGain=%s, maximumLoss=%s)", budget, targetGain, maximumLoss);
 	}
 
+	/**
+	 * 총 평가금액이 목표수익금액에 도달했는지 검사.
+	 *
+	 * @param totalCurrentValuation 총 평가 금액
+	 * @return true: 도달, false: 비도달
+	 */
 	public boolean reachedTargetGain(Expression totalCurrentValuation) {
 		return targetGain.compareTo(totalCurrentValuation) <= 0;
 	}
 
+	/**
+	 * 총 손익이 최대손실금액에 도달했는지 검사
+	 *
+	 * @param totalGain 총 손익
+	 * @return true: 도달, false: 비도달
+	 */
 	public boolean reachedMaximumLoss(Expression totalGain) {
 		return maximumLoss.compareTo(totalGain) >= 0;
 	}
