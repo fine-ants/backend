@@ -433,29 +433,6 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		assertThat(actual).isEqualByComparingTo(expected);
 	}
 
-	@DisplayName("포트폴리오의 이번달 배당금을 계산 후 반환한다")
-	@Test
-	void calCurrentMonthDividendBy() {
-		Portfolio portfolio = createPortfolio(createMember());
-		Stock stock = createSamsungStock();
-		stock.setLocalDateTimeService(localDateTimeService);
-		createStockDividendWith(stock).forEach(stock::addStockDividend);
-		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
-		PurchaseHistory history = createPurchaseHistory(null, LocalDate.of(2024, 3, 28).atStartOfDay(), Count.from(3),
-			Money.won(40000L),
-			"메모", holding);
-		holding.addPurchaseHistory(history);
-		portfolio.addHolding(holding);
-
-		given(localDateTimeService.getLocalDateWithNow())
-			.willReturn(LocalDate.of(2024, 5, 1));
-		// when
-		Expression actual = calculator.calCurrentMonthDividendBy(portfolio);
-		// then
-		Expression expected = Money.won(1083);
-		Assertions.assertThat(actual).isEqualByComparingTo(expected);
-	}
-
 	@DisplayName("포트폴리오 종목의 월별 배당금을 계산한다")
 	@Test
 	void calculateMonthlyDividends() {
@@ -686,5 +663,28 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		// then
 		Expression expected = RateDivision.of(Money.won(400_000), Money.won(100_000));
 		assertThat(actual).isEqualByComparingTo(expected);
+	}
+
+	@DisplayName("포트폴리오의 이번달 배당금을 계산 후 반환한다")
+	@Test
+	void calCurrentMonthDividendBy() {
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createSamsungStock();
+		stock.setLocalDateTimeService(localDateTimeService);
+		createStockDividendWith(stock).forEach(stock::addStockDividend);
+		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
+		PurchaseHistory history = createPurchaseHistory(null, LocalDate.of(2024, 3, 28).atStartOfDay(), Count.from(3),
+			Money.won(40000L),
+			"메모", holding);
+		holding.addPurchaseHistory(history);
+		portfolio.addHolding(holding);
+
+		given(localDateTimeService.getLocalDateWithNow())
+			.willReturn(LocalDate.of(2024, 5, 1));
+		// when
+		Expression actual = calculator.calCurrentMonthDividendBy(portfolio);
+		// then
+		Expression expected = Money.won(1083);
+		Assertions.assertThat(actual).isEqualByComparingTo(expected);
 	}
 }
