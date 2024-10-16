@@ -429,10 +429,23 @@ public class PortfolioCalculator {
 		return portfolio.calculateMaximumLossRate(this);
 	}
 
+	/**
+	 * 포트폴리오의 최대손실율 계산 후 반환.
+	 *
+	 * @param financial 포트폴리오 금융 정보
+	 * @return 포트폴리오의 최대손실율
+	 */
 	public RateDivision calMaximumLossRate(PortfolioFinancial financial) {
 		return financial.calMaximumLossRate(this);
 	}
 
+	/**
+	 * 포트폴리오의 최대손실율 계산 후 반환.
+	 *
+	 * @param budget 예산
+	 * @param maximumLoss 최대손실금액
+	 * @return 포트폴리오의 최대손실율
+	 */
 	public RateDivision calMaximumLossRate(Money budget, Money maximumLoss) {
 		return budget.minus(maximumLoss).divide(budget);
 	}

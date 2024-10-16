@@ -853,4 +853,17 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		Expression expected = RateDivision.of(Money.won(100_000), Money.won(1_000_000));
 		assertThat(actual).isEqualByComparingTo(expected);
 	}
+
+	@DisplayName("예산과 최대손실금액이 주어지고 최대 손실비율을 계산한다")
+	@Test
+	void calMaximumLossRate_givenBudgetAndMaximumLoss_whenCalMaximumLossRate_thenReturnPecentageOfMaximumLoss() {
+		// given
+		Money budget = Money.won(1_000_000);
+		Money maximumLoss = Money.won(900_000);
+		// when
+		Expression actual = calculator.calMaximumLossRate(budget, maximumLoss);
+		// then
+		Expression expected = RateDivision.of(Money.won(100_000), Money.won(1_000_000));
+		assertThat(actual).isEqualByComparingTo(expected);
+	}
 }
