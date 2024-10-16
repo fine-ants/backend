@@ -687,4 +687,50 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		Expression expected = Money.won(1083);
 		Assertions.assertThat(actual).isEqualByComparingTo(expected);
 	}
+
+	@DisplayName("포트폴리오 종목들의 이번달의 월간 배당금 합계를 계산한다")
+	@Test
+	void calCurrentMonthDividendBy_givenHoldings_whenCalCurrentMonthDividend_thenReturnSumOfHoldings() {
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createSamsungStock();
+		stock.setLocalDateTimeService(localDateTimeService);
+		createStockDividendWith(stock).forEach(stock::addStockDividend);
+		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
+		PurchaseHistory history = createPurchaseHistory(null, LocalDate.of(2024, 3, 28).atStartOfDay(), Count.from(3),
+			Money.won(40000L),
+			"메모", holding);
+		holding.addPurchaseHistory(history);
+		portfolio.addHolding(holding);
+
+		given(localDateTimeService.getLocalDateWithNow())
+			.willReturn(LocalDate.of(2024, 5, 1));
+		// when
+		Expression actual = calculator.calCurrentMonthDividendBy(List.of(holding));
+		// then
+		Expression expected = Money.won(1083);
+		Assertions.assertThat(actual).isEqualByComparingTo(expected);
+	}
+
+	@DisplayName("종목과 매입이력이 주어질때 이번달 배당금 합계를 계산한다")
+	@Test
+	void calCurrentMonthExpectedDividend_givenStockAndPurchaseHistories_whenCalCurrentMonthExpectdDividend_thenReturnSumOfDividend() {
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createSamsungStock();
+		stock.setLocalDateTimeService(localDateTimeService);
+		createStockDividendWith(stock).forEach(stock::addStockDividend);
+		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
+		PurchaseHistory history = createPurchaseHistory(null, LocalDate.of(2024, 3, 28).atStartOfDay(), Count.from(3),
+			Money.won(40000L),
+			"메모", holding);
+		holding.addPurchaseHistory(history);
+		portfolio.addHolding(holding);
+
+		given(localDateTimeService.getLocalDateWithNow())
+			.willReturn(LocalDate.of(2024, 5, 1));
+		// when
+		Expression actual = calculator.calCurrentMonthExpectedDividend(stock, List.of(history));
+		// then
+		Expression expected = Money.won(1083);
+		Assertions.assertThat(actual).isEqualByComparingTo(expected);
+	}
 }
