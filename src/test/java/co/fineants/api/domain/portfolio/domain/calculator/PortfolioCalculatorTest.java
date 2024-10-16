@@ -957,4 +957,30 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 			.usingComparatorForType(Expression::compareTo, Expression.class)
 			.isEqualTo(expected);
 	}
+
+	@DisplayName("총 자산 대비 평가금액 비중을 계산한다")
+	@Test
+	void calCurrentValuationWeight() {
+		// given
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createSamsungStock();
+		currentPriceRepository.savePrice(stock, 50_000);
+		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
+		PurchaseHistory purchaseHistory1 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
+			Money.won(10000), "첫구매", holding);
+		PurchaseHistory purchaseHistory2 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
+			Money.won(10000), "첫구매", holding);
+
+		holding.addPurchaseHistory(purchaseHistory1);
+		holding.addPurchaseHistory(purchaseHistory2);
+		portfolio.addHolding(holding);
+
+		Expression currentValuation = calculator.calTotalCurrentValuationBy(portfolio);
+		Expression totalAsset = calculator.calTotalAssetBy(portfolio);
+		// when
+		Expression actual = calculator.calCurrentValuationWeight(currentValuation, totalAsset);
+		// then
+		Expression expected = RateDivision.of(Money.won(500_000), Money.won(1_400_000));
+		assertThat(actual).isEqualByComparingTo(expected);
+	}
 }
