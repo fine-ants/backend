@@ -90,6 +90,6 @@ public class RateDivision implements Expression {
 	@Override
 	public String toString() {
 		Bank bank = Bank.getInstance();
-		return String.format("%s", toPercentage(bank, Currency.KRW));
+		return String.format("%s%%", toPercentage(bank, Currency.KRW));
 	}
 }
