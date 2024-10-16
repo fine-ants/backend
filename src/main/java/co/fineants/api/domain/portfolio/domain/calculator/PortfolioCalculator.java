@@ -557,7 +557,7 @@ public class PortfolioCalculator {
 	 * @param portfolio 포트폴리오 객체
 	 * @return 파이 차트 요소 리스트
 	 */
-	public List<PortfolioPieChartItem> calCurrentValuationWeightBy(Portfolio portfolio) {
+	public List<PortfolioPieChartItem> calPieChartItemBy(Portfolio portfolio) {
 		Bank bank = Bank.getInstance();
 		Money balance = bank.toWon(calBalanceBy(portfolio));
 		Percentage weight = calCashWeightBy(portfolio).toPercentage(bank, Currency.KRW);
