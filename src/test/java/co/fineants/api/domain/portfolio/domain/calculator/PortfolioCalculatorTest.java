@@ -1005,4 +1005,26 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		// then
 		assertThat(actual).isTrue();
 	}
+
+	@DisplayName("포트폴리오가 최대손실금액에 도달했는지 검사한다")
+	@Test
+	void reachedMaximumLossBy() {
+		// given
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createSamsungStock();
+		currentPriceRepository.savePrice(stock, 0);
+		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
+		PurchaseHistory purchaseHistory1 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
+			Money.won(10000), "첫구매", holding);
+		PurchaseHistory purchaseHistory2 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
+			Money.won(10000), "첫구매", holding);
+
+		holding.addPurchaseHistory(purchaseHistory1);
+		holding.addPurchaseHistory(purchaseHistory2);
+		portfolio.addHolding(holding);
+		// when
+		boolean actual = calculator.reachedMaximumLossBy(portfolio);
+		// then
+		assertThat(actual).isTrue();
+	}
 }
