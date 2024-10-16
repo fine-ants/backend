@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -54,6 +55,7 @@ import co.fineants.api.global.errors.errorcode.RoleErrorCode;
 import co.fineants.api.global.errors.exception.BadRequestException;
 import co.fineants.api.global.errors.exception.FineAntsException;
 import co.fineants.api.global.errors.exception.NotFoundResourceException;
+import co.fineants.api.global.security.factory.TokenFactory;
 import co.fineants.api.global.security.oauth.dto.Token;
 import co.fineants.api.global.security.oauth.service.TokenService;
 import co.fineants.api.global.util.CookieUtils;
@@ -93,6 +95,7 @@ public class MemberService {
 	private final TokenService tokenService;
 	private final OauthMemberRedisService oauthMemberRedisService;
 	private final RoleRepository roleRepository;
+	private final TokenFactory tokenFactory;
 
 	public void logout(HttpServletRequest request, HttpServletResponse response) {
 		// clear Authentication
@@ -112,6 +115,15 @@ public class MemberService {
 		if (refreshToken != null) {
 			oauthMemberRedisService.banRefreshToken(refreshToken);
 		}
+
+		expiredCookies(response);
+	}
+
+	private void expiredCookies(HttpServletResponse response) {
+		ResponseCookie expiredAccessTokenCookie = tokenFactory.createExpiredAccessTokenCookie(Token.empty());
+		CookieUtils.setCookie(response, expiredAccessTokenCookie);
+		ResponseCookie expiredRefreshTokenCookie = tokenFactory.createExpiredRefreshTokenCookie(Token.empty());
+		CookieUtils.setCookie(response, expiredRefreshTokenCookie);
 	}
 
 	@Transactional

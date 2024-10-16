@@ -14,6 +14,10 @@ public class Token {
 	private final String accessToken;
 	private final String refreshToken;
 
+	public static Token empty() {
+		return new Token(null, null);
+	}
+
 	public static Token create(String accessToken, String refreshToken) {
 		return new Token(accessToken, refreshToken);
 	}

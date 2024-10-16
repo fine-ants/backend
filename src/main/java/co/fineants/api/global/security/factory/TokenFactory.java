@@ -1,5 +1,7 @@
 package co.fineants.api.global.security.factory;
 
+import java.time.Duration;
+
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
 
@@ -31,6 +33,28 @@ public class TokenFactory {
 			.path("/")
 			.secure(true)
 			.httpOnly(true)
+			.build();
+	}
+
+	public ResponseCookie createExpiredAccessTokenCookie(Token token) {
+		return token.createAccessTokenCookie()
+			.domain(provider.domain())
+			.sameSite("None")
+			.path("/")
+			.secure(true)
+			.httpOnly(true)
+			.maxAge(Duration.ZERO)
+			.build();
+	}
+
+	public ResponseCookie createExpiredRefreshTokenCookie(Token token) {
+		return token.createRefreshTokenCookie()
+			.domain(provider.domain())
+			.sameSite("None")
+			.path("/")
+			.secure(true)
+			.httpOnly(true)
+			.maxAge(Duration.ZERO)
 			.build();
 	}
 }
