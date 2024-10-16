@@ -25,6 +25,7 @@ import co.fineants.api.domain.holding.domain.dto.response.PortfolioPieChartItem;
 import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
 import co.fineants.api.domain.kis.repository.PriceRepository;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
+import co.fineants.api.domain.portfolio.domain.entity.PortfolioFinancial;
 import co.fineants.api.domain.purchasehistory.domain.entity.PurchaseHistory;
 import co.fineants.api.domain.stock.domain.entity.Stock;
 import co.fineants.api.global.common.time.LocalDateTimeService;
@@ -425,7 +426,15 @@ public class PortfolioCalculator {
 	 * @return 포트폴리오의 최대손실율
 	 */
 	public Expression calMaximumLossRateBy(Portfolio portfolio) {
-		return portfolio.calculateMaximumLossRate();
+		return portfolio.calculateMaximumLossRate(this);
+	}
+
+	public RateDivision calculateMaximumLossRate(PortfolioFinancial financial) {
+		return financial.calMaximumLossRate(this);
+	}
+
+	public RateDivision calMaximumLossRate(Money budget, Money maximumLoss) {
+		return budget.minus(maximumLoss).divide(budget);
 	}
 
 	/**
