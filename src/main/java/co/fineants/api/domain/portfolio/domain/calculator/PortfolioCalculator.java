@@ -112,8 +112,19 @@ public class PortfolioCalculator {
 	 * @return 포트폴리오의 잔고
 	 */
 	public Expression calBalanceBy(Portfolio portfolio) {
-		Expression totalInvestment = calTotalInvestmentBy(portfolio);
-		return portfolio.calBalance(totalInvestment);
+		return portfolio.calBalance(this);
+	}
+
+	/**
+	 * 잔고 계산 후 반환
+	 * <p>
+	 * Balance = Budget - TotalInvestment
+	 * </p>
+	 * @ㅔ메
+	 * @return 포트폴리오의 잔고
+	 */
+	public Expression calBalance(Expression budget, Expression totalInvestment) {
+		return budget.minus(totalInvestment);
 	}
 
 	/**

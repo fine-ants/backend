@@ -363,8 +363,9 @@ public class Portfolio extends BaseEntity implements Notifiable {
 		return calculator.calTotalGainRate(Collections.unmodifiableList(portfolioHoldings));
 	}
 
-	public Expression calBalance(Expression totalInvestment) {
-		return this.financial.calBalance(totalInvestment);
+	public Expression calBalance(PortfolioCalculator calculator) {
+		Expression totalInvestment = calculator.calTotalInvestmentBy(this);
+		return this.financial.calBalance(calculator, totalInvestment);
 	}
 
 	/**

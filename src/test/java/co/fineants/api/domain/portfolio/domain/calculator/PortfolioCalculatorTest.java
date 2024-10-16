@@ -983,4 +983,26 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		Expression expected = RateDivision.of(Money.won(500_000), Money.won(1_400_000));
 		assertThat(actual).isEqualByComparingTo(expected);
 	}
+
+	@DisplayName("포트폴리오가 목표수익금액에 도달했는지 검사한다")
+	@Test
+	void reachedTargetGainBy() {
+		// given
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createSamsungStock();
+		currentPriceRepository.savePrice(stock, 150_000);
+		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
+		PurchaseHistory purchaseHistory1 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
+			Money.won(10000), "첫구매", holding);
+		PurchaseHistory purchaseHistory2 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
+			Money.won(10000), "첫구매", holding);
+
+		holding.addPurchaseHistory(purchaseHistory1);
+		holding.addPurchaseHistory(purchaseHistory2);
+		portfolio.addHolding(holding);
+		// when
+		boolean actual = calculator.reachedTargetGainBy(portfolio);
+		// then
+		assertThat(actual).isTrue();
+	}
 }

@@ -90,8 +90,8 @@ public class PortfolioFinancial {
 		this.maximumLoss = financial.maximumLoss;
 	}
 
-	public Expression calBalance(Expression totalInvestment) {
-		return budget.minus(totalInvestment);
+	public Expression calBalance(PortfolioCalculator calculator, Expression totalInvestment) {
+		return calculator.calBalance(budget, totalInvestment);
 	}
 
 	public RateDivision calMaximumLossRate(PortfolioCalculator calculator) {
