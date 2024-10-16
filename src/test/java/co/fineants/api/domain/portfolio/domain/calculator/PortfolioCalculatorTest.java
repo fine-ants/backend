@@ -712,7 +712,7 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 
 	@DisplayName("종목과 매입이력이 주어질때 이번달 배당금 합계를 계산한다")
 	@Test
-	void calCurrentMonthExpectedDividend_givenStockAndPurchaseHistories_whenCalCurrentMonthExpectdDividend_thenReturnSumOfDividend() {
+	void calCurrentMonthExpectedDividend_givenStockAndPurchaseHistories_whenCalCurrentMonthExpectDividend_thenReturnSumOfDividend() {
 		Portfolio portfolio = createPortfolio(createMember());
 		Stock stock = createSamsungStock();
 		stock.setLocalDateTimeService(localDateTimeService);
