@@ -94,10 +94,6 @@ public class PortfolioFinancial {
 		return budget.minus(totalInvestment);
 	}
 
-	public RateDivision calMaximumLossRate() {
-		return budget.minus(maximumLoss).divide(budget);
-	}
-
 	public RateDivision calMaximumLossRate(PortfolioCalculator calculator) {
 		return calculator.calMaximumLossRate(budget, maximumLoss);
 	}
