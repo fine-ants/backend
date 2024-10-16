@@ -63,6 +63,6 @@ public class AverageDivision implements Expression {
 
 	@Override
 	public String toString() {
-		return String.format("AverageDivision(division=%s, divisor=%s)", division, divisor);
+		return String.format("%s", reduce(Bank.getInstance(), KRW));
 	}
 }
