@@ -174,6 +174,6 @@ public final class Money implements Expression {
 
 	@Override
 	public String toString() {
-		return NUMBER_FORMAT.format(amount);
+		return String.format("%s%s", currency, NUMBER_FORMAT.format(amount));
 	}
 }

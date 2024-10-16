@@ -631,6 +631,7 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		Expression actual = calculator.calTotalAssetBy(portfolio);
 
 		// then
+		System.out.println(actual);
 		Money expected = Money.won(1_400_000);
 		assertThat(actual).isEqualByComparingTo(expected);
 	}
