@@ -26,6 +26,7 @@ import co.fineants.api.domain.common.money.Percentage;
 import co.fineants.api.domain.common.money.RateDivision;
 import co.fineants.api.domain.common.money.Sum;
 import co.fineants.api.domain.dividend.domain.entity.StockDividend;
+import co.fineants.api.domain.gainhistory.domain.entity.PortfolioGainHistory;
 import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
 import co.fineants.api.domain.kis.client.KisCurrentPrice;
 import co.fineants.api.domain.kis.repository.CurrentPriceMemoryRepository;
@@ -631,8 +632,33 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		Expression actual = calculator.calTotalAssetBy(portfolio);
 
 		// then
-		System.out.println(actual);
 		Money expected = Money.won(1_400_000);
+		assertThat(actual).isEqualByComparingTo(expected);
+	}
+
+	@DisplayName("포트폴리오의 당일 손익을 계산한다")
+	@Test
+	void calDailyGain_givenPortfolio_whenCalDailyGain_thenReturnSumOfPortfolio() {
+		// given
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createSamsungStock();
+		currentPriceRepository.savePrice(stock, 50_000L);
+		PortfolioHolding holding = PortfolioHolding.of(portfolio, stock);
+
+		PurchaseHistory purchaseHistory1 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
+			Money.won(10000), "첫구매", holding);
+		PurchaseHistory purchaseHistory2 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
+			Money.won(10000), "첫구매", holding);
+
+		holding.addPurchaseHistory(purchaseHistory1);
+		holding.addPurchaseHistory(purchaseHistory2);
+		portfolio.addHolding(holding);
+
+		PortfolioGainHistory history = PortfolioGainHistory.empty(portfolio);
+		// when
+		Expression actual = calculator.calDailyGain(history, portfolio);
+		// then
+		Money expected = Money.won(400_000);
 		assertThat(actual).isEqualByComparingTo(expected);
 	}
 }
