@@ -15,6 +15,6 @@ public class PieChart {
 	private final PortfolioCalculator calculator;
 
 	public List<PortfolioPieChartItem> createItemsBy(Portfolio portfolio) {
-		return calculator.calCurrentValuationWeightBy(portfolio);
+		return calculator.calPieChartItemBy(portfolio);
 	}
 }
