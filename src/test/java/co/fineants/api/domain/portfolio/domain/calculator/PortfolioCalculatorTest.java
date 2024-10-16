@@ -31,7 +31,6 @@ import co.fineants.api.domain.kis.client.KisCurrentPrice;
 import co.fineants.api.domain.kis.repository.CurrentPriceMemoryRepository;
 import co.fineants.api.domain.kis.repository.PriceRepository;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
-import co.fineants.api.domain.portfolio.domain.entity.PortfolioFinancial;
 import co.fineants.api.domain.purchasehistory.domain.entity.PurchaseHistory;
 import co.fineants.api.domain.stock.domain.entity.Stock;
 import co.fineants.api.global.common.time.LocalDateTimeService;
@@ -713,7 +712,7 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 
 	@DisplayName("종목과 매입이력이 주어질때 이번달 배당금 합계를 계산한다")
 	@Test
-	void calCurrentMonthExpectedDividend_givenStockAndPurchaseHistories_whenCalCurrentMonthExpectDividend_thenReturnSumOfDividend() {
+	void givenStockAndPurchaseHistories_whenCalCurrentMonthExpectDividend_thenReturnSumOfDividend() {
 		Portfolio portfolio = createPortfolio(createMember());
 		Stock stock = createSamsungStock();
 		stock.setLocalDateTimeService(localDateTimeService);
@@ -841,22 +840,9 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		assertThat(actual).isEqualByComparingTo(expected);
 	}
 
-	@DisplayName("포트폴리오 금융정보의 최대 손실비율을 계산한다")
-	@Test
-	void caleMaximumLossRate_givenPortfolioFinancial_whenCalMaximumLossRate_thenReturnPercentageOfMaximumLoss() {
-		// given
-		PortfolioFinancial financial = PortfolioFinancial.of(Money.won(1_000_000), Money.won(1_500_000),
-			Money.won(900_000));
-		// when
-		Expression actual = calculator.calMaximumLossRate(financial);
-		// then
-		Expression expected = RateDivision.of(Money.won(100_000), Money.won(1_000_000));
-		assertThat(actual).isEqualByComparingTo(expected);
-	}
-
 	@DisplayName("예산과 최대손실금액이 주어지고 최대 손실비율을 계산한다")
 	@Test
-	void calMaximumLossRate_givenBudgetAndMaximumLoss_whenCalMaximumLossRate_thenReturnPecentageOfMaximumLoss() {
+	void calMaximumLossRate_givenBudgetAndMaximumLoss_whenCalMaximumLossRate_thenReturnPercentageOfMaximumLoss() {
 		// given
 		Money budget = Money.won(1_000_000);
 		Money maximumLoss = Money.won(900_000);
@@ -864,6 +850,31 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		Expression actual = calculator.calMaximumLossRate(budget, maximumLoss);
 		// then
 		Expression expected = RateDivision.of(Money.won(100_000), Money.won(1_000_000));
+		assertThat(actual).isEqualByComparingTo(expected);
+	}
+
+	@DisplayName("포트폴리오의 목표수익율을 계산한다")
+	@Test
+	void calTargetGainRateBy_givenPortfolio_whenCalTargetGainRate_thenReturnPercentageOfTargetGain() {
+		// given
+		Portfolio portfolio = createPortfolio(createMember());
+		// when
+		Expression actual = calculator.calTargetGainRateBy(portfolio);
+		// then
+		Expression expected = RateDivision.of(Money.won(500_000), Money.won(1_000_000));
+		assertThat(actual).isEqualByComparingTo(expected);
+	}
+
+	@DisplayName("예산과 목표수익금액이 주어지고 목표수익율을 계산한다")
+	@Test
+	void calTargetGainRate_givenBudgetAndTargetGain_whenCalTargetGainRate_thenReturnPercentageOfTargetGain() {
+		// given
+		Expression budget = Money.won(1_000_000);
+		Expression targetGain = Money.won(1_500_000);
+		// when
+		Expression actual = calculator.calTargetGainRate(budget, targetGain);
+		// then
+		Expression expected = RateDivision.of(Money.won(500_000), Money.won(1_000_000));
 		assertThat(actual).isEqualByComparingTo(expected);
 	}
 }

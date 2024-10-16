@@ -98,8 +98,8 @@ public class PortfolioFinancial {
 		return calculator.calMaximumLossRate(budget, maximumLoss);
 	}
 
-	public RateDivision calTargetGainRate() {
-		return targetGain.minus(budget).divide(budget);
+	public RateDivision calTargetGainRate(PortfolioCalculator calculator) {
+		return calculator.calTargetGainRate(budget, targetGain);
 	}
 
 	@Override

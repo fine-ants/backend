@@ -25,7 +25,6 @@ import co.fineants.api.domain.holding.domain.dto.response.PortfolioPieChartItem;
 import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
 import co.fineants.api.domain.kis.repository.PriceRepository;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
-import co.fineants.api.domain.portfolio.domain.entity.PortfolioFinancial;
 import co.fineants.api.domain.purchasehistory.domain.entity.PurchaseHistory;
 import co.fineants.api.domain.stock.domain.entity.Stock;
 import co.fineants.api.global.common.time.LocalDateTimeService;
@@ -419,9 +418,6 @@ public class PortfolioCalculator {
 
 	/**
 	 * 포트폴리오의 최대손실율 계산 후 반환.
-	 * <p>
-	 * MaximumLossRate = ((Budget - MaximumLoss) / Budget)
-	 * </p>
 	 * @param portfolio 포트폴리오 객체
 	 * @return 포트폴리오의 최대손실율
 	 */
@@ -431,17 +427,9 @@ public class PortfolioCalculator {
 
 	/**
 	 * 포트폴리오의 최대손실율 계산 후 반환.
-	 *
-	 * @param financial 포트폴리오 금융 정보
-	 * @return 포트폴리오의 최대손실율
-	 */
-	public RateDivision calMaximumLossRate(PortfolioFinancial financial) {
-		return financial.calMaximumLossRate(this);
-	}
-
-	/**
-	 * 포트폴리오의 최대손실율 계산 후 반환.
-	 *
+	 * <p>
+	 * MaximumLossRate = ((Budget - MaximumLoss) / Budget)
+	 * </p>
 	 * @param budget 예산
 	 * @param maximumLoss 최대손실금액
 	 * @return 포트폴리오의 최대손실율
@@ -452,14 +440,24 @@ public class PortfolioCalculator {
 
 	/**
 	 * 포트폴리오의 목표수익금액율 계산 후 반환.
-	 * <p>
-	 * TargetGainRate = ((TargetGain - Budget) / Budget)
-	 * </p>
 	 * @param portfolio 포트폴리오 객체
 	 * @return 포트폴리오의 목표수익금액율
 	 */
 	public Expression calTargetGainRateBy(Portfolio portfolio) {
-		return portfolio.calculateTargetReturnRate();
+		return portfolio.calTargetGainRate(this);
+	}
+
+	/**
+	 * 포트폴리오의 목표수익금액율 계산 후 반환.
+	 * <p>
+	 * TargetGainRate = ((TargetGain - Budget) / Budget)
+	 * </p>
+	 * @param budget 예산
+	 * @param targetGain 목표수익금액
+	 * @return 포트폴리오의 목표수익금액율
+	 */
+	public RateDivision calTargetGainRate(Expression budget, Expression targetGain) {
+		return targetGain.minus(budget).divide(budget);
 	}
 
 	/**
