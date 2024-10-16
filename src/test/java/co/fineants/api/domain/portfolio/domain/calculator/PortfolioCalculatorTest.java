@@ -877,4 +877,30 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		Expression expected = RateDivision.of(balance, totalAsset);
 		assertThat(result).isEqualByComparingTo(expected);
 	}
+
+	@DisplayName("포트폴리오 종목의 평가 금액 비중을 계산한다")
+	@Test
+	void calCurrentValuationWeightBy_givenHolding_whenCalCurrentValuationWeight_thenReturnPercentageOfHolding() {
+		// given
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createSamsungStock();
+		currentPriceRepository.savePrice(stock, 50_000L);
+		PortfolioHolding holding = PortfolioHolding.of(portfolio, stock);
+
+		PurchaseHistory purchaseHistory1 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
+			Money.won(10000), "첫구매", holding);
+		PurchaseHistory purchaseHistory2 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
+			Money.won(10000), "첫구매", holding);
+
+		holding.addPurchaseHistory(purchaseHistory1);
+		holding.addPurchaseHistory(purchaseHistory2);
+		portfolio.addHolding(holding);
+
+		Expression totalAsset = calculator.calTotalAssetBy(portfolio);
+		// when
+		Expression actual = calculator.calCurrentValuationWeightBy(holding, totalAsset);
+		// then
+		Expression expected = RateDivision.of(Money.won(500_000), Money.won(1_400_000));
+		assertThat(actual).isEqualByComparingTo(expected);
+	}
 }
