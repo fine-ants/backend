@@ -19,6 +19,7 @@ import org.springframework.boot.test.mock.mockito.SpyBean;
 import co.fineants.AbstractContainerBaseTest;
 import co.fineants.api.domain.common.count.Count;
 import co.fineants.api.domain.common.money.Bank;
+import co.fineants.api.domain.common.money.Currency;
 import co.fineants.api.domain.common.money.Expression;
 import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.common.money.Percentage;
@@ -26,6 +27,7 @@ import co.fineants.api.domain.common.money.RateDivision;
 import co.fineants.api.domain.common.money.Sum;
 import co.fineants.api.domain.dividend.domain.entity.StockDividend;
 import co.fineants.api.domain.gainhistory.domain.entity.PortfolioGainHistory;
+import co.fineants.api.domain.holding.domain.dto.response.PortfolioPieChartItem;
 import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
 import co.fineants.api.domain.kis.client.KisCurrentPrice;
 import co.fineants.api.domain.kis.repository.CurrentPriceMemoryRepository;
@@ -1026,5 +1028,47 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		boolean actual = calculator.reachedMaximumLossBy(portfolio);
 		// then
 		assertThat(actual).isTrue();
+	}
+
+	@DisplayName("포트폴리오의 파이 차트를 계산한다")
+	@Test
+	void calPieChartItemBy_givenPortfolio_whenCalPieChartItem_thenReturnPieChartItemList() {
+		// given
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createSamsungStock();
+		currentPriceRepository.savePrice(stock, 50_000);
+		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
+		PurchaseHistory purchaseHistory1 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
+			Money.won(10000), "첫구매", holding);
+		PurchaseHistory purchaseHistory2 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
+			Money.won(10000), "첫구매", holding);
+
+		holding.addPurchaseHistory(purchaseHistory1);
+		holding.addPurchaseHistory(purchaseHistory2);
+		portfolio.addHolding(holding);
+		// when
+		List<PortfolioPieChartItem> actual = calculator.calPieChartItemBy(portfolio);
+		// then
+		// 현금 90만원
+		Money expectedBalance = Money.won(900_000);
+		Money expectedTotalAsset = Money.won(1_400_000);
+		Percentage weight = RateDivision.of(expectedBalance, expectedTotalAsset)
+			.toPercentage(Bank.getInstance(), Currency.KRW);
+		PortfolioPieChartItem cash = PortfolioPieChartItem.cash(weight, expectedBalance);
+
+		Money expectedCurrentValuation = Money.won(500_000);
+		Percentage expectedWeight = RateDivision.of(Money.won(500_000), Money.won(1_400_000))
+			.toPercentage(Bank.getInstance(), Currency.KRW);
+		Money expectedTotalGain = Money.won(400_000);
+		Percentage totalGainRate = RateDivision.of(Money.won(400_000), Money.won(100_000))
+			.toPercentage(Bank.getInstance(), Currency.KRW);
+		PortfolioPieChartItem stockPieChartItem = PortfolioPieChartItem.stock(stock.getCompanyName(),
+			expectedCurrentValuation,
+			expectedWeight, expectedTotalGain, totalGainRate);
+		List<PortfolioPieChartItem> expected = List.of(cash, stockPieChartItem);
+		assertThat(actual)
+			.hasSize(2)
+			.usingComparatorForType(Expression::compareTo, Expression.class)
+			.containsExactlyElementsOf(expected);
 	}
 }
