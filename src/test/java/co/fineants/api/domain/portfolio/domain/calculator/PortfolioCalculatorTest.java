@@ -265,28 +265,6 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		assertThat(result).isEqualByComparingTo(expected);
 	}
 
-	@DisplayName("포트폴리오의 현금 비중 계산한다")
-	@Test
-	void calCashWeightBy() {
-		// given
-		Portfolio portfolio = createPortfolio(createMember());
-		Stock stock = createSamsungStock();
-		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
-		PurchaseHistory history = createPurchaseHistory(null, LocalDateTime.now(), Count.from(3), Money.won(40000L),
-			"메모", holding);
-		holding.addPurchaseHistory(history);
-		portfolio.addHolding(holding);
-
-		currentPriceRepository.savePrice(stock, 50000L);
-		// when
-		Expression result = calculator.calCashWeightBy(portfolio);
-		// then
-		Expression balance = Money.won(880_000L);
-		Expression totalAsset = Money.won(1_030_000L);
-		Expression expected = RateDivision.of(balance, totalAsset);
-		assertThat(result).isEqualByComparingTo(expected);
-	}
-
 	@DisplayName("포트폴리오의 월별 전체 배당금 합계를 게산합니다.")
 	@Test
 	void calTotalDividendBy() {
@@ -876,5 +854,27 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		// then
 		Expression expected = RateDivision.of(Money.won(500_000), Money.won(1_000_000));
 		assertThat(actual).isEqualByComparingTo(expected);
+	}
+
+	@DisplayName("포트폴리오의 현금 비중 계산한다")
+	@Test
+	void calCashWeightBy_givenPortfolio_whenCalCashWeight_thenReturnPercentageOfCash() {
+		// given
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createSamsungStock();
+		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
+		PurchaseHistory history = createPurchaseHistory(null, LocalDateTime.now(), Count.from(3), Money.won(40000L),
+			"메모", holding);
+		holding.addPurchaseHistory(history);
+		portfolio.addHolding(holding);
+
+		currentPriceRepository.savePrice(stock, 50000L);
+		// when
+		Expression result = calculator.calCashWeightBy(portfolio);
+		// then
+		Expression balance = Money.won(880_000L);
+		Expression totalAsset = Money.won(1_030_000L);
+		Expression expected = RateDivision.of(balance, totalAsset);
+		assertThat(result).isEqualByComparingTo(expected);
 	}
 }
