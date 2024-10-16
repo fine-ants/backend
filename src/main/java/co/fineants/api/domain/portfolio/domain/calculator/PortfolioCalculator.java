@@ -515,7 +515,7 @@ public class PortfolioCalculator {
 	}
 
 	/**
-	 * 총 자산 대시 평가 금액 비중을 계산 후 반환.
+	 * 총 자산 대비 평가 금액 비중을 계산 후 반환.
 	 * <p>
 	 * CurrentValuationWeight = CurrentValuation / TotalAsset
 	 * </p>
