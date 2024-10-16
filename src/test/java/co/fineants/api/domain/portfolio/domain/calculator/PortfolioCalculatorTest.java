@@ -802,4 +802,30 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		Expression expected = RateDivision.of(Money.won(4_332), Money.won(120_000));
 		Assertions.assertThat(actual).isEqualByComparingTo(expected);
 	}
+
+	@DisplayName("연간 배당금과 총 투자금액을 이용하여 투자대비 연간 배당율을 계산한다")
+	@Test
+	void calAnnualInvestmentDividendYield() {
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createSamsungStock();
+		stock.setLocalDateTimeService(localDateTimeService);
+		createStockDividendWith(stock).forEach(stock::addStockDividend);
+		currentPriceRepository.savePrice(stock, 50_000);
+		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
+		PurchaseHistory history = createPurchaseHistory(null, LocalDate.of(2024, 3, 28).atStartOfDay(), Count.from(3),
+			Money.won(40_000),
+			"메모", holding);
+		holding.addPurchaseHistory(history);
+		portfolio.addHolding(holding);
+		given(localDateTimeService.getLocalDateWithNow())
+			.willReturn(LocalDate.of(2024, 5, 1));
+
+		Expression annualDividend = calculator.calAnnualDividendBy(localDateTimeService, portfolio);
+		Expression totalInvestment = calculator.calTotalInvestmentBy(portfolio);
+		// when
+		Expression actual = calculator.calAnnualInvestmentDividendYield(annualDividend, totalInvestment);
+		// then
+		Expression expected = RateDivision.of(Money.won(4_332), Money.won(120_000));
+		Assertions.assertThat(actual).isEqualByComparingTo(expected);
+	}
 }
