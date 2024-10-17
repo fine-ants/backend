@@ -1119,4 +1119,24 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		Expression expected = RateDivision.of(Money.won(10_000L), closingPrice);
 		assertThat(actual).isEqualByComparingTo(expected);
 	}
+
+	@DisplayName("포트폴리오 종목의 현재가를 가져온다")
+	@Test
+	void fetchCurrentPrice() {
+		// given
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createSamsungStock();
+		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
+		PurchaseHistory history = createPurchaseHistory(null, LocalDateTime.now(), Count.from(3), Money.won(40000L),
+			"메모", holding);
+		holding.addPurchaseHistory(history);
+		portfolio.addHolding(holding);
+
+		currentPriceRepository.savePrice(stock, 50_000L);
+		// when
+		Expression actual = calculator.fetchCurrentPrice(holding);
+		// then
+		Expression expected = Money.won(50_000);
+		assertThat(actual).isEqualByComparingTo(expected);
+	}
 }
