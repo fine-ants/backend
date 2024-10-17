@@ -172,30 +172,6 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		assertThat(result).isEqualByComparingTo(expected);
 	}
 
-	@DisplayName("포트폴리오 종목의 주식 개수를 계산한다")
-	@Test
-	void calNumSharesBy() {
-		// given
-		Portfolio portfolio = createPortfolio(createMember());
-		Stock stock = createSamsungStock();
-		PortfolioHolding holding = PortfolioHolding.of(portfolio, stock);
-
-		PurchaseHistory purchaseHistory1 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
-			Money.won(10000), "첫구매", holding);
-		PurchaseHistory purchaseHistory2 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
-			Money.won(10000), "첫구매", holding);
-
-		holding.addPurchaseHistory(purchaseHistory1);
-		holding.addPurchaseHistory(purchaseHistory2);
-
-		// when
-		Count actual = calculator.calNumSharesBy(holding);
-
-		// then
-		Count expected = Count.from(10);
-		assertThat(actual).isEqualByComparingTo(expected);
-	}
-
 	@DisplayName("한 종목의 총 투자 금액을 계산한다")
 	@Test
 	void calculateTotalInvestmentAmount() {
@@ -1182,6 +1158,29 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		holding.addPurchaseHistory(purchaseHistory2);
 		// when
 		Count actual = calculator.calNumShares(List.of(purchaseHistory1, purchaseHistory2));
+		// then
+		Count expected = Count.from(10);
+		assertThat(actual).isEqualByComparingTo(expected);
+	}
+
+	@DisplayName("포트폴리오 종목의 주식 개수를 계산한다")
+	@Test
+	void calNumSharesBy() {
+		// given
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createSamsungStock();
+		PortfolioHolding holding = PortfolioHolding.of(portfolio, stock);
+
+		PurchaseHistory purchaseHistory1 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
+			Money.won(10000), "첫구매", holding);
+		PurchaseHistory purchaseHistory2 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
+			Money.won(10000), "첫구매", holding);
+		holding.addPurchaseHistory(purchaseHistory1);
+		holding.addPurchaseHistory(purchaseHistory2);
+
+		// when
+		Count actual = calculator.calNumSharesBy(holding);
+
 		// then
 		Count expected = Count.from(10);
 		assertThat(actual).isEqualByComparingTo(expected);
