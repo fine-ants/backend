@@ -172,29 +172,6 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		assertThat(result).isEqualByComparingTo(expected);
 	}
 
-	@DisplayName("한 종목의 평균 매입가를 계산한다")
-	@Test
-	void calculateAverageCostPerShare() {
-		// given
-		Portfolio portfolio = createPortfolio(createMember());
-		Stock stock = createSamsungStock();
-		PortfolioHolding holding = PortfolioHolding.of(portfolio, stock);
-
-		PurchaseHistory purchaseHistory1 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
-			Money.won(10000), "첫구매", holding);
-		PurchaseHistory purchaseHistory2 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
-			Money.won(10000), "첫구매", holding);
-
-		holding.addPurchaseHistory(purchaseHistory1);
-		holding.addPurchaseHistory(purchaseHistory2);
-
-		// when
-		Expression money = calculator.calAverageCostPerShareBy(holding);
-
-		// then
-		assertThat(money).isEqualByComparingTo(Money.won(10000.0));
-	}
-
 	@DisplayName("포트폴리오 종목의 주식 개수를 계산한다")
 	@Test
 	void calNumSharesBy() {
@@ -1138,5 +1115,28 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		// then
 		Expression expected = Money.won(1083);
 		assertThat(actual).isEqualByComparingTo(expected);
+	}
+
+	@DisplayName("한 종목의 평균 매입가를 계산한다")
+	@Test
+	void calculateAverageCostPerShare() {
+		// given
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createSamsungStock();
+		PortfolioHolding holding = PortfolioHolding.of(portfolio, stock);
+
+		PurchaseHistory purchaseHistory1 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
+			Money.won(10000), "첫구매", holding);
+		PurchaseHistory purchaseHistory2 = createPurchaseHistory(null, LocalDateTime.now(), Count.from(5),
+			Money.won(10000), "첫구매", holding);
+
+		holding.addPurchaseHistory(purchaseHistory1);
+		holding.addPurchaseHistory(purchaseHistory2);
+
+		// when
+		Expression money = calculator.calAverageCostPerShareBy(holding);
+
+		// then
+		assertThat(money).isEqualByComparingTo(Money.won(10000.0));
 	}
 }
