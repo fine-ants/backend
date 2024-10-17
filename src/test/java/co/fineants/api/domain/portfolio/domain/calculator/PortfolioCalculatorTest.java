@@ -1063,8 +1063,7 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		Percentage totalGainRate = RateDivision.of(Money.won(400_000), Money.won(100_000))
 			.toPercentage(Bank.getInstance(), Currency.KRW);
 		PortfolioPieChartItem stockPieChartItem = PortfolioPieChartItem.stock(stock.getCompanyName(),
-			expectedCurrentValuation,
-			expectedWeight, expectedTotalGain, totalGainRate);
+			expectedCurrentValuation, expectedWeight, expectedTotalGain, totalGainRate);
 		List<PortfolioPieChartItem> expected = List.of(cash, stockPieChartItem);
 		assertThat(actual)
 			.hasSize(2)
