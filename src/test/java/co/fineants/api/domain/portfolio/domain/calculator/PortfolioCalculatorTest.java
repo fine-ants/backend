@@ -172,26 +172,6 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		assertThat(result).isEqualByComparingTo(expected);
 	}
 
-	@DisplayName("포트폴리오 종목의 예상 연간 배당금을 계산한다")
-	@Test
-	void calAnnualExpectedDividendBy() {
-		Portfolio portfolio = createPortfolio(createMember());
-		Stock stock = createSamsungStock();
-		long currentPrice = 50_000L;
-		currentPriceRepository.savePrice(stock, currentPrice);
-		createStockDividendWith(stock).forEach(stock::addStockDividend);
-		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
-		PurchaseHistory history = createPurchaseHistory(null, LocalDateTime.now(), Count.from(3), Money.won(40000L),
-			"메모", holding);
-		holding.addPurchaseHistory(history);
-		portfolio.addHolding(holding);
-		// when
-		Expression actual = calculator.calAnnualExpectedDividendBy(holding);
-		// then
-		Expression expected = Money.won(1083);
-		assertThat(actual).isEqualByComparingTo(expected);
-	}
-
 	@DisplayName("한 종목의 평균 매입가를 계산한다")
 	@Test
 	void calculateAverageCostPerShare() {
@@ -1137,6 +1117,26 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		Expression actual = calculator.fetchCurrentPrice(holding);
 		// then
 		Expression expected = Money.won(50_000);
+		assertThat(actual).isEqualByComparingTo(expected);
+	}
+
+	@DisplayName("포트폴리오 종목의 예상 연간 배당금을 계산한다")
+	@Test
+	void calAnnualExpectedDividendBy() {
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createSamsungStock();
+		long currentPrice = 50_000L;
+		currentPriceRepository.savePrice(stock, currentPrice);
+		createStockDividendWith(stock).forEach(stock::addStockDividend);
+		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
+		PurchaseHistory history = createPurchaseHistory(null, LocalDateTime.now(), Count.from(3), Money.won(40000L),
+			"메모", holding);
+		holding.addPurchaseHistory(history);
+		portfolio.addHolding(holding);
+		// when
+		Expression actual = calculator.calAnnualExpectedDividendBy(holding);
+		// then
+		Expression expected = Money.won(1083);
 		assertThat(actual).isEqualByComparingTo(expected);
 	}
 }
