@@ -120,7 +120,8 @@ public class PortfolioCalculator {
 	 * <p>
 	 * Balance = Budget - TotalInvestment
 	 * </p>
-	 * @ㅔ메
+	 * @param budget 에산
+	 * @param totalInvestment 총 투자 금액
 	 * @return 포트폴리오의 잔고
 	 */
 	public Expression calBalance(Expression budget, Expression totalInvestment) {
