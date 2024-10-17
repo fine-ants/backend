@@ -1098,4 +1098,25 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		Expression expected = Money.won(10_000L);
 		assertThat(actual).isEqualByComparingTo(expected);
 	}
+
+	@DisplayName("포트폴리오 종목의 당일 손익 변동율을 계산한다")
+	@Test
+	void calDailyChangeRate() {
+		// given
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createSamsungStock();
+		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
+		PurchaseHistory history = createPurchaseHistory(null, LocalDateTime.now(), Count.from(3), Money.won(40000L),
+			"메모", holding);
+		holding.addPurchaseHistory(history);
+		portfolio.addHolding(holding);
+
+		currentPriceRepository.savePrice(stock, 50_000L);
+		Expression closingPrice = Money.won(40_000L);
+		// when
+		Expression actual = calculator.calDailyChangeRate(holding, closingPrice);
+		// then
+		Expression expected = RateDivision.of(Money.won(10_000L), closingPrice);
+		assertThat(actual).isEqualByComparingTo(expected);
+	}
 }
