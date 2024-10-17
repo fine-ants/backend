@@ -1209,4 +1209,23 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		assertThat(actual).isEqualByComparingTo(expected);
 	}
 
+	@DisplayName("종목과 매입이력들이 주어졌을때 연간 예상되는 배당금 합계를 계산한다")
+	@Test
+	void calAnnualExpectedDividend_givenStockAndPurchaseHistories_whenCalAnnualExpectedDividend_thenReturnSumOfDividend() {
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createSamsungStock();
+		long currentPrice = 50_000L;
+		currentPriceRepository.savePrice(stock, currentPrice);
+		createStockDividendWith(stock).forEach(stock::addStockDividend);
+		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
+		PurchaseHistory history = createPurchaseHistory(null, LocalDateTime.now(), Count.from(3), Money.won(40000L),
+			"메모", holding);
+		holding.addPurchaseHistory(history);
+		portfolio.addHolding(holding);
+		// when
+		Expression actual = calculator.calAnnualExpectedDividend(stock, List.of(history));
+		// then
+		Expression expected = Money.won(1083);
+		assertThat(actual).isEqualByComparingTo(expected);
+	}
 }
