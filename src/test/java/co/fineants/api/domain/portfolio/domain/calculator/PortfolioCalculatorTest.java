@@ -1066,4 +1066,36 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 			.usingRecursiveComparison().comparingOnlyFieldsOfTypes(Expression.class)
 			.isEqualTo(expected);
 	}
+
+	@DisplayName("포트폴리오 종목들의 월별 배당금 합계를 계산한다")
+	@Test
+	void calTotalDividend() {
+		// given
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createSamsungStock();
+		createStockDividendWith(stock).forEach(stock::addStockDividend);
+		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
+		LocalDateTime purchaseDate = LocalDateTime.of(2023, 9, 26, 9, 30, 0);
+		PurchaseHistory history = createPurchaseHistory(null, purchaseDate, Count.from(3), Money.won(40000L),
+			"메모", holding);
+		holding.addPurchaseHistory(history);
+		portfolio.addHolding(holding);
+
+		LocalDate currentLocalDate = LocalDate.of(2024, 1, 16);
+		// when
+		Map<Month, Expression> actual = calculator.calTotalDividend(List.of(holding), currentLocalDate);
+		// then
+		Map<Month, Expression> expected = new EnumMap<>(Month.class);
+		for (Month month : Month.values()) {
+			expected.put(month, Money.zero());
+		}
+		expected.put(Month.APRIL, Money.won(1083L));
+		expected.put(Month.MAY, Money.won(1083L));
+		expected.put(Month.AUGUST, Money.won(1083L));
+		expected.put(Month.NOVEMBER, Money.won(1083L));
+
+		assertThat(actual)
+			.usingRecursiveComparison().comparingOnlyFieldsOfTypes(Expression.class)
+			.isEqualTo(expected);
+	}
 }
