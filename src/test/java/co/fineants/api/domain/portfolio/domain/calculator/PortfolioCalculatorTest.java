@@ -172,27 +172,6 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		assertThat(result).isEqualByComparingTo(expected);
 	}
 
-	@DisplayName("포트폴리오 종목의 당일 변동 금액을 계산한다")
-	@Test
-	void calDailyChange() {
-		// given
-		Portfolio portfolio = createPortfolio(createMember());
-		Stock stock = createSamsungStock();
-		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
-		PurchaseHistory history = createPurchaseHistory(null, LocalDateTime.now(), Count.from(3), Money.won(40000L),
-			"메모", holding);
-		holding.addPurchaseHistory(history);
-		portfolio.addHolding(holding);
-
-		currentPriceRepository.savePrice(stock, 50_000L);
-		Expression closingPrice = Money.won(40_000L);
-		// when
-		Expression actual = calculator.calDailyChange(holding, closingPrice);
-		// then
-		Expression expected = Money.won(10_000L);
-		assertThat(actual).isEqualByComparingTo(expected);
-	}
-
 	@DisplayName("포트폴리오 종목의 예상 연간 배당금을 계산한다")
 	@Test
 	void calAnnualExpectedDividendBy() {
@@ -1096,6 +1075,27 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		Percentage actual = calculator.calTotalGainPercentage(holding);
 		// then
 		Percentage expected = Percentage.from(0.25);
+		assertThat(actual).isEqualByComparingTo(expected);
+	}
+
+	@DisplayName("포트폴리오 종목의 당일 변동 금액을 계산한다")
+	@Test
+	void calDailyChange() {
+		// given
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createSamsungStock();
+		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
+		PurchaseHistory history = createPurchaseHistory(null, LocalDateTime.now(), Count.from(3), Money.won(40000L),
+			"메모", holding);
+		holding.addPurchaseHistory(history);
+		portfolio.addHolding(holding);
+
+		currentPriceRepository.savePrice(stock, 50_000L);
+		Expression closingPrice = Money.won(40_000L);
+		// when
+		Expression actual = calculator.calDailyChange(holding, closingPrice);
+		// then
+		Expression expected = Money.won(10_000L);
 		assertThat(actual).isEqualByComparingTo(expected);
 	}
 }
