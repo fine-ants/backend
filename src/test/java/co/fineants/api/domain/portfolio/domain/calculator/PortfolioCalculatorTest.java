@@ -131,27 +131,6 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		assertThat(result).isEqualByComparingTo(expected);
 	}
 
-	@DisplayName("포트폴리오 종목의 손익율을 계산한다")
-	@Test
-	void calTotalGainPercentage() {
-		// given
-		Portfolio portfolio = createPortfolio(createMember());
-		Stock stock = createSamsungStock();
-		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
-		PurchaseHistory history = createPurchaseHistory(null, LocalDateTime.now(), Count.from(3), Money.won(40000L),
-			"메모", holding);
-		holding.addPurchaseHistory(history);
-		portfolio.addHolding(holding);
-
-		long currentPrice = 50_000L;
-		currentPriceRepository.savePrice(stock, currentPrice);
-		// when
-		Percentage actual = calculator.calTotalGainPercentage(holding);
-		// then
-		Percentage expected = Percentage.from(0.25);
-		assertThat(actual).isEqualByComparingTo(expected);
-	}
-
 	@DisplayName("포트폴리오 총 투자금액을 계산한다")
 	@Test
 	void calTotalInvestmentBy() {
@@ -1097,5 +1076,26 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		// then
 		RateDivision expected = RateDivision.of(Money.won(1083), Money.won(150_000));
 		assertThat(result).isEqualByComparingTo(expected);
+	}
+
+	@DisplayName("포트폴리오 종목의 손익율을 계산한다")
+	@Test
+	void calTotalGainPercentage() {
+		// given
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createSamsungStock();
+		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
+		PurchaseHistory history = createPurchaseHistory(null, LocalDateTime.now(), Count.from(3), Money.won(40000L),
+			"메모", holding);
+		holding.addPurchaseHistory(history);
+		portfolio.addHolding(holding);
+
+		long currentPrice = 50_000L;
+		currentPriceRepository.savePrice(stock, currentPrice);
+		// when
+		Percentage actual = calculator.calTotalGainPercentage(holding);
+		// then
+		Percentage expected = Percentage.from(0.25);
+		assertThat(actual).isEqualByComparingTo(expected);
 	}
 }
