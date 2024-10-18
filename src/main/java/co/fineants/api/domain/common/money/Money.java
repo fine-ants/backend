@@ -22,7 +22,7 @@ public final class Money implements Expression {
 
 	final Currency currency;
 
-	public Money(BigDecimal amount, Currency currency) {
+	Money(BigDecimal amount, Currency currency) {
 		this.amount = amount;
 		this.currency = currency;
 	}
