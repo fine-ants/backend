@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 
 class RateDivisionTest {
 
-	@DisplayName("분자를 0으로 나누면 0원을 ")
+	@DisplayName("Expression을 0으로 나누면 0원을 반환한다")
 	@Test
 	void reduce_givenMoney_whenDivisorIsZero_thenThrowException() {
 		// given
