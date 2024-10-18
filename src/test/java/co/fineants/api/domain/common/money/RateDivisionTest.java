@@ -6,9 +6,9 @@ import org.junit.jupiter.api.Test;
 
 class RateDivisionTest {
 
-	@DisplayName("Expression을 0으로 나누면 0원을 반환한다")
+	@DisplayName("10000원을 0원으로 나누면 0원이 된다")
 	@Test
-	void reduce_givenMoney_whenDivisorIsZero_thenThrowException() {
+	void reduce_givenMoney_whenDivisorIsZero_thenReturnZeroWon() {
 		// given
 		Money division = Money.won(10000);
 		Money divisor = Money.zero();
@@ -18,5 +18,4 @@ class RateDivisionTest {
 		// then
 		Assertions.assertThat(actual).isEqualByComparingTo(Money.zero());
 	}
-
 }
