@@ -4,6 +4,7 @@ import static java.nio.charset.StandardCharsets.*;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Collections;
@@ -99,8 +100,12 @@ public class AmazonS3DividendService {
 	}
 
 	private PutObjectResult putDividendData(String data) {
-		InputStream inputStream = new ByteArrayInputStream(data.getBytes(UTF_8));
-		PutObjectRequest request = new PutObjectRequest(bucketName, dividendPath, inputStream, createObjectMetadata());
+		PutObjectRequest request;
+		try (InputStream inputStream = new ByteArrayInputStream(data.getBytes(UTF_8))) {
+			request = new PutObjectRequest(bucketName, dividendPath, inputStream, createObjectMetadata());
+		} catch (IOException e) {
+			throw new IllegalStateException("Dividend data input/output error", e);
+		}
 		return amazonS3.putObject(request);
 	}
 
