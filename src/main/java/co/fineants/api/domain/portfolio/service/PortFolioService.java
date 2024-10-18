@@ -1,10 +1,12 @@
 package co.fineants.api.domain.portfolio.service;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +23,8 @@ import co.fineants.api.domain.portfolio.domain.dto.request.PortfolioCreateReques
 import co.fineants.api.domain.portfolio.domain.dto.request.PortfolioModifyRequest;
 import co.fineants.api.domain.portfolio.domain.dto.response.PortFolioCreateResponse;
 import co.fineants.api.domain.portfolio.domain.dto.response.PortfolioModifyResponse;
+import co.fineants.api.domain.portfolio.domain.dto.response.PortfolioNameItem;
+import co.fineants.api.domain.portfolio.domain.dto.response.PortfolioNameResponse;
 import co.fineants.api.domain.portfolio.domain.dto.response.PortfoliosResponse;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import co.fineants.api.domain.portfolio.properties.PortfolioProperties;
@@ -165,5 +169,15 @@ public class PortFolioService {
 			));
 
 		return PortfoliosResponse.of(portfolios, portfolioGainHistoryMap, currentPriceRedisRepository, calculator);
+	}
+
+	@Transactional(readOnly = true)
+	@Secured("ROLE_USER")
+	public PortfolioNameResponse readMyAllPortfolioNames(@NotNull Long memberId) {
+		List<PortfolioNameItem> items = portfolioRepository.findAllByMemberIdOrderByIdDesc(memberId).stream()
+			.sorted(Comparator.comparing(Portfolio::getCreateAt).reversed())
+			.map(PortfolioNameItem::from)
+			.toList();
+		return PortfolioNameResponse.from(items);
 	}
 }
