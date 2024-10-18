@@ -4,6 +4,7 @@ import static java.nio.charset.StandardCharsets.*;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Collections;
@@ -36,7 +37,6 @@ import lombok.extern.slf4j.Slf4j;
 public class AmazonS3StockService {
 
 	public static final String CSV_SEPARATOR = ",";
-	// 정규식 패턴: 큰따옴표로 묶인 텍스트 또는 쉼표로 구분된 텍스트를 매칭
 	public static final Pattern CSV_SEPARATOR_PATTERN = Pattern.compile(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)");
 
 	private final AmazonS3 amazonS3;
@@ -98,8 +98,12 @@ public class AmazonS3StockService {
 	}
 
 	private PutObjectResult putStockData(String data) {
-		InputStream inputStream = new ByteArrayInputStream(data.getBytes(UTF_8));
-		PutObjectRequest request = new PutObjectRequest(bucketName, stockPath, inputStream, createObjectMetadata());
+		PutObjectRequest request;
+		try (InputStream inputStream = new ByteArrayInputStream(data.getBytes(UTF_8))) {
+			request = new PutObjectRequest(bucketName, stockPath, inputStream, createObjectMetadata());
+		} catch (IOException e) {
+			throw new IllegalStateException("Item data input/output error", e);
+		}
 		return amazonS3.putObject(request);
 	}
 
@@ -109,5 +113,4 @@ public class AmazonS3StockService {
 		metadata.setContentType("text/csv");
 		return metadata;
 	}
-
 }
