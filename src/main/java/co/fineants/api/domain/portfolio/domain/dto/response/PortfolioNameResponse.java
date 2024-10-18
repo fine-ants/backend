@@ -13,4 +13,9 @@ public class PortfolioNameResponse {
 	public static PortfolioNameResponse from(List<PortfolioNameItem> items) {
 		return new PortfolioNameResponse(items);
 	}
+
+	@Override
+	public String toString() {
+		return String.format("PortfolioNames : %s", portfolios);
+	}
 }

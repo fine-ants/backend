@@ -19,4 +19,9 @@ public class PortfolioNameItem {
 			portfolio.getCreateAt()
 		);
 	}
+
+	@Override
+	public String toString() {
+		return String.format("(id=%d, name=%s, dateCreated=%s)", id, name, dateCreated);
+	}
 }
