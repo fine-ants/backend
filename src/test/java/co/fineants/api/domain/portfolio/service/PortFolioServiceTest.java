@@ -36,6 +36,7 @@ import co.fineants.api.domain.member.repository.MemberRepository;
 import co.fineants.api.domain.portfolio.domain.dto.request.PortfolioCreateRequest;
 import co.fineants.api.domain.portfolio.domain.dto.request.PortfolioModifyRequest;
 import co.fineants.api.domain.portfolio.domain.dto.response.PortFolioCreateResponse;
+import co.fineants.api.domain.portfolio.domain.dto.response.PortfolioNameResponse;
 import co.fineants.api.domain.portfolio.domain.dto.response.PortfoliosResponse;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import co.fineants.api.domain.portfolio.repository.PortfolioRepository;
@@ -434,6 +435,22 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 				Money.won(-150000),
 				Percentage.from(-0.5556)
 			));
+	}
+
+	@DisplayName("회원의 포트폴리오 이름 목록을 조회한다")
+	@Test
+	void givenPortfolios_whenReadMyAllPortfolioNames_thenSortedByCreatedDescAndReturnPortfolioNameItemsOfPortfolios() {
+		// given
+		Member member = memberRepository.save(createMember());
+		portfolioRepository.saveAll(
+			List.of(createPortfolio(member, "portfolio1"), createPortfolio(member, "portfolio2")));
+		// when
+		PortfolioNameResponse actual = service.readMyAllPortfolioNames(member.getId());
+		// then
+		assertThat(actual)
+			.extracting("portfolios")
+			.asList()
+			.hasSize(2);
 	}
 
 	@DisplayName("회원이 포트폴리오를 삭제한다")
