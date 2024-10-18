@@ -932,8 +932,14 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		expected.put(Month.AUGUST, Money.won(1083L));
 		expected.put(Month.NOVEMBER, Money.won(1083L));
 
-		Expression[] actualArray = actual.values().toArray(Expression[]::new);
-		Expression[] expectedArray = expected.values().toArray(Expression[]::new);
+		Expression[] actualArray = actual.entrySet().stream()
+			.sorted(Map.Entry.comparingByKey())
+			.map(Map.Entry::getValue)
+			.toArray(Expression[]::new);
+		Expression[] expectedArray = expected.entrySet().stream()
+			.sorted(Map.Entry.comparingByKey())
+			.map(Map.Entry::getValue)
+			.toArray(Expression[]::new);
 
 		for (int i = 0; i < actualArray.length; i++) {
 			assertThat(actualArray[i]).isEqualByComparingTo(expectedArray[i]);
@@ -1296,8 +1302,14 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		expected.put(Month.AUGUST, Money.won(1083));
 		expected.put(Month.NOVEMBER, Money.won(1083));
 
-		Expression[] actualArray = actual.values().toArray(Expression[]::new);
-		Expression[] expectedArray = expected.values().toArray(Expression[]::new);
+		Expression[] actualArray = actual.entrySet().stream()
+			.sorted(Map.Entry.comparingByKey())
+			.map(Map.Entry::getValue)
+			.toArray(Expression[]::new);
+		Expression[] expectedArray = expected.entrySet().stream()
+			.sorted(Map.Entry.comparingByKey())
+			.map(Map.Entry::getValue)
+			.toArray(Expression[]::new);
 
 		for (int i = 0; i < actualArray.length; i++) {
 			assertThat(actualArray[i]).isEqualByComparingTo(expectedArray[i]);
