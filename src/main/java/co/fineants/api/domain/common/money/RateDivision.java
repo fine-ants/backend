@@ -7,8 +7,10 @@ import org.jetbrains.annotations.NotNull;
 
 import co.fineants.api.domain.common.count.Count;
 import lombok.EqualsAndHashCode;
+import lombok.extern.slf4j.Slf4j;
 
 @EqualsAndHashCode(of = {"division", "divisor"})
+@Slf4j
 public class RateDivision implements Expression {
 
 	private final Expression division;
@@ -29,9 +31,14 @@ public class RateDivision implements Expression {
 
 	@Override
 	public Money reduce(Bank bank, Currency to) {
-		BigDecimal amount = bank.reduce(division, to).amount.divide(bank.reduce(divisor, to).amount, 4,
-			RoundingMode.HALF_UP);
-		return new Money(amount, to);
+		BigDecimal amount1 = bank.reduce(division, to).amount;
+		BigDecimal amount2 = bank.reduce(divisor, to).amount;
+		try {
+			BigDecimal amount = amount1.divide(amount2, 4, RoundingMode.HALF_UP);
+			return new Money(amount, to);
+		} catch (ArithmeticException e) {
+			return Money.zero();
+		}
 	}
 
 	@Override
