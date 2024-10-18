@@ -1214,7 +1214,7 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 
 	@DisplayName("종목과 매입이력들이 주어졌을때 연간 예상되는 배당금 합계를 계산한다")
 	@Test
-	void calAnnualExpectedDividend_givenStockAndPurchaseHistories_whenCalAnnualExpectedDividend_thenReturnSumOfDividend() {
+	void calAnnualExpectedDividend_givenStockAndPurchaseHistories_whenCalAnnualExpectedDividend_thenReturnSum() {
 		Portfolio portfolio = createPortfolio(createMember());
 		Stock stock = createSamsungStock();
 		long currentPrice = 50_000L;
@@ -1302,5 +1302,34 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		for (int i = 0; i < actualArray.length; i++) {
 			assertThat(actualArray[i]).isEqualByComparingTo(expectedArray[i]);
 		}
+	}
+
+	@DisplayName("포트폴리오 종목과 총 자산이 주어졌을때 하나의 파이 차트 요소를 계산한다")
+	@Test
+	void calPortfolioPieChartItemBy() {
+		// given
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createSamsungStock();
+		long currentPrice = 50_000L;
+		currentPriceRepository.savePrice(stock, currentPrice);
+		createStockDividendWith(stock).forEach(stock::addStockDividend);
+		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
+		LocalDateTime purchaseDate = LocalDateTime.of(2023, 9, 26, 9, 30, 0);
+		PurchaseHistory history = createPurchaseHistory(null, purchaseDate, Count.from(3), Money.won(40000L),
+			"메모", holding);
+		holding.addPurchaseHistory(history);
+		portfolio.addHolding(holding);
+
+		Expression totalAsset = calculator.calTotalAssetBy(portfolio);
+		// when
+		PortfolioPieChartItem actual = calculator.calPortfolioPieChartItemBy(holding, totalAsset);
+		// then
+		PortfolioPieChartItem expected = PortfolioPieChartItem.stock(
+			stock.getCompanyName(),
+			Money.won(150_000),
+			RateDivision.of(Money.won(150_000), Money.won(1_030_000)).toPercentage(Bank.getInstance(), Currency.KRW),
+			Money.won(30_000),
+			RateDivision.of(Money.won(30_000), Money.won(120_000)).toPercentage(Bank.getInstance(), Currency.KRW));
+		assertThat(actual).isEqualTo(expected);
 	}
 }
