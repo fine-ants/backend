@@ -1228,4 +1228,40 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		Expression expected = Money.won(1083);
 		assertThat(actual).isEqualByComparingTo(expected);
 	}
+
+	@DisplayName("포트폴리오 종목의 월별 배당금 계산한다")
+	@Test
+	void calMonthlyDividendMapBy() {
+		Portfolio portfolio = createPortfolio(createMember());
+		Stock stock = createSamsungStock();
+		long currentPrice = 50_000L;
+		currentPriceRepository.savePrice(stock, currentPrice);
+		createStockDividendWith(stock).forEach(stock::addStockDividend);
+		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
+		LocalDateTime purchaseDate = LocalDateTime.of(2023, 9, 26, 9, 30, 0);
+		PurchaseHistory history = createPurchaseHistory(null, purchaseDate, Count.from(3), Money.won(40000L),
+			"메모", holding);
+		holding.addPurchaseHistory(history);
+		portfolio.addHolding(holding);
+
+		LocalDate currentLocalDate = LocalDate.of(2024, 1, 16);
+		// when
+		Map<Month, Expression> actual = calculator.calMonthlyDividendMapBy(holding, currentLocalDate);
+		// then
+		Map<Month, Expression> expected = new EnumMap<>(Month.class);
+		for (Month month : Month.values()) {
+			expected.put(month, Money.zero());
+		}
+		expected.put(Month.APRIL, Money.won(1083));
+		expected.put(Month.MAY, Money.won(1083));
+		expected.put(Month.AUGUST, Money.won(1083));
+		expected.put(Month.NOVEMBER, Money.won(1083));
+
+		Expression[] actualArray = actual.values().toArray(Expression[]::new);
+		Expression[] expectedArray = expected.values().toArray(Expression[]::new);
+
+		for (int i = 0; i < actualArray.length; i++) {
+			assertThat(actualArray[i]).isEqualByComparingTo(expectedArray[i]);
+		}
+	}
 }
