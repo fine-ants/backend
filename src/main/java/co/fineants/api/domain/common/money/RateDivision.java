@@ -57,7 +57,7 @@ public class RateDivision implements Expression {
 
 	@Override
 	public Expression divide(Count divisor) {
-		throw new IllegalArgumentException("This operation is not supported");
+		throw new UnsupportedOperationException("This operation is not supported");
 	}
 
 	@Override
