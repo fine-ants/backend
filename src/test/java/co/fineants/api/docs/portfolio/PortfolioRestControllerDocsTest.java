@@ -39,6 +39,8 @@ import co.fineants.api.domain.portfolio.domain.dto.request.PortfolioModifyReques
 import co.fineants.api.domain.portfolio.domain.dto.response.PortFolioCreateResponse;
 import co.fineants.api.domain.portfolio.domain.dto.response.PortFolioItem;
 import co.fineants.api.domain.portfolio.domain.dto.response.PortfolioModifyResponse;
+import co.fineants.api.domain.portfolio.domain.dto.response.PortfolioNameItem;
+import co.fineants.api.domain.portfolio.domain.dto.response.PortfolioNameResponse;
 import co.fineants.api.domain.portfolio.domain.dto.response.PortfoliosResponse;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import co.fineants.api.domain.portfolio.service.PortFolioService;
@@ -193,6 +195,51 @@ class PortfolioRestControllerDocsTest extends RestDocsSupport {
 							.description("예상월배당금"),
 						fieldWithPath("data.portfolios[].numShares").type(JsonFieldType.NUMBER)
 							.description("주식 총개수"),
+						fieldWithPath("data.portfolios[].dateCreated").type(JsonFieldType.STRING)
+							.description("추가일자")
+					)
+				)
+			);
+	}
+
+	@DisplayName("포트폴리오 이름 목록 API")
+	@Test
+	void searchMyAllPortfolioNames() throws Exception {
+		// given
+		Portfolio portfolio = createPortfolio(createMember());
+		portfolio.setCreateAt(LocalDateTime.now());
+		PortfolioNameItem item = PortfolioNameItem.from(portfolio);
+		given(portFolioService.readMyAllPortfolioNames(anyLong()))
+			.willReturn(PortfolioNameResponse.from(List.of(item)));
+
+		// when & then
+		mockMvc.perform(get("/api/portfolios/names")
+				.cookie(createTokenCookies()))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("code").value(equalTo(200)))
+			.andExpect(jsonPath("status").value(equalTo("OK")))
+			.andExpect(jsonPath("message").value(equalTo(PortfolioSuccessCode.OK_SEARCH_PORTFOLIO_NAMES.getMessage())))
+			.andExpect(jsonPath("data.portfolios[0].id").value(equalTo(portfolio.getId().intValue())))
+			.andExpect(jsonPath("data.portfolios[0].name").value(equalTo("내꿈은 워렌버핏")))
+			.andExpect(jsonPath("data.portfolios[0].dateCreated").isNotEmpty())
+			.andDo(
+				document(
+					"portfolio-search-names",
+					preprocessRequest(prettyPrint()),
+					preprocessResponse(prettyPrint()),
+					responseFields(
+						fieldWithPath("code").type(JsonFieldType.NUMBER)
+							.description("코드"),
+						fieldWithPath("status").type(JsonFieldType.STRING)
+							.description("상태"),
+						fieldWithPath("message").type(JsonFieldType.STRING)
+							.description("메시지"),
+						fieldWithPath("data").type(JsonFieldType.OBJECT)
+							.description("응답 데이터"),
+						fieldWithPath("data.portfolios[].id").type(JsonFieldType.NUMBER)
+							.description("포트폴리오 등록번호"),
+						fieldWithPath("data.portfolios[].name").type(JsonFieldType.STRING)
+							.description("포트폴리오 이름"),
 						fieldWithPath("data.portfolios[].dateCreated").type(JsonFieldType.STRING)
 							.description("추가일자")
 					)
