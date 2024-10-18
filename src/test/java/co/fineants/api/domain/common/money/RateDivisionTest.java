@@ -16,7 +16,7 @@ class RateDivisionTest {
 		// when
 		Expression actual = expression.reduce(Bank.getInstance(), Currency.KRW);
 		// then
-		Assertions.assertThat(actual).isEqualByComparingTo(Money.ZERO);
+		Assertions.assertThat(actual).isEqualByComparingTo(Money.zero());
 	}
 
 }
