@@ -28,22 +28,21 @@ public class CacheConfig {
 
 	@Bean
 	public CacheManager cacheManager(RedisConnectionFactory redisConnectionFactory) {
+
 		// 기본 캐시 설정 (10분 TTL)
+		RedisSerializationContext.SerializationPair<String> keySerializer = RedisSerializationContext.SerializationPair.fromSerializer(
+			new StringRedisSerializer());
+		RedisSerializationContext.SerializationPair<Object> serializer = RedisSerializationContext.SerializationPair.fromSerializer(
+			new Jackson2JsonRedisSerializer<>(objectMapper, Object.class));
 		RedisCacheConfiguration defaultCacheConfig = RedisCacheConfiguration.defaultCacheConfig()
 			.entryTtl(Duration.ofMinutes(10))
-			.serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()));
+			.serializeKeysWith(keySerializer)
+			.serializeValuesWith(serializer);
 
 		// 캐시별 만료 시간 설정
 		Map<String, RedisCacheConfiguration> cacheConfigurations = new HashMap<>();
-		cacheConfigurations.put("tickerSymbols",
-			RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(5))); // 5 minute TTL
-
-		RedisSerializationContext.SerializationPair<Object> serializer = RedisSerializationContext.SerializationPair.fromSerializer(
-			new Jackson2JsonRedisSerializer<>(objectMapper, Object.class));
-		cacheConfigurations.put("lineChartCache",
-			RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofHours(24))
-				.serializeValuesWith(serializer)
-		); // 24 hourTTL
+		cacheConfigurations.put("tickerSymbols", defaultCacheConfig.entryTtl(Duration.ofMinutes(5))); // 5 minute TTL
+		cacheConfigurations.put("lineChartCache", defaultCacheConfig.entryTtl(Duration.ofHours(24))); // 24 hourTTL
 
 		return RedisCacheManager.builder(redisConnectionFactory)
 			.cacheDefaults(defaultCacheConfig)
