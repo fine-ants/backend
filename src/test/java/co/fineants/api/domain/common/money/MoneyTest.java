@@ -428,4 +428,16 @@ class MoneyTest {
 		Percentage actual = result.toPercentage(Bank.getInstance(), USD);
 		assertEquals(expected, actual);
 	}
+
+	@DisplayName("1만원을 0개로 나누면 0개로 계산된다")
+	@Test
+	void testCountDivision_whenMoneyDivideZeroCount_thenReturnZeroOfMoney() {
+		// given
+		Money money = Money.won(10000);
+		Count zero = Count.zero();
+		// when
+		Expression actual = money.divide(zero);
+		// then
+		Assertions.assertThat(actual).isEqualByComparingTo(Money.zero());
+	}
 }
