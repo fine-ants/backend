@@ -103,7 +103,7 @@ public final class Money implements Expression {
 			BigDecimal result = amount.divide(new BigDecimal(divisor), 4, RoundingMode.HALF_UP);
 			return new Money(result, currency);
 		} catch (ArithmeticException e) {
-			return new Money(BigDecimal.ZERO, currency);
+			return ZERO;
 		}
 	}
 
