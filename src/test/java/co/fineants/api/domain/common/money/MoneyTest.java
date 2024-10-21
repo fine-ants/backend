@@ -435,8 +435,9 @@ class MoneyTest {
 		// given
 		Money money = Money.won(10000);
 		Count zero = Count.zero();
+		Expression average = money.divide(zero);
 		// when
-		Expression actual = money.divide(zero);
+		Money actual = average.reduce(Bank.getInstance(), KRW);
 		// then
 		Assertions.assertThat(actual).isEqualByComparingTo(Money.zero());
 	}
