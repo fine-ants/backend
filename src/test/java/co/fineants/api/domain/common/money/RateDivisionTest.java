@@ -12,7 +12,7 @@ class RateDivisionTest {
 		// given
 		Money division = Money.won(10000);
 		Money divisor = Money.zero();
-		Expression expression = RateDivision.of(division, divisor);
+		RateDivision expression = division.divide(divisor);
 		// when
 		Expression actual = expression.reduce(Bank.getInstance(), Currency.KRW);
 		// then
