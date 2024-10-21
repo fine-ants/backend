@@ -7,10 +7,8 @@ import org.jetbrains.annotations.NotNull;
 
 import co.fineants.api.domain.common.count.Count;
 import lombok.EqualsAndHashCode;
-import lombok.extern.slf4j.Slf4j;
 
 @EqualsAndHashCode(of = {"division", "divisor"})
-@Slf4j
 public class RateDivision implements Expression {
 
 	private final Expression division;
