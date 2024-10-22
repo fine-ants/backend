@@ -1,5 +1,6 @@
 package co.fineants.api.global.config.jackson;
 
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +14,7 @@ import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import co.fineants.api.domain.stock.domain.entity.Stock;
 
-public class ObjectMapperTest extends AbstractContainerBaseTest {
+class ObjectMapperTest extends AbstractContainerBaseTest {
 
 	@Autowired
 	private ObjectMapper objectMapper;
@@ -29,7 +30,6 @@ public class ObjectMapperTest extends AbstractContainerBaseTest {
 		// when
 		String actual = objectMapper.writeValueAsString(response);
 		// then
-		System.out.println(actual);
+		Assertions.assertThat(actual).contains("portfolioHoldingId");
 	}
-
 }
