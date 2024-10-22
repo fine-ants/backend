@@ -35,9 +35,9 @@ import co.fineants.api.domain.portfolio.properties.PortfolioProperties;
 import co.fineants.api.domain.purchasehistory.domain.entity.PurchaseHistory;
 import co.fineants.api.domain.stock.domain.entity.Market;
 import co.fineants.api.domain.stock.domain.entity.Stock;
-import co.fineants.api.global.config.JacksonConfig;
 import co.fineants.api.global.config.JpaAuditingConfiguration;
 import co.fineants.api.global.config.SpringConfig;
+import co.fineants.api.global.config.jackson.JacksonConfig;
 import co.fineants.api.global.errors.handler.GlobalExceptionHandler;
 import co.fineants.api.global.security.oauth.dto.MemberAuthentication;
 import co.fineants.api.global.security.oauth.resolver.MemberAuthenticationArgumentResolver;
@@ -124,7 +124,7 @@ public abstract class ControllerTestSupport {
 	protected PortfolioHolding createPortfolioHolding(Portfolio portfolio, Stock stock) {
 		return PortfolioHolding.of(1L, portfolio, stock);
 	}
-	
+
 	protected Stock createSamsungStock() {
 		return Stock.of("005930", "삼성전자보통주", "SamsungElectronics", "KR7005930003", "전기전자", Market.KOSPI);
 	}
