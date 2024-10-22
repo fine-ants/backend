@@ -4,7 +4,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -36,8 +35,11 @@ public class JacksonConfig {
 	}
 
 	private VisibilityChecker<?> visibilityChecker(VisibilityChecker<?> checker) {
-		checker.withVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE);
 		checker.withFieldVisibility(JsonAutoDetect.Visibility.ANY);
+		checker.withGetterVisibility(JsonAutoDetect.Visibility.NONE);
+		checker.withIsGetterVisibility(JsonAutoDetect.Visibility.NONE);
+		checker.withSetterVisibility(JsonAutoDetect.Visibility.NONE);
+		checker.withCreatorVisibility(JsonAutoDetect.Visibility.NONE);
 		return checker;
 	}
 
