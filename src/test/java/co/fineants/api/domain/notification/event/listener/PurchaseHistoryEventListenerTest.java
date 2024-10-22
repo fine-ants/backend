@@ -92,7 +92,7 @@ class PurchaseHistoryEventListenerTest extends AbstractContainerBaseTest {
 			event);
 		// then
 		PortfolioNotifyMessagesResponse response = future.join();
-		assertThat(response.getNotifications()).hasSize(1);
+		assertThat(response).extracting("notifications").asList().hasSize(1);
 		assertThat(notificationRepository.findAllByMemberId(member.getId())).hasSize(1);
 	}
 
@@ -119,7 +119,7 @@ class PurchaseHistoryEventListenerTest extends AbstractContainerBaseTest {
 		CompletableFuture<PortfolioNotifyMessagesResponse> future = purchaseHistoryEventListener.notifyMaxLoss(event);
 		// then
 		PortfolioNotifyMessagesResponse response = future.join();
-		assertThat(response.getNotifications()).hasSize(1);
+		assertThat(response).extracting("notifications").asList().hasSize(1);
 		assertThat(notificationRepository.findAllByMemberId(member.getId())).hasSize(1);
 	}
 }
