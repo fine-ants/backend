@@ -3,6 +3,8 @@ package co.fineants.api.domain.holding.domain.dto.response;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.gainhistory.domain.entity.PortfolioGainHistory;
 import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
@@ -10,18 +12,18 @@ import co.fineants.api.domain.portfolio.domain.calculator.PortfolioCalculator;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import co.fineants.api.global.common.time.LocalDateTimeService;
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
-@Getter
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @ToString
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class PortfolioHoldingsResponse {
-	private PortfolioDetailResponse portfolioDetails;
-	private List<PortfolioHoldingItem> portfolioHoldings;
+	@Getter
+	@JsonProperty
+	private final PortfolioDetailResponse portfolioDetails;
+	@JsonProperty
+	private final List<PortfolioHoldingItem> portfolioHoldings;
 
 	public static PortfolioHoldingsResponse of(Portfolio portfolio, PortfolioGainHistory history,
 		List<PortfolioHolding> portfolioHoldings, Map<String, Money> lastDayClosingPriceMap,
@@ -41,7 +43,4 @@ public class PortfolioHoldingsResponse {
 		return new PortfolioHoldingsResponse(portfolioDetail, portfolioHoldingItems);
 	}
 
-	public Long getPortfolioId() {
-		return portfolioDetails.getId();
-	}
 }
