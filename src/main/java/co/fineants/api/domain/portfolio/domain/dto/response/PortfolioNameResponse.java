@@ -2,12 +2,14 @@ package co.fineants.api.domain.portfolio.domain.dto.response;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class PortfolioNameResponse {
-
+	@JsonProperty
 	private final List<PortfolioNameItem> portfolios;
 
 	public static PortfolioNameResponse from(List<PortfolioNameItem> items) {
