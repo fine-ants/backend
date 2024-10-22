@@ -3,7 +3,7 @@ package co.fineants.api.global.util;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import co.fineants.api.global.config.JacksonConfig;
+import co.fineants.api.global.config.jackson.JacksonConfig;
 import co.fineants.api.global.errors.errorcode.ObjectMapperErrorCode;
 import co.fineants.api.global.errors.exception.ServerInternalException;
 import lombok.AccessLevel;
