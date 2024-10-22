@@ -2,6 +2,7 @@ package co.fineants.api.docs;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -74,6 +75,7 @@ public abstract class RestDocsSupport {
 			.apply(MockMvcRestDocumentation.documentationConfiguration(provider))
 			.setCustomArgumentResolvers(memberAuthenticationArgumentResolver)
 			.setMessageConverters(new MappingJackson2HttpMessageConverter(new JacksonConfig().objectMapper()))
+			.alwaysDo(print())
 			.build();
 
 		given(memberAuthenticationArgumentResolver.supportsParameter(ArgumentMatchers.any(MethodParameter.class)))
