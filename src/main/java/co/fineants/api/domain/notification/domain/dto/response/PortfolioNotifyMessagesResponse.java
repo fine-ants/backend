@@ -25,6 +25,7 @@ public class PortfolioNotifyMessagesResponse implements NotifyMessageResponse {
 	}
 
 	@Override
+	@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
 	public boolean isEmpty() {
 		return notifications.isEmpty();
 	}
