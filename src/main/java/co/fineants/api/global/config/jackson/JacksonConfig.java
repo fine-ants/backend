@@ -25,7 +25,8 @@ public class JacksonConfig {
 	@Bean
 	public ObjectMapper objectMapper() {
 		ObjectMapper objectMapper = new ObjectMapper();
-		objectMapper.setVisibility(visibilityChecker(objectMapper));
+		VisibilityChecker<?> checker = objectMapper.getSerializationConfig().getDefaultVisibilityChecker();
+		objectMapper.setVisibility(visibilityChecker(checker));
 
 		objectMapper.registerModule(new JavaTimeModule());
 		objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
@@ -33,9 +34,7 @@ public class JacksonConfig {
 		return objectMapper;
 	}
 
-	private VisibilityChecker<?> visibilityChecker(ObjectMapper objectMapper) {
-		VisibilityChecker<?> checker = objectMapper.getSerializationConfig()
-			.getDefaultVisibilityChecker();
+	private VisibilityChecker<?> visibilityChecker(VisibilityChecker<?> checker) {
 		checker.withFieldVisibility(JsonAutoDetect.Visibility.ANY);
 		checker.withIsGetterVisibility(JsonAutoDetect.Visibility.NONE);
 		checker.withGetterVisibility(JsonAutoDetect.Visibility.NONE);
