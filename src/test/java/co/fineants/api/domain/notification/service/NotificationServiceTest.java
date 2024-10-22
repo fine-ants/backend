@@ -146,7 +146,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 
 		// then
 		assertAll(
-			() -> assertThat(response.getNotifications()).hasSize(1),
+			() -> assertThat(response).extracting("notifications").asList().hasSize(1),
 			() -> assertThat(notificationRepository.findAllByMemberId(member.getId())).hasSize(1),
 			() -> assertThat(sentManager.hasTargetGainSendHistory(portfolio.getId())).isTrue()
 		);
@@ -191,7 +191,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 
 		// then
 		assertAll(
-			() -> assertThat(response.getNotifications()).isEmpty(),
+			() -> assertThat(response).extracting("notifications").asList().isEmpty(),
 			() -> assertThat(notificationRepository.findAllByMemberId(member.getId())).isEmpty(),
 			() -> assertThat(sentManager.hasTargetGainSendHistory(portfolio.getId())).isFalse()
 		);
@@ -225,7 +225,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 
 		// then
 		assertAll(
-			() -> assertThat(response.getNotifications()).hasSize(1),
+			() -> assertThat(response).extracting("notifications").asList().hasSize(1),
 			() -> assertThat(fcmRepository.findById(fcmToken.getId())).isEmpty(),
 			() -> assertThat(sentManager.hasTargetGainSendHistory(portfolio.getId())).isTrue()
 		);
@@ -263,7 +263,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 
 		// then
 		assertAll(
-			() -> assertThat(response.getNotifications()).isEmpty()
+			() -> assertThat(response).extracting("notifications").asList().isEmpty()
 		);
 	}
 
@@ -293,7 +293,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 
 		// then
 		assertAll(
-			() -> assertThat(response.getNotifications()).hasSize(1),
+			() -> assertThat(response).extracting("notifications").asList().hasSize(1),
 			() -> assertThat(notificationRepository.findAllByMemberId(member.getId())).hasSize(1),
 			() -> assertThat(sentManager.hasMaxLossSendHistory(portfolio.getId())).isTrue()
 		);
@@ -326,7 +326,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 
 		// then
 		assertAll(
-			() -> assertThat(response.getNotifications()).hasSize(1),
+			() -> assertThat(response).extracting("notifications").asList().hasSize(1),
 			() -> assertThat(notificationRepository.findAllByMemberId(member.getId())).hasSize(1),
 			() -> assertThat(sentManager.hasMaxLossSendHistory(portfolio.getId())).isTrue()
 		);
@@ -362,7 +362,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 
 		// then
 		assertAll(
-			() -> assertThat(response.getNotifications()).isEmpty(),
+			() -> assertThat(response).extracting("notifications").asList().isEmpty(),
 			() -> assertThat(sentManager.hasMaxLossSendHistory(portfolio.getId())).isFalse()
 		);
 	}
@@ -395,7 +395,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 
 		// then
 		assertAll(
-			() -> assertThat(response.getNotifications()).hasSize(1),
+			() -> assertThat(response).extracting("notifications").asList().hasSize(1),
 			() -> assertThat(fcmRepository.findById(fcmToken.getId())).isEmpty(),
 			() -> assertThat(sentManager.hasMaxLossSendHistory(portfolio.getId())).isTrue()
 		);
@@ -437,7 +437,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 
 		// then
 		assertAll(
-			() -> assertThat(response.getNotifications()).hasSize(1),
+			() -> assertThat(response).extracting("notifications").asList().hasSize(1),
 			() -> assertThat(notificationRepository.findAllByMemberId(member.getId())).hasSize(1),
 			() -> assertThat(sentManager.hasTargetGainSendHistory(portfolio.getId())).isTrue()
 		);

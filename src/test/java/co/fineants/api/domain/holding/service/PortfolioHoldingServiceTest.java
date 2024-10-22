@@ -185,13 +185,17 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 			() -> assertThat(details.getTargetGainNotify()).isTrue(),
 			() -> assertThat(details.getMaxLossNotify()).isTrue(),
 
-			() -> assertThat(response.getPortfolioHoldings())
+			() -> assertThat(response)
+				.extracting("portfolioHoldings")
+				.asList()
 				.hasSize(1)
 				.extracting("stock")
 				.extracting("companyName", "tickerSymbol")
 				.containsExactlyInAnyOrder(Tuple.tuple("삼성전자보통주", "005930")),
 
-			() -> assertThat(response.getPortfolioHoldings())
+			() -> assertThat(response)
+				.extracting("portfolioHoldings")
+				.asList()
 				.hasSize(1)
 				.extracting("portfolioHolding")
 				.extracting("id", "currentValuation", "averageCostPerShare",
@@ -212,7 +216,9 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 						Money.won(3249)
 					)
 				),
-			() -> assertThat(response.getPortfolioHoldings())
+			() -> assertThat(response)
+				.extracting("portfolioHoldings")
+				.asList()
 				.hasSize(1)
 				.flatExtracting("purchaseHistory")
 				.extracting("purchaseDate", "numShares", "purchasePricePerShare", "memo")
