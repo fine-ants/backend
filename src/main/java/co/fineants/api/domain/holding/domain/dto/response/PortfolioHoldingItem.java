@@ -2,6 +2,7 @@ package co.fineants.api.domain.holding.domain.dto.response;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
 import co.fineants.api.domain.common.money.Expression;
@@ -17,6 +18,7 @@ public class PortfolioHoldingItem {
 	private StockItem stock;
 	@JsonUnwrapped
 	private PortfolioHoldingDetailItem portfolioHolding;
+	@JsonProperty
 	private List<PurchaseHistoryItem> purchaseHistory;
 
 	public static PortfolioHoldingItem from(PortfolioHolding portfolioHolding, Expression lastDayClosingPrice,
