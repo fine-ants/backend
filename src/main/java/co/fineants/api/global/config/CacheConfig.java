@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
@@ -28,12 +28,17 @@ public class CacheConfig {
 
 	@Bean
 	public CacheManager cacheManager(RedisConnectionFactory redisConnectionFactory) {
+		ObjectMapper cacheObjectMapper = new ObjectMapper();
+		cacheObjectMapper.setConfig(objectMapper.getSerializationConfig());
+		cacheObjectMapper.activateDefaultTyping(
+			cacheObjectMapper.getPolymorphicTypeValidator(),
+			ObjectMapper.DefaultTyping.EVERYTHING
+		);
 
-		// 기본 캐시 설정 (10분 TTL)
 		RedisSerializationContext.SerializationPair<String> keySerializer = RedisSerializationContext.SerializationPair.fromSerializer(
 			new StringRedisSerializer());
 		RedisSerializationContext.SerializationPair<Object> serializer = RedisSerializationContext.SerializationPair.fromSerializer(
-			new Jackson2JsonRedisSerializer<>(objectMapper, Object.class));
+			new GenericJackson2JsonRedisSerializer(cacheObjectMapper));
 		RedisCacheConfiguration defaultCacheConfig = RedisCacheConfiguration.defaultCacheConfig()
 			.entryTtl(Duration.ofMinutes(10))
 			.serializeKeysWith(keySerializer)
