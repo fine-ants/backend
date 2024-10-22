@@ -2,19 +2,23 @@ package co.fineants.api.global.api;
 
 import org.springframework.http.HttpStatus;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import co.fineants.api.global.errors.errorcode.ErrorCode;
 import co.fineants.api.global.success.SuccessCode;
-import lombok.Getter;
 
-@Getter
 public class ApiResponse<T> {
 
+	@JsonProperty
 	private final int code;
+	@JsonProperty
 	private final String status;
+	@JsonProperty
 	private final String message;
+	@JsonProperty
 	private final T data;
 
-	public ApiResponse(HttpStatus httpStatus, String message, T data) {
+	private ApiResponse(HttpStatus httpStatus, String message, T data) {
 		this.code = httpStatus.value();
 		this.status = httpStatus.getReasonPhrase();
 		this.message = message;
@@ -55,9 +59,11 @@ public class ApiResponse<T> {
 
 	@Override
 	public String toString() {
-		return String.format("%s, %s(code=%d, status=%s, message=%s)", "API 공통 응답", this.getClass().getSimpleName(),
+		return String.format("%s, %s(code=%d, status=%s, message=%s, data=%s)", "API 공통 응답",
+			this.getClass().getSimpleName(),
 			code,
 			status,
-			message);
+			message,
+			data);
 	}
 }
