@@ -78,6 +78,8 @@ public class JacksonConfig {
 		ObjectMapper cacheObjectMapper = new ObjectMapper();
 		cacheObjectMapper.setConfig(objectMapper.getSerializationConfig());
 		cacheObjectMapper.setVisibility(objectMapper.getVisibilityChecker());
+		cacheObjectMapper.registerModule(new JavaTimeModule());
+		cacheObjectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
 		cacheObjectMapper.activateDefaultTyping(
 			cacheObjectMapper.getPolymorphicTypeValidator(),
 			ObjectMapper.DefaultTyping.EVERYTHING
