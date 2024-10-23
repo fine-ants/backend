@@ -272,7 +272,7 @@ class DashboardServiceTest extends AbstractContainerBaseTest {
 		// then
 		Assertions.assertAll(
 			() -> assertThat(responses.stream().findAny().orElseThrow())
-				.extracting(DashboardLineChartResponse::getTime, DashboardLineChartResponse::getValue)
+				.extracting("time", "value")
 				.usingComparatorForType(Money::compareTo, Money.class)
 				.containsExactly(
 					LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
