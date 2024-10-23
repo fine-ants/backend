@@ -6,7 +6,9 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
+import lombok.EqualsAndHashCode;
 
+@EqualsAndHashCode(of = {"id", "name"})
 public class PortfolioNameItem {
 	@JsonProperty
 	private final Long id;
