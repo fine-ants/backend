@@ -281,7 +281,7 @@ public class PortfolioCalculator {
 		Expression previousCurrentValuation = history.getCurrentValuation();
 		Money previousCurrentValuationMoney = Bank.getInstance().toWon(previousCurrentValuation);
 		Expression totalCurrentValuation = calTotalCurrentValuationBy(portfolio);
-		if (previousCurrentValuationMoney.isZero()) {
+		if (previousCurrentValuationMoney.hasZero()) {
 			Expression totalInvestment = calTotalInvestmentBy(portfolio);
 			return totalCurrentValuation.minus(totalInvestment);
 		}
@@ -305,7 +305,7 @@ public class PortfolioCalculator {
 	public Expression calDailyGainRateBy(PortfolioGainHistory history, Portfolio portfolio) {
 		Money prevCurrentValuation = history.getCurrentValuation();
 		Expression totalCurrentValuation = calTotalCurrentValuationBy(portfolio);
-		if (prevCurrentValuation.isZero()) {
+		if (prevCurrentValuation.hasZero()) {
 			Expression totalInvestment = calTotalInvestmentBy(portfolio);
 			return totalCurrentValuation.minus(totalInvestment)
 				.divide(totalInvestment);
