@@ -12,17 +12,23 @@ import java.util.Objects;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import co.fineants.api.domain.common.count.Count;
 
 public final class Money implements Expression {
 	private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("#,###");
 	private static final NumberFormat NUMBER_FORMAT = NumberFormat.getInstance(Locale.KOREA);
 	private static final Money ZERO = new Money(BigDecimal.ZERO, KRW);
+	@JsonProperty
 	final BigDecimal amount;
+	@JsonProperty
 
 	final Currency currency;
 
-	Money(BigDecimal amount, Currency currency) {
+	@JsonCreator
+	Money(@JsonProperty("amount") BigDecimal amount, @JsonProperty("currency") Currency currency) {
 		this.amount = amount;
 		this.currency = currency;
 	}
@@ -116,7 +122,7 @@ public final class Money implements Expression {
 		return currency;
 	}
 
-	public boolean isZero() {
+	public boolean hasZero() {
 		return amount.compareTo(BigDecimal.ZERO) == 0;
 	}
 
@@ -132,7 +138,7 @@ public final class Money implements Expression {
 		return amount.setScale(2, RoundingMode.HALF_UP);
 	}
 
-	public String getCurrencySymbol() {
+	public String currencySymbol() {
 		return currency.getSymbol();
 	}
 
