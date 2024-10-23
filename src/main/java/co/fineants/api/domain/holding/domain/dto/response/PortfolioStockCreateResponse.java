@@ -1,16 +1,21 @@
 package co.fineants.api.domain.holding.domain.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
-import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
+import lombok.EqualsAndHashCode;
 
-@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+@EqualsAndHashCode
 public class PortfolioStockCreateResponse {
 
 	@JsonProperty
 	private final Long portfolioHoldingId;
+
+	@JsonCreator
+	private PortfolioStockCreateResponse(@JsonProperty("portfolioHoldingId") Long portfolioHoldingId) {
+		this.portfolioHoldingId = portfolioHoldingId;
+	}
 
 	public static PortfolioStockCreateResponse from(PortfolioHolding portFolioHolding) {
 		return new PortfolioStockCreateResponse(portFolioHolding.getId());
