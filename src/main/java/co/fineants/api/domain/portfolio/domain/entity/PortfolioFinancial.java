@@ -40,7 +40,7 @@ public class PortfolioFinancial {
 	}
 
 	private void validateArguments(Money budget, Money targetGain, Money maximumLoss) {
-		if (budget.isZero()) {
+		if (budget.hasZero()) {
 			return;
 		}
 		// 음수가 아닌지 검증
@@ -51,12 +51,12 @@ public class PortfolioFinancial {
 			}
 		}
 		// 목표 수익 금액이 0원이 아닌 상태에서 예산 보다 큰지 검증
-		if (!targetGain.isZero() && budget.compareTo(targetGain) >= 0) {
+		if (!targetGain.hasZero() && budget.compareTo(targetGain) >= 0) {
 			throw new IllegalPortfolioFinancialArgumentException(budget, targetGain, maximumLoss,
 				PortfolioErrorCode.TARGET_GAIN_LOSS_IS_EQUAL_LESS_THAN_BUDGET);
 		}
 		// 최대 손실 금액이 예산 보다 작은지 검증
-		if (!maximumLoss.isZero() && budget.compareTo(maximumLoss) <= 0) {
+		if (!maximumLoss.hasZero() && budget.compareTo(maximumLoss) <= 0) {
 			throw new IllegalPortfolioFinancialArgumentException(budget, targetGain, maximumLoss,
 				PortfolioErrorCode.MAXIMUM_LOSS_IS_EQUAL_GREATER_THAN_BUDGET);
 		}
@@ -128,10 +128,10 @@ public class PortfolioFinancial {
 	}
 
 	public boolean isTargetGainZero() {
-		return targetGain.isZero();
+		return targetGain.hasZero();
 	}
 
 	public boolean isMaximumLossZero() {
-		return maximumLoss.isZero();
+		return maximumLoss.hasZero();
 	}
 }

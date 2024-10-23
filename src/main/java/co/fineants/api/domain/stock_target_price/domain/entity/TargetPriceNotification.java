@@ -101,7 +101,7 @@ public class TargetPriceNotification extends BaseEntity implements Notifiable {
 		String title = type.getName();
 		String content = String.format("%s이(가) %s%s에 도달했습니다",
 			stockTargetPrice.getStock().getCompanyName(),
-			targetPrice.getCurrencySymbol(),
+			targetPrice.currencySymbol(),
 			targetPrice.toDecimalFormat());
 		String referenceId = stockTargetPrice.getStock().getTickerSymbol();
 		Long memberId = stockTargetPrice.getMember().getId();
