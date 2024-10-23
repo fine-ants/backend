@@ -39,8 +39,9 @@ public class CacheConfig {
 
 		// 캐시별 만료 시간 설정
 		Map<String, RedisCacheConfiguration> cacheConfigurations = new HashMap<>();
-		cacheConfigurations.put("tickerSymbols", defaultCacheConfig.entryTtl(Duration.ofMinutes(5))); // 5 minute TTL
-		cacheConfigurations.put("lineChartCache", defaultCacheConfig.entryTtl(Duration.ofHours(24))); // 24 hourTTL
+		cacheConfigurations.put("tickerSymbols", defaultCacheConfig.entryTtl(Duration.ofMinutes(5)));
+		cacheConfigurations.put("lineChartCache", defaultCacheConfig.entryTtl(Duration.ofHours(24)));
+		cacheConfigurations.put("myAllPortfolioNames", defaultCacheConfig.entryTtl(Duration.ofMinutes(5)));
 
 		return RedisCacheManager.builder(redisConnectionFactory)
 			.cacheDefaults(defaultCacheConfig)

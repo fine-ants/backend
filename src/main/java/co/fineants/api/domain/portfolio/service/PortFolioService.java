@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.NotNull;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -172,6 +173,7 @@ public class PortFolioService {
 	}
 
 	@Transactional(readOnly = true)
+	@Cacheable(value = "myAllPortfolioNames", key = "#memberId")
 	@Secured("ROLE_USER")
 	public PortfolioNameResponse readMyAllPortfolioNames(@NotNull Long memberId) {
 		List<PortfolioNameItem> items = portfolioRepository.findAllByMemberIdOrderByIdDesc(memberId).stream()
