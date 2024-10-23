@@ -75,8 +75,7 @@ class ObjectMapperTest extends AbstractContainerBaseTest {
 			Money.won(10000));
 		String json = cacheObjectMapper.writeValueAsString(response);
 		// when
-		DashboardLineChartResponse actual = cacheObjectMapper.readValue(json,
-			DashboardLineChartResponse.class);
+		DashboardLineChartResponse actual = cacheObjectMapper.readValue(json, DashboardLineChartResponse.class);
 		// then
 		DashboardLineChartResponse expected = DashboardLineChartResponse.of("2024-10-22", Money.won(10000));
 		Assertions.assertThat(actual).isEqualTo(expected);
