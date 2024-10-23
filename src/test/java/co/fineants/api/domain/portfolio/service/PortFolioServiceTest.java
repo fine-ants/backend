@@ -527,7 +527,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 		List<Long> portfolioIds = Arrays.asList(portfolio.getId(), portfolio2.getId());
 		setAuthentication(member);
 		// when
-		service.deletePortfolios(portfolioIds);
+		service.deletePortfolios(portfolioIds, member.getId());
 
 		// then
 		assertThat(portfolioRepository.existsById(portfolio.getId())).isFalse();
@@ -550,7 +550,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 
 		setAuthentication(hacker);
 		// when
-		Throwable throwable = catchThrowable(() -> service.deletePortfolios(portfolioIds));
+		Throwable throwable = catchThrowable(() -> service.deletePortfolios(portfolioIds, member.getId()));
 
 		// then
 		assertThat(throwable)
