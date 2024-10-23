@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.NotNull;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Service;
@@ -62,6 +63,7 @@ public class PortFolioService {
 
 	@Transactional
 	@Secured("ROLE_USER")
+	@CacheEvict(value = "myAllPortfolioNames", key = "#memberId")
 	public PortFolioCreateResponse createPortfolio(PortfolioCreateRequest request, Long memberId) {
 		validateSecuritiesFirm(request.getSecuritiesFirm());
 
@@ -90,6 +92,7 @@ public class PortFolioService {
 	}
 
 	@Transactional
+	@CacheEvict(value = "myAllPortfolioNames", key = "#memberId")
 	@Authorized(serviceClass = PortfolioAuthorizedService.class)
 	@Secured("ROLE_USER")
 	public PortfolioModifyResponse updatePortfolio(PortfolioModifyRequest request, @ResourceId Long portfolioId,
@@ -109,6 +112,7 @@ public class PortFolioService {
 	}
 
 	@Transactional
+	@CacheEvict(value = "myAllPortfolioNames", key = "#memberId")
 	@Authorized(serviceClass = PortfolioAuthorizedService.class)
 	@Secured("ROLE_USER")
 	public void deletePortfolio(@ResourceId Long portfolioId, Long memberId) {
@@ -133,9 +137,11 @@ public class PortFolioService {
 	}
 
 	@Transactional
+	@CacheEvict(value = "myAllPortfolioNames", key = "#memberId")
 	@Authorized(serviceClass = PortfolioAuthorizedService.class)
 	@Secured("ROLE_USER")
-	public void deletePortfolios(@ResourceIds List<Long> portfolioIds) {
+	public void deletePortfolios(@ResourceIds List<Long> portfolioIds, @NotNull Long memberId) {
+		log.info("portfolio multiple delete service request: portfolioIds={}, memberId={}", portfolioIds, memberId);
 		for (Long portfolioId : portfolioIds) {
 			Portfolio portfolio = findPortfolio(portfolioId);
 			List<Long> portfolioStockIds = portfolioHoldingRepository.findAllByPortfolio(portfolio).stream()

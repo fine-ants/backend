@@ -81,8 +81,9 @@ public class PortFolioRestController {
 
 	// 포트폴리오 다수 삭제
 	@DeleteMapping
-	public ApiResponse<Void> deletePortfolios(@RequestBody PortfoliosDeleteRequest request) {
-		portFolioService.deletePortfolios(request.getPortfolioIds());
+	public ApiResponse<Void> deletePortfolios(@RequestBody PortfoliosDeleteRequest request,
+		@MemberAuthenticationPrincipal MemberAuthentication authentication) {
+		portFolioService.deletePortfolios(request.getPortfolioIds(), authentication.getId());
 		return ApiResponse.success(PortfolioSuccessCode.OK_DELETE_PORTFOLIO);
 	}
 }
