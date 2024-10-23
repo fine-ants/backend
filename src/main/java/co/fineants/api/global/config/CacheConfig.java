@@ -4,6 +4,7 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
@@ -24,21 +25,13 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class CacheConfig {
 
-	private final ObjectMapper objectMapper;
-
 	@Bean
-	public CacheManager cacheManager(RedisConnectionFactory redisConnectionFactory) {
-		ObjectMapper cacheObjectMapper = new ObjectMapper();
-		cacheObjectMapper.setConfig(objectMapper.getSerializationConfig());
-		cacheObjectMapper.activateDefaultTyping(
-			cacheObjectMapper.getPolymorphicTypeValidator(),
-			ObjectMapper.DefaultTyping.EVERYTHING
-		);
-
+	public CacheManager cacheManager(RedisConnectionFactory redisConnectionFactory,
+		@Qualifier("cacheObjectMapper") ObjectMapper objectMapper) {
 		RedisSerializationContext.SerializationPair<String> keySerializer = RedisSerializationContext.SerializationPair.fromSerializer(
 			new StringRedisSerializer());
 		RedisSerializationContext.SerializationPair<Object> serializer = RedisSerializationContext.SerializationPair.fromSerializer(
-			new GenericJackson2JsonRedisSerializer(cacheObjectMapper));
+			new GenericJackson2JsonRedisSerializer(objectMapper));
 		RedisCacheConfiguration defaultCacheConfig = RedisCacheConfiguration.defaultCacheConfig()
 			.entryTtl(Duration.ofMinutes(10))
 			.serializeKeysWith(keySerializer)
@@ -53,5 +46,17 @@ public class CacheConfig {
 			.cacheDefaults(defaultCacheConfig)
 			.withInitialCacheConfigurations(cacheConfigurations) // 캐시별 설정 추가
 			.build();
+	}
+
+	@Bean(name = "cacheObjectMapper")
+	public ObjectMapper cacheObjectMapper(ObjectMapper objectMapper) {
+		ObjectMapper cacheObjectMapper = new ObjectMapper();
+		cacheObjectMapper.setConfig(objectMapper.getSerializationConfig());
+		cacheObjectMapper.setVisibility(objectMapper.getVisibilityChecker());
+		cacheObjectMapper.activateDefaultTyping(
+			cacheObjectMapper.getPolymorphicTypeValidator(),
+			ObjectMapper.DefaultTyping.EVERYTHING
+		);
+		return cacheObjectMapper;
 	}
 }
