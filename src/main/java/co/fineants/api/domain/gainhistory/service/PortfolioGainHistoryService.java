@@ -11,7 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 import co.fineants.api.domain.gainhistory.domain.dto.response.PortfolioGainHistoryCreateResponse;
 import co.fineants.api.domain.gainhistory.domain.entity.PortfolioGainHistory;
 import co.fineants.api.domain.gainhistory.repository.PortfolioGainHistoryRepository;
-import co.fineants.api.domain.kis.repository.CurrentPriceRedisRepository;
 import co.fineants.api.domain.portfolio.domain.calculator.PortfolioCalculator;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import co.fineants.api.domain.portfolio.repository.PortfolioRepository;
@@ -25,7 +24,6 @@ import lombok.extern.slf4j.Slf4j;
 public class PortfolioGainHistoryService {
 	private final PortfolioGainHistoryRepository repository;
 	private final PortfolioRepository portfolioRepository;
-	private final CurrentPriceRedisRepository currentPriceRedisRepository;
 	private final PortfolioCalculator calculator;
 
 	@Transactional
