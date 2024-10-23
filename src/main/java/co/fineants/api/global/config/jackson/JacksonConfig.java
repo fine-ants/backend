@@ -72,4 +72,16 @@ public class JacksonConfig {
 	public JsonDeserializer<Count> countJsonDeserializer() {
 		return new CountJsonDeserializer();
 	}
+
+	@Bean(name = "cacheObjectMapper")
+	public ObjectMapper cacheObjectMapper(ObjectMapper objectMapper) {
+		ObjectMapper cacheObjectMapper = new ObjectMapper();
+		cacheObjectMapper.setConfig(objectMapper.getSerializationConfig());
+		cacheObjectMapper.setVisibility(objectMapper.getVisibilityChecker());
+		cacheObjectMapper.activateDefaultTyping(
+			cacheObjectMapper.getPolymorphicTypeValidator(),
+			ObjectMapper.DefaultTyping.EVERYTHING
+		);
+		return cacheObjectMapper;
+	}
 }
