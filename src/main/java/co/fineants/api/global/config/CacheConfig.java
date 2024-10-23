@@ -47,16 +47,4 @@ public class CacheConfig {
 			.withInitialCacheConfigurations(cacheConfigurations) // 캐시별 설정 추가
 			.build();
 	}
-
-	@Bean(name = "cacheObjectMapper")
-	public ObjectMapper cacheObjectMapper(ObjectMapper objectMapper) {
-		ObjectMapper cacheObjectMapper = new ObjectMapper();
-		cacheObjectMapper.setConfig(objectMapper.getSerializationConfig());
-		cacheObjectMapper.setVisibility(objectMapper.getVisibilityChecker());
-		cacheObjectMapper.activateDefaultTyping(
-			cacheObjectMapper.getPolymorphicTypeValidator(),
-			ObjectMapper.DefaultTyping.EVERYTHING
-		);
-		return cacheObjectMapper;
-	}
 }

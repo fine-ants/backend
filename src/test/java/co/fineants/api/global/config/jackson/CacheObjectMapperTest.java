@@ -11,12 +11,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.portfolio.domain.dto.response.DashboardLineChartResponse;
-import co.fineants.api.global.config.CacheConfig;
 
 class CacheObjectMapperTest {
 
-	private final ObjectMapper cacheObjectMapper = new CacheConfig().cacheObjectMapper(
-		new JacksonConfig().objectMapper());
+	private final JacksonConfig config = new JacksonConfig();
+	private final ObjectMapper cacheObjectMapper = config.cacheObjectMapper(config.objectMapper());
 
 	@DisplayName("티커 심볼이 담긴 Set 컬렉션을 직렬화하면 클래스 이름 정보가 포함되어 있다")
 	@Test
