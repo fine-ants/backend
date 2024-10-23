@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.DisplayName;
@@ -112,6 +113,6 @@ class PortfolioGainHistoryServiceTest extends AbstractContainerBaseTest {
 
 		// then
 		assertThat(response).extracting("ids").asList().hasSize(1);
-		assertThat(cacheManager.getCache("lineChartCache").get(portfolio.getId())).isNull();
+		assertThat(Objects.requireNonNull(cacheManager.getCache("lineChartCache")).get(portfolio.getId())).isNull();
 	}
 }
