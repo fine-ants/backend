@@ -30,28 +30,35 @@
 - Redis
 
 ## 3. 아키텍처 구조
+
 <img width="684" alt="image" src="https://github.com/user-attachments/assets/605ff9d5-b8e4-4073-87d7-b5820b8cccfb">
 
 **fineants frontend**
+
 - React 기반 웹 서버 애플리케이션
 
 **fineants was**
+
 - Spring 프레임워크 기반 웹 애플리케이션 서버
 - 사용자의 포트폴리오를 관리하고 종목의 정보를 이용하여 포트폴리오의 손익율을 계산하여 응답
 - 포트폴리오의 목표수익률 또는 최대손실율 달성 여부에 따라서 알림을 전송
 
 **MySQL**
+
 - 회원, 포트폴리오, 종목 등의 데이터를 저장
 
 **Redis**
+
 - 종목의 현재가, 종가 데이터를 저장
 - 회원의 로그아웃 내역을 저장
 - 한국투자증권의 액세스 토큰 저장
 
 **한국투자증권**
+
 - 오픈 API 서버로써 종목, 배당금 관련 정보를 조회
 
 **Google/Kakao/Naver**
+
 - OAuth 소셜 로그인을 위한 플랫폼
 - 해당 플랫폼을 통해서 소셜 로그인을 수행
 
@@ -62,104 +69,20 @@
 ## 4. 핵심 기능
 
 <details>
-<summary>포트폴리오 생성</summary>
+<summary>포트폴리오 생성 및 관리 기능</summary>
 <div markdown="1">
 
 ### 4.1 포트폴리오 생성
 
-![image](https://github.com/user-attachments/assets/a381d1e4-7612-4e17-bc36-899293db1573)
+![image](./img/create_portfolio.png)
 
-- 포트폴리오 추가시 검증
-    - 목표수익금액(targetGain)이 예산(budget)를 초과해야 한다
-    - 최대손실금액(maximumLoss)이 예산보다 미만이어야 한다
-    - 증권사 이름이 관리하는 리스트에 존재해야 한다
-    - 사용자가 가지고 있는 포트폴리오들의 이름들은 서로 중복되면 안된다
-
-</div>
-</details>
-
-<details>
-<summary>포트폴리오 종목 추가</summary>
-<div markdown="1">
-
-### 4.2 포트폴리오 종목 추가
-
-![image](https://github.com/fine-ants/FineAnts-was/assets/33227831/a48472fb-42c6-4b87-8686-a648a1f2292c)
-
-- 포트폴리오 종목 추가시 검증
-    - 포트폴리오에 종목 추가시 매입 이력도 같이 전달하는 경우(선택적) 데이터가 전달되었는지 검증
-    - 매입 이력 추가로 인한여 총 투자 금액이 예산보다 같거나 작아야 한다
-- 포트폴리오 종목 추가시 이벤트
-    - 종목 추가시 현재가 및 종가를 저장하지 않는다면 KisService를 이용하여 한국투자증권 서버로부터 조회하여 Redis에 저장
-
-</div>
-</details>
-
-<details>
-<summary>포트폴리오 매입 이력 추가</summary>
-<div markdown="1">
-
-### 4.3 포트폴리오 매입 이력 추가
-
-![image](https://github.com/fine-ants/FineAnts-was/assets/33227831/9902cd4e-48b3-4b79-b32f-99c797050a80)
-
-- 매입 이력 추가시 검증
-    - 매입 이력 추가로 인한 현금이 부족하지 않아야 한다
-- 매입 이력 추가시 이벤트
-    - 매입 이력 추가로 인한 목표수익률/최대손실금액 도달 알림 이벤트 수행
-
-</div>
-</details>
-
-<details>
-<summary>포트폴리오 상세 정보 실시간 조회</summary>
-<div markdown="1">
-
-### 4.4 포트폴리오 상세 정보 실시간 조회
-
-![image](https://github.com/fine-ants/FineAnts-was/assets/33227831/aee6d18b-6d3e-4965-b193-b8eb99860f43)
-
-- 서비스는 PortfolioObservable 객체에게 포트폴리오의 등록번호를 전달하며 Observable 객체 생성 요청
-- Observable 객체는 일반적으로 30초 동안 5초 간격으로 포트폴리오의 상세 정보를 조회한 결과를 SseEmitter를 통해서 전달
-- 장시간이 아닌 경우에는 더미 데이터를 한번 전송하고 SSE 연결을 종료
-- 클라이언트에게는 SseEmitter 객체 전달하여 데이터를 전달받도록 한다
-
-</div>
-</details>
-
-<details>
-<summary>포트폴리오 목표 수익률/최대 손실율 알림</summary>
-<div markdown="1">
-
-### 4.5 포트폴리오 목표 수익률/최대 손실율 알림
-
-![image](https://github.com/fine-ants/FineAnts-was/assets/33227831/78ded5ef-caf3-4701-a731-6eaa2ed02869)
-
-- 장시간 동안 종목 가격 갱신시 포트폴리오의 목표 수익률/최대 손실율 도달 조건을 만족하는 사용자에게 알림 전송
-- 목표 수익률 도달 조건
-    - 특정 포트폴리오의 목표 수익률 알림 활성화
-    - 사용자 계정의 브라우저 알림 활성화
-    - 사용자 계정의 목표 수익률 알림 활성화
-    - 포트폴리오의 평가 금액(투자 금액 + 총 손익)이 목표 수익금액에 도달
-- 알림은 Firebase의 FCM 토큰을 사용하여 전송
-- 목표 수익률/최대 손실율 알림 시기
-    - 매입 이력 추가/수정/삭제 이벤트
-    - 장시간 동안의 종목 현재가 갱신
-
-</div>
-</details>
-
-<details>
-<summary>종목의 현재가 및 종가 조회</summary>
-<div markdown="1">
-
-### 4.6 종목의 현재가 및 종가 조회
-
-![image](https://github.com/fine-ants/FineAnts-was/assets/33227831/d74f36e2-13c4-45f6-b540-dc6f9995e786)
-
-- 스케줄링을 통하여 장시간 동안 5초 간격으로 종목의 현재가를 갱신
-- 종가의 경우에는 스케줄링을 통하여 3시 30분에 하루 한번만 실행
-- 갱신된 현재가 및 종가는 Redis에 저장
+1. 회원은 포트폴리오 생성시 필요한 정보를 입력하고 생성을 요청합니다.
+2. 서버는 제출한 포트폴리오의 입력 정보의 유효성 및 제약 조건을 검증합니다.
+    - 사용자는 목록에 있는 증권사 목록 안에서만 선택
+    - 회원별로 각 포트폴리의 이름은 고유해야 하지만,다른 회원들의 포트폴리오 이름과는 중복될 수 있습니다.
+    - 포트폴리오의 목표수익금액은 예산보다 커야 하며, 최대손실금액은 예산보다 작아야 하는 제약조건을 만족해야 합니다.
+3. 유효성 및 제약 조건을 만족하면 포트폴리오를 생성합니다.
+4. 생성한 포트폴리오를 데이터베이스에 저장합니다.
 
 </div>
 </details>
