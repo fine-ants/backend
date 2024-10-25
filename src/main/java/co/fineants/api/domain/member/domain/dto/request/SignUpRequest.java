@@ -1,28 +1,56 @@
 package co.fineants.api.domain.member.domain.dto.request;
 
+import org.springframework.web.multipart.MultipartFile;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import co.fineants.api.domain.member.domain.entity.MemberProfile;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.EqualsAndHashCode;
 
-@Getter
-@ToString
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-@AllArgsConstructor
+@EqualsAndHashCode
 public class SignUpRequest {
-	@Pattern(regexp = "^[가-힣a-zA-Z0-9]{2,10}$", message = "{nickname.notnull}")
+	@Pattern(regexp = MemberProfile.NICKNAME_REGEXP, message = "{nickname.notnull}")
 	@NotBlank(message = "닉네임은 필수 정보입니다")
-	private String nickname;
-	@Pattern(regexp = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6}$", message = "잘못된 입력 형식입니다")
+	@JsonProperty
+	private final String nickname;
+
+	@Pattern(regexp = MemberProfile.EMAIL_REGEXP, message = "잘못된 입력 형식입니다")
 	@NotBlank(message = "이메일은 필수 정보입니다")
-	private String email;
-	@Pattern(regexp = "^(?=.*[a-zA-Z])(?=.*[\\d])(?=.*[!@#$%^&*]).{8,16}$", message = "잘못된 입력 형식입니다")
+	@JsonProperty
+	private final String email;
+
+	@Pattern(regexp = MemberProfile.PASSWORD_REGEXP, message = "잘못된 입력 형식입니다")
 	@NotBlank(message = "비밀번호는 필수 정보입니다")
-	private String password;
-	@Pattern(regexp = "^(?=.*[a-zA-Z])(?=.*[\\d])(?=.*[!@#$%^&*]).{8,16}$", message = "잘못된 입력 형식입니다")
+	@JsonProperty
+	private final String password;
+
+	@Pattern(regexp = MemberProfile.PASSWORD_REGEXP, message = "잘못된 입력 형식입니다")
 	@NotBlank(message = "비밀번호 확인은 필수 정보입니다")
-	private String passwordConfirm;
+	@JsonProperty
+	private final String passwordConfirm;
+
+	@JsonCreator
+	public SignUpRequest(
+		@JsonProperty("nickname") String nickname,
+		@JsonProperty("email") String email,
+		@JsonProperty("password") String password,
+		@JsonProperty("passwordConfirm") String passwordConfirm) {
+		this.nickname = nickname;
+		this.email = email;
+		this.password = password;
+		this.passwordConfirm = passwordConfirm;
+	}
+
+	public SignUpServiceRequest toSignUpServiceRequest(MultipartFile profileImageFile) {
+		return SignUpServiceRequest.create(nickname, email, password, passwordConfirm, profileImageFile);
+	}
+
+	@Override
+	public String toString() {
+		return String.format("SignUpRequest(nickname=%s, email=%s, password=%s, passwordConfirm=%s)", nickname, email,
+			password, passwordConfirm);
+	}
 }

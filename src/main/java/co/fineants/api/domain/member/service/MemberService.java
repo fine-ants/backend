@@ -54,7 +54,6 @@ import co.fineants.api.global.errors.exception.FineAntsException;
 import co.fineants.api.global.errors.exception.NotFoundResourceException;
 import co.fineants.api.global.security.factory.TokenFactory;
 import co.fineants.api.global.security.oauth.dto.Token;
-import co.fineants.api.global.security.oauth.service.TokenService;
 import co.fineants.api.global.util.CookieUtils;
 import co.fineants.api.infra.mail.service.MailService;
 import co.fineants.api.infra.s3.service.AmazonS3Service;
@@ -89,7 +88,6 @@ public class MemberService {
 	private final FcmRepository fcmRepository;
 	private final StockTargetPriceRepository stockTargetPriceRepository;
 	private final TargetPriceNotificationRepository targetPriceNotificationRepository;
-	private final TokenService tokenService;
 	private final OauthMemberRedisService oauthMemberRedisService;
 	private final RoleRepository roleRepository;
 	private final TokenFactory tokenFactory;
@@ -125,22 +123,23 @@ public class MemberService {
 
 	@Transactional
 	public SignUpServiceResponse signup(SignUpServiceRequest request) {
-		verifyEmail(request.getEmail());
-		verifyNickname(request.getNickname());
-		verifyPassword(request.getPassword(), request.getPasswordConfirm());
+		Member member = request.toEntity();
+		verifyEmail(member);
+		verifyNickname(member);
+		verifyPassword(request);
 
 		// 프로필 이미지 파일 S3에 업로드
 		String profileUrl = null;
-		if (request.getProfileImageFile() != null && !request.getProfileImageFile().isEmpty()) {
-			profileUrl = uploadProfileImageFile(request.getProfileImageFile());
+		if (request.hasProfileImageFile()) {
+			profileUrl = uploadProfileImageFile(request.profileImageFile());
 		}
 
 		// 비밀번호 암호화
-		String encryptedPassword = passwordEncoder.encode(request.getPassword());
+		String encryptedPassword = request.encodePasswordBy(passwordEncoder);
 		// 역할 추가
 		Role userRole = roleRepository.findRoleByRoleName("ROLE_USER")
 			.orElseThrow(() -> new FineAntsException(RoleErrorCode.NOT_EXIST_ROLE));
-		Member member = request.toEntity(profileUrl, encryptedPassword);
+		member = request.toEntity(profileUrl, encryptedPassword);
 		member.addMemberRole(MemberRole.of(member, userRole));
 		member.setNotificationPreference(NotificationPreference.defaultSetting());
 		// 회원 데이터베이스 저장
@@ -156,14 +155,14 @@ public class MemberService {
 			.orElse(null);
 	}
 
-	private void verifyEmail(String email) {
-		if (memberRepository.findMemberByEmailAndProvider(email, LOCAL_PROVIDER).isPresent()) {
+	private void verifyEmail(Member member) {
+		if (memberRepository.findMemberByEmailAndProvider(member, LOCAL_PROVIDER).isPresent()) {
 			throw new BadRequestException(MemberErrorCode.REDUNDANT_EMAIL);
 		}
 	}
 
-	private void verifyNickname(String nickname) {
-		if (memberRepository.findMemberByNickname(nickname).isPresent()) {
+	private void verifyNickname(Member member) {
+		if (memberRepository.findMemberByNickname(member).isPresent()) {
 			throw new FineAntsException(MemberErrorCode.REDUNDANT_NICKNAME);
 		}
 	}
@@ -175,8 +174,8 @@ public class MemberService {
 		}
 	}
 
-	private void verifyPassword(String password, String passwordConfirm) {
-		if (!password.equals(passwordConfirm)) {
+	private void verifyPassword(SignUpServiceRequest request) {
+		if (!request.matchPassword()) {
 			throw new BadRequestException(MemberErrorCode.PASSWORD_CHECK_FAIL);
 		}
 	}
