@@ -8,7 +8,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.EqualsAndHashCode;
 
+@EqualsAndHashCode
 public class MemberNotificationAllDeleteRequest {
 	@NotNull(message = "필수 정보입니다")
 	@Size(min = 1, message = "삭제할 알람의 개수는 1개 이상이어야 합니다")
