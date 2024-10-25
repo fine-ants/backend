@@ -7,7 +7,9 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import co.fineants.api.global.security.ajax.token.AjaxAuthenticationToken;
+import lombok.EqualsAndHashCode;
 
+@EqualsAndHashCode
 public class LoginRequest {
 	@JsonProperty
 	private final String email;
