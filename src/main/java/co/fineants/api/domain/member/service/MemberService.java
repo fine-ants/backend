@@ -23,7 +23,6 @@ import co.fineants.api.domain.holding.repository.PortfolioHoldingRepository;
 import co.fineants.api.domain.member.domain.dto.request.PasswordModifyRequest;
 import co.fineants.api.domain.member.domain.dto.request.ProfileChangeServiceRequest;
 import co.fineants.api.domain.member.domain.dto.request.SignUpServiceRequest;
-import co.fineants.api.domain.member.domain.dto.request.VerifyCodeRequest;
 import co.fineants.api.domain.member.domain.dto.request.VerifyEmailRequest;
 import co.fineants.api.domain.member.domain.dto.response.ProfileChangeResponse;
 import co.fineants.api.domain.member.domain.dto.response.ProfileResponse;
@@ -286,10 +285,9 @@ public class MemberService {
 
 	@Transactional(readOnly = true)
 	@PermitAll
-	public void checkVerifyCode(VerifyCodeRequest request) {
-		Optional<String> verifyCode = redisService.get(request.getEmail());
-
-		if (verifyCode.isEmpty() || !verifyCode.get().equals(request.getCode())) {
+	public void checkVerifyCode(String email, String code) {
+		Optional<String> verifyCode = redisService.get(email);
+		if (verifyCode.isEmpty() || !verifyCode.get().equals(code)) {
 			throw new BadRequestException(MemberErrorCode.VERIFICATION_CODE_CHECK_FAIL);
 		}
 	}
