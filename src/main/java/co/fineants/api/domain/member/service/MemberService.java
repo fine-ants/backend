@@ -141,6 +141,7 @@ public class MemberService {
 			.orElseThrow(() -> new FineAntsException(RoleErrorCode.NOT_EXIST_ROLE));
 		member = request.toEntity(profileUrl, encryptedPassword);
 		member.addMemberRole(MemberRole.of(member, userRole));
+		// 알림 계정 설정 추가
 		member.setNotificationPreference(NotificationPreference.defaultSetting());
 		// 회원 데이터베이스 저장
 		Member saveMember = memberRepository.save(member);
