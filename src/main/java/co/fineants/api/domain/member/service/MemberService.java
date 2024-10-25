@@ -280,13 +280,13 @@ public class MemberService {
 	@Secured("ROLE_USER")
 	public void modifyPassword(ModifyPasswordRequest request, Long memberId) {
 		Member member = findMember(memberId);
-		if (!passwordEncoder.matches(request.getCurrentPassword(), member.getPassword().orElse(null))) {
+		if (!passwordEncoder.matches(request.currentPassword(), member.getPassword().orElse(null))) {
 			throw new BadRequestException(MemberErrorCode.PASSWORD_CHECK_FAIL);
 		}
-		if (!request.getNewPassword().equals(request.getNewPasswordConfirm())) {
+		if (!request.matchPassword()) {
 			throw new BadRequestException(MemberErrorCode.NEW_PASSWORD_CONFIRM_FAIL);
 		}
-		String newPassword = passwordEncoder.encode(request.getNewPassword());
+		String newPassword = passwordEncoder.encode(request.newPassword());
 		int count = memberRepository.modifyMemberPassword(newPassword, member.getId());
 		log.info("회원 비밀번호 변경 결과 : {}", count);
 	}
