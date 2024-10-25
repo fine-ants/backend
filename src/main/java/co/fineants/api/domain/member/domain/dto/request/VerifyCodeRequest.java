@@ -6,7 +6,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import co.fineants.api.domain.member.domain.entity.MemberProfile;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
+import lombok.EqualsAndHashCode;
 
+@EqualsAndHashCode
 public class VerifyCodeRequest {
 	@NotBlank(message = "이메일은 필수 정보입니다")
 	@Pattern(regexp = MemberProfile.EMAIL_REGEXP, message = "잘못된 입력 형식입니다")
