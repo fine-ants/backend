@@ -80,8 +80,7 @@ public class MemberNotificationRestController {
 	public ApiResponse<Void> readAllNotifications(
 		@PathVariable Long memberId,
 		@Valid @RequestBody MemberNotificationAllReadRequest request) {
-		List<Long> notificationIds = notificationService.fetchMemberNotifications(memberId,
-			request.getNotificationIds());
+		List<Long> notificationIds = notificationService.fetchMemberNotifications(memberId, request.notificationIds());
 		log.info("회원 알림 모두 읽기 처리 결과 : memberId={}, 읽은 알림 등록 번호={}", memberId, notificationIds);
 		return ApiResponse.success(MemberSuccessCode.OK_FETCH_ALL_NOTIFICATIONS);
 	}
