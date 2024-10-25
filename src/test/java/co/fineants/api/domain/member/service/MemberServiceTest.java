@@ -33,7 +33,6 @@ import co.fineants.api.domain.fcm.repository.FcmRepository;
 import co.fineants.api.domain.gainhistory.repository.PortfolioGainHistoryRepository;
 import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
 import co.fineants.api.domain.holding.repository.PortfolioHoldingRepository;
-import co.fineants.api.domain.member.domain.dto.request.ProfileChangeRequest;
 import co.fineants.api.domain.member.domain.dto.request.ProfileChangeServiceRequest;
 import co.fineants.api.domain.member.domain.dto.request.SignUpRequest;
 import co.fineants.api.domain.member.domain.dto.request.SignUpServiceRequest;
@@ -134,7 +133,7 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 		Member member = memberRepository.save(createMember());
 		ProfileChangeServiceRequest serviceRequest = ProfileChangeServiceRequest.of(
 			createProfileFile(),
-			new ProfileChangeRequest("nemo12345"),
+			"nemo12345",
 			member.getId()
 		);
 
@@ -203,7 +202,7 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 		Member member = memberRepository.save(createMember());
 		ProfileChangeServiceRequest serviceRequest = ProfileChangeServiceRequest.of(
 			null,
-			new ProfileChangeRequest("nemo12345"),
+			"nemo12345",
 			member.getId()
 		);
 
@@ -224,7 +223,7 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 		Member member = memberRepository.save(createMember());
 		ProfileChangeServiceRequest serviceRequest = ProfileChangeServiceRequest.of(
 			createProfileFile(),
-			new ProfileChangeRequest("nemo1234"),
+			"nemo1234",
 			member.getId()
 		);
 
@@ -249,7 +248,7 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 		Member member = memberRepository.save(createMember());
 		ProfileChangeServiceRequest serviceRequest = ProfileChangeServiceRequest.of(
 			null,
-			new ProfileChangeRequest("nemo12345"),
+			"nemo12345",
 			member.getId()
 		);
 

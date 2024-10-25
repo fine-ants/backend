@@ -1,17 +1,27 @@
 package co.fineants.api.domain.member.domain.dto.request;
 
-import jakarta.validation.constraints.Pattern;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-@Getter
-@ToString
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-@AllArgsConstructor
+import co.fineants.api.domain.member.domain.entity.MemberProfile;
+import jakarta.validation.constraints.Pattern;
+
 public class ProfileChangeRequest {
-	@Pattern(regexp = "^[가-힣a-zA-Z0-9]{2,10}$", message = "잘못된 입력형식입니다.")
-	private String nickname;
+	@Pattern(regexp = MemberProfile.NICKNAME_REGEXP, message = "잘못된 입력형식입니다.")
+	@JsonProperty
+	private final String nickname;
+
+	@JsonCreator
+	public ProfileChangeRequest(@JsonProperty("nickname") String nickname) {
+		this.nickname = nickname;
+	}
+
+	public String nickname() {
+		return nickname;
+	}
+
+	@Override
+	public String toString() {
+		return String.format("ProfileChangeRequest(nickname=%s)", nickname);
+	}
 }

@@ -16,6 +16,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @EqualsAndHashCode(of = {"email", "provider"}, callSuper = false)
 public class MemberProfile {
+	public static final String NICKNAME_REGEXP = "^[가-힣a-zA-Z0-9]{2,10}$";
+
 	@Getter
 	@Column(name = "email", nullable = false)
 	private String email;
