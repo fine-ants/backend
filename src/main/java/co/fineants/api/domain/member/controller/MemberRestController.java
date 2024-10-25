@@ -1,5 +1,6 @@
 package co.fineants.api.domain.member.controller;
 
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -41,9 +42,11 @@ public class MemberRestController {
 		@Valid @RequestPart(value = "profileInformation", required = false) ProfileChangeRequest request,
 		@MemberAuthenticationPrincipal MemberAuthentication authentication
 	) {
-		ProfileChangeServiceRequest serviceRequest = ProfileChangeServiceRequest.of(
-			profileImageFile,
-			request,
+		String nickname = Strings.EMPTY;
+		if (request != null) {
+			nickname = request.nickname();
+		}
+		ProfileChangeServiceRequest serviceRequest = ProfileChangeServiceRequest.of(profileImageFile, nickname,
 			authentication.getId()
 		);
 		return ApiResponse.success(MemberSuccessCode.OK_MODIFIED_PROFILE,
