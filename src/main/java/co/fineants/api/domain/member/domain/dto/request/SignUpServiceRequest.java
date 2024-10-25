@@ -8,7 +8,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import co.fineants.api.domain.member.domain.entity.Member;
 import co.fineants.api.domain.member.domain.entity.MemberProfile;
+import lombok.EqualsAndHashCode;
 
+@EqualsAndHashCode
 public class SignUpServiceRequest {
 	@JsonProperty
 	private final String nickname;
