@@ -21,8 +21,8 @@ import co.fineants.api.domain.gainhistory.domain.entity.PortfolioGainHistory;
 import co.fineants.api.domain.gainhistory.repository.PortfolioGainHistoryRepository;
 import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
 import co.fineants.api.domain.holding.repository.PortfolioHoldingRepository;
-import co.fineants.api.domain.member.domain.dto.request.ModifyPasswordRequest;
 import co.fineants.api.domain.member.domain.dto.request.OauthMemberRefreshRequest;
+import co.fineants.api.domain.member.domain.dto.request.PasswordModifyRequest;
 import co.fineants.api.domain.member.domain.dto.request.ProfileChangeServiceRequest;
 import co.fineants.api.domain.member.domain.dto.request.SignUpServiceRequest;
 import co.fineants.api.domain.member.domain.dto.request.VerifyCodeRequest;
@@ -278,7 +278,7 @@ public class MemberService {
 
 	@Transactional
 	@Secured("ROLE_USER")
-	public void modifyPassword(ModifyPasswordRequest request, Long memberId) {
+	public void modifyPassword(PasswordModifyRequest request, Long memberId) {
 		Member member = findMember(memberId);
 		if (!passwordEncoder.matches(request.currentPassword(), member.getPassword().orElse(null))) {
 			throw new BadRequestException(MemberErrorCode.PASSWORD_CHECK_FAIL);
