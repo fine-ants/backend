@@ -226,12 +226,12 @@ public class MemberService {
 	@Transactional
 	@Secured("ROLE_USER")
 	public ProfileChangeResponse changeProfile(ProfileChangeServiceRequest request) {
-		Member member = findMemberById(request.getMemberId());
+		Member member = findMemberById(request.memberId());
 		MultipartFile profileImageFile = request.getProfileImageFile();
 		String profileUrl = null;
 
 		// 변경할 정보가 없는 경우
-		if (profileImageFile == null && request.getNickname().isBlank()) {
+		if (profileImageFile == null && !request.hasNickname()) {
 			throw new FineAntsException(MemberErrorCode.NO_PROFILE_CHANGES);
 		}
 
@@ -251,8 +251,8 @@ public class MemberService {
 		}
 		member.changeProfileUrl(profileUrl);
 
-		if (!request.getNickname().isBlank()) {
-			String nickname = request.getNickname();
+		if (request.hasNickname()) {
+			String nickname = request.nickname();
 			verifyNickname(nickname, member.getId());
 			member.changeNickname(nickname);
 		}
