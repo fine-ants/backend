@@ -61,8 +61,8 @@ public class MemberNotificationPreferenceService {
 				new NotFoundResourceException(NotificationPreferenceErrorCode.NOT_FOUND_NOTIFICATION_PREFERENCE));
 
 		// 회원 계정의 전체 알림 설정이 모두 비활성화인 경우 FCM 토큰 삭제
-		if (preference.isAllInActive() && request.getFcmTokenId() != null) {
-			FcmDeleteResponse response = fcmService.deleteToken(request.getFcmTokenId());
+		if (preference.isAllInActive() && request.hasFcmTokenId()) {
+			FcmDeleteResponse response = fcmService.deleteToken(request.fcmTokenId());
 			log.info("회원 알림 설정 전체 비활성화로 인한 결과 : {}", response);
 		}
 		return MemberNotificationPreferenceResponse.from(preference);
