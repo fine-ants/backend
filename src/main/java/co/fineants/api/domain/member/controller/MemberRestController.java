@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import co.fineants.api.domain.member.domain.dto.request.ModifyPasswordRequest;
+import co.fineants.api.domain.member.domain.dto.request.PasswordModifyRequest;
 import co.fineants.api.domain.member.domain.dto.request.ProfileChangeRequest;
 import co.fineants.api.domain.member.domain.dto.request.ProfileChangeServiceRequest;
 import co.fineants.api.domain.member.domain.dto.response.ProfileChangeResponse;
@@ -60,7 +60,7 @@ public class MemberRestController {
 
 	@PutMapping("/account/password")
 	public ApiResponse<Void> changePassword(
-		@RequestBody ModifyPasswordRequest request,
+		@RequestBody PasswordModifyRequest request,
 		@MemberAuthenticationPrincipal MemberAuthentication authentication
 	) {
 		memberService.modifyPassword(request, authentication.getId());

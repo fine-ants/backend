@@ -5,7 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class ModifyPasswordRequest {
+public class PasswordModifyRequest {
 	@JsonProperty
 	@NotNull(value = "필수 정보입니다")
 	private final String currentPassword;
@@ -17,7 +17,7 @@ public class ModifyPasswordRequest {
 	private final String newPasswordConfirm;
 
 	@JsonCreator
-	public ModifyPasswordRequest(
+	public PasswordModifyRequest(
 		@JsonProperty("currentPassword") @NotNull String currentPassword,
 		@JsonProperty("newPassword") @NotNull String newPassword,
 		@JsonProperty("newPasswordConfirm") @NotNull String newPasswordConfirm) {
