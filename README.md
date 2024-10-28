@@ -200,9 +200,17 @@
 <div markdown="1">
 
 - 배포 db 서버의 FcmToken 테이블의 PK 컬럼에 auto_increment가 적용되지 않은 것이 원인
-- PK 컬럼에 auto_increment 적용하여 문제 해
+- fcm_token 테이블을 삭제하고 다시 생성할때 PK 컬럼에 auto_increment 설정하여 문제 해결
 
 - [issue#208](https://github.com/fine-ants/FineAnts-was/issues/208)
+
+```mysql
+ create table if not exists fineAnts.fcm_token
+ (
+     id bigint auto_increment primary key,
+     # ...
+ );
+```
 
 </div>
 </details>
