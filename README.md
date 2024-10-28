@@ -184,13 +184,58 @@
 ## 5. 핵심 트러블 슈팅
 
 <details>
-<summary>매입 이력 추가 후 목표수익률 이벤트 지연 로딩 문제</summary>
+<summary>매입 이력 추가 후 목표수익금액 달성 이벤트의 지연 로딩 문제</summary>
 <div markdown="1">
 
-- 매입 이력 추가 서비스 과정에서 지연 로딩된 연관 엔티티를 이미 로딩되었기 때문에 이벤트 수행 과정에서 직전에 추가된 매입이력이 조회되지 않은 것이 원인
+### 해결 시도 1
+
+- 매입 이력 추가 서비스 과정에서 지연 로딩된 연관 엔티티(매입 이력 엔티티, PurchaseHistory) 리스트를 이미 로딩되었기 때문에
+  이벤트 수행 과정에서 직전에 추가된 매입이력이 조회되지 않은 것이 원인
 - 매입 이력 추가 서비스에서 직전에 추가된 매입 이력을 연관 엔티티 리스트에 추가하도록 하여 문제 해결(영속성 전이는 설정하지 않고 별도로 db에 추가하도록 하는 방식으로 수행)
 
 - [issue#275](https://github.com/fine-ants/FineAnts-was/issues/275)
+
+### 해결 시도 2
+
+- 이벤트 리스너에서 @Async 애노테이션을 통하여 이벤트가 비동기로 동작한다고 생각하였으나 @EnableAsync 애노테이션을 설정하지 않아서
+  동기적으로 수행된 것이 원인.
+- 매입 이력 추가 서비스와 목표수익금액 달성 알림 이벤트가 같은 트랜잭션 내에 있기 때문에 직전에 추가된 매입이력이 조회되지 않는 것이 원인
+- 설정 클래스에 @EnableAysnc 애노테이션을 추가하여 비동기적으로 수행하게 하고, @TransactionalEventListener 애노테이션을 이벤트 리스너 메서드에 적용하여 매입 이력 추가 서비스 후에
+  동작하도록 개선
+- [issue#515](https://github.com/fine-ants/FineAnts-was/issues/515)
+
+#### @EnableAsync 설정
+
+```java
+
+@EnableAsync
+@Configuration
+public class SpringConfig {
+}
+```
+
+#### 이벤트 리스너 메서드 애노테이션 설정
+
+이벤트 리스너 메서드인 notifyTargetGainBy 메서드에 @TransactionalEventListner 애노테이션을 설정하여 매입 이력 추가 서비스의 커밋 이후에 동작하도록 합니다.
+
+```java
+
+@Component
+@RequiredArgsConstructor
+@Slf4j
+public class PurchaseHistoryEventListener {
+	// ...
+
+	// 매입 이력 이벤트가 발생하면 포트폴리오 목표수익률에 달성하면 푸시 알림
+	@Async
+	@TransactionalEventListener
+	public CompletableFuture<PortfolioNotifyMessagesResponse> notifyTargetGainBy(PushNotificationEvent event) {
+		PurchaseHistoryEventSendableParameter parameter = event.getValue();
+		return CompletableFuture.supplyAsync(() ->
+			(PortfolioNotifyMessagesResponse)notificationService.notifyTargetGain(parameter.getPortfolioId()));
+	}
+//...
+```
 
 </div>
 </details>
