@@ -431,7 +431,9 @@ public ApiResponse<ProfileChangeResponse> changeProfile(
 <summary>비밀번호 변경 문제</summary>
 <div markdown="1">
 
-- 비밀번호 변경 서비스 메서드에서 `@Transactional(readOnly=true)`를 `@Transactional`로 변경하여 해결
+- 배경: 비밀번호 변경 API 요청시 200 응답은 오지만 실제 비밀번호는 변경되지 않음
+- 원인: 비밀번호 변경 서비스의 트랜잭션이 읽기 전용으로 설정한 것이 원인
+- 해결 방법: 비밀번호 변경 서비스에서 `@Transactional(readOnly=true)`를 `@Transactional`로 변경하여 해결
 
 ```
 @Transactional
