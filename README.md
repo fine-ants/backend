@@ -369,17 +369,18 @@ public class HasNotificationAuthorizationAspect {
 ## 6. 그 외 트러블 슈팅
 
 <details>
-<summary>redis 컨테이너 실행시 rdb 파일을 생성하지 않도록 설정</summary>
+<summary>Redis 컨테이너 실행시 RDB 파일을 생성하지 않도록 설정</summary>
 <div markdown="1">
 
-- Redis의 스냅샷 작성시 실패하게 되면 Write 명령어를 전부 거부함에 따라 rdb(redis database) 파일을 생성하지 않도록 설정
+- 배경: 카카오 소셜 로그인이 되지 않음
+- 원인: Redis의 스냅샷 작성시 실패하게 되면 Write 명령어를 전부 거부하게 되어 레디스 연산을 사용 못하는 것이 원인
+- 원인: RDB(redis database) 파일을 생성하지 않도록 설정
+- [issue#38](https://github.com/fine-ants/FineAnts-was/issues/38)
 
 ```
 stop-writes-on-bgsave-error no
 save ""
 ```
-
-- [issue#38](https://github.com/fine-ants/FineAnts-was/issues/38)
 
 </div>
 </details>
@@ -388,8 +389,10 @@ save ""
 <summary>종목 지정가 도달 알림 문제 해결</summary>
 <div markdown="1">
 
-- 종목 지정가 알림 전송 이력 전송시 알림마다 생성되는 등록번호(PK, Notification.id)를 키값으로 저장하는 것이 아닌
-  종목 지정가 데이터에 대한 등록번호(PK, TargetPriceNotification.id)를 기준으로 저장합니다.
+- 배경: 종목 지정가 도달 알림 간격을 24시간으로 설정했음에도 종목의 현재가가 지정가에 도달할 때마다 알림을 보냄
+- 원인: 사용자에게 전달한 푸시 알림의 등록번호(Notification 테이블의 id 컬럼)을 전송내역 키로써 레디스에 저장한 것이 원인
+- 원인: 알림마다 생성되는 등록번호(PK, Notification.id)를 키값으로 저장하는 것이 아닌 종목 지정가 데이터에 대한 등록번호(PK, TargetPriceNotification.id)를 기준으로
+  저장합니다.
 
 ```
 // 발송 이력 저장
