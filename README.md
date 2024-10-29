@@ -411,7 +411,9 @@ save ""
 <summary>프로필 변경 문제</summary>
 <div markdown="1">
 
-- 프로필 정보에서 프로필 이미지만 변경하는 경우에 텍스트 정보가 필수값으로 설정되어 있어서 옵션을 선택적으로 변경
+- 배경: 프로필의 닉네임 정보를 변경하지 않고 프로필 사진만 변경하는 경우 500 에러가 발생함
+- 원인: 컨트롤러의 profileInformation 파트가 필수 입력 정보로 설정한 것이 원인
+- 해결 방법: profileInformation 파트의 입력 정보를 선택적으로 변경하여 문제 해결
 
 ```
 public ApiResponse<ProfileChangeResponse> changeProfile(
