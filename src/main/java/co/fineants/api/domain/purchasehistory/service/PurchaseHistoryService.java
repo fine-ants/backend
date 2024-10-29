@@ -60,8 +60,6 @@ public class PurchaseHistoryService {
 		verifyCashSufficientForPurchase(portfolio, (Money)history.calInvestmentAmount());
 
 		PurchaseHistory newPurchaseHistory = repository.save(history);
-		// 매입 이력 알림 이벤트를 위한 매입 이력 데이터 추가
-		findHolding.addPurchaseHistory(newPurchaseHistory);
 
 		purchaseHistoryEventPublisher.publishPushNotificationEvent(portfolioId, memberId);
 		log.info("매입이력 저장 결과 : newPurchaseHistory={}", newPurchaseHistory);
