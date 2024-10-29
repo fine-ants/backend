@@ -184,6 +184,10 @@
 ## 5. 핵심 트러블 슈팅
 
 <details>
+<summary>스프링 문제</summary>
+<div markdown="1">
+
+<details>
 <summary>매입 이력 추가 후 알림 이벤트에서 매입 이력 리스트 지연 로딩 문제</summary>
 <div markdown="1">
 
@@ -207,6 +211,13 @@
 </div>
 </details>
 
+</div>
+</details>
+
+<details>
+<summary>데이터베이스 문제</summary>
+<div markdown="1">
+
 <details>
 <summary>FCM 토큰 등록 오류</summary>
 <div markdown="1">
@@ -218,6 +229,14 @@
 
 </div>
 </details>
+
+</div>
+</details>
+
+
+<details>
+<summary>권한 문제</summary>
+<div markdown="1">
 
 <details>
 <summary>회원 알림 API 권한 문제</summary>
@@ -253,6 +272,47 @@ public class HasNotificationAuthorizationAspect {
 
 </div>
 </details>
+
+</div>
+</details>
+
+<details>
+<summary>Server-Sent-Event(SSE) 문제</summary>
+<div markdown="1">
+
+<details>
+<summary>Hikari Connection Pool 고갈 문제</summary>
+<div markdown="1">
+
+- 배경: 데이터베이스 연결이 불가능하여 SSE 푸시할 수 없음
+- 원인: SSE 연결로 인하여 HTTP가 연결을 유지하는 동안 서비스 레이어의 트랜잭션이 종료되었음에도 불구하고 OSIV(Open Session In View)가 활성화되어 있어
+  30초 동안 Hikari Connection Pool의 연결 쓰레드를 점유한 것이 원인
+- 해결 방법: OSIV 비활성화하여 문제 해결
+
+- [issue#123](https://github.com/fine-ants/FineAnts-was/issues/123)
+
+</div>
+</details>
+
+<details>
+<summary>포트폴리오 상세 조회 SSE 데이터 응답 문제</summary>
+<div markdown="1">
+
+- 배경: 배포환경에서 포트폴리오 상세 조회 SSE API 호출시 계속 블로킹되다가 타임아웃 되어버림
+- 원인: SSE 데이터 응답 생성을 별도의 쓰레드에서 수행하던 과정 중에서 종목의 종가가 존재하지 않아서 예외가 발생했을때 별도의 예외 처리를 하지 않은 것이 원인
+- 해결 방법: Exception 타입으로 캐치하도록 변경하여 모든 예외를 대상으로 캐치하여 SseEmitter 객체를 대상으로 completeWithError 호출하여 해결
+
+- [issue#57](https://github.com/fine-ants/FineAnts-was/issues/57)
+
+</div>
+</details>
+
+</div>
+</details>
+
+<details>
+<summary>액세스 토큰 문제</summary>
+<div markdown="1">
 
 <details>
 <summary>한국투자증권의 액세스 토큰 만료시 발급 문제</summary>
@@ -302,29 +362,6 @@ public class HasNotificationAuthorizationAspect {
 </div>
 </details>
 
-<details>
-<summary>Hikari Connection Pool 고갈 문제</summary>
-<div markdown="1">
-
-- 배경: 데이터베이스 연결이 불가능하여 SSE 푸시할 수 없음
-- 원인: SSE 연결로 인하여 HTTP가 연결을 유지하는 동안 서비스 레이어의 트랜잭션이 종료되었음에도 불구하고 OSIV(Open Session In View)가 활성화되어 있어
-  30초 동안 Hikari Connection Pool의 연결 쓰레드를 점유한 것이 원인
-- 해결 방법: OSIV 비활성화하여 문제 해결
-
-- [issue#123](https://github.com/fine-ants/FineAnts-was/issues/123)
-
-</div>
-</details>
-
-<details>
-<summary>포트폴리오 상세 조회 SSE 데이터 응답 문제</summary>
-<div markdown="1">
-
-- 배경: 배포환경에서 포트폴리오 상세 조회 SSE API 호출시 계속 블로킹되다가 타임아웃 되어버림
-- 원인: SSE 데이터 응답 생성을 별도의 쓰레드에서 수행하던 과정 중에서 종목의 종가가 존재하지 않아서 예외가 발생했을때 별도의 예외 처리를 하지 않은 것이 원인
-- 해결 방법: Exception 타입으로 캐치하도록 변경하여 모든 예외를 대상으로 캐치하여 SseEmitter 객체를 대상으로 completeWithError 호출하여 해결
-
-- [issue#57](https://github.com/fine-ants/FineAnts-was/issues/57)
 
 </div>
 </details>
