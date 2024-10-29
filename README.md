@@ -184,7 +184,7 @@
 ## 5. 핵심 트러블 슈팅
 
 <details>
-<summary>매입 이력 추가 후 목표수익금액 달성 이벤트의 지연 로딩 문제</summary>
+<summary>매입 이력 추가 후 알림 이벤트에서 매입 이력 리스트 지연 로딩 문제</summary>
 <div markdown="1">
 
 ### 해결 시도 1
@@ -204,39 +204,6 @@
   동작하도록 개선
 - [issue#515](https://github.com/fine-ants/FineAnts-was/issues/515)
 
-#### @EnableAsync 설정
-
-```java
-
-@EnableAsync
-@Configuration
-public class SpringConfig {
-}
-```
-
-#### 이벤트 리스너 메서드 애노테이션 설정
-
-이벤트 리스너 메서드인 notifyTargetGainBy 메서드에 @TransactionalEventListner 애노테이션을 설정하여 매입 이력 추가 서비스의 커밋 이후에 동작하도록 합니다.
-
-```java
-
-@Component
-@RequiredArgsConstructor
-@Slf4j
-public class PurchaseHistoryEventListener {
-	// ...
-
-	// 매입 이력 이벤트가 발생하면 포트폴리오 목표수익률에 달성하면 푸시 알림
-	@Async
-	@TransactionalEventListener
-	public CompletableFuture<PortfolioNotifyMessagesResponse> notifyTargetGainBy(PushNotificationEvent event) {
-		PurchaseHistoryEventSendableParameter parameter = event.getValue();
-		return CompletableFuture.supplyAsync(() ->
-			(PortfolioNotifyMessagesResponse)notificationService.notifyTargetGain(parameter.getPortfolioId()));
-	}
-//...
-```
-
 </div>
 </details>
 
@@ -249,23 +216,16 @@ public class PurchaseHistoryEventListener {
 
 - [issue#208](https://github.com/fine-ants/FineAnts-was/issues/208)
 
-```mysql
- create table if not exists fineAnts.fcm_token
- (
-     id bigint auto_increment primary key,
-     # ...
- );
-```
-
 </div>
 </details>
 
 <details>
-<summary>회원 알림 관련 API 권한 문제</summary>
+<summary>회원 알림 API 권한 문제</summary>
 <div markdown="1">
 
-- API 경로중 경로 변수 중에서 회원의 등록번호(memberId)가 존재하는데 서비스 수행시 회원 본인의 것인지 검증하지 않은 것이 원인
-- 해당 서비스에 AOP를 적용하여 알림을 전송할 권한이 있는지 검증하도록 하여 문제 해결
+- 배경: 본인이 아닌 다른 사용자의 알림 API(예: 알림 목록 조회)를 호출하는 것이 문제
+- 원인: API 경로중 경로 변수 중에서 회원의 등록번호(memberId)가 존재하는데 서비스 수행시 회원 본인의 것인지 검증하지 않은 것이 원인
+- 문제 해결: 해당 서비스에 AOP를 적용하여 알림을 전송할 권한이 있는지 검증하도록 하여 문제 해결
 
 ```java
 
@@ -295,11 +255,20 @@ public class HasNotificationAuthorizationAspect {
 </details>
 
 <details>
-<summary>한국투자증권 액세스 토큰 만료시 발급 문제</summary>
+<summary>한국투자증권의 액세스 토큰 만료시 발급 문제</summary>
 <div markdown="1">
 
-- 액세스 토큰 재발급시 재발급 처리가 종료되기전까지 메서드가 대기하지 않고 종료된 것이 원인
-- CountDownLatch 객체를 사용하여 액세스 토큰 재발급 처리가 완료될때까지 대기하여 문제 해결
+### 해결 시도 1
+
+- 배경: 한국투자증권의 액세스 토큰 만료시 재발급을 요청하지만, 실패하는 경우 그대로 끝남
+- 원인: 액세스 토큰 발급이 실패하는 경우 다시 시도하지 않는 것이 원인
+- 해결 방법: retryWhen Operator를 이용하여 다시 시도하도록 하여 문제 해결
+
+### 해결 시도 2
+
+- 배경: 액세스 토큰을 재발급은 하지만 레디스 저장소에 저장되지 않음
+- 원인: Webflux의 subscribe를 통하여 레디스에 저장해야 하지만, 비동기로 동작하기 때문에 대기하지 않고 종료되는 것이 원인
+- 해결 방법: CountDownLatch 객체를 사용하여 액세스 토큰 재발급 처리가 완료될때까지 대기하여 문제 해결
 
 - [issue#131](https://github.com/fine-ants/FineAnts-was/issues/131)
 
@@ -307,40 +276,15 @@ public class HasNotificationAuthorizationAspect {
 </details>
 
 <details>
-<summary>redis accessTokenMap 만료시간 문제</summary>
+<summary>Redis 액세스 토큰 만료시간 문제</summary>
 <div markdown="1">
 
-- 한국투자증권 서버로부터 발급받은 액세스 토큰은 실제 만료시간은 22시간동안 유지되지만 `expires_in` 프로퍼티는 24시간을 가리키고 있음. 액세스 토큰 발급 만료시간 계산시 `expires_in`
-  프로퍼티를 기준으로 계산한 것이 원인.
-- `access_token_token_expired` 프로퍼티를 기준으로 액세스 토큰 만료시간을 설정하도록 변경하여 문제 해결
+- 배경: 액세스 토큰이 실제로 만료되었음에도 불구하고 레디스에 남아있음
+- 원인: 한국투자증권 서버로부터 발급받은 액세스 토큰은 실제 만료시간은 22시간동안 유지되지만 `expires_in` 프로퍼티는 24시간을 가리키고 있음. 액세스 토큰 발급 만료시간 계산시 `expires_in`
+  프로퍼티를 기준으로 계산한 것이 원인
+- 해결 방법: `access_token_token_expired` 프로퍼티를 기준으로 액세스 토큰 만료시간을 설정하도록 변경하여 문제 해결
 
 - [issue#63](https://github.com/fine-ants/FineAnts-was/issues/63)
-
-</div>
-</details>
-
-<details>
-<summary>종목 종가 갱신 문제</summary>
-<div markdown="1">
-
-- 액세스 토큰 만료시간을 `expires_in`을 기준으로 하는 것이 아닌 `access_token_token_expired` 프로퍼티를 기준으로 설정하도록 하여 문제 해결
-- CompletableFuture 객체의 잘못된 순서의 타임아웃 콜백 설정 및 예외 처리 설정으로 인한 무한대기가 원인입니다. CompletableFuture 객체 생성시 바로 다음에 타임아웃 콜백 및 예외 처리
-  설정하여 문제를 해결
-
-- [issue#90](https://github.com/fine-ants/FineAnts-was/issues/90)
-
-</div>
-</details>
-
-<details>
-<summary>서버 시작시 KIS 액세스 토큰 발급 실패 문제</summary>
-<div markdown="1">
-
-- 서버 시작시 종목 및 종가 갱신하기 전 한국투자증권 서버의 액세스 토큰을 발급받습니다. 그러나 요청 횟수 초과와 같은 사유로 발급 실패시
-  별도의 조치없이 초기화가 끝나는 것이 원인
-- 액세스 토큰 발급 실패시 `retryWhen` operator를 이용하여 특정 시간 간격으로 다시 시도하여 발급받을 수 있도록 하여 문제 해결
-
-- [issue#110](https://github.com/fine-ants/FineAnts-was/issues/110)
 
 </div>
 </details>
@@ -349,8 +293,9 @@ public class HasNotificationAuthorizationAspect {
 <summary>종가 갱신 스케줄링 메소드 실행전 액세스 토큰 발급 문제</summary>
 <div markdown="1">
 
-- 한국투자증권 API 서버의 액세스 토큰이 만료되었는지 체크하는 AOP에서 종가 갱신 스케줄링 메서드를 추가하지 않은 것이 원인
-- 종가 갱신 스케줄링 메서드를 AOP에 추가하여 문제 해결
+- 배경: 종가 갱신전에 액세스 토큰이 만료되어 갱신되지 않음
+- 원인: 한국투자증권 API 서버의 액세스 토큰이 만료되었는지 체크하는 AOP에서 종가 갱신 스케줄링 메서드를 추가하지 않은 것이 원인
+- 해결 방법: 종가 갱신 스케줄링 메서드를 AOP에 추가하여 문제 해결
 
 - [issue#120](https://github.com/fine-ants/FineAnts-was/issues/120)
 
@@ -361,9 +306,10 @@ public class HasNotificationAuthorizationAspect {
 <summary>Hikari Connection Pool 고갈 문제</summary>
 <div markdown="1">
 
-- SSE 연결로 인하여 HTTP가 연결을 유지하는 동안 서비스 레이어의 트랜잭션이 종료되었음에도 불구하고 OSIV(Open Session In View)가 활성화되어 있어
+- 배경: 데이터베이스 연결이 불가능하여 SSE 푸시할 수 없음
+- 원인: SSE 연결로 인하여 HTTP가 연결을 유지하는 동안 서비스 레이어의 트랜잭션이 종료되었음에도 불구하고 OSIV(Open Session In View)가 활성화되어 있어
   30초 동안 Hikari Connection Pool의 연결 쓰레드를 점유한 것이 원인
-- OSIV 비활성화하여 문제 해결
+- 해결 방법: OSIV 비활성화하여 문제 해결
 
 - [issue#123](https://github.com/fine-ants/FineAnts-was/issues/123)
 
@@ -374,22 +320,11 @@ public class HasNotificationAuthorizationAspect {
 <summary>포트폴리오 상세 조회 SSE 데이터 응답 문제</summary>
 <div markdown="1">
 
-- SSE 데이터 응답 생성을 별도의 쓰레드에서 수행하던 과정 중에서 종목의 종가가 존재하지 않아서 예외가 발생했을때 별도의 예외 처리를 하지 않은 것이 원인
-- Exception 타입으로 캐치하도록 변경하여 모든 예외를 대상으로 캐치하여 SseEmitter 객체를 대상으로 completeWithError 호출하여 해결
+- 배경: 배포환경에서 포트폴리오 상세 조회 SSE API 호출시 계속 블로킹되다가 타임아웃 되어버림
+- 원인: SSE 데이터 응답 생성을 별도의 쓰레드에서 수행하던 과정 중에서 종목의 종가가 존재하지 않아서 예외가 발생했을때 별도의 예외 처리를 하지 않은 것이 원인
+- 해결 방법: Exception 타입으로 캐치하도록 변경하여 모든 예외를 대상으로 캐치하여 SseEmitter 객체를 대상으로 completeWithError 호출하여 해결
 
 - [issue#57](https://github.com/fine-ants/FineAnts-was/issues/57)
-
-</div>
-</details>
-
-<details>
-<summary>종목 최신화시 데이터가 db에 반영되지 않는 문제</summary>
-<div markdown="1">
-
-- 이전 tsv 파일 기반 종목 최신화 스케줄링 메서드가 실행되어 예상과 다른 실행이 원인
-- 이전에 구현한 종목 최신화 스케줄링 메서드 제거하여 해결
-
-- [issue#287](https://github.com/fine-ants/FineAnts-was/issues/287)
 
 </div>
 </details>
