@@ -369,7 +369,7 @@ public class HasNotificationAuthorizationAspect {
 ## 6. 그 외 트러블 슈팅
 
 <details>
-<summary>Redis 컨테이너 실행시 RDB 파일을 생성하지 않도록 설정</summary>
+<summary>Redis 스냅샷 작성 문제</summary>
 <div markdown="1">
 
 - 배경: 카카오 소셜 로그인이 되지 않음
@@ -386,13 +386,14 @@ save ""
 </details>
 
 <details>
-<summary>종목 지정가 도달 알림 문제 해결</summary>
+<summary>종목 지정가의 도달 알림 문제 해결</summary>
 <div markdown="1">
 
 - 배경: 종목 지정가 도달 알림 간격을 24시간으로 설정했음에도 종목의 현재가가 지정가에 도달할 때마다 알림을 보냄
 - 원인: 사용자에게 전달한 푸시 알림의 등록번호(Notification 테이블의 id 컬럼)을 전송내역 키로써 레디스에 저장한 것이 원인
-- 원인: 알림마다 생성되는 등록번호(PK, Notification.id)를 키값으로 저장하는 것이 아닌 종목 지정가 데이터에 대한 등록번호(PK, TargetPriceNotification.id)를 기준으로
+- 해결 방법: 알림마다 생성되는 등록번호(PK, Notification.id)를 키값으로 저장하는 것이 아닌 종목 지정가 데이터에 대한 등록번호(PK, TargetPriceNotification.id)를 기준으로
   저장합니다.
+- [issue#268](https://github.com/fine-ants/FineAnts-was/issues/268)
 
 ```
 // 발송 이력 저장
@@ -401,8 +402,6 @@ save ""
 	return CompletableFuture.supplyAsync(() -> item);
 }))
 ```
-
-- [issue#268](https://github.com/fine-ants/FineAnts-was/issues/268)
 
 </div>
 </details>
@@ -414,15 +413,14 @@ save ""
 - 배경: 프로필의 닉네임 정보를 변경하지 않고 프로필 사진만 변경하는 경우 500 에러가 발생함
 - 원인: 컨트롤러의 profileInformation 파트가 필수 입력 정보로 설정한 것이 원인
 - 해결 방법: profileInformation 파트의 입력 정보를 선택적으로 변경하여 문제 해결
-
-```
-public ApiResponse<ProfileChangeResponse> changeProfile(
-		@RequestPart(value = "profileImageFile", required = false) MultipartFile profileImageFile,
-		@Valid @RequestPart(value = "profileInformation", required = false) ProfileChangeRequest request,
-		@AuthPrincipalMember AuthMember authMember)
-```
-
 - [issue#164](https://github.com/fine-ants/FineAnts-was/issues/164)
+
+```java
+public ApiResponse<ProfileChangeResponse> changeProfile(
+@RequestPart(value = "profileImageFile", required = false) MultipartFile profileImageFile,
+@Valid @RequestPart(value = "profileInformation", required = false) ProfileChangeRequest request,
+@AuthPrincipalMember AuthMember authMember)
+```
 
 </div>
 </details>
@@ -434,13 +432,12 @@ public ApiResponse<ProfileChangeResponse> changeProfile(
 - 배경: 비밀번호 변경 API 요청시 200 응답은 오지만 실제 비밀번호는 변경되지 않음
 - 원인: 비밀번호 변경 서비스의 트랜잭션이 읽기 전용으로 설정한 것이 원인
 - 해결 방법: 비밀번호 변경 서비스에서 `@Transactional(readOnly=true)`를 `@Transactional`로 변경하여 해결
+- [issue#162](https://github.com/fine-ants/FineAnts-was/issues/162)
 
 ```
 @Transactional
 public void modifyPassword(ModifyPasswordRequest request, AuthMember authMember) {
 ```
-
-- [issue#162](https://github.com/fine-ants/FineAnts-was/issues/162)
 
 </div>
 </details>
@@ -449,8 +446,9 @@ public void modifyPassword(ModifyPasswordRequest request, AuthMember authMember)
 <summary>회원가입 서비스 문제</summary>
 <div markdown="1">
 
-- 회원가입시 프로필 사진과 json 형식의 회원가입 정보를 같이 전달하는 경우 json 데이터가 전달되지 않는 문제
-- 클라이언트인 React에서 로컬 개발시 목서버를 끔으로써 문제를 해결
+- 배경: 회원가입 할때 프로필 사진과 json 형식의 회원가입 정보를 Multipart form-data 형식으로 전달하는 경우 파트 중 하나인 signupData 파트인 json 데이터가 전달되지 않음
+- 원인: 데이터를 전달하는 클라이언트인 React에서 로컬 개발시 목서버가 켜저 있어서 이미지만 전달되고 json 데이터는 전달되지 않는 것이 원인
+- 해결 방법: React 로컬 개발시 목서버를 종료하여 해결
 - [issue#159](https://github.com/fine-ants/FineAnts-was/issues/159)
 
 </div>
@@ -460,8 +458,11 @@ public void modifyPassword(ModifyPasswordRequest request, AuthMember authMember)
 <summary>회원 닉네임 랜덤 생성 길이 10자로 제한</summary>
 <div markdown="1">
 
-- member.nickname.len 프로퍼티의 길이를 7로 설정하여 문제를 해결
-- 랜덤 닉네임 형식 : 일개미(3자) + 랜덤 문자열 7자
+- 배경: 회원의 랜덤 닉네임의 길이는 2~10자여야 하는데 11자로 생성됩니다.
+    - 랜덤 닉네임 형식 : 일개미(3자) + 랜덤 문자열 7자
+- 원인: member.nickname.leen = 8로 설정되어 있는것이 원인
+- 해결방법: member.nickname.len 프로퍼티의 길이를 7로 설정하여 문제를 해결
+- [issue#154](https://github.com/fine-ants/FineAnts-was/issues/154)
 
 ```yml
 member:
@@ -470,8 +471,6 @@ member:
     len: 7
 ```
 
-- [issue#154](https://github.com/fine-ants/FineAnts-was/issues/154)
-
 </div>
 </details>
 
@@ -479,7 +478,10 @@ member:
 <summary>일반 로그인 오타 수정</summary>
 <div markdown="1">
 
-- 로컬 회원을 db에서 조회시 provider(플랫폼) 매개변수에 null이 아닌 "local"을 전달하여 문제를 해결
+- 배경: 일반 로그인 되지 않음
+- 원인: 서비스 레이어에서 로컬 회원 조회시 provider 매개변수에 null을 전달하는 것이 원인
+- 해결 방법 : provider 매개변수에 "local"을 전달하여 문제 해결
+- [issue#133](https://github.com/fine-ants/FineAnts-was/issues/133)
 
 ```
 @Transactional(readOnly = true)
@@ -491,8 +493,6 @@ public LoginResponse login(LoginRequest request) {
 }
 ```
 
-- [issue#133](https://github.com/fine-ants/FineAnts-was/issues/133)
-
 </div>
 </details>
 
@@ -500,17 +500,18 @@ public LoginResponse login(LoginRequest request) {
 <summary>라인 차트 조회시 데이터 정렬</summary>
 <div markdown="1">
 
-- 포트폴리오들의 전체 평가금액에 대한 라인 차트 조회시 일자를 기준으로 오름차순으로 정렬하여 문제를 해결
-
-```
-return timeValueMap.keySet()
-		.stream()
-		.sorted()
-		.map(key -> DashboardLineChartResponse.of(key, timeValueMap.get(key)))
-		.collect(Collectors.toList());
-```
-
+- 배경: 라인 차트 조회 API 요청시 차트 데이터들이 정렬되어 있지 않고 응답함
+- 원인: 데이터베이스에서 데이터를 조회할때 정렬하지 않거나 서비스 레이어에서 정렬하지 않는 것이 원인
+- 해결 방법: 포트폴리오들의 전체 평가금액에 대한 라인 차트 조회시 일자를 기준으로 오름차순으로 정렬하여 문제를 해결
 - [issue#84](https://github.com/fine-ants/FineAnts-was/issues/84)
+
+```java
+return timeValueMap.keySet()
+	.stream()
+	.sorted()
+	.map(key->DashboardLineChartResponse.of(key,timeValueMap.get(key)))
+	.collect(Collectors.toList());
+```
 
 </div>
 </details>
@@ -519,14 +520,15 @@ return timeValueMap.keySet()
 <summary>포트폴리오 단일 삭제 문제</summary>
 <div markdown="1">
 
-- 포트폴리오 단일 삭제시 일대다 관계를 맺고 있는 포트폴리오의 수익 내역 데이터(PortfolioGainHistory)들을 먼저 제거하여 단일 삭제 문제를 해결
+- 배경: 포트폴리오 단일 삭제 수행할 때 포트폴리오가 삭제되지 않음
+- 원인: 포트폴리오 삭제 전에 포트폴리오와 일대다 관계를 맺고 있는 포트폴리오의 수익 내역(PortfolioGainHistory)이 존재하여 외래키 제약 조건을 위배한 것이 원인
+- 해결 방법: 포트폴리오 데이터 삭제 전에 포트폴리오 수익 내역 데이터들을 먼저 삭제하여 문제 해결
+- [issue#83](https://github.com/fine-ants/FineAnts-was/issues/83)
 
 ```
 int delPortfolioGainHistoryCnt = portfolioGainHistoryRepository.deleteAllByPortfolioId(portfolioId);
 log.info("포트폴리오 손익 내역 삭제 개수 : {}", delPortfolioGainHistoryCnt);
 ```
-
-- [issue#83](https://github.com/fine-ants/FineAnts-was/issues/83)
 
 </div>
 </details>
@@ -535,7 +537,10 @@ log.info("포트폴리오 손익 내역 삭제 개수 : {}", delPortfolioGainHis
 <summary>AuthMember 문제</summary>
 <div markdown="1">
 
-- AuthMember 타입에 대한 매개변수 리졸버를 설정 클래스 파일에 추가함으로써 문제를 해결
+- 배경: 로그인 한 다음에 인증을 요구하는 API를 요청하면 컨트롤러 레이어의 AuthMember 매개변수에 인증 정보를 전달하지 못함
+- 원인: AuthMember 타입에 대한 리졸버를 스프링 웹 설정에 추가하지 않은 것이 원인
+- 해결방법: AuthMember 타입에 대한 매개변수 리졸버를 설정 클래스에 추가함으로써 문제를 해결
+- [issue#31](https://github.com/fine-ants/FineAnts-was/issues/31)
 
 ```java
 
@@ -550,77 +555,6 @@ public class WebConfig implements WebMvcConfigurer {
 	}
 }
 ```
-
-- [issue#31](https://github.com/fine-ants/FineAnts-was/issues/31)
-
-</div>
-</details>
-
-<details>
-<summary>로그아웃 문제</summary>
-<div markdown="1">
-
-- 로그아웃이 정상적으로 수행하기 위해서 로그아웃 인터셉터를 설정 클래스 파일에 추가하여 문제를 해결
-
-```java
-
-@Slf4j
-public class LogoutInterceptor implements HandlerInterceptor {
-	@Override
-	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws
-		Exception {
-		log.debug("로그아웃 인터셉터 접속 : {}", request.getRequestURI());
-		String accessToken = extractJwt(request).orElseThrow(
-			() -> new UnAuthorizationException(JwtErrorCode.EMPTY_TOKEN));
-		request.setAttribute("accessToken", accessToken);
-		return true;
-	}
-
-	private Optional<String> extractJwt(HttpServletRequest request) {
-		String header = request.getHeader(AUTHORIZATION);
-
-		if (!StringUtils.hasText(header) || !header.startsWith(BEARER)) {
-			return Optional.empty();
-		}
-
-		return Optional.of(header.split(" ")[1]);
-	}
-}
-```
-
-- [issue#29](https://github.com/fine-ants/FineAnts-was/issues/29)
-
-</div>
-</details>
-
-<details>
-<summary>sse 전송 시간 문제</summary>
-<div markdown="1">
-
-- 다수의 클라이언트가 동일한 포트폴리오 번호를 이용하여 실시간 포트폴리오 상세 정보(sse 방식) 요청시 한 클라이언트를 제외한 다른 클라이언트의 연결이 끊어지는 문제
-- sseEmitter 객체의 관리를 해시맵으로 관리하고 있었고 해시맵의 키값을 포트폴리오 번호로 관리하였기 때문에 발생한 문제
-- sseEmitter 관리하는 해시맵의 키값을 이벤트 ID와 포트폴리오 등록번호를 가진 SseEmitterKey 타입으로 변경하여 문제를 해결
-
-```java
-
-@Getter
-@ToString
-@EqualsAndHashCode(of = "eventId")
-@RequiredArgsConstructor
-public class SseEmitterKey {
-	private final Long eventId;
-	private final Long portfolioId;
-
-	public static SseEmitterKey create(Long portfolioId) {
-		return new SseEmitterKey(
-			System.currentTimeMillis(),
-			portfolioId
-		);
-	}
-}
-```
-
-- [issue#140](https://github.com/fine-ants/FineAnts-was/pull/140)
 
 </div>
 </details>
