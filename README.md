@@ -559,6 +559,29 @@ public class WebConfig implements WebMvcConfigurer {
 </div>
 </details>
 
-## 7. 회고 / 느낀점
+## 7. 성능 개선
+
+<details>
+<summary>포트폴리오 이름 목록 조회</summary>
+<div markdown="1">
+
+</div>
+</details>
+
+<details>
+<summary>라인 차트 조회</summary>
+<div markdown="1">
+
+</div>
+</details>
+
+<details>
+<summary>포트폴리오 실시간 정보 조회</summary>
+<div markdown="1">
+
+</div>
+</details>
+
+## 8. 회고 / 느낀점
 
 > 프로젝트 개발 회고 글: https://yonghwankim-dev.tistory.com/599
