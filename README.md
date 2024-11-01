@@ -565,6 +565,13 @@ public class WebConfig implements WebMvcConfigurer {
 <summary>포트폴리오 이름 목록 조회</summary>
 <div markdown="1">
 
+- 배경: 포트폴리오 이름 목록 조회 API는 자주 요청되고 빈번히 변경되지 않기 때문에 캐싱하여 성능을 개선
+    - URL: GET /api/portfolios/names
+    - Vuser: 10
+    - Duration: 1분
+- 성능 개선 결과: 평균 TPS 기준, 약 1.38배 개선
+- [pull request](https://github.com/fine-ants/FineAnts-was/pull/512)
+
 </div>
 </details>
 
@@ -572,12 +579,12 @@ public class WebConfig implements WebMvcConfigurer {
 <summary>라인 차트 조회</summary>
 <div markdown="1">
 
-</div>
-</details>
-
-<details>
-<summary>포트폴리오 실시간 정보 조회</summary>
-<div markdown="1">
+- 배경: 라인 차트 조회 API는 조회 당일 이전일자까지의 데이터를 조회하기 때문에 실시간으로 변경될 가능성이 없고 자주 요청되기 때문에 캐싱하여 성능을 개선
+    - URL: GET /api/dashboard/lineChart
+    - Vuser: 10
+    - Duration: 1분
+- 성능 개선 결과: 평균 TPS 기준, 약 780.75배 개선
+- [pull request](https://github.com/fine-ants/FineAnts-was/pull/485)
 
 </div>
 </details>
