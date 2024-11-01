@@ -14,8 +14,7 @@ import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.TearDown;
 import org.openjdk.jmh.annotations.Warmup;
-import org.springframework.boot.WebApplicationType;
-import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.SpringApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 
 import co.fineants.FineAntsApplication;
@@ -23,22 +22,16 @@ import co.fineants.FineAntsApplication;
 @State(Scope.Benchmark)
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.MILLISECONDS)
-@Warmup(iterations = 1)
 @Fork(1)
-@Measurement(iterations = 10)
-public class PortfolioCacheServiceTest {
+@Warmup(iterations = 1)
+public class PortfolioCacheServiceBenchMark {
 
 	private ConfigurableApplicationContext context;
 	private PortfolioCacheService service;
 
 	@Setup
 	public void init() {
-
-		context = new SpringApplicationBuilder()
-			.sources(FineAntsApplication.class)
-			.web(WebApplicationType.NONE)
-			.build()
-			.run();
+		context = SpringApplication.run(FineAntsApplication.class);
 		context.registerShutdownHook();
 		service = context.getBean(PortfolioCacheService.class);
 	}
@@ -49,6 +42,7 @@ public class PortfolioCacheServiceTest {
 	}
 
 	@Benchmark
+	@Measurement(iterations = 1, time = 1, timeUnit = TimeUnit.MINUTES)
 	public Set<String> getTickerSymbolsFromPortfolioBy() {
 		Long portfolioId = 1L;
 		return service.getTickerSymbolsFromPortfolioBy(portfolioId);
