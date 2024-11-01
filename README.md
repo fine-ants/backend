@@ -29,7 +29,9 @@
 - MySQL 8.0
 - Redis
 
-## 3. 아키텍처 구조
+## 3. 설계 및 구조
+
+### 3.1 아키텍처 구조
 
 <img width="684" alt="image" src="https://github.com/user-attachments/assets/605ff9d5-b8e4-4073-87d7-b5820b8cccfb">
 
@@ -62,9 +64,13 @@
 - OAuth 소셜 로그인을 위한 플랫폼
 - 해당 플랫폼을 통해서 소셜 로그인을 수행
 
-## 3. ERD 설계
+### 3.3 인프라 구조
 
-![erd](https://github.com/user-attachments/assets/faed5939-5894-4e8e-a5ef-244f0818a000)
+![infra](./img/infra/infra.png)
+
+### 3.3 ERD 설계
+
+![erd](./img/erd/erd.png)
 
 ## 4. 핵심 기능
 
@@ -74,7 +80,7 @@
 
 ### 4.1 포트폴리오 생성
 
-![image](./img/create_portfolio.png)
+![image](img/core/create_portfolio.png)
 
 1. 클라이언트로부터 포트폴리오 생성 입력 정보를 받은 컨트롤러는 입력 정보의 유효성을 검증합니다.
 2. 서비스는 포트폴리오의 입력 정보를 기반으로 생성할 수 있는지 제약조건*을 검증하고 생성합니다.
@@ -85,7 +91,7 @@
 
 ### 4.2 포트폴리오 종목 및 매입 이력 추가
 
-![image](./img/create_holding_purchase-history.png)
+![image](img/core/create_holding_purchase-history.png)
 
 1. 클라이언트로부터 포트폴리오 종목 및 매입 이력 입력 정보를 받은 컨트롤러는 유효성 검증을 수행합니다.
 2. 서비스는 종목 및 매입 이력 입력 정보의 제약 조건*을 검증하고 인스턴스를 생성합니다.
@@ -98,7 +104,7 @@
 포트폴리오 실시간 정보 조회는 포트폴리오와 포트폴리오 종목 및 매입이력에 대한 계산 정보들을 실시간으로 조회하는 API입니다.
 해당 API는 SSE(Server-Sent-Event) 방식으로 특정 시간 간격으로 데이터를 서버로부터 푸시받습니다.
 
-![image](./img/search_holding_sse.png)
+![image](img/core/search_holding_sse.png)
 
 1. 컨트롤러는 클라이언트로부터 포트폴리오 실시간 정보 조회를 요청받습니다. 컨트롤러는 서비스에 포트폴리오 등록번호를 전달하며 조회를 요청합니다.
 2. 서비스는 SseEmitter를 생성하고 Observable 객체를 생성 후 구독을 수행합니다.
@@ -116,7 +122,7 @@
 
 포트폴리오의 정보와 포트폴리오에 등록된 종목 및 매입 이력을 기반으로 정보를 계산합니다. 예를 들어 다음 수행 과정은 포트폴리오의 총 투자 금액을 계산합니다.
 
-![image](./img/cal_total-investment.png)
+![image](img/core/cal_total-investment.png)
 
 1. 포트폴리오 계산기 객체에게 포트폴리오를 전달하며 총 투자 금액을 요청
 2. 포트폴리오 객체에게 계신기 객체 자신을 전달하며 총 투자 금액 계산을 요청
@@ -137,7 +143,7 @@
 
 ### 4.5 종목 현재가 업데이트 기능
 
-![image](./img/refresh_current-price.png)
+![image](img/core/refresh_current-price.png)
 
 1. 회원은 포트폴리오 실시간 정보 조회를 요청합니다.
 2. 컨트롤러는 서비스에게 포트폴리오 등록 번호를 전달하며 포트폴리오에 등록된 종목 티커 심볼 푸시를 요청합니다.
@@ -161,7 +167,7 @@
 
 포트폴리오 목표수익금액 알림 기능은 **포트폴리오의 총 평가 금액이 목표수익금액에 도달하면 사용자에게 FCM 알림을 전송하는 기능**입니다.
 
-![image](./img/notify_portfolio_target-gain.png)
+![image](img/core/notify_portfolio_target-gain.png)
 
 1. 종목의 실시간 현재가가 변경되면 현재가 변경 이벤트가 발생
 2. 이벤트 리스너는 종목 현재가 이벤트를 수신한 다음에 이벤트를 처리
