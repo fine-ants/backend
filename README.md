@@ -589,6 +589,20 @@ public class WebConfig implements WebMvcConfigurer {
 </div>
 </details>
 
+<details>
+<summary>포트폴리오에 등록된 종목 조회</summary>
+<div markdown="1">
+
+- 배경: 포트폴리오 실시간 정보 조회 API 요청시 내부적으로 실행되는 PortfolioCacheService.getTickerSymbolsFromPortfolioBy 메서드를 캐싱하여 성능을 개선
+    - Benchmark Mode: 평균 시간
+    - Measurement: 1분
+- 성능 개선 결과: 평균 시간 기준, 약 11.22배 개선
+    - { 5.029 ms } -> { 0.448 ms }
+- [pull request](https://github.com/fine-ants/FineAnts-was/pull/521)
+
+</div>
+</details>
+
 ## 8. 회고 / 느낀점
 
 > 프로젝트 개발 회고 글: https://yonghwankim-dev.tistory.com/599
