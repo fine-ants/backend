@@ -26,6 +26,8 @@ public class AmazonS3Config {
 
 	@Value("${aws.s3.bucket}")
 	private String bucketName;
+	@Value("${aws.s3.stock-path}")
+	private String stockPath;
 	@Value("${aws.s3.dividend-csv-path}")
 	private String dividendPath;
 
@@ -56,6 +58,17 @@ public class AmazonS3Config {
 		Bucket bucket = amazonS3.createBucket(bucketName);
 		log.info("success the bucket : {}", bucket.toString());
 
+		// stocks.csv 파일 저장
+		try {
+			amazonS3.putObject(new PutObjectRequest(
+				bucketName,
+				stockPath,
+				new ClassPathResource("stocks.csv").getFile()
+			));
+		} catch (IOException e) {
+			throw new IllegalStateException("not put stocks.csv", e);
+		}
+
 		// dividends.csv 파일 저장
 		try {
 			amazonS3.putObject(new PutObjectRequest(
@@ -65,8 +78,7 @@ public class AmazonS3Config {
 				)
 			);
 		} catch (IOException e) {
-			log.error(e.getMessage(), e);
-			throw new RuntimeException(e);
+			throw new IllegalStateException("not put dividends.csv", e);
 		}
 	}
 }

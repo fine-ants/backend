@@ -1,8 +1,9 @@
 package co.fineants.api.infra.s3.service;
 
+import static org.assertj.core.api.Assertions.*;
+
 import java.util.List;
 
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,10 +29,31 @@ class AmazonS3StockServiceTest extends AbstractContainerBaseTest {
 		Stock findStock = amazonS3StockService.fetchStocks().stream()
 			.findAny()
 			.orElseThrow();
-		Assertions.assertThat(findStock)
+		assertThat(findStock)
 			.extracting(Stock::getTickerSymbol, Stock::getCompanyName, Stock::getCompanyNameEng, Stock::getStockCode,
 				Stock::getSector, Stock::getMarket)
 			.containsExactly("000370", "한화손해보험보통주", "\"Hanwha General Insurance Co.,Ltd.\"", "KR7000370007", "보험",
 				Market.KOSPI);
+	}
+
+	@DisplayName("아마존 S3에 stock.csv가 주어지고 파싱하여 Stock 컬렉션으로 가져온다")
+	@Test
+	void givenCsvFile_whenFetchStocks_thenReturnCollectionOfStocks() {
+		// given
+
+		// when
+		List<Stock> stocks = amazonS3StockService.fetchStocks();
+		// then
+		int expectedSize = 2803;
+		assertThat(stocks).hasSize(expectedSize);
+
+		String expectedSector = "기타금융";
+		Market expectedMarket = Market.KOSPI;
+		Stock kakaoPay = stocks.stream()
+			.filter(stock -> stock.getTickerSymbol().equals("377300"))
+			.findAny()
+			.orElseThrow();
+		assertThat(kakaoPay.getSector()).isEqualTo(expectedSector);
+		assertThat(kakaoPay.getMarket()).isEqualTo(expectedMarket);
 	}
 }
