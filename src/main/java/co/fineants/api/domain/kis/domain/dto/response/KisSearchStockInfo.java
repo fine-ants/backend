@@ -52,7 +52,7 @@ public class KisSearchStockInfo {
 	}
 
 	public Stock toEntity() {
-		Market market = Market.valueByMarketIdCode(marketIdCode);
+		Market market = Market.valueBy(marketIdCode);
 		return Stock.of(
 			tickerSymbol,
 			companyName,
