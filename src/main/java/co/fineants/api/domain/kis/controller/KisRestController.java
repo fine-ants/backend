@@ -18,6 +18,7 @@ import co.fineants.api.domain.kis.client.KisCurrentPrice;
 import co.fineants.api.domain.kis.domain.dto.request.StockPriceRefreshRequest;
 import co.fineants.api.domain.kis.domain.dto.response.KisClosingPrice;
 import co.fineants.api.domain.kis.domain.dto.response.KisDividend;
+import co.fineants.api.domain.kis.domain.dto.response.KisSearchStockInfo;
 import co.fineants.api.domain.kis.service.KisService;
 import co.fineants.api.domain.stock.domain.dto.response.StockDataResponse;
 import co.fineants.api.global.api.ApiResponse;
@@ -58,6 +59,13 @@ public class KisRestController {
 	) {
 		return service.fetchCurrentPrice(tickerSymbol)
 			.map(currentPrice -> ApiResponse.success(KisSuccessCode.OK_FETCH_CURRENT_PRICE, currentPrice));
+	}
+
+	// 종목 기본 조회
+	@GetMapping("/stock-info/{tickerSymbol}")
+	public Mono<ApiResponse<KisSearchStockInfo>> fetchStockInfo(@PathVariable String tickerSymbol) {
+		return service.fetchSearchStockInfo(tickerSymbol)
+			.map(body -> ApiResponse.success(KisSuccessCode.OK_FETCH_STOCK_INFO, body));
 	}
 
 	// 모든 종목 종가 갱신
