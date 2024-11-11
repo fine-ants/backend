@@ -26,13 +26,4 @@ public enum Market {
 			default -> NONE;
 		};
 	}
-
-	public String getMarketIdCode() {
-		return switch (this) {
-			case KOSPI -> "STK";
-			case KOSDAQ -> "KSQ";
-			case KONEX -> "KNX";
-			default -> "";
-		};
-	}
 }
