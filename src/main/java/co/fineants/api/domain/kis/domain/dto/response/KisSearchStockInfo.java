@@ -35,38 +35,71 @@ public class KisSearchStockInfo {
 	private final String companyEngName;       // 상품 영문명
 	@JsonProperty("marketIdCode")
 	private final String marketIdCode;         // 시장 ID 코드
-	@JsonProperty("sector")
-	private final String sector;               // 지수 업종 소분류 코드명
+	@JsonProperty("majorSector")
+	private final String majorSector;          // 지수 업종 대분류 코드명
+	@JsonProperty("midSector")
+	private final String midSector;               // 지수 업종 중분류 코드명
+	@JsonProperty("subSector")
+	private final String subSector;            // 지수 업종 소분류 코드명
 	@JsonProperty("delistedDate")
 	private final LocalDate delistedDate;      // 상장 폐지 일자
 
 	@Builder(access = AccessLevel.PRIVATE)
 	private KisSearchStockInfo(String stockCode, String tickerSymbol, String companyName, String companyEngName,
-		String marketIdCode, String sector, LocalDate delistedDate) {
+		String marketIdCode, String majorSector, String midSector, String subSector, LocalDate delistedDate) {
 		this.stockCode = stockCode;
 		this.tickerSymbol = tickerSymbol;
 		this.companyName = companyName;
 		this.companyEngName = companyEngName;
 		this.marketIdCode = marketIdCode;
-		this.sector = sector;
+		this.majorSector = majorSector;
+		this.midSector = midSector;
+		this.subSector = subSector;
 		this.delistedDate = delistedDate;
 	}
 
 	// 상장된 종목
 	public static KisSearchStockInfo listedStock(String stockCode, String tickerSymbol, String companyName,
-		String companyEngName, String marketIdCode, String sector) {
-		return new KisSearchStockInfo(stockCode, tickerSymbol, companyName, companyEngName, marketIdCode, sector, null);
+		String companyEngName, String marketIdCode, String majorSector, String midSector, String subSector) {
+		return KisSearchStockInfo.builder()
+			.stockCode(stockCode)
+			.tickerSymbol(tickerSymbol)
+			.companyName(companyName)
+			.companyEngName(companyEngName)
+			.marketIdCode(marketIdCode)
+			.majorSector(majorSector)
+			.midSector(midSector)
+			.subSector(subSector)
+			.delistedDate(null)
+			.build();
 	}
 
 	// 상장 폐지된 종목
 	public static KisSearchStockInfo delistedStock(String stockCode, String tickerSymbol, String companyName,
-		String companyEngName, String marketIdCode, String sector, LocalDate delistedDate) {
-		return new KisSearchStockInfo(stockCode, tickerSymbol, companyName, companyEngName, marketIdCode, sector,
-			delistedDate);
+		String companyEngName, String marketIdCode, String majorSector, String midSector, String subSector,
+		LocalDate delistedDate) {
+		return KisSearchStockInfo.builder()
+			.stockCode(stockCode)
+			.tickerSymbol(tickerSymbol)
+			.companyName(companyName)
+			.companyEngName(companyEngName)
+			.marketIdCode(marketIdCode)
+			.majorSector(majorSector)
+			.midSector(midSector)
+			.subSector(subSector)
+			.delistedDate(delistedDate)
+			.build();
 	}
 
 	public Stock toEntity() {
 		Market market = Market.valueBy(marketIdCode);
+		String sector = subSector;
+		if (Strings.isBlank(sector)) {
+			sector = midSector;
+		}
+		if (Strings.isBlank(sector)) {
+			sector = majorSector;
+		}
 		return Stock.of(
 			tickerSymbol,
 			companyName,
@@ -89,8 +122,10 @@ public class KisSearchStockInfo {
 	@Override
 	public String toString() {
 		return String.format(
-			"stockCode=%s, tickerSymbol=%s, companyName=%s, companyEngName=%s, marketIdCode=%s, sector=%s, delistedDate=%s",
-			stockCode, tickerSymbol, companyName, companyEngName, marketIdCode, sector, delistedDate);
+			"stockCode=%s, tickerSymbol=%s, companyName=%s, companyEngName=%s, marketIdCode=%s, "
+				+ "majorSector=%s, midSector=%s, subSector=%s, delistedDate=%s",
+			stockCode, tickerSymbol, companyName, companyEngName, marketIdCode, majorSector, midSector, subSector,
+			delistedDate);
 	}
 
 	static class KisSearchStockInfoDeserializer extends JsonDeserializer<KisSearchStockInfo> {
@@ -109,7 +144,9 @@ public class KisSearchStockInfo {
 				.companyName(outputNode.get("prdt_name").asText())
 				.companyEngName(outputNode.get("prdt_eng_name").asText()) // 상품 영문명
 				.marketIdCode(outputNode.get("mket_id_cd").asText()) // 시장 ID 코드
-				.sector(outputNode.get("idx_bztp_scls_cd_name").asText()) // 지수 업종 소분류 코드명
+				.majorSector(outputNode.get("idx_bztp_lcls_cd_name").asText()) // 지수 업종 대분류 코드명
+				.midSector(outputNode.get("idx_bztp_mcls_cd_name").asText()) // 지수 업종 중분류 코드명
+				.subSector(outputNode.get("idx_bztp_scls_cd_name").asText()) // 지수 업종 소분류 코드명
 				.delistedDate(parseDelistedDate(outputNode).orElse(null)) // 상장 폐지 일자
 				.build();
 		}
