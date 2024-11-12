@@ -15,7 +15,7 @@ class StockTest {
 		// when
 		String result = stock.toCsvLineString();
 		// then
-		String expected = "KR7000370007,000370,한화손해보험보통주,\"Hanwha General Insurance Co.,Ltd.\",KOSPI,보험";
+		String expected = "KR7000370007$TS000370$한화손해보험보통주$\"Hanwha General Insurance Co.,Ltd.\"$보험$KOSPI";
 		Assertions.assertThat(result).isEqualTo(expected);
 	}
 }

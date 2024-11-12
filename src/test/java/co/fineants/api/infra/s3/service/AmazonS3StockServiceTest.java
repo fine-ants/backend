@@ -46,13 +46,13 @@ class AmazonS3StockServiceTest extends AbstractContainerBaseTest {
 		amazonS3StockService.writeStocks(stocks);
 		// then
 		List<Stock> actual = amazonS3StockService.fetchStocks();
-		assertThat(actual).hasSize(2803);
+		assertThat(actual).hasSize(2804);
 
 		Stock kakaopay = actual.stream()
 			.filter(stock -> stock.getTickerSymbol().equals("377300"))
 			.findAny()
 			.orElseThrow();
-		assertThat(kakaopay.getSector()).isEqualTo("기타금융");
+		assertThat(kakaopay.getSector()).isEqualTo("기타");
 		assertThat(kakaopay.getMarket()).isEqualTo(Market.KOSPI);
 
 		List<String> marketNames = Arrays.stream(Market.values())
@@ -71,12 +71,12 @@ class AmazonS3StockServiceTest extends AbstractContainerBaseTest {
 		// when
 		List<Stock> stocks = amazonS3StockService.fetchStocks();
 		// then
-		assertThat(stocks).hasSize(2803);
+		assertThat(stocks).hasSize(2804);
 		Stock kakaoPay = stocks.stream()
 			.filter(stock -> stock.getTickerSymbol().equals("377300"))
 			.findAny()
 			.orElseThrow();
-		assertThat(kakaoPay.getSector()).isEqualTo("기타금융");
+		assertThat(kakaoPay.getSector()).isEqualTo("기타");
 		assertThat(kakaoPay.getMarket()).isEqualTo(Market.KOSPI);
 	}
 }
