@@ -93,13 +93,11 @@ public class KisSearchStockInfo {
 
 	public Stock toEntity() {
 		Market market = Market.valueBy(marketIdCode);
-		String sector = subSector;
-		if (Strings.isBlank(sector)) {
-			sector = midSector;
-		}
-		if (Strings.isBlank(sector)) {
-			sector = majorSector;
-		}
+		String sector = Optional.ofNullable(subSector)
+			.filter(Strings::isNotBlank)
+			.orElseGet(() -> Optional.ofNullable(midSector)
+				.filter(Strings::isNotBlank)
+				.orElse(majorSector));
 		return Stock.of(
 			tickerSymbol,
 			companyName,
