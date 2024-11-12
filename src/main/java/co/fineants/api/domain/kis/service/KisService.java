@@ -177,7 +177,7 @@ public class KisService {
 	 */
 	public Mono<KisSearchStockInfo> fetchSearchStockInfo(String tickerSymbol) {
 		return kisClient.fetchSearchStockInfo(tickerSymbol)
-			.doOnSuccess(response -> log.debug("fetchSearchStockInfo ticker is {}", response.getTickerSymbol()))
+			.doOnSuccess(response -> log.debug("fetchSearchStockInfo ticker is {}", response))
 			.onErrorResume(ExpiredAccessTokenKisException.class::isInstance, throwable -> Mono.empty())
 			.onErrorResume(CredentialsTypeKisException.class::isInstance, throwable -> Mono.empty())
 			.retryWhen(Retry.fixedDelay(5, delayManager.fixedDelay())
