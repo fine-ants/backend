@@ -5,7 +5,6 @@ import java.util.Arrays;
 public enum Market {
 	KOSPI("KOSPI", "코스피"),
 	KOSDAQ("KOSDAQ", "코스닥"),
-	KOSDAQ_GLOBAL("KOSDAQ GLOBAL", "코스닥 글로벌"),
 	KNX("KNX", "코넥스"),
 	AGR("AGR", "농축산물파생"),
 	BON("BON", "채권파생"),
