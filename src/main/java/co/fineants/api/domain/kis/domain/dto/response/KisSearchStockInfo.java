@@ -3,6 +3,10 @@ package co.fineants.api.domain.kis.domain.dto.response;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Optional;
+
+import org.apache.logging.log4j.util.Strings;
+import org.jetbrains.annotations.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonParser;
@@ -22,23 +26,19 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode
 public class KisSearchStockInfo {
 	@JsonProperty("stockCode")
-	private String stockCode;            // 표준 상품 번호
+	private final String stockCode;            // 표준 상품 번호
 	@JsonProperty("tickerSymbol")
-	private String tickerSymbol;         // 상품 번호
+	private final String tickerSymbol;         // 상품 번호
 	@JsonProperty("companyName")
-	private String companyName;          // 상품명
+	private final String companyName;          // 상품명
 	@JsonProperty("companyEngName")
-	private String companyEngName;       // 상품 영문명
+	private final String companyEngName;       // 상품 영문명
 	@JsonProperty("marketIdCode")
-	private String marketIdCode;         // 시장 ID 코드
+	private final String marketIdCode;         // 시장 ID 코드
 	@JsonProperty("sector")
-	private String sector;               // 지수 업종 소분류 코드명
+	private final String sector;               // 지수 업종 소분류 코드명
 	@JsonProperty("delistedDate")
-	private LocalDate delistedDate;      // 상장 폐지 일자
-
-	private KisSearchStockInfo() {
-
-	}
+	private final LocalDate delistedDate;      // 상장 폐지 일자
 
 	@Builder(access = AccessLevel.PRIVATE)
 	private KisSearchStockInfo(String stockCode, String tickerSymbol, String companyName, String companyEngName,
@@ -99,46 +99,28 @@ public class KisSearchStockInfo {
 			IOException {
 			TreeNode rootNode = parser.readValueAsTree();
 			TreeNode treeNode = rootNode.get("output");
-			KisSearchStockInfo kisSearchStockInfo = new KisSearchStockInfo();
-
 			JsonNode outputNode = (JsonNode)treeNode;
-			JsonNode stdPdno = outputNode.get("std_pdno"); // 표준 상품 번호
-			if (stdPdno != null) {
-				kisSearchStockInfo.stockCode = stdPdno.asText();
-			}
 
-			JsonNode pdno = outputNode.get("pdno"); // 상품 번호
-			if (pdno != null) {
-				// 상품번호의 마지막 6자리 추출
-				kisSearchStockInfo.tickerSymbol = pdno.asText().substring(pdno.asText().length() - 6);
-			}
+			return KisSearchStockInfo.builder()
+				.stockCode(outputNode.get("std_pdno").asText()) // 표준 상품 번호
+				.tickerSymbol(outputNode.get("pdno")
+					.asText()
+					.substring(outputNode.get("pdno").asText().length() - 6)) // 상품 번호, 마지막 6자리 추출
+				.companyName(outputNode.get("prdt_name").asText())
+				.companyEngName(outputNode.get("prdt_eng_name").asText()) // 상품 영문명
+				.marketIdCode(outputNode.get("mket_id_cd").asText()) // 시장 ID 코드
+				.sector(outputNode.get("idx_bztp_scls_cd_name").asText()) // 지수 업종 소분류 코드명
+				.delistedDate(parseDelistedDate(outputNode).orElse(null)) // 상장 폐지 일자
+				.build();
+		}
 
-			JsonNode prdtName = outputNode.get("prdt_name"); // 상품명
-			if (prdtName != null) {
-				kisSearchStockInfo.companyName = prdtName.asText();
+		@NotNull
+		private Optional<LocalDate> parseDelistedDate(JsonNode outputNode) {
+			String text = outputNode.get("lstg_abol_dt").asText();
+			if (Strings.isBlank(text)) {
+				return Optional.empty();
 			}
-
-			JsonNode prdtEngName = outputNode.get("prdt_eng_name"); // 상품 영문명
-			if (prdtEngName != null) {
-				kisSearchStockInfo.companyEngName = prdtEngName.asText();
-			}
-
-			JsonNode mketIdCd = outputNode.get("mket_id_cd"); // 시장 ID 코드
-			if (mketIdCd != null) {
-				kisSearchStockInfo.marketIdCode = mketIdCd.asText();
-			}
-
-			JsonNode idxBztpSclsCdName = outputNode.get("idx_bztp_scls_cd_name"); // 지수 업종 소분류 코드명
-			if (idxBztpSclsCdName != null) {
-				kisSearchStockInfo.sector = idxBztpSclsCdName.asText();
-			}
-
-			JsonNode lstgAbolDt = outputNode.get("lstg_abol_dt"); // 상장 폐지 일자
-			if (lstgAbolDt != null && !lstgAbolDt.asText().isBlank()) {
-				kisSearchStockInfo.delistedDate = LocalDate.parse(lstgAbolDt.asText(),
-					DateTimeFormatter.BASIC_ISO_DATE);
-			}
-			return kisSearchStockInfo;
+			return Optional.of(LocalDate.parse(text, DateTimeFormatter.BASIC_ISO_DATE));
 		}
 	}
 }
