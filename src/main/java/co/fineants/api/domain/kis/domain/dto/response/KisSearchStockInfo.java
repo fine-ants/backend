@@ -4,39 +4,53 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
-import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.TreeNode;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import co.fineants.api.domain.stock.domain.entity.Market;
 import co.fineants.api.domain.stock.domain.entity.Stock;
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
 
-@Getter
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
-@ToString
-@JsonSerialize(using = KisSearchStockInfo.KisSearchStockInfoSerializer.class)
 @JsonDeserialize(using = KisSearchStockInfo.KisSearchStockInfoDeserializer.class)
+@EqualsAndHashCode
 public class KisSearchStockInfo {
+	@JsonProperty("stockCode")
 	private String stockCode;            // 표준 상품 번호
+	@JsonProperty("tickerSymbol")
 	private String tickerSymbol;         // 상품 번호
+	@JsonProperty("companyName")
 	private String companyName;          // 상품명
+	@JsonProperty("companyEngName")
 	private String companyEngName;       // 상품 영문명
+	@JsonProperty("marketIdCode")
 	private String marketIdCode;         // 시장 ID 코드
+	@JsonProperty("sector")
 	private String sector;               // 지수 업종 소분류 코드명
+	@JsonProperty("delistedDate")
 	private LocalDate delistedDate;      // 상장 폐지 일자
+
+	private KisSearchStockInfo() {
+
+	}
+
+	@Builder(access = AccessLevel.PRIVATE)
+	private KisSearchStockInfo(String stockCode, String tickerSymbol, String companyName, String companyEngName,
+		String marketIdCode, String sector, LocalDate delistedDate) {
+		this.stockCode = stockCode;
+		this.tickerSymbol = tickerSymbol;
+		this.companyName = companyName;
+		this.companyEngName = companyEngName;
+		this.marketIdCode = marketIdCode;
+		this.sector = sector;
+		this.delistedDate = delistedDate;
+	}
 
 	// 상장된 종목
 	public static KisSearchStockInfo listedStock(String stockCode, String tickerSymbol, String companyName,
@@ -65,25 +79,18 @@ public class KisSearchStockInfo {
 
 	/**
 	 * 상장 폐지 여부
+	 *
 	 * @return true=폐지, false=상장
 	 */
 	public boolean isDelisted() {
 		return delistedDate != null;
 	}
 
-	static class KisSearchStockInfoSerializer extends JsonSerializer<KisSearchStockInfo> {
-		@Override
-		public void serialize(KisSearchStockInfo value, JsonGenerator gen, SerializerProvider serializers) throws
-			IOException {
-			gen.writeStartObject();
-			gen.writeStringField("std_pdno", value.stockCode);
-			gen.writeStringField("pdno", value.tickerSymbol);
-			gen.writeStringField("prdt_name", value.companyName);
-			gen.writeStringField("prdt_eng_name", value.companyEngName);
-			gen.writeStringField("mket_id_cd", value.marketIdCode);
-			gen.writeStringField("idx_bztp_scls_cd_name", value.sector);
-			gen.writeEndObject();
-		}
+	@Override
+	public String toString() {
+		return String.format(
+			"stockCode=%s, tickerSymbol=%s, companyName=%s, companyEngName=%s, marketIdCode=%s, sector=%s, delistedDate=%s",
+			stockCode, tickerSymbol, companyName, companyEngName, marketIdCode, sector, delistedDate);
 	}
 
 	static class KisSearchStockInfoDeserializer extends JsonDeserializer<KisSearchStockInfo> {
