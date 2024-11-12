@@ -18,8 +18,7 @@ public enum StockSuccessCode implements SuccessCode {
 	OK_SEARCH_SPECIFIC_TARGET_PRICE_NOTIFICATIONS(HttpStatus.OK, "종목 지정가 알림 특정 조회를 성공했습니다"),
 	OK_UPDATE_TARGET_PRICE_NOTIFICATION_ACTIVE(HttpStatus.OK, "종목 지정가 알림을 활성화하였습니다"),
 	OK_UPDATE_TARGET_PRICE_NOTIFICATION_INACTIVE(HttpStatus.OK, "종목 지정가 알림을 비 활성화하였습니다"),
-	OK_REFRESH_STOCKS(HttpStatus.OK, "종목 최신화가 완료되었습니다"),
-	OK_INIT_STOCKS(HttpStatus.OK, "종목 초기화가 완료되었습니다");
+	OK_REFRESH_STOCKS(HttpStatus.OK, "종목 최신화가 완료되었습니다");
 	private final HttpStatus httpStatus;
 	private final String message;
 

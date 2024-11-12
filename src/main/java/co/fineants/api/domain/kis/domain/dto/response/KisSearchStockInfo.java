@@ -97,7 +97,9 @@ public class KisSearchStockInfo {
 			.filter(Strings::isNotBlank)
 			.orElseGet(() -> Optional.ofNullable(midSector)
 				.filter(Strings::isNotBlank)
-				.orElse(majorSector));
+				.orElseGet(() -> Optional.ofNullable(majorSector)
+					.filter(Strings::isNotBlank)
+					.orElse("other")));
 		return Stock.of(
 			tickerSymbol,
 			companyName,
