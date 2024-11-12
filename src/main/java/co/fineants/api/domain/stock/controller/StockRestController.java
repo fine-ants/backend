@@ -48,7 +48,14 @@ public class StockRestController {
 	public ApiResponse<StockReloadResponse> refreshStocks() {
 		return ApiResponse.success(StockSuccessCode.OK_REFRESH_STOCKS, stockService.reloadStocks());
 	}
-	
+
+	@PostMapping("/sync")
+	@Secured(value = {"ROLE_MANAGER", "ROLE_ADMIN"})
+	public ApiResponse<Void> syncAllStocksWithLatestData() {
+		stockService.syncAllStocksWithLatestData();
+		return ApiResponse.success(StockSuccessCode.OK_REFRESH_STOCKS);
+	}
+
 	@GetMapping("/{tickerSymbol}")
 	@PermitAll
 	public ApiResponse<StockResponse> getStock(@PathVariable String tickerSymbol) {
