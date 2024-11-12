@@ -10,7 +10,6 @@ import java.io.InputStreamReader;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.util.Strings;
@@ -36,8 +35,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class AmazonS3StockService {
 
-	public static final String CSV_SEPARATOR = ",";
-	public static final Pattern CSV_SEPARATOR_PATTERN = Pattern.compile(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)");
+	public static final String CSV_SEPARATOR_REGEX = "\\$";
+	public static final String CSV_DELIMITER = "$";
 
 	private final AmazonS3 amazonS3;
 	@Value("${aws.s3.bucket}")
@@ -57,7 +56,7 @@ public class AmazonS3StockService {
 		try (BufferedReader br = new BufferedReader(new InputStreamReader(s3Object.getObjectContent(), UTF_8))) {
 			return br.lines()
 				.skip(1) // skip title
-				.map(CSV_SEPARATOR_PATTERN::split)
+				.map(line -> line.split(CSV_SEPARATOR_REGEX))
 				.map(stockParser::parse)
 				.distinct()
 				.toList();
@@ -86,7 +85,7 @@ public class AmazonS3StockService {
 
 	@NotNull
 	private String csvTitle() {
-		return String.join(CSV_SEPARATOR, "stockCode", "tickerSymbol", "companyName", "companyNameEng",
+		return String.join(CSV_DELIMITER, "stockCode", "tickerSymbol", "companyName", "companyNameEng",
 			"market", "sector");
 	}
 

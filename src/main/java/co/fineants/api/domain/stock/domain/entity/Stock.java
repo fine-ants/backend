@@ -59,6 +59,8 @@ public class Stock extends BaseEntity {
 	@Transient
 	private LocalDateTimeService localDateTimeService = new DefaultLocalDateTimeService();
 
+	public static final String TICKER_PREFIX = "TS";
+
 	private Stock(String tickerSymbol, String companyName, String companyNameEng, String stockCode, String sector,
 		Market market) {
 		this.tickerSymbol = tickerSymbol;
@@ -226,13 +228,14 @@ public class Stock extends BaseEntity {
 	}
 
 	public String toCsvLineString() {
-		return String.join(AmazonS3StockService.CSV_SEPARATOR,
+		String ticker = String.format("%s%s", TICKER_PREFIX, tickerSymbol);
+		return String.join(AmazonS3StockService.CSV_DELIMITER,
 			stockCode,
-			tickerSymbol,
+			ticker,
 			companyName,
 			companyNameEng,
-			market.name(),
-			sector);
+			sector,
+			market.name());
 	}
 
 	public List<StockDividend> getStockDividends() {
