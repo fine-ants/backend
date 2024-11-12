@@ -190,7 +190,10 @@ class KisClientTest extends AbstractContainerBaseTest {
 		output.put("prdt_name", "에스케이하이닉스보통주");
 		output.put("prdt_eng_name", "SK hynix");
 		output.put("mket_id_cd", "STK");
+		output.put("idx_bztp_lcls_cd_name", "시가총액규모대");
+		output.put("idx_bztp_mcls_cd_name", "전기,전자");
 		output.put("idx_bztp_scls_cd_name", "전기,전자");
+		output.put("lstg_abol_dt", "");
 		okResponseBody.put("output", output);
 
 		mockWebServer.enqueue(createResponse(200, ObjectMapperUtil.serialize(okResponseBody)));
@@ -200,7 +203,7 @@ class KisClientTest extends AbstractContainerBaseTest {
 			.orElse(null);
 		// then
 		KisSearchStockInfo expected = KisSearchStockInfo.listedStock("KR7000660001", "000660", "에스케이하이닉스보통주",
-			"SK hynix", "STK", "전기,전자");
+			"SK hynix", "STK", "시가총액규모대", "전기,전자", "전기,전자");
 		assertThat(kisSearchStockInfo).isEqualTo(expected);
 	}
 
@@ -221,7 +224,10 @@ class KisClientTest extends AbstractContainerBaseTest {
 		output.put("prdt_name", "에스케이하이닉스보통주");
 		output.put("prdt_eng_name", "SK hynix");
 		output.put("mket_id_cd", "STK");
+		output.put("idx_bztp_lcls_cd_name", "시가총액규모대");
+		output.put("idx_bztp_mcls_cd_name", "전기,전자");
 		output.put("idx_bztp_scls_cd_name", "전기,전자");
+		output.put("lstg_abol_dt", "");
 		okResponseBody.put("output", output);
 		mockWebServer.enqueue(createResponse(200, ObjectMapperUtil.serialize(okResponseBody)));
 
@@ -233,7 +239,7 @@ class KisClientTest extends AbstractContainerBaseTest {
 			.orElse(null);
 		// then
 		KisSearchStockInfo expected = KisSearchStockInfo.listedStock("KR7000660001", "000660", "에스케이하이닉스보통주",
-			"SK hynix", "STK", "전기,전자");
+			"SK hynix", "STK", "시가총액규모대", "전기,전자", "전기,전자");
 		assertThat(kisSearchStockInfo).isEqualTo(expected);
 	}
 

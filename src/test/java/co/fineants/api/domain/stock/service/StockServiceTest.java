@@ -199,12 +199,14 @@ class StockServiceTest extends AbstractContainerBaseTest {
 				"에스케이하이닉스보통주",
 				"SK hynix",
 				"STK",
+				"시가총액규모대",
+				"전기,전자",
 				"전기,전자"))
 			);
 		given(kisService.fetchSearchStockInfo(nokwon.getTickerSymbol()))
 			.willReturn(Mono.just(KisSearchStockInfo.delistedStock("KR7065560005", "065560", "녹원씨엔아이",
 				"Nokwon Commercials & Industries, Inc.",
-				"KSQ", "소프트웨어", LocalDate.of(2024, 7, 29))));
+				"KSQ", "시가총액규모대", "소프트웨어", "소프트웨어", LocalDate.of(2024, 7, 29))));
 		DateTimeFormatter dtf = DateTimeFormatter.BASIC_ISO_DATE;
 		given(kisService.fetchDividend(hynix.getTickerSymbol()))
 			.willReturn(Flux.just(KisDividend.create(hynix.getTickerSymbol(),
@@ -286,6 +288,8 @@ class StockServiceTest extends AbstractContainerBaseTest {
 				samsung.getCompanyName(),
 				samsung.getCompanyNameEng(),
 				"KSQ",
+				"시가총액규모대",
+				"의료",
 				"의료"
 			)));
 		// when
