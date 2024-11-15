@@ -1,5 +1,7 @@
 package co.fineants.api.domain.stock.domain.entity;
 
+import static co.fineants.api.domain.stock.service.StockCsvReader.*;
+
 import java.time.LocalDate;
 import java.time.Month;
 import java.util.ArrayList;
@@ -23,7 +25,6 @@ import co.fineants.api.domain.purchasehistory.domain.entity.PurchaseHistory;
 import co.fineants.api.domain.stock.converter.MarketConverter;
 import co.fineants.api.global.common.time.DefaultLocalDateTimeService;
 import co.fineants.api.global.common.time.LocalDateTimeService;
-import co.fineants.api.infra.s3.service.AmazonS3StockService;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -229,7 +230,7 @@ public class Stock extends BaseEntity {
 
 	public String toCsvLineString() {
 		String ticker = String.format("%s%s", TICKER_PREFIX, tickerSymbol);
-		return String.join(AmazonS3StockService.CSV_DELIMITER,
+		return String.join(CSV_DELIMITER,
 			stockCode,
 			ticker,
 			companyName,

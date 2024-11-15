@@ -1,5 +1,6 @@
 package co.fineants.api.infra.s3.service;
 
+import static co.fineants.api.domain.stock.service.StockCsvReader.*;
 import static java.nio.charset.StandardCharsets.*;
 
 import java.io.BufferedReader;
@@ -36,7 +37,6 @@ import lombok.extern.slf4j.Slf4j;
 public class AmazonS3StockService {
 
 	public static final String CSV_SEPARATOR_REGEX = "\\$";
-	public static final String CSV_DELIMITER = "$";
 
 	private final AmazonS3 amazonS3;
 	@Value("${aws.s3.bucket}")
