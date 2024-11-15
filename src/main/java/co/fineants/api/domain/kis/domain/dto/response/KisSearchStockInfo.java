@@ -95,11 +95,7 @@ public class KisSearchStockInfo {
 		Market market = Market.valueBy(marketIdCode);
 		String sector = Optional.ofNullable(subSector)
 			.filter(Strings::isNotBlank)
-			.orElseGet(() -> Optional.ofNullable(midSector)
-				.filter(Strings::isNotBlank)
-				.orElseGet(() -> Optional.ofNullable(majorSector)
-					.filter(Strings::isNotBlank)
-					.orElse("기타")));
+			.orElse("기타");
 		return Stock.of(
 			tickerSymbol,
 			companyName,
