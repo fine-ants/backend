@@ -16,9 +16,9 @@ import co.fineants.api.domain.stock.domain.dto.response.StockReloadResponse;
 import co.fineants.api.domain.stock.domain.dto.response.StockResponse;
 import co.fineants.api.domain.stock.domain.dto.response.StockSearchItem;
 import co.fineants.api.domain.stock.domain.entity.Stock;
-import co.fineants.api.domain.stock.parser.StockParser;
 import co.fineants.api.domain.stock.repository.StockQueryRepository;
 import co.fineants.api.domain.stock.repository.StockRepository;
+import co.fineants.api.global.common.delay.DelayManager;
 import co.fineants.api.global.errors.errorcode.StockErrorCode;
 import co.fineants.api.global.errors.exception.NotFoundResourceException;
 import co.fineants.api.infra.s3.service.AmazonS3DividendService;
@@ -39,8 +39,8 @@ public class StockService {
 	private final StockQueryRepository stockQueryRepository;
 	private final StockAndDividendManager stockAndDividendManager;
 	private final StockDividendRepository stockDividendRepository;
-	private final StockParser stockParser;
 	private final KisService kisService;
+	private final DelayManager delayManager;
 
 	@Transactional(readOnly = true)
 	public List<StockSearchItem> search(StockSearchRequest request) {
@@ -86,11 +86,12 @@ public class StockService {
 		List<Stock> result = new ArrayList<>();
 		for (String ticker : tickerSymbols) {
 			Mono<KisSearchStockInfo> mono = kisService.fetchSearchStockInfo(ticker);
-			Stock stock = mono.map(KisSearchStockInfo::toEntity).block();
-			if (stock != null) {
-				Stock save = stockRepository.save(stock);
-				result.add(save);
-			}
+			mono.map(KisSearchStockInfo::toEntity)
+				.blockOptional(delayManager.timeout())
+				.ifPresent(stock -> {
+					Stock save = stockRepository.save(stock);
+					result.add(save);
+				});
 		}
 		amazonS3StockService.writeStocks(result);
 		return result;
