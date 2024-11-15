@@ -86,7 +86,7 @@ public class AmazonS3StockService {
 	@NotNull
 	private String csvTitle() {
 		return String.join(CSV_DELIMITER, "stockCode", "tickerSymbol", "companyName", "companyNameEng",
-			"market", "sector");
+			"sector", "market");
 	}
 
 	@NotNull
