@@ -46,7 +46,7 @@ class AmazonS3StockServiceTest extends AbstractContainerBaseTest {
 		amazonS3StockService.writeStocks(stocks);
 		// then
 		List<Stock> actual = amazonS3StockService.fetchStocks();
-		assertThat(actual).hasSize(2804);
+		assertThat(actual).hasSize(2802);
 
 		Stock kakaopay = actual.stream()
 			.filter(stock -> stock.getTickerSymbol().equals("377300"))
@@ -71,7 +71,7 @@ class AmazonS3StockServiceTest extends AbstractContainerBaseTest {
 		// when
 		List<Stock> stocks = amazonS3StockService.fetchStocks();
 		// then
-		assertThat(stocks).hasSize(2804);
+		assertThat(stocks).hasSize(2802);
 		Stock kakaoPay = stocks.stream()
 			.filter(stock -> stock.getTickerSymbol().equals("377300"))
 			.findAny()
