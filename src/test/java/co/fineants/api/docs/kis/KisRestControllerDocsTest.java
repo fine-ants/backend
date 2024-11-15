@@ -8,6 +8,7 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.*;
 import static org.springframework.restdocs.request.RequestDocumentation.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -24,7 +25,9 @@ import co.fineants.api.docs.RestDocsSupport;
 import co.fineants.api.domain.kis.client.KisCurrentPrice;
 import co.fineants.api.domain.kis.controller.KisRestController;
 import co.fineants.api.domain.kis.domain.dto.response.KisClosingPrice;
+import co.fineants.api.domain.kis.domain.dto.response.KisSearchStockInfo;
 import co.fineants.api.domain.kis.service.KisService;
+import co.fineants.api.domain.stock.domain.entity.Stock;
 import co.fineants.api.global.util.ObjectMapperUtil;
 import reactor.core.publisher.Mono;
 
@@ -174,6 +177,90 @@ class KisRestControllerDocsTest extends RestDocsSupport {
 							.description("티커 심볼"),
 						fieldWithPath("data.price").type(JsonFieldType.NUMBER)
 							.description("종목 현재가")
+					)
+				)
+			);
+	}
+
+	@DisplayName("종목 기본 정보 조회 API")
+	@Test
+	void fetchStockInfo() throws Exception {
+		// given
+		String tickerSymbol = "005930";
+		Stock samsung = createSamsungStock();
+		KisSearchStockInfo kisSearchStockInfo = KisSearchStockInfo.delistedStock(
+			samsung.getStockCode(),
+			samsung.getTickerSymbol(),
+			samsung.getCompanyName(),
+			samsung.getCompanyNameEng(),
+			"STK",
+			"시가총액규모대",
+			"전기전자",
+			samsung.getSector(),
+			LocalDate.of(2024, 11, 15)
+		);
+		given(service.fetchSearchStockInfo(tickerSymbol))
+			.willReturn(Mono.just(kisSearchStockInfo));
+
+		// when
+		MvcResult mvcResult = mockMvc.perform(
+				RestDocumentationRequestBuilders.get("/api/kis/stock-info/{tickerSymbol}", tickerSymbol)
+					.cookie(createTokenCookies()))
+			.andExpect(request().asyncStarted())
+			.andReturn();
+
+		mockMvc.perform(MockMvcRequestBuilders.asyncDispatch(mvcResult))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("code").value(equalTo(200)))
+			.andExpect(jsonPath("status").value(equalTo("OK")))
+			.andExpect(jsonPath("message").value(equalTo("종목 기본 정보가 조회되었습니다")))
+			.andExpect(jsonPath("data.delisted").value(equalTo(true)))
+			.andExpect(jsonPath("data.stockCode").value(equalTo("KR7005930003")))
+			.andExpect(jsonPath("data.tickerSymbol").value(equalTo("005930")))
+			.andExpect(jsonPath("data.companyName").value(equalTo("삼성전자보통주")))
+			.andExpect(jsonPath("data.companyEngName").value(equalTo("SamsungElectronics")))
+			.andExpect(jsonPath("data.marketIdCode").value(equalTo("STK")))
+			.andExpect(jsonPath("data.majorSector").value(equalTo("시가총액규모대")))
+			.andExpect(jsonPath("data.midSector").value(equalTo("전기전자")))
+			.andExpect(jsonPath("data.subSector").value(equalTo("전기전자")))
+			.andExpect(jsonPath("data.delistedDate").value(equalTo("2024-11-15")))
+			.andDo(
+				document(
+					"kis_stock_info-search",
+					preprocessRequest(prettyPrint()),
+					preprocessResponse(prettyPrint()),
+					pathParameters(
+						parameterWithName("tickerSymbol").description("티커 심볼")
+					),
+					responseFields(
+						fieldWithPath("code").type(JsonFieldType.NUMBER)
+							.description("코드"),
+						fieldWithPath("status").type(JsonFieldType.STRING)
+							.description("상태"),
+						fieldWithPath("message").type(JsonFieldType.STRING)
+							.description("메시지"),
+						fieldWithPath("data").type(JsonFieldType.OBJECT)
+							.description("응답 데이터"),
+						fieldWithPath("data.delisted").type(JsonFieldType.BOOLEAN)
+							.description("상장 폐지 여부"),
+						fieldWithPath("data.stockCode").type(JsonFieldType.STRING)
+							.description("종목 코드"),
+						fieldWithPath("data.tickerSymbol").type(JsonFieldType.STRING)
+							.description("티커 심볼"),
+						fieldWithPath("data.companyName").type(JsonFieldType.STRING)
+							.description("종목명"),
+						fieldWithPath("data.companyEngName").type(JsonFieldType.STRING)
+							.description("종목 영문명"),
+						fieldWithPath("data.marketIdCode").type(JsonFieldType.STRING)
+							.description("시장 코드"),
+						fieldWithPath("data.majorSector").type(JsonFieldType.STRING)
+							.description("메이저 섹터"),
+						fieldWithPath("data.midSector").type(JsonFieldType.STRING)
+							.description("미들 섹터"),
+						fieldWithPath("data.subSector").type(JsonFieldType.STRING)
+							.description("서브 섹터"),
+						fieldWithPath("data.delistedDate").type(JsonFieldType.STRING)
+							.description("상장 폐지 일자")
 					)
 				)
 			);
