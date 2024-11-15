@@ -45,7 +45,7 @@ public class StockCsvReader {
 		Set<Stock> result = new HashSet<>();
 		try (BufferedReader reader = new BufferedReader(new InputStreamReader(resource.getInputStream()))) {
 			Iterable<CSVRecord> records = CSVFormat.Builder.create()
-				.setHeader("stockCode", "tickerSymbol", "companyName", "companyNameEng", "market", "sector")
+				.setHeader("stockCode", "tickerSymbol", "companyName", "companyNameEng", "sector", "market")
 				.setSkipHeaderRecord(true)
 				.setDelimiter(CSV_DELIMITER)
 				.build()
