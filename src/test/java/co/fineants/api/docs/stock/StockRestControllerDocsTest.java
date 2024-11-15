@@ -373,4 +373,38 @@ class StockRestControllerDocsTest extends RestDocsSupport {
 				)
 			);
 	}
+
+	@DisplayName("기존 종목 최신화 API")
+	@Test
+	void syncAllStocksWithLatestData() throws Exception {
+		// given
+		Stock stock = createSamsungStock();
+		given(service.syncAllStocksWithLatestData()).willReturn(List.of(stock));
+		// when
+		mockMvc.perform(post("/api/stocks/sync")
+				.cookie(createTokenCookies()))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("code").value(equalTo(200)))
+			.andExpect(jsonPath("status").value(equalTo("OK")))
+			.andExpect(jsonPath("message").value(equalTo("종목 최신화가 완료되었습니다")))
+			.andDo(
+				document(
+					"stock-sync",
+					preprocessRequest(prettyPrint()),
+					preprocessResponse(prettyPrint()),
+					responseFields(
+						fieldWithPath("code").type(JsonFieldType.NUMBER)
+							.description("코드"),
+						fieldWithPath("status").type(JsonFieldType.STRING)
+							.description("상태"),
+						fieldWithPath("message").type(JsonFieldType.STRING)
+							.description("메시지"),
+						fieldWithPath("data").type(JsonFieldType.NULL)
+							.description("응답 데이터")
+					)
+				)
+			);
+		// then
+
+	}
 }
