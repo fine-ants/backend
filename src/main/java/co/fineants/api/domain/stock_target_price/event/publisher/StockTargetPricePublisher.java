@@ -1,5 +1,6 @@
 package co.fineants.api.domain.stock_target_price.event.publisher;
 
+import java.util.Collection;
 import java.util.List;
 
 import org.springframework.context.ApplicationEventPublisher;
@@ -14,9 +15,10 @@ import lombok.RequiredArgsConstructor;
 public class StockTargetPricePublisher {
 	private final ApplicationEventPublisher publisher;
 
-	public void publishEvent(List<String> tickerSymbols) {
-		StockTargetPriceEventSendableParameter sendableParameter = StockTargetPriceEventSendableParameter.create(
-			tickerSymbols);
+	public void publishEvent(Collection<String> tickerSymbols) {
+		List<String> tickerList = tickerSymbols.stream().toList();
+		StockTargetPriceEventSendableParameter sendableParameter =
+			StockTargetPriceEventSendableParameter.create(tickerList);
 		publisher.publishEvent(new StockTargetPriceNotificationEvent(sendableParameter));
 	}
 }
