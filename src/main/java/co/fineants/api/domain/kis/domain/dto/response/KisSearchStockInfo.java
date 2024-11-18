@@ -3,56 +3,99 @@ package co.fineants.api.domain.kis.domain.dto.response;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Optional;
 
-import com.fasterxml.jackson.core.JsonGenerator;
+import org.apache.logging.log4j.util.Strings;
+import org.jetbrains.annotations.NotNull;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.TreeNode;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import co.fineants.api.domain.stock.domain.entity.Market;
 import co.fineants.api.domain.stock.domain.entity.Stock;
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
 
-@Getter
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
-@ToString
-@JsonSerialize(using = KisSearchStockInfo.KisSearchStockInfoSerializer.class)
 @JsonDeserialize(using = KisSearchStockInfo.KisSearchStockInfoDeserializer.class)
+@EqualsAndHashCode
 public class KisSearchStockInfo {
-	private String stockCode;            // 표준 상품 번호
-	private String tickerSymbol;         // 상품 번호
-	private String companyName;          // 상품명
-	private String companyEngName;       // 상품 영문명
-	private String marketIdCode;         // 시장 ID 코드
-	private String sector;               // 지수 업종 소분류 코드명
-	private LocalDate delistedDate;      // 상장 폐지 일자
+	@JsonProperty("stockCode")
+	private final String stockCode;            // 표준 상품 번호
+	@JsonProperty("tickerSymbol")
+	private final String tickerSymbol;         // 상품 번호
+	@JsonProperty("companyName")
+	private final String companyName;          // 상품명
+	@JsonProperty("companyEngName")
+	private final String companyEngName;       // 상품 영문명
+	@JsonProperty("marketIdCode")
+	private final String marketIdCode;         // 시장 ID 코드
+	@JsonProperty("majorSector")
+	private final String majorSector;          // 지수 업종 대분류 코드명
+	@JsonProperty("midSector")
+	private final String midSector;               // 지수 업종 중분류 코드명
+	@JsonProperty("subSector")
+	private final String subSector;            // 지수 업종 소분류 코드명
+	@JsonProperty("delistedDate")
+	private final LocalDate delistedDate;      // 상장 폐지 일자
+
+	@Builder(access = AccessLevel.PRIVATE)
+	private KisSearchStockInfo(String stockCode, String tickerSymbol, String companyName, String companyEngName,
+		String marketIdCode, String majorSector, String midSector, String subSector, LocalDate delistedDate) {
+		this.stockCode = stockCode;
+		this.tickerSymbol = tickerSymbol;
+		this.companyName = companyName;
+		this.companyEngName = companyEngName;
+		this.marketIdCode = marketIdCode;
+		this.majorSector = majorSector;
+		this.midSector = midSector;
+		this.subSector = subSector;
+		this.delistedDate = delistedDate;
+	}
 
 	// 상장된 종목
 	public static KisSearchStockInfo listedStock(String stockCode, String tickerSymbol, String companyName,
-		String companyEngName, String marketIdCode, String sector) {
-		return new KisSearchStockInfo(stockCode, tickerSymbol, companyName, companyEngName, marketIdCode, sector, null);
+		String companyEngName, String marketIdCode, String majorSector, String midSector, String subSector) {
+		return KisSearchStockInfo.builder()
+			.stockCode(stockCode)
+			.tickerSymbol(tickerSymbol)
+			.companyName(companyName)
+			.companyEngName(companyEngName)
+			.marketIdCode(marketIdCode)
+			.majorSector(majorSector)
+			.midSector(midSector)
+			.subSector(subSector)
+			.delistedDate(null)
+			.build();
 	}
 
 	// 상장 폐지된 종목
 	public static KisSearchStockInfo delistedStock(String stockCode, String tickerSymbol, String companyName,
-		String companyEngName, String marketIdCode, String sector, LocalDate delistedDate) {
-		return new KisSearchStockInfo(stockCode, tickerSymbol, companyName, companyEngName, marketIdCode, sector,
-			delistedDate);
+		String companyEngName, String marketIdCode, String majorSector, String midSector, String subSector,
+		LocalDate delistedDate) {
+		return KisSearchStockInfo.builder()
+			.stockCode(stockCode)
+			.tickerSymbol(tickerSymbol)
+			.companyName(companyName)
+			.companyEngName(companyEngName)
+			.marketIdCode(marketIdCode)
+			.majorSector(majorSector)
+			.midSector(midSector)
+			.subSector(subSector)
+			.delistedDate(delistedDate)
+			.build();
 	}
 
 	public Stock toEntity() {
-		Market market = Market.valueByMarketIdCode(marketIdCode);
+		Market market = Market.valueBy(marketIdCode);
+		String sector = Optional.ofNullable(subSector)
+			.filter(Strings::isNotBlank)
+			.orElse("기타");
 		return Stock.of(
 			tickerSymbol,
 			companyName,
@@ -65,25 +108,20 @@ public class KisSearchStockInfo {
 
 	/**
 	 * 상장 폐지 여부
+	 *
 	 * @return true=폐지, false=상장
 	 */
 	public boolean isDelisted() {
 		return delistedDate != null;
 	}
 
-	static class KisSearchStockInfoSerializer extends JsonSerializer<KisSearchStockInfo> {
-		@Override
-		public void serialize(KisSearchStockInfo value, JsonGenerator gen, SerializerProvider serializers) throws
-			IOException {
-			gen.writeStartObject();
-			gen.writeStringField("std_pdno", value.stockCode);
-			gen.writeStringField("pdno", value.tickerSymbol);
-			gen.writeStringField("prdt_name", value.companyName);
-			gen.writeStringField("prdt_eng_name", value.companyEngName);
-			gen.writeStringField("mket_id_cd", value.marketIdCode);
-			gen.writeStringField("idx_bztp_scls_cd_name", value.sector);
-			gen.writeEndObject();
-		}
+	@Override
+	public String toString() {
+		return String.format(
+			"stockCode=%s, tickerSymbol=%s, companyName=%s, companyEngName=%s, marketIdCode=%s, "
+				+ "majorSector=%s, midSector=%s, subSector=%s, delistedDate=%s",
+			stockCode, tickerSymbol, companyName, companyEngName, marketIdCode, majorSector, midSector, subSector,
+			delistedDate);
 	}
 
 	static class KisSearchStockInfoDeserializer extends JsonDeserializer<KisSearchStockInfo> {
@@ -92,46 +130,30 @@ public class KisSearchStockInfo {
 			IOException {
 			TreeNode rootNode = parser.readValueAsTree();
 			TreeNode treeNode = rootNode.get("output");
-			KisSearchStockInfo kisSearchStockInfo = new KisSearchStockInfo();
-
 			JsonNode outputNode = (JsonNode)treeNode;
-			JsonNode stdPdno = outputNode.get("std_pdno"); // 표준 상품 번호
-			if (stdPdno != null) {
-				kisSearchStockInfo.stockCode = stdPdno.asText();
-			}
 
-			JsonNode pdno = outputNode.get("pdno"); // 상품 번호
-			if (pdno != null) {
-				// 상품번호의 마지막 6자리 추출
-				kisSearchStockInfo.tickerSymbol = pdno.asText().substring(pdno.asText().length() - 6);
-			}
+			return KisSearchStockInfo.builder()
+				.stockCode(outputNode.get("std_pdno").asText()) // 표준 상품 번호
+				.tickerSymbol(outputNode.get("pdno")
+					.asText()
+					.substring(outputNode.get("pdno").asText().length() - 6)) // 상품 번호, 마지막 6자리 추출
+				.companyName(outputNode.get("prdt_name").asText())
+				.companyEngName(outputNode.get("prdt_eng_name").asText()) // 상품 영문명
+				.marketIdCode(outputNode.get("mket_id_cd").asText()) // 시장 ID 코드
+				.majorSector(outputNode.get("idx_bztp_lcls_cd_name").asText()) // 지수 업종 대분류 코드명
+				.midSector(outputNode.get("idx_bztp_mcls_cd_name").asText()) // 지수 업종 중분류 코드명
+				.subSector(outputNode.get("idx_bztp_scls_cd_name").asText()) // 지수 업종 소분류 코드명
+				.delistedDate(parseDelistedDate(outputNode).orElse(null)) // 상장 폐지 일자
+				.build();
+		}
 
-			JsonNode prdtName = outputNode.get("prdt_name"); // 상품명
-			if (prdtName != null) {
-				kisSearchStockInfo.companyName = prdtName.asText();
+		@NotNull
+		private Optional<LocalDate> parseDelistedDate(JsonNode outputNode) {
+			String text = outputNode.get("lstg_abol_dt").asText();
+			if (Strings.isBlank(text)) {
+				return Optional.empty();
 			}
-
-			JsonNode prdtEngName = outputNode.get("prdt_eng_name"); // 상품 영문명
-			if (prdtEngName != null) {
-				kisSearchStockInfo.companyEngName = prdtEngName.asText();
-			}
-
-			JsonNode mketIdCd = outputNode.get("mket_id_cd"); // 시장 ID 코드
-			if (mketIdCd != null) {
-				kisSearchStockInfo.marketIdCode = mketIdCd.asText();
-			}
-
-			JsonNode idxBztpSclsCdName = outputNode.get("idx_bztp_scls_cd_name"); // 지수 업종 소분류 코드명
-			if (idxBztpSclsCdName != null) {
-				kisSearchStockInfo.sector = idxBztpSclsCdName.asText();
-			}
-
-			JsonNode lstgAbolDt = outputNode.get("lstg_abol_dt"); // 상장 폐지 일자
-			if (lstgAbolDt != null && !lstgAbolDt.asText().isBlank()) {
-				kisSearchStockInfo.delistedDate = LocalDate.parse(lstgAbolDt.asText(),
-					DateTimeFormatter.BASIC_ISO_DATE);
-			}
-			return kisSearchStockInfo;
+			return Optional.of(LocalDate.parse(text, DateTimeFormatter.BASIC_ISO_DATE));
 		}
 	}
 }

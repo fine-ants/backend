@@ -1,11 +1,11 @@
 package co.fineants.api.domain.member.service;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -20,13 +20,10 @@ import co.fineants.api.domain.gainhistory.domain.entity.PortfolioGainHistory;
 import co.fineants.api.domain.gainhistory.repository.PortfolioGainHistoryRepository;
 import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
 import co.fineants.api.domain.holding.repository.PortfolioHoldingRepository;
-import co.fineants.api.domain.member.domain.dto.request.ModifyPasswordRequest;
-import co.fineants.api.domain.member.domain.dto.request.OauthMemberRefreshRequest;
+import co.fineants.api.domain.member.domain.dto.request.PasswordModifyRequest;
 import co.fineants.api.domain.member.domain.dto.request.ProfileChangeServiceRequest;
 import co.fineants.api.domain.member.domain.dto.request.SignUpServiceRequest;
-import co.fineants.api.domain.member.domain.dto.request.VerifyCodeRequest;
 import co.fineants.api.domain.member.domain.dto.request.VerifyEmailRequest;
-import co.fineants.api.domain.member.domain.dto.response.OauthMemberRefreshResponse;
 import co.fineants.api.domain.member.domain.dto.response.ProfileChangeResponse;
 import co.fineants.api.domain.member.domain.dto.response.ProfileResponse;
 import co.fineants.api.domain.member.domain.dto.response.SignUpServiceResponse;
@@ -54,8 +51,8 @@ import co.fineants.api.global.errors.errorcode.RoleErrorCode;
 import co.fineants.api.global.errors.exception.BadRequestException;
 import co.fineants.api.global.errors.exception.FineAntsException;
 import co.fineants.api.global.errors.exception.NotFoundResourceException;
+import co.fineants.api.global.security.factory.TokenFactory;
 import co.fineants.api.global.security.oauth.dto.Token;
-import co.fineants.api.global.security.oauth.service.TokenService;
 import co.fineants.api.global.util.CookieUtils;
 import co.fineants.api.infra.mail.service.MailService;
 import co.fineants.api.infra.s3.service.AmazonS3Service;
@@ -90,9 +87,9 @@ public class MemberService {
 	private final FcmRepository fcmRepository;
 	private final StockTargetPriceRepository stockTargetPriceRepository;
 	private final TargetPriceNotificationRepository targetPriceNotificationRepository;
-	private final TokenService tokenService;
 	private final OauthMemberRedisService oauthMemberRedisService;
 	private final RoleRepository roleRepository;
+	private final TokenFactory tokenFactory;
 
 	public void logout(HttpServletRequest request, HttpServletResponse response) {
 		// clear Authentication
@@ -112,37 +109,39 @@ public class MemberService {
 		if (refreshToken != null) {
 			oauthMemberRedisService.banRefreshToken(refreshToken);
 		}
+
+		expiredCookies(response);
 	}
 
-	@Transactional
-	@PermitAll
-	public OauthMemberRefreshResponse refreshAccessToken(OauthMemberRefreshRequest request, LocalDateTime now) {
-		String refreshToken = request.getRefreshToken();
-
-		Token token = tokenService.refreshToken(refreshToken, now);
-		return OauthMemberRefreshResponse.from(token);
+	private void expiredCookies(HttpServletResponse response) {
+		ResponseCookie expiredAccessTokenCookie = tokenFactory.createExpiredAccessTokenCookie(Token.empty());
+		CookieUtils.setCookie(response, expiredAccessTokenCookie);
+		ResponseCookie expiredRefreshTokenCookie = tokenFactory.createExpiredRefreshTokenCookie(Token.empty());
+		CookieUtils.setCookie(response, expiredRefreshTokenCookie);
 	}
 
 	@Transactional
 	public SignUpServiceResponse signup(SignUpServiceRequest request) {
-		verifyEmail(request.getEmail());
-		verifyNickname(request.getNickname());
-		verifyPassword(request.getPassword(), request.getPasswordConfirm());
+		Member member = request.toEntity();
+		verifyEmail(member);
+		verifyNickname(member);
+		verifyPassword(request);
 
 		// 프로필 이미지 파일 S3에 업로드
 		String profileUrl = null;
-		if (request.getProfileImageFile() != null && !request.getProfileImageFile().isEmpty()) {
-			profileUrl = uploadProfileImageFile(request.getProfileImageFile());
+		if (request.hasProfileImageFile()) {
+			profileUrl = uploadProfileImageFile(request.profileImageFile());
 		}
 
 		// 비밀번호 암호화
-		String encryptedPassword = passwordEncoder.encode(request.getPassword());
+		String encryptedPassword = request.encodePasswordBy(passwordEncoder);
 		// 역할 추가
 		Role userRole = roleRepository.findRoleByRoleName("ROLE_USER")
 			.orElseThrow(() -> new FineAntsException(RoleErrorCode.NOT_EXIST_ROLE));
-		Member member = request.toEntity(profileUrl, encryptedPassword);
-		member.addMemberRole(MemberRole.create(member, userRole));
-		member.setNotificationPreference(NotificationPreference.defaultSetting(member));
+		member = request.toEntity(profileUrl, encryptedPassword);
+		member.addMemberRole(MemberRole.of(member, userRole));
+		// 알림 계정 설정 추가
+		member.setNotificationPreference(NotificationPreference.defaultSetting());
 		// 회원 데이터베이스 저장
 		Member saveMember = memberRepository.save(member);
 
@@ -156,14 +155,14 @@ public class MemberService {
 			.orElse(null);
 	}
 
-	private void verifyEmail(String email) {
-		if (memberRepository.existsMemberByEmailAndProvider(email, LOCAL_PROVIDER)) {
+	private void verifyEmail(Member member) {
+		if (memberRepository.findMemberByEmailAndProvider(member, LOCAL_PROVIDER).isPresent()) {
 			throw new BadRequestException(MemberErrorCode.REDUNDANT_EMAIL);
 		}
 	}
 
-	private void verifyNickname(String nickname) {
-		if (memberRepository.existsByNickname(nickname)) {
+	private void verifyNickname(Member member) {
+		if (memberRepository.findMemberByNickname(member).isPresent()) {
 			throw new FineAntsException(MemberErrorCode.REDUNDANT_NICKNAME);
 		}
 	}
@@ -175,8 +174,8 @@ public class MemberService {
 		}
 	}
 
-	private void verifyPassword(String password, String passwordConfirm) {
-		if (!password.equals(passwordConfirm)) {
+	private void verifyPassword(SignUpServiceRequest request) {
+		if (!request.matchPassword()) {
 			throw new BadRequestException(MemberErrorCode.PASSWORD_CHECK_FAIL);
 		}
 	}
@@ -206,7 +205,7 @@ public class MemberService {
 		if (!NICKNAME_PATTERN.matcher(nickname).matches()) {
 			throw new BadRequestException(MemberErrorCode.BAD_SIGNUP_INPUT);
 		}
-		if (memberRepository.existsByNickname(nickname)) {
+		if (memberRepository.findMemberByNickname(nickname).isPresent()) {
 			throw new BadRequestException(MemberErrorCode.REDUNDANT_NICKNAME);
 		}
 
@@ -218,7 +217,7 @@ public class MemberService {
 		if (!EMAIL_PATTERN.matcher(email).matches()) {
 			throw new BadRequestException(MemberErrorCode.BAD_SIGNUP_INPUT);
 		}
-		if (memberRepository.existsMemberByEmailAndProvider(email, LOCAL_PROVIDER)) {
+		if (memberRepository.findMemberByEmailAndProvider(email, LOCAL_PROVIDER).isPresent()) {
 			throw new BadRequestException(MemberErrorCode.REDUNDANT_EMAIL);
 		}
 	}
@@ -226,39 +225,35 @@ public class MemberService {
 	@Transactional
 	@Secured("ROLE_USER")
 	public ProfileChangeResponse changeProfile(ProfileChangeServiceRequest request) {
-		Member member = findMemberById(request.getMemberId());
+		Member member = findMemberById(request.memberId());
 		MultipartFile profileImageFile = request.getProfileImageFile();
 		String profileUrl = null;
 
 		// 변경할 정보가 없는 경우
-		if (profileImageFile == null && request.getNickname().isBlank()) {
+		if (profileImageFile == null && !request.hasNickname()) {
 			throw new FineAntsException(MemberErrorCode.NO_PROFILE_CHANGES);
 		}
 
 		// 기존 프로필 파일 유지
 		if (profileImageFile == null) {
-			profileUrl = member.getProfileUrl();
+			profileUrl = member.getProfileUrl().orElse(null);
 		} else if (profileImageFile.isEmpty()) { // 기본 프로필 파일로 변경인 경우
 			// 회원의 기존 프로필 사진 제거
 			// 기존 프로필 파일 삭제
-			if (member.getProfileUrl() != null) {
-				amazonS3Service.deleteFile(member.getProfileUrl());
-			}
+			member.getProfileUrl().ifPresent(amazonS3Service::deleteFile);
 		} else if (!profileImageFile.isEmpty()) { // 새로운 프로필 파일로 변경인 경우
 			// 기존 프로필 파일 삭제
-			if (member.getProfileUrl() != null) {
-				amazonS3Service.deleteFile(member.getProfileUrl());
-			}
+			member.getProfileUrl().ifPresent(amazonS3Service::deleteFile);
 
 			// 새로운 프로필 파일 저장
 			profileUrl = amazonS3Service.upload(profileImageFile);
 		}
-		member.updateProfileUrl(profileUrl);
+		member.changeProfileUrl(profileUrl);
 
-		if (!request.getNickname().isBlank()) {
-			String nickname = request.getNickname();
+		if (request.hasNickname()) {
+			String nickname = request.nickname();
 			verifyNickname(nickname, member.getId());
-			member.updateNickname(nickname);
+			member.changeNickname(nickname);
 		}
 		return ProfileChangeResponse.from(member);
 	}
@@ -270,17 +265,16 @@ public class MemberService {
 
 	@Transactional
 	@Secured("ROLE_USER")
-	public void modifyPassword(ModifyPasswordRequest request, Long memberId) {
+	public void modifyPassword(PasswordModifyRequest request, Long memberId) {
 		Member member = findMember(memberId);
-		if (!passwordEncoder.matches(request.getCurrentPassword(), member.getPassword())) {
+		if (!passwordEncoder.matches(request.currentPassword(), member.getPassword().orElse(null))) {
 			throw new BadRequestException(MemberErrorCode.PASSWORD_CHECK_FAIL);
 		}
-		if (!request.getNewPassword().equals(request.getNewPasswordConfirm())) {
+		if (!request.matchPassword()) {
 			throw new BadRequestException(MemberErrorCode.NEW_PASSWORD_CONFIRM_FAIL);
 		}
-		String newEncodedPassword = passwordEncoder.encode(request.getNewPassword());
-		member.updatePassword(newEncodedPassword);
-		int count = memberRepository.modifyMemberPassword(member.getPassword(), member.getId());
+		String newPassword = passwordEncoder.encode(request.newPassword());
+		int count = memberRepository.modifyMemberPassword(newPassword, member.getId());
 		log.info("회원 비밀번호 변경 결과 : {}", count);
 	}
 
@@ -291,10 +285,9 @@ public class MemberService {
 
 	@Transactional(readOnly = true)
 	@PermitAll
-	public void checkVerifyCode(VerifyCodeRequest request) {
-		Optional<String> verifyCode = redisService.get(request.getEmail());
-
-		if (verifyCode.isEmpty() || !verifyCode.get().equals(request.getCode())) {
+	public void checkVerifyCode(String email, String code) {
+		Optional<String> verifyCode = redisService.get(email);
+		if (verifyCode.isEmpty() || !verifyCode.get().equals(code)) {
 			throw new BadRequestException(MemberErrorCode.VERIFICATION_CODE_CHECK_FAIL);
 		}
 	}

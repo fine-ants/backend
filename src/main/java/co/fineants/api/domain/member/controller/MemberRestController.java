@@ -1,5 +1,6 @@
 package co.fineants.api.domain.member.controller;
 
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import co.fineants.api.domain.member.domain.dto.request.ModifyPasswordRequest;
+import co.fineants.api.domain.member.domain.dto.request.PasswordModifyRequest;
 import co.fineants.api.domain.member.domain.dto.request.ProfileChangeRequest;
 import co.fineants.api.domain.member.domain.dto.request.ProfileChangeServiceRequest;
 import co.fineants.api.domain.member.domain.dto.response.ProfileChangeResponse;
@@ -41,9 +42,11 @@ public class MemberRestController {
 		@Valid @RequestPart(value = "profileInformation", required = false) ProfileChangeRequest request,
 		@MemberAuthenticationPrincipal MemberAuthentication authentication
 	) {
-		ProfileChangeServiceRequest serviceRequest = ProfileChangeServiceRequest.of(
-			profileImageFile,
-			request,
+		String nickname = Strings.EMPTY;
+		if (request != null) {
+			nickname = request.nickname();
+		}
+		ProfileChangeServiceRequest serviceRequest = ProfileChangeServiceRequest.of(profileImageFile, nickname,
 			authentication.getId()
 		);
 		return ApiResponse.success(MemberSuccessCode.OK_MODIFIED_PROFILE,
@@ -60,7 +63,7 @@ public class MemberRestController {
 
 	@PutMapping("/account/password")
 	public ApiResponse<Void> changePassword(
-		@RequestBody ModifyPasswordRequest request,
+		@RequestBody PasswordModifyRequest request,
 		@MemberAuthenticationPrincipal MemberAuthentication authentication
 	) {
 		memberService.modifyPassword(request, authentication.getId());

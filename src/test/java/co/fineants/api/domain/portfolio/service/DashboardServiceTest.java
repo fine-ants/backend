@@ -10,7 +10,9 @@ import org.assertj.core.data.Percentage;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.BDDMockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 
 import co.fineants.AbstractContainerBaseTest;
 import co.fineants.api.domain.common.count.Count;
@@ -34,6 +36,7 @@ import co.fineants.api.domain.purchasehistory.domain.entity.PurchaseHistory;
 import co.fineants.api.domain.purchasehistory.repository.PurchaseHistoryRepository;
 import co.fineants.api.domain.stock.domain.entity.Stock;
 import co.fineants.api.domain.stock.repository.StockRepository;
+import co.fineants.api.global.common.time.LocalDateTimeService;
 
 class DashboardServiceTest extends AbstractContainerBaseTest {
 	@Autowired
@@ -54,6 +57,8 @@ class DashboardServiceTest extends AbstractContainerBaseTest {
 	private StockDividendRepository stockDividendRepository;
 	@Autowired
 	private CurrentPriceRedisRepository currentPriceRedisRepository;
+	@SpyBean
+	private LocalDateTimeService localDateTimeService;
 
 	@Test
 	void getOverviewWhenNoPortfolio() {
@@ -96,10 +101,9 @@ class DashboardServiceTest extends AbstractContainerBaseTest {
 		Stock stock = stockRepository.save(createSamsungStock());
 		stockDividendRepository.saveAll(createStockDividendWith(stock));
 
-		PortfolioHolding portfolioHolding = portfolioHoldingRepository.save(
-			PortfolioHolding.of(portfolio, stock, Money.won(72900L)));
+		PortfolioHolding portfolioHolding = portfolioHoldingRepository.save(PortfolioHolding.of(portfolio, stock));
 
-		LocalDateTime purchaseDate = LocalDateTime.now();
+		LocalDateTime purchaseDate = LocalDateTime.of(2024, 9, 26, 0, 0, 0);
 		Count numShares = Count.from(3);
 		Money purchasePricePerShare = Money.won(50000.0);
 		String memo = "첫구매";
@@ -107,6 +111,7 @@ class DashboardServiceTest extends AbstractContainerBaseTest {
 			createPurchaseHistory(null, purchaseDate, numShares, purchasePricePerShare, memo, portfolioHolding));
 
 		currentPriceRedisRepository.savePrice(KisCurrentPrice.create(stock.getTickerSymbol(), 72900L));
+		BDDMockito.given(localDateTimeService.getLocalDateWithNow()).willReturn(purchaseDate.toLocalDate());
 		// when
 		OverviewResponse response = dashboardService.getOverview(member.getId());
 
@@ -143,7 +148,7 @@ class DashboardServiceTest extends AbstractContainerBaseTest {
 		Member member = memberRepository.save(createMember());
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Stock stock = stockRepository.save(createSamsungStock());
-		portfolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
+		portfolioHoldingRepository.save(PortfolioHolding.of(portfolio, stock));
 
 		currentPriceRedisRepository.savePrice(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L));
 		// when
@@ -198,10 +203,8 @@ class DashboardServiceTest extends AbstractContainerBaseTest {
 		);
 		Stock stock = stockRepository.save(createSamsungStock());
 
-		PortfolioHolding holding1 = portfolioHoldingRepository.save(
-			PortfolioHolding.of(portfolio, stock, Money.won(100L)));
-		PortfolioHolding holding2 = portfolioHoldingRepository.save(
-			PortfolioHolding.of(portfolio1, stock, Money.won(100L)));
+		PortfolioHolding holding1 = portfolioHoldingRepository.save(PortfolioHolding.of(portfolio, stock));
+		PortfolioHolding holding2 = portfolioHoldingRepository.save(PortfolioHolding.of(portfolio1, stock));
 
 		purchaseHistoryRepository.save(PurchaseHistory.of(holding1,
 			PurchaseHistoryCreateRequest.create(
@@ -269,7 +272,7 @@ class DashboardServiceTest extends AbstractContainerBaseTest {
 		// then
 		Assertions.assertAll(
 			() -> assertThat(responses.stream().findAny().orElseThrow())
-				.extracting(DashboardLineChartResponse::getTime, DashboardLineChartResponse::getValue)
+				.extracting("time", "value")
 				.usingComparatorForType(Money::compareTo, Money.class)
 				.containsExactly(
 					LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),

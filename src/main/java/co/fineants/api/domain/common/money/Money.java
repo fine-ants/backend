@@ -6,19 +6,29 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.util.Locale;
 import java.util.Objects;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import co.fineants.api.domain.common.count.Count;
 
-public class Money implements Expression {
+public final class Money implements Expression {
 	private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("#,###");
-	protected final BigDecimal amount;
+	private static final NumberFormat NUMBER_FORMAT = NumberFormat.getInstance(Locale.KOREA);
+	private static final Money ZERO = new Money(BigDecimal.ZERO, KRW);
+	@JsonProperty
+	final BigDecimal amount;
+	@JsonProperty
 
-	protected final Currency currency;
+	final Currency currency;
 
-	public Money(BigDecimal amount, Currency currency) {
+	@JsonCreator
+	Money(@JsonProperty("amount") BigDecimal amount, @JsonProperty("currency") Currency currency) {
 		this.amount = amount;
 		this.currency = currency;
 	}
@@ -32,7 +42,7 @@ public class Money implements Expression {
 	}
 
 	public static Money franc(int amount) {
-		return franc(new BigDecimal(amount));
+		return franc(BigDecimal.valueOf(amount));
 	}
 
 	public static Money franc(BigDecimal amount) {
@@ -44,7 +54,7 @@ public class Money implements Expression {
 	}
 
 	public static Money won(int amount) {
-		return won(new BigDecimal(amount));
+		return won(BigDecimal.valueOf(amount));
 	}
 
 	public static Money won(BigDecimal amount) {
@@ -52,7 +62,7 @@ public class Money implements Expression {
 	}
 
 	public static Money won(long amount) {
-		return won(new BigDecimal(amount));
+		return won(BigDecimal.valueOf(amount));
 	}
 
 	public static Money won(double amount) {
@@ -60,11 +70,7 @@ public class Money implements Expression {
 	}
 
 	public static Money zero() {
-		return won(BigDecimal.ZERO);
-	}
-
-	public static Expression wonZero() {
-		return won(BigDecimal.ZERO);
+		return ZERO;
 	}
 
 	@Override
@@ -85,7 +91,7 @@ public class Money implements Expression {
 
 	@Override
 	public Expression times(int multiplier) {
-		return new Money(amount.multiply(new BigDecimal(multiplier)), currency);
+		return new Money(amount.multiply(BigDecimal.valueOf(multiplier)), currency);
 	}
 
 	@Override
@@ -103,7 +109,7 @@ public class Money implements Expression {
 			BigDecimal result = amount.divide(new BigDecimal(divisor), 4, RoundingMode.HALF_UP);
 			return new Money(result, currency);
 		} catch (ArithmeticException e) {
-			return new Money(BigDecimal.ZERO, currency);
+			return ZERO;
 		}
 	}
 
@@ -116,7 +122,7 @@ public class Money implements Expression {
 		return currency;
 	}
 
-	public boolean isZero() {
+	public boolean hasZero() {
 		return amount.compareTo(BigDecimal.ZERO) == 0;
 	}
 
@@ -132,12 +138,11 @@ public class Money implements Expression {
 		return amount.setScale(2, RoundingMode.HALF_UP);
 	}
 
-	public String getCurrencySymbol() {
+	public String currencySymbol() {
 		return currency.getSymbol();
 	}
 
-	@Override
-	public String toString() {
+	public String toRawAmount() {
 		return amount.toString();
 	}
 
@@ -155,7 +160,7 @@ public class Money implements Expression {
 		Money m2 = bank.reduce(expression, currency);
 		return m1.amount.compareTo(m2.amount);
 	}
-	
+
 	@Override
 	public boolean equals(Object object) {
 		if (this == object) {
@@ -171,5 +176,10 @@ public class Money implements Expression {
 	@Override
 	public int hashCode() {
 		return Objects.hash(amount);
+	}
+
+	@Override
+	public String toString() {
+		return String.format("%s%s", currency, NUMBER_FORMAT.format(amount));
 	}
 }

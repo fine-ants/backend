@@ -185,16 +185,20 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 			() -> assertThat(details.getTargetGainNotify()).isTrue(),
 			() -> assertThat(details.getMaxLossNotify()).isTrue(),
 
-			() -> assertThat(response.getPortfolioHoldings())
+			() -> assertThat(response)
+				.extracting("portfolioHoldings")
+				.asList()
 				.hasSize(1)
 				.extracting("stock")
 				.extracting("companyName", "tickerSymbol")
 				.containsExactlyInAnyOrder(Tuple.tuple("삼성전자보통주", "005930")),
 
-			() -> assertThat(response.getPortfolioHoldings())
+			() -> assertThat(response)
+				.extracting("portfolioHoldings")
+				.asList()
 				.hasSize(1)
 				.extracting("portfolioHolding")
-				.extracting("id", "currentValuation", "currentPrice", "averageCostPerShare",
+				.extracting("id", "currentValuation", "averageCostPerShare",
 					"numShares", "dailyChange", "dailyChangeRate", "totalGain", "totalReturnRate", "annualDividend")
 				.usingComparatorForType(Money::compareTo, Money.class)
 				.usingComparatorForType(Count::compareTo, Count.class)
@@ -203,7 +207,6 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 					Tuple.tuple(
 						portfolioHolding.getId(),
 						Money.won(180000),
-						Money.won(60000),
 						Money.won(50000),
 						Count.from(3L),
 						Money.won(10000),
@@ -213,7 +216,9 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 						Money.won(3249)
 					)
 				),
-			() -> assertThat(response.getPortfolioHoldings())
+			() -> assertThat(response)
+				.extracting("portfolioHoldings")
+				.asList()
 				.hasSize(1)
 				.flatExtracting("purchaseHistory")
 				.extracting("purchaseDate", "numShares", "purchasePricePerShare", "memo")
@@ -436,15 +441,15 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 			() -> assertThat(response).extracting(PortfolioHoldingsRealTimeResponse::getPortfolioHoldings)
 				.asList()
 				.hasSize(2)
-				.extracting("currentValuation", "currentPrice", "dailyChange", "dailyChangeRate", "totalGain",
+				.extracting("currentValuation", "dailyChange", "dailyChangeRate", "totalGain",
 					"totalReturnRate")
 				.usingComparatorForType(Money::compareTo, Money.class)
 				.usingComparatorForType(Percentage::compareTo, Percentage.class)
 				.containsExactlyInAnyOrder(
-					Tuple.tuple(Money.won(360000L), Money.won(60000L), Money.won(10000L), Percentage.from(0.2),
+					Tuple.tuple(Money.won(360000L), Money.won(10000L), Percentage.from(0.2),
 						Money.won(60000L),
 						Percentage.from(0.2)),
-					Tuple.tuple(Money.won(360000L), Money.won(60000L), Money.won(10000L), Percentage.from(0.2),
+					Tuple.tuple(Money.won(360000L), Money.won(10000L), Percentage.from(0.2),
 						Money.won(60000L),
 						Percentage.from(0.2)))
 		);
@@ -545,7 +550,7 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		Member member = memberRepository.save(createMember());
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Stock stock = stockRepository.save(createSamsungStock());
-		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
+		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.of(portfolio, stock));
 		LocalDateTime purchaseDate = LocalDateTime.of(2023, 9, 26, 9, 30, 0);
 		Count numShares = Count.from(5);
 		Money purchasePerShare = Money.won(10000);
@@ -639,7 +644,7 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		Stock stock = stockRepository.save(createSamsungStock());
 
 		PortfolioHolding portfolioHolding = portFolioHoldingRepository.save(
-			PortfolioHolding.empty(portfolio, stock)
+			PortfolioHolding.of(portfolio, stock)
 		);
 
 		LocalDateTime purchaseDate = LocalDateTime.of(2023, 9, 26, 9, 30, 0);

@@ -5,9 +5,11 @@ import java.time.LocalDateTime;
 import co.fineants.api.domain.common.count.Count;
 import co.fineants.api.domain.common.money.Bank;
 import co.fineants.api.domain.common.money.Currency;
+import co.fineants.api.domain.common.money.Expression;
 import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.common.money.Percentage;
 import co.fineants.api.domain.gainhistory.domain.entity.PortfolioGainHistory;
+import co.fineants.api.domain.portfolio.domain.calculator.PortfolioCalculator;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -35,21 +37,28 @@ public class PortFolioItem {
 	private Count numShares;
 	private LocalDateTime dateCreated;
 
-	public static PortFolioItem of(Portfolio portfolio, PortfolioGainHistory prevHistory) {
+	public static PortFolioItem of(Portfolio portfolio, PortfolioGainHistory prevHistory,
+		PortfolioCalculator calculator) {
 		Bank bank = Bank.getInstance();
 		Currency to = Currency.KRW;
+		Expression totalGain = calculator.calTotalGainBy(portfolio);
+		Expression totalGainRate = calculator.calTotalGainRateBy(portfolio);
+		Expression totalCurrentValuation = calculator.calTotalCurrentValuationBy(portfolio);
+		Expression dailyGain = calculator.calDailyGain(prevHistory, portfolio);
+		Expression dailyGainRate = calculator.calDailyGainRateBy(prevHistory, portfolio);
+		Expression currentMonthDividend = calculator.calCurrentMonthDividendBy(portfolio);
 		return PortFolioItem.builder()
 			.id(portfolio.getId())
-			.securitiesFirm(portfolio.getSecuritiesFirm())
-			.name(portfolio.getName())
+			.securitiesFirm(portfolio.securitiesFirm())
+			.name(portfolio.name())
 			.budget(portfolio.getBudget())
-			.totalGain(portfolio.calculateTotalGain().reduce(bank, to))
-			.totalGainRate(portfolio.calculateTotalGainRate().toPercentage(Bank.getInstance(), Currency.KRW))
-			.dailyGain(portfolio.calculateDailyGain(prevHistory).reduce(bank, to))
-			.dailyGainRate(portfolio.calculateDailyGainRate(prevHistory).toPercentage(Bank.getInstance(), Currency.KRW))
-			.currentValuation(portfolio.calculateTotalCurrentValuation().reduce(bank, to))
-			.expectedMonthlyDividend(portfolio.calculateCurrentMonthDividend().reduce(bank, to))
-			.numShares(portfolio.getNumberOfShares())
+			.totalGain(totalGain.reduce(bank, to))
+			.totalGainRate(totalGainRate.toPercentage(Bank.getInstance(), Currency.KRW))
+			.dailyGain(dailyGain.reduce(bank, to))
+			.dailyGainRate(dailyGainRate.toPercentage(Bank.getInstance(), Currency.KRW))
+			.currentValuation(totalCurrentValuation.reduce(bank, to))
+			.expectedMonthlyDividend(currentMonthDividend.reduce(bank, to))
+			.numShares(portfolio.numberOfShares())
 			.dateCreated(portfolio.getCreateAt())
 			.build();
 	}

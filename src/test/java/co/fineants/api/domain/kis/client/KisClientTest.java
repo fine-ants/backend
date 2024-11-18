@@ -184,14 +184,16 @@ class KisClientTest extends AbstractContainerBaseTest {
 		String tickerSymbol = "034220";
 
 		Map<String, Object> okResponseBody = new HashMap<>();
-		KisSearchStockInfo output = KisSearchStockInfo.listedStock(
-			"KR7000660001",
-			"00000A000660",
-			"에스케이하이닉스보통주",
-			"SK hynix",
-			"STK",
-			"전기,전자"
-		);
+		Map<String, Object> output = new HashMap<>();
+		output.put("std_pdno", "KR7000660001");
+		output.put("pdno", "00000A000660");
+		output.put("prdt_name", "에스케이하이닉스보통주");
+		output.put("prdt_eng_name", "SK hynix");
+		output.put("mket_id_cd", "STK");
+		output.put("idx_bztp_lcls_cd_name", "시가총액규모대");
+		output.put("idx_bztp_mcls_cd_name", "전기,전자");
+		output.put("idx_bztp_scls_cd_name", "전기,전자");
+		output.put("lstg_abol_dt", "");
 		okResponseBody.put("output", output);
 
 		mockWebServer.enqueue(createResponse(200, ObjectMapperUtil.serialize(okResponseBody)));
@@ -200,15 +202,9 @@ class KisClientTest extends AbstractContainerBaseTest {
 			.blockOptional()
 			.orElse(null);
 		// then
-		assertThat(kisSearchStockInfo).isNotNull();
-		assertThat(kisSearchStockInfo).extracting(
-			KisSearchStockInfo::getStockCode,
-			KisSearchStockInfo::getTickerSymbol,
-			KisSearchStockInfo::getCompanyName,
-			KisSearchStockInfo::getCompanyEngName,
-			KisSearchStockInfo::getMarketIdCode,
-			KisSearchStockInfo::getSector
-		).containsExactly("KR7000660001", "000660", "에스케이하이닉스보통주", "SK hynix", "STK", "전기,전자");
+		KisSearchStockInfo expected = KisSearchStockInfo.listedStock("KR7000660001", "000660", "에스케이하이닉스보통주",
+			"SK hynix", "STK", "시가총액규모대", "전기,전자", "전기,전자");
+		assertThat(kisSearchStockInfo).isEqualTo(expected);
 	}
 
 	@DisplayName("서버는 한국투자증권 서버에 요청하여 첫번째 요청은 실패하고 두번째 요청에 응답을 받는다")
@@ -222,14 +218,16 @@ class KisClientTest extends AbstractContainerBaseTest {
 		mockWebServer.enqueue(createResponse(400, ObjectMapperUtil.serialize(badRequestBody)));
 
 		Map<String, Object> okResponseBody = new HashMap<>();
-		KisSearchStockInfo output = KisSearchStockInfo.listedStock(
-			"KR7000660001",
-			"00000A000660",
-			"에스케이하이닉스보통주",
-			"SK hynix",
-			"STK",
-			"전기,전자"
-		);
+		Map<String, Object> output = new HashMap<>();
+		output.put("std_pdno", "KR7000660001");
+		output.put("pdno", "00000A000660");
+		output.put("prdt_name", "에스케이하이닉스보통주");
+		output.put("prdt_eng_name", "SK hynix");
+		output.put("mket_id_cd", "STK");
+		output.put("idx_bztp_lcls_cd_name", "시가총액규모대");
+		output.put("idx_bztp_mcls_cd_name", "전기,전자");
+		output.put("idx_bztp_scls_cd_name", "전기,전자");
+		output.put("lstg_abol_dt", "");
 		okResponseBody.put("output", output);
 		mockWebServer.enqueue(createResponse(200, ObjectMapperUtil.serialize(okResponseBody)));
 
@@ -240,15 +238,9 @@ class KisClientTest extends AbstractContainerBaseTest {
 			.blockOptional()
 			.orElse(null);
 		// then
-		assertThat(kisSearchStockInfo).isNotNull();
-		assertThat(kisSearchStockInfo).extracting(
-			KisSearchStockInfo::getStockCode,
-			KisSearchStockInfo::getTickerSymbol,
-			KisSearchStockInfo::getCompanyName,
-			KisSearchStockInfo::getCompanyEngName,
-			KisSearchStockInfo::getMarketIdCode,
-			KisSearchStockInfo::getSector
-		).containsExactly("KR7000660001", "000660", "에스케이하이닉스보통주", "SK hynix", "STK", "전기,전자");
+		KisSearchStockInfo expected = KisSearchStockInfo.listedStock("KR7000660001", "000660", "에스케이하이닉스보통주",
+			"SK hynix", "STK", "시가총액규모대", "전기,전자", "전기,전자");
+		assertThat(kisSearchStockInfo).isEqualTo(expected);
 	}
 
 	@DisplayName("사용자는 종목의 배당 일정을 조회한다")

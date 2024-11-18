@@ -2,10 +2,12 @@ package co.fineants.api.domain.holding.domain.dto.response;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
 import co.fineants.api.domain.common.money.Expression;
 import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
+import co.fineants.api.domain.portfolio.domain.calculator.PortfolioCalculator;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 
@@ -16,13 +18,15 @@ public class PortfolioHoldingItem {
 	private StockItem stock;
 	@JsonUnwrapped
 	private PortfolioHoldingDetailItem portfolioHolding;
+	@JsonProperty
 	private List<PurchaseHistoryItem> purchaseHistory;
 
-	public static PortfolioHoldingItem from(PortfolioHolding portfolioHolding, Expression lastDayClosingPrice) {
+	public static PortfolioHoldingItem from(PortfolioHolding portfolioHolding, Expression lastDayClosingPrice,
+		PortfolioCalculator calculator) {
 		StockItem stockItem = StockItem.from(portfolioHolding.getStock());
 		PortfolioHoldingDetailItem holdingDetailItem = PortfolioHoldingDetailItem.from(portfolioHolding,
-			lastDayClosingPrice);
-		List<PurchaseHistoryItem> purchaseHistory = portfolioHolding.getPurchaseHistory().stream()
+			lastDayClosingPrice, calculator);
+		List<PurchaseHistoryItem> purchaseHistory = portfolioHolding.getPurchaseHistories().stream()
 			.map(PurchaseHistoryItem::from)
 			.toList();
 		return new PortfolioHoldingItem(stockItem, holdingDetailItem, purchaseHistory);

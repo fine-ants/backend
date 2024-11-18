@@ -4,7 +4,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.jetbrains.annotations.NotNull;
-import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -25,7 +24,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class PortfolioCacheService {
 	private final PortfolioRepository portfolioRepository;
-	private final CacheManager cacheManager;
 
 	@Cacheable(value = "tickerSymbols", key = "#portfolioId")
 	@NotNull

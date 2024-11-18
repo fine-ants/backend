@@ -146,7 +146,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 
 		// then
 		assertAll(
-			() -> assertThat(response.getNotifications()).hasSize(1),
+			() -> assertThat(response).extracting("notifications").asList().hasSize(1),
 			() -> assertThat(notificationRepository.findAllByMemberId(member.getId())).hasSize(1),
 			() -> assertThat(sentManager.hasTargetGainSendHistory(portfolio.getId())).isTrue()
 		);
@@ -191,7 +191,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 
 		// then
 		assertAll(
-			() -> assertThat(response.getNotifications()).isEmpty(),
+			() -> assertThat(response).extracting("notifications").asList().isEmpty(),
 			() -> assertThat(notificationRepository.findAllByMemberId(member.getId())).isEmpty(),
 			() -> assertThat(sentManager.hasTargetGainSendHistory(portfolio.getId())).isFalse()
 		);
@@ -225,7 +225,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 
 		// then
 		assertAll(
-			() -> assertThat(response.getNotifications()).hasSize(1),
+			() -> assertThat(response).extracting("notifications").asList().hasSize(1),
 			() -> assertThat(fcmRepository.findById(fcmToken.getId())).isEmpty(),
 			() -> assertThat(sentManager.hasTargetGainSendHistory(portfolio.getId())).isTrue()
 		);
@@ -239,7 +239,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		// given
 		Member member = memberRepository.save(createMember());
 		NotificationPreference preference = member.getNotificationPreference();
-		preference.changePreference(createNotificationPreference(browserNotify, targetGainNotify, true, true, member));
+		preference.changePreference(createNotificationPreference(browserNotify, targetGainNotify, true, true));
 		notificationPreferenceRepository.save(preference);
 
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
@@ -263,7 +263,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 
 		// then
 		assertAll(
-			() -> assertThat(response.getNotifications()).isEmpty()
+			() -> assertThat(response).extracting("notifications").asList().isEmpty()
 		);
 	}
 
@@ -293,7 +293,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 
 		// then
 		assertAll(
-			() -> assertThat(response.getNotifications()).hasSize(1),
+			() -> assertThat(response).extracting("notifications").asList().hasSize(1),
 			() -> assertThat(notificationRepository.findAllByMemberId(member.getId())).hasSize(1),
 			() -> assertThat(sentManager.hasMaxLossSendHistory(portfolio.getId())).isTrue()
 		);
@@ -326,7 +326,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 
 		// then
 		assertAll(
-			() -> assertThat(response.getNotifications()).hasSize(1),
+			() -> assertThat(response).extracting("notifications").asList().hasSize(1),
 			() -> assertThat(notificationRepository.findAllByMemberId(member.getId())).hasSize(1),
 			() -> assertThat(sentManager.hasMaxLossSendHistory(portfolio.getId())).isTrue()
 		);
@@ -335,12 +335,11 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 	@DisplayName("알림 설정이 비활성화 되어 있어서 포트폴리오의 최대 손실율에 도달하여 사용자에게 알림을 푸시할 수 없습니다")
 	@CsvSource(value = {"false,true", "true,false", "false, false"})
 	@ParameterizedTest
-	void notifyMaxLoss_whenNotifySettingIsInActive_thenResponseEmptyList(boolean browserNotify,
-		boolean maxLossNotify) {
+	void notifyMaxLoss_whenNotifySettingIsInActive_thenResponseEmptyList(boolean browserNotify, boolean maxLossNotify) {
 		// given
 		Member member = memberRepository.save(createMember());
 		NotificationPreference preference = member.getNotificationPreference();
-		preference.changePreference(createNotificationPreference(browserNotify, true, maxLossNotify, true, member));
+		preference.changePreference(createNotificationPreference(browserNotify, true, maxLossNotify, true));
 		notificationPreferenceRepository.save(preference);
 
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
@@ -363,7 +362,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 
 		// then
 		assertAll(
-			() -> assertThat(response.getNotifications()).isEmpty(),
+			() -> assertThat(response).extracting("notifications").asList().isEmpty(),
 			() -> assertThat(sentManager.hasMaxLossSendHistory(portfolio.getId())).isFalse()
 		);
 	}
@@ -396,7 +395,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 
 		// then
 		assertAll(
-			() -> assertThat(response.getNotifications()).hasSize(1),
+			() -> assertThat(response).extracting("notifications").asList().hasSize(1),
 			() -> assertThat(fcmRepository.findById(fcmToken.getId())).isEmpty(),
 			() -> assertThat(sentManager.hasMaxLossSendHistory(portfolio.getId())).isTrue()
 		);
@@ -438,7 +437,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 
 		// then
 		assertAll(
-			() -> assertThat(response.getNotifications()).hasSize(1),
+			() -> assertThat(response).extracting("notifications").asList().hasSize(1),
 			() -> assertThat(notificationRepository.findAllByMemberId(member.getId())).hasSize(1),
 			() -> assertThat(sentManager.hasTargetGainSendHistory(portfolio.getId())).isTrue()
 		);

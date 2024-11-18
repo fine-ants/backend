@@ -33,6 +33,7 @@ import co.fineants.api.domain.holding.domain.factory.PortfolioDetailFactory;
 import co.fineants.api.domain.holding.domain.factory.PortfolioHoldingDetailFactory;
 import co.fineants.api.domain.holding.event.publisher.PortfolioHoldingEventPublisher;
 import co.fineants.api.domain.holding.repository.PortfolioHoldingRepository;
+import co.fineants.api.domain.portfolio.domain.calculator.PortfolioCalculator;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import co.fineants.api.domain.portfolio.repository.PortfolioRepository;
 import co.fineants.api.domain.portfolio.service.PortfolioCacheService;
@@ -71,6 +72,7 @@ public class PortfolioHoldingService {
 	private final PortfolioHoldingDetailFactory portfolioHoldingDetailFactory;
 	private final PortfolioHoldingEventPublisher publisher;
 	private final PortfolioCacheService portfolioCacheService;
+	private final PortfolioCalculator calculator;
 
 	@Transactional
 	@Authorized(serviceClass = PortfolioAuthorizedService.class)
@@ -85,11 +87,11 @@ public class PortfolioHoldingService {
 
 		PortfolioHolding holding = portfolioHoldingRepository.findByPortfolioIdAndTickerSymbol(portfolioId,
 				request.getTickerSymbol())
-			.orElseGet(() -> PortfolioHolding.empty(portfolio, stock));
+			.orElseGet(() -> PortfolioHolding.of(portfolio, stock));
 		PortfolioHolding saveHolding = portfolioHoldingRepository.save(holding);
 
 		if (request.isPurchaseHistoryComplete()) {
-			validateInvestAmountNotExceedsBudget(request, portfolio);
+			validateCashSufficientForPurchase(request, portfolio);
 			purchaseHistoryRepository.save(PurchaseHistory.of(saveHolding, request.getPurchaseHistory()));
 		} else if (!request.isPurchaseHistoryAllNull()) {
 			throw new FineAntsException(PurchaseHistoryErrorCode.BAD_INPUT);
@@ -142,10 +144,10 @@ public class PortfolioHoldingService {
 			.orElseThrow(() -> new NotFoundResourceException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
 	}
 
-	private void validateInvestAmountNotExceedsBudget(PortfolioHoldingCreateRequest request, Portfolio portfolio) {
+	private void validateCashSufficientForPurchase(PortfolioHoldingCreateRequest request, Portfolio portfolio) {
 		Expression purchasedAmount = request.getPurchaseHistory().getNumShares()
 			.multiply(request.getPurchaseHistory().getPurchasePricePerShare());
-		if (portfolio.isExceedBudgetByPurchasedAmount(purchasedAmount)) {
+		if (!portfolio.isCashSufficientForPurchase(purchasedAmount, calculator)) {
 			throw new FineAntsException(PortfolioErrorCode.TOTAL_INVESTMENT_PRICE_EXCEEDS_BUDGET);
 		}
 	}
@@ -174,7 +176,7 @@ public class PortfolioHoldingService {
 		PortfolioDetailRealTimeItem portfolioDetail = portfolioDetailFactory.createPortfolioDetailRealTimeItem(
 			portfolio);
 		List<PortfolioHoldingRealTimeItem> portfolioHoldingDetails =
-			portfolioHoldingDetailFactory.createPortfolioHoldingRealTimeItems(portfolio);
+			portfolioHoldingDetailFactory.createPortfolioHoldingRealTimeItems(portfolio, calculator);
 		return PortfolioHoldingsRealTimeResponse.of(portfolioDetail, portfolioHoldingDetails);
 	}
 
@@ -188,8 +190,8 @@ public class PortfolioHoldingService {
 	public PortfolioChartResponse readPortfolioCharts(@ResourceId Long portfolioId, LocalDate currentLocalDate) {
 		Portfolio portfolio = findPortfolio(portfolioId);
 		PortfolioDetails portfolioDetails = PortfolioDetails.from(portfolio);
-		List<PortfolioPieChartItem> pieChartItems = pieChart.createBy(portfolio);
-		List<PortfolioDividendChartItem> dividendChartItems = dividendChart.createBy(portfolio, currentLocalDate);
+		List<PortfolioPieChartItem> pieChartItems = pieChart.createItemsBy(portfolio);
+		List<PortfolioDividendChartItem> dividendChartItems = dividendChart.createItemsBy(portfolio, currentLocalDate);
 		List<PortfolioSectorChartItem> sectorChartItems = sectorChart.createBy(portfolio);
 		return PortfolioChartResponse.create(portfolioDetails, pieChartItems, dividendChartItems, sectorChartItems);
 	}

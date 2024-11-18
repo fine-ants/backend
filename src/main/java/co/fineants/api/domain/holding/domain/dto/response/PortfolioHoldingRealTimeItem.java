@@ -8,6 +8,7 @@ import co.fineants.api.domain.common.money.Expression;
 import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.common.money.Percentage;
 import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
+import co.fineants.api.domain.portfolio.domain.calculator.PortfolioCalculator;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -28,17 +29,24 @@ public class PortfolioHoldingRealTimeItem {
 	private Percentage totalReturnRate;
 	private LocalDateTime dateAdded;
 
-	public static PortfolioHoldingRealTimeItem of(PortfolioHolding portfolioHolding, Expression lastDayClosingPrice) {
+	public static PortfolioHoldingRealTimeItem of(PortfolioHolding holding, Expression closingPrice,
+		PortfolioCalculator calculator) {
 		Bank bank = Bank.getInstance();
 		Currency to = Currency.KRW;
+		Expression totalCurrentValuation = calculator.calTotalCurrentValuationBy(holding);
+		Expression currentPrice = calculator.fetchCurrentPrice(holding);
+		Expression dailyChange = calculator.calDailyChange(holding, closingPrice);
+		Expression dailyChangeRate = calculator.calDailyChangeRate(holding, closingPrice);
+		Expression totalGain = calculator.calTotalGainBy(holding);
+		Percentage totalReturnPercentage = calculator.calTotalGainPercentage(holding);
 		return new PortfolioHoldingRealTimeItem(
-			portfolioHolding.getId(),
-			portfolioHolding.calculateCurrentValuation().reduce(bank, to),
-			portfolioHolding.getCurrentPrice(),
-			portfolioHolding.calculateDailyChange(lastDayClosingPrice).reduce(bank, to),
-			portfolioHolding.calculateDailyChangeRate(lastDayClosingPrice).toPercentage(bank, to),
-			portfolioHolding.calculateTotalGain().reduce(bank, to),
-			portfolioHolding.calculateTotalReturnRate().toPercentage(bank, to),
-			portfolioHolding.getCreateAt());
+			holding.getId(),
+			totalCurrentValuation.reduce(bank, to),
+			currentPrice.reduce(bank, to),
+			dailyChange.reduce(bank, to),
+			dailyChangeRate.toPercentage(bank, to),
+			totalGain.reduce(bank, to),
+			totalReturnPercentage,
+			holding.getCreateAt());
 	}
 }

@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
 import co.fineants.api.domain.holding.repository.PortfolioHoldingRepository;
+import co.fineants.api.domain.portfolio.domain.calculator.PortfolioCalculator;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import co.fineants.api.domain.portfolio.repository.PortfolioRepository;
 import co.fineants.api.domain.purchasehistory.domain.dto.request.PurchaseHistoryCreateRequest;
@@ -37,6 +38,7 @@ public class PurchaseHistoryService {
 	private final PortfolioHoldingRepository portfolioHoldingRepository;
 	private final PurchaseHistoryEventPublisher purchaseHistoryEventPublisher;
 	private final PortfolioRepository portfolioRepository;
+	private final PortfolioCalculator calculator;
 
 	@Transactional
 	@Authorized(serviceClass = PortfolioHoldingAuthorizedService.class)
@@ -55,11 +57,9 @@ public class PurchaseHistoryService {
 			.orElseThrow(() -> new FineAntsException(PortfolioHoldingErrorCode.NOT_FOUND_PORTFOLIO_HOLDING));
 		PurchaseHistory history = request.toEntity(findHolding);
 
-		verifyCashSufficientForPurchase(portfolio, (Money)history.calculateInvestmentAmount());
+		verifyCashSufficientForPurchase(portfolio, (Money)history.calInvestmentAmount());
 
 		PurchaseHistory newPurchaseHistory = repository.save(history);
-		// 매입 이력 알림 이벤트를 위한 매입 이력 데이터 추가
-		findHolding.addPurchaseHistory(newPurchaseHistory);
 
 		purchaseHistoryEventPublisher.publishPushNotificationEvent(portfolioId, memberId);
 		log.info("매입이력 저장 결과 : newPurchaseHistory={}", newPurchaseHistory);
@@ -72,7 +72,7 @@ public class PurchaseHistoryService {
 	}
 
 	private void verifyCashSufficientForPurchase(Portfolio portfolio, Money investmentAmount) {
-		if (portfolio.isCashSufficientForPurchase(investmentAmount)) {
+		if (!portfolio.isCashSufficientForPurchase(investmentAmount, calculator)) {
 			throw new FineAntsException(PortfolioErrorCode.TOTAL_INVESTMENT_PRICE_EXCEEDS_BUDGET);
 		}
 	}

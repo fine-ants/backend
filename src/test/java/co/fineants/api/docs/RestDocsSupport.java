@@ -2,6 +2,7 @@ package co.fineants.api.docs;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -34,6 +35,7 @@ import co.fineants.api.domain.dividend.domain.entity.StockDividend;
 import co.fineants.api.domain.gainhistory.domain.entity.PortfolioGainHistory;
 import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
 import co.fineants.api.domain.member.domain.entity.Member;
+import co.fineants.api.domain.member.domain.entity.MemberProfile;
 import co.fineants.api.domain.notification.domain.dto.response.NotifyMessage;
 import co.fineants.api.domain.notification.domain.dto.response.PortfolioNotifyMessage;
 import co.fineants.api.domain.notification.domain.dto.response.StockNotifyMessage;
@@ -41,13 +43,17 @@ import co.fineants.api.domain.notification.domain.entity.Notification;
 import co.fineants.api.domain.notification.domain.entity.PortfolioNotification;
 import co.fineants.api.domain.notification.domain.entity.StockTargetPriceNotification;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
+import co.fineants.api.domain.portfolio.domain.entity.PortfolioDetail;
+import co.fineants.api.domain.portfolio.domain.entity.PortfolioFinancial;
+import co.fineants.api.domain.portfolio.properties.PortfolioProperties;
 import co.fineants.api.domain.purchasehistory.domain.entity.PurchaseHistory;
 import co.fineants.api.domain.stock.domain.entity.Market;
 import co.fineants.api.domain.stock.domain.entity.Stock;
 import co.fineants.api.domain.stock_target_price.domain.entity.StockTargetPrice;
 import co.fineants.api.domain.stock_target_price.domain.entity.TargetPriceNotification;
 import co.fineants.api.domain.watchlist.domain.entity.WatchList;
-import co.fineants.api.global.config.JacksonConfig;
+import co.fineants.api.global.config.jackson.JacksonConfig;
+import co.fineants.api.global.security.factory.LocalCookieDomainProvider;
 import co.fineants.api.global.security.factory.TokenFactory;
 import co.fineants.api.global.security.oauth.dto.MemberAuthentication;
 import co.fineants.api.global.security.oauth.dto.Token;
@@ -60,6 +66,8 @@ public abstract class RestDocsSupport {
 
 	protected MemberAuthenticationArgumentResolver memberAuthenticationArgumentResolver;
 
+	private final PortfolioProperties properties = new PortfolioProperties(new String[] {"토스증권", "FineAnts"});
+
 	@BeforeEach
 	void setUp(RestDocumentationContextProvider provider) throws Exception {
 		this.memberAuthenticationArgumentResolver = Mockito.mock(MemberAuthenticationArgumentResolver.class);
@@ -67,6 +75,7 @@ public abstract class RestDocsSupport {
 			.apply(MockMvcRestDocumentation.documentationConfiguration(provider))
 			.setCustomArgumentResolvers(memberAuthenticationArgumentResolver)
 			.setMessageConverters(new MappingJackson2HttpMessageConverter(new JacksonConfig().objectMapper()))
+			.alwaysDo(print())
 			.build();
 
 		given(memberAuthenticationArgumentResolver.supportsParameter(ArgumentMatchers.any(MethodParameter.class)))
@@ -87,13 +96,9 @@ public abstract class RestDocsSupport {
 	}
 
 	protected Member createMember() {
-		return Member.localMember(
-			1L,
-			"kim1234@gmail.com",
-			"일개미1234",
-			"kim1234@",
-			"profileUrl"
-		);
+		MemberProfile profile = MemberProfile.localMemberProfile("kim1234@gmail.com", "일개미1234", "kim1234@",
+			"profileUrl");
+		return Member.localMember(1L, profile);
 	}
 
 	protected Stock createSamsungStock() {
@@ -101,19 +106,20 @@ public abstract class RestDocsSupport {
 	}
 
 	protected Portfolio createPortfolio(Member member) {
-		return Portfolio.active(
-			1L,
-			"내꿈은 워렌버핏",
-			"토스증권",
-			Money.won(1000000L),
-			Money.won(1500000L),
-			Money.won(900000L),
-			member
-		);
+		String name = "내꿈은 워렌버핏";
+		String securitiesFirm = "토스증권";
+		PortfolioDetail detail = PortfolioDetail.of(name, securitiesFirm, properties);
+
+		Money budget = Money.won(1000000L);
+		Money targetGain = Money.won(1500000L);
+		Money maximumLoss = Money.won(900000L);
+		PortfolioFinancial financial = PortfolioFinancial.of(budget, targetGain, maximumLoss);
+
+		return Portfolio.allActive(1L, detail, financial, member);
 	}
 
 	protected PortfolioHolding createPortfolioHolding(Portfolio portfolio, Stock stock) {
-		return PortfolioHolding.of(1L, portfolio, stock, Money.won(60000L));
+		return PortfolioHolding.of(1L, portfolio, stock);
 	}
 
 	protected PurchaseHistory createPurchaseHistory(PortfolioHolding portfolioHolding, LocalDateTime purchaseDate) {
@@ -197,7 +203,7 @@ public abstract class RestDocsSupport {
 	protected PortfolioNotification createPortfolioTargetGainNotification(Portfolio portfolio, Member member) {
 		NotifyMessage message = portfolio.createTargetGainMessageWith("token");
 		return PortfolioNotification.newNotification(1L, message.getTitle(), message.getType(),
-			message.getReferenceId(), message.getLink(), portfolio.getName(), member);
+			message.getReferenceId(), message.getLink(), portfolio.name(), member);
 	}
 
 	protected StockTargetPriceNotification createStockTargetPriceNotification(
@@ -232,7 +238,7 @@ public abstract class RestDocsSupport {
 	}
 
 	protected Cookie[] createTokenCookies() {
-		TokenFactory tokenFactory = new TokenFactory();
+		TokenFactory tokenFactory = new TokenFactory(new LocalCookieDomainProvider());
 		Token token = Token.create("accessToken", "refreshToken");
 		ResponseCookie accessTokenCookie = tokenFactory.createAccessTokenCookie(token);
 		ResponseCookie refreshTokenCookie = tokenFactory.createRefreshTokenCookie(token);

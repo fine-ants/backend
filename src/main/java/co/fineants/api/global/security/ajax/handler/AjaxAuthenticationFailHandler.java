@@ -13,8 +13,10 @@ import co.fineants.api.global.errors.errorcode.MemberErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @RequiredArgsConstructor
+@Slf4j
 public class AjaxAuthenticationFailHandler implements AuthenticationFailureHandler {
 
 	private final ObjectMapper objectMapper;
@@ -22,6 +24,7 @@ public class AjaxAuthenticationFailHandler implements AuthenticationFailureHandl
 	@Override
 	public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
 		AuthenticationException exception) throws IOException {
+		log.info(exception.getMessage());
 		MemberErrorCode errorCode = MemberErrorCode.LOGIN_FAIL;
 		ApiResponse<String> body = ApiResponse.error(errorCode);
 		response.setStatus(errorCode.getHttpStatus().value());

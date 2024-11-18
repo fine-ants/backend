@@ -78,7 +78,7 @@ class StockSchedulerTest extends AbstractContainerBaseTest {
 		given(kisService.fetchSearchStockInfo(stock.getTickerSymbol()))
 			.willReturn(Mono.just(
 				KisSearchStockInfo.listedStock(stock.getStockCode(), stock.getTickerSymbol(), stock.getCompanyName(),
-					stock.getCompanyNameEng(), "STK", "전기,전자")));
+					stock.getCompanyNameEng(), "STK", "시가총액규모대", "전기,전자", "전기,전자")));
 		stocks.forEach(s -> given(kisService.fetchSearchStockInfo(s.getTickerSymbol()))
 			.willReturn(Mono.just(KisSearchStockInfo.listedStock(
 					s.getStockCode(),
@@ -86,6 +86,8 @@ class StockSchedulerTest extends AbstractContainerBaseTest {
 					s.getCompanyName(),
 					s.getCompanyNameEng(),
 					"STK",
+					"시가총액규모대",
+					s.getSector(),
 					s.getSector()
 				))
 			));

@@ -11,19 +11,15 @@ import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
 
 @Entity
 @Table(name = "member_role")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
-@EqualsAndHashCode(of = "id")
+@EqualsAndHashCode(of = {"member", "role"})
 @Getter
-@ToString
 public class MemberRole {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -36,13 +32,24 @@ public class MemberRole {
 	@ManyToOne(fetch = FetchType.LAZY)
 	private Role role;
 
-	public static MemberRole create(Member member, Role role) {
-		return new MemberRole(null, member, role);
+	private MemberRole(Member member, Role role) {
+		this.member = member;
+		this.role = role;
+	}
+
+	public static MemberRole of(Member member, Role role) {
+		return new MemberRole(member, role);
 	}
 
 	//** 연관 관계 메서드 시작 **//
 	public void setMember(Member member) {
+		if (this.member != null && this.member.containsMemberRole(this)) {
+			this.member.removeMemberRole(this);
+		}
 		this.member = member;
+		if (member != null && !member.containsMemberRole(this)) {
+			member.addMemberRole(this);
+		}
 	}
 	//** 연관 관계 메서드 종료 **//
 
@@ -52,5 +59,10 @@ public class MemberRole {
 
 	public String getRoleName() {
 		return role.getRoleName();
+	}
+
+	@Override
+	public String toString() {
+		return String.format("MemberRole(id=%d, member=%s, role=%s)", id, member.getNickname(), role.getRoleName());
 	}
 }

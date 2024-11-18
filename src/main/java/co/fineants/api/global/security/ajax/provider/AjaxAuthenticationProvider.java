@@ -26,7 +26,7 @@ public class AjaxAuthenticationProvider implements AuthenticationProvider {
 		log.debug("email : {}", email);
 		log.debug("password : {}", password);
 		log.debug("memberContext : {}", memberContext);
-		if (!passwordEncoder.matches(password, memberContext.getMember().getPassword())) {
+		if (!passwordEncoder.matches(password, memberContext.getMember().getPassword().orElse(null))) {
 			throw new BadCredentialsException("Invalid email or password");
 		}
 		return AjaxAuthenticationToken.authenticated(memberContext.getMember(), null, memberContext.getAuthorities());

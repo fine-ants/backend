@@ -130,7 +130,6 @@ class FirebaseNotificationProviderTest extends AbstractContainerBaseTest {
 		PortfolioHolding holding = holdingRepository.save(createPortfolioHolding(portfolio, stock));
 		PurchaseHistory history = purchaseHistoryRepository.save(purchaseHistory);
 		holding.addPurchaseHistory(history);
-		holding.applyCurrentPrice(currentPriceRedisRepository);
 		portfolio.addHolding(holding);
 		fcmRepository.save(createFcmToken("token", member));
 		return portfolio;

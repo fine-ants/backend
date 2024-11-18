@@ -49,7 +49,7 @@ public class CustomOidcUserService extends AbstractUserService implements OAuth2
 
 		OidcIdToken idToken = ((OidcUserRequest)userRequest).getIdToken();
 		Map<String, Object> claims = idToken.getClaims();
-		Map<String, Object> memberAttribute = member.toMemberAttributeMap();
+		Map<String, Object> memberAttribute = member.toAttributeMap();
 		memberAttribute.putAll(claims);
 
 		OidcUserInfo userInfo = new OidcUserInfo(memberAttribute);

@@ -19,7 +19,7 @@ import lombok.ToString;
 @Table(name = "ROLE")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-@EqualsAndHashCode(of = {"roleName", "roleDescription"})
+@EqualsAndHashCode(of = {"roleName"})
 @ToString
 @Getter
 public class Role {

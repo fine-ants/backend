@@ -12,6 +12,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
@@ -21,6 +22,7 @@ import lombok.ToString;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder(access = AccessLevel.PRIVATE)
 @ToString
+@EqualsAndHashCode(of = {"tickerSymbol"})
 @JsonDeserialize(using = KisCurrentPrice.KisCurrentPriceDeserializer.class)
 public class KisCurrentPrice {
 	private String tickerSymbol;
@@ -40,6 +42,10 @@ public class KisCurrentPrice {
 
 	public String toRedisValue() {
 		return String.valueOf(price);
+	}
+
+	public String toMemoryKey() {
+		return tickerSymbol;
 	}
 
 	static class KisCurrentPriceDeserializer extends JsonDeserializer<KisCurrentPrice> {

@@ -3,18 +3,17 @@ package co.fineants.api.domain.notification.domain.dto.response;
 import java.util.Collections;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
-@Getter
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @ToString
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class PortfolioNotifyMessagesResponse implements NotifyMessageResponse {
-	private List<NotifyMessageItem> notifications;
+	@JsonProperty
+	private final List<NotifyMessageItem> notifications;
 
 	public static PortfolioNotifyMessagesResponse create(
 		List<NotifyMessageItem> items) {
@@ -26,6 +25,7 @@ public class PortfolioNotifyMessagesResponse implements NotifyMessageResponse {
 	}
 
 	@Override
+	@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
 	public boolean isEmpty() {
 		return notifications.isEmpty();
 	}

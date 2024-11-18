@@ -26,7 +26,7 @@ class StockCsvReaderTest {
 		Assertions.assertThat(megatouch)
 			.extracting(Stock::getStockCode, Stock::getTickerSymbol, Stock::getCompanyName, Stock::getCompanyNameEng,
 				Stock::getMarket, Stock::getSector)
-			.containsExactly("KR7446540007", "446540", "메가터치", "Megatouch Co., Ltd", Market.KOSDAQ, "반도체");
+			.containsExactly("KR7446540007", "446540", "메가터치", "Megatouch Co., Ltd", Market.KOSDAQ, "기타");
 	}
 
 }

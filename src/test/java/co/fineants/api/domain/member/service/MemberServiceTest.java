@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -33,11 +34,9 @@ import co.fineants.api.domain.fcm.repository.FcmRepository;
 import co.fineants.api.domain.gainhistory.repository.PortfolioGainHistoryRepository;
 import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
 import co.fineants.api.domain.holding.repository.PortfolioHoldingRepository;
-import co.fineants.api.domain.member.domain.dto.request.ProfileChangeRequest;
 import co.fineants.api.domain.member.domain.dto.request.ProfileChangeServiceRequest;
 import co.fineants.api.domain.member.domain.dto.request.SignUpRequest;
 import co.fineants.api.domain.member.domain.dto.request.SignUpServiceRequest;
-import co.fineants.api.domain.member.domain.dto.request.VerifyCodeRequest;
 import co.fineants.api.domain.member.domain.dto.request.VerifyEmailRequest;
 import co.fineants.api.domain.member.domain.dto.response.ProfileChangeResponse;
 import co.fineants.api.domain.member.domain.dto.response.ProfileResponse;
@@ -134,7 +133,7 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 		Member member = memberRepository.save(createMember());
 		ProfileChangeServiceRequest serviceRequest = ProfileChangeServiceRequest.of(
 			createProfileFile(),
-			new ProfileChangeRequest("nemo12345"),
+			"nemo12345",
 			member.getId()
 		);
 
@@ -203,7 +202,7 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 		Member member = memberRepository.save(createMember());
 		ProfileChangeServiceRequest serviceRequest = ProfileChangeServiceRequest.of(
 			null,
-			new ProfileChangeRequest("nemo12345"),
+			"nemo12345",
 			member.getId()
 		);
 
@@ -224,7 +223,7 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 		Member member = memberRepository.save(createMember());
 		ProfileChangeServiceRequest serviceRequest = ProfileChangeServiceRequest.of(
 			createProfileFile(),
-			new ProfileChangeRequest("nemo1234"),
+			"nemo1234",
 			member.getId()
 		);
 
@@ -249,7 +248,7 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 		Member member = memberRepository.save(createMember());
 		ProfileChangeServiceRequest serviceRequest = ProfileChangeServiceRequest.of(
 			null,
-			new ProfileChangeRequest("nemo12345"),
+			"nemo12345",
 			member.getId()
 		);
 
@@ -502,13 +501,10 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 		// given
 		given(redisService.get("dragonbead95@naver.com"))
 			.willReturn(Optional.of("123456"));
-
-		VerifyCodeRequest request = ObjectMapperUtil.deserialize(
-			ObjectMapperUtil.serialize(Map.of("email", "dragonbead95@naver.com", "code", "123456")),
-			VerifyCodeRequest.class);
-
+		String email = "dragonbead95@naver.com";
+		String code = "123456";
 		// when & then
-		assertDoesNotThrow(() -> memberService.checkVerifyCode(request));
+		Assertions.assertDoesNotThrow(() -> memberService.checkVerifyCode(email, code));
 	}
 
 	@DisplayName("사용자는 매치되지 않은 검증 코드를 전달하며 검사를 요청했을때 예외가 발생한다")
@@ -517,13 +513,11 @@ public class MemberServiceTest extends AbstractContainerBaseTest {
 		// given
 		given(redisService.get("dragonbead95@naver.com"))
 			.willReturn(Optional.of("123456"));
-
-		VerifyCodeRequest request = ObjectMapperUtil.deserialize(
-			ObjectMapperUtil.serialize(Map.of("email", "dragonbead95@naver.com", "code", "234567")),
-			VerifyCodeRequest.class);
+		String email = "dragonbead95@naver.com";
+		String code = "234567";
 
 		// when
-		Throwable throwable = catchThrowable(() -> memberService.checkVerifyCode(request));
+		Throwable throwable = catchThrowable(() -> memberService.checkVerifyCode(email, code));
 
 		// then
 		assertThat(throwable)

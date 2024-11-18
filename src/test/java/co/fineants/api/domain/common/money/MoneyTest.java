@@ -55,7 +55,7 @@ class MoneyTest {
 	@Test
 	void testEqualityForOtherType() {
 		Money won = Money.won(1000);
-		Sum sum = new Sum(Money.won(1000), Money.wonZero());
+		Sum sum = new Sum(Money.won(1000), Money.zero());
 		assertNotEquals(won, sum);
 	}
 
@@ -427,5 +427,18 @@ class MoneyTest {
 		Percentage expected = Percentage.from(0.4);
 		Percentage actual = result.toPercentage(Bank.getInstance(), USD);
 		assertEquals(expected, actual);
+	}
+
+	@DisplayName("1만원을 0개로 나누면 0개로 계산된다")
+	@Test
+	void testCountDivision_whenMoneyDivideZeroCount_thenReturnZeroOfMoney() {
+		// given
+		Money money = Money.won(10000);
+		Count zero = Count.zero();
+		Expression average = money.divide(zero);
+		// when
+		Money actual = average.reduce(Bank.getInstance(), KRW);
+		// then
+		Assertions.assertThat(actual).isEqualByComparingTo(Money.zero());
 	}
 }

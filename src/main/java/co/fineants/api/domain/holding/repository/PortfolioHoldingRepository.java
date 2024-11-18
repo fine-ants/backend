@@ -15,8 +15,7 @@ public interface PortfolioHoldingRepository extends JpaRepository<PortfolioHoldi
 
 	List<PortfolioHolding> findAllByPortfolio(Portfolio portfolio);
 
-	@Query("select distinct s.tickerSymbol from PortfolioHolding p "
-		+ "inner join Stock s on p.stock.tickerSymbol = s.tickerSymbol")
+	@Query("select p.stock.tickerSymbol from PortfolioHolding p group by p.stock.tickerSymbol order by p.stock.tickerSymbol")
 	List<String> findAllTickerSymbol();
 
 	@Query("select p from PortfolioHolding p "
@@ -31,18 +30,9 @@ public interface PortfolioHoldingRepository extends JpaRepository<PortfolioHoldi
 		@Param("portfolioHoldingId") Long portfolioHoldingId,
 		@Param("portfolioId") Long portfolioId);
 
-	@Query("select p from PortfolioHolding p join fetch p.stock join fetch p.purchaseHistory "
-		+ "where p.stock.tickerSymbol in (:tickerSymbols)")
-	List<PortfolioHolding> findAllByTickerSymbolsWithStockAndPurchaseHistory(
-		@Param("tickerSymbols") List<String> tickerSymbols);
-
-	@Query("select count(p) > 0 from PortfolioHolding p "
-		+ "where p.id = :portfolioHoldingId and p.portfolio.member.id = :memberId")
-	boolean existsByIdAndMemberId(
-		@Param("portfolioHoldingId") Long portfolioHoldingId,
-		@Param("memberId") Long memberId);
-
-	int deleteAllByPortfolioId(Long portFolioId);
+	@Modifying
+	@Query("delete from PortfolioHolding p where p.portfolio.id = :portFolioId")
+	int deleteAllByPortfolioId(@Param("portFolioId") Long portFolioId);
 
 	@Modifying
 	@Query("delete from PortfolioHolding p where p.id in :holdingIds")

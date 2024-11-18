@@ -6,8 +6,10 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
 
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.time.LocalDateTime;
 
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -15,6 +17,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.testcontainers.shaded.org.awaitility.Awaitility;
 
 import co.fineants.AbstractContainerBaseTest;
 import co.fineants.api.domain.common.count.Count;
@@ -71,10 +74,10 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 	private NotificationRepository notificationRepository;
 
 	@Autowired
-	private FcmRepository fcmRepository;
+	private CurrentPriceRedisRepository currentPriceRedisRepository;
 
 	@Autowired
-	private CurrentPriceRedisRepository currentPriceRedisRepository;
+	private FcmRepository fcmRepository;
 
 	@MockBean
 	private FirebaseMessagingService firebaseMessagingService;
@@ -97,7 +100,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 		Portfolio portfolio = portfolioRepository.save(
 			createPortfolio(member, "내꿈은 워렌버핏", Money.won(budget), Money.won(targetGain), Money.won(maximumLoss)));
 		Stock stock = stockRepository.save(createSamsungStock());
-		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
+		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.of(portfolio, stock));
 
 		LocalDateTime now = LocalDateTime.now();
 		Money money = Money.won(50000.0);
@@ -131,6 +134,75 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 		);
 	}
 
+	@DisplayName("포트폴리오의 잔고와 추가하는 매입 이력의 금액이 동일해도 매입 이력이 추가된다")
+	@Test
+	void addPurchaseHistory_givenPortfolio_whenBalanceEqualPurchaseAmount_thenAddPurchaseHistory() {
+		// given
+		Member member = memberRepository.save(createMember());
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
+		Stock stock = stockRepository.save(createSamsungStock());
+		PortfolioHolding holding = portFolioHoldingRepository.save(createPortfolioHolding(portfolio, stock));
+		PurchaseHistory history = purchaseHistoryRepository.save(
+			createPurchaseHistory(null, LocalDateTime.now(), Count.from(3), Money.won(50_000),
+				"메모", holding));
+		holding.addPurchaseHistory(history);
+		portfolio.addHolding(holding);
+
+		setAuthentication(member);
+		// when
+		PurchaseHistoryCreateRequest request = PurchaseHistoryCreateRequest.create(LocalDateTime.now(), Count.from(17),
+			Money.won(50_000), "메모");
+		PurchaseHistoryCreateResponse response = service.createPurchaseHistory(request, portfolio.getId(),
+			holding.getId(), member.getId());
+		// then
+		Assertions.assertThat(response).isNotNull();
+	}
+
+	@DisplayName("매입 이력을 추가할때 매입 이력 알림이 발생한다")
+	@Test
+	void givenCreateRequest_whenCreatePurchaseHistory_thenNotifyTargetGainNotification() {
+		Member member = memberRepository.save(createMember());
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
+		Stock stock = stockRepository.save(createSamsungStock());
+		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.of(portfolio, stock));
+		fcmRepository.save(createFcmToken("token", member));
+
+		LocalDateTime now = LocalDateTime.now();
+		PurchaseHistoryCreateRequest request = PurchaseHistoryCreateRequest.builder()
+			.purchaseDate(now)
+			.numShares(Count.from(3L))
+			.purchasePricePerShare(Money.won(100))
+			.memo("첫구매")
+			.build();
+		currentPriceRedisRepository.savePrice(stock, 50000L);
+
+		setAuthentication(member);
+		// when
+		PurchaseHistoryCreateResponse response = service.createPurchaseHistory(
+			request,
+			portfolio.getId(),
+			holding.getId(),
+			member.getId()
+		);
+
+		// then
+		PurchaseHistory findPurchaseHistory = purchaseHistoryRepository.findById(response.getId()).orElseThrow();
+		assertAll(
+			() -> assertThat(response).extracting("id").isNotNull(),
+			() -> assertThat(findPurchaseHistory)
+				.extracting(PurchaseHistory::getId, PurchaseHistory::getPurchaseLocalDate,
+					PurchaseHistory::getPurchasePricePerShare, PurchaseHistory::getNumShares, PurchaseHistory::getMemo)
+				.usingComparatorForType(Money::compareTo, Money.class)
+				.usingComparatorForType(Count::compareTo, Count.class)
+				.containsExactlyInAnyOrder(response.getId(), now.toLocalDate(), Money.won(100), Count.from(3),
+					"첫구매")
+		);
+
+		Awaitility.await()
+			.atMost(Duration.ofSeconds(5))
+			.untilAsserted(() -> assertThat(notificationRepository.findAllByMemberId(member.getId())).hasSize(1));
+	}
+
 	@DisplayName("사용자가 매입 이력을 추가할 때 예산이 부족해 실패한다.")
 	@Test
 	void addPurchaseHistoryFailsWhenTotalInvestmentExceedsBudget() {
@@ -138,7 +210,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 		Member member = memberRepository.save(createMember());
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Stock stock = stockRepository.save(createSamsungStock());
-		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
+		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.of(portfolio, stock));
 
 		PurchaseHistoryCreateRequest request = PurchaseHistoryCreateRequest.builder()
 			.purchaseDate(LocalDateTime.now())
@@ -166,7 +238,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 		Member hacker = memberRepository.save(createMember("hacker"));
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Stock stock = stockRepository.save(createSamsungStock());
-		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
+		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.of(portfolio, stock));
 
 		LocalDateTime now = LocalDateTime.now();
 		Money money = Money.won(50000.0);
@@ -194,7 +266,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 		Member member = memberRepository.save(createMember());
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Stock stock = stockRepository.save(createSamsungStock());
-		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
+		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.of(portfolio, stock));
 		PurchaseHistory history = purchaseHistoryRepository.save(
 			createPurchaseHistory(null, LocalDateTime.of(2023, 9, 26, 9, 30, 0), Count.from(3), Money.won(50000), "첫구매",
 				holding));
@@ -235,7 +307,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 		Member hacker = memberRepository.save(createMember("hacker"));
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Stock stock = stockRepository.save(createSamsungStock());
-		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
+		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.of(portfolio, stock));
 		PurchaseHistory history = purchaseHistoryRepository.save(
 			createPurchaseHistory(null, LocalDateTime.of(2023, 9, 26, 9, 30, 0), Count.from(3), Money.won(50000), "첫구매",
 				holding));
@@ -265,7 +337,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 		Member member = memberRepository.save(createMember());
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Stock stock = stockRepository.save(createSamsungStock());
-		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
+		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.of(portfolio, stock));
 		PurchaseHistory history = purchaseHistoryRepository.save(
 			createPurchaseHistory(null, LocalDateTime.of(2023, 9, 26, 9, 30, 0), Count.from(3), Money.won(50000), "첫구매",
 				holding));
@@ -295,7 +367,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 		Member member = memberRepository.save(createMember());
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Stock stock = stockRepository.save(createSamsungStock());
-		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
+		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.of(portfolio, stock));
 		purchaseHistoryRepository.save(purchaseHistoryRepository.save(
 			createPurchaseHistory(null, LocalDateTime.of(2023, 9, 26, 9, 30, 0), Count.from(3), Money.won(50000), "첫구매",
 				holding)));
@@ -326,7 +398,7 @@ class PurchaseHistoryServiceTest extends AbstractContainerBaseTest {
 		Member hacker = memberRepository.save(createMember("hacker"));
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Stock stock = stockRepository.save(createSamsungStock());
-		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
+		PortfolioHolding holding = portFolioHoldingRepository.save(PortfolioHolding.of(portfolio, stock));
 		PurchaseHistory history = purchaseHistoryRepository.save(
 			createPurchaseHistory(null, LocalDateTime.of(2023, 9, 26, 9, 30, 0), Count.from(3), Money.won(50000), "첫구매",
 				holding));

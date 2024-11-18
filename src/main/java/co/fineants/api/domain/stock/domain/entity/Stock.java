@@ -1,9 +1,12 @@
 package co.fineants.api.domain.stock.domain.entity;
 
+import static co.fineants.api.domain.stock.service.StockCsvReader.*;
+
 import java.time.LocalDate;
+import java.time.Month;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -17,11 +20,11 @@ import co.fineants.api.domain.common.money.RateDivision;
 import co.fineants.api.domain.dividend.domain.entity.StockDividend;
 import co.fineants.api.domain.kis.repository.ClosingPriceRepository;
 import co.fineants.api.domain.kis.repository.CurrentPriceRedisRepository;
+import co.fineants.api.domain.kis.repository.PriceRepository;
 import co.fineants.api.domain.purchasehistory.domain.entity.PurchaseHistory;
 import co.fineants.api.domain.stock.converter.MarketConverter;
 import co.fineants.api.global.common.time.DefaultLocalDateTimeService;
 import co.fineants.api.global.common.time.LocalDateTimeService;
-import co.fineants.api.infra.s3.service.AmazonS3StockService;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -57,6 +60,8 @@ public class Stock extends BaseEntity {
 	@Transient
 	private LocalDateTimeService localDateTimeService = new DefaultLocalDateTimeService();
 
+	public static final String TICKER_PREFIX = "TS";
+
 	private Stock(String tickerSymbol, String companyName, String companyNameEng, String stockCode, String sector,
 		Market market) {
 		this.tickerSymbol = tickerSymbol;
@@ -82,7 +87,7 @@ public class Stock extends BaseEntity {
 	public List<StockDividend> getCurrentMonthDividends() {
 		LocalDate today = localDateTimeService.getLocalDateWithNow();
 		return stockDividends.stream()
-			.filter(dividend -> dividend.equalPaymentDate(today))
+			.filter(dividend -> dividend.isCurrentMonthPaymentDate(today))
 			.toList();
 	}
 
@@ -93,15 +98,15 @@ public class Stock extends BaseEntity {
 			.toList();
 	}
 
-	public Map<Integer, Expression> createMonthlyDividends(List<PurchaseHistory> purchaseHistories,
+	public Map<Month, Expression> createMonthlyDividends(List<PurchaseHistory> purchaseHistories,
 		LocalDate currentLocalDate) {
-		Map<Integer, Expression> result = initMonthlyDividendMap();
+		Map<Month, Expression> result = initMonthlyDividendMap();
 		List<StockDividend> currentYearStockDividends = getStockDividendsWithCurrentYearRecordDateBy(currentLocalDate);
 
 		for (StockDividend stockDividend : currentYearStockDividends) {
 			for (PurchaseHistory purchaseHistory : purchaseHistories) {
 				if (stockDividend.canReceiveDividendOn(purchaseHistory)) {
-					int paymentMonth = stockDividend.getMonthValueByPaymentDate();
+					Month paymentMonth = stockDividend.getMonthByPaymentDate();
 					Expression dividendSum = stockDividend.calculateDividendSum(purchaseHistory.getNumShares());
 					Expression sum = result.getOrDefault(paymentMonth, Money.zero()).plus(dividendSum);
 					result.put(paymentMonth, sum);
@@ -118,9 +123,9 @@ public class Stock extends BaseEntity {
 			.toList();
 	}
 
-	public Map<Integer, Expression> createMonthlyExpectedDividends(List<PurchaseHistory> purchaseHistories,
+	public Map<Month, Expression> createMonthlyExpectedDividends(List<PurchaseHistory> purchaseHistories,
 		LocalDate currentLocalDate) {
-		Map<Integer, Expression> result = initMonthlyDividendMap();
+		Map<Month, Expression> result = initMonthlyDividendMap();
 		// 0. 현재년도에 해당하는 배당금 정보를 필터링하여 별도 저장합니다.
 		List<StockDividend> currentYearStockDividends = getStockDividendsWithCurrentYearRecordDateBy(currentLocalDate);
 
@@ -133,7 +138,7 @@ public class Stock extends BaseEntity {
 			.forEach(stockDividend -> {
 				// 3. 필터링한 배당금 정보들을 이용하여 배당금을 계산합니다.
 				for (PurchaseHistory purchaseHistory : purchaseHistories) {
-					int paymentMonth = stockDividend.getMonthValueByPaymentDate();
+					Month paymentMonth = stockDividend.getMonthByPaymentDate();
 					Expression dividendSum = stockDividend.calculateDividendSum(purchaseHistory.getNumShares());
 					result.put(paymentMonth, result.getOrDefault(paymentMonth, Money.zero()).plus(dividendSum));
 				}
@@ -142,9 +147,9 @@ public class Stock extends BaseEntity {
 	}
 
 	@NotNull
-	private static Map<Integer, Expression> initMonthlyDividendMap() {
-		Map<Integer, Expression> result = new HashMap<>();
-		for (int month = 1; month <= 12; month++) {
+	private static Map<Month, Expression> initMonthlyDividendMap() {
+		Map<Month, Expression> result = new EnumMap<>(Month.class);
+		for (Month month : Month.values()) {
 			result.put(month, Money.zero());
 		}
 		return result;
@@ -184,7 +189,7 @@ public class Stock extends BaseEntity {
 		return currentPrice.minus(lastDayClosingPrice).divide(lastDayClosingPrice);
 	}
 
-	public Expression getCurrentPrice(CurrentPriceRedisRepository manager) {
+	public Expression getCurrentPrice(PriceRepository manager) {
 		return manager.fetchPriceBy(tickerSymbol).orElseGet(Money::zero);
 	}
 
@@ -192,10 +197,10 @@ public class Stock extends BaseEntity {
 		return manager.fetchPrice(tickerSymbol).orElseGet(Money::zero);
 	}
 
-	public List<Integer> getDividendMonths() {
+	public List<Month> getDividendMonths() {
 		return stockDividends.stream()
 			.filter(dividend -> dividend.isCurrentYearPaymentDate(localDateTimeService.getLocalDateWithNow()))
-			.map(StockDividend::getMonthValueByPaymentDate)
+			.map(StockDividend::getMonthByPaymentDate)
 			.toList();
 	}
 	// ticker 및 recordDate 기준으로 KisDividend가 매치되어 있는지 확인
@@ -224,13 +229,14 @@ public class Stock extends BaseEntity {
 	}
 
 	public String toCsvLineString() {
-		return String.join(AmazonS3StockService.CSV_SEPARATOR,
+		String ticker = String.format("%s%s", TICKER_PREFIX, tickerSymbol);
+		return String.join(CSV_DELIMITER,
 			stockCode,
-			tickerSymbol,
+			ticker,
 			companyName,
 			companyNameEng,
-			market.name(),
-			sector);
+			sector,
+			market.name());
 	}
 
 	public List<StockDividend> getStockDividends() {
@@ -239,5 +245,13 @@ public class Stock extends BaseEntity {
 
 	public void setLocalDateTimeService(LocalDateTimeService localDateTimeService) {
 		this.localDateTimeService = localDateTimeService;
+	}
+
+	public Optional<Money> fetchPrice(PriceRepository repository) {
+		return repository.fetchPriceBy(tickerSymbol);
+	}
+
+	public void savePrice(PriceRepository repository, long price) {
+		repository.savePrice(tickerSymbol, price);
 	}
 }

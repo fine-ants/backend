@@ -1,10 +1,14 @@
 package co.fineants.api.domain.portfolio.service;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.jetbrains.annotations.NotNull;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,12 +20,16 @@ import co.fineants.api.domain.holding.repository.PortfolioHoldingRepository;
 import co.fineants.api.domain.kis.repository.CurrentPriceRedisRepository;
 import co.fineants.api.domain.member.domain.entity.Member;
 import co.fineants.api.domain.member.repository.MemberRepository;
+import co.fineants.api.domain.portfolio.domain.calculator.PortfolioCalculator;
 import co.fineants.api.domain.portfolio.domain.dto.request.PortfolioCreateRequest;
 import co.fineants.api.domain.portfolio.domain.dto.request.PortfolioModifyRequest;
 import co.fineants.api.domain.portfolio.domain.dto.response.PortFolioCreateResponse;
 import co.fineants.api.domain.portfolio.domain.dto.response.PortfolioModifyResponse;
+import co.fineants.api.domain.portfolio.domain.dto.response.PortfolioNameItem;
+import co.fineants.api.domain.portfolio.domain.dto.response.PortfolioNameResponse;
 import co.fineants.api.domain.portfolio.domain.dto.response.PortfoliosResponse;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
+import co.fineants.api.domain.portfolio.properties.PortfolioProperties;
 import co.fineants.api.domain.portfolio.repository.PortfolioPropertiesRepository;
 import co.fineants.api.domain.portfolio.repository.PortfolioRepository;
 import co.fineants.api.domain.purchasehistory.repository.PurchaseHistoryRepository;
@@ -50,16 +58,19 @@ public class PortFolioService {
 	private final PortfolioGainHistoryRepository portfolioGainHistoryRepository;
 	private final CurrentPriceRedisRepository currentPriceRedisRepository;
 	private final PortfolioPropertiesRepository portfolioPropertiesRepository;
+	private final PortfolioProperties properties;
+	private final PortfolioCalculator calculator;
 
 	@Transactional
 	@Secured("ROLE_USER")
+	@CacheEvict(value = "myAllPortfolioNames", key = "#memberId")
 	public PortFolioCreateResponse createPortfolio(PortfolioCreateRequest request, Long memberId) {
 		validateSecuritiesFirm(request.getSecuritiesFirm());
 
 		Member member = findMember(memberId);
 
 		validateUniquePortfolioName(request.getName(), member);
-		Portfolio portfolio = request.toEntity(member);
+		Portfolio portfolio = request.toEntity(member, properties);
 		return PortFolioCreateResponse.from(portfolioRepository.save(portfolio));
 	}
 
@@ -75,12 +86,13 @@ public class PortFolioService {
 	}
 
 	private void validateUniquePortfolioName(String name, Member member) {
-		if (portfolioRepository.existsByNameAndMember(name, member)) {
+		if (portfolioRepository.findByNameAndMember(name, member).isPresent()) {
 			throw new ConflictException(PortfolioErrorCode.DUPLICATE_NAME);
 		}
 	}
 
 	@Transactional
+	@CacheEvict(value = "myAllPortfolioNames", key = "#memberId")
 	@Authorized(serviceClass = PortfolioAuthorizedService.class)
 	@Secured("ROLE_USER")
 	public PortfolioModifyResponse updatePortfolio(PortfolioModifyRequest request, @ResourceId Long portfolioId,
@@ -88,10 +100,10 @@ public class PortFolioService {
 		log.info("포트폴리오 수정 서비스 요청 : request={}, portfolioId={}, memberId={}", request, portfolioId, memberId);
 		Member member = findMember(memberId);
 		Portfolio originalPortfolio = findPortfolio(portfolioId);
-		Portfolio changePortfolio = request.toEntity(member);
+		Portfolio changePortfolio = request.toEntity(member, properties);
 
-		if (!originalPortfolio.isSameName(changePortfolio)) {
-			validateUniquePortfolioName(changePortfolio.getName(), member);
+		if (!originalPortfolio.equalName(changePortfolio)) {
+			validateUniquePortfolioName(changePortfolio.name(), member);
 		}
 		originalPortfolio.change(changePortfolio);
 
@@ -100,6 +112,7 @@ public class PortFolioService {
 	}
 
 	@Transactional
+	@CacheEvict(value = "myAllPortfolioNames", key = "#memberId")
 	@Authorized(serviceClass = PortfolioAuthorizedService.class)
 	@Secured("ROLE_USER")
 	public void deletePortfolio(@ResourceId Long portfolioId, Long memberId) {
@@ -124,9 +137,11 @@ public class PortFolioService {
 	}
 
 	@Transactional
+	@CacheEvict(value = "myAllPortfolioNames", key = "#memberId")
 	@Authorized(serviceClass = PortfolioAuthorizedService.class)
 	@Secured("ROLE_USER")
-	public void deletePortfolios(@ResourceIds List<Long> portfolioIds) {
+	public void deletePortfolios(@ResourceIds List<Long> portfolioIds, @NotNull Long memberId) {
+		log.info("portfolio multiple delete service request: portfolioIds={}, memberId={}", portfolioIds, memberId);
 		for (Long portfolioId : portfolioIds) {
 			Portfolio portfolio = findPortfolio(portfolioId);
 			List<Long> portfolioStockIds = portfolioHoldingRepository.findAllByPortfolio(portfolio).stream()
@@ -160,6 +175,17 @@ public class PortFolioService {
 						.orElseGet(() -> PortfolioGainHistory.empty(portfolio))
 			));
 
-		return PortfoliosResponse.of(portfolios, portfolioGainHistoryMap, currentPriceRedisRepository);
+		return PortfoliosResponse.of(portfolios, portfolioGainHistoryMap, currentPriceRedisRepository, calculator);
+	}
+
+	@Transactional(readOnly = true)
+	@Cacheable(value = "myAllPortfolioNames", key = "#memberId")
+	@Secured("ROLE_USER")
+	public PortfolioNameResponse readMyAllPortfolioNames(@NotNull Long memberId) {
+		List<PortfolioNameItem> items = portfolioRepository.findAllByMemberIdOrderByIdDesc(memberId).stream()
+			.sorted(Comparator.comparing(Portfolio::getCreateAt).reversed())
+			.map(PortfolioNameItem::from)
+			.toList();
+		return PortfolioNameResponse.from(items);
 	}
 }

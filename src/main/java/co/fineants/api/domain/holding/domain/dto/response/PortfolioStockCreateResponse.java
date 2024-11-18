@@ -1,15 +1,28 @@
 package co.fineants.api.domain.holding.domain.dto.response;
 
-import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
+import lombok.EqualsAndHashCode;
+
+@EqualsAndHashCode
 public class PortfolioStockCreateResponse {
 
-	private Long portfolioHoldingId;
+	@JsonProperty
+	private final Long portfolioHoldingId;
+
+	@JsonCreator
+	private PortfolioStockCreateResponse(@JsonProperty("portfolioHoldingId") Long portfolioHoldingId) {
+		this.portfolioHoldingId = portfolioHoldingId;
+	}
 
 	public static PortfolioStockCreateResponse from(PortfolioHolding portFolioHolding) {
 		return new PortfolioStockCreateResponse(portFolioHolding.getId());
+	}
+
+	@Override
+	public String toString() {
+		return String.format("포트폴리오 종목 생성 응답 결과(portfolioHoldingId=%d)", portfolioHoldingId);
 	}
 }

@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
@@ -40,9 +41,14 @@ import co.fineants.api.domain.holding.domain.dto.response.PortfolioStockCreateRe
 import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
 import co.fineants.api.domain.holding.service.PortfolioHoldingService;
 import co.fineants.api.domain.holding.service.PortfolioObservableService;
+import co.fineants.api.domain.kis.repository.CurrentPriceMemoryRepository;
+import co.fineants.api.domain.kis.repository.PriceRepository;
 import co.fineants.api.domain.member.domain.entity.Member;
+import co.fineants.api.domain.portfolio.domain.calculator.PortfolioCalculator;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import co.fineants.api.domain.stock.domain.entity.Stock;
+import co.fineants.api.global.common.time.DefaultLocalDateTimeService;
+import co.fineants.api.global.common.time.LocalDateTimeService;
 import co.fineants.api.global.util.ObjectMapperUtil;
 
 class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
@@ -51,9 +57,18 @@ class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 	private final PortfolioObservableService portfolioObservableService = Mockito.mock(
 		PortfolioObservableService.class);
 
+	private PriceRepository currentPriceRepository;
+	private PortfolioCalculator calculator;
+
 	@Override
 	protected Object initController() {
 		return new PortfolioHoldingRestController(service, portfolioObservableService);
+	}
+
+	@BeforeEach
+	void setUp() {
+		currentPriceRepository = new CurrentPriceMemoryRepository();
+		calculator = new PortfolioCalculator(currentPriceRepository);
 	}
 
 	@DisplayName("포트폴리오 종목 생성 API")
@@ -128,6 +143,7 @@ class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 		Member member = createMember();
 		Portfolio portfolio = createPortfolio(member);
 		Stock stock = createSamsungStock();
+		currentPriceRepository.savePrice(stock, 60_000L);
 		List<StockDividend> stockDividends = createStockDividendWith(stock);
 		stockDividends.forEach(stock::addStockDividend);
 		PortfolioHolding portfolioHolding = createPortfolioHolding(portfolio, stock);
@@ -137,9 +153,12 @@ class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 		PortfolioGainHistory history = createEmptyPortfolioGainHistory(portfolio);
 
 		Map<String, Money> lastDayClosingPriceMap = Map.of("005930", Money.won(50000L));
+		LocalDateTimeService localDateTimeService = new DefaultLocalDateTimeService();
 		PortfolioHoldingsResponse mockResponse = PortfolioHoldingsResponse.of(portfolio, history,
 			List.of(portfolioHolding),
-			lastDayClosingPriceMap);
+			lastDayClosingPriceMap,
+			localDateTimeService,
+			calculator);
 
 		given(service.readPortfolioHoldings(anyLong())).willReturn(mockResponse);
 		// when & then
@@ -334,7 +353,6 @@ class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 	void readPortfolioCharts() throws Exception {
 		// given
 		Portfolio portfolio = createPortfolio(createMember());
-		portfolio.calculateTotalAsset();
 		int samsungValuation = 600000;
 		int samsungTotalGain = 100000;
 		int cash = 500000;

@@ -12,12 +12,10 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.ToString;
 
 @Getter
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @EqualsAndHashCode(of = {"email", "nickname", "provider"})
-@ToString
 public class MemberAuthentication {
 	private Long id;
 	private String email;
@@ -37,17 +35,23 @@ public class MemberAuthentication {
 			member.getEmail(),
 			member.getNickname(),
 			member.getProvider(),
-			member.getProfileUrl(),
+			member.getProfileUrl().orElse(null),
 			member.getRoles().stream()
 				.map(MemberRole::getRole)
 				.map(Role::getRoleName)
 				.collect(Collectors.toSet())
 		);
 	}
-	
+
 	public Set<SimpleGrantedAuthority> getSimpleGrantedAuthority() {
 		return roleSet.stream()
 			.map(SimpleGrantedAuthority::new)
 			.collect(Collectors.toUnmodifiableSet());
+	}
+
+	@Override
+	public String toString() {
+		return String.format("MemberAuthentication(id=%d, nickname=%s, email=%s, roles=%s)", id, nickname, email,
+			roleSet);
 	}
 }

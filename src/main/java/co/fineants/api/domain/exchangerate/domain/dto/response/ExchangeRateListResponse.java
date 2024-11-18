@@ -2,15 +2,16 @@ package co.fineants.api.domain.exchangerate.domain.dto.response;
 
 import java.util.List;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class ExchangeRateListResponse {
 
-	private List<ExchangeRateItem> rates;
+	@JsonProperty
+	private final List<ExchangeRateItem> rates;
 
 	public static ExchangeRateListResponse from(List<ExchangeRateItem> exchangeRateItems) {
 		return new ExchangeRateListResponse(exchangeRateItems);

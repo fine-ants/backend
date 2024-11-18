@@ -28,6 +28,7 @@ import co.fineants.api.domain.kis.client.KisCurrentPrice;
 import co.fineants.api.domain.kis.domain.dto.response.KisClosingPrice;
 import co.fineants.api.domain.kis.repository.ClosingPriceRepository;
 import co.fineants.api.domain.kis.repository.CurrentPriceRedisRepository;
+import co.fineants.api.domain.kis.repository.WebSocketApprovalKeyRedisRepository;
 import co.fineants.api.domain.member.domain.dto.request.LoginRequest;
 import co.fineants.api.domain.member.domain.entity.Member;
 import co.fineants.api.domain.member.repository.MemberRepository;
@@ -38,6 +39,7 @@ import co.fineants.api.domain.purchasehistory.repository.PurchaseHistoryReposito
 import co.fineants.api.domain.stock.domain.entity.Stock;
 import co.fineants.api.domain.stock.repository.StockRepository;
 import co.fineants.api.global.common.time.LocalDateTimeService;
+import co.fineants.price.domain.stockprice.domain.StockPrice;
 import co.fineants.price.domain.stockprice.repository.StockPriceRepository;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
@@ -76,6 +78,9 @@ class PortfolioHoldingRestControllerIntegrationTest extends AbstractContainerBas
 	@Autowired
 	private StockPriceRepository stockPriceRepository;
 
+	@Autowired
+	private WebSocketApprovalKeyRedisRepository approvalKeyRedisRepository;
+
 	@SpyBean
 	private PortfolioCacheService portfolioCacheService;
 
@@ -84,6 +89,7 @@ class PortfolioHoldingRestControllerIntegrationTest extends AbstractContainerBas
 
 	@BeforeEach
 	void setUp() {
+		approvalKeyRedisRepository.saveApprovalKey("approvalKey");
 		stockPriceRepository.clear();
 	}
 
@@ -115,7 +121,13 @@ class PortfolioHoldingRestControllerIntegrationTest extends AbstractContainerBas
 		requestPortfolioHoldingWithSse(uri, loginCookies);
 
 		// then
-		assertThat(stockPriceRepository.size()).isEqualTo(1);
+		assertThat(stockPriceRepository.size())
+			.as("The number of stock prices stored in the repository must be 1.")
+			.isEqualTo(1);
+		assertThat(stockPriceRepository.findAll().stream()
+			.noneMatch(StockPrice::isExpired))
+			.as("All stored stock prices must not be expired.")
+			.isTrue();
 	}
 
 	@DisplayName("사용자가 포트폴리오 종목 조회(SSE)을 계속 요청할 때 포트폴리오의 종목 정보가 동일하면 캐시된 종목 정보를 반환해야 한다")
@@ -142,7 +154,9 @@ class PortfolioHoldingRestControllerIntegrationTest extends AbstractContainerBas
 		requestPortfolioHoldingWithSse(uri, loginCookies);
 		// then
 		verify(portfolioCacheService, times(1)).getTickerSymbolsFromPortfolioBy(portfolioId);
-		assertThat(stockPriceRepository.size()).isEqualTo(1);
+		assertThat(stockPriceRepository.size())
+			.as("The number of stock prices stored in the repository must be 1.")
+			.isEqualTo(1);
 	}
 
 	private void requestPortfolioHoldingWithSse(String uri, Map<String, String> loginCookies) {

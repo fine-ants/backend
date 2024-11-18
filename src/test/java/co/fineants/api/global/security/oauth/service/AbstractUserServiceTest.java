@@ -48,7 +48,7 @@ class AbstractUserServiceTest extends AbstractContainerBaseTest {
 		// when
 		Member member = userService.saveOrUpdate(googleOAuth);
 		// then
-		assertThat(member.getProfileUrl()).isEqualTo("profileUrl1");
+		assertThat(member.getProfileUrl().orElseThrow()).isEqualTo("profileUrl1");
 	}
 
 }

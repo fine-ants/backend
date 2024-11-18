@@ -4,6 +4,11 @@ import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.common.money.valiator.MoneyNumberWithZero;
 import co.fineants.api.domain.member.domain.entity.Member;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
+import co.fineants.api.domain.portfolio.domain.entity.PortfolioDetail;
+import co.fineants.api.domain.portfolio.domain.entity.PortfolioFinancial;
+import co.fineants.api.domain.portfolio.properties.PortfolioProperties;
+import co.fineants.api.global.errors.exception.BadRequestException;
+import co.fineants.api.global.errors.exception.portfolio.IllegalPortfolioArgumentException;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -27,7 +32,14 @@ public class PortfolioModifyRequest {
 	@MoneyNumberWithZero
 	private Money maximumLoss;
 
-	public Portfolio toEntity(Member member) {
-		return Portfolio.noActive(name, securitiesFirm, budget, targetGain, maximumLoss, member);
+	public Portfolio toEntity(Member member, PortfolioProperties properties) {
+
+		try {
+			PortfolioDetail detail = PortfolioDetail.of(name, securitiesFirm, properties);
+			PortfolioFinancial financial = PortfolioFinancial.of(budget, targetGain, maximumLoss);
+			return Portfolio.allInActive(detail, financial, member);
+		} catch (IllegalPortfolioArgumentException e) {
+			throw new BadRequestException(e.getErrorCode(), e);
+		}
 	}
 }

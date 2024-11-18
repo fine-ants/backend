@@ -37,20 +37,23 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class StockCsvReader {
 
+	public static final String CSV_DELIMITER = "$";
+
 	public Set<Stock> readStockCsv() {
 		Resource resource = new ClassPathResource("stocks.csv");
 
 		Set<Stock> result = new HashSet<>();
 		try (BufferedReader reader = new BufferedReader(new InputStreamReader(resource.getInputStream()))) {
 			Iterable<CSVRecord> records = CSVFormat.Builder.create()
-				.setHeader("stockCode", "tickerSymbol", "companyName", "companyNameEng", "market", "sector")
+				.setHeader("stockCode", "tickerSymbol", "companyName", "companyNameEng", "sector", "market")
 				.setSkipHeaderRecord(true)
+				.setDelimiter(CSV_DELIMITER)
 				.build()
 				.parse(reader);
 
 			for (CSVRecord csvRecord : records) {
 				Stock stock = Stock.of(
-					csvRecord.get("tickerSymbol"),
+					csvRecord.get("tickerSymbol").replace(Stock.TICKER_PREFIX, Strings.EMPTY),
 					csvRecord.get("companyName"),
 					csvRecord.get("companyNameEng"),
 					csvRecord.get("stockCode"),
@@ -63,20 +66,6 @@ public class StockCsvReader {
 			return Collections.emptySet();
 		}
 		return result;
-	}
-
-	/**
-	 * 종목 코드를 6자리로 맞추어 반환한다
-	 * ex) 104K -> 00104K
-	 * @param code stock code
-	 * @return formatted stock code
-	 */
-	private String formatCode(String code) {
-		StringBuilder sb = new StringBuilder(code);
-		while (sb.length() < 6) {
-			sb.insert(0, "0");
-		}
-		return sb.toString();
 	}
 
 	public List<StockDividend> readDividendCsv(List<Stock> stocks) {

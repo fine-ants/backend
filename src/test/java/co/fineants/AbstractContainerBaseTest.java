@@ -11,7 +11,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -36,11 +35,15 @@ import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
 import co.fineants.api.domain.kis.client.KisAccessToken;
 import co.fineants.api.domain.kis.repository.KisAccessTokenRepository;
 import co.fineants.api.domain.member.domain.entity.Member;
+import co.fineants.api.domain.member.domain.entity.MemberProfile;
 import co.fineants.api.domain.member.domain.entity.MemberRole;
 import co.fineants.api.domain.member.domain.entity.Role;
 import co.fineants.api.domain.member.repository.RoleRepository;
 import co.fineants.api.domain.notificationpreference.domain.entity.NotificationPreference;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
+import co.fineants.api.domain.portfolio.domain.entity.PortfolioDetail;
+import co.fineants.api.domain.portfolio.domain.entity.PortfolioFinancial;
+import co.fineants.api.domain.portfolio.properties.PortfolioProperties;
 import co.fineants.api.domain.purchasehistory.domain.entity.PurchaseHistory;
 import co.fineants.api.domain.stock.domain.entity.Market;
 import co.fineants.api.domain.stock.domain.entity.Stock;
@@ -50,6 +53,7 @@ import co.fineants.api.domain.watchlist.domain.entity.WatchList;
 import co.fineants.api.domain.watchlist.domain.entity.WatchStock;
 import co.fineants.api.global.errors.errorcode.RoleErrorCode;
 import co.fineants.api.global.errors.exception.FineAntsException;
+import co.fineants.api.global.security.factory.CookieDomainProvider;
 import co.fineants.api.global.security.factory.TokenFactory;
 import co.fineants.api.global.security.oauth.dto.MemberAuthentication;
 import co.fineants.api.global.security.oauth.dto.Token;
@@ -100,8 +104,11 @@ public abstract class AbstractContainerBaseTest {
 	@Autowired
 	private RedisRepository redisRepository;
 
-	@LocalServerPort
-	private int port;
+	@Autowired
+	private PortfolioProperties properties;
+
+	@Autowired
+	private CookieDomainProvider cookieDomainProvider;
 
 	@DynamicPropertySource
 	public static void overrideProps(DynamicPropertyRegistry registry) {
@@ -160,46 +167,39 @@ public abstract class AbstractContainerBaseTest {
 		Role userRole = roleRepository.findRoleByRoleName("ROLE_USER")
 			.orElseThrow(() -> new FineAntsException(RoleErrorCode.NOT_EXIST_ROLE));
 		// 회원 생성
-		Member member = Member.localMember(
-			email,
-			nickname,
-			passwordEncoder.encode("nemo1234@"),
-			"profileUrl"
-		);
+		String password = passwordEncoder.encode("nemo1234@");
+		MemberProfile profile = MemberProfile.localMemberProfile(email, nickname, password, "profileUrl");
+		Member member = Member.localMember(profile);
 		// 역할 설정
-		member.addMemberRole(MemberRole.create(member, userRole));
+		member.addMemberRole(MemberRole.of(member, userRole));
 
 		// 계정 알림 설정
-		member.setNotificationPreference(NotificationPreference.allActive(member));
+		member.setNotificationPreference(NotificationPreference.allActive());
 		return member;
 	}
 
 	protected Member createOauthMember() {
 		Role userRole = roleRepository.findRoleByRoleName("ROLE_USER")
 			.orElseThrow(() -> new FineAntsException(RoleErrorCode.NOT_EXIST_ROLE));
+		MemberProfile profile = MemberProfile.oauthMemberProfile("fineants1234@gmail.com", "fineants1234", "google",
+			"profileUrl1");
 		// 회원 생성
-		Member member = Member.oauthMember(
-			"fineants1234@gmail.com",
-			"fineants1234",
-			"google",
-			"profileUrl1"
-		);
+		Member member = Member.oauthMember(profile);
 		// 역할 설정
-		member.addMemberRole(MemberRole.create(member, userRole));
+		member.addMemberRole(MemberRole.of(member, userRole));
 
 		// 계정 알림 설정
-		member.setNotificationPreference(NotificationPreference.allActive(member));
+		member.setNotificationPreference(NotificationPreference.allActive());
 		return member;
 	}
 
 	protected NotificationPreference createNotificationPreference(boolean browserNotify, boolean targetGainNotify,
-		boolean maxLossNotify, boolean targetPriceNotify, Member member) {
+		boolean maxLossNotify, boolean targetPriceNotify) {
 		return NotificationPreference.create(
 			browserNotify,
 			targetGainNotify,
 			maxLossNotify,
-			targetPriceNotify,
-			member
+			targetPriceNotify
 		);
 	}
 
@@ -231,12 +231,12 @@ public abstract class AbstractContainerBaseTest {
 	}
 
 	protected Portfolio createPortfolio(Member member, String name, Money budget, Money targetGain, Money maximumLoss) {
-		return Portfolio.active(
-			name,
-			"토스증권",
-			budget,
-			targetGain,
-			maximumLoss,
+		PortfolioDetail detail = PortfolioDetail.of(name, "토스증권", properties);
+		PortfolioFinancial financial = PortfolioFinancial.of(budget, targetGain, maximumLoss);
+		return Portfolio.allActive(
+			null,
+			detail,
+			financial,
 			member
 		);
 	}
@@ -271,12 +271,7 @@ public abstract class AbstractContainerBaseTest {
 		return PortfolioHolding.of(portfolio, stock);
 	}
 
-	protected PortfolioHolding createPortfolioHolding(Portfolio portfolio, Stock stock, Long currentPrice) {
-		return PortfolioHolding.of(portfolio, stock, Money.won(currentPrice));
-	}
-
-	protected StockDividend createStockDividend(LocalDate recordDate, LocalDate paymentDate,
-		Stock stock) {
+	protected StockDividend createStockDividend(LocalDate recordDate, LocalDate paymentDate, Stock stock) {
 		return StockDividend.create(Money.won(361), recordDate, paymentDate, stock);
 	}
 
@@ -373,7 +368,7 @@ public abstract class AbstractContainerBaseTest {
 	}
 
 	protected Cookie[] createTokenCookies() {
-		TokenFactory tokenFactory = new TokenFactory();
+		TokenFactory tokenFactory = new TokenFactory(cookieDomainProvider);
 		Token token = Token.create("accessToken", "refreshToken");
 		ResponseCookie accessTokenCookie = tokenFactory.createAccessTokenCookie(token);
 		ResponseCookie refreshTokenCookie = tokenFactory.createRefreshTokenCookie(token);

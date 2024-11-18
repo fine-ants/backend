@@ -3,7 +3,7 @@ package co.fineants.api.global.util;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import co.fineants.api.global.config.JacksonConfig;
+import co.fineants.api.global.config.jackson.JacksonConfig;
 import co.fineants.api.global.errors.errorcode.ObjectMapperErrorCode;
 import co.fineants.api.global.errors.exception.ServerInternalException;
 import lombok.AccessLevel;
@@ -20,7 +20,7 @@ public final class ObjectMapperUtil {
 			return objectMapper.writeValueAsString(obj);
 		} catch (JsonProcessingException e) {
 			log.error("Serialization failed: {}", e.getMessage());
-			throw new ServerInternalException(ObjectMapperErrorCode.FAIL_SERIALIZE);
+			throw new ServerInternalException(ObjectMapperErrorCode.FAIL_SERIALIZE, e);
 		}
 	}
 
@@ -29,7 +29,7 @@ public final class ObjectMapperUtil {
 			return objectMapper.readValue(json, returnType);
 		} catch (JsonProcessingException e) {
 			log.error("Deserialization failed: {}", e.getMessage());
-			throw new ServerInternalException(ObjectMapperErrorCode.FAIL_DESERIALIZE);
+			throw new ServerInternalException(ObjectMapperErrorCode.FAIL_DESERIALIZE, e);
 		}
 	}
 }

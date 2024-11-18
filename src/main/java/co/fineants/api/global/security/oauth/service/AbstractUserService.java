@@ -41,6 +41,8 @@ public abstract class AbstractUserService {
 	public Member saveOrUpdate(OAuthAttribute attributes) {
 		Member member = attributes.getMemberFrom(memberRepository)
 			.orElseGet(() -> attributes.toEntity(nicknameGenerator));
+		attributes.updateProfileUrlIfAbsent(member);
+
 		Set<String> roleNames = member.getRoles().stream()
 			.map(MemberRole::getRoleName)
 			.collect(Collectors.toSet());
@@ -49,13 +51,13 @@ public abstract class AbstractUserService {
 		}
 
 		Set<Role> findRoles = roleRepository.findRolesByRoleNames(roleNames);
-		Set<MemberRole> memberRoles = findRoles.stream()
-			.map(r -> MemberRole.create(member, r))
-			.collect(Collectors.toSet());
+		MemberRole[] memberRoles = findRoles.stream()
+			.map(r -> MemberRole.of(member, r))
+			.toArray(MemberRole[]::new);
 		member.addMemberRole(memberRoles);
 
 		if (member.getNotificationPreference() == null) {
-			NotificationPreference notificationPreference = NotificationPreference.defaultSetting(member);
+			NotificationPreference notificationPreference = NotificationPreference.defaultSetting();
 			notificationPreferenceRepository.save(notificationPreference);
 		}
 		return memberRepository.save(member);

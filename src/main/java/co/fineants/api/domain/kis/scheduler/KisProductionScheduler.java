@@ -21,10 +21,9 @@ public class KisProductionScheduler {
 	private final HolidayRepository holidayRepository;
 	private final KisService kisService;
 
-	@Scheduled(cron = "0/5 * 9-15 ? * MON,TUE,WED,THU,FRI")
+	@Scheduled(cron = "0/5 * 9-16 ? * MON,TUE,WED,THU,FRI")
 	@Transactional
 	public void refreshCurrentPrice() {
-		// 휴장일인 경우 실행하지 않음
 		if (holidayRepository.isHoliday(LocalDate.now())) {
 			return;
 		}

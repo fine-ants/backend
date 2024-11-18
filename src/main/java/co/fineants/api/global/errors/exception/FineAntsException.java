@@ -6,21 +6,19 @@ import lombok.Getter;
 @Getter
 public class FineAntsException extends RuntimeException {
 	private final ErrorCode errorCode;
-	private final String message;
 
 	public FineAntsException(ErrorCode errorCode) {
-		this(errorCode, errorCode.getMessage());
+		super(errorCode.getMessage());
+		this.errorCode = errorCode;
 	}
 
-	public FineAntsException(ErrorCode errorCode, String message) {
+	public FineAntsException(ErrorCode errorCode, Throwable cause) {
+		super(errorCode.getMessage(), cause);
 		this.errorCode = errorCode;
-		this.message = message;
 	}
 
 	@Override
 	public String toString() {
-		return String.format("%s, %s(errorCode=%s, message=%s)", "FineAnts 예외", this.getClass().getSimpleName(),
-			errorCode,
-			message);
+		return String.format("FineAntsException(errorCode=%s, message=%s)", errorCode, getMessage());
 	}
 }

@@ -28,7 +28,7 @@ public class KisAccessTokenScheduler {
 	private final DelayManager delayManager;
 	private final KisClient kisClient;
 
-	@Scheduled(fixedRate = 1, timeUnit = TimeUnit.MINUTES)
+	@Scheduled(fixedDelay = 1, timeUnit = TimeUnit.MINUTES)
 	public void checkAndReissueAccessToken() {
 		LocalDateTime now = localDateTimeService.getLocalDateTimeWithNow();
 		if (!manager.isTokenExpiringSoon(now)) {

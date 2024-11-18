@@ -27,13 +27,17 @@ import co.fineants.api.domain.dividend.domain.entity.StockDividend;
 import co.fineants.api.domain.gainhistory.domain.entity.PortfolioGainHistory;
 import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
 import co.fineants.api.domain.member.domain.entity.Member;
+import co.fineants.api.domain.member.domain.entity.MemberProfile;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
+import co.fineants.api.domain.portfolio.domain.entity.PortfolioDetail;
+import co.fineants.api.domain.portfolio.domain.entity.PortfolioFinancial;
+import co.fineants.api.domain.portfolio.properties.PortfolioProperties;
 import co.fineants.api.domain.purchasehistory.domain.entity.PurchaseHistory;
 import co.fineants.api.domain.stock.domain.entity.Market;
 import co.fineants.api.domain.stock.domain.entity.Stock;
-import co.fineants.api.global.config.JacksonConfig;
 import co.fineants.api.global.config.JpaAuditingConfiguration;
 import co.fineants.api.global.config.SpringConfig;
+import co.fineants.api.global.config.jackson.JacksonConfig;
 import co.fineants.api.global.errors.handler.GlobalExceptionHandler;
 import co.fineants.api.global.security.oauth.dto.MemberAuthentication;
 import co.fineants.api.global.security.oauth.resolver.MemberAuthenticationArgumentResolver;
@@ -50,6 +54,9 @@ public abstract class ControllerTestSupport {
 
 	@Autowired
 	protected ObjectMapper objectMapper;
+
+	@Autowired
+	private PortfolioProperties properties;
 
 	@MockBean
 	protected MemberAuthenticationArgumentResolver memberAuthenticationArgumentResolver;
@@ -81,13 +88,9 @@ public abstract class ControllerTestSupport {
 	}
 
 	protected static Member createMember() {
-		return Member.localMember(
-			1L,
-			"dragonbead95@naver.com",
-			"nemo1234",
-			"nemo1234@",
-			"profileUrl"
-		);
+		MemberProfile profile = MemberProfile.localMemberProfile("dragonbead95@naver.com", "nemo1234", "nemo1234@",
+			"profileUrl");
+		return Member.localMember(1L, profile);
 	}
 
 	protected Portfolio createPortfolio(Member member) {
@@ -113,23 +116,13 @@ public abstract class ControllerTestSupport {
 
 	protected Portfolio createPortfolio(Long id, Member member, String name, Money budget, Money targetGain,
 		Money maximumLoss) {
-		return Portfolio.active(
-			id,
-			name,
-			"토스증권",
-			budget,
-			targetGain,
-			maximumLoss,
-			member
-		);
+		PortfolioDetail detail = PortfolioDetail.of(name, "토스증권", properties);
+		PortfolioFinancial financial = PortfolioFinancial.of(budget, targetGain, maximumLoss);
+		return Portfolio.allActive(id, detail, financial, member);
 	}
 
 	protected PortfolioHolding createPortfolioHolding(Portfolio portfolio, Stock stock) {
-		return PortfolioHolding.of(1L, portfolio, stock, null);
-	}
-
-	protected PortfolioHolding createPortfolioHolding(Portfolio portfolio, Stock stock, Money currentPrice) {
-		return PortfolioHolding.of(1L, portfolio, stock, currentPrice);
+		return PortfolioHolding.of(1L, portfolio, stock);
 	}
 
 	protected Stock createSamsungStock() {

@@ -296,14 +296,8 @@ class KisServiceTest extends AbstractContainerBaseTest {
 		))
 			.willReturn(Mono.just(kisIpoResponse));
 
-		KisSearchStockInfo kisSearchStockInfo = KisSearchStockInfo.listedStock(
-			"KR7000660001",
-			"000660",
-			"에스케이하이닉스보통주",
-			"SK hynix",
-			"STK",
-			"전기,전자"
-		);
+		KisSearchStockInfo kisSearchStockInfo = KisSearchStockInfo.listedStock("KR7000660001", "000660", "에스케이하이닉스보통주",
+			"SK hynix", "STK", "시가총액규모대", "전기,전자", "전기,전자");
 		given(client.fetchSearchStockInfo(anyString()))
 			.willReturn(Mono.just(kisSearchStockInfo));
 		// when
@@ -357,6 +351,8 @@ class KisServiceTest extends AbstractContainerBaseTest {
 							s.getCompanyName(),
 							s.getCompanyNameEng(),
 							"STK",
+							"시가총액규모대",
+							s.getSector(),
 							s.getSector()
 						)
 					)

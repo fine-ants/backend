@@ -135,7 +135,7 @@ class MemberRestControllerDocsTest extends RestDocsSupport {
 			ObjectMapperUtil.serialize(profileInformationMap)
 				.getBytes(StandardCharsets.UTF_8));
 
-		member.updateNickname("일개미12345");
+		member.changeNickname("일개미12345");
 		given(memberService.changeProfile(ArgumentMatchers.any(ProfileChangeServiceRequest.class)))
 			.willReturn(ProfileChangeResponse.from(member));
 

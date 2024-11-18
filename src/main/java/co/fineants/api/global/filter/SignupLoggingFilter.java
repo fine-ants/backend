@@ -33,14 +33,17 @@ public class SignupLoggingFilter implements Filter {
 		chain.doFilter(request, response);
 	}
 
-	private static void readPart(Part part) throws IOException {
-		InputStream inputStream = part.getInputStream();
-		BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+	private static void readPart(Part part) {
 		StringBuilder sb = new StringBuilder();
-		String line;
-		while ((line = reader.readLine()) != null) {
-			sb.append(line);
+		try (InputStream inputStream = part.getInputStream();
+			 BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
+			String line;
+			while ((line = reader.readLine()) != null) {
+				sb.append(line);
+			}
+		} catch (IOException e) {
+			log.error(e.getMessage(), e);
 		}
-		log.info("{} : {}", part.getName(), sb);
+		log.info("name={} : {}", part.getName(), sb);
 	}
 }

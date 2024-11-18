@@ -57,4 +57,9 @@ public class Sum implements Expression {
 		Money won2 = Bank.getInstance().toWon(o);
 		return won1.compareTo(won2);
 	}
+
+	@Override
+	public String toString() {
+		return String.format("%s+%s", augend, addend);
+	}
 }

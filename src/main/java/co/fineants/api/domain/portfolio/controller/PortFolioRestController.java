@@ -15,6 +15,7 @@ import co.fineants.api.domain.portfolio.domain.dto.request.PortfolioCreateReques
 import co.fineants.api.domain.portfolio.domain.dto.request.PortfolioModifyRequest;
 import co.fineants.api.domain.portfolio.domain.dto.request.PortfoliosDeleteRequest;
 import co.fineants.api.domain.portfolio.domain.dto.response.PortFolioCreateResponse;
+import co.fineants.api.domain.portfolio.domain.dto.response.PortfolioNameResponse;
 import co.fineants.api.domain.portfolio.domain.dto.response.PortfoliosResponse;
 import co.fineants.api.domain.portfolio.service.PortFolioService;
 import co.fineants.api.global.api.ApiResponse;
@@ -51,6 +52,14 @@ public class PortFolioRestController {
 			portFolioService.readMyAllPortfolio(authentication.getId()));
 	}
 
+	// 포트폴리오 이름 목록 조회
+	@GetMapping("/names")
+	public ApiResponse<PortfolioNameResponse> searchMyAllPortfolioNames(
+		@MemberAuthenticationPrincipal MemberAuthentication authentication) {
+		return ApiResponse.success(PortfolioSuccessCode.OK_SEARCH_PORTFOLIO_NAMES,
+			portFolioService.readMyAllPortfolioNames(authentication.getId()));
+	}
+
 	// 포트폴리오 수정
 	@PutMapping("/{portfolioId}")
 	public ApiResponse<Void> updatePortfolio(@PathVariable Long portfolioId,
@@ -72,8 +81,9 @@ public class PortFolioRestController {
 
 	// 포트폴리오 다수 삭제
 	@DeleteMapping
-	public ApiResponse<Void> deletePortfolios(@RequestBody PortfoliosDeleteRequest request) {
-		portFolioService.deletePortfolios(request.getPortfolioIds());
+	public ApiResponse<Void> deletePortfolios(@RequestBody PortfoliosDeleteRequest request,
+		@MemberAuthenticationPrincipal MemberAuthentication authentication) {
+		portFolioService.deletePortfolios(request.getPortfolioIds(), authentication.getId());
 		return ApiResponse.success(PortfolioSuccessCode.OK_DELETE_PORTFOLIO);
 	}
 }

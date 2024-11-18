@@ -42,6 +42,21 @@ include::{snippets}/kis_current_price-search/path-parameters.adoc[]
 include::{snippets}/kis_current_price-search/http-response.adoc[]
 include::{snippets}/kis_current_price-search/response-fields.adoc[]
 
+[[kis_stock_info-search]]
+=== 종목 기본 정보 조회
+
+해당 API는 관리자 또는 매니저 권한이 요구됩니다.
+
+==== HTTP Request
+
+include::{snippets}/kis_stock_info-search/http-request.adoc[]
+include::{snippets}/kis_stock_info-search/path-parameters.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/kis_stock_info-search/http-response.adoc[]
+include::{snippets}/kis_stock_info-search/response-fields.adoc[]
+
 [[kis_closing_price-all-refresh]]
 === 종목 종가 전체 갱신
 

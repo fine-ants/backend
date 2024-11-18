@@ -9,7 +9,9 @@ import co.fineants.api.domain.gainhistory.repository.PortfolioGainHistoryReposit
 import co.fineants.api.domain.holding.domain.dto.response.PortfolioDetailRealTimeItem;
 import co.fineants.api.domain.holding.domain.dto.response.PortfolioDetailResponse;
 import co.fineants.api.domain.kis.repository.CurrentPriceRedisRepository;
+import co.fineants.api.domain.portfolio.domain.calculator.PortfolioCalculator;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
+import co.fineants.api.global.common.time.LocalDateTimeService;
 import lombok.RequiredArgsConstructor;
 
 @Component
@@ -18,26 +20,26 @@ public class PortfolioDetailFactory {
 
 	private final CurrentPriceRedisRepository manager;
 	private final PortfolioGainHistoryRepository portfolioGainHistoryRepository;
+	private final LocalDateTimeService localDateTimeService;
+	private final PortfolioCalculator calculator;
 
 	public PortfolioDetailResponse createPortfolioDetailItem(Portfolio portfolio) {
-		portfolio.applyCurrentPriceAllHoldingsBy(manager);
 		PortfolioGainHistory history =
 			portfolioGainHistoryRepository.findFirstByPortfolioAndCreateAtIsLessThanEqualOrderByCreateAtDesc(
 					portfolio.getId(), LocalDateTime.now())
 				.stream()
 				.findFirst()
 				.orElseGet(() -> PortfolioGainHistory.empty(portfolio));
-		return PortfolioDetailResponse.from(portfolio, history);
+		return PortfolioDetailResponse.of(portfolio, history, localDateTimeService, calculator);
 	}
 
 	public PortfolioDetailRealTimeItem createPortfolioDetailRealTimeItem(Portfolio portfolio) {
-		portfolio.applyCurrentPriceAllHoldingsBy(manager);
 		PortfolioGainHistory history =
 			portfolioGainHistoryRepository.findFirstByPortfolioAndCreateAtIsLessThanEqualOrderByCreateAtDesc(
 					portfolio.getId(), LocalDateTime.now())
 				.stream()
 				.findFirst()
 				.orElseGet(() -> PortfolioGainHistory.empty(portfolio));
-		return PortfolioDetailRealTimeItem.of(portfolio, history);
+		return PortfolioDetailRealTimeItem.of(portfolio, history, calculator);
 	}
 }

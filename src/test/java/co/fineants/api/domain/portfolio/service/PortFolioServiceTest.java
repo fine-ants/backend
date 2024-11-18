@@ -10,7 +10,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.UUID;
 import java.util.stream.Stream;
 
 import org.assertj.core.groups.Tuple;
@@ -37,6 +36,7 @@ import co.fineants.api.domain.member.repository.MemberRepository;
 import co.fineants.api.domain.portfolio.domain.dto.request.PortfolioCreateRequest;
 import co.fineants.api.domain.portfolio.domain.dto.request.PortfolioModifyRequest;
 import co.fineants.api.domain.portfolio.domain.dto.response.PortFolioCreateResponse;
+import co.fineants.api.domain.portfolio.domain.dto.response.PortfolioNameResponse;
 import co.fineants.api.domain.portfolio.domain.dto.response.PortfoliosResponse;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import co.fineants.api.domain.portfolio.repository.PortfolioRepository;
@@ -105,7 +105,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 	}
 
 	@DisplayName("회원은 포트폴리오를 추가할때 목표수익금액이 예산보다 같거나 작으면 안된다")
-	@MethodSource("provideInvalidTargetGain")
+	@MethodSource("invalidTargetGain")
 	@ParameterizedTest
 	void addPortfolioWithTargetGainIsEqualLessThanBudget(Long targetGain) {
 		// given
@@ -130,7 +130,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 	}
 
 	@DisplayName("회원은 포트폴리오를 추가할때 최대손실율이 예산보다 같거나 크면 안된다")
-	@MethodSource("provideInvalidMaximumLoss")
+	@MethodSource("invalidMaximumLoss")
 	@ParameterizedTest
 	void addPortfolioWithMaximumLossIsEqualGreaterThanBudget(Long maximumLoss) {
 		// given
@@ -222,8 +222,8 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 
 		// then
 		Portfolio changePortfolio = portfolioRepository.findById(portfolioId).orElseThrow();
-		assertThat(changePortfolio.getName()).isEqualTo(name);
-		assertThat(changePortfolio.getSecuritiesFirm()).isEqualTo(securitiesFirm);
+		assertThat(changePortfolio.name()).isEqualTo(name);
+		assertThat(changePortfolio.securitiesFirm()).isEqualTo(securitiesFirm);
 		assertThat(changePortfolio.getBudget())
 			.isEqualByComparingTo(Money.won(budget));
 		assertThat(changePortfolio.getTargetGain()).isEqualByComparingTo(Money.won(targetGain));
@@ -237,7 +237,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 		Member member = memberRepository.save(createMember());
 		Portfolio originPortfolio = portfolioRepository.save(createPortfolio(member));
 
-		Map<String, Object> body = createModifiedPortfolioRequestBodyMap(originPortfolio.getName());
+		Map<String, Object> body = createModifiedPortfolioRequestBodyMap(originPortfolio.name());
 
 		PortfolioModifyRequest request = ObjectMapperUtil.deserialize(ObjectMapperUtil.serialize(body),
 			PortfolioModifyRequest.class);
@@ -251,7 +251,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 		Portfolio changePortfolio = portfolioRepository.findById(portfolioId).orElseThrow();
 
 		assertThat(changePortfolio)
-			.extracting(Portfolio::getName, Portfolio::getSecuritiesFirm, Portfolio::getBudget,
+			.extracting(Portfolio::name, Portfolio::securitiesFirm, Portfolio::getBudget,
 				Portfolio::getTargetGain, Portfolio::getMaximumLoss)
 			.usingComparatorForType(Money::compareTo, Money.class)
 			.containsExactly("내꿈은 워렌버핏", "미래에셋증권", Money.won(1500000L), Money.won(2000000L), Money.won(900000L));
@@ -326,7 +326,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 
 		long budget = 1000000L;
 		long maximumLoss = 900000L;
-		Map<String, Object> body = createModifiedPortfolioRequestBodyMap("내꿈은 찰리몽거", "미래애셋증권", budget, targetGain,
+		Map<String, Object> body = createModifiedPortfolioRequestBodyMap("내꿈은 찰리몽거", "미래에셋증권", budget, targetGain,
 			maximumLoss);
 
 		PortfolioModifyRequest request = ObjectMapperUtil.deserialize(ObjectMapperUtil.serialize(body),
@@ -368,6 +368,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 			() -> service.updatePortfolio(request, portfolioId, member.getId()));
 
 		// then
+		throwable.printStackTrace(System.out);
 		assertThat(throwable)
 			.isInstanceOf(BadRequestException.class)
 			.hasMessage("최대 손실 금액은 예산 보다 작아야 합니다");
@@ -380,7 +381,8 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 		Member member = memberRepository.save(createMember());
 		List<Portfolio> portfolios = new ArrayList<>();
 		for (int i = 1; i <= 25; i++) {
-			portfolios.add(createPortfolioWithRandomName(member));
+			String name = String.format("portfolio%d", i);
+			portfolios.add(createPortfolio(member, name));
 		}
 		portfolioRepository.saveAll(portfolios);
 
@@ -402,7 +404,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 		Member member = memberRepository.save(createMember());
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		Stock stock = stockRepository.save(createSamsungStock());
-		PortfolioHolding portfolioHolding = portFolioHoldingRepository.save(PortfolioHolding.empty(portfolio, stock));
+		PortfolioHolding portfolioHolding = portFolioHoldingRepository.save(PortfolioHolding.of(portfolio, stock));
 
 		LocalDateTime purchaseDate = LocalDateTime.of(2023, 9, 26, 9, 30, 0);
 		Count numShares = Count.from(3);
@@ -433,6 +435,22 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 				Money.won(-150000),
 				Percentage.from(-0.5556)
 			));
+	}
+
+	@DisplayName("회원의 포트폴리오 이름 목록을 조회한다")
+	@Test
+	void givenPortfolios_whenReadMyAllPortfolioNames_thenSortedByCreatedDescAndReturnPortfolioNameItemsOfPortfolios() {
+		// given
+		Member member = memberRepository.save(createMember());
+		portfolioRepository.saveAll(
+			List.of(createPortfolio(member, "portfolio1"), createPortfolio(member, "portfolio2")));
+		// when
+		PortfolioNameResponse actual = service.readMyAllPortfolioNames(member.getId());
+		// then
+		assertThat(actual)
+			.extracting("portfolios")
+			.asList()
+			.hasSize(2);
 	}
 
 	@DisplayName("회원이 포트폴리오를 삭제한다")
@@ -504,12 +522,12 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 
 		PortfolioGainHistory portfolioGainHistory = portfolioGainHistoryRepository.save(
 			PortfolioGainHistory.empty(portfolio));
-		Portfolio portfolio2 = portfolioRepository.save(createPortfolioWithRandomName(member));
+		Portfolio portfolio2 = portfolioRepository.save(createPortfolio(member, "portfolio2"));
 
 		List<Long> portfolioIds = Arrays.asList(portfolio.getId(), portfolio2.getId());
 		setAuthentication(member);
 		// when
-		service.deletePortfolios(portfolioIds);
+		service.deletePortfolios(portfolioIds, member.getId());
 
 		// then
 		assertThat(portfolioRepository.existsById(portfolio.getId())).isFalse();
@@ -527,12 +545,12 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 		Member member = memberRepository.save(createMember());
 		Member hacker = memberRepository.save(createMember("hacker"));
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
-		Portfolio portfolio2 = portfolioRepository.save(createPortfolioWithRandomName(member));
+		Portfolio portfolio2 = portfolioRepository.save(createPortfolio(member, "portfolio2"));
 		List<Long> portfolioIds = Arrays.asList(portfolio.getId(), portfolio2.getId());
 
 		setAuthentication(hacker);
 		// when
-		Throwable throwable = catchThrowable(() -> service.deletePortfolios(portfolioIds));
+		Throwable throwable = catchThrowable(() -> service.deletePortfolios(portfolioIds, member.getId()));
 
 		// then
 		assertThat(throwable)
@@ -540,25 +558,14 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 			.hasMessage(MemberErrorCode.FORBIDDEN_MEMBER.getMessage());
 	}
 
-	private Portfolio createPortfolioWithRandomName(Member member) {
-		String randomPostfix = UUID.randomUUID().toString().substring(0, 10);
-		return createPortfolio(
-			member,
-			"내꿈은 워렙퍼빗" + randomPostfix,
-			Money.won(1000000L),
-			Money.won(1500000L),
-			Money.won(900000L)
-		);
-	}
-
-	private static Stream<Arguments> provideInvalidTargetGain() {
+	private static Stream<Arguments> invalidTargetGain() {
 		return Stream.of(
 			Arguments.of(900000L),
 			Arguments.of(1000000L)
 		);
 	}
 
-	private static Stream<Arguments> provideInvalidMaximumLoss() {
+	private static Stream<Arguments> invalidMaximumLoss() {
 		return Stream.of(
 			Arguments.of(1000000L),
 			Arguments.of(1100000L)

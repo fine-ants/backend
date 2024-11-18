@@ -2,10 +2,13 @@ package co.fineants.api.domain.holding.domain.dto.response;
 
 import co.fineants.api.domain.common.money.Bank;
 import co.fineants.api.domain.common.money.Currency;
+import co.fineants.api.domain.common.money.Expression;
 import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.common.money.Percentage;
 import co.fineants.api.domain.gainhistory.domain.entity.PortfolioGainHistory;
+import co.fineants.api.domain.portfolio.domain.calculator.PortfolioCalculator;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
+import co.fineants.api.global.common.time.LocalDateTimeService;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -41,33 +44,45 @@ public class PortfolioDetailResponse {
 	private Boolean targetGainNotify;
 	private Boolean maxLossNotify;
 
-	public static PortfolioDetailResponse from(Portfolio portfolio, PortfolioGainHistory history) {
+	public static PortfolioDetailResponse of(Portfolio portfolio, PortfolioGainHistory history,
+		LocalDateTimeService localDateTimeService, PortfolioCalculator calculator) {
 		Bank bank = Bank.getInstance();
 		Currency to = Currency.KRW;
+		Expression totalGain = calculator.calTotalGainBy(portfolio);
+		Expression totalGainRate = calculator.calTotalGainRateBy(portfolio);
+		Expression totalInvestment = calculator.calTotalInvestmentBy(portfolio);
+		Expression totalCurrentValuation = calculator.calTotalCurrentValuationBy(portfolio);
+		Expression balance = calculator.calBalanceBy(portfolio);
+		Expression dailyGain = calculator.calDailyGain(history, portfolio);
+		Expression dailyGainRate = calculator.calDailyGainRateBy(history, portfolio);
+		Expression annualDividend = calculator.calAnnualDividendBy(localDateTimeService, portfolio);
+		Expression annualDividendYield = calculator.calAnnualDividendYieldBy(localDateTimeService, portfolio);
+		Expression annualInvestmentDividendYield = calculator.calAnnualInvestmentDividendYieldBy(localDateTimeService,
+			portfolio);
+		Expression targetGainRate = calculator.calTargetGainRateBy(portfolio);
+		Expression maximumLossRate = calculator.calMaximumLossRateBy(portfolio);
 		return PortfolioDetailResponse.builder()
 			.id(portfolio.getId())
-			.securitiesFirm(portfolio.getSecuritiesFirm())
-			.name(portfolio.getName())
+			.securitiesFirm(portfolio.securitiesFirm())
+			.name(portfolio.name())
 			.budget(portfolio.getBudget())
 			.targetGain(portfolio.getTargetGain())
-			.targetReturnRate(portfolio.calculateTargetReturnRate().toPercentage(Bank.getInstance(), to))
+			.targetReturnRate(targetGainRate.toPercentage(Bank.getInstance(), to))
 			.maximumLoss(portfolio.getMaximumLoss())
-			.maximumLossRate(portfolio.calculateMaximumLossRate().toPercentage(Bank.getInstance(), to))
-			.currentValuation(portfolio.calculateTotalCurrentValuation().reduce(bank, to))
-			.investedAmount(portfolio.calculateTotalInvestmentAmount().reduce(bank, to))
-			.totalGain(portfolio.calculateTotalGain().reduce(bank, to))
-			.totalGainRate(portfolio.calculateTotalGainRate().toPercentage(Bank.getInstance(), to))
-			.dailyGain(portfolio.calculateDailyGain(history).reduce(bank, to))
-			.dailyGainRate(portfolio.calculateDailyGainRate(history).toPercentage(Bank.getInstance(), to))
-			.balance(portfolio.calculateBalance().reduce(bank, to))
-			.annualDividend(portfolio.calculateAnnualDividend().reduce(bank, to))
-			.annualDividendYield(
-				portfolio.calculateAnnualDividendYield().toPercentage(Bank.getInstance(), to))
-			.annualInvestmentDividendYield(
-				portfolio.calculateAnnualInvestmentDividendYield().toPercentage(Bank.getInstance(), to))
+			.maximumLossRate(maximumLossRate.toPercentage(Bank.getInstance(), to))
+			.currentValuation(totalCurrentValuation.reduce(bank, to))
+			.investedAmount(totalInvestment.reduce(bank, to))
+			.totalGain(totalGain.reduce(bank, to))
+			.totalGainRate(totalGainRate.toPercentage(Bank.getInstance(), to))
+			.dailyGain(dailyGain.reduce(bank, to))
+			.dailyGainRate(dailyGainRate.toPercentage(Bank.getInstance(), to))
+			.balance(balance.reduce(bank, to))
+			.annualDividend(annualDividend.reduce(bank, to))
+			.annualDividendYield(annualDividendYield.toPercentage(Bank.getInstance(), to))
+			.annualInvestmentDividendYield(annualInvestmentDividendYield.toPercentage(Bank.getInstance(), to))
 			.provisionalLossBalance(Money.zero())
-			.targetGainNotify(portfolio.getTargetGainIsActive())
-			.maxLossNotify(portfolio.getMaximumLossIsActive())
+			.targetGainNotify(portfolio.targetGainIsActive())
+			.maxLossNotify(portfolio.maximumLossIsActive())
 			.build();
 	}
 

@@ -40,6 +40,7 @@ import co.fineants.api.domain.stock.domain.entity.Market;
 import co.fineants.api.domain.stock.domain.entity.Stock;
 import co.fineants.api.domain.stock.repository.StockRepository;
 import co.fineants.api.global.common.delay.DelayManager;
+import co.fineants.api.infra.s3.service.AmazonS3StockService;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -55,9 +56,6 @@ class StockServiceTest extends AbstractContainerBaseTest {
 	private StockDividendRepository stockDividendRepository;
 
 	@Autowired
-	private StockCsvReader stockCsvReader;
-
-	@Autowired
 	private KisAccessTokenRepository kisAccessTokenRepository;
 
 	@Autowired
@@ -65,6 +63,9 @@ class StockServiceTest extends AbstractContainerBaseTest {
 
 	@Autowired
 	private ClosingPriceRepository closingPriceRepository;
+
+	@Autowired
+	private AmazonS3StockService amazonS3StockService;
 
 	@MockBean
 	private KisClient kisClient;
@@ -198,12 +199,14 @@ class StockServiceTest extends AbstractContainerBaseTest {
 				"에스케이하이닉스보통주",
 				"SK hynix",
 				"STK",
+				"시가총액규모대",
+				"전기,전자",
 				"전기,전자"))
 			);
 		given(kisService.fetchSearchStockInfo(nokwon.getTickerSymbol()))
 			.willReturn(Mono.just(KisSearchStockInfo.delistedStock("KR7065560005", "065560", "녹원씨엔아이",
 				"Nokwon Commercials & Industries, Inc.",
-				"KSQ", "소프트웨어", LocalDate.of(2024, 7, 29))));
+				"KSQ", "시가총액규모대", "소프트웨어", "소프트웨어", LocalDate.of(2024, 7, 29))));
 		DateTimeFormatter dtf = DateTimeFormatter.BASIC_ISO_DATE;
 		given(kisService.fetchDividend(hynix.getTickerSymbol()))
 			.willReturn(Flux.just(KisDividend.create(hynix.getTickerSymbol(),
@@ -270,5 +273,33 @@ class StockServiceTest extends AbstractContainerBaseTest {
 		assertThat(response.getAddedStocks()).isEmpty();
 		assertThat(response.getDeletedStocks()).isEmpty();
 		assertThat(response.getAddedDividends()).isEmpty();
+	}
+
+	@DisplayName("종목 정보를 최신 정보로 갱신한다")
+	@Test
+	void givenStocks_whenSyncAllStocksWithLatestData_thenUpdateLatestData() {
+		// given
+		Stock samsung = stockRepository.save(createSamsungStock());
+		stockDividendRepository.saveAll(createStockDividendWith(samsung));
+		given(kisService.fetchSearchStockInfo(samsung.getTickerSymbol()))
+			.willReturn(Mono.just(KisSearchStockInfo.listedStock(
+				samsung.getStockCode(),
+				samsung.getTickerSymbol(),
+				samsung.getCompanyName(),
+				samsung.getCompanyNameEng(),
+				"KSQ",
+				"시가총액규모대",
+				"의료",
+				"의료"
+			)));
+		// when
+		List<Stock> actual = stockService.syncAllStocksWithLatestData();
+		// then
+		assertThat(actual).hasSize(1);
+		assertThat(actual.get(0).getMarket()).isEqualTo(Market.KOSDAQ);
+		assertThat(actual.get(0).getSector()).isEqualTo("의료");
+
+		actual = amazonS3StockService.fetchStocks();
+		assertThat(actual).hasSize(1);
 	}
 }

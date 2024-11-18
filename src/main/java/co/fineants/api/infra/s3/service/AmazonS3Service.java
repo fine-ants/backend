@@ -27,6 +27,8 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @RequiredArgsConstructor
 public class AmazonS3Service {
+	private static final int MAX_FILE_SIZE = 2 * 1024 * 1024;
+
 	private final AmazonS3 amazonS3;
 	@Value("${aws.s3.bucket}")
 	private String bucketName;
@@ -58,16 +60,22 @@ public class AmazonS3Service {
 	}
 
 	private Optional<File> convertMultiPartFileToFile(MultipartFile file) {
-		if (file.getSize() > 2 * 1024 * 1024) {
+		if (file == null || file.isEmpty()) {
+			return Optional.empty();
+		}
+		if (file.getSize() > MAX_FILE_SIZE) {
 			throw new BadRequestException(MemberErrorCode.IMAGE_SIZE_EXCEEDED);
 		}
-		File convertedFile = new File(file.getOriginalFilename());
+		String filename = file.getOriginalFilename();
+		if (filename == null) {
+			throw new BadRequestException(MemberErrorCode.PROFILE_IMAGE_UPLOAD_FAIL);
+		}
+		File convertedFile = new File(filename);
 		try (FileOutputStream fos = new FileOutputStream(convertedFile)) {
 			fos.write(file.getBytes());
 		} catch (IOException e) {
 			throw new BadRequestException(MemberErrorCode.PROFILE_IMAGE_UPLOAD_FAIL);
 		}
-
 		return Optional.of(convertedFile);
 	}
 
@@ -80,7 +88,6 @@ public class AmazonS3Service {
 		}
 	}
 
-	// URL에서 파일 이름 추출하는 메소드
 	private String extractFileName(String url) {
 		// 예시: https://fineants.s3.ap-northeast-2.amazonaws.com/9d07ee41-4404-414b-9ee7-12616aa6bedcprofile.jpeg
 		int lastSlashIndex = url.lastIndexOf('/');

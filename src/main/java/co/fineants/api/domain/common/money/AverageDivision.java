@@ -60,4 +60,9 @@ public class AverageDivision implements Expression {
 		Money won2 = expression.reduce(bank, to);
 		return won.compareTo(won2);
 	}
+
+	@Override
+	public String toString() {
+		return String.format("%s", reduce(Bank.getInstance(), KRW));
+	}
 }

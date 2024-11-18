@@ -1,45 +1,74 @@
 package co.fineants.api.domain.member.domain.dto.request;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.multipart.MultipartFile;
 
-import co.fineants.api.domain.member.domain.entity.Member;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-@Getter
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
-@Builder(access = AccessLevel.PRIVATE)
+import co.fineants.api.domain.member.domain.entity.Member;
+import co.fineants.api.domain.member.domain.entity.MemberProfile;
+import lombok.EqualsAndHashCode;
+
+@EqualsAndHashCode
 public class SignUpServiceRequest {
-	private String nickname;
-	private String email;
-	private String password;
-	private String passwordConfirm;
-	private MultipartFile profileImageFile;
+	@JsonProperty
+	private final String nickname;
+	@JsonProperty
+	private final String email;
+	@JsonProperty
+	private final String password;
+	@JsonProperty
+	private final String passwordConfirm;
+	@JsonProperty
+	private final MultipartFile profileImageFile;
+
+	@JsonCreator
+	private SignUpServiceRequest(
+		@JsonProperty("nickname") String nickname,
+		@JsonProperty("email") String email,
+		@JsonProperty("password") String password,
+		@JsonProperty("passwordConfirm") String passwordConfirm,
+		@JsonProperty("profileImageFile") MultipartFile profileImageFile) {
+		this.nickname = nickname;
+		this.email = email;
+		this.password = password;
+		this.passwordConfirm = passwordConfirm;
+		this.profileImageFile = profileImageFile;
+	}
 
 	public static SignUpServiceRequest create(String nickname, String email, String password, String passwordConfirm,
 		MultipartFile profileImageFile) {
-		return SignUpServiceRequest.builder()
-			.nickname(nickname)
-			.email(email)
-			.password(password)
-			.passwordConfirm(passwordConfirm)
-			.profileImageFile(profileImageFile)
-			.build();
+		return new SignUpServiceRequest(nickname, email, password, passwordConfirm, profileImageFile);
 	}
 
 	public static SignUpServiceRequest of(SignUpRequest request, MultipartFile profileImageFile) {
-		return SignUpServiceRequest.builder()
-			.nickname(request.getNickname())
-			.email(request.getEmail())
-			.password(request.getPassword())
-			.passwordConfirm(request.getPasswordConfirm())
-			.profileImageFile(profileImageFile)
-			.build();
+		return request.toSignUpServiceRequest(profileImageFile);
+	}
+
+	public Member toEntity() {
+		MemberProfile profile = MemberProfile.localMemberProfile(email, nickname, password, null);
+		return Member.localMember(profile);
 	}
 
 	public Member toEntity(String profileUrl, String encodedPassword) {
-		return Member.localMember(email, nickname, encodedPassword, profileUrl);
+		MemberProfile profile = MemberProfile.localMemberProfile(email, nickname, encodedPassword, profileUrl);
+		return Member.localMember(profile);
+	}
+
+	public boolean matchPassword() {
+		return password.equals(passwordConfirm);
+	}
+
+	public boolean hasProfileImageFile() {
+		return profileImageFile != null && !profileImageFile.isEmpty();
+	}
+
+	public MultipartFile profileImageFile() {
+		return profileImageFile;
+	}
+
+	public String encodePasswordBy(PasswordEncoder encoder) {
+		return encoder.encode(password);
 	}
 }
