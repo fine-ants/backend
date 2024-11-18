@@ -273,7 +273,11 @@ public class KisClient {
 
 	private Mono<? extends Throwable> handleError(ClientResponse clientResponse) {
 		return clientResponse.bodyToMono(KisErrorResponse.class)
-			.doOnNext(kisErrorResponse -> log.error(kisErrorResponse.toString()))
+			.doOnNext(kisErrorResponse -> {
+				if (!kisErrorResponse.isRequestLimitExceeded()) {
+					log.error(kisErrorResponse.toString());
+				}
+			})
 			.flatMap(kisErrorResponse -> Mono.error(kisErrorResponse::toException));
 	}
 }

@@ -30,4 +30,8 @@ public class KisErrorResponse {
 			default -> new KisException(returnCode, messageCode, message);
 		};
 	}
+
+	public boolean isRequestLimitExceeded() {
+		return "EGW00201".equals(messageCode);
+	}
 }
