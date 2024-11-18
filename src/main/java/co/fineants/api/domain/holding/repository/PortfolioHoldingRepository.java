@@ -15,8 +15,7 @@ public interface PortfolioHoldingRepository extends JpaRepository<PortfolioHoldi
 
 	List<PortfolioHolding> findAllByPortfolio(Portfolio portfolio);
 
-	@Query("select distinct s.tickerSymbol from PortfolioHolding p "
-		+ "inner join Stock s on p.stock.tickerSymbol = s.tickerSymbol")
+	@Query("select distinct p.stock.tickerSymbol from PortfolioHolding p order by p.stock.tickerSymbol")
 	List<String> findAllTickerSymbol();
 
 	@Query("select p from PortfolioHolding p "
