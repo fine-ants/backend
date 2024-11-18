@@ -1,6 +1,7 @@
 package co.fineants.api.domain.kis.service;
 
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -46,6 +47,9 @@ import reactor.util.retry.Retry;
 @RequiredArgsConstructor
 @Service
 public class KisService {
+	private static final int MAX_ATTEMPTS = 5;
+	private static final int CONCURRENCY = 20;
+
 	private final KisClient kisClient;
 	private final PortfolioHoldingRepository portFolioHoldingRepository;
 	private final CurrentPriceRedisRepository currentPriceRedisRepository;
@@ -65,25 +69,24 @@ public class KisService {
 		Set<String> totalTickerSymbol = new HashSet<>();
 		totalTickerSymbol.addAll(portFolioHoldingRepository.findAllTickerSymbol());
 		totalTickerSymbol.addAll(stockTargetPriceRepository.findAllTickerSymbol());
-		List<String> totalTickerSymbolList = totalTickerSymbol.stream().toList();
-		List<KisCurrentPrice> prices = this.refreshStockCurrentPrice(totalTickerSymbolList);
-		stockTargetPricePublisher.publishEvent(totalTickerSymbolList);
+
+		List<KisCurrentPrice> prices = this.refreshStockCurrentPrice(totalTickerSymbol);
+		stockTargetPricePublisher.publishEvent(totalTickerSymbol);
 		portfolioPublisher.publishCurrentPriceEvent();
 		return prices;
 	}
 
 	// 주식 현재가 갱신
 	@Transactional(readOnly = true)
-	public List<KisCurrentPrice> refreshStockCurrentPrice(List<String> tickerSymbols) {
-		int concurrency = 20;
+	public List<KisCurrentPrice> refreshStockCurrentPrice(Collection<String> tickerSymbols) {
 		List<KisCurrentPrice> prices = Flux.fromIterable(tickerSymbols)
 			.flatMap(ticker -> this.fetchCurrentPrice(ticker)
 				.doOnSuccess(kisCurrentPrice -> log.debug("reload stock current price {}", kisCurrentPrice))
 				.onErrorResume(ExpiredAccessTokenKisException.class::isInstance, throwable -> Mono.empty())
 				.onErrorResume(CredentialsTypeKisException.class::isInstance, throwable -> Mono.empty())
-				.retryWhen(Retry.fixedDelay(5, delayManager.fixedDelay())
+				.retryWhen(Retry.fixedDelay(MAX_ATTEMPTS, delayManager.fixedDelay())
 					.filter(RequestLimitExceededKisException.class::isInstance))
-				.onErrorResume(Exceptions::isRetryExhausted, throwable -> Mono.empty()), concurrency)
+				.onErrorResume(Exceptions::isRetryExhausted, throwable -> Mono.empty()), CONCURRENCY)
 			.delayElements(delayManager.delay())
 			.collectList()
 			.blockOptional(delayManager.timeout())
@@ -108,15 +111,14 @@ public class KisService {
 	}
 
 	public List<KisClosingPrice> refreshClosingPrice(List<String> tickerSymbols) {
-		int concurrency = 20;
 		List<KisClosingPrice> prices = Flux.fromIterable(tickerSymbols)
 			.flatMap(ticker -> this.fetchClosingPrice(ticker)
 				.doOnSuccess(price -> log.debug("reload stock closing price {}", price))
 				.onErrorResume(ExpiredAccessTokenKisException.class::isInstance, throwable -> Mono.empty())
 				.onErrorResume(CredentialsTypeKisException.class::isInstance, throwable -> Mono.empty())
-				.retryWhen(Retry.fixedDelay(5, delayManager.fixedDelay())
+				.retryWhen(Retry.fixedDelay(MAX_ATTEMPTS, delayManager.fixedDelay())
 					.filter(RequestLimitExceededKisException.class::isInstance))
-				.onErrorResume(Exceptions::isRetryExhausted, throwable -> Mono.empty()), concurrency)
+				.onErrorResume(Exceptions::isRetryExhausted, throwable -> Mono.empty()), CONCURRENCY)
 			.delayElements(delayManager.delay())
 			.collectList()
 			.blockOptional(delayManager.timeout())
@@ -143,7 +145,7 @@ public class KisService {
 			.doOnSuccess(response -> log.debug("fetchDividend list is {}", response.size()))
 			.onErrorResume(ExpiredAccessTokenKisException.class::isInstance, throwable -> Mono.empty())
 			.onErrorResume(CredentialsTypeKisException.class::isInstance, throwable -> Mono.empty())
-			.retryWhen(Retry.fixedDelay(5, delayManager.fixedDelay())
+			.retryWhen(Retry.fixedDelay(MAX_ATTEMPTS, delayManager.fixedDelay())
 				.filter(RequestLimitExceededKisException.class::isInstance))
 			.onErrorResume(Exceptions::isRetryExhausted, throwable -> Mono.empty())
 			.onErrorResume(throwable -> Mono.empty())
@@ -155,7 +157,7 @@ public class KisService {
 			.doOnSuccess(dividends -> log.debug("dividends is {}", dividends))
 			.onErrorResume(ExpiredAccessTokenKisException.class::isInstance, throwable -> Mono.empty())
 			.onErrorResume(CredentialsTypeKisException.class::isInstance, throwable -> Mono.empty())
-			.retryWhen(Retry.fixedDelay(5, delayManager.fixedDelay())
+			.retryWhen(Retry.fixedDelay(MAX_ATTEMPTS, delayManager.fixedDelay())
 				.filter(RequestLimitExceededKisException.class::isInstance))
 			.onErrorResume(Exceptions::isRetryExhausted, throwable -> Mono.empty())
 			.blockOptional(delayManager.timeout())
@@ -175,7 +177,7 @@ public class KisService {
 			.doOnSuccess(response -> log.debug("fetchSearchStockInfo ticker is {}", response))
 			.onErrorResume(ExpiredAccessTokenKisException.class::isInstance, throwable -> Mono.empty())
 			.onErrorResume(CredentialsTypeKisException.class::isInstance, throwable -> Mono.empty())
-			.retryWhen(Retry.fixedDelay(5, delayManager.fixedDelay())
+			.retryWhen(Retry.fixedDelay(MAX_ATTEMPTS, delayManager.fixedDelay())
 				.filter(RequestLimitExceededKisException.class::isInstance))
 			.onErrorResume(Exceptions::isRetryExhausted, throwable -> Mono.empty())
 			.onErrorResume(throwable -> {
@@ -204,9 +206,8 @@ public class KisService {
 			.filter(kisIpo -> !kisIpo.isEmpty())
 			.map(KisIpo::getShtCd);
 
-		int concurrency = 20;
 		return tickerSymbols
-			.flatMap(this::fetchSearchStockInfo, concurrency)
+			.flatMap(this::fetchSearchStockInfo, CONCURRENCY)
 			.delayElements(delayManager.delay())
 			.onErrorResume(throwable -> {
 				log.error("fetchSearchStockInfo error message is {}", throwable.getMessage());
@@ -225,7 +226,7 @@ public class KisService {
 
 	public Optional<String> fetchApprovalKey() {
 		return kisClient.fetchWebSocketApprovalKey()
-			.retryWhen(Retry.fixedDelay(5, delayManager.fixedAccessTokenDelay()))
+			.retryWhen(Retry.fixedDelay(MAX_ATTEMPTS, delayManager.fixedAccessTokenDelay()))
 			.onErrorResume(throwable -> {
 				log.error(throwable.getMessage());
 				return Mono.empty();
