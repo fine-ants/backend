@@ -45,6 +45,9 @@ public interface StockTargetPriceRepository extends JpaRepository<StockTargetPri
 		+ "order by s.createAt asc, t.targetPrice asc")
 	List<StockTargetPrice> findAllByTickerSymbols(@Param("tickerSymbols") List<String> tickerSymbols);
 
+	@Query("select s.stock.tickerSymbol from StockTargetPrice s group by s.stock.tickerSymbol order by s.stock.tickerSymbol")
+	List<String> findAllTickerSymbol();
+
 	@Modifying
 	@Query("delete from StockTargetPrice s "
 		+ "where s.stock.tickerSymbol = :tickerSymbol and s.member.id = :memberId")
