@@ -34,5 +34,5 @@ public interface StockTargetPriceRepository extends JpaRepository<StockTargetPri
 
 	@Modifying
 	@Query("delete from StockTargetPrice s where s.member.id = :memberId")
-	int deleteAllByMemberId(@Param("memberId") Long memberId);
+	void deleteAllByMemberId(@Param("memberId") Long memberId);
 }
