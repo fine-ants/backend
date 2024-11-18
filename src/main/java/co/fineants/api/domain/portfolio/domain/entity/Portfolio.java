@@ -93,6 +93,7 @@ public class Portfolio extends BaseEntity implements Notifiable {
 
 	private Portfolio(Long id, PortfolioDetail detail, PortfolioFinancial financial,
 		PortfolioNotificationPreference preference) {
+		super(LocalDateTime.now(), null);
 		this.id = id;
 		this.detail = detail;
 		this.financial = financial;
@@ -445,11 +446,7 @@ public class Portfolio extends BaseEntity implements Notifiable {
 		return calculator.calTotalDividend(Collections.unmodifiableList(portfolioHoldings), currentLocalDate);
 	}
 	//== Portfolio 계산 메서드 시작 ==//
-
-	public void setCreateAt(LocalDateTime createAt) {
-		super.setCreateAt(createAt);
-	}
-
+	
 	@Override
 	public String toString() {
 		return String.format("Portfolio(id=%d, detail=%s, memberNickname=%s)", id, detail, member.getNickname());

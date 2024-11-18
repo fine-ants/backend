@@ -207,7 +207,6 @@ class PortfolioRestControllerDocsTest extends RestDocsSupport {
 	void searchMyAllPortfolioNames() throws Exception {
 		// given
 		Portfolio portfolio = createPortfolio(createMember());
-		portfolio.setCreateAt(LocalDateTime.now());
 		PortfolioNameItem item = PortfolioNameItem.from(portfolio);
 		given(portFolioService.readMyAllPortfolioNames(anyLong()))
 			.willReturn(PortfolioNameResponse.from(List.of(item)));
