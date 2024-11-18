@@ -6,7 +6,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,7 +28,6 @@ import co.fineants.api.domain.notification.event.publisher.PortfolioPublisher;
 import co.fineants.api.domain.stock.domain.dto.response.StockDataResponse;
 import co.fineants.api.domain.stock.domain.entity.Stock;
 import co.fineants.api.domain.stock.repository.StockRepository;
-import co.fineants.api.domain.stock_target_price.domain.entity.StockTargetPrice;
 import co.fineants.api.domain.stock_target_price.event.publisher.StockTargetPricePublisher;
 import co.fineants.api.domain.stock_target_price.repository.StockTargetPriceRepository;
 import co.fineants.api.global.common.delay.DelayManager;
@@ -66,10 +64,7 @@ public class KisService {
 	public List<KisCurrentPrice> refreshAllStockCurrentPrice() {
 		Set<String> totalTickerSymbol = new HashSet<>();
 		totalTickerSymbol.addAll(portFolioHoldingRepository.findAllTickerSymbol());
-		totalTickerSymbol.addAll(stockTargetPriceRepository.findAll().stream()
-			.map(StockTargetPrice::getStock)
-			.map(Stock::getTickerSymbol)
-			.collect(Collectors.toSet()));
+		totalTickerSymbol.addAll(stockTargetPriceRepository.findAllTickerSymbol());
 		List<String> totalTickerSymbolList = totalTickerSymbol.stream().toList();
 		List<KisCurrentPrice> prices = this.refreshStockCurrentPrice(totalTickerSymbolList);
 		stockTargetPricePublisher.publishEvent(totalTickerSymbolList);
