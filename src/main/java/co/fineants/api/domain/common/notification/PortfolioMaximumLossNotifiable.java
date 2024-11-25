@@ -67,4 +67,19 @@ public class PortfolioMaximumLossNotifiable implements Notifiable {
 			name
 		);
 	}
+
+	@Override
+	public NotifyMessage createTargetGainMessageWith(String token) {
+		return null;
+	}
+
+	@Override
+	public NotifyMessage createMaxLossMessageWith(String token) {
+		return null;
+	}
+
+	@Override
+	public NotifyMessage createTargetPriceMessage(String token) {
+		return null;
+	}
 }

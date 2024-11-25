@@ -13,4 +13,8 @@ public interface Notifiable {
 	NotifyMessage createMaxLossMessageWith(String token);
 
 	NotifyMessage createTargetPriceMessage(String token);
+
+	default NotifyMessage createMessage(String token) {
+		return null;
+	}
 }

@@ -451,4 +451,16 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	public String toString() {
 		return String.format("Portfolio(id=%d, detail=%s, memberNickname=%s)", id, detail, member.getNickname());
 	}
+
+	public String getReferenceId() {
+		return id.toString();
+	}
+
+	public Long getMemberId() {
+		return member.getId();
+	}
+
+	public String getLink() {
+		return "/portfolio/" + getReferenceId();
+	}
 }
