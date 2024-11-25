@@ -8,6 +8,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
+import co.fineants.api.domain.stock_target_price.domain.entity.TargetPriceNotification;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -50,6 +51,12 @@ public class NotificationSentRepository {
 
 	public boolean hasTargetPriceSendHistory(Long targetPriceNotificationId) {
 		String result = redisTemplate.opsForValue().get(String.format(TARGET_PRICE_FORMAT, targetPriceNotificationId));
+		return result != null;
+	}
+
+	public boolean hasTargetPriceSendHistory(TargetPriceNotification targetPriceNotification) {
+		Long id = targetPriceNotification.getId();
+		String result = redisTemplate.opsForValue().get(String.format(TARGET_PRICE_FORMAT, id));
 		return result != null;
 	}
 

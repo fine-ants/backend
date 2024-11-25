@@ -8,21 +8,17 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import co.fineants.api.domain.kis.repository.CurrentPriceRedisRepository;
-import co.fineants.api.domain.notification.domain.entity.policy.ConditionEvaluator;
 import co.fineants.api.domain.notification.domain.entity.policy.TargetGainNotificationEvaluator;
 import co.fineants.api.domain.notification.domain.entity.policy.maxloss.MaxLossNotificationPolicy;
 import co.fineants.api.domain.notification.domain.entity.policy.target_gain.TargetGainNotificationPolicy;
-import co.fineants.api.domain.notification.domain.entity.policy.target_price.TargetPriceAccountPreferenceCondition;
-import co.fineants.api.domain.notification.domain.entity.policy.target_price.TargetPriceActiveCondition;
-import co.fineants.api.domain.notification.domain.entity.policy.target_price.TargetPriceCondition;
 import co.fineants.api.domain.notification.domain.entity.policy.target_price.TargetPriceNotificationPolicy;
-import co.fineants.api.domain.notification.domain.entity.policy.target_price.TargetPriceSentHistoryCondition;
 import co.fineants.api.domain.notification.repository.NotificationSentRepository;
 import co.fineants.api.domain.notification.service.disptacher.NotificationDispatcher;
 import co.fineants.api.domain.notification.service.provider.FirebaseNotificationProvider;
 import co.fineants.api.domain.notificationpreference.domain.entity.NotificationPreference;
 import co.fineants.api.domain.portfolio.domain.calculator.PortfolioCalculator;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
+import co.fineants.api.domain.stock_target_price.domain.entity.TargetPriceNotification;
 import lombok.RequiredArgsConstructor;
 
 @Configuration
@@ -41,22 +37,14 @@ public class NotificationConfig {
 
 	@Bean
 	public TargetGainNotificationEvaluator targetGainNotificationEvaluator() {
-		return new TargetGainNotificationEvaluator(portfolioConditionEvaluator(),
-			notificationPreferenceConditionEvaluator());
-	}
-
-	@Bean
-	public ConditionEvaluator<Portfolio> portfolioConditionEvaluator() {
-		return new ConditionEvaluator<>(List.of(
+		List<Predicate<Portfolio>> portfolioConditions = List.of(
 			calculator::reachedTargetGainBy,
 			Portfolio::targetGainIsActive,
 			portfolio -> !sentManager.hasTargetGainSentHistoryBy(portfolio)
-		));
-	}
-
-	@Bean
-	public ConditionEvaluator<NotificationPreference> notificationPreferenceConditionEvaluator() {
-		return new ConditionEvaluator<>(List.of(NotificationPreference::isPossibleTargetGainNotification));
+		);
+		return new TargetGainNotificationEvaluator(
+			portfolioConditions,
+			NotificationPreference::isPossibleTargetGainNotification);
 	}
 
 	@Bean
@@ -73,12 +61,12 @@ public class NotificationConfig {
 	public TargetPriceNotificationPolicy targetPriceNotificationPolicy() {
 		return new TargetPriceNotificationPolicy(
 			List.of(
-				new TargetPriceCondition(currentPriceRedisRepository),
-				new TargetPriceActiveCondition(),
-				new TargetPriceSentHistoryCondition(sentManager)
+				targetPriceNotification -> targetPriceNotification.isSameTargetPrice(currentPriceRedisRepository),
+				TargetPriceNotification::isActive,
+				targetPriceNotification -> !sentManager.hasTargetPriceSendHistory(targetPriceNotification)
 			),
 			List.of(
-				new TargetPriceAccountPreferenceCondition()
+				NotificationPreference::isPossibleStockTargetPriceNotification
 			)
 		);
 	}
