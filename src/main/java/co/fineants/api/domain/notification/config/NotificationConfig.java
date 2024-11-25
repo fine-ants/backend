@@ -2,6 +2,7 @@ package co.fineants.api.domain.notification.config;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Predicate;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -9,11 +10,7 @@ import org.springframework.context.annotation.Configuration;
 import co.fineants.api.domain.kis.repository.CurrentPriceRedisRepository;
 import co.fineants.api.domain.notification.domain.entity.policy.ConditionEvaluator;
 import co.fineants.api.domain.notification.domain.entity.policy.TargetGainNotificationEvaluator;
-import co.fineants.api.domain.notification.domain.entity.policy.maxloss.MaxLossAccountPreferenceCondition;
-import co.fineants.api.domain.notification.domain.entity.policy.maxloss.MaxLossActiveCondition;
-import co.fineants.api.domain.notification.domain.entity.policy.maxloss.MaxLossCondition;
 import co.fineants.api.domain.notification.domain.entity.policy.maxloss.MaxLossNotificationPolicy;
-import co.fineants.api.domain.notification.domain.entity.policy.maxloss.MaxLossSentHistoryCondition;
 import co.fineants.api.domain.notification.domain.entity.policy.target_gain.TargetGainNotificationPolicy;
 import co.fineants.api.domain.notification.domain.entity.policy.target_price.TargetPriceAccountPreferenceCondition;
 import co.fineants.api.domain.notification.domain.entity.policy.target_price.TargetPriceActiveCondition;
@@ -64,16 +61,12 @@ public class NotificationConfig {
 
 	@Bean
 	public MaxLossNotificationPolicy maxLossNotificationPolicy() {
-		return new MaxLossNotificationPolicy(
-			List.of(
-				new MaxLossCondition(calculator),
-				new MaxLossActiveCondition(),
-				new MaxLossSentHistoryCondition(sentManager)
-			),
-			List.of(
-				new MaxLossAccountPreferenceCondition()
-			)
+		List<Predicate<Portfolio>> conditions = List.of(
+			calculator::reachedMaximumLossBy,
+			Portfolio::maximumLossIsActive,
+			portfolio -> !sentManager.hasMaxLossSentHistoryBy(portfolio)
 		);
+		return new MaxLossNotificationPolicy(conditions, NotificationPreference::isPossibleMaxLossNotification);
 	}
 
 	@Bean
