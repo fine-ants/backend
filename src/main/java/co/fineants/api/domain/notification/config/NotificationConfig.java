@@ -8,9 +8,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import co.fineants.api.domain.kis.repository.CurrentPriceRedisRepository;
-import co.fineants.api.domain.notification.domain.entity.policy.maxloss.MaxLossNotificationPolicy;
-import co.fineants.api.domain.notification.domain.entity.policy.target_gain.TargetGainNotificationPolicy;
-import co.fineants.api.domain.notification.domain.entity.policy.target_price.TargetPriceNotificationPolicy;
+import co.fineants.api.domain.notification.domain.entity.policy.MaxLossNotificationPolicy;
+import co.fineants.api.domain.notification.domain.entity.policy.TargetGainNotificationPolicy;
+import co.fineants.api.domain.notification.domain.entity.policy.TargetPriceNotificationPolicy;
 import co.fineants.api.domain.notification.repository.NotificationSentRepository;
 import co.fineants.api.domain.notification.service.disptacher.NotificationDispatcher;
 import co.fineants.api.domain.notification.service.provider.FirebaseNotificationProvider;
@@ -59,9 +59,7 @@ public class NotificationConfig {
 				TargetPriceNotification::isActive,
 				targetPriceNotification -> !sentManager.hasTargetPriceSendHistory(targetPriceNotification)
 			),
-			List.of(
-				NotificationPreference::isPossibleStockTargetPriceNotification
-			)
+			NotificationPreference::isPossibleStockTargetPriceNotification
 		);
 	}
 

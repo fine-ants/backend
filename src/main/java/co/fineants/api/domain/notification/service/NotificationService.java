@@ -23,10 +23,10 @@ import co.fineants.api.domain.notification.domain.dto.response.NotifyMessageResp
 import co.fineants.api.domain.notification.domain.dto.response.PortfolioNotifyMessagesResponse;
 import co.fineants.api.domain.notification.domain.dto.response.SentNotifyMessage;
 import co.fineants.api.domain.notification.domain.dto.response.save.NotificationSaveResponse;
+import co.fineants.api.domain.notification.domain.entity.policy.MaxLossNotificationPolicy;
 import co.fineants.api.domain.notification.domain.entity.policy.NotificationPolicy;
-import co.fineants.api.domain.notification.domain.entity.policy.maxloss.MaxLossNotificationPolicy;
-import co.fineants.api.domain.notification.domain.entity.policy.target_gain.TargetGainNotificationPolicy;
-import co.fineants.api.domain.notification.domain.entity.policy.target_price.TargetPriceNotificationPolicy;
+import co.fineants.api.domain.notification.domain.entity.policy.TargetGainNotificationPolicy;
+import co.fineants.api.domain.notification.domain.entity.policy.TargetPriceNotificationPolicy;
 import co.fineants.api.domain.notification.repository.NotificationRepository;
 import co.fineants.api.domain.notification.repository.NotificationSentRepository;
 import co.fineants.api.domain.notification.service.disptacher.NotificationDispatcher;

@@ -1,4 +1,4 @@
-package co.fineants.api.domain.notification.domain.entity.policy.maxloss;
+package co.fineants.api.domain.notification.domain.entity.policy;
 
 import java.util.List;
 import java.util.Optional;
@@ -6,7 +6,6 @@ import java.util.function.Predicate;
 
 import co.fineants.api.domain.common.notification.Notifiable;
 import co.fineants.api.domain.notification.domain.dto.response.NotifyMessage;
-import co.fineants.api.domain.notification.domain.entity.policy.NotificationPolicy;
 import co.fineants.api.domain.notificationpreference.domain.entity.NotificationPreference;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import lombok.RequiredArgsConstructor;
@@ -22,9 +21,10 @@ public class MaxLossNotificationPolicy implements NotificationPolicy<Notifiable>
 		boolean isPortfolioValid = portfolioConditions.stream()
 			.allMatch(condition -> condition.test((Portfolio)notifiable));
 		boolean isPreferenceValid = preferenceConditions.test(notifiable.getNotificationPreference());
-		if (!isPortfolioValid || !isPreferenceValid) {
-			return Optional.empty();
+
+		if (isPortfolioValid && isPreferenceValid) {
+			return Optional.of(notifiable.createMaxLossMessageWith(token));
 		}
-		return Optional.of(notifiable.createMaxLossMessageWith(token));
+		return Optional.empty();
 	}
 }
