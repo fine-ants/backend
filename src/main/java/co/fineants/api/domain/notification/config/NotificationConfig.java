@@ -8,7 +8,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import co.fineants.api.domain.kis.repository.CurrentPriceRedisRepository;
-import co.fineants.api.domain.notification.domain.entity.policy.TargetGainNotificationEvaluator;
 import co.fineants.api.domain.notification.domain.entity.policy.maxloss.MaxLossNotificationPolicy;
 import co.fineants.api.domain.notification.domain.entity.policy.target_gain.TargetGainNotificationPolicy;
 import co.fineants.api.domain.notification.domain.entity.policy.target_price.TargetPriceNotificationPolicy;
@@ -32,19 +31,14 @@ public class NotificationConfig {
 
 	@Bean
 	public TargetGainNotificationPolicy targetGainNotificationPolicy() {
-		return new TargetGainNotificationPolicy(targetGainNotificationEvaluator());
-	}
-
-	@Bean
-	public TargetGainNotificationEvaluator targetGainNotificationEvaluator() {
 		List<Predicate<Portfolio>> portfolioConditions = List.of(
 			calculator::reachedTargetGainBy,
 			Portfolio::targetGainIsActive,
 			portfolio -> !sentManager.hasTargetGainSentHistoryBy(portfolio)
 		);
-		return new TargetGainNotificationEvaluator(
-			portfolioConditions,
-			NotificationPreference::isPossibleTargetGainNotification);
+		Predicate<NotificationPreference> preferencePredicate =
+			NotificationPreference::isPossibleTargetGainNotification;
+		return new TargetGainNotificationPolicy(portfolioConditions, preferencePredicate);
 	}
 
 	@Bean
