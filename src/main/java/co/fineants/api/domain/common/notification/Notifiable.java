@@ -6,11 +6,11 @@ import co.fineants.api.domain.notificationpreference.domain.entity.NotificationP
 public interface Notifiable {
 	Long fetchMemberId();
 
-	NotifyMessage createTargetGainMessageWith(String token);
-
 	NotificationPreference getNotificationPreference();
+
+	NotifyMessage createTargetGainMessageWith(String token);
 
 	NotifyMessage createMaxLossMessageWith(String token);
 
-	NotifyMessage getTargetPriceMessage(String token);
+	NotifyMessage createTargetPriceMessage(String token);
 }

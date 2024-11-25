@@ -96,7 +96,7 @@ public class TargetPriceNotification extends BaseEntity implements Notifiable {
 	}
 
 	@Override
-	public NotifyMessage getTargetPriceMessage(String token) {
+	public NotifyMessage createTargetPriceMessage(String token) {
 		NotificationType type = NotificationType.STOCK_TARGET_PRICE;
 		String title = type.getName();
 		String content = String.format("%s이(가) %s%s에 도달했습니다",

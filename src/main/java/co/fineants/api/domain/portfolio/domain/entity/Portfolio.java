@@ -183,7 +183,7 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	}
 
 	@Override
-	public NotifyMessage getTargetPriceMessage(String token) {
+	public NotifyMessage createTargetPriceMessage(String token) {
 		throw new UnsupportedOperationException("This method is not supported for Portfolio");
 	}
 	//== Notifiable Interface 종료 ==//
@@ -446,7 +446,7 @@ public class Portfolio extends BaseEntity implements Notifiable {
 		return calculator.calTotalDividend(Collections.unmodifiableList(portfolioHoldings), currentLocalDate);
 	}
 	//== Portfolio 계산 메서드 시작 ==//
-	
+
 	@Override
 	public String toString() {
 		return String.format("Portfolio(id=%d, detail=%s, memberNickname=%s)", id, detail, member.getNickname());

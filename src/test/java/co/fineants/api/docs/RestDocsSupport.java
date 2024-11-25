@@ -208,7 +208,7 @@ public abstract class RestDocsSupport {
 
 	protected StockTargetPriceNotification createStockTargetPriceNotification(
 		TargetPriceNotification targetPriceNotification, Member member) {
-		StockNotifyMessage message = (StockNotifyMessage)targetPriceNotification.getTargetPriceMessage("token");
+		StockNotifyMessage message = (StockNotifyMessage)targetPriceNotification.createTargetPriceMessage("token");
 		return StockTargetPriceNotification.newNotification(
 			1L,
 			message.getStockName(),

@@ -22,7 +22,7 @@ public class TargetPriceNotificationPolicy implements NotificationPolicy<Notifia
 			.allMatch(condition -> condition.test((TargetPriceNotification)target));
 		boolean isPreferenceValid = preferenceConditions.test(target.getNotificationPreference());
 		if (isTargetPriceValid && isPreferenceValid) {
-			return Optional.of(target.getTargetPriceMessage(token));
+			return Optional.of(target.createTargetPriceMessage(token));
 		}
 		return Optional.empty();
 	}
