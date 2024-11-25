@@ -97,10 +97,11 @@ public class NotificationService {
 	public NotifyMessageResponse notifyTargetGainAll() {
 		// 모든 회원의 포트폴리오 중에서 입력으로 받은 종목들을 가진 포트폴리오들을 조회
 		List<Notifiable> portfolios = new ArrayList<>(portfolioRepository.findAllWithAll());
-		Consumer<Long> sentFunction = sentManager::addTargetGainSendHistory;
-		return PortfolioNotifyMessagesResponse.create(
-			notifyMessage(portfolios, targetGainNotificationPolicy, sentFunction)
-		);
+		List<NotifyMessageItem> items = notifyMessage(
+			portfolios,
+			targetGainNotificationPolicy,
+			sentManager::addTargetGainSendHistory);
+		return PortfolioNotifyMessagesResponse.create(items);
 	}
 
 	/**

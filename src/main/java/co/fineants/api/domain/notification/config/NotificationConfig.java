@@ -14,11 +14,7 @@ import co.fineants.api.domain.notification.domain.entity.policy.maxloss.MaxLossA
 import co.fineants.api.domain.notification.domain.entity.policy.maxloss.MaxLossCondition;
 import co.fineants.api.domain.notification.domain.entity.policy.maxloss.MaxLossNotificationPolicy;
 import co.fineants.api.domain.notification.domain.entity.policy.maxloss.MaxLossSentHistoryCondition;
-import co.fineants.api.domain.notification.domain.entity.policy.target_gain.TargetGainAccountPreferenceCondition;
-import co.fineants.api.domain.notification.domain.entity.policy.target_gain.TargetGainActiveCondition;
-import co.fineants.api.domain.notification.domain.entity.policy.target_gain.TargetGainCondition;
 import co.fineants.api.domain.notification.domain.entity.policy.target_gain.TargetGainNotificationPolicy;
-import co.fineants.api.domain.notification.domain.entity.policy.target_gain.TargetGainSentHistoryCondition;
 import co.fineants.api.domain.notification.domain.entity.policy.target_price.TargetPriceAccountPreferenceCondition;
 import co.fineants.api.domain.notification.domain.entity.policy.target_price.TargetPriceActiveCondition;
 import co.fineants.api.domain.notification.domain.entity.policy.target_price.TargetPriceCondition;
@@ -55,15 +51,15 @@ public class NotificationConfig {
 	@Bean
 	public ConditionEvaluator<Portfolio> portfolioConditionEvaluator() {
 		return new ConditionEvaluator<>(List.of(
-			new TargetGainCondition(calculator),
-			new TargetGainActiveCondition(),
-			new TargetGainSentHistoryCondition(sentManager)
+			calculator::reachedTargetGainBy,
+			Portfolio::targetGainIsActive,
+			portfolio -> !sentManager.hasTargetGainSentHistoryBy(portfolio)
 		));
 	}
 
 	@Bean
 	public ConditionEvaluator<NotificationPreference> notificationPreferenceConditionEvaluator() {
-		return new ConditionEvaluator<>(List.of(new TargetGainAccountPreferenceCondition()));
+		return new ConditionEvaluator<>(List.of(NotificationPreference::isPossibleTargetGainNotification));
 	}
 
 	@Bean

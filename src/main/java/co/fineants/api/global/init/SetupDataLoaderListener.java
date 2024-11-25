@@ -26,5 +26,4 @@ public class SetupDataLoaderListener implements ApplicationListener<ContextRefre
 		setupDataLoader.setupResources();
 		alreadySetup = true;
 	}
-
 }

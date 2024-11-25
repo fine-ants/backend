@@ -12,7 +12,7 @@ public class TargetGainNotificationEvaluator implements NotificationEvaluator<Po
 
 	@Override
 	public boolean isSatisfiedBy(Portfolio target) {
-		return portfolioConditionEvaluator.areConditionsSatisfied(target)
-			&& notificationPreferenceConditionEvaluator.areConditionsSatisfied(target.getNotificationPreference());
+		return portfolioConditionEvaluator.isSatisfied(target)
+			&& notificationPreferenceConditionEvaluator.isSatisfied(target.getNotificationPreference());
 	}
 }
