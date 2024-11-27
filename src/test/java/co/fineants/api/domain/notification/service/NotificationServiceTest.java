@@ -751,4 +751,46 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 			.asList()
 			.hasSize(2);
 	}
+
+	@DisplayName("조건을 만족한 포트폴리오에 대하여 목표수익율 알림을 전송한다")
+	@Test
+	void notifyTargetGainAll2() {
+		// given
+		Member member = memberRepository.save(createMember());
+		fcmRepository.saveAll(List.of(createFcmToken("token1", member), createFcmToken("token2", member)));
+		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
+		Stock stock = stockRepository.save(createSamsungStock());
+		Stock stock2 = stockRepository.save(createDongwhaPharmStock());
+		PortfolioHolding holding = portfolioHoldingRepository.save(createPortfolioHolding(portfolio, stock));
+		PortfolioHolding holding2 = portfolioHoldingRepository.save(createPortfolioHolding(portfolio, stock2));
+
+		LocalDateTime purchaseDate = LocalDateTime.of(2023, 9, 26, 9, 30, 0);
+		Count numShares = Count.from(100);
+		Money purchasePricePerShare = Money.won(100);
+		String memo = "첫구매";
+		purchaseHistoryRepository.save(
+			createPurchaseHistory(null, purchaseDate, numShares, purchasePricePerShare, memo, holding));
+
+		purchaseDate = LocalDateTime.of(2023, 9, 26, 9, 30, 0);
+		numShares = Count.from(1);
+		purchasePricePerShare = Money.won(60000);
+		memo = "첫구매";
+		purchaseHistoryRepository.save(
+			createPurchaseHistory(null, purchaseDate, numShares, purchasePricePerShare, memo, holding2));
+
+		manager.savePrice(KisCurrentPrice.create(stock.getTickerSymbol(), 60000L));
+		manager.savePrice(KisCurrentPrice.create(stock2.getTickerSymbol(), 60000L));
+		given(firebaseMessagingService.send(any(Message.class)))
+			.willReturn(Optional.of("messageId"));
+
+		// when
+		List<Notification> actual = service.notifyTargetGainAll2();
+
+		// then
+		assertAll(
+			() -> assertThat(actual).hasSize(1),
+			() -> assertThat(notificationRepository.findAllByMemberId(member.getId())).hasSize(1),
+			() -> assertThat(sentManager.hasTargetGainSendHistory(portfolio.getId())).isTrue()
+		);
+	}
 }

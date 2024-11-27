@@ -17,7 +17,16 @@ public class TargetPriceNotificationPolicy implements NotificationPolicy<Notifia
 	private final Predicate<NotificationPreference> preferenceConditions;
 
 	@Override
+	public boolean isSatisfied(Notifiable target) {
+		boolean isTargetPriceValid = targetPriceConditions.stream()
+			.allMatch(condition -> condition.test((TargetPriceNotification)target));
+		boolean isPreferenceValid = preferenceConditions.test(target.getNotificationPreference());
+		return isTargetPriceValid && isPreferenceValid;
+	}
+
+	@Override
 	public Optional<NotifyMessage> apply(Notifiable target, String token) {
+		// TODO: will delete
 		boolean isTargetPriceValid = targetPriceConditions.stream()
 			.allMatch(condition -> condition.test((TargetPriceNotification)target));
 		boolean isPreferenceValid = preferenceConditions.test(target.getNotificationPreference());

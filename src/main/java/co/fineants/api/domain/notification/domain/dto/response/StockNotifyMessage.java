@@ -3,6 +3,8 @@ package co.fineants.api.domain.notification.domain.dto.response;
 import java.util.Objects;
 
 import co.fineants.api.domain.common.money.Money;
+import co.fineants.api.domain.member.domain.entity.Member;
+import co.fineants.api.domain.notification.domain.entity.Notification;
 import co.fineants.api.domain.notification.domain.entity.type.NotificationType;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -18,16 +20,18 @@ public class StockNotifyMessage extends NotifyMessage {
 	private final Long targetPriceNotificationId;
 
 	@Builder(access = AccessLevel.PRIVATE)
-	public StockNotifyMessage(String title, String content, NotificationType type, String referenceId, Long memberId,
-		String token, String link, String stockName, Money targetPrice, Long targetPriceNotificationId) {
-		super(title, content, type, referenceId, memberId, token, link);
+	private StockNotifyMessage(String title, String content, NotificationType type, String referenceId, Long memberId,
+		String token, String link, String stockName, Money targetPrice, Long targetPriceNotificationId,
+		String messageId) {
+		super(title, content, type, referenceId, memberId, token, link, messageId);
 		this.stockName = stockName;
 		this.targetPrice = targetPrice;
 		this.targetPriceNotificationId = targetPriceNotificationId;
 	}
 
 	public static NotifyMessage create(String title, String content, NotificationType type, String referenceId,
-		Long memberId, String token, String link, String stockName, Money targetPrice, Long targetPriceNotificationId) {
+		Long memberId, String token, String link, String stockName, Money targetPrice, Long targetPriceNotificationId,
+		String messageId) {
 		return StockNotifyMessage.builder()
 			.title(title)
 			.content(content)
@@ -39,12 +43,25 @@ public class StockNotifyMessage extends NotifyMessage {
 			.stockName(stockName)
 			.targetPrice(targetPrice)
 			.targetPriceNotificationId(targetPriceNotificationId)
+			.messageId(messageId)
 			.build();
 	}
 
 	@Override
 	public String getIdToSentHistory() {
 		return String.format("targetPriceNotification:%d", targetPriceNotificationId);
+	}
+
+	@Override
+	public NotifyMessage withMessageId(String messageId) {
+		return stock(getTitle(), getContent(), getType(), getReferenceId(), getMemberId(), getToken(), getLink(),
+			getStockName(), getTargetPrice(), getTargetPriceNotificationId(), messageId);
+	}
+
+	@Override
+	public Notification toEntity(Member member) {
+		return Notification.stock(getStockName(), getTargetPrice(), getTitle(), getReferenceId(), getLink(),
+			getTargetPriceNotificationId(), member);
 	}
 
 	@Override

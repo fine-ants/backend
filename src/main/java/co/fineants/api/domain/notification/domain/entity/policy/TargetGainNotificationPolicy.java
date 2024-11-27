@@ -17,14 +17,15 @@ public class TargetGainNotificationPolicy implements NotificationPolicy<Notifiab
 	private final Predicate<NotificationPreference> preferencePredicate;
 
 	@Override
-	public Optional<NotifyMessage> apply(Notifiable notifiable, String token) {
-		Portfolio portfolio = (Portfolio)notifiable;
+	public boolean isSatisfied(Notifiable target) {
+		Portfolio portfolio = (Portfolio)target;
 		boolean isPortfolioValid = portfolioConditions.stream().allMatch(p -> p.test(portfolio));
 		boolean isPreferenceValid = preferencePredicate.test(portfolio.getNotificationPreference());
+		return isPortfolioValid && isPreferenceValid;
+	}
 
-		if (isPortfolioValid && isPreferenceValid) {
-			return Optional.of(notifiable.createTargetGainMessageWith(token));
-		}
-		return Optional.empty();
+	@Override
+	public Optional<NotifyMessage> apply(Notifiable target, String token) {
+		return Optional.of(target.createTargetGainMessageWith(token));
 	}
 }

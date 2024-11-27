@@ -89,8 +89,9 @@ public abstract class Notification extends BaseEntity {
 	public abstract String getName();
 
 	public abstract NotificationSaveResponse toSaveResponse();
-
+	
 	public boolean hasAuthorization(Long memberId) {
 		return member.hasAuthorization(memberId);
 	}
+
 }

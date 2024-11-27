@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -14,15 +15,19 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import co.fineants.api.domain.common.notification.Notifiable;
+import co.fineants.api.domain.fcm.service.FcmService;
+import co.fineants.api.domain.fcm.service.FirebaseMessagingService;
 import co.fineants.api.domain.kis.repository.CurrentPriceRedisRepository;
 import co.fineants.api.domain.member.domain.entity.Member;
 import co.fineants.api.domain.member.repository.MemberRepository;
 import co.fineants.api.domain.notification.domain.dto.request.NotificationSaveRequest;
+import co.fineants.api.domain.notification.domain.dto.response.NotifyMessage;
 import co.fineants.api.domain.notification.domain.dto.response.NotifyMessageItem;
 import co.fineants.api.domain.notification.domain.dto.response.NotifyMessageResponse;
 import co.fineants.api.domain.notification.domain.dto.response.PortfolioNotifyMessagesResponse;
 import co.fineants.api.domain.notification.domain.dto.response.SentNotifyMessage;
 import co.fineants.api.domain.notification.domain.dto.response.save.NotificationSaveResponse;
+import co.fineants.api.domain.notification.domain.entity.Notification;
 import co.fineants.api.domain.notification.domain.entity.policy.MaxLossNotificationPolicy;
 import co.fineants.api.domain.notification.domain.entity.policy.NotificationPolicy;
 import co.fineants.api.domain.notification.domain.entity.policy.TargetGainNotificationPolicy;
@@ -57,6 +62,13 @@ public class NotificationService {
 	private final MaxLossNotificationPolicy maximumLossNotificationPolicy;
 	private final TargetPriceNotificationPolicy targetPriceNotificationPolicy;
 	private final NotificationDispatcher notificationDispatcher;
+	private final FcmService fcmService;
+	private final FirebaseMessagingService firebaseMessagingService;
+
+	@Transactional
+	public Notification saveNotification(Notification notification) {
+		return notificationRepository.save(notification);
+	}
 
 	@NotNull
 	@Transactional
@@ -95,13 +107,63 @@ public class NotificationService {
 	 */
 	@Transactional
 	public NotifyMessageResponse notifyTargetGainAll() {
-		// 모든 회원의 포트폴리오 중에서 입력으로 받은 종목들을 가진 포트폴리오들을 조회
-		List<Notifiable> portfolios = new ArrayList<>(portfolioRepository.findAllWithAll());
+		// TODO: 해당 메서드에서 policy를 통해서 포트폴리오들을 대상으로 조건에 맞는 데이터들을 필터링한 다음에 PortfolioTargetGainNotifiable로 변환하여 전달
+		List<Notifiable> portfolios = portfolioRepository.findAllWithAll().stream()
+			.map(Notifiable.class::cast)
+			.toList();
 		List<NotifyMessageItem> items = notifyMessage(
 			portfolios,
 			targetGainNotificationPolicy,
 			sentManager::addTargetGainSendHistory);
 		return PortfolioNotifyMessagesResponse.create(items);
+	}
+
+	@Transactional
+	public List<Notification> notifyTargetGainAll2() {
+		List<Portfolio> portfolios = portfolioRepository.findAllWithAll();
+		List<NotifyMessage> notifyMessages = portfolios.stream()
+			.filter(targetGainNotificationPolicy::isSatisfied)
+			.map(portfolio -> fcmService.findTokens(portfolio.getMemberId()).stream()
+				.map(token -> targetGainNotificationPolicy.apply(portfolio, token))
+				.flatMap(Optional::stream)
+				.toList())
+			.flatMap(Collection::stream)
+			.toList();
+
+		// 만족하는 포트폴리오를 대상으로 알림 데이터 생성 & 알림 전송
+		List<NotifyMessage> sentNotifyMessages = notifyMessages.stream()
+			.map(notifyMessage -> {
+				String messageId = firebaseMessagingService.send(notifyMessage.toMessage()).orElse(null);
+				return notifyMessage.withMessageId(messageId);
+			})
+			.distinct()
+			.toList();
+
+		// 알림 전송에 실패한 전송 메시지에 대해서 FCM 토큰 삭제
+		sentNotifyMessages.stream()
+			.filter(sentNotifyMessage -> !sentNotifyMessage.hasMessageId())
+			.forEach(sentNotifyMessage -> sentNotifyMessage.deleteToken(fcmService));
+		log.debug("sentNotifyMessages : {}", sentNotifyMessages);
+
+		// 알림 저장
+		List<Notification> notifications = sentNotifyMessages.stream()
+			.map(notifyMessage -> {
+				Member member = memberRepository.findById(notifyMessage.getMemberId())
+					.orElseThrow(() -> new IllegalArgumentException(
+						"not found member, memberId=" + notifyMessage.getMessageId()));
+				return notifyMessage.toEntity(member);
+			})
+			.map(notificationRepository::save)
+			.toList();
+
+		// 전송 내역 저장
+		notifications.stream()
+			.map(Notification::getId)
+			.forEach(sentManager::addTargetGainSendHistory);
+		// 결과 객체 생성
+		// List<NotifyMessageItem> notifyMessageItems = createNotifyMessageItems(sentNotifyMessages,
+		// 	notificationSaveResponses);
+		return notifications;
 	}
 
 	/**

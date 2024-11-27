@@ -1,6 +1,9 @@
 package co.fineants.api.domain.notification.domain.dto.response;
 
+import co.fineants.api.domain.member.domain.entity.Member;
+import co.fineants.api.domain.notification.domain.entity.Notification;
 import co.fineants.api.domain.notification.domain.entity.type.NotificationType;
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
@@ -10,15 +13,15 @@ import lombok.ToString;
 public class PortfolioNotifyMessage extends NotifyMessage {
 	private final String name;
 
-	@Builder
-	public PortfolioNotifyMessage(String title, String content, NotificationType type, String referenceId,
-		Long memberId, String token, String link, String name) {
-		super(title, content, type, referenceId, memberId, token, link);
+	@Builder(access = AccessLevel.PRIVATE)
+	private PortfolioNotifyMessage(String title, String content, NotificationType type, String referenceId,
+		Long memberId, String token, String link, String name, String messageId) {
+		super(title, content, type, referenceId, memberId, token, link, messageId);
 		this.name = name;
 	}
 
 	public static NotifyMessage create(String title, String content, NotificationType type, String referenceId,
-		Long memberId, String token, String link, String name) {
+		Long memberId, String token, String link, String name, String messageId) {
 		return PortfolioNotifyMessage.builder()
 			.title(title)
 			.content(content)
@@ -28,11 +31,23 @@ public class PortfolioNotifyMessage extends NotifyMessage {
 			.token(token)
 			.link(link)
 			.name(name)
+			.messageId(messageId)
 			.build();
 	}
 
 	@Override
 	public String getIdToSentHistory() {
 		return String.format("portfolioNotification:%s", getReferenceId());
+	}
+
+	@Override
+	public NotifyMessage withMessageId(String messageId) {
+		return portfolio(getTitle(), getContent(), getType(), getReferenceId(), getMemberId(), getToken(), getLink(),
+			getName(), messageId);
+	}
+
+	@Override
+	public Notification toEntity(Member member) {
+		return Notification.portfolio(getName(), getTitle(), getType(), getReferenceId(), getLink(), member);
 	}
 }

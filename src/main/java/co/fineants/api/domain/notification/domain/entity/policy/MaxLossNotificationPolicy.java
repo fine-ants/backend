@@ -17,13 +17,22 @@ public class MaxLossNotificationPolicy implements NotificationPolicy<Notifiable>
 	private final Predicate<NotificationPreference> preferenceConditions;
 
 	@Override
-	public Optional<NotifyMessage> apply(Notifiable notifiable, String token) {
+	public boolean isSatisfied(Notifiable target) {
 		boolean isPortfolioValid = portfolioConditions.stream()
-			.allMatch(condition -> condition.test((Portfolio)notifiable));
-		boolean isPreferenceValid = preferenceConditions.test(notifiable.getNotificationPreference());
+			.allMatch(condition -> condition.test((Portfolio)target));
+		boolean isPreferenceValid = preferenceConditions.test(target.getNotificationPreference());
+		return isPortfolioValid && isPreferenceValid;
+	}
+
+	@Override
+	public Optional<NotifyMessage> apply(Notifiable target, String token) {
+		// TODO: will delete
+		boolean isPortfolioValid = portfolioConditions.stream()
+			.allMatch(condition -> condition.test((Portfolio)target));
+		boolean isPreferenceValid = preferenceConditions.test(target.getNotificationPreference());
 
 		if (isPortfolioValid && isPreferenceValid) {
-			return Optional.of(notifiable.createMaxLossMessageWith(token));
+			return Optional.of(target.createMaxLossMessageWith(token));
 		}
 		return Optional.empty();
 	}
