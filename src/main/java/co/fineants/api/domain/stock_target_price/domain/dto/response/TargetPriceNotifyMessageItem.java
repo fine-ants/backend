@@ -46,4 +46,5 @@ public class TargetPriceNotifyMessageItem implements NotifyMessageItem {
 			.targetPriceNotificationId(response.getTargetPriceNotificationId())
 			.build();
 	}
+
 }

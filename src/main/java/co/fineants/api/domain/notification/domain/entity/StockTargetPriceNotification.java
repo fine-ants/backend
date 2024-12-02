@@ -3,9 +3,11 @@ package co.fineants.api.domain.notification.domain.entity;
 import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.common.money.MoneyConverter;
 import co.fineants.api.domain.member.domain.entity.Member;
+import co.fineants.api.domain.notification.domain.dto.response.NotifyMessageItem;
 import co.fineants.api.domain.notification.domain.dto.response.TargetPriceNotificationSaveResponse;
 import co.fineants.api.domain.notification.domain.dto.response.save.NotificationSaveResponse;
 import co.fineants.api.domain.notification.domain.entity.type.NotificationType;
+import co.fineants.api.domain.stock_target_price.domain.dto.response.TargetPriceNotifyMessageItem;
 import jakarta.persistence.Convert;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
@@ -63,5 +65,28 @@ public class StockTargetPriceNotification extends Notification {
 	@Override
 	public NotificationSaveResponse toSaveResponse() {
 		return TargetPriceNotificationSaveResponse.from(this);
+	}
+
+	@Override
+	public String getIdToSentHistory() {
+		return String.format("targetPriceNotification:%d", targetPriceNotificationId);
+	}
+
+	@Override
+	public NotifyMessageItem toNotifyMessageItemWith(String messageId) {
+		return TargetPriceNotifyMessageItem.builder()
+			.notificationId(getId())
+			.isRead(getIsRead())
+			.title(getTitle())
+			.content(getContent())
+			.type(getType())
+			.referenceId(getReferenceId())
+			.memberId(getMember().getId())
+			.link(getLink())
+			.messageId(messageId)
+			.stockName(stockName)
+			.targetPrice(targetPrice)
+			.targetPriceNotificationId(targetPriceNotificationId)
+			.build();
 	}
 }

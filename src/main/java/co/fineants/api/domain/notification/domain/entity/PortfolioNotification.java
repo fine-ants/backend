@@ -1,6 +1,8 @@
 package co.fineants.api.domain.notification.domain.entity;
 
 import co.fineants.api.domain.member.domain.entity.Member;
+import co.fineants.api.domain.notification.domain.dto.response.NotifyMessageItem;
+import co.fineants.api.domain.notification.domain.dto.response.PortfolioNotifyMessageItem;
 import co.fineants.api.domain.notification.domain.dto.response.save.NotificationSaveResponse;
 import co.fineants.api.domain.notification.domain.dto.response.save.PortfolioNotificationSaveResponse;
 import co.fineants.api.domain.notification.domain.entity.type.NotificationType;
@@ -54,5 +56,26 @@ public class PortfolioNotification extends Notification {
 	@Override
 	public NotificationSaveResponse toSaveResponse() {
 		return PortfolioNotificationSaveResponse.from(this);
+	}
+
+	@Override
+	public String getIdToSentHistory() {
+		return String.format("portfolioNotification:%d", getId());
+	}
+
+	@Override
+	public NotifyMessageItem toNotifyMessageItemWith(String messageId) {
+		return PortfolioNotifyMessageItem.create(
+			getId(),
+			getIsRead(),
+			getTitle(),
+			getContent(),
+			getType(),
+			getReferenceId(),
+			getMember().getId(),
+			getLink(),
+			messageId,
+			name
+		);
 	}
 }

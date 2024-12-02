@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import co.fineants.api.domain.BaseEntity;
 import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.member.domain.entity.Member;
+import co.fineants.api.domain.notification.domain.dto.response.NotifyMessageItem;
 import co.fineants.api.domain.notification.domain.dto.response.save.NotificationSaveResponse;
 import co.fineants.api.domain.notification.domain.entity.type.NotificationType;
 import jakarta.persistence.Column;
@@ -89,9 +90,12 @@ public abstract class Notification extends BaseEntity {
 	public abstract String getName();
 
 	public abstract NotificationSaveResponse toSaveResponse();
-	
+
+	public abstract String getIdToSentHistory();
+
+	public abstract NotifyMessageItem toNotifyMessageItemWith(String messageId);
+
 	public boolean hasAuthorization(Long memberId) {
 		return member.hasAuthorization(memberId);
 	}
-
 }

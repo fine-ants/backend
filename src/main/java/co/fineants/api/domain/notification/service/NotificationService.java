@@ -27,7 +27,6 @@ import co.fineants.api.domain.notification.domain.dto.response.NotifyMessageResp
 import co.fineants.api.domain.notification.domain.dto.response.PortfolioNotifyMessagesResponse;
 import co.fineants.api.domain.notification.domain.dto.response.SentNotifyMessage;
 import co.fineants.api.domain.notification.domain.dto.response.save.NotificationSaveResponse;
-import co.fineants.api.domain.notification.domain.dto.response.save.PortfolioNotificationSaveResponse;
 import co.fineants.api.domain.notification.domain.entity.Notification;
 import co.fineants.api.domain.notification.domain.entity.policy.MaxLossNotificationPolicy;
 import co.fineants.api.domain.notification.domain.entity.policy.NotificationPolicy;
@@ -163,15 +162,11 @@ public class NotificationService {
 			.forEach(sentManager::addTargetGainSendHistory);
 
 		// 결과 객체 생성
-		List<NotificationSaveResponse> notificationSaveResponses = notifications.stream()
-			.map(PortfolioNotificationSaveResponse::from)
-			.map(NotificationSaveResponse.class::cast)
-			.toList();
 		Map<String, String> messageIdMap = new HashMap<>();
 		for (NotifyMessage target : sentNotifyMessages) {
 			messageIdMap.put(target.getIdToSentHistory(), target.getMessageId());
 		}
-		List<NotifyMessageItem> items = notificationSaveResponses.stream()
+		List<NotifyMessageItem> items = notifications.stream()
 			.map(response -> {
 				String messageId = messageIdMap.getOrDefault(response.getIdToSentHistory(), Strings.EMPTY);
 				return response.toNotifyMessageItemWith(messageId);
