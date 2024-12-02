@@ -1,5 +1,7 @@
 package co.fineants.api.domain.notification.domain.dto.response;
 
+import org.apache.logging.log4j.util.Strings;
+
 import co.fineants.api.domain.fcm.service.FcmService;
 import co.fineants.api.domain.notification.domain.dto.request.NotificationSaveRequest;
 import lombok.AccessLevel;
@@ -26,7 +28,7 @@ public class SentNotifyMessage {
 	}
 
 	public boolean hasMessageId() {
-		return messageId != null;
+		return !Strings.isBlank(messageId);
 	}
 
 	public void deleteToken(FcmService service) {
