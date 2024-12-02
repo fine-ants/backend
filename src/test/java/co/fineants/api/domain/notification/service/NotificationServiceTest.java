@@ -669,14 +669,25 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 			List.of(stock.getTickerSymbol(), stock2.getTickerSymbol()));
 
 		// then
-		NotificationType type = NotificationType.STOCK_TARGET_PRICE;
+		TargetPriceNotifyMessageItem expected1 = TargetPriceNotifyMessageItem.create(
+			2L,
+			false,
+			"종목 지정가",
+			"동화약품보통주이(가) ₩10,000에 도달했습니다",
+			NotificationType.STOCK_TARGET_PRICE,
+			"000020",
+			member.getId(),
+			"/stock/000020",
+			List.of("messageId"),
+			"동화약품보통주",
+			Money.won(10_000),
+			targetPriceNotifications2.get(0).getId()
+		);
 		assertThat(response)
 			.extracting("notifications")
 			.asList()
 			.hasSize(1)
-			.extracting("title", "type", "referenceId", "messageId")
-			.containsExactlyInAnyOrder(
-				Tuple.tuple(type.getName(), type, "000020", "messageId"));
+			.containsExactly(expected1);
 		assertThat(notificationRepository.findAllByMemberId(member.getId()))
 			.asList()
 			.hasSize(2);
