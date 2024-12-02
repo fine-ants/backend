@@ -1,5 +1,7 @@
 package co.fineants.api.domain.notification.domain.entity;
 
+import java.util.List;
+
 import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.common.money.MoneyConverter;
 import co.fineants.api.domain.member.domain.entity.Member;
@@ -73,7 +75,7 @@ public class StockTargetPriceNotification extends Notification {
 	}
 
 	@Override
-	public NotifyMessageItem toNotifyMessageItemWith(String messageId) {
+	public NotifyMessageItem toNotifyMessageItemWith(List<String> messageIds) {
 		return TargetPriceNotifyMessageItem.builder()
 			.notificationId(getId())
 			.isRead(getIsRead())
@@ -83,7 +85,7 @@ public class StockTargetPriceNotification extends Notification {
 			.referenceId(getReferenceId())
 			.memberId(getMember().getId())
 			.link(getLink())
-			.messageId(messageId)
+			.messageIds(messageIds)
 			.stockName(stockName)
 			.targetPrice(targetPrice)
 			.targetPriceNotificationId(targetPriceNotificationId)

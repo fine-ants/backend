@@ -1,5 +1,7 @@
 package co.fineants.api.domain.notification.domain.entity;
 
+import java.util.List;
+
 import co.fineants.api.domain.member.domain.entity.Member;
 import co.fineants.api.domain.notification.domain.dto.response.NotifyMessageItem;
 import co.fineants.api.domain.notification.domain.dto.response.PortfolioNotifyMessageItem;
@@ -64,7 +66,7 @@ public class PortfolioNotification extends Notification {
 	}
 
 	@Override
-	public NotifyMessageItem toNotifyMessageItemWith(String messageId) {
+	public NotifyMessageItem toNotifyMessageItemWith(List<String> messageIds) {
 		return PortfolioNotifyMessageItem.create(
 			getId(),
 			getIsRead(),
@@ -74,7 +76,7 @@ public class PortfolioNotification extends Notification {
 			getReferenceId(),
 			getMember().getId(),
 			getLink(),
-			messageId,
+			messageIds,
 			name
 		);
 	}

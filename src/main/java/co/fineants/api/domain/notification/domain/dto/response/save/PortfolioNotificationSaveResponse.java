@@ -1,5 +1,7 @@
 package co.fineants.api.domain.notification.domain.dto.response.save;
 
+import java.util.List;
+
 import co.fineants.api.domain.notification.domain.dto.response.NotifyMessageItem;
 import co.fineants.api.domain.notification.domain.dto.response.PortfolioNotifyMessageItem;
 import co.fineants.api.domain.notification.domain.entity.Notification;
@@ -47,7 +49,7 @@ public class PortfolioNotificationSaveResponse implements NotificationSaveRespon
 	}
 
 	@Override
-	public NotifyMessageItem toNotifyMessageItemWith(String messageId) {
+	public NotifyMessageItem toNotifyMessageItemWith(List<String> messageIds) {
 		return PortfolioNotifyMessageItem.create(
 			notificationId,
 			isRead,
@@ -57,7 +59,7 @@ public class PortfolioNotificationSaveResponse implements NotificationSaveRespon
 			referenceId,
 			memberId,
 			link,
-			messageId,
+			messageIds,
 			name
 		);
 	}

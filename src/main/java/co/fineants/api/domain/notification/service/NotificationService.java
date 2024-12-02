@@ -2,6 +2,7 @@ package co.fineants.api.domain.notification.service;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +14,8 @@ import org.apache.logging.log4j.util.Strings;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.google.firebase.messaging.Message;
 
 import co.fineants.api.domain.common.notification.Notifiable;
 import co.fineants.api.domain.fcm.service.FcmService;
@@ -119,7 +122,7 @@ public class NotificationService {
 	}
 
 	@Transactional
-	public NotifyMessageResponse notifyTargetGainAll2() {
+	public List<NotifyMessageItem> notifyTargetGainAll2() {
 		List<Portfolio> portfolios = portfolioRepository.findAllWithAll();
 		List<NotifyMessage> notifyMessages = portfolios.stream()
 			.filter(targetGainNotificationPolicy::isSatisfied)
@@ -131,26 +134,33 @@ public class NotificationService {
 			.toList();
 
 		// 만족하는 포트폴리오를 대상으로 알림 데이터 생성 & 알림 전송
-		List<NotifyMessage> sentNotifyMessages = notifyMessages.stream()
-			.map(notifyMessage -> {
-				String messageId = firebaseMessagingService.send(notifyMessage.toMessage()).orElse(null);
-				return notifyMessage.withMessageId(messageId);
-			})
-			.distinct()
-			.toList();
+		Map<NotifyMessage, List<String>> messageIdsMap = new HashMap<>();
+		for (NotifyMessage notifyMessage : notifyMessages) {
+			Message message = notifyMessage.toMessage();
+			String messageId = firebaseMessagingService.send(message).orElse(null);
+			messageIdsMap.computeIfAbsent(notifyMessage, key -> new ArrayList<>())
+				.add(messageId);
+		}
 
 		// 알림 전송에 실패한 전송 메시지에 대해서 FCM 토큰 삭제
-		sentNotifyMessages.stream()
-			.filter(sentNotifyMessage -> !sentNotifyMessage.hasMessageId())
-			.forEach(sentNotifyMessage -> sentNotifyMessage.deleteToken(fcmService));
-		log.debug("sentNotifyMessages : {}", sentNotifyMessages);
+		for (NotifyMessage notifyMessage : messageIdsMap.keySet()) {
+			for (String messageId : messageIdsMap.get(notifyMessage)) {
+				if (messageId == null) {
+					notifyMessage.deleteToken(fcmService);
+				}
+			}
+		}
+
+		List<NotifyMessage> sentNotifyMessages = messageIdsMap.entrySet().stream()
+			.map(entry -> entry.getKey().withMessageId(entry.getValue()))
+			.toList();
 
 		// 알림 저장
 		List<Notification> notifications = sentNotifyMessages.stream()
 			.map(notifyMessage -> {
 				Member member = memberRepository.findById(notifyMessage.getMemberId())
 					.orElseThrow(() -> new IllegalArgumentException(
-						"not found member, memberId=" + notifyMessage.getMessageId()));
+						"not found member, memberId=" + notifyMessage.getMemberId()));
 				return notifyMessage.toEntity(member);
 			})
 			.map(notificationRepository::save)
@@ -162,17 +172,17 @@ public class NotificationService {
 			.forEach(sentManager::addTargetGainSendHistory);
 
 		// 결과 객체 생성
-		Map<String, String> messageIdMap = new HashMap<>();
+		Map<String, List<String>> messageIdMap = new HashMap<>();
 		for (NotifyMessage target : sentNotifyMessages) {
-			messageIdMap.put(target.getIdToSentHistory(), target.getMessageId());
+			messageIdMap.put(target.getIdToSentHistory(), target.getMessageIds());
 		}
-		List<NotifyMessageItem> items = notifications.stream()
+		return notifications.stream()
 			.map(response -> {
-				String messageId = messageIdMap.getOrDefault(response.getIdToSentHistory(), Strings.EMPTY);
-				return response.toNotifyMessageItemWith(messageId);
+				List<String> messageIds = messageIdMap.getOrDefault(response.getIdToSentHistory(),
+					Collections.emptyList());
+				return response.toNotifyMessageItemWith(messageIds);
 			})
 			.toList();
-		return PortfolioNotifyMessagesResponse.create(items);
 	}
 
 	/**
@@ -223,7 +233,7 @@ public class NotificationService {
 		return notificationSaveResponses.stream()
 			.map(response -> {
 				String messageId = messageIdMap.getOrDefault(response.getIdToSentHistory(), Strings.EMPTY);
-				return response.toNotifyMessageItemWith(messageId);
+				return response.toNotifyMessageItemWith(List.of(messageId));
 			})
 			.toList();
 	}

@@ -774,7 +774,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 			createPurchaseHistory(null, purchaseDate, numShares, purchasePricePerShare, memo, holding));
 
 		purchaseDate = LocalDateTime.of(2023, 9, 26, 9, 30, 0);
-		numShares = Count.from(1);
+		numShares = Count.from(100);
 		purchasePricePerShare = Money.won(60000);
 		memo = "첫구매";
 		purchaseHistoryRepository.save(
@@ -786,16 +786,15 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 			.willReturn(Optional.of("messageId"));
 
 		// when
-		NotifyMessageResponse actual = service.notifyTargetGainAll2();
+		List<NotifyMessageItem> actual = service.notifyTargetGainAll2();
 
 		// then
 		NotifyMessageItem expected = PortfolioNotifyMessageItem.create(1L, false, "포트폴리오",
 			"내꿈은 워렌버핏의 목표 수익율을 달성했습니다",
-			NotificationType.PORTFOLIO_TARGET_GAIN, "1", 1L, "/portfolio/1", "messageId", "내꿈은 워렌버핏");
+			NotificationType.PORTFOLIO_TARGET_GAIN, "1", 1L, "/portfolio/1", List.of("messageId", "messageId"),
+			"내꿈은 워렌버핏");
 		assertAll(
 			() -> assertThat(actual)
-				.isInstanceOf(PortfolioNotifyMessagesResponse.class)
-				.extracting("notifications")
 				.asList()
 				.hasSize(1)
 				.containsExactly(expected),

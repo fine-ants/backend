@@ -1,5 +1,6 @@
 package co.fineants.api.domain.notification.domain.dto.response;
 
+import java.util.List;
 import java.util.Objects;
 
 import co.fineants.api.domain.common.money.Money;
@@ -22,8 +23,8 @@ public class StockNotifyMessage extends NotifyMessage {
 	@Builder(access = AccessLevel.PRIVATE)
 	private StockNotifyMessage(String title, String content, NotificationType type, String referenceId, Long memberId,
 		String token, String link, String stockName, Money targetPrice, Long targetPriceNotificationId,
-		String messageId) {
-		super(title, content, type, referenceId, memberId, token, link, messageId);
+		List<String> messageIds) {
+		super(title, content, type, referenceId, memberId, token, link, messageIds);
 		this.stockName = stockName;
 		this.targetPrice = targetPrice;
 		this.targetPriceNotificationId = targetPriceNotificationId;
@@ -31,7 +32,7 @@ public class StockNotifyMessage extends NotifyMessage {
 
 	public static NotifyMessage create(String title, String content, NotificationType type, String referenceId,
 		Long memberId, String token, String link, String stockName, Money targetPrice, Long targetPriceNotificationId,
-		String messageId) {
+		List<String> messageIds) {
 		return StockNotifyMessage.builder()
 			.title(title)
 			.content(content)
@@ -43,7 +44,7 @@ public class StockNotifyMessage extends NotifyMessage {
 			.stockName(stockName)
 			.targetPrice(targetPrice)
 			.targetPriceNotificationId(targetPriceNotificationId)
-			.messageId(messageId)
+			.messageIds(messageIds)
 			.build();
 	}
 
@@ -53,9 +54,9 @@ public class StockNotifyMessage extends NotifyMessage {
 	}
 
 	@Override
-	public NotifyMessage withMessageId(String messageId) {
+	public NotifyMessage withMessageId(List<String> messageIds) {
 		return stock(getTitle(), getContent(), getType(), getReferenceId(), getMemberId(), getToken(), getLink(),
-			getStockName(), getTargetPrice(), getTargetPriceNotificationId(), messageId);
+			getStockName(), getTargetPrice(), getTargetPriceNotificationId(), messageIds);
 	}
 
 	@Override

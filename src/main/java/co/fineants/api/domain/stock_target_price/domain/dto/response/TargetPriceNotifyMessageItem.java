@@ -1,5 +1,7 @@
 package co.fineants.api.domain.stock_target_price.domain.dto.response;
 
+import java.util.List;
+
 import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.notification.domain.dto.response.NotifyMessageItem;
 import co.fineants.api.domain.notification.domain.dto.response.TargetPriceNotificationSaveResponse;
@@ -25,12 +27,13 @@ public class TargetPriceNotifyMessageItem implements NotifyMessageItem {
 	private String referenceId;
 	private Long memberId;
 	private String link;
-	private String messageId;
+	private List<String> messageIds;
 	private String stockName;
 	private Money targetPrice;
 	private Long targetPriceNotificationId;
 
-	public static TargetPriceNotifyMessageItem from(TargetPriceNotificationSaveResponse response, String messageId) {
+	public static TargetPriceNotifyMessageItem from(TargetPriceNotificationSaveResponse response,
+		List<String> messageIds) {
 		return TargetPriceNotifyMessageItem.builder()
 			.notificationId(response.getNotificationId())
 			.isRead(response.getIsRead())
@@ -40,7 +43,7 @@ public class TargetPriceNotifyMessageItem implements NotifyMessageItem {
 			.referenceId(response.getReferenceId())
 			.memberId(response.getMemberId())
 			.link(response.getLink())
-			.messageId(messageId)
+			.messageIds(messageIds)
 			.stockName(response.getStockName())
 			.targetPrice(response.getTargetPrice())
 			.targetPriceNotificationId(response.getTargetPriceNotificationId())

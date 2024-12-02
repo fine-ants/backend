@@ -1,5 +1,7 @@
 package co.fineants.api.domain.notification.domain.dto.response;
 
+import java.util.List;
+
 import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.notification.domain.dto.response.save.NotificationSaveResponse;
 import co.fineants.api.domain.notification.domain.entity.Notification;
@@ -54,7 +56,7 @@ public class TargetPriceNotificationSaveResponse implements NotificationSaveResp
 	}
 
 	@Override
-	public NotifyMessageItem toNotifyMessageItemWith(String messageId) {
-		return TargetPriceNotifyMessageItem.from(this, messageId);
+	public NotifyMessageItem toNotifyMessageItemWith(List<String> messageIds) {
+		return TargetPriceNotifyMessageItem.from(this, messageIds);
 	}
 }

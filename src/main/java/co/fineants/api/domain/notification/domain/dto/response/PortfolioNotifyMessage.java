@@ -1,5 +1,7 @@
 package co.fineants.api.domain.notification.domain.dto.response;
 
+import java.util.List;
+
 import co.fineants.api.domain.member.domain.entity.Member;
 import co.fineants.api.domain.notification.domain.entity.Notification;
 import co.fineants.api.domain.notification.domain.entity.type.NotificationType;
@@ -15,13 +17,13 @@ public class PortfolioNotifyMessage extends NotifyMessage {
 
 	@Builder(access = AccessLevel.PRIVATE)
 	private PortfolioNotifyMessage(String title, String content, NotificationType type, String referenceId,
-		Long memberId, String token, String link, String name, String messageId) {
-		super(title, content, type, referenceId, memberId, token, link, messageId);
+		Long memberId, String token, String link, String name, List<String> messageIds) {
+		super(title, content, type, referenceId, memberId, token, link, messageIds);
 		this.name = name;
 	}
 
 	public static NotifyMessage create(String title, String content, NotificationType type, String referenceId,
-		Long memberId, String token, String link, String name, String messageId) {
+		Long memberId, String token, String link, String name, List<String> messageIds) {
 		return PortfolioNotifyMessage.builder()
 			.title(title)
 			.content(content)
@@ -31,7 +33,7 @@ public class PortfolioNotifyMessage extends NotifyMessage {
 			.token(token)
 			.link(link)
 			.name(name)
-			.messageId(messageId)
+			.messageIds(messageIds)
 			.build();
 	}
 
@@ -41,9 +43,9 @@ public class PortfolioNotifyMessage extends NotifyMessage {
 	}
 
 	@Override
-	public NotifyMessage withMessageId(String messageId) {
+	public NotifyMessage withMessageId(List<String> messageIds) {
 		return portfolio(getTitle(), getContent(), getType(), getReferenceId(), getMemberId(), getToken(), getLink(),
-			getName(), messageId);
+			getName(), messageIds);
 	}
 
 	@Override

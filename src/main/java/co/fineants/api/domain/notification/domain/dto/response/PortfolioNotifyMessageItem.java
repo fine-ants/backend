@@ -1,5 +1,7 @@
 package co.fineants.api.domain.notification.domain.dto.response;
 
+import java.util.List;
+
 import co.fineants.api.domain.notification.domain.dto.response.save.NotificationSaveResponse;
 import co.fineants.api.domain.notification.domain.entity.type.NotificationType;
 import lombok.AccessLevel;
@@ -25,15 +27,23 @@ public class PortfolioNotifyMessageItem implements NotifyMessageItem {
 	private String referenceId;
 	private Long memberId;
 	private String link;
-	private String messageId;
+	private List<String> messageIds;
 	private String name;
 
 	public static NotifyMessageItem from(NotificationSaveResponse response, String messageId) {
-		return response.toNotifyMessageItemWith(messageId);
+		return response.toNotifyMessageItemWith(List.of(messageId));
 	}
 
-	public static NotifyMessageItem create(Long notificationId, Boolean isRead, String title,
-		String content, NotificationType type, String referenceId, Long memberId, String link, String messageId,
+	public static NotifyMessageItem create(
+		Long notificationId,
+		Boolean isRead,
+		String title,
+		String content,
+		NotificationType type,
+		String referenceId,
+		Long memberId,
+		String link,
+		List<String> messageIds,
 		String name) {
 		return PortfolioNotifyMessageItem.builder()
 			.notificationId(notificationId)
@@ -44,7 +54,7 @@ public class PortfolioNotifyMessageItem implements NotifyMessageItem {
 			.referenceId(referenceId)
 			.memberId(memberId)
 			.link(link)
-			.messageId(messageId)
+			.messageIds(messageIds)
 			.name(name)
 			.build();
 	}

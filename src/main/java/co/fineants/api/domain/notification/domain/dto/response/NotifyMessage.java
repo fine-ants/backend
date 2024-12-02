@@ -1,5 +1,8 @@
 package co.fineants.api.domain.notification.domain.dto.response;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.google.firebase.messaging.Message;
 import com.google.firebase.messaging.Notification;
 import com.google.firebase.messaging.WebpushConfig;
@@ -27,10 +30,10 @@ public abstract class NotifyMessage {
 	private final Long memberId;
 	private final String token;
 	private final String link;
-	private final String messageId;
+	private final List<String> messageIds;
 
 	protected NotifyMessage(String title, String content, NotificationType type, String referenceId, Long memberId,
-		String token, String link, String messageId) {
+		String token, String link, List<String> messageIds) {
 		this.title = title;
 		this.content = content;
 		this.type = type;
@@ -38,17 +41,18 @@ public abstract class NotifyMessage {
 		this.memberId = memberId;
 		this.token = token;
 		this.link = link;
-		this.messageId = messageId;
+		this.messageIds = messageIds;
 	}
 
 	public static NotifyMessage portfolio(String title, String content, NotificationType type, String referenceId,
 		Long memberId, String token, String link, String name) {
-		return portfolio(title, content, type, referenceId, memberId, token, link, name, null);
+		return portfolio(title, content, type, referenceId, memberId, token, link, name, new ArrayList<>());
 	}
 
 	public static NotifyMessage portfolio(String title, String content, NotificationType type, String referenceId,
-		Long memberId, String token, String link, String name, String messageId) {
-		return PortfolioNotifyMessage.create(title, content, type, referenceId, memberId, token, link, name, messageId);
+		Long memberId, String token, String link, String name, List<String> messageIds) {
+		return PortfolioNotifyMessage.create(title, content, type, referenceId, memberId, token, link, name,
+			messageIds);
 	}
 
 	public static NotifyMessage stock(String title, String content, NotificationType type, String referenceId,
@@ -59,9 +63,9 @@ public abstract class NotifyMessage {
 
 	public static NotifyMessage stock(String title, String content, NotificationType type, String referenceId,
 		Long memberId, String token, String link, String stockName, Money targetPrice, Long targetPriceNotificationId,
-		String messageId) {
+		List<String> messageIds) {
 		return StockNotifyMessage.create(title, content, type, referenceId, memberId, token, link, stockName,
-			targetPrice, targetPriceNotificationId, messageId);
+			targetPrice, targetPriceNotificationId, messageIds);
 	}
 
 	public Message toMessage() {
@@ -93,7 +97,7 @@ public abstract class NotifyMessage {
 	}
 
 	public boolean hasMessageId() {
-		return messageId != null;
+		return messageIds != null;
 	}
 
 	public void deleteToken(FcmService fcmService) {
@@ -102,7 +106,7 @@ public abstract class NotifyMessage {
 
 	public abstract String getIdToSentHistory();
 
-	public abstract NotifyMessage withMessageId(String messageId);
+	public abstract NotifyMessage withMessageId(List<String> messageIds);
 
 	public abstract co.fineants.api.domain.notification.domain.entity.Notification toEntity(Member member);
 }

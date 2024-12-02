@@ -80,7 +80,7 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 			.andExpect(jsonPath("data.notifications[0].referenceId").value(equalTo(item.getReferenceId())))
 			.andExpect(jsonPath("data.notifications[0].memberId").value(equalTo(item.getMemberId().intValue())))
 			.andExpect(jsonPath("data.notifications[0].link").value(equalTo(item.getLink())))
-			.andExpect(jsonPath("data.notifications[0].messageId").value(equalTo(item.getMessageId())))
+			.andExpect(jsonPath("data.notifications[0].messageId").value(equalTo(item.getMessageIds())))
 			.andExpect(jsonPath("data.notifications[0].name").value(equalTo(item.getName())))
 			.andDo(
 				document(
@@ -156,7 +156,7 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 			.andExpect(jsonPath("data.notifications[0].referenceId").value(equalTo(item.getReferenceId())))
 			.andExpect(jsonPath("data.notifications[0].memberId").value(equalTo(item.getMemberId().intValue())))
 			.andExpect(jsonPath("data.notifications[0].link").value(equalTo(item.getLink())))
-			.andExpect(jsonPath("data.notifications[0].messageId").value(equalTo(item.getMessageId())))
+			.andExpect(jsonPath("data.notifications[0].messageId").value(equalTo(item.getMessageIds())))
 			.andExpect(jsonPath("data.notifications[0].name").value(equalTo(item.getName())))
 			.andDo(
 				document(
@@ -211,7 +211,7 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 		NotifyMessage message = targetPriceNotification.createTargetPriceMessage("token");
 		Notification notification = createStockNotification((StockNotifyMessage)message, member);
 		TargetPriceNotificationSaveResponse saveResponse = TargetPriceNotificationSaveResponse.from(notification);
-		TargetPriceNotifyMessageItem item = TargetPriceNotifyMessageItem.from(saveResponse, "messageId");
+		TargetPriceNotifyMessageItem item = TargetPriceNotifyMessageItem.from(saveResponse, List.of("messageId"));
 		given(service.notifyTargetPrice(anyLong()))
 			.willReturn(TargetPriceNotifyMessageResponse.create(List.of(item)));
 
@@ -233,7 +233,7 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 			.andExpect(jsonPath("data.notifications[0].referenceId").value(equalTo(item.getReferenceId())))
 			.andExpect(jsonPath("data.notifications[0].memberId").value(equalTo(item.getMemberId().intValue())))
 			.andExpect(jsonPath("data.notifications[0].link").value(equalTo(item.getLink())))
-			.andExpect(jsonPath("data.notifications[0].messageId").value(equalTo(item.getMessageId())))
+			.andExpect(jsonPath("data.notifications[0].messageId").value(equalTo(item.getMessageIds())))
 			.andExpect(jsonPath("data.notifications[0].stockName").value(equalTo(item.getStockName())))
 			.andExpect(jsonPath("data.notifications[0].targetPrice").value(
 				equalTo(item.getTargetPrice().toInteger().intValue())))

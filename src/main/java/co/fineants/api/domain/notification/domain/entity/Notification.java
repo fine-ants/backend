@@ -1,6 +1,7 @@
 package co.fineants.api.domain.notification.domain.entity;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import co.fineants.api.domain.BaseEntity;
 import co.fineants.api.domain.common.money.Money;
@@ -93,7 +94,7 @@ public abstract class Notification extends BaseEntity {
 
 	public abstract String getIdToSentHistory();
 
-	public abstract NotifyMessageItem toNotifyMessageItemWith(String messageId);
+	public abstract NotifyMessageItem toNotifyMessageItemWith(List<String> messageId);
 
 	public boolean hasAuthorization(Long memberId) {
 		return member.hasAuthorization(memberId);
