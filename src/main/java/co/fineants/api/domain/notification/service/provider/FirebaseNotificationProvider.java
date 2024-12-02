@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.apache.logging.log4j.util.Strings;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
@@ -52,7 +53,7 @@ public class FirebaseNotificationProvider implements NotificationProvider<Notifi
 		// 만족하는 포트폴리오를 대상으로 알림 데이터 생성 & 알림 전송
 		List<SentNotifyMessage> result = new ArrayList<>();
 		notifyMessages.forEach(notifyMessage -> {
-			String messageId = firebaseMessagingService.send(notifyMessage.toMessage()).orElse(null);
+			String messageId = firebaseMessagingService.send(notifyMessage.toMessage()).orElse(Strings.EMPTY);
 			SentNotifyMessage sentNotifyMessage = SentNotifyMessage.create(notifyMessage, messageId);
 			result.add(sentNotifyMessage);
 		});
