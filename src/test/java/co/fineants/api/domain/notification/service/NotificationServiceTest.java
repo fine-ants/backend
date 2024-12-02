@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -732,9 +731,9 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		Stock stock2 = stockRepository.save(createDongwhaPharmStock());
 		StockTargetPrice stockTargetPrice = stockTargetPriceRepository.save(createStockTargetPrice(member, stock));
 		StockTargetPrice stockTargetPrice2 = stockTargetPriceRepository.save(createStockTargetPrice(member, stock2));
-		targetPriceNotificationRepository.saveAll(
+		List<TargetPriceNotification> targetPriceNotifications = targetPriceNotificationRepository.saveAll(
 			createTargetPriceNotification(stockTargetPrice, List.of(60000L, 70000L)));
-		targetPriceNotificationRepository.saveAll(
+		List<TargetPriceNotification> targetPriceNotifications2 = targetPriceNotificationRepository.saveAll(
 			createTargetPriceNotification(stockTargetPrice2, List.of(10000L, 20000L)));
 
 		manager.savePrice(KisCurrentPrice.create(stock.getTickerSymbol(), 60000L));
@@ -746,15 +745,39 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 			List.of(stock.getTickerSymbol(), stock2.getTickerSymbol()));
 
 		// then
-		NotificationType type = NotificationType.STOCK_TARGET_PRICE;
+		TargetPriceNotifyMessageItem expected1 = TargetPriceNotifyMessageItem.create(
+			1L,
+			false,
+			"종목 지정가",
+			"삼성전자보통주이(가) ₩60,000에 도달했습니다",
+			NotificationType.STOCK_TARGET_PRICE,
+			"005930",
+			member.getId(),
+			"/stock/005930",
+			List.of("messageId"),
+			"삼성전자보통주",
+			Money.won(60_000),
+			targetPriceNotifications.get(0).getId()
+		);
+		TargetPriceNotifyMessageItem expected2 = TargetPriceNotifyMessageItem.create(
+			2L,
+			false,
+			"종목 지정가",
+			"동화약품보통주이(가) ₩10,000에 도달했습니다",
+			NotificationType.STOCK_TARGET_PRICE,
+			"000020",
+			member.getId(),
+			"/stock/000020",
+			List.of("messageId"),
+			"동화약품보통주",
+			Money.won(10_000),
+			targetPriceNotifications2.get(0).getId()
+		);
 		assertThat(response)
 			.extracting("notifications")
 			.asList()
 			.hasSize(2)
-			.extracting("title", "type", "referenceId", "messageId")
-			.containsExactlyInAnyOrder(
-				Tuple.tuple(type.getName(), type, "005930", "messageId"),
-				Tuple.tuple(type.getName(), type, "000020", "messageId"));
+			.containsExactly(expected1, expected2);
 		assertThat(notificationRepository.findAllByMemberId(member.getId()))
 			.asList()
 			.hasSize(2);
