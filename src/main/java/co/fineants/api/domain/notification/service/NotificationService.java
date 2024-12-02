@@ -137,23 +137,18 @@ public class NotificationService {
 		Map<NotifyMessage, List<String>> messageIdsMap = new HashMap<>();
 		for (NotifyMessage notifyMessage : notifyMessages) {
 			Message message = notifyMessage.toMessage();
-			String messageId = firebaseMessagingService.send(message).orElse(null);
+			String messageId = firebaseMessagingService.send(message).orElse(Strings.EMPTY);
 			messageIdsMap.computeIfAbsent(notifyMessage, key -> new ArrayList<>())
 				.add(messageId);
 		}
-
-		// 알림 전송에 실패한 전송 메시지에 대해서 FCM 토큰 삭제
-		for (NotifyMessage notifyMessage : messageIdsMap.keySet()) {
-			for (String messageId : messageIdsMap.get(notifyMessage)) {
-				if (messageId == null) {
-					notifyMessage.deleteToken(fcmService);
-				}
-			}
-		}
-
 		List<NotifyMessage> sentNotifyMessages = messageIdsMap.entrySet().stream()
 			.map(entry -> entry.getKey().withMessageId(entry.getValue()))
 			.toList();
+
+		// 알림 전송에 실패한 전송 메시지에 대해서 FCM 토큰 삭제
+		messageIdsMap.forEach((notifyMessage, messageIds) -> messageIds.stream()
+			.filter(Strings::isBlank)
+			.forEach(blankMessageId -> notifyMessage.deleteTokenBy(fcmService)));
 
 		// 알림 저장
 		List<Notification> notifications = sentNotifyMessages.stream()

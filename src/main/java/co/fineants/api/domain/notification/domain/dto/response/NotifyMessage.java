@@ -99,11 +99,7 @@ public abstract class NotifyMessage {
 	public boolean hasMessageId() {
 		return messageIds != null;
 	}
-
-	public void deleteToken(FcmService fcmService) {
-		fcmService.deleteToken(token);
-	}
-
+	
 	public abstract String getIdToSentHistory();
 
 	public abstract NotifyMessage withMessageId(List<String> messageIds);
