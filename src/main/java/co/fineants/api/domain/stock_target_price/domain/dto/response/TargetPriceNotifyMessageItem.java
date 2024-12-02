@@ -9,6 +9,7 @@ import co.fineants.api.domain.notification.domain.entity.type.NotificationType;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
@@ -18,6 +19,7 @@ import lombok.ToString;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
 @ToString
+@EqualsAndHashCode
 public class TargetPriceNotifyMessageItem implements NotifyMessageItem {
 	private Long notificationId;
 	private Boolean isRead;
@@ -50,4 +52,32 @@ public class TargetPriceNotifyMessageItem implements NotifyMessageItem {
 			.build();
 	}
 
+	public static TargetPriceNotifyMessageItem create(
+		Long notificationId,
+		Boolean isRead,
+		String title,
+		String content,
+		NotificationType type,
+		String referenceId,
+		Long memberId,
+		String link,
+		List<String> messageIds,
+		String stockName,
+		Money targetPrice,
+		Long targetPriceNotificationId) {
+		return TargetPriceNotifyMessageItem.builder()
+			.notificationId(notificationId)
+			.isRead(isRead)
+			.title(title)
+			.content(content)
+			.type(type)
+			.referenceId(referenceId)
+			.memberId(memberId)
+			.link(link)
+			.messageIds(messageIds)
+			.stockName(stockName)
+			.targetPrice(targetPrice)
+			.targetPriceNotificationId(targetPriceNotificationId)
+			.build();
+	}
 }

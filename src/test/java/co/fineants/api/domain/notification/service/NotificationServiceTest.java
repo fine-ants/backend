@@ -54,6 +54,7 @@ import co.fineants.api.domain.portfolio.repository.PortfolioRepository;
 import co.fineants.api.domain.purchasehistory.repository.PurchaseHistoryRepository;
 import co.fineants.api.domain.stock.domain.entity.Stock;
 import co.fineants.api.domain.stock.repository.StockRepository;
+import co.fineants.api.domain.stock_target_price.domain.dto.response.TargetPriceNotifyMessageItem;
 import co.fineants.api.domain.stock_target_price.domain.entity.StockTargetPrice;
 import co.fineants.api.domain.stock_target_price.domain.entity.TargetPriceNotification;
 import co.fineants.api.domain.stock_target_price.repository.StockTargetPriceRepository;
@@ -435,11 +436,11 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 			.willReturn(Optional.of("messageId"));
 
 		// when
-		PortfolioNotifyMessagesResponse response = (PortfolioNotifyMessagesResponse)service.notifyTargetGainAll();
+		List<NotifyMessageItem> items = service.notifyTargetGainAll();
 
 		// then
 		assertAll(
-			() -> assertThat(response).extracting("notifications").asList().hasSize(1),
+			() -> assertThat(items).hasSize(1),
 			() -> assertThat(notificationRepository.findAllByMemberId(member.getId())).hasSize(1),
 			() -> assertThat(sentManager.hasTargetGainSendHistory(portfolio.getId())).isTrue()
 		);
@@ -577,9 +578,9 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		Stock stock2 = stockRepository.save(createDongwhaPharmStock());
 		StockTargetPrice stockTargetPrice = stockTargetPriceRepository.save(createStockTargetPrice(member, stock));
 		StockTargetPrice stockTargetPrice2 = stockTargetPriceRepository.save(createStockTargetPrice(member, stock2));
-		targetPriceNotificationRepository.saveAll(
+		List<TargetPriceNotification> targetPriceNotifications = targetPriceNotificationRepository.saveAll(
 			createTargetPriceNotification(stockTargetPrice, List.of(60000L, 70000L)));
-		targetPriceNotificationRepository.saveAll(
+		List<TargetPriceNotification> targetPriceNotifications2 = targetPriceNotificationRepository.saveAll(
 			createTargetPriceNotification(stockTargetPrice2, List.of(10000L, 20000L)));
 
 		manager.savePrice(KisCurrentPrice.create(stock.getTickerSymbol(), 60000L));
@@ -590,47 +591,41 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		NotifyMessageResponse response = service.notifyTargetPrice(member.getId());
 
 		// then
-		NotificationType type = NotificationType.STOCK_TARGET_PRICE;
+		TargetPriceNotifyMessageItem expected1 = TargetPriceNotifyMessageItem.create(
+			1L,
+			false,
+			"종목 지정가",
+			"삼성전자보통주이(가) ₩60,000에 도달했습니다",
+			NotificationType.STOCK_TARGET_PRICE,
+			"005930",
+			member.getId(),
+			"/stock/005930",
+			List.of("messageId"),
+			"삼성전자보통주",
+			Money.won(60000),
+			targetPriceNotifications.get(0).getId()
+		);
+		TargetPriceNotifyMessageItem expected2 = TargetPriceNotifyMessageItem.create(
+			2L,
+			false,
+			"종목 지정가",
+			"동화약품보통주이(가) ₩10,000에 도달했습니다",
+			NotificationType.STOCK_TARGET_PRICE,
+			"000020",
+			member.getId(),
+			"/stock/000020",
+			List.of("messageId"),
+			"동화약품보통주",
+			Money.won(10000),
+			targetPriceNotifications2.get(0).getId()
+		);
+
 		assertThat(response)
 			.extracting("notifications")
 			.asList()
 			.hasSize(2)
-			.extracting(
-				"isRead",
-				"title",
-				"content",
-				"type",
-				"referenceId",
-				"memberId",
-				"link",
-				"messageId",
-				"stockName",
-				"targetPrice")
 			.usingComparatorForType(Money::compareTo, Money.class)
-			.containsExactlyInAnyOrder(
-				Tuple.tuple(
-					false,
-					"종목 지정가",
-					"동화약품보통주이(가) ₩10,000에 도달했습니다",
-					type,
-					"000020",
-					member.getId(),
-					"/stock/000020",
-					"messageId",
-					"동화약품보통주",
-					Money.won(10000)),
-				Tuple.tuple(
-					false,
-					"종목 지정가",
-					"삼성전자보통주이(가) ₩60,000에 도달했습니다",
-					type,
-					"005930",
-					member.getId(),
-					"/stock/005930",
-					"messageId",
-					"삼성전자보통주",
-					Money.won(60000))
-			);
+			.containsExactly(expected1, expected2);
 		assertThat(notificationRepository.findAllByMemberId(member.getId()))
 			.asList()
 			.hasSize(2);
@@ -786,7 +781,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 			.willReturn(Optional.of("messageId"));
 
 		// when
-		List<NotifyMessageItem> actual = service.notifyTargetGainAll2();
+		List<NotifyMessageItem> actual = service.notifyTargetGainAll();
 
 		// then
 		NotifyMessageItem expected = PortfolioNotifyMessageItem.create(1L, false, "포트폴리오",

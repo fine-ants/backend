@@ -103,27 +103,12 @@ public class NotificationService {
 			.orElseThrow(() -> new NotFoundResourceException(MemberErrorCode.NOT_FOUND_MEMBER));
 	}
 
-	/**
-	 * 모든 회원을 대상으로 목표 수익률을 만족하는 포트폴리오에 대해서 목표 수익률 달성 알림 푸시
-	 *
-	 * @return 알림 전송 결과
-	 */
 	@Transactional
-	public NotifyMessageResponse notifyTargetGainAll() {
-		// TODO: 해당 메서드에서 policy를 통해서 포트폴리오들을 대상으로 조건에 맞는 데이터들을 필터링한 다음에 PortfolioTargetGainNotifiable로 변환하여 전달
-		List<Notifiable> portfolios = portfolioRepository.findAllWithAll().stream()
-			.map(Notifiable.class::cast)
-			.toList();
-		List<NotifyMessageItem> items = notifyMessage(
-			portfolios,
-			targetGainNotificationPolicy,
-			sentManager::addTargetGainSendHistory);
-		return PortfolioNotifyMessagesResponse.create(items);
+	public List<NotifyMessageItem> notifyTargetGainAll() {
+		return notifyTargetGainAll(portfolioRepository.findAllWithAll());
 	}
 
-	@Transactional
-	public List<NotifyMessageItem> notifyTargetGainAll2() {
-		List<Portfolio> portfolios = portfolioRepository.findAllWithAll();
+	private List<NotifyMessageItem> notifyTargetGainAll(List<Portfolio> portfolios) {
 		List<NotifyMessage> notifyMessages = portfolios.stream()
 			.filter(targetGainNotificationPolicy::isSatisfied)
 			.map(portfolio -> fcmService.findTokens(portfolio.getMemberId()).stream()
@@ -167,14 +152,14 @@ public class NotificationService {
 			.forEach(sentManager::addTargetGainSendHistory);
 
 		// 결과 객체 생성
-		Map<String, List<String>> messageIdMap = new HashMap<>();
-		for (NotifyMessage target : sentNotifyMessages) {
-			messageIdMap.put(target.getIdToSentHistory(), target.getMessageIds());
-		}
 		return notifications.stream()
 			.map(response -> {
-				List<String> messageIds = messageIdMap.getOrDefault(response.getIdToSentHistory(),
-					Collections.emptyList());
+				String idToSentHistory = response.getIdToSentHistory();
+				List<String> messageIds = sentNotifyMessages.stream()
+					.filter(notifyMessage -> notifyMessage.getIdToSentHistory().equals(idToSentHistory))
+					.map(NotifyMessage::getMessageIds)
+					.findAny()
+					.orElse(Collections.emptyList());
 				return response.toNotifyMessageItemWith(messageIds);
 			})
 			.toList();
@@ -191,9 +176,9 @@ public class NotificationService {
 		Portfolio portfolio = portfolioRepository.findByPortfolioIdWithAll(portfolioId).stream()
 			.findFirst()
 			.orElseThrow(() -> new FineAntsException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
-		Consumer<Long> sentFunction = sentManager::addTargetGainSendHistory;
+
 		return PortfolioNotifyMessagesResponse.create(
-			notifyMessage(List.of(portfolio), targetGainNotificationPolicy, sentFunction)
+			notifyTargetGainAll(List.of(portfolio))
 		);
 	}
 
