@@ -27,6 +27,7 @@ import co.fineants.api.domain.notification.domain.dto.response.NotifyMessageResp
 import co.fineants.api.domain.notification.domain.dto.response.PortfolioNotifyMessagesResponse;
 import co.fineants.api.domain.notification.domain.dto.response.SentNotifyMessage;
 import co.fineants.api.domain.notification.domain.dto.response.save.NotificationSaveResponse;
+import co.fineants.api.domain.notification.domain.dto.response.save.PortfolioNotificationSaveResponse;
 import co.fineants.api.domain.notification.domain.entity.Notification;
 import co.fineants.api.domain.notification.domain.entity.policy.MaxLossNotificationPolicy;
 import co.fineants.api.domain.notification.domain.entity.policy.NotificationPolicy;
@@ -119,7 +120,7 @@ public class NotificationService {
 	}
 
 	@Transactional
-	public List<Notification> notifyTargetGainAll2() {
+	public NotifyMessageResponse notifyTargetGainAll2() {
 		List<Portfolio> portfolios = portfolioRepository.findAllWithAll();
 		List<NotifyMessage> notifyMessages = portfolios.stream()
 			.filter(targetGainNotificationPolicy::isSatisfied)
@@ -160,10 +161,23 @@ public class NotificationService {
 		notifications.stream()
 			.map(Notification::getId)
 			.forEach(sentManager::addTargetGainSendHistory);
+
 		// 결과 객체 생성
-		// List<NotifyMessageItem> notifyMessageItems = createNotifyMessageItems(sentNotifyMessages,
-		// 	notificationSaveResponses);
-		return notifications;
+		List<NotificationSaveResponse> notificationSaveResponses = notifications.stream()
+			.map(PortfolioNotificationSaveResponse::from)
+			.map(NotificationSaveResponse.class::cast)
+			.toList();
+		Map<String, String> messageIdMap = new HashMap<>();
+		for (NotifyMessage target : sentNotifyMessages) {
+			messageIdMap.put(target.getIdToSentHistory(), target.getMessageId());
+		}
+		List<NotifyMessageItem> items = notificationSaveResponses.stream()
+			.map(response -> {
+				String messageId = messageIdMap.getOrDefault(response.getIdToSentHistory(), Strings.EMPTY);
+				return response.toNotifyMessageItemWith(messageId);
+			})
+			.toList();
+		return PortfolioNotifyMessagesResponse.create(items);
 	}
 
 	/**

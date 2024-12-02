@@ -39,7 +39,9 @@ import co.fineants.api.domain.kis.repository.CurrentPriceRedisRepository;
 import co.fineants.api.domain.kis.service.KisService;
 import co.fineants.api.domain.member.domain.entity.Member;
 import co.fineants.api.domain.member.repository.MemberRepository;
+import co.fineants.api.domain.notification.domain.dto.response.NotifyMessageItem;
 import co.fineants.api.domain.notification.domain.dto.response.NotifyMessageResponse;
+import co.fineants.api.domain.notification.domain.dto.response.PortfolioNotifyMessageItem;
 import co.fineants.api.domain.notification.domain.dto.response.PortfolioNotifyMessagesResponse;
 import co.fineants.api.domain.notification.domain.entity.Notification;
 import co.fineants.api.domain.notification.domain.entity.type.NotificationType;
@@ -784,11 +786,19 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 			.willReturn(Optional.of("messageId"));
 
 		// when
-		List<Notification> actual = service.notifyTargetGainAll2();
+		NotifyMessageResponse actual = service.notifyTargetGainAll2();
 
 		// then
+		NotifyMessageItem expected = PortfolioNotifyMessageItem.create(1L, false, "포트폴리오",
+			"내꿈은 워렌버핏의 목표 수익율을 달성했습니다",
+			NotificationType.PORTFOLIO_TARGET_GAIN, "1", 1L, "/portfolio/1", "messageId", "내꿈은 워렌버핏");
 		assertAll(
-			() -> assertThat(actual).hasSize(1),
+			() -> assertThat(actual)
+				.isInstanceOf(PortfolioNotifyMessagesResponse.class)
+				.extracting("notifications")
+				.asList()
+				.hasSize(1)
+				.containsExactly(expected),
 			() -> assertThat(notificationRepository.findAllByMemberId(member.getId())).hasSize(1),
 			() -> assertThat(sentManager.hasTargetGainSendHistory(portfolio.getId())).isTrue()
 		);

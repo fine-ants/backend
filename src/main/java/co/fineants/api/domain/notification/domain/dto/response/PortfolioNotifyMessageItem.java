@@ -5,6 +5,7 @@ import co.fineants.api.domain.notification.domain.entity.type.NotificationType;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
@@ -13,6 +14,7 @@ import lombok.ToString;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder(access = AccessLevel.PRIVATE)
+@EqualsAndHashCode
 @ToString
 public class PortfolioNotifyMessageItem implements NotifyMessageItem {
 	private Long notificationId;
