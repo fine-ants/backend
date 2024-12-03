@@ -143,12 +143,11 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		manager.savePrice(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L));
 
 		// when
-		PortfolioNotifyMessagesResponse response = (PortfolioNotifyMessagesResponse)service.notifyTargetGain(
-			portfolio.getId());
+		List<NotifyMessageItem> actual = service.notifyTargetGain(portfolio.getId());
 
 		// then
 		assertAll(
-			() -> assertThat(response).extracting("notifications").asList().hasSize(1),
+			() -> assertThat(actual).hasSize(1),
 			() -> assertThat(notificationRepository.findAllByMemberId(member.getId())).hasSize(1),
 			() -> assertThat(sentManager.hasTargetGainSendHistory(portfolio.getId())).isTrue()
 		);
@@ -188,12 +187,11 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		manager.savePrice(KisCurrentPrice.create(ccs.getTickerSymbol(), 3750L));
 
 		// when
-		PortfolioNotifyMessagesResponse response = (PortfolioNotifyMessagesResponse)service.notifyTargetGain(
-			portfolio.getId());
+		List<NotifyMessageItem> actual = service.notifyTargetGain(portfolio.getId());
 
 		// then
 		assertAll(
-			() -> assertThat(response).extracting("notifications").asList().isEmpty(),
+			() -> assertThat(actual).isEmpty(),
 			() -> assertThat(notificationRepository.findAllByMemberId(member.getId())).isEmpty(),
 			() -> assertThat(sentManager.hasTargetGainSendHistory(portfolio.getId())).isFalse()
 		);
@@ -222,12 +220,11 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		manager.savePrice(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L));
 
 		// when
-		PortfolioNotifyMessagesResponse response = (PortfolioNotifyMessagesResponse)service.notifyTargetGain(
-			portfolio.getId());
+		List<NotifyMessageItem> actual = service.notifyTargetGain(portfolio.getId());
 
 		// then
 		assertAll(
-			() -> assertThat(response).extracting("notifications").asList().hasSize(1),
+			() -> assertThat(actual).hasSize(1),
 			() -> assertThat(fcmRepository.findById(fcmToken.getId())).isEmpty(),
 			() -> assertThat(sentManager.hasTargetGainSendHistory(portfolio.getId())).isTrue()
 		);
@@ -260,12 +257,11 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		manager.savePrice(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L));
 
 		// when
-		PortfolioNotifyMessagesResponse response = (PortfolioNotifyMessagesResponse)service.notifyTargetGain(
-			portfolio.getId());
+		List<NotifyMessageItem> actual = service.notifyTargetGain(portfolio.getId());
 
 		// then
 		assertAll(
-			() -> assertThat(response).extracting("notifications").asList().isEmpty()
+			() -> assertThat(actual).isEmpty()
 		);
 	}
 

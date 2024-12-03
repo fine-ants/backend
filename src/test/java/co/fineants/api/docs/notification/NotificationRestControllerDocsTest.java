@@ -78,7 +78,7 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 			.andExpect(jsonPath("data.notifications[0].referenceId").value(equalTo(item.getReferenceId())))
 			.andExpect(jsonPath("data.notifications[0].memberId").value(equalTo(item.getMemberId().intValue())))
 			.andExpect(jsonPath("data.notifications[0].link").value(equalTo(item.getLink())))
-			.andExpect(jsonPath("data.notifications[0].messageId").value(equalTo(item.getMessageIds())))
+			.andExpect(jsonPath("data.notifications[0].messageIds").value(equalTo(item.getMessageIds())))
 			.andExpect(jsonPath("data.notifications[0].name").value(equalTo(item.getName())))
 			.andDo(
 				document(
@@ -113,7 +113,7 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 							.description("회원 등록 번호"),
 						fieldWithPath("data.notifications[].link").type(JsonFieldType.STRING)
 							.description("알림 링크"),
-						fieldWithPath("data.notifications[].messageId").type(JsonFieldType.STRING)
+						fieldWithPath("data.notifications[].messageIds").type(JsonFieldType.ARRAY)
 							.description("알림 메시지 아이디"),
 						fieldWithPath("data.notifications[].name").type(JsonFieldType.STRING)
 							.description("포트폴리오 이름")
@@ -154,7 +154,7 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 			.andExpect(jsonPath("data.notifications[0].referenceId").value(equalTo(item.getReferenceId())))
 			.andExpect(jsonPath("data.notifications[0].memberId").value(equalTo(item.getMemberId().intValue())))
 			.andExpect(jsonPath("data.notifications[0].link").value(equalTo(item.getLink())))
-			.andExpect(jsonPath("data.notifications[0].messageId").value(equalTo(item.getMessageIds())))
+			.andExpect(jsonPath("data.notifications[0].messageIds").value(equalTo(item.getMessageIds())))
 			.andExpect(jsonPath("data.notifications[0].name").value(equalTo(item.getName())))
 			.andDo(
 				document(
@@ -189,7 +189,7 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 							.description("회원 등록 번호"),
 						fieldWithPath("data.notifications[].link").type(JsonFieldType.STRING)
 							.description("알림 링크"),
-						fieldWithPath("data.notifications[].messageId").type(JsonFieldType.STRING)
+						fieldWithPath("data.notifications[].messageIds").type(JsonFieldType.ARRAY)
 							.description("알림 메시지 아이디"),
 						fieldWithPath("data.notifications[].name").type(JsonFieldType.STRING)
 							.description("포트폴리오 이름")
@@ -231,7 +231,7 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 			.andExpect(jsonPath("data.notifications[0].referenceId").value(equalTo(item.getReferenceId())))
 			.andExpect(jsonPath("data.notifications[0].memberId").value(equalTo(item.getMemberId().intValue())))
 			.andExpect(jsonPath("data.notifications[0].link").value(equalTo(item.getLink())))
-			.andExpect(jsonPath("data.notifications[0].messageId").value(equalTo(item.getMessageIds())))
+			.andExpect(jsonPath("data.notifications[0].messageIds").value(equalTo(item.getMessageIds())))
 			.andExpect(jsonPath("data.notifications[0].stockName").value(equalTo(item.getStockName())))
 			.andExpect(jsonPath("data.notifications[0].targetPrice").value(
 				equalTo(item.getTargetPrice().toInteger().intValue())))
@@ -272,7 +272,7 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 							.description("회원 등록 번호"),
 						fieldWithPath("data.notifications[].link").type(JsonFieldType.STRING)
 							.description("알림 링크"),
-						fieldWithPath("data.notifications[].messageId").type(JsonFieldType.STRING)
+						fieldWithPath("data.notifications[].messageIds").type(JsonFieldType.ARRAY)
 							.description("알림 메시지 등록번호"),
 						fieldWithPath("data.notifications[].stockName").type(JsonFieldType.STRING)
 							.description("종목 이름"),

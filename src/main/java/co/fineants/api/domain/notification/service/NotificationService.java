@@ -114,7 +114,6 @@ public class NotificationService {
 		Portfolio portfolio = portfolioRepository.findByPortfolioIdWithAll(portfolioId).stream()
 			.findAny()
 			.orElseThrow(() -> new FineAntsException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
-
 		return notifyTargetGainAll(List.of(portfolio));
 	}
 
