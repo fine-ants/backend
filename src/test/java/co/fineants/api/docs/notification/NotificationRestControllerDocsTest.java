@@ -60,9 +60,7 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 			PortfolioNotificationSaveResponse.from(notification), messageId);
 		List<NotifyMessageItem> items = List.of(item);
 
-		given(service.notifyTargetGain(
-			anyLong()))
-			.willReturn(PortfolioNotifyMessagesResponse.create(items));
+		given(service.notifyTargetGain(anyLong())).willReturn(items);
 
 		// when
 		mockMvc.perform(post("/api/notifications/portfolios/{portfolioId}/notify/target-gain", portfolio.getId())

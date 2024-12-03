@@ -110,14 +110,12 @@ public class NotificationService {
 	 * @return 알림 전송 결과
 	 */
 	@Transactional
-	public NotifyMessageResponse notifyTargetGain(Long portfolioId) {
+	public List<NotifyMessageItem> notifyTargetGain(Long portfolioId) {
 		Portfolio portfolio = portfolioRepository.findByPortfolioIdWithAll(portfolioId).stream()
 			.findAny()
 			.orElseThrow(() -> new FineAntsException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
 
-		return PortfolioNotifyMessagesResponse.create(
-			notifyTargetGainAll(List.of(portfolio))
-		);
+		return notifyTargetGainAll(List.of(portfolio));
 	}
 
 	@Transactional

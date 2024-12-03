@@ -1,5 +1,7 @@
 package co.fineants.api.domain.notification.controller;
 
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -8,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import co.fineants.api.domain.notification.domain.dto.response.NotifyMessageItem;
 import co.fineants.api.domain.notification.domain.dto.response.NotifyMessageResponse;
 import co.fineants.api.domain.notification.domain.dto.response.PortfolioNotifyMessagesResponse;
 import co.fineants.api.domain.notification.service.NotificationService;
@@ -30,10 +33,10 @@ public class NotificationRestController {
 	public ApiResponse<PortfolioNotifyMessagesResponse> notifyPortfolioTargetGainMessages(
 		@PathVariable Long portfolioId
 	) {
-		PortfolioNotifyMessagesResponse response = (PortfolioNotifyMessagesResponse)service.notifyTargetGain(
-			portfolioId);
-		log.info("포트폴리오 목표 수익률 알림 결과 : response={}", response);
-		return ApiResponse.success(NotificationSuccessCode.OK_NOTIFY_PORTFOLIO_TARGET_GAIN_MESSAGES, response);
+		List<NotifyMessageItem> items = service.notifyTargetGain(portfolioId);
+		log.info("포트폴리오 목표 수익률 알림 결과 : items={}", items);
+		PortfolioNotifyMessagesResponse body = PortfolioNotifyMessagesResponse.create(items);
+		return ApiResponse.success(NotificationSuccessCode.OK_NOTIFY_PORTFOLIO_TARGET_GAIN_MESSAGES, body);
 	}
 
 	// 한 포트폴리오의 최대 손실율 도달 알림 발송
