@@ -103,6 +103,23 @@ public class NotificationService {
 			.orElseThrow(() -> new NotFoundResourceException(MemberErrorCode.NOT_FOUND_MEMBER));
 	}
 
+	/**
+	 * 특정 포트폴리오의 목표 수익률 달성 알림 푸시
+	 *
+	 * @param portfolioId 포트폴리오 등록번호
+	 * @return 알림 전송 결과
+	 */
+	@Transactional
+	public NotifyMessageResponse notifyTargetGain(Long portfolioId) {
+		Portfolio portfolio = portfolioRepository.findByPortfolioIdWithAll(portfolioId).stream()
+			.findAny()
+			.orElseThrow(() -> new FineAntsException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
+
+		return PortfolioNotifyMessagesResponse.create(
+			notifyTargetGainAll(List.of(portfolio))
+		);
+	}
+
 	@Transactional
 	public List<NotifyMessageItem> notifyTargetGainAll() {
 		return notifyTargetGainAll(portfolioRepository.findAllWithAll());
@@ -163,23 +180,6 @@ public class NotificationService {
 				return response.toNotifyMessageItemWith(messageIds);
 			})
 			.toList();
-	}
-
-	/**
-	 * 특정 포트폴리오의 목표 수익률 달성 알림 푸시
-	 *
-	 * @param portfolioId 포트폴리오 등록번호
-	 * @return 알림 전송 결과
-	 */
-	@Transactional
-	public NotifyMessageResponse notifyTargetGain(Long portfolioId) {
-		Portfolio portfolio = portfolioRepository.findByPortfolioIdWithAll(portfolioId).stream()
-			.findFirst()
-			.orElseThrow(() -> new FineAntsException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
-
-		return PortfolioNotifyMessagesResponse.create(
-			notifyTargetGainAll(List.of(portfolio))
-		);
 	}
 
 	@NotNull
