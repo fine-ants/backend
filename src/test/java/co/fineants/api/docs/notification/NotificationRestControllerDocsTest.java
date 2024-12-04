@@ -21,7 +21,7 @@ import org.springframework.restdocs.payload.JsonFieldType;
 import co.fineants.api.docs.RestDocsSupport;
 import co.fineants.api.domain.common.notification.PortfolioMaximumLossNotifiable;
 import co.fineants.api.domain.common.notification.PortfolioTargetGainNotifiable;
-import co.fineants.api.domain.common.notification.StockTargetPriceNotifiable;
+import co.fineants.api.domain.common.notification.TargetPriceNotificationNotifiable;
 import co.fineants.api.domain.member.domain.entity.Member;
 import co.fineants.api.domain.notification.controller.NotificationRestController;
 import co.fineants.api.domain.notification.domain.dto.response.NotifyMessage;
@@ -207,7 +207,7 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 		Stock stock = createSamsungStock();
 		StockTargetPrice stockTargetPrice = createStockTargetPrice(member, stock);
 		TargetPriceNotification targetPriceNotification = createTargetPriceNotification(stockTargetPrice);
-		NotifyMessage message = StockTargetPriceNotifiable.from(targetPriceNotification)
+		NotifyMessage message = TargetPriceNotificationNotifiable.from(targetPriceNotification)
 			.createTargetPriceMessage("token");
 		Notification notification = createStockNotification((StockNotifyMessage)message, member);
 		TargetPriceNotificationSaveResponse saveResponse = TargetPriceNotificationSaveResponse.from(notification);

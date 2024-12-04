@@ -32,7 +32,7 @@ import org.springframework.web.multipart.MultipartFile;
 import co.fineants.api.domain.common.count.Count;
 import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.common.notification.PortfolioTargetGainNotifiable;
-import co.fineants.api.domain.common.notification.StockTargetPriceNotifiable;
+import co.fineants.api.domain.common.notification.TargetPriceNotificationNotifiable;
 import co.fineants.api.domain.dividend.domain.entity.StockDividend;
 import co.fineants.api.domain.gainhistory.domain.entity.PortfolioGainHistory;
 import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
@@ -210,7 +210,7 @@ public abstract class RestDocsSupport {
 
 	protected StockTargetPriceNotification createStockTargetPriceNotification(
 		TargetPriceNotification targetPriceNotification, Member member) {
-		StockNotifyMessage message = (StockNotifyMessage)StockTargetPriceNotifiable.from(targetPriceNotification)
+		StockNotifyMessage message = (StockNotifyMessage)TargetPriceNotificationNotifiable.from(targetPriceNotification)
 			.createMessage("token");
 		return StockTargetPriceNotification.newNotification(
 			1L,

@@ -13,7 +13,7 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder(access = AccessLevel.PRIVATE)
-public class StockTargetPriceNotifiable implements Notifiable {
+public class TargetPriceNotificationNotifiable implements Notifiable {
 
 	private final String title;
 	private final String content;
@@ -26,14 +26,14 @@ public class StockTargetPriceNotifiable implements Notifiable {
 	private final Long targetPriceNotificationId;
 	private final NotificationPreference preference;
 
-	public static StockTargetPriceNotifiable from(TargetPriceNotification targetPriceNotification) {
+	public static TargetPriceNotificationNotifiable from(TargetPriceNotification targetPriceNotification) {
 		StockTargetPrice stockTargetPrice = targetPriceNotification.getStockTargetPrice();
 		Money targetPrice = targetPriceNotification.getTargetPrice();
 		String content = String.format("%s이(가) %s%s에 도달했습니다",
 			stockTargetPrice.getStock().getCompanyName(),
 			targetPrice.currencySymbol(),
 			targetPrice.toDecimalFormat());
-		return StockTargetPriceNotifiable.builder()
+		return TargetPriceNotificationNotifiable.builder()
 			.title(NotificationType.STOCK_TARGET_PRICE.name())
 			.content(content)
 			.type(NotificationType.STOCK_TARGET_PRICE)

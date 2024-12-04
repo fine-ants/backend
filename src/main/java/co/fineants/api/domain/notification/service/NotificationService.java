@@ -19,7 +19,7 @@ import com.google.firebase.messaging.Message;
 import co.fineants.api.domain.common.notification.Notifiable;
 import co.fineants.api.domain.common.notification.PortfolioMaximumLossNotifiable;
 import co.fineants.api.domain.common.notification.PortfolioTargetGainNotifiable;
-import co.fineants.api.domain.common.notification.StockTargetPriceNotifiable;
+import co.fineants.api.domain.common.notification.TargetPriceNotificationNotifiable;
 import co.fineants.api.domain.fcm.service.FcmService;
 import co.fineants.api.domain.fcm.service.FirebaseMessagingService;
 import co.fineants.api.domain.member.domain.entity.Member;
@@ -255,7 +255,7 @@ public class NotificationService {
 			.map(StockTargetPrice::getTargetPriceNotifications)
 			.flatMap(Collection::stream)
 			.sorted(Comparator.comparingLong(TargetPriceNotification::getId))
-			.map(targetPriceNotification -> StockTargetPriceNotifiable.from(targetPriceNotification))
+			.map(targetPriceNotification -> TargetPriceNotificationNotifiable.from(targetPriceNotification))
 			.map(Notifiable.class::cast)
 			.toList();
 		return notifyTargetPriceAll(notifiableList);
@@ -274,7 +274,7 @@ public class NotificationService {
 			.stream()
 			.map(StockTargetPrice::getTargetPriceNotifications)
 			.flatMap(Collection::stream)
-			.map(targetPriceNotification -> StockTargetPriceNotifiable.from(targetPriceNotification))
+			.map(targetPriceNotification -> TargetPriceNotificationNotifiable.from(targetPriceNotification))
 			.map(Notifiable.class::cast)
 			.toList();
 		log.debug("notifiableList : {}", notifiableList);
