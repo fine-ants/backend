@@ -3,6 +3,7 @@ package co.fineants.api.domain.notification.service;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,7 +25,6 @@ import co.fineants.api.domain.member.repository.MemberRepository;
 import co.fineants.api.domain.notification.domain.dto.request.NotificationSaveRequest;
 import co.fineants.api.domain.notification.domain.dto.response.NotifyMessage;
 import co.fineants.api.domain.notification.domain.dto.response.NotifyMessageItem;
-import co.fineants.api.domain.notification.domain.dto.response.NotifyMessageResponse;
 import co.fineants.api.domain.notification.domain.dto.response.SentNotifyMessage;
 import co.fineants.api.domain.notification.domain.dto.response.save.NotificationSaveResponse;
 import co.fineants.api.domain.notification.domain.entity.Notification;
@@ -37,7 +37,6 @@ import co.fineants.api.domain.notification.repository.NotificationSentRepository
 import co.fineants.api.domain.notification.service.disptacher.NotificationDispatcher;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import co.fineants.api.domain.portfolio.repository.PortfolioRepository;
-import co.fineants.api.domain.stock_target_price.domain.dto.response.TargetPriceNotifyMessageResponse;
 import co.fineants.api.domain.stock_target_price.domain.entity.StockTargetPrice;
 import co.fineants.api.domain.stock_target_price.domain.entity.TargetPriceNotification;
 import co.fineants.api.domain.stock_target_price.repository.StockTargetPriceRepository;
@@ -258,6 +257,7 @@ public class NotificationService {
 		}
 		List<NotifyMessage> sentNotifyMessages = messageIdsMap.entrySet().stream()
 			.map(entry -> entry.getKey().withMessageId(entry.getValue()))
+			.sorted()
 			.toList();
 
 		// 알림 전송에 실패한 전송 메시지에 대해서 FCM 토큰 삭제
@@ -292,6 +292,7 @@ public class NotificationService {
 					.orElse(Collections.emptyList());
 				return response.toNotifyMessageItemWith(messageIds);
 			})
+			.sorted()
 			.toList();
 	}
 
@@ -380,16 +381,13 @@ public class NotificationService {
 	 * @return 알림 전송 결과
 	 */
 	@Transactional
-	public NotifyMessageResponse notifyTargetPrice(Long memberId) {
-		List<Notifiable> targetPrices = stockTargetPriceRepository.findAllByMemberId(memberId)
+	public List<NotifyMessageItem> notifyTargetPrice(Long memberId) {
+		List<TargetPriceNotification> targetPriceNotifications = stockTargetPriceRepository.findAllByMemberId(memberId)
 			.stream()
 			.map(StockTargetPrice::getTargetPriceNotifications)
 			.flatMap(Collection::stream)
-			.map(Notifiable.class::cast)
+			.sorted(Comparator.comparingLong(TargetPriceNotification::getId))
 			.toList();
-		Consumer<Long> sentFunction = sentManager::addTargetPriceSendHistory;
-		return TargetPriceNotifyMessageResponse.create(
-			notifyMessage(targetPrices, targetPriceNotificationPolicy, sentFunction)
-		);
+		return notifyTargetPriceAll(targetPriceNotifications);
 	}
 }

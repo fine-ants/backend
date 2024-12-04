@@ -33,7 +33,6 @@ import co.fineants.api.domain.notification.service.NotificationService;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import co.fineants.api.domain.stock.domain.entity.Stock;
 import co.fineants.api.domain.stock_target_price.domain.dto.response.TargetPriceNotifyMessageItem;
-import co.fineants.api.domain.stock_target_price.domain.dto.response.TargetPriceNotifyMessageResponse;
 import co.fineants.api.domain.stock_target_price.domain.entity.StockTargetPrice;
 import co.fineants.api.domain.stock_target_price.domain.entity.TargetPriceNotification;
 
@@ -207,8 +206,7 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 		Notification notification = createStockNotification((StockNotifyMessage)message, member);
 		TargetPriceNotificationSaveResponse saveResponse = TargetPriceNotificationSaveResponse.from(notification);
 		TargetPriceNotifyMessageItem item = TargetPriceNotifyMessageItem.from(saveResponse, List.of("messageId"));
-		given(service.notifyTargetPrice(anyLong()))
-			.willReturn(TargetPriceNotifyMessageResponse.create(List.of(item)));
+		given(service.notifyTargetPrice(anyLong())).willReturn(List.of(item));
 
 		// when
 		mockMvc.perform(RestDocumentationRequestBuilders.post("/api/stocks/target-price/notifications/send")

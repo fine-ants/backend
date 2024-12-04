@@ -14,6 +14,7 @@ import co.fineants.api.domain.notification.domain.dto.response.NotifyMessageItem
 import co.fineants.api.domain.notification.domain.dto.response.NotifyMessageResponse;
 import co.fineants.api.domain.notification.domain.dto.response.PortfolioNotifyMessagesResponse;
 import co.fineants.api.domain.notification.service.NotificationService;
+import co.fineants.api.domain.stock_target_price.domain.dto.response.TargetPriceNotifyMessageResponse;
 import co.fineants.api.global.api.ApiResponse;
 import co.fineants.api.global.success.NotificationSuccessCode;
 import co.fineants.api.global.success.StockSuccessCode;
@@ -57,9 +58,10 @@ public class NotificationRestController {
 	@Secured(value = {"ROLE_MANAGER", "ROLE_ADMIN"})
 	public ApiResponse<NotifyMessageResponse> sendStockTargetPriceNotification(
 		@RequestParam Long memberId) {
-		NotifyMessageResponse response = service.notifyTargetPrice(memberId);
-		log.info("종목 지정가 알림 전송 결과 : {}", response);
-		return ApiResponse.success(StockSuccessCode.OK_CREATE_TARGET_PRICE_SEND_NOTIFICATION, response);
+		List<NotifyMessageItem> items = service.notifyTargetPrice(memberId);
+		log.info("종목 지정가 알림 전송 결과 : {}", items);
+		TargetPriceNotifyMessageResponse body = TargetPriceNotifyMessageResponse.create(items);
+		return ApiResponse.success(StockSuccessCode.OK_CREATE_TARGET_PRICE_SEND_NOTIFICATION, body);
 	}
 }
 

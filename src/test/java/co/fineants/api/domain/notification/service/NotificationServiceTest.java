@@ -39,7 +39,6 @@ import co.fineants.api.domain.kis.service.KisService;
 import co.fineants.api.domain.member.domain.entity.Member;
 import co.fineants.api.domain.member.repository.MemberRepository;
 import co.fineants.api.domain.notification.domain.dto.response.NotifyMessageItem;
-import co.fineants.api.domain.notification.domain.dto.response.NotifyMessageResponse;
 import co.fineants.api.domain.notification.domain.dto.response.PortfolioNotifyMessageItem;
 import co.fineants.api.domain.notification.domain.entity.Notification;
 import co.fineants.api.domain.notification.domain.entity.type.NotificationType;
@@ -570,25 +569,11 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		given(firebaseMessagingService.send(any(Message.class)))
 			.willReturn(Optional.of("messageId"));
 		// when
-		NotifyMessageResponse response = service.notifyTargetPrice(member.getId());
+		List<NotifyMessageItem> actual = service.notifyTargetPrice(member.getId());
 
 		// then
 		TargetPriceNotifyMessageItem expected1 = TargetPriceNotifyMessageItem.create(
 			1L,
-			false,
-			"종목 지정가",
-			"삼성전자보통주이(가) ₩60,000에 도달했습니다",
-			NotificationType.STOCK_TARGET_PRICE,
-			"005930",
-			member.getId(),
-			"/stock/005930",
-			List.of("messageId"),
-			"삼성전자보통주",
-			Money.won(60000),
-			targetPriceNotifications.get(0).getId()
-		);
-		TargetPriceNotifyMessageItem expected2 = TargetPriceNotifyMessageItem.create(
-			2L,
 			false,
 			"종목 지정가",
 			"동화약품보통주이(가) ₩10,000에 도달했습니다",
@@ -596,15 +581,27 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 			"000020",
 			member.getId(),
 			"/stock/000020",
-			List.of("messageId"),
+			List.of("messageId", "messageId"),
 			"동화약품보통주",
 			Money.won(10000),
 			targetPriceNotifications2.get(0).getId()
 		);
+		TargetPriceNotifyMessageItem expected2 = TargetPriceNotifyMessageItem.create(
+			2L,
+			false,
+			"종목 지정가",
+			"삼성전자보통주이(가) ₩60,000에 도달했습니다",
+			NotificationType.STOCK_TARGET_PRICE,
+			"005930",
+			member.getId(),
+			"/stock/005930",
+			List.of("messageId", "messageId"),
+			"삼성전자보통주",
+			Money.won(60000),
+			targetPriceNotifications.get(0).getId()
+		);
 
-		assertThat(response)
-			.extracting("notifications")
-			.asList()
+		assertThat(actual)
 			.hasSize(2)
 			.usingComparatorForType(Money::compareTo, Money.class)
 			.containsExactly(expected1, expected2);

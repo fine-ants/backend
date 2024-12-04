@@ -3,6 +3,8 @@ package co.fineants.api.domain.notification.domain.dto.response;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.google.firebase.messaging.Message;
 import com.google.firebase.messaging.Notification;
 import com.google.firebase.messaging.WebpushConfig;
@@ -22,7 +24,7 @@ import lombok.ToString;
 @Getter
 @EqualsAndHashCode(of = {"referenceId", "memberId"})
 @ToString
-public abstract class NotifyMessage {
+public abstract class NotifyMessage implements Comparable<NotifyMessage> {
 	private final String title;
 	private final String content;
 	private final NotificationType type;
@@ -99,10 +101,15 @@ public abstract class NotifyMessage {
 	public boolean hasMessageId() {
 		return messageIds != null;
 	}
-	
+
 	public abstract String getIdToSentHistory();
 
 	public abstract NotifyMessage withMessageId(List<String> messageIds);
 
 	public abstract co.fineants.api.domain.notification.domain.entity.Notification toEntity(Member member);
+
+	@Override
+	public int compareTo(@NotNull NotifyMessage notifyMessage) {
+		return referenceId.compareToIgnoreCase(notifyMessage.referenceId);
+	}
 }
