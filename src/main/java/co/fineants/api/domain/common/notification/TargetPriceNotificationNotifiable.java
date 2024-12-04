@@ -103,7 +103,7 @@ public class TargetPriceNotificationNotifiable implements Notifiable {
 			id
 		);
 	}
-	
+
 	@Override
 	public boolean isReached() {
 		return isReached;
@@ -115,7 +115,7 @@ public class TargetPriceNotificationNotifiable implements Notifiable {
 	}
 
 	@Override
-	public boolean hasSentHistory(NotificationSentRepository repository) {
-		return repository.hasTargetPriceSendHistory(id);
+	public boolean emptySentHistory(NotificationSentRepository repository) {
+		return !repository.hasTargetPriceSendHistory(id);
 	}
 }

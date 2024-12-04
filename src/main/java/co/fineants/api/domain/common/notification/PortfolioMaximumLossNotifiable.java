@@ -87,7 +87,7 @@ public class PortfolioMaximumLossNotifiable implements Notifiable {
 			name
 		);
 	}
-	
+
 	@Override
 	public boolean isReached() {
 		return isReached;
@@ -99,7 +99,7 @@ public class PortfolioMaximumLossNotifiable implements Notifiable {
 	}
 
 	@Override
-	public boolean hasSentHistory(NotificationSentRepository repository) {
-		return repository.hasMaxLossSendHistory(id);
+	public boolean emptySentHistory(NotificationSentRepository repository) {
+		return !repository.hasMaxLossSendHistory(id);
 	}
 }

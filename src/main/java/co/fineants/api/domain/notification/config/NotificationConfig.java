@@ -7,7 +7,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import co.fineants.api.domain.common.notification.Notifiable;
-import co.fineants.api.domain.kis.repository.CurrentPriceRedisRepository;
 import co.fineants.api.domain.notification.domain.entity.policy.MaxLossNotificationPolicy;
 import co.fineants.api.domain.notification.domain.entity.policy.TargetGainNotificationPolicy;
 import co.fineants.api.domain.notification.domain.entity.policy.TargetPriceNotificationPolicy;
@@ -20,14 +19,13 @@ import lombok.RequiredArgsConstructor;
 public class NotificationConfig {
 
 	private final NotificationSentRepository sentManager;
-	private final CurrentPriceRedisRepository currentPriceRedisRepository;
 
 	@Bean
 	public TargetGainNotificationPolicy targetGainNotificationPolicy() {
 		List<Predicate<Notifiable>> portfolioConditions = List.of(
 			Notifiable::isReached,
 			Notifiable::isActive,
-			notifiable -> !notifiable.hasSentHistory(sentManager)
+			notifiable -> notifiable.emptySentHistory(sentManager)
 		);
 		Predicate<NotificationPreference> preferencePredicate =
 			NotificationPreference::isPossibleTargetGainNotification;
@@ -39,7 +37,7 @@ public class NotificationConfig {
 		List<Predicate<Notifiable>> conditions = List.of(
 			Notifiable::isReached,
 			Notifiable::isActive,
-			notifiable -> !notifiable.hasSentHistory(sentManager)
+			notifiable -> notifiable.emptySentHistory(sentManager)
 		);
 		return new MaxLossNotificationPolicy(conditions, NotificationPreference::isPossibleMaxLossNotification);
 	}
@@ -50,7 +48,7 @@ public class NotificationConfig {
 			List.of(
 				Notifiable::isReached,
 				Notifiable::isActive,
-				notifiable -> !notifiable.hasSentHistory(sentManager)
+				notifiable -> notifiable.emptySentHistory(sentManager)
 			),
 			NotificationPreference::isPossibleStockTargetPriceNotification
 		);

@@ -15,5 +15,5 @@ public interface Notifiable {
 
 	boolean isActive();
 
-	boolean hasSentHistory(NotificationSentRepository repository);
+	boolean emptySentHistory(NotificationSentRepository repository);
 }
