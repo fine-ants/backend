@@ -5,7 +5,6 @@ import static org.mockito.BDDMockito.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -27,7 +26,6 @@ import co.fineants.api.domain.kis.repository.CurrentPriceRedisRepository;
 import co.fineants.api.domain.member.domain.entity.Member;
 import co.fineants.api.domain.member.repository.MemberRepository;
 import co.fineants.api.domain.notification.domain.dto.response.NotifyMessageItem;
-import co.fineants.api.domain.notification.domain.dto.response.PortfolioNotifyMessagesResponse;
 import co.fineants.api.domain.notification.repository.NotificationRepository;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import co.fineants.api.domain.portfolio.repository.PortfolioRepository;
@@ -116,10 +114,9 @@ class PurchaseHistoryEventListenerTest extends AbstractContainerBaseTest {
 		PushNotificationEvent event = new PushNotificationEvent(
 			PurchaseHistoryEventSendableParameter.create(portfolio.getId(), member.getId()));
 		// when
-		CompletableFuture<PortfolioNotifyMessagesResponse> future = purchaseHistoryEventListener.notifyMaxLoss(event);
+		List<NotifyMessageItem> actual = purchaseHistoryEventListener.notifyMaxLoss(event).join();
 		// then
-		PortfolioNotifyMessagesResponse response = future.join();
-		assertThat(response).extracting("notifications").asList().hasSize(1);
+		assertThat(actual).hasSize(1);
 		assertThat(notificationRepository.findAllByMemberId(member.getId())).hasSize(1);
 	}
 }

@@ -26,7 +26,6 @@ import co.fineants.api.domain.notification.domain.dto.request.NotificationSaveRe
 import co.fineants.api.domain.notification.domain.dto.response.NotifyMessage;
 import co.fineants.api.domain.notification.domain.dto.response.NotifyMessageItem;
 import co.fineants.api.domain.notification.domain.dto.response.NotifyMessageResponse;
-import co.fineants.api.domain.notification.domain.dto.response.PortfolioNotifyMessagesResponse;
 import co.fineants.api.domain.notification.domain.dto.response.SentNotifyMessage;
 import co.fineants.api.domain.notification.domain.dto.response.save.NotificationSaveResponse;
 import co.fineants.api.domain.notification.domain.entity.Notification;
@@ -290,14 +289,11 @@ public class NotificationService {
 	 * @return 알림 전송 결과
 	 */
 	@Transactional
-	public NotifyMessageResponse notifyMaxLoss(Long portfolioId) {
+	public List<NotifyMessageItem> notifyMaxLoss(Long portfolioId) {
 		Portfolio portfolio = portfolioRepository.findByPortfolioIdWithAll(portfolioId).stream()
 			.findAny()
 			.orElseThrow(() -> new FineAntsException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
-		Consumer<Long> sentFunction = sentManager::addMaxLossSendHistory;
-		return PortfolioNotifyMessagesResponse.create(
-			notifyMessage(List.of(portfolio), maximumLossNotificationPolicy, sentFunction)
-		);
+		return notifyMaxLossAll(List.of(portfolio));
 	}
 
 	/**

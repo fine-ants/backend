@@ -8,7 +8,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 import co.fineants.api.domain.notification.domain.dto.response.NotifyMessageItem;
-import co.fineants.api.domain.notification.domain.dto.response.PortfolioNotifyMessagesResponse;
 import co.fineants.api.domain.notification.service.NotificationService;
 import co.fineants.api.domain.purchasehistory.event.aop.PurchaseHistoryEventSendableParameter;
 import co.fineants.api.domain.purchasehistory.event.domain.PushNotificationEvent;
@@ -33,9 +32,8 @@ public class PurchaseHistoryEventListener {
 	// 매입 이력 이벤트가 발생하면 포트폴리오 최대손실율에 도달하면 푸시 알림
 	@Async
 	@TransactionalEventListener
-	public CompletableFuture<PortfolioNotifyMessagesResponse> notifyMaxLoss(PushNotificationEvent event) {
+	public CompletableFuture<List<NotifyMessageItem>> notifyMaxLoss(PushNotificationEvent event) {
 		PurchaseHistoryEventSendableParameter parameter = event.getValue();
-		return CompletableFuture.supplyAsync(() ->
-			(PortfolioNotifyMessagesResponse)notificationService.notifyMaxLoss(parameter.getPortfolioId()));
+		return CompletableFuture.supplyAsync(() -> notificationService.notifyMaxLoss(parameter.getPortfolioId()));
 	}
 }

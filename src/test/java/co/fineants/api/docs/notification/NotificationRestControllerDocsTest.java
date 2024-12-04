@@ -25,7 +25,6 @@ import co.fineants.api.domain.notification.domain.dto.response.NotifyMessage;
 import co.fineants.api.domain.notification.domain.dto.response.NotifyMessageItem;
 import co.fineants.api.domain.notification.domain.dto.response.PortfolioNotifyMessage;
 import co.fineants.api.domain.notification.domain.dto.response.PortfolioNotifyMessageItem;
-import co.fineants.api.domain.notification.domain.dto.response.PortfolioNotifyMessagesResponse;
 import co.fineants.api.domain.notification.domain.dto.response.StockNotifyMessage;
 import co.fineants.api.domain.notification.domain.dto.response.TargetPriceNotificationSaveResponse;
 import co.fineants.api.domain.notification.domain.dto.response.save.PortfolioNotificationSaveResponse;
@@ -134,9 +133,7 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 		PortfolioNotifyMessageItem item = (PortfolioNotifyMessageItem)PortfolioNotifyMessageItem.from(
 			PortfolioNotificationSaveResponse.from(notification), messageId);
 		List<NotifyMessageItem> items = List.of(item);
-		given(service.notifyMaxLoss(
-			anyLong()))
-			.willReturn(PortfolioNotifyMessagesResponse.create(items));
+		given(service.notifyMaxLoss(anyLong())).willReturn(items);
 
 		// when
 		mockMvc.perform(post("/api/notifications/portfolios/{portfolioId}/notify/max-loss", portfolio.getId())

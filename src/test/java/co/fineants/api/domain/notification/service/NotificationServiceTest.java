@@ -41,7 +41,6 @@ import co.fineants.api.domain.member.repository.MemberRepository;
 import co.fineants.api.domain.notification.domain.dto.response.NotifyMessageItem;
 import co.fineants.api.domain.notification.domain.dto.response.NotifyMessageResponse;
 import co.fineants.api.domain.notification.domain.dto.response.PortfolioNotifyMessageItem;
-import co.fineants.api.domain.notification.domain.dto.response.PortfolioNotifyMessagesResponse;
 import co.fineants.api.domain.notification.domain.entity.Notification;
 import co.fineants.api.domain.notification.domain.entity.type.NotificationType;
 import co.fineants.api.domain.notification.repository.NotificationRepository;
@@ -319,12 +318,11 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		manager.savePrice(KisCurrentPrice.create(stock.getTickerSymbol(), 100L));
 
 		// when
-		PortfolioNotifyMessagesResponse response = (PortfolioNotifyMessagesResponse)service.notifyMaxLoss(
-			portfolio.getId());
+		List<NotifyMessageItem> actual = service.notifyMaxLoss(portfolio.getId());
 
 		// then
 		assertAll(
-			() -> assertThat(response).extracting("notifications").asList().hasSize(1),
+			() -> assertThat(actual).hasSize(1),
 			() -> assertThat(notificationRepository.findAllByMemberId(member.getId())).hasSize(1),
 			() -> assertThat(sentManager.hasMaxLossSendHistory(portfolio.getId())).isTrue()
 		);
@@ -355,12 +353,11 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		manager.savePrice(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L));
 
 		// when
-		PortfolioNotifyMessagesResponse response = (PortfolioNotifyMessagesResponse)service.notifyMaxLoss(
-			portfolio.getId());
+		List<NotifyMessageItem> actual = service.notifyMaxLoss(portfolio.getId());
 
 		// then
 		assertAll(
-			() -> assertThat(response).extracting("notifications").asList().isEmpty(),
+			() -> assertThat(actual).isEmpty(),
 			() -> assertThat(sentManager.hasMaxLossSendHistory(portfolio.getId())).isFalse()
 		);
 	}
@@ -388,12 +385,11 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		manager.savePrice(KisCurrentPrice.create(stock.getTickerSymbol(), 50000L));
 
 		// when
-		PortfolioNotifyMessagesResponse response = (PortfolioNotifyMessagesResponse)service.notifyMaxLoss(
-			portfolio.getId());
+		List<NotifyMessageItem> actual = service.notifyMaxLoss(portfolio.getId());
 
 		// then
 		assertAll(
-			() -> assertThat(response).extracting("notifications").asList().hasSize(1),
+			() -> assertThat(actual).hasSize(1),
 			() -> assertThat(fcmRepository.findById(fcmToken.getId())).isEmpty(),
 			() -> assertThat(sentManager.hasMaxLossSendHistory(portfolio.getId())).isTrue()
 		);

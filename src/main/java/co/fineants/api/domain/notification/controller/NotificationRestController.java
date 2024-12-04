@@ -45,9 +45,10 @@ public class NotificationRestController {
 	public ApiResponse<NotifyMessageResponse> notifyPortfolioMaxLossMessages(
 		@PathVariable Long portfolioId
 	) {
-		NotifyMessageResponse response = service.notifyMaxLoss(portfolioId);
-		log.info("포트폴리오 최대 손실율 알림 결과 : response={}", response);
-		return ApiResponse.success(NotificationSuccessCode.OK_NOTIFY_PORTFOLIO_MAX_LOSS_MESSAGES, response);
+		List<NotifyMessageItem> items = service.notifyMaxLoss(portfolioId);
+		log.info("포트폴리오 최대 손실율 알림 결과 : items={}", items);
+		PortfolioNotifyMessagesResponse body = PortfolioNotifyMessagesResponse.create(items);
+		return ApiResponse.success(NotificationSuccessCode.OK_NOTIFY_PORTFOLIO_MAX_LOSS_MESSAGES, body);
 	}
 
 	// 종목 지정가 알림 발송
