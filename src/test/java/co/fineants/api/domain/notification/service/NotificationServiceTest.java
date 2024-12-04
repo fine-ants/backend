@@ -477,14 +477,11 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 			.toList();
 
 		// when
-		NotifyMessageResponse response = service.notifyTargetPriceToAllMember(tickerSymbols);
+		List<NotifyMessageItem> actual = service.notifyTargetPriceToAllMember(tickerSymbols);
 
 		// then
 		assertAll(
-			() -> assertThat(response)
-				.extracting("notifications")
-				.asList()
-				.hasSize(4),
+			() -> assertThat(actual).hasSize(4),
 			() -> assertThat(notificationRepository.findAllByMemberIds(List.of(member.getId(), member2.getId())))
 				.asList()
 				.hasSize(4)
@@ -517,14 +514,11 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 					.toList();
 
 				// when
-				NotifyMessageResponse response = service.notifyTargetPriceToAllMember(tickerSymbols);
+				List<NotifyMessageItem> actual = service.notifyTargetPriceToAllMember(tickerSymbols);
 
 				// then
 				assertAll(
-					() -> assertThat(response)
-						.extracting("notifications")
-						.asList()
-						.hasSize(1),
+					() -> assertThat(actual).hasSize(1),
 					() -> assertThat(
 						notificationRepository.findAllByMemberIds(List.of(member.getId())))
 						.asList()
@@ -541,14 +535,11 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 					.toList();
 
 				// when
-				NotifyMessageResponse response = service.notifyTargetPriceToAllMember(tickerSymbols);
+				List<NotifyMessageItem> actual = service.notifyTargetPriceToAllMember(tickerSymbols);
 
 				// then
 				assertAll(
-					() -> assertThat(response)
-						.extracting("notifications")
-						.asList()
-						.isEmpty(),
+					() -> assertThat(actual).isEmpty(),
 					() -> assertThat(
 						notificationRepository.findAllByMemberIds(List.of(member.getId())))
 						.asList()
@@ -656,7 +647,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		given(firebaseMessagingService.send(any(Message.class)))
 			.willReturn(Optional.of("messageId"));
 		// when
-		NotifyMessageResponse response = service.notifyTargetPriceToAllMember(
+		List<NotifyMessageItem> actual = service.notifyTargetPriceToAllMember(
 			List.of(stock.getTickerSymbol(), stock2.getTickerSymbol()));
 
 		// then
@@ -674,9 +665,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 			Money.won(10_000),
 			targetPriceNotifications2.get(0).getId()
 		);
-		assertThat(response)
-			.extracting("notifications")
-			.asList()
+		assertThat(actual)
 			.hasSize(1)
 			.containsExactly(expected1);
 		assertThat(notificationRepository.findAllByMemberId(member.getId()))
@@ -700,12 +689,10 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		given(firebaseMessagingService.send(any(Message.class)))
 			.willReturn(Optional.empty());
 		// when
-		NotifyMessageResponse response = service.notifyTargetPriceToAllMember(
-			List.of(stock.getTickerSymbol()));
+		List<NotifyMessageItem> actual = service.notifyTargetPriceToAllMember(List.of(stock.getTickerSymbol()));
 
 		// then
-		assertThat(response)
-			.extracting("notifications")
+		assertThat(actual)
 			.asList()
 			.hasSize(1);
 		assertThat(notificationRepository.findAllByMemberId(member.getId()))
@@ -733,26 +720,12 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		given(firebaseMessagingService.send(any(Message.class)))
 			.willReturn(Optional.of("messageId"));
 		// when
-		NotifyMessageResponse response = service.notifyTargetPriceToAllMember(
+		List<NotifyMessageItem> actual = service.notifyTargetPriceToAllMember(
 			List.of(stock.getTickerSymbol(), stock2.getTickerSymbol()));
 
 		// then
 		TargetPriceNotifyMessageItem expected1 = TargetPriceNotifyMessageItem.create(
 			1L,
-			false,
-			"종목 지정가",
-			"삼성전자보통주이(가) ₩60,000에 도달했습니다",
-			NotificationType.STOCK_TARGET_PRICE,
-			"005930",
-			member.getId(),
-			"/stock/005930",
-			List.of("messageId"),
-			"삼성전자보통주",
-			Money.won(60_000),
-			targetPriceNotifications.get(0).getId()
-		);
-		TargetPriceNotifyMessageItem expected2 = TargetPriceNotifyMessageItem.create(
-			2L,
 			false,
 			"종목 지정가",
 			"동화약품보통주이(가) ₩10,000에 도달했습니다",
@@ -765,9 +738,21 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 			Money.won(10_000),
 			targetPriceNotifications2.get(0).getId()
 		);
-		assertThat(response)
-			.extracting("notifications")
-			.asList()
+		TargetPriceNotifyMessageItem expected2 = TargetPriceNotifyMessageItem.create(
+			2L,
+			false,
+			"종목 지정가",
+			"삼성전자보통주이(가) ₩60,000에 도달했습니다",
+			NotificationType.STOCK_TARGET_PRICE,
+			"005930",
+			member.getId(),
+			"/stock/005930",
+			List.of("messageId"),
+			"삼성전자보통주",
+			Money.won(60_000),
+			targetPriceNotifications.get(0).getId()
+		);
+		assertThat(actual)
 			.hasSize(2)
 			.containsExactly(expected1, expected2);
 		assertThat(notificationRepository.findAllByMemberId(member.getId()))

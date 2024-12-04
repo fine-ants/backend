@@ -2,6 +2,8 @@ package co.fineants.api.domain.stock_target_price.domain.dto.response;
 
 import java.util.List;
 
+import org.jetbrains.annotations.NotNull;
+
 import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.notification.domain.dto.response.NotifyMessageItem;
 import co.fineants.api.domain.notification.domain.dto.response.TargetPriceNotificationSaveResponse;
@@ -20,7 +22,7 @@ import lombok.ToString;
 @Builder
 @ToString
 @EqualsAndHashCode
-public class TargetPriceNotifyMessageItem implements NotifyMessageItem {
+public class TargetPriceNotifyMessageItem implements NotifyMessageItem, Comparable<TargetPriceNotifyMessageItem> {
 	private Long notificationId;
 	private Boolean isRead;
 	private String title;
@@ -79,5 +81,10 @@ public class TargetPriceNotifyMessageItem implements NotifyMessageItem {
 			.targetPrice(targetPrice)
 			.targetPriceNotificationId(targetPriceNotificationId)
 			.build();
+	}
+
+	@Override
+	public int compareTo(@NotNull TargetPriceNotifyMessageItem item) {
+		return Long.compare(notificationId, item.notificationId);
 	}
 }

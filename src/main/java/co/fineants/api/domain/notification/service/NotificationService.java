@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.util.Strings;
 import org.jetbrains.annotations.NotNull;
@@ -40,6 +39,7 @@ import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import co.fineants.api.domain.portfolio.repository.PortfolioRepository;
 import co.fineants.api.domain.stock_target_price.domain.dto.response.TargetPriceNotifyMessageResponse;
 import co.fineants.api.domain.stock_target_price.domain.entity.StockTargetPrice;
+import co.fineants.api.domain.stock_target_price.domain.entity.TargetPriceNotification;
 import co.fineants.api.domain.stock_target_price.repository.StockTargetPriceRepository;
 import co.fineants.api.global.errors.errorcode.MemberErrorCode;
 import co.fineants.api.global.errors.errorcode.PortfolioErrorCode;
@@ -238,6 +238,63 @@ public class NotificationService {
 			.toList();
 	}
 
+	private List<NotifyMessageItem> notifyTargetPriceAll(List<TargetPriceNotification> targetPriceNotifications) {
+		List<NotifyMessage> notifyMessages = targetPriceNotifications.stream()
+			.filter(targetPriceNotificationPolicy::isSatisfied)
+			.map(targetPriceNotification -> fcmService.findTokens(targetPriceNotification.fetchMemberId()).stream()
+				.map(token -> targetPriceNotificationPolicy.apply(targetPriceNotification, token))
+				.flatMap(Optional::stream)
+				.toList())
+			.flatMap(Collection::stream)
+			.toList();
+
+		// 만족하는 지정가 알림을 대상으로 알림 데이터 생성 & 알림 전송
+		Map<NotifyMessage, List<String>> messageIdsMap = new HashMap<>();
+		for (NotifyMessage notifyMessage : notifyMessages) {
+			Message message = notifyMessage.toMessage();
+			String messageId = firebaseMessagingService.send(message).orElse(Strings.EMPTY);
+			messageIdsMap.computeIfAbsent(notifyMessage, key -> new ArrayList<>())
+				.add(messageId);
+		}
+		List<NotifyMessage> sentNotifyMessages = messageIdsMap.entrySet().stream()
+			.map(entry -> entry.getKey().withMessageId(entry.getValue()))
+			.toList();
+
+		// 알림 전송에 실패한 전송 메시지에 대해서 FCM 토큰 삭제
+		messageIdsMap.forEach((notifyMessage, messageIds) -> messageIds.stream()
+			.filter(Strings::isBlank)
+			.forEach(blankMessageId -> notifyMessage.deleteTokenBy(fcmService)));
+
+		// 알림 저장
+		List<Notification> notifications = sentNotifyMessages.stream()
+			.map(notifyMessage -> {
+				Member member = memberRepository.findById(notifyMessage.getMemberId())
+					.orElseThrow(() -> new IllegalArgumentException(
+						"not found member, memberId=" + notifyMessage.getMemberId()));
+				return notifyMessage.toEntity(member);
+			})
+			.map(notificationRepository::save)
+			.toList();
+
+		// 전송 내역 저장
+		notifications.stream()
+			.map(Notification::getId)
+			.forEach(sentManager::addTargetPriceSendHistory);
+
+		// 결과 객체 생성
+		return notifications.stream()
+			.map(response -> {
+				String idToSentHistory = response.getIdToSentHistory();
+				List<String> messageIds = sentNotifyMessages.stream()
+					.filter(notifyMessage -> notifyMessage.getIdToSentHistory().equals(idToSentHistory))
+					.map(NotifyMessage::getMessageIds)
+					.findAny()
+					.orElse(Collections.emptyList());
+				return response.toNotifyMessageItemWith(messageIds);
+			})
+			.toList();
+	}
+
 	@NotNull
 	private List<NotifyMessageItem> notifyMessage(List<Notifiable> targets,
 		NotificationPolicy<Notifiable> policy, Consumer<Long> sentFunction) {
@@ -303,20 +360,17 @@ public class NotificationService {
 	 * @return 알림 전송 결과
 	 */
 	@Transactional
-	public NotifyMessageResponse notifyTargetPriceToAllMember(List<String> tickerSymbols) {
+	public List<NotifyMessageItem> notifyTargetPriceToAllMember(List<String> tickerSymbols) {
 		log.debug("tickerSymbols : {}", tickerSymbols);
 
-		List<Notifiable> targetPrices = stockTargetPriceRepository.findAllByTickerSymbols(tickerSymbols)
+		List<TargetPriceNotification> targetPriceNotifications = stockTargetPriceRepository.findAllByTickerSymbols(
+				tickerSymbols)
 			.stream()
 			.map(StockTargetPrice::getTargetPriceNotifications)
 			.flatMap(Collection::stream)
-			.collect(Collectors.toList());
-		log.debug("targetPrices : {}", targetPrices);
-
-		Consumer<Long> sentFunction = sentManager::addTargetPriceSendHistory;
-		return TargetPriceNotifyMessageResponse.create(
-			notifyMessage(targetPrices, targetPriceNotificationPolicy, sentFunction)
-		);
+			.toList();
+		log.debug("targetPrices : {}", targetPriceNotifications);
+		return notifyTargetPriceAll(targetPriceNotifications);
 	}
 
 	/**
