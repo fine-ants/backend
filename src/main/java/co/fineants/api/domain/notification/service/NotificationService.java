@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Consumer;
 
 import org.apache.logging.log4j.util.Strings;
 import org.jetbrains.annotations.NotNull;
@@ -18,32 +17,28 @@ import org.springframework.transaction.annotation.Transactional;
 import com.google.firebase.messaging.Message;
 
 import co.fineants.api.domain.common.notification.Notifiable;
+import co.fineants.api.domain.common.notification.PortfolioMaximumLossNotifiable;
+import co.fineants.api.domain.common.notification.PortfolioTargetGainNotifiable;
+import co.fineants.api.domain.common.notification.StockTargetPriceNotifiable;
 import co.fineants.api.domain.fcm.service.FcmService;
 import co.fineants.api.domain.fcm.service.FirebaseMessagingService;
 import co.fineants.api.domain.member.domain.entity.Member;
 import co.fineants.api.domain.member.repository.MemberRepository;
-import co.fineants.api.domain.notification.domain.dto.request.NotificationSaveRequest;
 import co.fineants.api.domain.notification.domain.dto.response.NotifyMessage;
 import co.fineants.api.domain.notification.domain.dto.response.NotifyMessageItem;
-import co.fineants.api.domain.notification.domain.dto.response.SentNotifyMessage;
-import co.fineants.api.domain.notification.domain.dto.response.save.NotificationSaveResponse;
 import co.fineants.api.domain.notification.domain.entity.Notification;
 import co.fineants.api.domain.notification.domain.entity.policy.MaxLossNotificationPolicy;
-import co.fineants.api.domain.notification.domain.entity.policy.NotificationPolicy;
 import co.fineants.api.domain.notification.domain.entity.policy.TargetGainNotificationPolicy;
 import co.fineants.api.domain.notification.domain.entity.policy.TargetPriceNotificationPolicy;
 import co.fineants.api.domain.notification.repository.NotificationRepository;
 import co.fineants.api.domain.notification.repository.NotificationSentRepository;
-import co.fineants.api.domain.notification.service.disptacher.NotificationDispatcher;
-import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
+import co.fineants.api.domain.portfolio.domain.calculator.PortfolioCalculator;
 import co.fineants.api.domain.portfolio.repository.PortfolioRepository;
 import co.fineants.api.domain.stock_target_price.domain.entity.StockTargetPrice;
 import co.fineants.api.domain.stock_target_price.domain.entity.TargetPriceNotification;
 import co.fineants.api.domain.stock_target_price.repository.StockTargetPriceRepository;
-import co.fineants.api.global.errors.errorcode.MemberErrorCode;
 import co.fineants.api.global.errors.errorcode.PortfolioErrorCode;
 import co.fineants.api.global.errors.exception.FineAntsException;
-import co.fineants.api.global.errors.exception.NotFoundResourceException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -60,39 +55,9 @@ public class NotificationService {
 	private final TargetGainNotificationPolicy targetGainNotificationPolicy;
 	private final MaxLossNotificationPolicy maximumLossNotificationPolicy;
 	private final TargetPriceNotificationPolicy targetPriceNotificationPolicy;
-	private final NotificationDispatcher notificationDispatcher;
 	private final FcmService fcmService;
 	private final FirebaseMessagingService firebaseMessagingService;
-
-	@NotNull
-	@Transactional
-	public List<NotificationSaveResponse> saveNotification(List<SentNotifyMessage> messages) {
-		List<NotificationSaveResponse> result = new ArrayList<>();
-		messages.stream()
-			.distinct()
-			.forEach(message -> {
-				NotificationSaveResponse response = this.saveNotification(message.toNotificationSaveRequest());
-				result.add(response);
-			});
-		return result;
-	}
-
-	/**
-	 * 포트폴리오 알림 저장
-	 *
-	 * @param request 알림 데이터
-	 * @return 알림 저장 결과
-	 */
-	@Transactional
-	public NotificationSaveResponse saveNotification(NotificationSaveRequest request) {
-		Member member = findMember(request.getMemberId());
-		return notificationRepository.save(request.toEntity(member)).toSaveResponse();
-	}
-
-	private Member findMember(Long memberId) {
-		return memberRepository.findById(memberId)
-			.orElseThrow(() -> new NotFoundResourceException(MemberErrorCode.NOT_FOUND_MEMBER));
-	}
+	private final PortfolioCalculator portfolioCalculator;
 
 	/**
 	 * 특정 포트폴리오의 목표 수익률 달성 알림 푸시
@@ -102,22 +67,34 @@ public class NotificationService {
 	 */
 	@Transactional
 	public List<NotifyMessageItem> notifyTargetGain(Long portfolioId) {
-		Portfolio portfolio = portfolioRepository.findByPortfolioIdWithAll(portfolioId).stream()
+		Notifiable notifiable = portfolioRepository.findByPortfolioIdWithAll(portfolioId).stream()
 			.findAny()
+			.map(p -> {
+				boolean isReachedTargetGain = portfolioCalculator.reachedTargetGainBy(p);
+				return PortfolioTargetGainNotifiable.from(p, isReachedTargetGain);
+			})
+			.map(Notifiable.class::cast)
 			.orElseThrow(() -> new FineAntsException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
-		return notifyTargetGainAll(List.of(portfolio));
+		return notifyTargetGainAll(List.of(notifiable));
 	}
 
 	@Transactional
 	public List<NotifyMessageItem> notifyTargetGainAll() {
-		return notifyTargetGainAll(portfolioRepository.findAllWithAll());
+		List<Notifiable> notifiableList = portfolioRepository.findAllWithAll().stream()
+			.map(portfolio -> {
+				boolean isReachedTargetGain = portfolioCalculator.reachedTargetGainBy(portfolio);
+				return PortfolioTargetGainNotifiable.from(portfolio, isReachedTargetGain);
+			})
+			.map(Notifiable.class::cast)
+			.toList();
+		return notifyTargetGainAll(notifiableList);
 	}
 
-	private List<NotifyMessageItem> notifyTargetGainAll(List<Portfolio> portfolios) {
-		List<NotifyMessage> notifyMessages = portfolios.stream()
+	private List<NotifyMessageItem> notifyTargetGainAll(List<Notifiable> notifiableList) {
+		List<NotifyMessage> notifyMessages = notifiableList.stream()
 			.filter(targetGainNotificationPolicy::isSatisfied)
-			.map(portfolio -> fcmService.findTokens(portfolio.getMemberId()).stream()
-				.map(token -> targetGainNotificationPolicy.apply(portfolio, token))
+			.map(notifiable -> fcmService.findTokens(notifiable.fetchMemberId()).stream()
+				.map(token -> targetGainNotificationPolicy.apply(notifiable, token))
 				.flatMap(Optional::stream)
 				.toList())
 			.flatMap(Collection::stream)
@@ -144,8 +121,7 @@ public class NotificationService {
 		List<Notification> notifications = sentNotifyMessages.stream()
 			.map(notifyMessage -> {
 				Member member = memberRepository.findById(notifyMessage.getMemberId())
-					.orElseThrow(() -> new IllegalArgumentException(
-						"not found member, memberId=" + notifyMessage.getMemberId()));
+					.orElseThrow(() -> notFoundMember(notifyMessage));
 				return notifyMessage.toEntity(member);
 			})
 			.map(notificationRepository::save)
@@ -170,6 +146,29 @@ public class NotificationService {
 			.toList();
 	}
 
+	@NotNull
+	private static IllegalArgumentException notFoundMember(NotifyMessage notifyMessage) {
+		return new IllegalArgumentException("not found member, memberId=" + notifyMessage.getMemberId());
+	}
+
+	/**
+	 * 특정 포트폴리오의 최대 손실율 달성 알림 푸시
+	 *
+	 * @param portfolioId 포트폴리오 등록번호
+	 * @return 알림 전송 결과
+	 */
+	@Transactional
+	public List<NotifyMessageItem> notifyMaxLoss(Long portfolioId) {
+		Notifiable notifiable = portfolioRepository.findByPortfolioIdWithAll(portfolioId).stream()
+			.findAny()
+			.map(portfolio -> {
+				boolean isReached = portfolioCalculator.reachedMaximumLossBy(portfolio);
+				return PortfolioMaximumLossNotifiable.from(portfolio, isReached);
+			})
+			.orElseThrow(() -> new FineAntsException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
+		return notifyMaxLossAll(List.of(notifiable));
+	}
+
 	/**
 	 * 모든 포트폴리오를 대상으로 최대 손실율에 도달하는 모든 포트폴리오에 대해서 최대 손실율 도달 알림 푸시
 	 *
@@ -177,14 +176,21 @@ public class NotificationService {
 	 */
 	@Transactional
 	public List<NotifyMessageItem> notifyMaxLossAll() {
-		return notifyMaxLossAll(portfolioRepository.findAllWithAll());
+		List<Notifiable> notifiableList = portfolioRepository.findAllWithAll().stream()
+			.map(portfolio -> {
+				boolean isReached = portfolioCalculator.reachedMaximumLossBy(portfolio);
+				return PortfolioMaximumLossNotifiable.from(portfolio, isReached);
+			})
+			.map(Notifiable.class::cast)
+			.toList();
+		return notifyMaxLossAll(notifiableList);
 	}
 
-	private List<NotifyMessageItem> notifyMaxLossAll(List<Portfolio> portfolios) {
-		List<NotifyMessage> notifyMessages = portfolios.stream()
+	private List<NotifyMessageItem> notifyMaxLossAll(List<Notifiable> notifiableList) {
+		List<NotifyMessage> notifyMessages = notifiableList.stream()
 			.filter(maximumLossNotificationPolicy::isSatisfied)
-			.map(portfolio -> fcmService.findTokens(portfolio.getMemberId()).stream()
-				.map(token -> maximumLossNotificationPolicy.apply(portfolio, token))
+			.map(notifiable -> fcmService.findTokens(notifiable.fetchMemberId()).stream()
+				.map(token -> maximumLossNotificationPolicy.apply(notifiable, token))
 				.flatMap(Optional::stream)
 				.toList())
 			.flatMap(Collection::stream)
@@ -211,8 +217,7 @@ public class NotificationService {
 		List<Notification> notifications = sentNotifyMessages.stream()
 			.map(notifyMessage -> {
 				Member member = memberRepository.findById(notifyMessage.getMemberId())
-					.orElseThrow(() -> new IllegalArgumentException(
-						"not found member, memberId=" + notifyMessage.getMemberId()));
+					.orElseThrow(() -> notFoundMember(notifyMessage));
 				return notifyMessage.toEntity(member);
 			})
 			.map(notificationRepository::save)
@@ -237,11 +242,50 @@ public class NotificationService {
 			.toList();
 	}
 
-	private List<NotifyMessageItem> notifyTargetPriceAll(List<TargetPriceNotification> targetPriceNotifications) {
-		List<NotifyMessage> notifyMessages = targetPriceNotifications.stream()
+	/**
+	 * 특정 회원을 대상으로 종목 지정가 알림 발송
+	 *
+	 * @param memberId 회원의 등록번호
+	 * @return 알림 전송 결과
+	 */
+	@Transactional
+	public List<NotifyMessageItem> notifyTargetPrice(Long memberId) {
+		List<Notifiable> notifiableList = stockTargetPriceRepository.findAllByMemberId(memberId)
+			.stream()
+			.map(StockTargetPrice::getTargetPriceNotifications)
+			.flatMap(Collection::stream)
+			.sorted(Comparator.comparingLong(TargetPriceNotification::getId))
+			.map(targetPriceNotification -> StockTargetPriceNotifiable.from(targetPriceNotification))
+			.map(Notifiable.class::cast)
+			.toList();
+		return notifyTargetPriceAll(notifiableList);
+	}
+
+	/**
+	 * 모든 회원을 대상으로 특정 종목들에 대한 종목 지정가 알림 발송
+	 *
+	 * @param tickerSymbols 종목의 티커 심볼 리스트
+	 * @return 알림 전송 결과
+	 */
+	@Transactional
+	public List<NotifyMessageItem> notifyTargetPriceBy(List<String> tickerSymbols) {
+		List<Notifiable> notifiableList = stockTargetPriceRepository.findAllByTickerSymbols(
+				tickerSymbols)
+			.stream()
+			.map(StockTargetPrice::getTargetPriceNotifications)
+			.flatMap(Collection::stream)
+			.map(targetPriceNotification -> StockTargetPriceNotifiable.from(targetPriceNotification))
+			.map(Notifiable.class::cast)
+			.toList();
+		log.debug("notifiableList : {}", notifiableList);
+		return notifyTargetPriceAll(notifiableList);
+	}
+
+	private List<NotifyMessageItem> notifyTargetPriceAll(List<Notifiable> notifiableList) {
+		List<NotifyMessage> notifyMessages = notifiableList.stream()
 			.filter(targetPriceNotificationPolicy::isSatisfied)
-			.map(targetPriceNotification -> fcmService.findTokens(targetPriceNotification.fetchMemberId()).stream()
-				.map(token -> targetPriceNotificationPolicy.apply(targetPriceNotification, token))
+			.map(notifiable -> fcmService.findTokens(notifiable.fetchMemberId()).stream()
+				.map(token -> targetPriceNotificationPolicy.apply(notifiable, token))
 				.flatMap(Optional::stream)
 				.toList())
 			.flatMap(Collection::stream)
@@ -269,8 +313,7 @@ public class NotificationService {
 		List<Notification> notifications = sentNotifyMessages.stream()
 			.map(notifyMessage -> {
 				Member member = memberRepository.findById(notifyMessage.getMemberId())
-					.orElseThrow(() -> new IllegalArgumentException(
-						"not found member, memberId=" + notifyMessage.getMemberId()));
+					.orElseThrow(() -> notFoundMember(notifyMessage));
 				return notifyMessage.toEntity(member);
 			})
 			.map(notificationRepository::save)
@@ -294,100 +337,5 @@ public class NotificationService {
 			})
 			.sorted()
 			.toList();
-	}
-
-	@NotNull
-	private List<NotifyMessageItem> notifyMessage(List<Notifiable> targets,
-		NotificationPolicy<Notifiable> policy, Consumer<Long> sentFunction) {
-		// 알림 전송
-		List<SentNotifyMessage> messages = notificationDispatcher.dispatch(targets, policy);
-		log.debug("알림 전송 결과: {}", messages);
-
-		// 알림 저장
-		List<NotificationSaveResponse> saveResponses = this.saveNotification(messages);
-		log.debug("db 알림 저장 결과 : {}", saveResponses);
-
-		// 전송 내역 저장
-		saveResponses.stream()
-			.map(NotificationSaveResponse::getIdToSentHistory)
-			.map(id -> id.split(":")[1])
-			.map(Long::valueOf)
-			.forEach(sentFunction);
-
-		// Response 생성
-		return createNotifyMessageItems(messages, saveResponses);
-	}
-
-	@NotNull
-	private List<NotifyMessageItem> createNotifyMessageItems(
-		List<SentNotifyMessage> sentNotifyMessages,
-		List<NotificationSaveResponse> notificationSaveResponses) {
-		Map<String, String> messageIdMap = getMessageIdMap(sentNotifyMessages);
-
-		return notificationSaveResponses.stream()
-			.map(response -> {
-				String messageId = messageIdMap.getOrDefault(response.getIdToSentHistory(), Strings.EMPTY);
-				return response.toNotifyMessageItemWith(List.of(messageId));
-			})
-			.toList();
-	}
-
-	private Map<String, String> getMessageIdMap(List<SentNotifyMessage> sentNotifyMessages) {
-		Map<String, String> result = new HashMap<>();
-		for (SentNotifyMessage target : sentNotifyMessages) {
-			result.put(target.getNotifyMessage().getIdToSentHistory(), target.getMessageId());
-		}
-		return result;
-	}
-
-	/**
-	 * 특정 포트폴리오의 최대 손실율 달성 알림 푸시
-	 *
-	 * @param portfolioId 포트폴리오 등록번호
-	 * @return 알림 전송 결과
-	 */
-	@Transactional
-	public List<NotifyMessageItem> notifyMaxLoss(Long portfolioId) {
-		Portfolio portfolio = portfolioRepository.findByPortfolioIdWithAll(portfolioId).stream()
-			.findAny()
-			.orElseThrow(() -> new FineAntsException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
-		return notifyMaxLossAll(List.of(portfolio));
-	}
-
-	/**
-	 * 모든 회원을 대상으로 특정 종목들에 대한 종목 지정가 알림 발송
-	 *
-	 * @param tickerSymbols 종목의 티커 심볼 리스트
-	 * @return 알림 전송 결과
-	 */
-	@Transactional
-	public List<NotifyMessageItem> notifyTargetPriceToAllMember(List<String> tickerSymbols) {
-		log.debug("tickerSymbols : {}", tickerSymbols);
-
-		List<TargetPriceNotification> targetPriceNotifications = stockTargetPriceRepository.findAllByTickerSymbols(
-				tickerSymbols)
-			.stream()
-			.map(StockTargetPrice::getTargetPriceNotifications)
-			.flatMap(Collection::stream)
-			.toList();
-		log.debug("targetPrices : {}", targetPriceNotifications);
-		return notifyTargetPriceAll(targetPriceNotifications);
-	}
-
-	/**
-	 * 특정 회원을 대상으로 종목 지정가 알림 발송
-	 *
-	 * @param memberId 회원의 등록번호
-	 * @return 알림 전송 결과
-	 */
-	@Transactional
-	public List<NotifyMessageItem> notifyTargetPrice(Long memberId) {
-		List<TargetPriceNotification> targetPriceNotifications = stockTargetPriceRepository.findAllByMemberId(memberId)
-			.stream()
-			.map(StockTargetPrice::getTargetPriceNotifications)
-			.flatMap(Collection::stream)
-			.sorted(Comparator.comparingLong(TargetPriceNotification::getId))
-			.toList();
-		return notifyTargetPriceAll(targetPriceNotifications);
 	}
 }

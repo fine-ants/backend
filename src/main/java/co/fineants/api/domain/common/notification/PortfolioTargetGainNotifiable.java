@@ -2,6 +2,7 @@ package co.fineants.api.domain.common.notification;
 
 import co.fineants.api.domain.notification.domain.dto.response.NotifyMessage;
 import co.fineants.api.domain.notification.domain.entity.type.NotificationType;
+import co.fineants.api.domain.notification.repository.NotificationSentRepository;
 import co.fineants.api.domain.notificationpreference.domain.entity.NotificationPreference;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import lombok.AccessLevel;
@@ -17,10 +18,23 @@ public class PortfolioTargetGainNotifiable implements Notifiable {
 	private final String link;
 	private final String name;
 	private final NotificationPreference preference;
+	private final Boolean isReached;
+	private final Boolean isActive;
+	private final Long id;
 
 	@Builder(access = AccessLevel.PRIVATE)
-	private PortfolioTargetGainNotifiable(String title, String content, NotificationType type, String referenceId,
-		Long memberId, String link, String name, NotificationPreference preference) {
+	private PortfolioTargetGainNotifiable(
+		String title,
+		String content,
+		NotificationType type,
+		String referenceId,
+		Long memberId,
+		String link,
+		String name,
+		NotificationPreference preference,
+		Boolean isReached,
+		Boolean isActive,
+		Long id) {
 		this.title = title;
 		this.content = content;
 		this.type = type;
@@ -29,9 +43,12 @@ public class PortfolioTargetGainNotifiable implements Notifiable {
 		this.link = link;
 		this.name = name;
 		this.preference = preference;
+		this.isReached = isReached;
+		this.isActive = isActive;
+		this.id = id;
 	}
 
-	public static PortfolioTargetGainNotifiable from(Portfolio portfolio) {
+	public static PortfolioTargetGainNotifiable from(Portfolio portfolio, Boolean isReached) {
 		return PortfolioTargetGainNotifiable.builder()
 			.title("포트폴리오")
 			.content(String.format("%s의 목표 수익률을 달성했습니다", portfolio.name()))
@@ -41,6 +58,9 @@ public class PortfolioTargetGainNotifiable implements Notifiable {
 			.link(portfolio.getLink())
 			.name(portfolio.name())
 			.preference(portfolio.getMember().getNotificationPreference())
+			.isReached(isReached)
+			.isActive(portfolio.targetGainIsActive())
+			.id(portfolio.getId())
 			.build();
 	}
 
@@ -81,5 +101,20 @@ public class PortfolioTargetGainNotifiable implements Notifiable {
 	@Override
 	public NotifyMessage createTargetPriceMessage(String token) {
 		return null;
+	}
+
+	@Override
+	public boolean isReached() {
+		return isReached;
+	}
+
+	@Override
+	public boolean isActive() {
+		return isActive;
+	}
+
+	@Override
+	public boolean hasSentHistory(NotificationSentRepository repository) {
+		return repository.hasTargetGainSendHistory(id);
 	}
 }

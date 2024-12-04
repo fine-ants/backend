@@ -16,14 +16,10 @@ import co.fineants.api.domain.common.count.Count;
 import co.fineants.api.domain.common.money.Expression;
 import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.common.money.RateDivision;
-import co.fineants.api.domain.common.notification.Notifiable;
 import co.fineants.api.domain.holding.domain.dto.response.PortfolioPieChartItem;
 import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
 import co.fineants.api.domain.member.domain.entity.Member;
-import co.fineants.api.domain.notification.domain.dto.response.NotifyMessage;
-import co.fineants.api.domain.notification.domain.entity.type.NotificationType;
 import co.fineants.api.domain.notification.repository.NotificationSentRepository;
-import co.fineants.api.domain.notificationpreference.domain.entity.NotificationPreference;
 import co.fineants.api.domain.portfolio.domain.calculator.PortfolioCalculator;
 import co.fineants.api.global.common.time.DefaultLocalDateTimeService;
 import co.fineants.api.global.common.time.LocalDateTimeService;
@@ -67,7 +63,7 @@ import lombok.extern.slf4j.Slf4j;
 	@UniqueConstraint(columnNames = {"name", "member_id"})
 })
 @EqualsAndHashCode(of = {"detail", "member"}, callSuper = false)
-public class Portfolio extends BaseEntity implements Notifiable {
+public class Portfolio extends BaseEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "id")
@@ -132,60 +128,60 @@ public class Portfolio extends BaseEntity implements Notifiable {
 	}
 
 	//== Notifiable Interface 시작 ==//
-	@Override
-	public NotifyMessage createTargetGainMessageWith(String token) {
-		String title = "포트폴리오";
-		String content = detail.getTargetGainReachMessage();
-		NotificationType type = NotificationType.PORTFOLIO_TARGET_GAIN;
-		String referenceId = id.toString();
-		Long memberId = member.getId();
-		String link = "/portfolio/" + referenceId;
-		return NotifyMessage.portfolio(
-			title,
-			content,
-			type,
-			referenceId,
-			memberId,
-			token,
-			link,
-			detail.name()
-		);
-	}
-
-	@Override
-	public NotifyMessage createMaxLossMessageWith(String token) {
-		String title = "포트폴리오";
-		String content = detail.getMaximumLossReachMessage();
-		NotificationType type = NotificationType.PORTFOLIO_MAX_LOSS;
-		String referenceId = id.toString();
-		Long memberId = member.getId();
-		String link = "/portfolio/" + referenceId;
-		return NotifyMessage.portfolio(
-			title,
-			content,
-			type,
-			referenceId,
-			memberId,
-			token,
-			link,
-			detail.name()
-		);
-	}
-
-	@Override
-	public Long fetchMemberId() {
-		return member.getId();
-	}
-
-	@Override
-	public NotificationPreference getNotificationPreference() {
-		return member.getNotificationPreference();
-	}
-
-	@Override
-	public NotifyMessage createTargetPriceMessage(String token) {
-		throw new UnsupportedOperationException("This method is not supported for Portfolio");
-	}
+	// @Override
+	// public NotifyMessage createTargetGainMessageWith(String token) {
+	// 	String title = "포트폴리오";
+	// 	String content = detail.getTargetGainReachMessage();
+	// 	NotificationType type = NotificationType.PORTFOLIO_TARGET_GAIN;
+	// 	String referenceId = id.toString();
+	// 	Long memberId = member.getId();
+	// 	String link = "/portfolio/" + referenceId;
+	// 	return NotifyMessage.portfolio(
+	// 		title,
+	// 		content,
+	// 		type,
+	// 		referenceId,
+	// 		memberId,
+	// 		token,
+	// 		link,
+	// 		detail.name()
+	// 	);
+	// }
+	//
+	// @Override
+	// public NotifyMessage createMaxLossMessageWith(String token) {
+	// 	String title = "포트폴리오";
+	// 	String content = detail.getMaximumLossReachMessage();
+	// 	NotificationType type = NotificationType.PORTFOLIO_MAX_LOSS;
+	// 	String referenceId = id.toString();
+	// 	Long memberId = member.getId();
+	// 	String link = "/portfolio/" + referenceId;
+	// 	return NotifyMessage.portfolio(
+	// 		title,
+	// 		content,
+	// 		type,
+	// 		referenceId,
+	// 		memberId,
+	// 		token,
+	// 		link,
+	// 		detail.name()
+	// 	);
+	// }
+	//
+	// @Override
+	// public Long fetchMemberId() {
+	// 	return member.getId();
+	// }
+	//
+	// @Override
+	// public NotificationPreference getNotificationPreference() {
+	// 	return member.getNotificationPreference();
+	// }
+	//
+	// @Override
+	// public NotifyMessage createTargetPriceMessage(String token) {
+	// 	throw new UnsupportedOperationException("This method is not supported for Portfolio");
+	// }
 	//== Notifiable Interface 종료 ==//
 
 	//== 연관 관계 메소드 ==//

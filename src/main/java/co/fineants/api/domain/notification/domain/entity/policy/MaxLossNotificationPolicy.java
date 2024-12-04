@@ -7,19 +7,18 @@ import java.util.function.Predicate;
 import co.fineants.api.domain.common.notification.Notifiable;
 import co.fineants.api.domain.notification.domain.dto.response.NotifyMessage;
 import co.fineants.api.domain.notificationpreference.domain.entity.NotificationPreference;
-import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public class MaxLossNotificationPolicy implements NotificationPolicy<Notifiable> {
 
-	private final List<Predicate<Portfolio>> portfolioConditions;
+	private final List<Predicate<Notifiable>> portfolioConditions;
 	private final Predicate<NotificationPreference> preferenceConditions;
 
 	@Override
 	public boolean isSatisfied(Notifiable target) {
 		boolean isPortfolioValid = portfolioConditions.stream()
-			.allMatch(condition -> condition.test((Portfolio)target));
+			.allMatch(condition -> condition.test(target));
 		boolean isPreferenceValid = preferenceConditions.test(target.getNotificationPreference());
 		return isPortfolioValid && isPreferenceValid;
 	}
@@ -28,11 +27,11 @@ public class MaxLossNotificationPolicy implements NotificationPolicy<Notifiable>
 	public Optional<NotifyMessage> apply(Notifiable target, String token) {
 		// TODO: will delete, 이미 isSatisfield에서 구현되어 있음
 		boolean isPortfolioValid = portfolioConditions.stream()
-			.allMatch(condition -> condition.test((Portfolio)target));
+			.allMatch(condition -> condition.test(target));
 		boolean isPreferenceValid = preferenceConditions.test(target.getNotificationPreference());
 
 		if (isPortfolioValid && isPreferenceValid) {
-			return Optional.of(target.createMaxLossMessageWith(token));
+			return Optional.of(target.createMessage(token));
 		}
 		return Optional.empty();
 	}

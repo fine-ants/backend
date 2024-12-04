@@ -3,6 +3,7 @@ package co.fineants.api.domain.common.notification;
 import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.notification.domain.dto.response.NotifyMessage;
 import co.fineants.api.domain.notification.domain.entity.type.NotificationType;
+import co.fineants.api.domain.notification.repository.NotificationSentRepository;
 import co.fineants.api.domain.notificationpreference.domain.entity.NotificationPreference;
 import co.fineants.api.domain.stock_target_price.domain.entity.StockTargetPrice;
 import co.fineants.api.domain.stock_target_price.domain.entity.TargetPriceNotification;
@@ -84,5 +85,20 @@ public class StockTargetPriceNotifiable implements Notifiable {
 	@Override
 	public NotifyMessage createTargetPriceMessage(String token) {
 		return null;
+	}
+
+	@Override
+	public boolean isReached() {
+		return false;
+	}
+
+	@Override
+	public boolean isActive() {
+		return false;
+	}
+
+	@Override
+	public boolean hasSentHistory(NotificationSentRepository repository) {
+		return false;
 	}
 }

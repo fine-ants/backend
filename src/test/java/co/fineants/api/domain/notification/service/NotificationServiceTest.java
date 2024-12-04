@@ -476,7 +476,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 			.toList();
 
 		// when
-		List<NotifyMessageItem> actual = service.notifyTargetPriceToAllMember(tickerSymbols);
+		List<NotifyMessageItem> actual = service.notifyTargetPriceBy(tickerSymbols);
 
 		// then
 		assertAll(
@@ -513,7 +513,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 					.toList();
 
 				// when
-				List<NotifyMessageItem> actual = service.notifyTargetPriceToAllMember(tickerSymbols);
+				List<NotifyMessageItem> actual = service.notifyTargetPriceBy(tickerSymbols);
 
 				// then
 				assertAll(
@@ -534,7 +534,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 					.toList();
 
 				// when
-				List<NotifyMessageItem> actual = service.notifyTargetPriceToAllMember(tickerSymbols);
+				List<NotifyMessageItem> actual = service.notifyTargetPriceBy(tickerSymbols);
 
 				// then
 				assertAll(
@@ -644,7 +644,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		given(firebaseMessagingService.send(any(Message.class)))
 			.willReturn(Optional.of("messageId"));
 		// when
-		List<NotifyMessageItem> actual = service.notifyTargetPriceToAllMember(
+		List<NotifyMessageItem> actual = service.notifyTargetPriceBy(
 			List.of(stock.getTickerSymbol(), stock2.getTickerSymbol()));
 
 		// then
@@ -686,7 +686,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		given(firebaseMessagingService.send(any(Message.class)))
 			.willReturn(Optional.empty());
 		// when
-		List<NotifyMessageItem> actual = service.notifyTargetPriceToAllMember(List.of(stock.getTickerSymbol()));
+		List<NotifyMessageItem> actual = service.notifyTargetPriceBy(List.of(stock.getTickerSymbol()));
 
 		// then
 		assertThat(actual)
@@ -717,7 +717,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		given(firebaseMessagingService.send(any(Message.class)))
 			.willReturn(Optional.of("messageId"));
 		// when
-		List<NotifyMessageItem> actual = service.notifyTargetPriceToAllMember(
+		List<NotifyMessageItem> actual = service.notifyTargetPriceBy(
 			List.of(stock.getTickerSymbol(), stock2.getTickerSymbol()));
 
 		// then

@@ -24,7 +24,7 @@ public class StockTargetPriceEventListener {
 	@EventListener
 	public void notifyStockTargetPriceMessages(StockTargetPriceNotificationEvent event) {
 		StockTargetPriceEventSendableParameter value = event.getValue();
-		List<NotifyMessageItem> items = service.notifyTargetPriceToAllMember(value.getTickerSymbols());
+		List<NotifyMessageItem> items = service.notifyTargetPriceBy(value.getTickerSymbols());
 		if (!items.isEmpty()) {
 			log.info("종목 지정가 메시지 전송 결과 : items={}", items);
 		}

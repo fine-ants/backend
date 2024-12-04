@@ -31,6 +31,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import co.fineants.api.domain.common.count.Count;
 import co.fineants.api.domain.common.money.Money;
+import co.fineants.api.domain.common.notification.PortfolioTargetGainNotifiable;
+import co.fineants.api.domain.common.notification.StockTargetPriceNotifiable;
 import co.fineants.api.domain.dividend.domain.entity.StockDividend;
 import co.fineants.api.domain.gainhistory.domain.entity.PortfolioGainHistory;
 import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
@@ -201,14 +203,15 @@ public abstract class RestDocsSupport {
 	}
 
 	protected PortfolioNotification createPortfolioTargetGainNotification(Portfolio portfolio, Member member) {
-		NotifyMessage message = portfolio.createTargetGainMessageWith("token");
+		NotifyMessage message = PortfolioTargetGainNotifiable.from(portfolio, true).createMessage("token");
 		return PortfolioNotification.newNotification(1L, message.getTitle(), message.getType(),
 			message.getReferenceId(), message.getLink(), portfolio.name(), member);
 	}
 
 	protected StockTargetPriceNotification createStockTargetPriceNotification(
 		TargetPriceNotification targetPriceNotification, Member member) {
-		StockNotifyMessage message = (StockNotifyMessage)targetPriceNotification.createTargetPriceMessage("token");
+		StockNotifyMessage message = (StockNotifyMessage)StockTargetPriceNotifiable.from(targetPriceNotification)
+			.createMessage("token");
 		return StockTargetPriceNotification.newNotification(
 			1L,
 			message.getStockName(),

@@ -18,6 +18,9 @@ import com.google.firebase.messaging.Message;
 import co.fineants.AbstractContainerBaseTest;
 import co.fineants.api.domain.common.count.Count;
 import co.fineants.api.domain.common.money.Money;
+import co.fineants.api.domain.common.notification.Notifiable;
+import co.fineants.api.domain.common.notification.PortfolioMaximumLossNotifiable;
+import co.fineants.api.domain.common.notification.PortfolioTargetGainNotifiable;
 import co.fineants.api.domain.fcm.repository.FcmRepository;
 import co.fineants.api.domain.fcm.service.FirebaseMessagingService;
 import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
@@ -80,12 +83,13 @@ class FirebaseNotificationProviderTest extends AbstractContainerBaseTest {
 
 		currentPriceRedisRepository.savePrice(KisCurrentPrice.create(samsung.getTickerSymbol(), 50000L));
 		Portfolio portfolio = createPortfolioSample(member, samsung);
+		Notifiable notifiable = PortfolioTargetGainNotifiable.from(portfolio, true);
 
 		given(firebaseMessagingService.send(ArgumentMatchers.any(Message.class)))
 			.willReturn(Optional.of("messageId"));
 
 		// when
-		List<SentNotifyMessage> messages = provider.sendNotification(List.of(portfolio), targetGainNotificationPolicy);
+		List<SentNotifyMessage> messages = provider.sendNotification(List.of(notifiable), targetGainNotificationPolicy);
 
 		// then
 		Assertions.assertThat(messages)
@@ -105,12 +109,13 @@ class FirebaseNotificationProviderTest extends AbstractContainerBaseTest {
 		PurchaseHistory purchaseHistory = createPurchaseHistory(null, LocalDateTime.now(), Count.from(30),
 			Money.won(100000), "첫구매", null);
 		Portfolio portfolio = createPortfolioSample(member, samsung, purchaseHistory);
+		PortfolioMaximumLossNotifiable notifiable = PortfolioMaximumLossNotifiable.from(portfolio, true);
 
 		given(firebaseMessagingService.send(ArgumentMatchers.any(Message.class)))
 			.willReturn(Optional.of("messageId"));
 
 		// when
-		List<SentNotifyMessage> messages = provider.sendNotification(List.of(portfolio), maxLossNotificationPolicy);
+		List<SentNotifyMessage> messages = provider.sendNotification(List.of(notifiable), maxLossNotificationPolicy);
 
 		// then
 		Assertions.assertThat(messages)

@@ -19,6 +19,9 @@ import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
 import org.springframework.restdocs.payload.JsonFieldType;
 
 import co.fineants.api.docs.RestDocsSupport;
+import co.fineants.api.domain.common.notification.PortfolioMaximumLossNotifiable;
+import co.fineants.api.domain.common.notification.PortfolioTargetGainNotifiable;
+import co.fineants.api.domain.common.notification.StockTargetPriceNotifiable;
 import co.fineants.api.domain.member.domain.entity.Member;
 import co.fineants.api.domain.notification.controller.NotificationRestController;
 import co.fineants.api.domain.notification.domain.dto.response.NotifyMessage;
@@ -51,7 +54,8 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 		// given
 		Member member = createMember();
 		Portfolio portfolio = createPortfolio(member);
-		PortfolioNotifyMessage message = (PortfolioNotifyMessage)portfolio.createTargetGainMessageWith("token");
+		PortfolioNotifyMessage message = (PortfolioNotifyMessage)PortfolioTargetGainNotifiable.from(portfolio, true)
+			.createTargetGainMessageWith("token");
 		Notification notification = createPortfolioNotification(message, member);
 		String messageId = "messageId";
 		PortfolioNotifyMessageItem item = (PortfolioNotifyMessageItem)PortfolioNotifyMessageItem.from(
@@ -126,7 +130,8 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 		// given
 		Member member = createMember();
 		Portfolio portfolio = createPortfolio(member);
-		PortfolioNotifyMessage message = (PortfolioNotifyMessage)portfolio.createMaxLossMessageWith("token");
+		PortfolioNotifyMessage message = (PortfolioNotifyMessage)PortfolioMaximumLossNotifiable.from(portfolio, true)
+			.createMaxLossMessageWith("token");
 		Notification notification = createPortfolioNotification(message, member);
 		String messageId = "messageId";
 		PortfolioNotifyMessageItem item = (PortfolioNotifyMessageItem)PortfolioNotifyMessageItem.from(
@@ -202,7 +207,8 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 		Stock stock = createSamsungStock();
 		StockTargetPrice stockTargetPrice = createStockTargetPrice(member, stock);
 		TargetPriceNotification targetPriceNotification = createTargetPriceNotification(stockTargetPrice);
-		NotifyMessage message = targetPriceNotification.createTargetPriceMessage("token");
+		NotifyMessage message = StockTargetPriceNotifiable.from(targetPriceNotification)
+			.createTargetPriceMessage("token");
 		Notification notification = createStockNotification((StockNotifyMessage)message, member);
 		TargetPriceNotificationSaveResponse saveResponse = TargetPriceNotificationSaveResponse.from(notification);
 		TargetPriceNotifyMessageItem item = TargetPriceNotifyMessageItem.from(saveResponse, List.of("messageId"));
