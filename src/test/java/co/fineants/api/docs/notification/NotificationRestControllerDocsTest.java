@@ -207,7 +207,7 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 		Stock stock = createSamsungStock();
 		StockTargetPrice stockTargetPrice = createStockTargetPrice(member, stock);
 		TargetPriceNotification targetPriceNotification = createTargetPriceNotification(stockTargetPrice);
-		NotifyMessage message = TargetPriceNotificationNotifiable.from(targetPriceNotification)
+		NotifyMessage message = TargetPriceNotificationNotifiable.from(targetPriceNotification, true)
 			.createTargetPriceMessage("token");
 		Notification notification = createStockNotification((StockNotifyMessage)message, member);
 		TargetPriceNotificationSaveResponse saveResponse = TargetPriceNotificationSaveResponse.from(notification);

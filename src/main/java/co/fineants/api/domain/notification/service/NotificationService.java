@@ -22,6 +22,7 @@ import co.fineants.api.domain.common.notification.PortfolioTargetGainNotifiable;
 import co.fineants.api.domain.common.notification.TargetPriceNotificationNotifiable;
 import co.fineants.api.domain.fcm.service.FcmService;
 import co.fineants.api.domain.fcm.service.FirebaseMessagingService;
+import co.fineants.api.domain.kis.repository.CurrentPriceRedisRepository;
 import co.fineants.api.domain.member.domain.entity.Member;
 import co.fineants.api.domain.member.repository.MemberRepository;
 import co.fineants.api.domain.notification.domain.dto.response.NotifyMessage;
@@ -58,6 +59,7 @@ public class NotificationService {
 	private final FcmService fcmService;
 	private final FirebaseMessagingService firebaseMessagingService;
 	private final PortfolioCalculator portfolioCalculator;
+	private final CurrentPriceRedisRepository currentPriceRedisRepository;
 
 	/**
 	 * 특정 포트폴리오의 목표 수익률 달성 알림 푸시
@@ -255,7 +257,10 @@ public class NotificationService {
 			.map(StockTargetPrice::getTargetPriceNotifications)
 			.flatMap(Collection::stream)
 			.sorted(Comparator.comparingLong(TargetPriceNotification::getId))
-			.map(targetPriceNotification -> TargetPriceNotificationNotifiable.from(targetPriceNotification))
+			.map(targetPriceNotification -> {
+				boolean isReached = targetPriceNotification.isSameTargetPrice(currentPriceRedisRepository);
+				return TargetPriceNotificationNotifiable.from(targetPriceNotification, isReached);
+			})
 			.map(Notifiable.class::cast)
 			.toList();
 		return notifyTargetPriceAll(notifiableList);
@@ -274,7 +279,10 @@ public class NotificationService {
 			.stream()
 			.map(StockTargetPrice::getTargetPriceNotifications)
 			.flatMap(Collection::stream)
-			.map(targetPriceNotification -> TargetPriceNotificationNotifiable.from(targetPriceNotification))
+			.map(targetPriceNotification -> {
+				boolean isReached = targetPriceNotification.isSameTargetPrice(currentPriceRedisRepository);
+				return TargetPriceNotificationNotifiable.from(targetPriceNotification, isReached);
+			})
 			.map(Notifiable.class::cast)
 			.toList();
 		log.debug("notifiableList : {}", notifiableList);

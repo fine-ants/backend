@@ -13,7 +13,6 @@ import co.fineants.api.domain.notification.domain.entity.policy.TargetGainNotifi
 import co.fineants.api.domain.notification.domain.entity.policy.TargetPriceNotificationPolicy;
 import co.fineants.api.domain.notification.repository.NotificationSentRepository;
 import co.fineants.api.domain.notificationpreference.domain.entity.NotificationPreference;
-import co.fineants.api.domain.stock_target_price.domain.entity.TargetPriceNotification;
 import lombok.RequiredArgsConstructor;
 
 @Configuration
@@ -49,9 +48,9 @@ public class NotificationConfig {
 	public TargetPriceNotificationPolicy targetPriceNotificationPolicy() {
 		return new TargetPriceNotificationPolicy(
 			List.of(
-				targetPriceNotification -> targetPriceNotification.isSameTargetPrice(currentPriceRedisRepository),
-				TargetPriceNotification::isActive,
-				targetPriceNotification -> !sentManager.hasTargetPriceSendHistory(targetPriceNotification)
+				Notifiable::isReached,
+				Notifiable::isActive,
+				notifiable -> !notifiable.hasSentHistory(sentManager)
 			),
 			NotificationPreference::isPossibleStockTargetPriceNotification
 		);

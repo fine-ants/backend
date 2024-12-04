@@ -9,10 +9,7 @@ import co.fineants.api.domain.stock_target_price.domain.entity.StockTargetPrice;
 import co.fineants.api.domain.stock_target_price.domain.entity.TargetPriceNotification;
 import lombok.AccessLevel;
 import lombok.Builder;
-import lombok.RequiredArgsConstructor;
 
-@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-@Builder(access = AccessLevel.PRIVATE)
 public class TargetPriceNotificationNotifiable implements Notifiable {
 
 	private final String title;
@@ -23,10 +20,42 @@ public class TargetPriceNotificationNotifiable implements Notifiable {
 	private final String link;
 	private final String name;
 	private final Money targetPrice;
-	private final Long targetPriceNotificationId;
 	private final NotificationPreference preference;
+	private final Boolean isReached;
+	private final Boolean isActive;
+	private final Long id;
 
-	public static TargetPriceNotificationNotifiable from(TargetPriceNotification targetPriceNotification) {
+	@Builder(access = AccessLevel.PRIVATE)
+	private TargetPriceNotificationNotifiable(
+		String title,
+		String content,
+		NotificationType type,
+		String referenceId,
+		Long memberId,
+		String link,
+		String name,
+		Money targetPrice,
+		NotificationPreference preference,
+		Boolean isReached,
+		Boolean isActive,
+		Long id) {
+		this.title = title;
+		this.content = content;
+		this.type = type;
+		this.referenceId = referenceId;
+		this.memberId = memberId;
+		this.link = link;
+		this.name = name;
+		this.targetPrice = targetPrice;
+		this.preference = preference;
+		this.isReached = isReached;
+		this.isActive = isActive;
+		this.id = id;
+	}
+
+	public static TargetPriceNotificationNotifiable from(
+		TargetPriceNotification targetPriceNotification,
+		Boolean isReached) {
 		StockTargetPrice stockTargetPrice = targetPriceNotification.getStockTargetPrice();
 		Money targetPrice = targetPriceNotification.getTargetPrice();
 		String content = String.format("%s이(가) %s%s에 도달했습니다",
@@ -34,7 +63,7 @@ public class TargetPriceNotificationNotifiable implements Notifiable {
 			targetPrice.currencySymbol(),
 			targetPrice.toDecimalFormat());
 		return TargetPriceNotificationNotifiable.builder()
-			.title(NotificationType.STOCK_TARGET_PRICE.name())
+			.title(NotificationType.STOCK_TARGET_PRICE.getName())
 			.content(content)
 			.type(NotificationType.STOCK_TARGET_PRICE)
 			.referenceId(stockTargetPrice.getReferenceId())
@@ -42,7 +71,10 @@ public class TargetPriceNotificationNotifiable implements Notifiable {
 			.link(stockTargetPrice.getLink())
 			.name(stockTargetPrice.getName())
 			.targetPrice(targetPrice)
-			.targetPriceNotificationId(targetPriceNotification.getId())
+			.preference(stockTargetPrice.getMember().getNotificationPreference())
+			.isReached(isReached)
+			.isActive(targetPriceNotification.isActive())
+			.id(targetPriceNotification.getId())
 			.build();
 	}
 
@@ -68,7 +100,7 @@ public class TargetPriceNotificationNotifiable implements Notifiable {
 			link,
 			name,
 			targetPrice,
-			targetPriceNotificationId
+			id
 		);
 	}
 
@@ -89,16 +121,16 @@ public class TargetPriceNotificationNotifiable implements Notifiable {
 
 	@Override
 	public boolean isReached() {
-		return false;
+		return isReached;
 	}
 
 	@Override
 	public boolean isActive() {
-		return false;
+		return isActive;
 	}
 
 	@Override
 	public boolean hasSentHistory(NotificationSentRepository repository) {
-		return false;
+		return repository.hasTargetPriceSendHistory(id);
 	}
 }
