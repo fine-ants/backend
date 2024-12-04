@@ -287,11 +287,11 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		manager.savePrice(KisCurrentPrice.create(stock.getTickerSymbol(), 100L));
 
 		// when
-		PortfolioNotifyMessagesResponse response = (PortfolioNotifyMessagesResponse)service.notifyMaxLossAll();
+		List<NotifyMessageItem> actual = service.notifyMaxLossAll();
 
 		// then
 		assertAll(
-			() -> assertThat(response).extracting("notifications").asList().hasSize(1),
+			() -> assertThat(actual).hasSize(1),
 			() -> assertThat(notificationRepository.findAllByMemberId(member.getId())).hasSize(1),
 			() -> assertThat(sentManager.hasMaxLossSendHistory(portfolio.getId())).isTrue()
 		);
@@ -781,7 +781,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 
 	@DisplayName("조건을 만족한 포트폴리오에 대하여 목표수익율 알림을 전송한다")
 	@Test
-	void notifyTargetGainAll2() {
+	void notifyTargetGainAll() {
 		// given
 		Member member = memberRepository.save(createMember());
 		fcmRepository.saveAll(List.of(createFcmToken("token1", member), createFcmToken("token2", member)));

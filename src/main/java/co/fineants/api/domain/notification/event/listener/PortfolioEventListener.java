@@ -7,7 +7,6 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import co.fineants.api.domain.notification.domain.dto.response.NotifyMessageItem;
-import co.fineants.api.domain.notification.domain.dto.response.PortfolioNotifyMessagesResponse;
 import co.fineants.api.domain.notification.event.domain.CurrentPriceEvent;
 import co.fineants.api.domain.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
@@ -32,8 +31,7 @@ public class PortfolioEventListener {
 	@Async
 	@EventListener
 	public void notifyPortfolioMaxLossMessages(CurrentPriceEvent event) {
-		PortfolioNotifyMessagesResponse response =
-			(PortfolioNotifyMessagesResponse)notificationService.notifyMaxLossAll();
-		log.debug("event : {}, 최대손실율 알림 전송 결과 : {}", event, response);
+		List<NotifyMessageItem> items = notificationService.notifyMaxLossAll();
+		log.debug("event : {}, 최대손실율 알림 전송 결과 : {}", event, items);
 	}
 }

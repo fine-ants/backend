@@ -172,6 +172,16 @@ public class NotificationService {
 			.toList();
 	}
 
+	/**
+	 * 모든 포트폴리오를 대상으로 최대 손실율에 도달하는 모든 포트폴리오에 대해서 최대 손실율 도달 알림 푸시
+	 *
+	 * @return 알림 전송 결과
+	 */
+	@Transactional
+	public List<NotifyMessageItem> notifyMaxLossAll() {
+		return notifyMaxLossAll(portfolioRepository.findAllWithAll());
+	}
+
 	private List<NotifyMessageItem> notifyMaxLossAll(List<Portfolio> portfolios) {
 		List<NotifyMessage> notifyMessages = portfolios.stream()
 			.filter(maximumLossNotificationPolicy::isSatisfied)
@@ -229,7 +239,6 @@ public class NotificationService {
 			.toList();
 	}
 
-	// TODO: notifyMaximumLossAll 구현
 	@NotNull
 	private List<NotifyMessageItem> notifyMessage(List<Notifiable> targets,
 		NotificationPolicy<Notifiable> policy, Consumer<Long> sentFunction) {
@@ -272,20 +281,6 @@ public class NotificationService {
 			result.put(target.getNotifyMessage().getIdToSentHistory(), target.getMessageId());
 		}
 		return result;
-	}
-
-	/**
-	 * 모든 포트폴리오를 대상으로 최대 손실율에 도달하는 모든 포트폴리오에 대해서 최대 손실율 도달 알림 푸시
-	 *
-	 * @return 알림 전송 결과
-	 */
-	@Transactional
-	public NotifyMessageResponse notifyMaxLossAll() {
-		List<Notifiable> portfolios = new ArrayList<>(portfolioRepository.findAllWithAll());
-		Consumer<Long> sentFunction = sentManager::addMaxLossSendHistory;
-		return PortfolioNotifyMessagesResponse.create(
-			notifyMessage(portfolios, maximumLossNotificationPolicy, sentFunction)
-		);
 	}
 
 	/**
