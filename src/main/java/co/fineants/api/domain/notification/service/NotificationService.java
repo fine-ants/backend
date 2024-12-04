@@ -7,7 +7,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import org.apache.logging.log4j.util.Strings;
 import org.jetbrains.annotations.NotNull;
@@ -96,8 +95,7 @@ public class NotificationService {
 		List<NotifyMessage> notifyMessages = notifiableList.stream()
 			.filter(targetGainNotificationPolicy::isSatisfied)
 			.map(notifiable -> fcmService.findTokens(notifiable.fetchMemberId()).stream()
-				.map(token -> targetGainNotificationPolicy.apply(notifiable, token))
-				.flatMap(Optional::stream)
+				.map(notifiable::createMessage)
 				.toList())
 			.flatMap(Collection::stream)
 			.toList();
@@ -192,8 +190,7 @@ public class NotificationService {
 		List<NotifyMessage> notifyMessages = notifiableList.stream()
 			.filter(maximumLossNotificationPolicy::isSatisfied)
 			.map(notifiable -> fcmService.findTokens(notifiable.fetchMemberId()).stream()
-				.map(token -> maximumLossNotificationPolicy.apply(notifiable, token))
-				.flatMap(Optional::stream)
+				.map(notifiable::createMessage)
 				.toList())
 			.flatMap(Collection::stream)
 			.toList();
@@ -293,8 +290,7 @@ public class NotificationService {
 		List<NotifyMessage> notifyMessages = notifiableList.stream()
 			.filter(targetPriceNotificationPolicy::isSatisfied)
 			.map(notifiable -> fcmService.findTokens(notifiable.fetchMemberId()).stream()
-				.map(token -> targetPriceNotificationPolicy.apply(notifiable, token))
-				.flatMap(Optional::stream)
+				.map(notifiable::createMessage)
 				.toList())
 			.flatMap(Collection::stream)
 			.toList();
