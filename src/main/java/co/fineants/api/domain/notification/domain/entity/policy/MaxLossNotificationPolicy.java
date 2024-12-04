@@ -26,7 +26,7 @@ public class MaxLossNotificationPolicy implements NotificationPolicy<Notifiable>
 
 	@Override
 	public Optional<NotifyMessage> apply(Notifiable target, String token) {
-		// TODO: will delete
+		// TODO: will delete, 이미 isSatisfield에서 구현되어 있음
 		boolean isPortfolioValid = portfolioConditions.stream()
 			.allMatch(condition -> condition.test((Portfolio)target));
 		boolean isPreferenceValid = preferenceConditions.test(target.getNotificationPreference());

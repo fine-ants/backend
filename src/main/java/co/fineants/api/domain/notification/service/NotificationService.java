@@ -20,7 +20,6 @@ import com.google.firebase.messaging.Message;
 import co.fineants.api.domain.common.notification.Notifiable;
 import co.fineants.api.domain.fcm.service.FcmService;
 import co.fineants.api.domain.fcm.service.FirebaseMessagingService;
-import co.fineants.api.domain.kis.repository.CurrentPriceRedisRepository;
 import co.fineants.api.domain.member.domain.entity.Member;
 import co.fineants.api.domain.member.repository.MemberRepository;
 import co.fineants.api.domain.notification.domain.dto.request.NotificationSaveRequest;
@@ -58,7 +57,6 @@ public class NotificationService {
 	private final PortfolioRepository portfolioRepository;
 	private final NotificationRepository notificationRepository;
 	private final MemberRepository memberRepository;
-	private final CurrentPriceRedisRepository currentPriceRedisRepository;
 	private final NotificationSentRepository sentManager;
 	private final StockTargetPriceRepository stockTargetPriceRepository;
 	private final TargetGainNotificationPolicy targetGainNotificationPolicy;
@@ -67,11 +65,6 @@ public class NotificationService {
 	private final NotificationDispatcher notificationDispatcher;
 	private final FcmService fcmService;
 	private final FirebaseMessagingService firebaseMessagingService;
-
-	@Transactional
-	public Notification saveNotification(Notification notification) {
-		return notificationRepository.save(notification);
-	}
 
 	@NotNull
 	@Transactional
@@ -179,6 +172,64 @@ public class NotificationService {
 			.toList();
 	}
 
+	private List<NotifyMessageItem> notifyMaxLossAll(List<Portfolio> portfolios) {
+		List<NotifyMessage> notifyMessages = portfolios.stream()
+			.filter(maximumLossNotificationPolicy::isSatisfied)
+			.map(portfolio -> fcmService.findTokens(portfolio.getMemberId()).stream()
+				.map(token -> maximumLossNotificationPolicy.apply(portfolio, token))
+				.flatMap(Optional::stream)
+				.toList())
+			.flatMap(Collection::stream)
+			.toList();
+
+		// 만족하는 포트폴리오를 대상으로 알림 데이터 생성 & 알림 전송
+		Map<NotifyMessage, List<String>> messageIdsMap = new HashMap<>();
+		for (NotifyMessage notifyMessage : notifyMessages) {
+			Message message = notifyMessage.toMessage();
+			String messageId = firebaseMessagingService.send(message).orElse(Strings.EMPTY);
+			messageIdsMap.computeIfAbsent(notifyMessage, key -> new ArrayList<>())
+				.add(messageId);
+		}
+		List<NotifyMessage> sentNotifyMessages = messageIdsMap.entrySet().stream()
+			.map(entry -> entry.getKey().withMessageId(entry.getValue()))
+			.toList();
+
+		// 알림 전송에 실패한 전송 메시지에 대해서 FCM 토큰 삭제
+		messageIdsMap.forEach((notifyMessage, messageIds) -> messageIds.stream()
+			.filter(Strings::isBlank)
+			.forEach(blankMessageId -> notifyMessage.deleteTokenBy(fcmService)));
+
+		// 알림 저장
+		List<Notification> notifications = sentNotifyMessages.stream()
+			.map(notifyMessage -> {
+				Member member = memberRepository.findById(notifyMessage.getMemberId())
+					.orElseThrow(() -> new IllegalArgumentException(
+						"not found member, memberId=" + notifyMessage.getMemberId()));
+				return notifyMessage.toEntity(member);
+			})
+			.map(notificationRepository::save)
+			.toList();
+
+		// 전송 내역 저장
+		notifications.stream()
+			.map(Notification::getId)
+			.forEach(sentManager::addMaxLossSendHistory);
+
+		// 결과 객체 생성
+		return notifications.stream()
+			.map(response -> {
+				String idToSentHistory = response.getIdToSentHistory();
+				List<String> messageIds = sentNotifyMessages.stream()
+					.filter(notifyMessage -> notifyMessage.getIdToSentHistory().equals(idToSentHistory))
+					.map(NotifyMessage::getMessageIds)
+					.findAny()
+					.orElse(Collections.emptyList());
+				return response.toNotifyMessageItemWith(messageIds);
+			})
+			.toList();
+	}
+
+	// TODO: notifyMaximumLossAll 구현
 	@NotNull
 	private List<NotifyMessageItem> notifyMessage(List<Notifiable> targets,
 		NotificationPolicy<Notifiable> policy, Consumer<Long> sentFunction) {
