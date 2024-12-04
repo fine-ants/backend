@@ -55,7 +55,7 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 		Member member = createMember();
 		Portfolio portfolio = createPortfolio(member);
 		PortfolioNotifyMessage message = (PortfolioNotifyMessage)PortfolioTargetGainNotifiable.from(portfolio, true)
-			.createTargetGainMessageWith("token");
+			.createMessage("token");
 		Notification notification = createPortfolioNotification(message, member);
 		String messageId = "messageId";
 		PortfolioNotifyMessageItem item = (PortfolioNotifyMessageItem)PortfolioNotifyMessageItem.from(
@@ -131,7 +131,7 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 		Member member = createMember();
 		Portfolio portfolio = createPortfolio(member);
 		PortfolioNotifyMessage message = (PortfolioNotifyMessage)PortfolioMaximumLossNotifiable.from(portfolio, true)
-			.createMaxLossMessageWith("token");
+			.createMessage("token");
 		Notification notification = createPortfolioNotification(message, member);
 		String messageId = "messageId";
 		PortfolioNotifyMessageItem item = (PortfolioNotifyMessageItem)PortfolioNotifyMessageItem.from(
@@ -208,7 +208,7 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 		StockTargetPrice stockTargetPrice = createStockTargetPrice(member, stock);
 		TargetPriceNotification targetPriceNotification = createTargetPriceNotification(stockTargetPrice);
 		NotifyMessage message = TargetPriceNotificationNotifiable.from(targetPriceNotification, true)
-			.createTargetPriceMessage("token");
+			.createMessage("token");
 		Notification notification = createStockNotification((StockNotifyMessage)message, member);
 		TargetPriceNotificationSaveResponse saveResponse = TargetPriceNotificationSaveResponse.from(notification);
 		TargetPriceNotifyMessageItem item = TargetPriceNotifyMessageItem.from(saveResponse, List.of("messageId"));

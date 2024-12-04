@@ -9,15 +9,7 @@ public interface Notifiable {
 
 	NotificationPreference getNotificationPreference();
 
-	NotifyMessage createTargetGainMessageWith(String token);
-
-	NotifyMessage createMaxLossMessageWith(String token);
-
-	NotifyMessage createTargetPriceMessage(String token);
-
-	default NotifyMessage createMessage(String token) {
-		return null;
-	}
+	NotifyMessage createMessage(String token);
 
 	boolean isReached();
 

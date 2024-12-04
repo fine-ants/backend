@@ -103,22 +103,7 @@ public class TargetPriceNotificationNotifiable implements Notifiable {
 			id
 		);
 	}
-
-	@Override
-	public NotifyMessage createTargetGainMessageWith(String token) {
-		return null;
-	}
-
-	@Override
-	public NotifyMessage createMaxLossMessageWith(String token) {
-		return null;
-	}
-
-	@Override
-	public NotifyMessage createTargetPriceMessage(String token) {
-		return null;
-	}
-
+	
 	@Override
 	public boolean isReached() {
 		return isReached;
