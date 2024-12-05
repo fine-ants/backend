@@ -21,10 +21,12 @@ import co.fineants.api.domain.stock_target_price.domain.dto.request.StockNotific
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
+import lombok.experimental.SuperBuilder;
 
 @Getter
 @EqualsAndHashCode(of = {"referenceId", "memberId"})
 @ToString
+@SuperBuilder(toBuilder = true)
 public abstract class NotifyMessage implements Comparable<NotifyMessage> {
 	private final String title;
 	private final String content;
@@ -34,19 +36,7 @@ public abstract class NotifyMessage implements Comparable<NotifyMessage> {
 	private final String token;
 	private final String link;
 	private final List<String> messageIds;
-
-	protected NotifyMessage(String title, String content, NotificationType type, String referenceId, Long memberId,
-		String token, String link, List<String> messageIds) {
-		this.title = title;
-		this.content = content;
-		this.type = type;
-		this.referenceId = referenceId;
-		this.memberId = memberId;
-		this.token = token;
-		this.link = link;
-		this.messageIds = messageIds;
-	}
-
+	
 	public static NotifyMessage portfolio(
 		String title,
 		String content,
@@ -57,27 +47,35 @@ public abstract class NotifyMessage implements Comparable<NotifyMessage> {
 		String link,
 		String name,
 		Long portfolioId) {
-		return portfolio(title, content, type, referenceId, memberId, token, link, name, portfolioId,
-			new ArrayList<>());
-	}
-
-	public static NotifyMessage portfolio(String title, String content, NotificationType type, String referenceId,
-		Long memberId, String token, String link, String name, Long portfolioId, List<String> messageIds) {
-		return PortfolioNotifyMessage.create(title, content, type, referenceId, memberId, token, link, name,
-			portfolioId, messageIds);
+		return PortfolioNotifyMessage.builder()
+			.title(title)
+			.content(content)
+			.type(type)
+			.referenceId(referenceId)
+			.memberId(memberId)
+			.token(token)
+			.link(link)
+			.name(name)
+			.portfolioId(portfolioId)
+			.messageIds(new ArrayList<>())
+			.build();
 	}
 
 	public static NotifyMessage stock(String title, String content, NotificationType type, String referenceId,
 		Long memberId, String token, String link, String stockName, Money targetPrice, Long targetPriceNotificationId) {
-		return stock(title, content, type, referenceId, memberId, token, link, stockName,
-			targetPrice, targetPriceNotificationId, null);
-	}
-
-	public static NotifyMessage stock(String title, String content, NotificationType type, String referenceId,
-		Long memberId, String token, String link, String stockName, Money targetPrice, Long targetPriceNotificationId,
-		List<String> messageIds) {
-		return StockNotifyMessage.create(title, content, type, referenceId, memberId, token, link, stockName,
-			targetPrice, targetPriceNotificationId, messageIds);
+		return StockNotifyMessage.builder()
+			.title(title)
+			.content(content)
+			.type(type)
+			.referenceId(referenceId)
+			.memberId(memberId)
+			.token(token)
+			.link(link)
+			.stockName(stockName)
+			.targetPrice(targetPrice)
+			.targetPriceNotificationId(targetPriceNotificationId)
+			.messageIds(new ArrayList<>())
+			.build();
 	}
 
 	public Message toMessage() {
