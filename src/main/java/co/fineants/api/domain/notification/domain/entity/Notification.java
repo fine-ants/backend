@@ -71,13 +71,11 @@ public abstract class Notification extends BaseEntity {
 
 	public static Notification portfolio(String portfolioName, String title, NotificationType type,
 		String referenceId, String link, Long portfolioId, Member member, List<String> messageIds) {
-		if (type == NotificationType.PORTFOLIO_TARGET_GAIN
-			|| type == NotificationType.PORTFOLIO_MAX_LOSS) {
-			return PortfolioNotification.newNotification(title, type, referenceId, link, member, messageIds,
-				portfolioName, portfolioId
-			);
-		}
-		throw new IllegalArgumentException("잘못된 타입입니다. type=" + type);
+		return switch (type) {
+			case PORTFOLIO_TARGET_GAIN, PORTFOLIO_MAX_LOSS -> PortfolioNotification.newNotification(
+				title, type, referenceId, link, member, messageIds, portfolioName, portfolioId);
+			default -> throw new IllegalArgumentException("잘못된 타입입니다. type=" + type);
+		};
 	}
 
 	public static Notification stockTargetPriceNotification(
