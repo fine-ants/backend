@@ -20,16 +20,17 @@ public class NotificationConfig {
 
 	private final NotificationSentRepository sentManager;
 
+	// TODO: preferencePredicate를 제외한 conditions 부분은 공통적, 하나의 클래스 타입으로 합칠수 있도록 개선
 	@Bean
 	public TargetGainNotificationPolicy targetGainNotificationPolicy() {
-		List<Predicate<Notifiable>> portfolioConditions = List.of(
+		List<Predicate<Notifiable>> conditions = List.of(
 			Notifiable::isReached,
 			Notifiable::isActive,
 			notifiable -> notifiable.emptySentHistory(sentManager)
 		);
-		Predicate<NotificationPreference> preferencePredicate =
+		Predicate<NotificationPreference> preference =
 			NotificationPreference::isPossibleTargetGainNotification;
-		return new TargetGainNotificationPolicy(portfolioConditions, preferencePredicate);
+		return new TargetGainNotificationPolicy(conditions, preference);
 	}
 
 	@Bean
@@ -39,18 +40,18 @@ public class NotificationConfig {
 			Notifiable::isActive,
 			notifiable -> notifiable.emptySentHistory(sentManager)
 		);
-		return new MaxLossNotificationPolicy(conditions, NotificationPreference::isPossibleMaxLossNotification);
+		Predicate<NotificationPreference> preference = NotificationPreference::isPossibleMaxLossNotification;
+		return new MaxLossNotificationPolicy(conditions, preference);
 	}
 
 	@Bean
 	public TargetPriceNotificationPolicy targetPriceNotificationPolicy() {
-		return new TargetPriceNotificationPolicy(
-			List.of(
-				Notifiable::isReached,
-				Notifiable::isActive,
-				notifiable -> notifiable.emptySentHistory(sentManager)
-			),
-			NotificationPreference::isPossibleStockTargetPriceNotification
+		List<Predicate<Notifiable>> conditions = List.of(
+			Notifiable::isReached,
+			Notifiable::isActive,
+			notifiable -> notifiable.emptySentHistory(sentManager)
 		);
+		Predicate<NotificationPreference> preference = NotificationPreference::isPossibleStockTargetPriceNotification;
+		return new TargetPriceNotificationPolicy(conditions, preference);
 	}
 }

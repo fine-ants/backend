@@ -1,6 +1,8 @@
 package co.fineants.api.domain.notification.domain.entity.policy;
 
-public interface NotificationPolicy<T> {
+import co.fineants.api.domain.common.notification.Notifiable;
 
-	boolean isSatisfied(T target);
+public interface NotificationPolicy {
+
+	boolean isSatisfied(Notifiable target);
 }

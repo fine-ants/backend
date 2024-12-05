@@ -8,7 +8,7 @@ import co.fineants.api.domain.notificationpreference.domain.entity.NotificationP
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public class TargetGainNotificationPolicy implements NotificationPolicy<Notifiable> {
+public class TargetGainNotificationPolicy implements NotificationPolicy {
 
 	private final List<Predicate<Notifiable>> portfolioConditions;
 	private final Predicate<NotificationPreference> preferencePredicate;
