@@ -179,14 +179,9 @@ public abstract class RestDocsSupport {
 	protected Notification createPortfolioNotification(PortfolioNotifyMessage message, Portfolio portfolio,
 		Member member) {
 		return Notification.portfolioNotification(
-				portfolio.name(),
-				message.getTitle(),
-				message.getType(),
-				message.getReferenceId(),
-				message.getLink(),
-				portfolio.getId(),
-				member,
-				message.getMessageIds()
+				message.getTitle(), message.getType(), message.getReferenceId(), message.getLink(), member,
+				message.getMessageIds(), portfolio.name(),
+				portfolio.getId()
 			)
 			.withId(1L);
 	}
@@ -211,14 +206,9 @@ public abstract class RestDocsSupport {
 	protected PortfolioNotification createPortfolioTargetGainNotification(Portfolio portfolio, Member member) {
 		NotifyMessage message = PortfolioTargetGainNotifiable.from(portfolio, true).createMessage("token");
 		return (PortfolioNotification)Notification.portfolioNotification(
-				portfolio.name(),
-				message.getTitle(),
-				message.getType(),
-				message.getReferenceId(),
-				message.getLink(),
-				portfolio.getId(),
-				member,
-				message.getMessageIds()
+				message.getTitle(), message.getType(), message.getReferenceId(), message.getLink(), member,
+				message.getMessageIds(), portfolio.name(),
+				portfolio.getId()
 			)
 			.withId(1L);
 	}

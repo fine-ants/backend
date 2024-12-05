@@ -29,7 +29,8 @@ public class PortfolioNotifyMessage extends NotifyMessage {
 
 	@Override
 	public Notification toEntity(Member member) {
-		return Notification.portfolioNotification(name, getTitle(), getType(), getReferenceId(), getLink(), portfolioId,
-			member, getMessageIds());
+		return Notification.portfolioNotification(getTitle(), getType(), getReferenceId(), getLink(), member,
+			getMessageIds(), name, portfolioId
+		);
 	}
 }

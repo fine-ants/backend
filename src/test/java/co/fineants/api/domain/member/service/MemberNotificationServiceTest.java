@@ -247,24 +247,12 @@ class MemberNotificationServiceTest extends AbstractContainerBaseTest {
 				1L
 			),
 			Notification.portfolioNotification(
-				"포트폴리오1",
-				"포트폴리오",
-				PORTFOLIO_TARGET_GAIN,
-				"1",
-				"/portfolio/1",
-				1L,
-				member,
-				List.of("messageId")
+				"포트폴리오", PORTFOLIO_TARGET_GAIN, "1", "/portfolio/1", member, List.of("messageId"), "포트폴리오1",
+				1L
 			),
 			Notification.portfolioNotification(
-				"포트폴리오2",
-				"포트폴리오",
-				PORTFOLIO_MAX_LOSS,
-				"2",
-				"/portfolio/1",
-				2L,
-				member,
-				List.of("messageId")
+				"포트폴리오", PORTFOLIO_MAX_LOSS, "2", "/portfolio/1", member, List.of("messageId"), "포트폴리오2",
+				2L
 			)
 		);
 	}

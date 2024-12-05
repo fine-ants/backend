@@ -57,14 +57,14 @@ public abstract class Notification extends BaseEntity {
 	private List<String> messageIds;
 
 	public static Notification portfolioNotification(
-		String portfolioName,
 		String title,
 		NotificationType type,
 		String referenceId,
 		String link,
-		Long portfolioId,
 		Member member,
-		List<String> messageIds) {
+		List<String> messageIds,
+		String portfolioName,
+		Long portfolioId) {
 		return switch (type) {
 			case PORTFOLIO_TARGET_GAIN, PORTFOLIO_MAX_LOSS -> PortfolioNotification.builder()
 				.createAt(LocalDateTime.now())
