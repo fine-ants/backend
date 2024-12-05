@@ -1,9 +1,5 @@
 package co.fineants.api.domain.notification.domain.entity;
 
-import java.time.LocalDateTime;
-import java.util.List;
-
-import co.fineants.api.domain.member.domain.entity.Member;
 import co.fineants.api.domain.notification.domain.entity.type.NotificationType;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
@@ -18,30 +14,6 @@ import lombok.experimental.SuperBuilder;
 public class PortfolioNotification extends Notification {
 	private String name;
 	private Long portfolioId;
-
-	public static PortfolioNotification newNotification(
-		String title,
-		NotificationType type,
-		String referenceId,
-		String link,
-		Member member,
-		List<String> messageIds,
-		String portfolioName,
-		Long portfolioId) {
-		return PortfolioNotification.builder()
-			.createAt(LocalDateTime.now())
-			.modifiedAt(LocalDateTime.now())
-			.title(title)
-			.isRead(false)
-			.type(type)
-			.referenceId(referenceId)
-			.link(link)
-			.member(member)
-			.messageIds(messageIds)
-			.name(portfolioName)
-			.portfolioId(portfolioId)
-			.build();
-	}
 
 	@Override
 	public Notification withId(Long id) {

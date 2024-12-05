@@ -45,6 +45,7 @@ public class PortfolioNotificationSaveRequest extends NotificationSaveRequest {
 
 	@Override
 	public Notification toEntity(Member member) {
-		return Notification.portfolio(name, title, type, referenceId, link, portfolioId, member, messageIds);
+		return Notification.portfolioNotification(name, title, type, referenceId, link, portfolioId, member,
+			messageIds);
 	}
 }

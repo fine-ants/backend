@@ -43,7 +43,6 @@ import co.fineants.api.domain.notification.domain.dto.response.PortfolioNotifyMe
 import co.fineants.api.domain.notification.domain.dto.response.StockNotifyMessage;
 import co.fineants.api.domain.notification.domain.entity.Notification;
 import co.fineants.api.domain.notification.domain.entity.PortfolioNotification;
-import co.fineants.api.domain.notification.domain.entity.StockTargetPriceNotification;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import co.fineants.api.domain.portfolio.domain.entity.PortfolioDetail;
 import co.fineants.api.domain.portfolio.domain.entity.PortfolioFinancial;
@@ -179,13 +178,15 @@ public abstract class RestDocsSupport {
 
 	protected Notification createPortfolioNotification(PortfolioNotifyMessage message, Portfolio portfolio,
 		Member member) {
-		return PortfolioNotification.newNotification(
+		return Notification.portfolioNotification(
+				portfolio.name(),
 				message.getTitle(),
 				message.getType(),
 				message.getReferenceId(),
 				message.getLink(),
-				member, message.getMessageIds(), message.getName(),
-				portfolio.getId()
+				portfolio.getId(),
+				member,
+				message.getMessageIds()
 			)
 			.withId(1L);
 	}
@@ -209,13 +210,15 @@ public abstract class RestDocsSupport {
 
 	protected PortfolioNotification createPortfolioTargetGainNotification(Portfolio portfolio, Member member) {
 		NotifyMessage message = PortfolioTargetGainNotifiable.from(portfolio, true).createMessage("token");
-		return (PortfolioNotification)PortfolioNotification.newNotification(
+		return (PortfolioNotification)Notification.portfolioNotification(
+				portfolio.name(),
 				message.getTitle(),
 				message.getType(),
 				message.getReferenceId(),
 				message.getLink(),
-				member, message.getMessageIds(), portfolio.name(),
-				portfolio.getId()
+				portfolio.getId(),
+				member,
+				message.getMessageIds()
 			)
 			.withId(1L);
 	}
@@ -225,8 +228,12 @@ public abstract class RestDocsSupport {
 		StockNotifyMessage message = (StockNotifyMessage)TargetPriceNotificationNotifiable.from(targetPriceNotification,
 				true)
 			.createMessage("token");
-		return StockTargetPriceNotification.newNotification(
-			message.getTitle(), message.getReferenceId(), message.getLink(), member, message.getMessageIds(),
+		return Notification.stockTargetPriceNotification(
+			message.getTitle(),
+			message.getReferenceId(),
+			message.getLink(),
+			member,
+			message.getMessageIds(),
 			message.getStockName(),
 			message.getTargetPrice(),
 			message.getTargetPriceNotificationId()

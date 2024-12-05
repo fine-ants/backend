@@ -246,7 +246,7 @@ class MemberNotificationServiceTest extends AbstractContainerBaseTest {
 				Money.won(60000L),
 				1L
 			),
-			Notification.portfolio(
+			Notification.portfolioNotification(
 				"포트폴리오1",
 				"포트폴리오",
 				PORTFOLIO_TARGET_GAIN,
@@ -256,7 +256,7 @@ class MemberNotificationServiceTest extends AbstractContainerBaseTest {
 				member,
 				List.of("messageId")
 			),
-			Notification.portfolio(
+			Notification.portfolioNotification(
 				"포트폴리오2",
 				"포트폴리오",
 				PORTFOLIO_MAX_LOSS,

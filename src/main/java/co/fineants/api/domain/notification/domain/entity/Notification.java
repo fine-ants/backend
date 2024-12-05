@@ -1,5 +1,6 @@
 package co.fineants.api.domain.notification.domain.entity;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import co.fineants.api.domain.BaseEntity;
@@ -55,11 +56,29 @@ public abstract class Notification extends BaseEntity {
 	@Transient
 	private List<String> messageIds;
 
-	public static Notification portfolio(String portfolioName, String title, NotificationType type,
-		String referenceId, String link, Long portfolioId, Member member, List<String> messageIds) {
+	public static Notification portfolioNotification(
+		String portfolioName,
+		String title,
+		NotificationType type,
+		String referenceId,
+		String link,
+		Long portfolioId,
+		Member member,
+		List<String> messageIds) {
 		return switch (type) {
-			case PORTFOLIO_TARGET_GAIN, PORTFOLIO_MAX_LOSS -> PortfolioNotification.newNotification(
-				title, type, referenceId, link, member, messageIds, portfolioName, portfolioId);
+			case PORTFOLIO_TARGET_GAIN, PORTFOLIO_MAX_LOSS -> PortfolioNotification.builder()
+				.createAt(LocalDateTime.now())
+				.modifiedAt(LocalDateTime.now())
+				.title(title)
+				.isRead(false)
+				.type(type)
+				.referenceId(referenceId)
+				.link(link)
+				.member(member)
+				.messageIds(messageIds)
+				.name(portfolioName)
+				.portfolioId(portfolioId)
+				.build();
 			default -> throw new IllegalArgumentException("잘못된 타입입니다. type=" + type);
 		};
 	}
@@ -73,18 +92,22 @@ public abstract class Notification extends BaseEntity {
 		String stockName,
 		Money targetPrice,
 		Long targetPriceNotificationId) {
-		return StockTargetPriceNotification.newNotification(
-			title,
-			referenceId,
-			link,
-			member,
-			messageIds,
-			stockName,
-			targetPrice,
-			targetPriceNotificationId);
+		return StockTargetPriceNotification.builder()
+			.createAt(LocalDateTime.now())
+			.modifiedAt(LocalDateTime.now())
+			.title(title)
+			.isRead(false)
+			.type(NotificationType.STOCK_TARGET_PRICE)
+			.referenceId(referenceId)
+			.link(link)
+			.member(member)
+			.messageIds(messageIds)
+			.stockName(stockName)
+			.targetPrice(targetPrice)
+			.targetPriceNotificationId(targetPriceNotificationId)
+			.build();
 	}
 
-	// 알림을 읽음 처리
 	public void read() {
 		this.isRead = true;
 	}

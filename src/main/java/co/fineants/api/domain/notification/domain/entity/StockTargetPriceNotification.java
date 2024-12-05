@@ -1,12 +1,7 @@
 package co.fineants.api.domain.notification.domain.entity;
 
-import java.time.LocalDateTime;
-import java.util.List;
-
 import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.common.money.MoneyConverter;
-import co.fineants.api.domain.member.domain.entity.Member;
-import co.fineants.api.domain.notification.domain.entity.type.NotificationType;
 import jakarta.persistence.Convert;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
@@ -25,32 +20,6 @@ public class StockTargetPriceNotification extends Notification {
 	@Convert(converter = MoneyConverter.class)
 	private Money targetPrice;
 	private Long targetPriceNotificationId;
-
-	public static StockTargetPriceNotification newNotification(
-		String title,
-		String referenceId,
-		String link,
-		Member member,
-		List<String> messageIds,
-		String stockName,
-		Money targetPrice,
-		Long targetPriceNotificationId
-	) {
-		return StockTargetPriceNotification.builder()
-			.createAt(LocalDateTime.now())
-			.modifiedAt(LocalDateTime.now())
-			.title(title)
-			.isRead(false)
-			.type(NotificationType.STOCK_TARGET_PRICE)
-			.referenceId(referenceId)
-			.link(link)
-			.member(member)
-			.messageIds(messageIds)
-			.stockName(stockName)
-			.targetPrice(targetPrice)
-			.targetPriceNotificationId(targetPriceNotificationId)
-			.build();
-	}
 
 	@Override
 	public Notification withId(Long id) {
