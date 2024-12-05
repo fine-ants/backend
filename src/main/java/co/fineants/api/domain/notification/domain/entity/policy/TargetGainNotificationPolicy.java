@@ -5,18 +5,13 @@ import java.util.function.Predicate;
 
 import co.fineants.api.domain.common.notification.Notifiable;
 import co.fineants.api.domain.notificationpreference.domain.entity.NotificationPreference;
-import lombok.RequiredArgsConstructor;
 
-@RequiredArgsConstructor
-public class TargetGainNotificationPolicy implements NotificationPolicy {
+public class TargetGainNotificationPolicy extends AbstractNotificationPolicy {
 
-	private final List<Predicate<Notifiable>> portfolioConditions;
-	private final Predicate<NotificationPreference> preferencePredicate;
-
-	@Override
-	public boolean isSatisfied(Notifiable target) {
-		boolean isPortfolioValid = portfolioConditions.stream().allMatch(p -> p.test(target));
-		boolean isPreferenceValid = preferencePredicate.test(target.getNotificationPreference());
-		return isPortfolioValid && isPreferenceValid;
+	public TargetGainNotificationPolicy(
+		List<Predicate<Notifiable>> conditions,
+		Predicate<NotificationPreference> preference
+	) {
+		super(conditions, preference);
 	}
 }
