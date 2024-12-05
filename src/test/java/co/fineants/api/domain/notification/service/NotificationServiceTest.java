@@ -576,20 +576,6 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 			1L,
 			false,
 			"종목 지정가",
-			"동화약품보통주이(가) ₩10,000에 도달했습니다",
-			NotificationType.STOCK_TARGET_PRICE,
-			"000020",
-			member.getId(),
-			"/stock/000020",
-			List.of("messageId", "messageId"),
-			"동화약품보통주",
-			Money.won(10000),
-			targetPriceNotifications2.get(0).getId()
-		);
-		NotifyMessageItem expected2 = TargetPriceNotifyMessageItem.create(
-			2L,
-			false,
-			"종목 지정가",
 			"삼성전자보통주이(가) ₩60,000에 도달했습니다",
 			NotificationType.STOCK_TARGET_PRICE,
 			"005930",
@@ -599,6 +585,20 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 			"삼성전자보통주",
 			Money.won(60000),
 			targetPriceNotifications.get(0).getId()
+		);
+		NotifyMessageItem expected2 = TargetPriceNotifyMessageItem.create(
+			2L,
+			false,
+			"종목 지정가",
+			"동화약품보통주이(가) ₩10,000에 도달했습니다",
+			NotificationType.STOCK_TARGET_PRICE,
+			"000020",
+			member.getId(),
+			"/stock/000020",
+			List.of("messageId", "messageId"),
+			"동화약품보통주",
+			Money.won(10000),
+			targetPriceNotifications2.get(0).getId()
 		);
 
 		assertThat(actual)
@@ -723,20 +723,6 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 			1L,
 			false,
 			"종목 지정가",
-			"동화약품보통주이(가) ₩10,000에 도달했습니다",
-			NotificationType.STOCK_TARGET_PRICE,
-			"000020",
-			member.getId(),
-			"/stock/000020",
-			List.of("messageId"),
-			"동화약품보통주",
-			Money.won(10_000),
-			targetPriceNotifications2.get(0).getId()
-		);
-		NotifyMessageItem expected2 = TargetPriceNotifyMessageItem.create(
-			2L,
-			false,
-			"종목 지정가",
 			"삼성전자보통주이(가) ₩60,000에 도달했습니다",
 			NotificationType.STOCK_TARGET_PRICE,
 			"005930",
@@ -746,6 +732,20 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 			"삼성전자보통주",
 			Money.won(60_000),
 			targetPriceNotifications.get(0).getId()
+		);
+		NotifyMessageItem expected2 = TargetPriceNotifyMessageItem.create(
+			2L,
+			false,
+			"종목 지정가",
+			"동화약품보통주이(가) ₩10,000에 도달했습니다",
+			NotificationType.STOCK_TARGET_PRICE,
+			"000020",
+			member.getId(),
+			"/stock/000020",
+			List.of("messageId"),
+			"동화약품보통주",
+			Money.won(10_000),
+			targetPriceNotifications2.get(0).getId()
 		);
 		assertThat(actual)
 			.hasSize(2)

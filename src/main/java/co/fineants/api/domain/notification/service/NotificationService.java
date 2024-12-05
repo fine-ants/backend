@@ -112,6 +112,7 @@ public class NotificationService {
 		// 결과 객체 생성
 		return notifications.stream()
 			.map(PortfolioNotifyMessageItem::from)
+			.sorted()
 			.toList();
 	}
 
@@ -218,6 +219,7 @@ public class NotificationService {
 		// 결과 객체 생성
 		return notifications.stream()
 			.map(PortfolioNotifyMessageItem::from)
+			.sorted()
 			.toList();
 	}
 

@@ -2,6 +2,8 @@ package co.fineants.api.domain.notification.domain.dto.response;
 
 import java.util.List;
 
+import org.jetbrains.annotations.NotNull;
+
 import co.fineants.api.domain.notification.domain.dto.response.save.NotificationSaveResponse;
 import co.fineants.api.domain.notification.domain.entity.Notification;
 import co.fineants.api.domain.notification.domain.entity.type.NotificationType;
@@ -19,7 +21,7 @@ import lombok.ToString;
 @Builder(access = AccessLevel.PRIVATE)
 @EqualsAndHashCode
 @ToString
-public class PortfolioNotifyMessageItem implements NotifyMessageItem {
+public class PortfolioNotifyMessageItem implements NotifyMessageItem, Comparable<PortfolioNotifyMessageItem> {
 	private Long notificationId;
 	private Boolean isRead;
 	private String title;
@@ -74,5 +76,10 @@ public class PortfolioNotifyMessageItem implements NotifyMessageItem {
 			.name(name)
 			.messageIds(messageIds)
 			.build();
+	}
+
+	@Override
+	public int compareTo(@NotNull PortfolioNotifyMessageItem item) {
+		return Long.compare(this.notificationId, item.notificationId);
 	}
 }
