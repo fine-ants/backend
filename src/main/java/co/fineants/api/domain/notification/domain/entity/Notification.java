@@ -1,6 +1,5 @@
 package co.fineants.api.domain.notification.domain.entity;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 import co.fineants.api.domain.BaseEntity;
@@ -55,19 +54,6 @@ public abstract class Notification extends BaseEntity {
 
 	@Transient
 	private List<String> messageIds;
-
-	Notification(Long id, String title, Boolean isRead, NotificationType type, String referenceId, String link,
-		Member member, List<String> messageIds) {
-		super(LocalDateTime.now(), LocalDateTime.now());
-		this.id = id;
-		this.title = title;
-		this.isRead = isRead;
-		this.type = type;
-		this.referenceId = referenceId;
-		this.link = link;
-		this.member = member;
-		this.messageIds = messageIds;
-	}
 
 	public static Notification portfolio(String portfolioName, String title, NotificationType type,
 		String referenceId, String link, Long portfolioId, Member member, List<String> messageIds) {

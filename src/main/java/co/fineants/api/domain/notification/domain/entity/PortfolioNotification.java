@@ -1,5 +1,6 @@
 package co.fineants.api.domain.notification.domain.entity;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import co.fineants.api.domain.member.domain.entity.Member;
@@ -28,6 +29,8 @@ public class PortfolioNotification extends Notification {
 		String portfolioName,
 		Long portfolioId) {
 		return PortfolioNotification.builder()
+			.createAt(LocalDateTime.now())
+			.modifiedAt(LocalDateTime.now())
 			.title(title)
 			.isRead(false)
 			.type(type)

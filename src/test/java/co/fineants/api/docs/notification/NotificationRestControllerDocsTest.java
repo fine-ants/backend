@@ -29,8 +29,6 @@ import co.fineants.api.domain.notification.domain.dto.response.NotifyMessageItem
 import co.fineants.api.domain.notification.domain.dto.response.PortfolioNotifyMessage;
 import co.fineants.api.domain.notification.domain.dto.response.PortfolioNotifyMessageItem;
 import co.fineants.api.domain.notification.domain.dto.response.StockNotifyMessage;
-import co.fineants.api.domain.notification.domain.dto.response.TargetPriceNotificationSaveResponse;
-import co.fineants.api.domain.notification.domain.dto.response.save.PortfolioNotificationSaveResponse;
 import co.fineants.api.domain.notification.domain.entity.Notification;
 import co.fineants.api.domain.notification.service.NotificationService;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
@@ -57,9 +55,7 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 		PortfolioNotifyMessage message = (PortfolioNotifyMessage)PortfolioTargetGainNotifiable.from(portfolio, true)
 			.createMessage("token");
 		Notification notification = createPortfolioNotification(message, portfolio, member);
-		String messageId = "messageId";
-		PortfolioNotifyMessageItem item = (PortfolioNotifyMessageItem)PortfolioNotifyMessageItem.from(
-			PortfolioNotificationSaveResponse.from(notification), messageId);
+		PortfolioNotifyMessageItem item = (PortfolioNotifyMessageItem)PortfolioNotifyMessageItem.from(notification);
 		List<NotifyMessageItem> items = List.of(item);
 
 		given(service.notifyTargetGain(anyLong())).willReturn(items);
@@ -133,9 +129,7 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 		PortfolioNotifyMessage message = (PortfolioNotifyMessage)PortfolioMaximumLossNotifiable.from(portfolio, true)
 			.createMessage("token");
 		Notification notification = createPortfolioNotification(message, portfolio, member);
-		String messageId = "messageId";
-		PortfolioNotifyMessageItem item = (PortfolioNotifyMessageItem)PortfolioNotifyMessageItem.from(
-			PortfolioNotificationSaveResponse.from(notification), messageId);
+		PortfolioNotifyMessageItem item = (PortfolioNotifyMessageItem)PortfolioNotifyMessageItem.from(notification);
 		List<NotifyMessageItem> items = List.of(item);
 		given(service.notifyMaxLoss(anyLong())).willReturn(items);
 
@@ -210,9 +204,8 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 		NotifyMessage message = TargetPriceNotificationNotifiable.from(targetPriceNotification, true)
 			.createMessage("token");
 		Notification notification = createStockNotification((StockNotifyMessage)message, member);
-		TargetPriceNotificationSaveResponse saveResponse = TargetPriceNotificationSaveResponse.from(notification);
 		TargetPriceNotifyMessageItem item = (TargetPriceNotifyMessageItem)TargetPriceNotifyMessageItem.from(
-			saveResponse, List.of("messageId"));
+			notification);
 		given(service.notifyTargetPrice(anyLong())).willReturn(List.of(item));
 
 		// when

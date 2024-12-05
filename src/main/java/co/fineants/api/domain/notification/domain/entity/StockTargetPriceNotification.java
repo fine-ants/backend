@@ -1,5 +1,6 @@
 package co.fineants.api.domain.notification.domain.entity;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import co.fineants.api.domain.common.money.Money;
@@ -36,6 +37,8 @@ public class StockTargetPriceNotification extends Notification {
 		Long targetPriceNotificationId
 	) {
 		return StockTargetPriceNotification.builder()
+			.createAt(LocalDateTime.now())
+			.modifiedAt(LocalDateTime.now())
 			.title(title)
 			.isRead(false)
 			.type(NotificationType.STOCK_TARGET_PRICE)

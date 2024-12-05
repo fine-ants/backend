@@ -1,13 +1,10 @@
 package co.fineants.api.domain.notification.domain.dto.response;
 
-import java.util.List;
-
 import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.notification.domain.dto.response.save.NotificationSaveResponse;
 import co.fineants.api.domain.notification.domain.entity.Notification;
 import co.fineants.api.domain.notification.domain.entity.StockTargetPriceNotification;
 import co.fineants.api.domain.notification.domain.entity.type.NotificationType;
-import co.fineants.api.domain.stock_target_price.domain.dto.response.TargetPriceNotifyMessageItem;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -48,15 +45,5 @@ public class TargetPriceNotificationSaveResponse implements NotificationSaveResp
 			.targetPrice(priceNotification.getTargetPrice())
 			.targetPriceNotificationId(priceNotification.getTargetPriceNotificationId())
 			.build();
-	}
-
-	@Override
-	public String getIdToSentHistory() {
-		return String.format("targetPriceNotification:%d", targetPriceNotificationId);
-	}
-
-	@Override
-	public NotifyMessageItem toNotifyMessageItemWith(List<String> messageIds) {
-		return TargetPriceNotifyMessageItem.from(this, messageIds);
 	}
 }
