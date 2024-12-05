@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import org.apache.logging.log4j.util.Strings;
 import org.jetbrains.annotations.NotNull;
@@ -95,8 +96,21 @@ public class NotificationService {
 	}
 
 	private List<NotifyMessageItem> notifyTargetGainAll(List<Notifiable> notifiableList) {
+		return notifyMessages(
+			notifiableList,
+			targetGainNotificationPolicy,
+			sentManager::addTargetGainSendHistory,
+			PortfolioNotifyMessageItem::from
+		);
+	}
+
+	private List<NotifyMessageItem> notifyMessages(
+		List<Notifiable> data,
+		NotificationPolicy<Notifiable> policy,
+		Consumer<Notification> addSendHistory,
+		Function<Notification, NotifyMessageItem> mapper) {
 		// 알림 조건을 만족하는 데이터를 생성
-		List<NotifyMessage> notifyMessages = generateNotifyMessages(notifiableList, targetGainNotificationPolicy);
+		List<NotifyMessage> notifyMessages = generateNotifyMessages(data, policy);
 
 		// 만족하는 포트폴리오를 대상으로 알림 데이터 생성 & 알림 전송
 		List<NotifyMessage> sentNotifyMessages = sendNotifications(notifyMessages);
@@ -108,29 +122,13 @@ public class NotificationService {
 		List<Notification> notifications = saveNotifications(sentNotifyMessages);
 
 		// 전송 내역 저장
-		saveSendHistory(notifications, sentManager::addTargetGainSendHistory);
+		saveSendHistory(notifications, addSendHistory);
 
 		// 결과 객체 생성
 		return notifications.stream()
-			.map(PortfolioNotifyMessageItem::from)
+			.map(mapper)
 			.sorted()
 			.toList();
-	}
-
-	private void saveSendHistory(List<Notification> notifications, Consumer<Notification> sendHistoryConsumer) {
-		notifications.forEach(sendHistoryConsumer);
-	}
-
-	@NotNull
-	private List<Notification> saveNotifications(List<NotifyMessage> sentNotifyMessages) {
-		List<Notification> notifications = sentNotifyMessages.stream()
-			.map(notifyMessage -> {
-				Member member = memberRepository.findById(notifyMessage.getMemberId())
-					.orElseThrow(() -> notFoundMember(notifyMessage));
-				return notifyMessage.toEntity(member);
-			})
-			.toList();
-		return notificationRepository.saveAll(notifications);
 	}
 
 	private List<NotifyMessage> generateNotifyMessages(List<Notifiable> data, NotificationPolicy<Notifiable> policy) {
@@ -141,6 +139,10 @@ public class NotificationService {
 				.toList())
 			.flatMap(Collection::stream)
 			.toList();
+	}
+
+	private void saveSendHistory(List<Notification> notifications, Consumer<Notification> sendHistoryConsumer) {
+		notifications.forEach(sendHistoryConsumer);
 	}
 
 	private List<NotifyMessage> sendNotifications(List<NotifyMessage> data) {
@@ -154,6 +156,18 @@ public class NotificationService {
 		return messageIdsMap.entrySet().stream()
 			.map(entry -> entry.getKey().withMessageId(entry.getValue()))
 			.toList();
+	}
+
+	@NotNull
+	private List<Notification> saveNotifications(List<NotifyMessage> sentNotifyMessages) {
+		List<Notification> notifications = sentNotifyMessages.stream()
+			.map(notifyMessage -> {
+				Member member = memberRepository.findById(notifyMessage.getMemberId())
+					.orElseThrow(() -> notFoundMember(notifyMessage));
+				return notifyMessage.toEntity(member);
+			})
+			.toList();
+		return notificationRepository.saveAll(notifications);
 	}
 
 	private void deleteTokensForFailedMessagesIn(List<NotifyMessage> data) {
@@ -203,25 +217,12 @@ public class NotificationService {
 	}
 
 	private List<NotifyMessageItem> notifyMaxLossAll(List<Notifiable> notifiableList) {
-		List<NotifyMessage> notifyMessages = generateNotifyMessages(notifiableList, maximumLossNotificationPolicy);
-
-		// 만족하는 포트폴리오를 대상으로 알림 데이터 생성 & 알림 전송
-		List<NotifyMessage> sentNotifyMessages = sendNotifications(notifyMessages);
-
-		// 알림 전송에 실패한 전송 메시지에 대해서 FCM 토큰 삭제
-		deleteTokensForFailedMessagesIn(sentNotifyMessages);
-
-		// 알림 저장
-		List<Notification> notifications = saveNotifications(sentNotifyMessages);
-
-		// 전송 내역 저장
-		saveSendHistory(notifications, sentManager::addMaxLossSendHistory);
-
-		// 결과 객체 생성
-		return notifications.stream()
-			.map(PortfolioNotifyMessageItem::from)
-			.sorted()
-			.toList();
+		return notifyMessages(
+			notifiableList,
+			maximumLossNotificationPolicy,
+			sentManager::addMaxLossSendHistory,
+			PortfolioNotifyMessageItem::from
+		);
 	}
 
 	/**
@@ -270,24 +271,11 @@ public class NotificationService {
 	}
 
 	private List<NotifyMessageItem> notifyTargetPriceAll(List<Notifiable> notifiableList) {
-		List<NotifyMessage> notifyMessages = generateNotifyMessages(notifiableList, targetPriceNotificationPolicy);
-
-		// 만족하는 지정가 알림을 대상으로 알림 데이터 생성 & 알림 전송
-		List<NotifyMessage> sentNotifyMessages = sendNotifications(notifyMessages);
-
-		// 알림 전송에 실패한 전송 메시지에 대해서 FCM 토큰 삭제
-		deleteTokensForFailedMessagesIn(sentNotifyMessages);
-
-		// 알림 저장
-		List<Notification> notifications = saveNotifications(sentNotifyMessages);
-
-		// 전송 내역 저장
-		saveSendHistory(notifications, sentManager::addTargetPriceSendHistory);
-
-		// 결과 객체 생성
-		return notifications.stream()
-			.map(TargetPriceNotifyMessageItem::from)
-			.sorted()
-			.toList();
+		return notifyMessages(
+			notifiableList,
+			targetPriceNotificationPolicy,
+			sentManager::addTargetPriceSendHistory,
+			TargetPriceNotifyMessageItem::from
+		);
 	}
 }
