@@ -3,6 +3,7 @@ package co.fineants.api.domain.notification.domain.dto.response;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.logging.log4j.util.Strings;
 import org.jetbrains.annotations.NotNull;
 
 import com.google.firebase.messaging.Message;
@@ -46,15 +47,24 @@ public abstract class NotifyMessage implements Comparable<NotifyMessage> {
 		this.messageIds = messageIds;
 	}
 
-	public static NotifyMessage portfolio(String title, String content, NotificationType type, String referenceId,
-		Long memberId, String token, String link, String name) {
-		return portfolio(title, content, type, referenceId, memberId, token, link, name, new ArrayList<>());
+	public static NotifyMessage portfolio(
+		String title,
+		String content,
+		NotificationType type,
+		String referenceId,
+		Long memberId,
+		String token,
+		String link,
+		String name,
+		Long portfolioId) {
+		return portfolio(title, content, type, referenceId, memberId, token, link, name, portfolioId,
+			new ArrayList<>());
 	}
 
 	public static NotifyMessage portfolio(String title, String content, NotificationType type, String referenceId,
-		Long memberId, String token, String link, String name, List<String> messageIds) {
+		Long memberId, String token, String link, String name, Long portfolioId, List<String> messageIds) {
 		return PortfolioNotifyMessage.create(title, content, type, referenceId, memberId, token, link, name,
-			messageIds);
+			portfolioId, messageIds);
 	}
 
 	public static NotifyMessage stock(String title, String content, NotificationType type, String referenceId,
@@ -98,8 +108,8 @@ public abstract class NotifyMessage implements Comparable<NotifyMessage> {
 		}
 	}
 
-	public boolean hasMessageId() {
-		return messageIds != null;
+	public boolean hasNotMessageId() {
+		return messageIds.contains(Strings.EMPTY);
 	}
 
 	public abstract String getIdToSentHistory();

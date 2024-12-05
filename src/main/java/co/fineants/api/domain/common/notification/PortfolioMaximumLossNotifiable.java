@@ -84,7 +84,8 @@ public class PortfolioMaximumLossNotifiable implements Notifiable {
 			memberId,
 			token,
 			link,
-			name
+			name,
+			id
 		);
 	}
 

@@ -14,16 +14,18 @@ import lombok.ToString;
 @ToString
 public class PortfolioNotifyMessage extends NotifyMessage {
 	private final String name;
+	private final Long portfolioId;
 
 	@Builder(access = AccessLevel.PRIVATE)
 	private PortfolioNotifyMessage(String title, String content, NotificationType type, String referenceId,
-		Long memberId, String token, String link, String name, List<String> messageIds) {
+		Long memberId, String token, String link, String name, Long portfolioId, List<String> messageIds) {
 		super(title, content, type, referenceId, memberId, token, link, messageIds);
 		this.name = name;
+		this.portfolioId = portfolioId;
 	}
 
 	public static NotifyMessage create(String title, String content, NotificationType type, String referenceId,
-		Long memberId, String token, String link, String name, List<String> messageIds) {
+		Long memberId, String token, String link, String name, Long portfolioId, List<String> messageIds) {
 		return PortfolioNotifyMessage.builder()
 			.title(title)
 			.content(content)
@@ -33,6 +35,7 @@ public class PortfolioNotifyMessage extends NotifyMessage {
 			.token(token)
 			.link(link)
 			.name(name)
+			.portfolioId(portfolioId)
 			.messageIds(messageIds)
 			.build();
 	}
@@ -45,11 +48,12 @@ public class PortfolioNotifyMessage extends NotifyMessage {
 	@Override
 	public NotifyMessage withMessageId(List<String> messageIds) {
 		return portfolio(getTitle(), getContent(), getType(), getReferenceId(), getMemberId(), getToken(), getLink(),
-			getName(), messageIds);
+			name, portfolioId, messageIds);
 	}
 
 	@Override
 	public Notification toEntity(Member member) {
-		return Notification.portfolio(getName(), getTitle(), getType(), getReferenceId(), getLink(), member);
+		return Notification.portfolio(name, getTitle(), getType(), getReferenceId(), getLink(), portfolioId,
+			member, getMessageIds());
 	}
 }

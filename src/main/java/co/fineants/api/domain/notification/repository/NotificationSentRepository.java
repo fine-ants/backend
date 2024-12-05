@@ -7,6 +7,7 @@ import java.util.Set;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
+import co.fineants.api.domain.notification.domain.entity.Notification;
 import co.fineants.api.domain.stock_target_price.domain.entity.TargetPriceNotification;
 import lombok.RequiredArgsConstructor;
 
@@ -22,20 +23,21 @@ public class NotificationSentRepository {
 
 	private final RedisTemplate<String, String> redisTemplate;
 	private static final Duration TIMEOUT = Duration.ofHours(24L);
+	private static final String TRUE = "true";
 
-	public void addTargetGainSendHistory(Long portfolioId) {
+	public void addTargetGainSendHistory(Notification notification) {
 		redisTemplate.opsForValue()
-			.set(String.format(TARGET_GAIN_FORMAT, portfolioId), "true", TIMEOUT);
+			.set(notification.formatted(TARGET_GAIN_FORMAT), TRUE, TIMEOUT);
 	}
 
-	public void addMaxLossSendHistory(Long portfolioId) {
+	public void addMaxLossSendHistory(Notification notification) {
 		redisTemplate.opsForValue()
-			.set(String.format(MAX_LOSS_FORMAT, portfolioId), "true", TIMEOUT);
+			.set(notification.formatted(MAX_LOSS_FORMAT), TRUE, TIMEOUT);
 	}
 
-	public void addTargetPriceSendHistory(Long targetPriceNotificationId) {
+	public void addTargetPriceSendHistory(Notification notification) {
 		redisTemplate.opsForValue()
-			.set(String.format(TARGET_PRICE_FORMAT, targetPriceNotificationId), "true", TIMEOUT);
+			.set(notification.formatted(TARGET_PRICE_FORMAT), TRUE, TIMEOUT);
 	}
 
 	public boolean hasTargetGainSendHistory(Long portfolioId) {

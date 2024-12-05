@@ -572,7 +572,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		List<NotifyMessageItem> actual = service.notifyTargetPrice(member.getId());
 
 		// then
-		TargetPriceNotifyMessageItem expected1 = TargetPriceNotifyMessageItem.create(
+		NotifyMessageItem expected1 = TargetPriceNotifyMessageItem.create(
 			1L,
 			false,
 			"종목 지정가",
@@ -586,7 +586,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 			Money.won(10000),
 			targetPriceNotifications2.get(0).getId()
 		);
-		TargetPriceNotifyMessageItem expected2 = TargetPriceNotifyMessageItem.create(
+		NotifyMessageItem expected2 = TargetPriceNotifyMessageItem.create(
 			2L,
 			false,
 			"종목 지정가",
@@ -628,19 +628,20 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		targetPriceNotificationRepository.saveAll(targetPriceNotifications2);
 
 		TargetPriceNotification sendTargetPriceNotification = targetPriceNotifications.get(0);
-		notificationRepository.save(Notification.stock(
+		Notification notification = notificationRepository.save(Notification.stock(
 			sendTargetPriceNotification.getStockTargetPrice().getStock().getTickerSymbol(),
 			sendTargetPriceNotification.getTargetPrice(),
 			"종목 지정가",
 			sendTargetPriceNotification.getStockTargetPrice().getStock().getTickerSymbol(),
-			"messageId",
+			"/stock/" + sendTargetPriceNotification.getStockTargetPrice().getStock().getTickerSymbol(),
 			sendTargetPriceNotification.getId(),
-			member
+			member,
+			List.of("messageId")
 		));
 
 		manager.savePrice(KisCurrentPrice.create(stock.getTickerSymbol(), 60000L));
 		manager.savePrice(KisCurrentPrice.create(stock2.getTickerSymbol(), 10000L));
-		sentManager.addTargetPriceSendHistory(sendTargetPriceNotification.getId());
+		sentManager.addTargetPriceSendHistory(notification);
 		given(firebaseMessagingService.send(any(Message.class)))
 			.willReturn(Optional.of("messageId"));
 		// when
@@ -648,7 +649,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 			List.of(stock.getTickerSymbol(), stock2.getTickerSymbol()));
 
 		// then
-		TargetPriceNotifyMessageItem expected1 = TargetPriceNotifyMessageItem.create(
+		NotifyMessageItem expected1 = TargetPriceNotifyMessageItem.create(
 			2L,
 			false,
 			"종목 지정가",
@@ -721,7 +722,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 			List.of(stock.getTickerSymbol(), stock2.getTickerSymbol()));
 
 		// then
-		TargetPriceNotifyMessageItem expected1 = TargetPriceNotifyMessageItem.create(
+		NotifyMessageItem expected1 = TargetPriceNotifyMessageItem.create(
 			1L,
 			false,
 			"종목 지정가",
@@ -735,7 +736,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 			Money.won(10_000),
 			targetPriceNotifications2.get(0).getId()
 		);
-		TargetPriceNotifyMessageItem expected2 = TargetPriceNotifyMessageItem.create(
+		NotifyMessageItem expected2 = TargetPriceNotifyMessageItem.create(
 			2L,
 			false,
 			"종목 지정가",
@@ -794,8 +795,8 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		// then
 		NotifyMessageItem expected = PortfolioNotifyMessageItem.create(1L, false, "포트폴리오",
 			"내꿈은 워렌버핏의 목표 수익율을 달성했습니다",
-			NotificationType.PORTFOLIO_TARGET_GAIN, "1", 1L, "/portfolio/1", List.of("messageId", "messageId"),
-			"내꿈은 워렌버핏");
+			NotificationType.PORTFOLIO_TARGET_GAIN, "1", 1L, "/portfolio/1", "내꿈은 워렌버핏",
+			List.of("messageId", "messageId"));
 		assertAll(
 			() -> assertThat(actual)
 				.asList()

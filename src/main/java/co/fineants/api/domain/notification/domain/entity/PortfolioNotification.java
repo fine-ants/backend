@@ -5,8 +5,6 @@ import java.util.List;
 import co.fineants.api.domain.member.domain.entity.Member;
 import co.fineants.api.domain.notification.domain.dto.response.NotifyMessageItem;
 import co.fineants.api.domain.notification.domain.dto.response.PortfolioNotifyMessageItem;
-import co.fineants.api.domain.notification.domain.dto.response.save.NotificationSaveResponse;
-import co.fineants.api.domain.notification.domain.dto.response.save.PortfolioNotificationSaveResponse;
 import co.fineants.api.domain.notification.domain.entity.type.NotificationType;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
@@ -18,21 +16,25 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class PortfolioNotification extends Notification {
 	private String name;
+	private Long portfolioId;
 
 	private PortfolioNotification(Long id, String title, Boolean isRead, NotificationType type, String referenceId,
-		String link, Member member, String name) {
-		super(id, title, isRead, type, referenceId, link, member);
+		String link, Member member, String name, Long portfolioId, List<String> messageIds) {
+		super(id, title, isRead, type, referenceId, link, member, messageIds);
 		this.name = name;
+		this.portfolioId = portfolioId;
 	}
 
 	public static PortfolioNotification newNotification(String title, NotificationType type, String referenceId,
-		String link, String portfolioName, Member member) {
-		return newNotification(null, title, type, referenceId, link, portfolioName, member);
+		String link, String portfolioName, Long portfolioId, Member member, List<String> messageIds) {
+		return newNotification(null, title, type, referenceId, link, portfolioName, portfolioId, member, messageIds);
 	}
 
 	public static PortfolioNotification newNotification(Long id, String title, NotificationType type,
-		String referenceId, String link, String portfolioName, Member member) {
-		return new PortfolioNotification(id, title, false, type, referenceId, link, member, portfolioName);
+		String referenceId, String link, String portfolioName, Long portfolioId, Member member,
+		List<String> messageIds) {
+		return new PortfolioNotification(id, title, false, type, referenceId, link, member, portfolioName, portfolioId,
+			messageIds);
 	}
 
 	@Override
@@ -56,17 +58,12 @@ public class PortfolioNotification extends Notification {
 	}
 
 	@Override
-	public NotificationSaveResponse toSaveResponse() {
-		return PortfolioNotificationSaveResponse.from(this);
+	public Long getIdToSentHistory() {
+		return portfolioId;
 	}
 
 	@Override
-	public String getIdToSentHistory() {
-		return String.format("portfolioNotification:%d", getId());
-	}
-
-	@Override
-	public NotifyMessageItem toNotifyMessageItemWith(List<String> messageIds) {
+	public NotifyMessageItem toNotifyMessageItemWith() {
 		return PortfolioNotifyMessageItem.create(
 			getId(),
 			getIsRead(),
@@ -76,8 +73,8 @@ public class PortfolioNotification extends Notification {
 			getReferenceId(),
 			getMember().getId(),
 			getLink(),
-			messageIds,
-			name
+			name,
+			getMessageIds()
 		);
 	}
 }

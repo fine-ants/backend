@@ -7,7 +7,6 @@ import co.fineants.api.domain.BaseEntity;
 import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.member.domain.entity.Member;
 import co.fineants.api.domain.notification.domain.dto.response.NotifyMessageItem;
-import co.fineants.api.domain.notification.domain.dto.response.save.NotificationSaveResponse;
 import co.fineants.api.domain.notification.domain.entity.type.NotificationType;
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorColumn;
@@ -22,6 +21,7 @@ import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Transient;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -52,8 +52,11 @@ public abstract class Notification extends BaseEntity {
 	@JoinColumn(name = "member_id")
 	private Member member;
 
+	@Transient
+	private List<String> messageIds;
+
 	Notification(Long id, String title, Boolean isRead, NotificationType type, String referenceId, String link,
-		Member member) {
+		Member member, List<String> messageIds) {
 		super(LocalDateTime.now(), LocalDateTime.now());
 		this.id = id;
 		this.title = title;
@@ -62,26 +65,36 @@ public abstract class Notification extends BaseEntity {
 		this.referenceId = referenceId;
 		this.link = link;
 		this.member = member;
+		this.messageIds = messageIds;
 	}
 
 	public static Notification portfolio(String portfolioName, String title, NotificationType type,
-		String referenceId, String link, Member member) {
+		String referenceId, String link, Long portfolioId, Member member, List<String> messageIds) {
 		if (type == NotificationType.PORTFOLIO_TARGET_GAIN
 			|| type == NotificationType.PORTFOLIO_MAX_LOSS) {
-			return PortfolioNotification.newNotification(title, type, referenceId, link, portfolioName, member);
+			return PortfolioNotification.newNotification(title, type, referenceId, link, portfolioName, portfolioId,
+				member, messageIds);
 		}
 		throw new IllegalArgumentException("잘못된 타입입니다. type=" + type);
 	}
 
 	public static Notification stock(String stockName, Money targetPrice, String title,
-		String referenceId, String link, Long targetPriceNotificationId, Member member) {
+		String referenceId, String link, Long targetPriceNotificationId, Member member, List<String> messageIds) {
 		return StockTargetPriceNotification.newNotification(stockName, targetPrice, title, referenceId,
-			link, targetPriceNotificationId, member);
+			link, targetPriceNotificationId, member, messageIds);
 	}
 
 	// 알림을 읽음 처리
 	public void read() {
 		this.isRead = true;
+	}
+
+	public boolean hasAuthorization(Long memberId) {
+		return member.hasAuthorization(memberId);
+	}
+
+	public String formatted(String format) {
+		return format.formatted(getIdToSentHistory());
 	}
 
 	public abstract NotificationBody getBody();
@@ -90,13 +103,7 @@ public abstract class Notification extends BaseEntity {
 
 	public abstract String getName();
 
-	public abstract NotificationSaveResponse toSaveResponse();
+	public abstract Long getIdToSentHistory();
 
-	public abstract String getIdToSentHistory();
-
-	public abstract NotifyMessageItem toNotifyMessageItemWith(List<String> messageId);
-
-	public boolean hasAuthorization(Long memberId) {
-		return member.hasAuthorization(memberId);
-	}
+	public abstract NotifyMessageItem toNotifyMessageItemWith();
 }

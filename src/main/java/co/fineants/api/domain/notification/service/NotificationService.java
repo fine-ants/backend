@@ -2,11 +2,11 @@ package co.fineants.api.domain.notification.service;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import org.apache.logging.log4j.util.Strings;
 import org.jetbrains.annotations.NotNull;
@@ -26,14 +26,17 @@ import co.fineants.api.domain.member.domain.entity.Member;
 import co.fineants.api.domain.member.repository.MemberRepository;
 import co.fineants.api.domain.notification.domain.dto.response.NotifyMessage;
 import co.fineants.api.domain.notification.domain.dto.response.NotifyMessageItem;
+import co.fineants.api.domain.notification.domain.dto.response.PortfolioNotifyMessageItem;
 import co.fineants.api.domain.notification.domain.entity.Notification;
 import co.fineants.api.domain.notification.domain.entity.policy.MaxLossNotificationPolicy;
+import co.fineants.api.domain.notification.domain.entity.policy.NotificationPolicy;
 import co.fineants.api.domain.notification.domain.entity.policy.TargetGainNotificationPolicy;
 import co.fineants.api.domain.notification.domain.entity.policy.TargetPriceNotificationPolicy;
 import co.fineants.api.domain.notification.repository.NotificationRepository;
 import co.fineants.api.domain.notification.repository.NotificationSentRepository;
 import co.fineants.api.domain.portfolio.domain.calculator.PortfolioCalculator;
 import co.fineants.api.domain.portfolio.repository.PortfolioRepository;
+import co.fineants.api.domain.stock_target_price.domain.dto.response.TargetPriceNotifyMessageItem;
 import co.fineants.api.domain.stock_target_price.domain.entity.StockTargetPrice;
 import co.fineants.api.domain.stock_target_price.domain.entity.TargetPriceNotification;
 import co.fineants.api.domain.stock_target_price.repository.StockTargetPriceRepository;
@@ -92,58 +95,69 @@ public class NotificationService {
 	}
 
 	private List<NotifyMessageItem> notifyTargetGainAll(List<Notifiable> notifiableList) {
-		List<NotifyMessage> notifyMessages = notifiableList.stream()
-			.filter(targetGainNotificationPolicy::isSatisfied)
-			.map(notifiable -> fcmService.findTokens(notifiable.fetchMemberId()).stream()
-				.map(notifiable::createMessage)
-				.toList())
-			.flatMap(Collection::stream)
-			.toList();
+		List<NotifyMessage> notifyMessages = generateNotifyMessages(notifiableList, targetGainNotificationPolicy);
 
 		// 만족하는 포트폴리오를 대상으로 알림 데이터 생성 & 알림 전송
-		Map<NotifyMessage, List<String>> messageIdsMap = new HashMap<>();
-		for (NotifyMessage notifyMessage : notifyMessages) {
-			Message message = notifyMessage.toMessage();
-			String messageId = firebaseMessagingService.send(message).orElse(Strings.EMPTY);
-			messageIdsMap.computeIfAbsent(notifyMessage, key -> new ArrayList<>())
-				.add(messageId);
-		}
-		List<NotifyMessage> sentNotifyMessages = messageIdsMap.entrySet().stream()
-			.map(entry -> entry.getKey().withMessageId(entry.getValue()))
-			.toList();
+		List<NotifyMessage> sentNotifyMessages = sendNotifications(notifyMessages);
 
 		// 알림 전송에 실패한 전송 메시지에 대해서 FCM 토큰 삭제
-		messageIdsMap.forEach((notifyMessage, messageIds) -> messageIds.stream()
-			.filter(Strings::isBlank)
-			.forEach(blankMessageId -> notifyMessage.deleteTokenBy(fcmService)));
+		deleteTokensForFailedMessagesIn(sentNotifyMessages);
 
 		// 알림 저장
+		List<Notification> notifications = saveNotifications(sentNotifyMessages);
+
+		// 전송 내역 저장
+		saveSendHistory(notifications, sentManager::addTargetGainSendHistory);
+
+		// 결과 객체 생성
+		return notifications.stream()
+			.map(PortfolioNotifyMessageItem::from)
+			.toList();
+	}
+
+	private void saveSendHistory(List<Notification> notifications, Consumer<Notification> sendHistoryConsumer) {
+		notifications.forEach(sendHistoryConsumer);
+	}
+
+	@NotNull
+	private List<Notification> saveNotifications(List<NotifyMessage> sentNotifyMessages) {
 		List<Notification> notifications = sentNotifyMessages.stream()
 			.map(notifyMessage -> {
 				Member member = memberRepository.findById(notifyMessage.getMemberId())
 					.orElseThrow(() -> notFoundMember(notifyMessage));
 				return notifyMessage.toEntity(member);
 			})
-			.map(notificationRepository::save)
 			.toList();
+		return notificationRepository.saveAll(notifications);
+	}
 
-		// 전송 내역 저장
-		notifications.stream()
-			.map(Notification::getId)
-			.forEach(sentManager::addTargetGainSendHistory);
-
-		// 결과 객체 생성
-		return notifications.stream()
-			.map(response -> {
-				String idToSentHistory = response.getIdToSentHistory();
-				List<String> messageIds = sentNotifyMessages.stream()
-					.filter(notifyMessage -> notifyMessage.getIdToSentHistory().equals(idToSentHistory))
-					.map(NotifyMessage::getMessageIds)
-					.findAny()
-					.orElse(Collections.emptyList());
-				return response.toNotifyMessageItemWith(messageIds);
-			})
+	private List<NotifyMessage> generateNotifyMessages(List<Notifiable> data, NotificationPolicy<Notifiable> policy) {
+		return data.stream()
+			.filter(policy::isSatisfied)
+			.map(notifiable -> fcmService.findTokens(notifiable.fetchMemberId()).stream()
+				.map(notifiable::createMessage)
+				.toList())
+			.flatMap(Collection::stream)
 			.toList();
+	}
+
+	private List<NotifyMessage> sendNotifications(List<NotifyMessage> data) {
+		Map<NotifyMessage, List<String>> messageIdsMap = new HashMap<>();
+		for (NotifyMessage notifyMessage : data) {
+			Message message = notifyMessage.toMessage();
+			String messageId = firebaseMessagingService.send(message).orElse(Strings.EMPTY);
+			messageIdsMap.computeIfAbsent(notifyMessage, key -> new ArrayList<>())
+				.add(messageId);
+		}
+		return messageIdsMap.entrySet().stream()
+			.map(entry -> entry.getKey().withMessageId(entry.getValue()))
+			.toList();
+	}
+
+	private void deleteTokensForFailedMessagesIn(List<NotifyMessage> data) {
+		data.stream()
+			.filter(NotifyMessage::hasNotMessageId)
+			.forEach(notifyMessage -> notifyMessage.deleteTokenBy(fcmService));
 	}
 
 	@NotNull
@@ -187,57 +201,23 @@ public class NotificationService {
 	}
 
 	private List<NotifyMessageItem> notifyMaxLossAll(List<Notifiable> notifiableList) {
-		List<NotifyMessage> notifyMessages = notifiableList.stream()
-			.filter(maximumLossNotificationPolicy::isSatisfied)
-			.map(notifiable -> fcmService.findTokens(notifiable.fetchMemberId()).stream()
-				.map(notifiable::createMessage)
-				.toList())
-			.flatMap(Collection::stream)
-			.toList();
+		List<NotifyMessage> notifyMessages = generateNotifyMessages(notifiableList, maximumLossNotificationPolicy);
 
 		// 만족하는 포트폴리오를 대상으로 알림 데이터 생성 & 알림 전송
-		Map<NotifyMessage, List<String>> messageIdsMap = new HashMap<>();
-		for (NotifyMessage notifyMessage : notifyMessages) {
-			Message message = notifyMessage.toMessage();
-			String messageId = firebaseMessagingService.send(message).orElse(Strings.EMPTY);
-			messageIdsMap.computeIfAbsent(notifyMessage, key -> new ArrayList<>())
-				.add(messageId);
-		}
-		List<NotifyMessage> sentNotifyMessages = messageIdsMap.entrySet().stream()
-			.map(entry -> entry.getKey().withMessageId(entry.getValue()))
-			.toList();
+		List<NotifyMessage> sentNotifyMessages = sendNotifications(notifyMessages);
 
 		// 알림 전송에 실패한 전송 메시지에 대해서 FCM 토큰 삭제
-		messageIdsMap.forEach((notifyMessage, messageIds) -> messageIds.stream()
-			.filter(Strings::isBlank)
-			.forEach(blankMessageId -> notifyMessage.deleteTokenBy(fcmService)));
+		deleteTokensForFailedMessagesIn(sentNotifyMessages);
 
 		// 알림 저장
-		List<Notification> notifications = sentNotifyMessages.stream()
-			.map(notifyMessage -> {
-				Member member = memberRepository.findById(notifyMessage.getMemberId())
-					.orElseThrow(() -> notFoundMember(notifyMessage));
-				return notifyMessage.toEntity(member);
-			})
-			.map(notificationRepository::save)
-			.toList();
+		List<Notification> notifications = saveNotifications(sentNotifyMessages);
 
 		// 전송 내역 저장
-		notifications.stream()
-			.map(Notification::getId)
-			.forEach(sentManager::addMaxLossSendHistory);
+		saveSendHistory(notifications, sentManager::addMaxLossSendHistory);
 
 		// 결과 객체 생성
 		return notifications.stream()
-			.map(response -> {
-				String idToSentHistory = response.getIdToSentHistory();
-				List<String> messageIds = sentNotifyMessages.stream()
-					.filter(notifyMessage -> notifyMessage.getIdToSentHistory().equals(idToSentHistory))
-					.map(NotifyMessage::getMessageIds)
-					.findAny()
-					.orElse(Collections.emptyList());
-				return response.toNotifyMessageItemWith(messageIds);
-			})
+			.map(PortfolioNotifyMessageItem::from)
 			.toList();
 	}
 
@@ -287,58 +267,23 @@ public class NotificationService {
 	}
 
 	private List<NotifyMessageItem> notifyTargetPriceAll(List<Notifiable> notifiableList) {
-		List<NotifyMessage> notifyMessages = notifiableList.stream()
-			.filter(targetPriceNotificationPolicy::isSatisfied)
-			.map(notifiable -> fcmService.findTokens(notifiable.fetchMemberId()).stream()
-				.map(notifiable::createMessage)
-				.toList())
-			.flatMap(Collection::stream)
-			.toList();
+		List<NotifyMessage> notifyMessages = generateNotifyMessages(notifiableList, targetPriceNotificationPolicy);
 
 		// 만족하는 지정가 알림을 대상으로 알림 데이터 생성 & 알림 전송
-		Map<NotifyMessage, List<String>> messageIdsMap = new HashMap<>();
-		for (NotifyMessage notifyMessage : notifyMessages) {
-			Message message = notifyMessage.toMessage();
-			String messageId = firebaseMessagingService.send(message).orElse(Strings.EMPTY);
-			messageIdsMap.computeIfAbsent(notifyMessage, key -> new ArrayList<>())
-				.add(messageId);
-		}
-		List<NotifyMessage> sentNotifyMessages = messageIdsMap.entrySet().stream()
-			.map(entry -> entry.getKey().withMessageId(entry.getValue()))
-			.sorted()
-			.toList();
+		List<NotifyMessage> sentNotifyMessages = sendNotifications(notifyMessages);
 
 		// 알림 전송에 실패한 전송 메시지에 대해서 FCM 토큰 삭제
-		messageIdsMap.forEach((notifyMessage, messageIds) -> messageIds.stream()
-			.filter(Strings::isBlank)
-			.forEach(blankMessageId -> notifyMessage.deleteTokenBy(fcmService)));
+		deleteTokensForFailedMessagesIn(sentNotifyMessages);
 
 		// 알림 저장
-		List<Notification> notifications = sentNotifyMessages.stream()
-			.map(notifyMessage -> {
-				Member member = memberRepository.findById(notifyMessage.getMemberId())
-					.orElseThrow(() -> notFoundMember(notifyMessage));
-				return notifyMessage.toEntity(member);
-			})
-			.map(notificationRepository::save)
-			.toList();
+		List<Notification> notifications = saveNotifications(sentNotifyMessages);
 
 		// 전송 내역 저장
-		notifications.stream()
-			.map(Notification::getId)
-			.forEach(sentManager::addTargetPriceSendHistory);
+		saveSendHistory(notifications, sentManager::addTargetPriceSendHistory);
 
 		// 결과 객체 생성
 		return notifications.stream()
-			.map(response -> {
-				String idToSentHistory = response.getIdToSentHistory();
-				List<String> messageIds = sentNotifyMessages.stream()
-					.filter(notifyMessage -> notifyMessage.getIdToSentHistory().equals(idToSentHistory))
-					.map(NotifyMessage::getMessageIds)
-					.findAny()
-					.orElse(Collections.emptyList());
-				return response.toNotifyMessageItemWith(messageIds);
-			})
+			.map(TargetPriceNotifyMessageItem::from)
 			.sorted()
 			.toList();
 	}

@@ -177,9 +177,18 @@ public abstract class RestDocsSupport {
 		return StockDividend.create(Money.won(361), recordDate, paymentDate, stock);
 	}
 
-	protected Notification createPortfolioNotification(PortfolioNotifyMessage message, Member member) {
-		return PortfolioNotification.newNotification(1L, message.getTitle(), message.getType(),
-			message.getReferenceId(), message.getLink(), message.getName(), member);
+	protected Notification createPortfolioNotification(PortfolioNotifyMessage message, Portfolio portfolio,
+		Member member) {
+		return PortfolioNotification.newNotification(
+			1L,
+			message.getTitle(),
+			message.getType(),
+			message.getReferenceId(),
+			message.getLink(),
+			message.getName(),
+			portfolio.getId(),
+			member,
+			message.getMessageIds());
 	}
 
 	protected Notification createStockNotification(StockNotifyMessage message, Member member) {
@@ -191,7 +200,8 @@ public abstract class RestDocsSupport {
 			message.getReferenceId(),
 			message.getLink(),
 			message.getTargetPriceNotificationId(),
-			member);
+			member,
+			message.getMessageIds());
 	}
 
 	protected StockTargetPrice createStockTargetPrice(Member member, Stock stock) {
@@ -204,8 +214,16 @@ public abstract class RestDocsSupport {
 
 	protected PortfolioNotification createPortfolioTargetGainNotification(Portfolio portfolio, Member member) {
 		NotifyMessage message = PortfolioTargetGainNotifiable.from(portfolio, true).createMessage("token");
-		return PortfolioNotification.newNotification(1L, message.getTitle(), message.getType(),
-			message.getReferenceId(), message.getLink(), portfolio.name(), member);
+		return PortfolioNotification.newNotification(
+			1L,
+			message.getTitle(),
+			message.getType(),
+			message.getReferenceId(),
+			message.getLink(),
+			portfolio.name(),
+			portfolio.getId(),
+			member,
+			message.getMessageIds());
 	}
 
 	protected StockTargetPriceNotification createStockTargetPriceNotification(
@@ -221,7 +239,8 @@ public abstract class RestDocsSupport {
 			message.getReferenceId(),
 			message.getLink(),
 			message.getTargetPriceNotificationId(),
-			member
+			member,
+			message.getMessageIds()
 		);
 	}
 

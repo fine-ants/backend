@@ -3,6 +3,7 @@ package co.fineants.api.domain.notification.domain.dto.response;
 import java.util.List;
 
 import co.fineants.api.domain.notification.domain.dto.response.save.NotificationSaveResponse;
+import co.fineants.api.domain.notification.domain.entity.Notification;
 import co.fineants.api.domain.notification.domain.entity.type.NotificationType;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -27,11 +28,26 @@ public class PortfolioNotifyMessageItem implements NotifyMessageItem {
 	private String referenceId;
 	private Long memberId;
 	private String link;
-	private List<String> messageIds;
 	private String name;
+	private List<String> messageIds;
 
 	public static NotifyMessageItem from(NotificationSaveResponse response, String messageId) {
 		return response.toNotifyMessageItemWith(List.of(messageId));
+	}
+
+	public static NotifyMessageItem from(Notification notification) {
+		return create(
+			notification.getId(),
+			notification.getIsRead(),
+			notification.getTitle(),
+			notification.getContent(),
+			notification.getType(),
+			notification.getReferenceId(),
+			notification.getMember().getId(),
+			notification.getLink(),
+			notification.getName(),
+			notification.getMessageIds()
+		);
 	}
 
 	public static NotifyMessageItem create(
@@ -43,8 +59,9 @@ public class PortfolioNotifyMessageItem implements NotifyMessageItem {
 		String referenceId,
 		Long memberId,
 		String link,
-		List<String> messageIds,
-		String name) {
+		String name,
+		List<String> messageIds
+	) {
 		return PortfolioNotifyMessageItem.builder()
 			.notificationId(notificationId)
 			.isRead(isRead)
@@ -54,8 +71,8 @@ public class PortfolioNotifyMessageItem implements NotifyMessageItem {
 			.referenceId(referenceId)
 			.memberId(memberId)
 			.link(link)
-			.messageIds(messageIds)
 			.name(name)
+			.messageIds(messageIds)
 			.build();
 	}
 }

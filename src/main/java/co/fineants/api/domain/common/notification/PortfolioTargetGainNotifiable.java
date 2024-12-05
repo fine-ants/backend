@@ -84,7 +84,8 @@ public class PortfolioTargetGainNotifiable implements Notifiable {
 			memberId,
 			token,
 			link,
-			name
+			name,
+			id
 		);
 	}
 

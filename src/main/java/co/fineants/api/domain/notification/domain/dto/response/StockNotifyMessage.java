@@ -62,7 +62,7 @@ public class StockNotifyMessage extends NotifyMessage {
 	@Override
 	public Notification toEntity(Member member) {
 		return Notification.stock(getStockName(), getTargetPrice(), getTitle(), getReferenceId(), getLink(),
-			getTargetPriceNotificationId(), member);
+			getTargetPriceNotificationId(), member, getMessageIds());
 	}
 
 	@Override

@@ -6,8 +6,6 @@ import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.common.money.MoneyConverter;
 import co.fineants.api.domain.member.domain.entity.Member;
 import co.fineants.api.domain.notification.domain.dto.response.NotifyMessageItem;
-import co.fineants.api.domain.notification.domain.dto.response.TargetPriceNotificationSaveResponse;
-import co.fineants.api.domain.notification.domain.dto.response.save.NotificationSaveResponse;
 import co.fineants.api.domain.notification.domain.entity.type.NotificationType;
 import co.fineants.api.domain.stock_target_price.domain.dto.response.TargetPriceNotifyMessageItem;
 import jakarta.persistence.Convert;
@@ -29,23 +27,24 @@ public class StockTargetPriceNotification extends Notification {
 
 	private StockTargetPriceNotification(Long id, String title, Boolean isRead, NotificationType type,
 		String referenceId, String link, Member member,
-		String stockName, Money targetPrice, Long targetPriceNotificationId) {
-		super(id, title, isRead, type, referenceId, link, member);
+		String stockName, Money targetPrice, Long targetPriceNotificationId, List<String> messageIds) {
+		super(id, title, isRead, type, referenceId, link, member, messageIds);
 		this.stockName = stockName;
 		this.targetPrice = targetPrice;
 		this.targetPriceNotificationId = targetPriceNotificationId;
 	}
 
 	public static StockTargetPriceNotification newNotification(String stockName, Money targetPrice, String title,
-		String referenceId, String link, Long targetPriceNotificationId, Member member) {
+		String referenceId, String link, Long targetPriceNotificationId, Member member, List<String> messageIds) {
 		return newNotification(null, stockName, targetPrice, title, referenceId, link, targetPriceNotificationId,
-			member);
+			member, messageIds);
 	}
 
 	public static StockTargetPriceNotification newNotification(Long id, String stockName, Money targetPrice,
-		String title, String referenceId, String link, Long targetPriceNotificationId, Member member) {
+		String title, String referenceId, String link, Long targetPriceNotificationId, Member member,
+		List<String> messageIds) {
 		return new StockTargetPriceNotification(id, title, false, NotificationType.STOCK_TARGET_PRICE, referenceId,
-			link, member, stockName, targetPrice, targetPriceNotificationId);
+			link, member, stockName, targetPrice, targetPriceNotificationId, messageIds);
 	}
 
 	@Override
@@ -65,17 +64,12 @@ public class StockTargetPriceNotification extends Notification {
 	}
 
 	@Override
-	public NotificationSaveResponse toSaveResponse() {
-		return TargetPriceNotificationSaveResponse.from(this);
+	public Long getIdToSentHistory() {
+		return targetPriceNotificationId;
 	}
 
 	@Override
-	public String getIdToSentHistory() {
-		return String.format("targetPriceNotification:%d", targetPriceNotificationId);
-	}
-
-	@Override
-	public NotifyMessageItem toNotifyMessageItemWith(List<String> messageIds) {
+	public NotifyMessageItem toNotifyMessageItemWith() {
 		return TargetPriceNotifyMessageItem.builder()
 			.notificationId(getId())
 			.isRead(getIsRead())
@@ -85,7 +79,7 @@ public class StockTargetPriceNotification extends Notification {
 			.referenceId(getReferenceId())
 			.memberId(getMember().getId())
 			.link(getLink())
-			.messageIds(messageIds)
+			.messageIds(getMessageIds())
 			.stockName(stockName)
 			.targetPrice(targetPrice)
 			.targetPriceNotificationId(targetPriceNotificationId)

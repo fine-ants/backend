@@ -246,25 +246,30 @@ class MemberNotificationServiceTest extends AbstractContainerBaseTest {
 				Money.won(60000L),
 				"종목 지정가",
 				"005930",
-				"messageId",
+				"/stock/005930",
 				1L,
-				member
+				member,
+				List.of("messageId")
 			),
 			Notification.portfolio(
 				"포트폴리오1",
 				"포트폴리오",
 				PORTFOLIO_TARGET_GAIN,
 				"1",
-				"messageId",
-				member
+				"/portfolio/1",
+				1L,
+				member,
+				List.of("messageId")
 			),
 			Notification.portfolio(
 				"포트폴리오2",
 				"포트폴리오",
 				PORTFOLIO_MAX_LOSS,
 				"2",
-				"messageId",
-				member
+				"/portfolio/1",
+				2L,
+				member,
+				List.of("messageId")
 			)
 		);
 	}

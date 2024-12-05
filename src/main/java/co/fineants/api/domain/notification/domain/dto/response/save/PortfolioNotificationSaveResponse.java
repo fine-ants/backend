@@ -59,8 +59,8 @@ public class PortfolioNotificationSaveResponse implements NotificationSaveRespon
 			referenceId,
 			memberId,
 			link,
-			messageIds,
-			name
+			name,
+			messageIds
 		);
 	}
 }

@@ -1,5 +1,7 @@
 package co.fineants.api.domain.notification.domain.dto.request;
 
+import java.util.List;
+
 import co.fineants.api.domain.member.domain.entity.Member;
 import co.fineants.api.domain.notification.domain.dto.response.NotifyMessage;
 import co.fineants.api.domain.notification.domain.dto.response.PortfolioNotifyMessage;
@@ -23,7 +25,9 @@ public class PortfolioNotificationSaveRequest extends NotificationSaveRequest {
 	private NotificationType type;
 	private String referenceId;
 	private String link;
+	private Long portfolioId;
 	private Long memberId;
+	private List<String> messageIds;
 
 	public static PortfolioNotificationSaveRequest from(NotifyMessage message) {
 		PortfolioNotifyMessage portfolioNotifyMessage = (PortfolioNotifyMessage)message;
@@ -33,12 +37,14 @@ public class PortfolioNotificationSaveRequest extends NotificationSaveRequest {
 			.type(portfolioNotifyMessage.getType())
 			.referenceId(portfolioNotifyMessage.getReferenceId())
 			.link(portfolioNotifyMessage.getLink())
+			.portfolioId(portfolioNotifyMessage.getPortfolioId())
 			.memberId(portfolioNotifyMessage.getMemberId())
+			.messageIds(portfolioNotifyMessage.getMessageIds())
 			.build();
 	}
 
 	@Override
 	public Notification toEntity(Member member) {
-		return Notification.portfolio(name, title, type, referenceId, link, member);
+		return Notification.portfolio(name, title, type, referenceId, link, portfolioId, member, messageIds);
 	}
 }

@@ -7,6 +7,8 @@ import org.jetbrains.annotations.NotNull;
 import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.notification.domain.dto.response.NotifyMessageItem;
 import co.fineants.api.domain.notification.domain.dto.response.TargetPriceNotificationSaveResponse;
+import co.fineants.api.domain.notification.domain.entity.Notification;
+import co.fineants.api.domain.notification.domain.entity.StockTargetPriceNotification;
 import co.fineants.api.domain.notification.domain.entity.type.NotificationType;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -36,7 +38,7 @@ public class TargetPriceNotifyMessageItem implements NotifyMessageItem, Comparab
 	private Money targetPrice;
 	private Long targetPriceNotificationId;
 
-	public static TargetPriceNotifyMessageItem from(TargetPriceNotificationSaveResponse response,
+	public static NotifyMessageItem from(TargetPriceNotificationSaveResponse response,
 		List<String> messageIds) {
 		return TargetPriceNotifyMessageItem.builder()
 			.notificationId(response.getNotificationId())
@@ -54,7 +56,25 @@ public class TargetPriceNotifyMessageItem implements NotifyMessageItem, Comparab
 			.build();
 	}
 
-	public static TargetPriceNotifyMessageItem create(
+	public static NotifyMessageItem from(Notification notification) {
+		StockTargetPriceNotification stock = (StockTargetPriceNotification)notification;
+		return create(
+			notification.getId(),
+			notification.getIsRead(),
+			notification.getTitle(),
+			notification.getContent(),
+			notification.getType(),
+			notification.getReferenceId(),
+			notification.getMember().getId(),
+			notification.getLink(),
+			notification.getMessageIds(),
+			stock.getStockName(),
+			stock.getTargetPrice(),
+			stock.getTargetPriceNotificationId()
+		);
+	}
+
+	public static NotifyMessageItem create(
 		Long notificationId,
 		Boolean isRead,
 		String title,

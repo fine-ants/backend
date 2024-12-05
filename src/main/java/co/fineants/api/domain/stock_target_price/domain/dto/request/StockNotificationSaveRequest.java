@@ -1,5 +1,7 @@
 package co.fineants.api.domain.stock_target_price.domain.dto.request;
 
+import java.util.List;
+
 import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.member.domain.entity.Member;
 import co.fineants.api.domain.notification.domain.dto.request.NotificationSaveRequest;
@@ -32,6 +34,7 @@ public class StockNotificationSaveRequest extends NotificationSaveRequest {
 	private String link;
 	private Long targetPriceNotificationId;
 	private Long memberId;
+	private List<String> messageIds;
 
 	public static StockNotificationSaveRequest from(NotifyMessage message) {
 		StockNotifyMessage stock = (StockNotifyMessage)message;
@@ -44,6 +47,7 @@ public class StockNotificationSaveRequest extends NotificationSaveRequest {
 			.link(stock.getLink())
 			.targetPriceNotificationId(stock.getTargetPriceNotificationId())
 			.memberId(stock.getMemberId())
+			.messageIds(stock.getMessageIds())
 			.build();
 	}
 
@@ -56,6 +60,7 @@ public class StockNotificationSaveRequest extends NotificationSaveRequest {
 			referenceId,
 			link,
 			targetPriceNotificationId,
-			member);
+			member,
+			messageIds);
 	}
 }
