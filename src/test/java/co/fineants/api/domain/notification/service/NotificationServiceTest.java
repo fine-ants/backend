@@ -39,7 +39,6 @@ import co.fineants.api.domain.kis.service.KisService;
 import co.fineants.api.domain.member.domain.entity.Member;
 import co.fineants.api.domain.member.repository.MemberRepository;
 import co.fineants.api.domain.notification.domain.dto.response.NotifyMessageItem;
-import co.fineants.api.domain.notification.domain.dto.response.PortfolioNotifyMessageItem;
 import co.fineants.api.domain.notification.domain.entity.Notification;
 import co.fineants.api.domain.notification.domain.entity.type.NotificationType;
 import co.fineants.api.domain.notification.repository.NotificationRepository;
@@ -51,7 +50,6 @@ import co.fineants.api.domain.portfolio.repository.PortfolioRepository;
 import co.fineants.api.domain.purchasehistory.repository.PurchaseHistoryRepository;
 import co.fineants.api.domain.stock.domain.entity.Stock;
 import co.fineants.api.domain.stock.repository.StockRepository;
-import co.fineants.api.domain.stock_target_price.domain.dto.response.TargetPriceNotifyMessageItem;
 import co.fineants.api.domain.stock_target_price.domain.entity.StockTargetPrice;
 import co.fineants.api.domain.stock_target_price.domain.entity.TargetPriceNotification;
 import co.fineants.api.domain.stock_target_price.repository.StockTargetPriceRepository;
@@ -572,7 +570,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		List<NotifyMessageItem> actual = service.notifyTargetPrice(member.getId());
 
 		// then
-		NotifyMessageItem expected1 = TargetPriceNotifyMessageItem.create(
+		NotifyMessageItem expected1 = NotifyMessageItem.targetPriceNotifyMessageItem(
 			1L,
 			false,
 			"종목 지정가",
@@ -586,7 +584,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 			Money.won(60000),
 			targetPriceNotifications.get(0).getId()
 		);
-		NotifyMessageItem expected2 = TargetPriceNotifyMessageItem.create(
+		NotifyMessageItem expected2 = NotifyMessageItem.targetPriceNotifyMessageItem(
 			2L,
 			false,
 			"종목 지정가",
@@ -646,7 +644,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 			List.of(stock.getTickerSymbol(), stock2.getTickerSymbol()));
 
 		// then
-		NotifyMessageItem expected1 = TargetPriceNotifyMessageItem.create(
+		NotifyMessageItem expected1 = NotifyMessageItem.targetPriceNotifyMessageItem(
 			2L,
 			false,
 			"종목 지정가",
@@ -719,7 +717,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 			List.of(stock.getTickerSymbol(), stock2.getTickerSymbol()));
 
 		// then
-		NotifyMessageItem expected1 = TargetPriceNotifyMessageItem.create(
+		NotifyMessageItem expected1 = NotifyMessageItem.targetPriceNotifyMessageItem(
 			1L,
 			false,
 			"종목 지정가",
@@ -733,7 +731,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 			Money.won(60_000),
 			targetPriceNotifications.get(0).getId()
 		);
-		NotifyMessageItem expected2 = TargetPriceNotifyMessageItem.create(
+		NotifyMessageItem expected2 = NotifyMessageItem.targetPriceNotifyMessageItem(
 			2L,
 			false,
 			"종목 지정가",
@@ -790,7 +788,7 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		List<NotifyMessageItem> actual = service.notifyTargetGainAll();
 
 		// then
-		NotifyMessageItem expected = PortfolioNotifyMessageItem.create(1L, false, "포트폴리오",
+		NotifyMessageItem expected = NotifyMessageItem.portfolioNotifyMessageItem(1L, false, "포트폴리오",
 			"내꿈은 워렌버핏의 목표 수익율을 달성했습니다",
 			NotificationType.PORTFOLIO_TARGET_GAIN, "1", 1L, "/portfolio/1", "내꿈은 워렌버핏",
 			List.of("messageId", "messageId"));

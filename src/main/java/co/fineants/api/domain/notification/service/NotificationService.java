@@ -95,6 +95,7 @@ public class NotificationService {
 	}
 
 	private List<NotifyMessageItem> notifyTargetGainAll(List<Notifiable> notifiableList) {
+		// 알림 조건을 만족하는 데이터를 생성
 		List<NotifyMessage> notifyMessages = generateNotifyMessages(notifiableList, targetGainNotificationPolicy);
 
 		// 만족하는 포트폴리오를 대상으로 알림 데이터 생성 & 알림 전송

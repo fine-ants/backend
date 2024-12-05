@@ -2,38 +2,21 @@ package co.fineants.api.domain.stock_target_price.domain.dto.response;
 
 import java.util.List;
 
-import org.jetbrains.annotations.NotNull;
-
 import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.notification.domain.dto.response.NotifyMessageItem;
 import co.fineants.api.domain.notification.domain.dto.response.TargetPriceNotificationSaveResponse;
 import co.fineants.api.domain.notification.domain.entity.Notification;
 import co.fineants.api.domain.notification.domain.entity.StockTargetPriceNotification;
-import co.fineants.api.domain.notification.domain.entity.type.NotificationType;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.ToString;
+import lombok.experimental.SuperBuilder;
 
 @Getter
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
-@Builder
+@SuperBuilder(toBuilder = true)
 @ToString
-@EqualsAndHashCode
-public class TargetPriceNotifyMessageItem implements NotifyMessageItem, Comparable<TargetPriceNotifyMessageItem> {
-	private Long notificationId;
-	private Boolean isRead;
-	private String title;
-	private String content;
-	private NotificationType type;
-	private String referenceId;
-	private Long memberId;
-	private String link;
-	private List<String> messageIds;
+@EqualsAndHashCode(callSuper = true)
+public class TargetPriceNotifyMessageItem extends NotifyMessageItem {
 	private String stockName;
 	private Money targetPrice;
 	private Long targetPriceNotificationId;
@@ -58,7 +41,7 @@ public class TargetPriceNotifyMessageItem implements NotifyMessageItem, Comparab
 
 	public static NotifyMessageItem from(Notification notification) {
 		StockTargetPriceNotification stock = (StockTargetPriceNotification)notification;
-		return create(
+		return NotifyMessageItem.targetPriceNotifyMessageItem(
 			notification.getId(),
 			notification.getIsRead(),
 			notification.getTitle(),
@@ -72,39 +55,5 @@ public class TargetPriceNotifyMessageItem implements NotifyMessageItem, Comparab
 			stock.getTargetPrice(),
 			stock.getTargetPriceNotificationId()
 		);
-	}
-
-	public static NotifyMessageItem create(
-		Long notificationId,
-		Boolean isRead,
-		String title,
-		String content,
-		NotificationType type,
-		String referenceId,
-		Long memberId,
-		String link,
-		List<String> messageIds,
-		String stockName,
-		Money targetPrice,
-		Long targetPriceNotificationId) {
-		return TargetPriceNotifyMessageItem.builder()
-			.notificationId(notificationId)
-			.isRead(isRead)
-			.title(title)
-			.content(content)
-			.type(type)
-			.referenceId(referenceId)
-			.memberId(memberId)
-			.link(link)
-			.messageIds(messageIds)
-			.stockName(stockName)
-			.targetPrice(targetPrice)
-			.targetPriceNotificationId(targetPriceNotificationId)
-			.build();
-	}
-
-	@Override
-	public int compareTo(@NotNull TargetPriceNotifyMessageItem item) {
-		return Long.compare(notificationId, item.notificationId);
 	}
 }

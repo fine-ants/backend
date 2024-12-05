@@ -3,7 +3,6 @@ package co.fineants.api.domain.notification.domain.dto.response.save;
 import java.util.List;
 
 import co.fineants.api.domain.notification.domain.dto.response.NotifyMessageItem;
-import co.fineants.api.domain.notification.domain.dto.response.PortfolioNotifyMessageItem;
 import co.fineants.api.domain.notification.domain.entity.Notification;
 import co.fineants.api.domain.notification.domain.entity.type.NotificationType;
 import lombok.AccessLevel;
@@ -50,7 +49,7 @@ public class PortfolioNotificationSaveResponse implements NotificationSaveRespon
 
 	@Override
 	public NotifyMessageItem toNotifyMessageItemWith(List<String> messageIds) {
-		return PortfolioNotifyMessageItem.create(
+		return NotifyMessageItem.portfolioNotifyMessageItem(
 			notificationId,
 			isRead,
 			title,
