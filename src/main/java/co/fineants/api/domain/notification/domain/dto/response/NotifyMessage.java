@@ -14,10 +14,7 @@ import com.google.firebase.messaging.WebpushFcmOptions;
 import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.fcm.service.FcmService;
 import co.fineants.api.domain.member.domain.entity.Member;
-import co.fineants.api.domain.notification.domain.dto.request.NotificationSaveRequest;
-import co.fineants.api.domain.notification.domain.dto.request.PortfolioNotificationSaveRequest;
 import co.fineants.api.domain.notification.domain.entity.type.NotificationType;
-import co.fineants.api.domain.stock_target_price.domain.dto.request.StockNotificationSaveRequest;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
@@ -36,7 +33,7 @@ public abstract class NotifyMessage implements Comparable<NotifyMessage> {
 	private final String token;
 	private final String link;
 	private final List<String> messageIds;
-	
+
 	public static NotifyMessage portfolio(
 		String title,
 		String content,
@@ -98,20 +95,10 @@ public abstract class NotifyMessage implements Comparable<NotifyMessage> {
 		service.deleteToken(token);
 	}
 
-	public NotificationSaveRequest toNotificationSaveRequest() {
-		if (type == NotificationType.PORTFOLIO_TARGET_GAIN || type == NotificationType.PORTFOLIO_MAX_LOSS) {
-			return PortfolioNotificationSaveRequest.from(this);
-		} else {
-			return StockNotificationSaveRequest.from(this);
-		}
-	}
-
 	public boolean hasNotMessageId() {
 		return messageIds.contains(Strings.EMPTY);
 	}
-
-	public abstract String getIdToSentHistory();
-
+	
 	public abstract NotifyMessage withMessageId(List<String> messageIds);
 
 	public abstract co.fineants.api.domain.notification.domain.entity.Notification toEntity(Member member);

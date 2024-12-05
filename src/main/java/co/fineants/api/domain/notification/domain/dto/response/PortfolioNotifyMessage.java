@@ -16,11 +16,6 @@ public class PortfolioNotifyMessage extends NotifyMessage {
 	private final Long portfolioId;
 
 	@Override
-	public String getIdToSentHistory() {
-		return String.format("portfolioNotification:%s", getReferenceId());
-	}
-
-	@Override
 	public NotifyMessage withMessageId(List<String> messageIds) {
 		return this.toBuilder()
 			.messageIds(messageIds)

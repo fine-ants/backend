@@ -19,12 +19,7 @@ public class StockNotifyMessage extends NotifyMessage {
 	private final String stockName;
 	private final Money targetPrice;
 	private final Long targetPriceNotificationId;
-
-	@Override
-	public String getIdToSentHistory() {
-		return String.format("targetPriceNotification:%d", targetPriceNotificationId);
-	}
-
+	
 	@Override
 	public NotifyMessage withMessageId(List<String> messageIds) {
 		return this.toBuilder()
