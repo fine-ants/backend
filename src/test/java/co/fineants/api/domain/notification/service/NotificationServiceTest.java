@@ -628,15 +628,12 @@ class NotificationServiceTest extends AbstractContainerBaseTest {
 		targetPriceNotificationRepository.saveAll(targetPriceNotifications2);
 
 		TargetPriceNotification sendTargetPriceNotification = targetPriceNotifications.get(0);
-		Notification notification = notificationRepository.save(Notification.stock(
-			sendTargetPriceNotification.getStockTargetPrice().getStock().getTickerSymbol(),
+		Notification notification = notificationRepository.save(Notification.stockTargetPriceNotification(
+			"종목 지정가", sendTargetPriceNotification.getStockTargetPrice().getStock().getTickerSymbol(),
+			"/stock/" + sendTargetPriceNotification.getStockTargetPrice().getStock().getTickerSymbol(), member,
+			List.of("messageId"), sendTargetPriceNotification.getStockTargetPrice().getStock().getTickerSymbol(),
 			sendTargetPriceNotification.getTargetPrice(),
-			"종목 지정가",
-			sendTargetPriceNotification.getStockTargetPrice().getStock().getTickerSymbol(),
-			"/stock/" + sendTargetPriceNotification.getStockTargetPrice().getStock().getTickerSymbol(),
-			sendTargetPriceNotification.getId(),
-			member,
-			List.of("messageId")
+			sendTargetPriceNotification.getId()
 		));
 
 		manager.savePrice(KisCurrentPrice.create(stock.getTickerSymbol(), 60000L));

@@ -180,28 +180,23 @@ public abstract class RestDocsSupport {
 	protected Notification createPortfolioNotification(PortfolioNotifyMessage message, Portfolio portfolio,
 		Member member) {
 		return PortfolioNotification.newNotification(
-			1L,
-			message.getTitle(),
-			message.getType(),
-			message.getReferenceId(),
-			message.getLink(),
-			message.getName(),
-			portfolio.getId(),
-			member,
-			message.getMessageIds());
+				message.getTitle(),
+				message.getType(),
+				message.getReferenceId(),
+				message.getLink(),
+				member, message.getMessageIds(), message.getName(),
+				portfolio.getId()
+			)
+			.withId(1L);
 	}
 
 	protected Notification createStockNotification(StockNotifyMessage message, Member member) {
-		return StockTargetPriceNotification.newNotification(
-			1L,
+		return Notification.stockTargetPriceNotification(
+			message.getTitle(), message.getReferenceId(), message.getLink(), member, message.getMessageIds(),
 			message.getStockName(),
 			message.getTargetPrice(),
-			message.getTitle(),
-			message.getReferenceId(),
-			message.getLink(),
-			message.getTargetPriceNotificationId(),
-			member,
-			message.getMessageIds());
+			message.getTargetPriceNotificationId()
+		).withId(1L);
 	}
 
 	protected StockTargetPrice createStockTargetPrice(Member member, Stock stock) {
@@ -214,34 +209,28 @@ public abstract class RestDocsSupport {
 
 	protected PortfolioNotification createPortfolioTargetGainNotification(Portfolio portfolio, Member member) {
 		NotifyMessage message = PortfolioTargetGainNotifiable.from(portfolio, true).createMessage("token");
-		return PortfolioNotification.newNotification(
-			1L,
-			message.getTitle(),
-			message.getType(),
-			message.getReferenceId(),
-			message.getLink(),
-			portfolio.name(),
-			portfolio.getId(),
-			member,
-			message.getMessageIds());
+		return (PortfolioNotification)PortfolioNotification.newNotification(
+				message.getTitle(),
+				message.getType(),
+				message.getReferenceId(),
+				message.getLink(),
+				member, message.getMessageIds(), portfolio.name(),
+				portfolio.getId()
+			)
+			.withId(1L);
 	}
 
-	protected StockTargetPriceNotification createStockTargetPriceNotification(
+	protected Notification createStockTargetPriceNotification(
 		TargetPriceNotification targetPriceNotification, Member member) {
 		StockNotifyMessage message = (StockNotifyMessage)TargetPriceNotificationNotifiable.from(targetPriceNotification,
 				true)
 			.createMessage("token");
 		return StockTargetPriceNotification.newNotification(
-			1L,
+			message.getTitle(), message.getReferenceId(), message.getLink(), member, message.getMessageIds(),
 			message.getStockName(),
 			message.getTargetPrice(),
-			message.getTitle(),
-			message.getReferenceId(),
-			message.getLink(),
-			message.getTargetPriceNotificationId(),
-			member,
-			message.getMessageIds()
-		);
+			message.getTargetPriceNotificationId()
+		).withId(1L);
 	}
 
 	protected WatchList createWatchList(Member member) {

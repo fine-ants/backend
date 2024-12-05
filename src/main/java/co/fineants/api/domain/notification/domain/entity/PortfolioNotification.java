@@ -3,38 +3,48 @@ package co.fineants.api.domain.notification.domain.entity;
 import java.util.List;
 
 import co.fineants.api.domain.member.domain.entity.Member;
-import co.fineants.api.domain.notification.domain.dto.response.NotifyMessageItem;
-import co.fineants.api.domain.notification.domain.dto.response.PortfolioNotifyMessageItem;
 import co.fineants.api.domain.notification.domain.entity.type.NotificationType;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 @Entity
 @DiscriminatorValue("P")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@SuperBuilder(toBuilder = true)
 public class PortfolioNotification extends Notification {
 	private String name;
 	private Long portfolioId;
 
-	private PortfolioNotification(Long id, String title, Boolean isRead, NotificationType type, String referenceId,
-		String link, Member member, String name, Long portfolioId, List<String> messageIds) {
-		super(id, title, isRead, type, referenceId, link, member, messageIds);
-		this.name = name;
-		this.portfolioId = portfolioId;
+	public static PortfolioNotification newNotification(
+		String title,
+		NotificationType type,
+		String referenceId,
+		String link,
+		Member member,
+		List<String> messageIds,
+		String portfolioName,
+		Long portfolioId) {
+		return PortfolioNotification.builder()
+			.title(title)
+			.isRead(false)
+			.type(type)
+			.referenceId(referenceId)
+			.link(link)
+			.member(member)
+			.messageIds(messageIds)
+			.name(portfolioName)
+			.portfolioId(portfolioId)
+			.build();
 	}
 
-	public static PortfolioNotification newNotification(String title, NotificationType type, String referenceId,
-		String link, String portfolioName, Long portfolioId, Member member, List<String> messageIds) {
-		return newNotification(null, title, type, referenceId, link, portfolioName, portfolioId, member, messageIds);
-	}
-
-	public static PortfolioNotification newNotification(Long id, String title, NotificationType type,
-		String referenceId, String link, String portfolioName, Long portfolioId, Member member,
-		List<String> messageIds) {
-		return new PortfolioNotification(id, title, false, type, referenceId, link, member, portfolioName, portfolioId,
-			messageIds);
+	@Override
+	public Notification withId(Long id) {
+		return this.toBuilder()
+			.id(id)
+			.build();
 	}
 
 	@Override
@@ -60,21 +70,5 @@ public class PortfolioNotification extends Notification {
 	@Override
 	public Long getIdToSentHistory() {
 		return portfolioId;
-	}
-
-	@Override
-	public NotifyMessageItem toNotifyMessageItemWith() {
-		return PortfolioNotifyMessageItem.create(
-			getId(),
-			getIsRead(),
-			getTitle(),
-			getContent(),
-			getType(),
-			getReferenceId(),
-			getMember().getId(),
-			getLink(),
-			name,
-			getMessageIds()
-		);
 	}
 }

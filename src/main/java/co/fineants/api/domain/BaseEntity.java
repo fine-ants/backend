@@ -11,12 +11,14 @@ import jakarta.persistence.MappedSuperclass;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @MappedSuperclass
 @EntityListeners(AuditingEntityListener.class)
+@SuperBuilder(toBuilder = true)
 public abstract class BaseEntity {
 	@CreatedDate
 	private LocalDateTime createAt;

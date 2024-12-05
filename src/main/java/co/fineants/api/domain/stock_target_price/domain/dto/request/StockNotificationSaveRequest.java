@@ -53,14 +53,10 @@ public class StockNotificationSaveRequest extends NotificationSaveRequest {
 
 	@Override
 	public Notification toEntity(Member member) {
-		return Notification.stock(
-			stockName,
+		return Notification.stockTargetPriceNotification(
+			title, referenceId, link, member, messageIds, stockName,
 			targetPrice,
-			title,
-			referenceId,
-			link,
-			targetPriceNotificationId,
-			member,
-			messageIds);
+			targetPriceNotificationId
+		);
 	}
 }

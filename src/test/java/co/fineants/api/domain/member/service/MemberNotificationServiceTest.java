@@ -241,15 +241,10 @@ class MemberNotificationServiceTest extends AbstractContainerBaseTest {
 
 	private List<Notification> createNotifications(Member member) {
 		return List.of(
-			Notification.stock(
-				"삼성전자일반주",
+			Notification.stockTargetPriceNotification(
+				"종목 지정가", "005930", "/stock/005930", member, List.of("messageId"), "삼성전자일반주",
 				Money.won(60000L),
-				"종목 지정가",
-				"005930",
-				"/stock/005930",
-				1L,
-				member,
-				List.of("messageId")
+				1L
 			),
 			Notification.portfolio(
 				"포트폴리오1",

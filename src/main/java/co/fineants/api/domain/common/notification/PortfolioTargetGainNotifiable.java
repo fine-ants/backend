@@ -51,7 +51,7 @@ public class PortfolioTargetGainNotifiable implements Notifiable {
 	public static PortfolioTargetGainNotifiable from(Portfolio portfolio, Boolean isReached) {
 		return PortfolioTargetGainNotifiable.builder()
 			.title("포트폴리오")
-			.content(String.format("%s의 목표 수익률을 달성했습니다", portfolio.name()))
+			.content("%s의 목표 수익률을 달성했습니다".formatted(portfolio.name()))
 			.type(NotificationType.PORTFOLIO_TARGET_GAIN)
 			.referenceId(portfolio.getReferenceId())
 			.memberId(portfolio.getMemberId())

@@ -127,63 +127,6 @@ public class Portfolio extends BaseEntity {
 		return portfolio;
 	}
 
-	//== Notifiable Interface 시작 ==//
-	// @Override
-	// public NotifyMessage createTargetGainMessageWith(String token) {
-	// 	String title = "포트폴리오";
-	// 	String content = detail.getTargetGainReachMessage();
-	// 	NotificationType type = NotificationType.PORTFOLIO_TARGET_GAIN;
-	// 	String referenceId = id.toString();
-	// 	Long memberId = member.getId();
-	// 	String link = "/portfolio/" + referenceId;
-	// 	return NotifyMessage.portfolio(
-	// 		title,
-	// 		content,
-	// 		type,
-	// 		referenceId,
-	// 		memberId,
-	// 		token,
-	// 		link,
-	// 		detail.name()
-	// 	);
-	// }
-	//
-	// @Override
-	// public NotifyMessage createMaxLossMessageWith(String token) {
-	// 	String title = "포트폴리오";
-	// 	String content = detail.getMaximumLossReachMessage();
-	// 	NotificationType type = NotificationType.PORTFOLIO_MAX_LOSS;
-	// 	String referenceId = id.toString();
-	// 	Long memberId = member.getId();
-	// 	String link = "/portfolio/" + referenceId;
-	// 	return NotifyMessage.portfolio(
-	// 		title,
-	// 		content,
-	// 		type,
-	// 		referenceId,
-	// 		memberId,
-	// 		token,
-	// 		link,
-	// 		detail.name()
-	// 	);
-	// }
-	//
-	// @Override
-	// public Long fetchMemberId() {
-	// 	return member.getId();
-	// }
-	//
-	// @Override
-	// public NotificationPreference getNotificationPreference() {
-	// 	return member.getNotificationPreference();
-	// }
-	//
-	// @Override
-	// public NotifyMessage createTargetPriceMessage(String token) {
-	// 	throw new UnsupportedOperationException("This method is not supported for Portfolio");
-	// }
-	//== Notifiable Interface 종료 ==//
-
 	//== 연관 관계 메소드 ==//
 	public void addHolding(PortfolioHolding holding) {
 		if (portfolioHoldings.contains(holding)) {
@@ -443,11 +386,6 @@ public class Portfolio extends BaseEntity {
 	}
 	//== Portfolio 계산 메서드 시작 ==//
 
-	@Override
-	public String toString() {
-		return String.format("Portfolio(id=%d, detail=%s, memberNickname=%s)", id, detail, member.getNickname());
-	}
-
 	public String getReferenceId() {
 		return id.toString();
 	}
@@ -458,5 +396,10 @@ public class Portfolio extends BaseEntity {
 
 	public String getLink() {
 		return "/portfolio/" + getReferenceId();
+	}
+
+	@Override
+	public String toString() {
+		return String.format("Portfolio(id=%d, detail=%s, memberNickname=%s)", id, detail, member.getNickname());
 	}
 }

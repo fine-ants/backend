@@ -6,7 +6,6 @@ import java.util.List;
 import co.fineants.api.domain.BaseEntity;
 import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.member.domain.entity.Member;
-import co.fineants.api.domain.notification.domain.dto.response.NotifyMessageItem;
 import co.fineants.api.domain.notification.domain.entity.type.NotificationType;
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorColumn;
@@ -25,12 +24,14 @@ import jakarta.persistence.Transient;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn
 @Entity
+@SuperBuilder(toBuilder = true)
 public abstract class Notification extends BaseEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -72,16 +73,31 @@ public abstract class Notification extends BaseEntity {
 		String referenceId, String link, Long portfolioId, Member member, List<String> messageIds) {
 		if (type == NotificationType.PORTFOLIO_TARGET_GAIN
 			|| type == NotificationType.PORTFOLIO_MAX_LOSS) {
-			return PortfolioNotification.newNotification(title, type, referenceId, link, portfolioName, portfolioId,
-				member, messageIds);
+			return PortfolioNotification.newNotification(title, type, referenceId, link, member, messageIds,
+				portfolioName, portfolioId
+			);
 		}
 		throw new IllegalArgumentException("잘못된 타입입니다. type=" + type);
 	}
 
-	public static Notification stock(String stockName, Money targetPrice, String title,
-		String referenceId, String link, Long targetPriceNotificationId, Member member, List<String> messageIds) {
-		return StockTargetPriceNotification.newNotification(stockName, targetPrice, title, referenceId,
-			link, targetPriceNotificationId, member, messageIds);
+	public static Notification stockTargetPriceNotification(
+		String title,
+		String referenceId,
+		String link,
+		Member member,
+		List<String> messageIds,
+		String stockName,
+		Money targetPrice,
+		Long targetPriceNotificationId) {
+		return StockTargetPriceNotification.newNotification(
+			title,
+			referenceId,
+			link,
+			member,
+			messageIds,
+			stockName,
+			targetPrice,
+			targetPriceNotificationId);
 	}
 
 	// 알림을 읽음 처리
@@ -97,6 +113,8 @@ public abstract class Notification extends BaseEntity {
 		return format.formatted(getIdToSentHistory());
 	}
 
+	public abstract Notification withId(Long id);
+
 	public abstract NotificationBody getBody();
 
 	public abstract String getContent();
@@ -104,6 +122,4 @@ public abstract class Notification extends BaseEntity {
 	public abstract String getName();
 
 	public abstract Long getIdToSentHistory();
-
-	public abstract NotifyMessageItem toNotifyMessageItemWith();
 }
