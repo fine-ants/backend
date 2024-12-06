@@ -1,6 +1,5 @@
 package co.fineants.api.global.config.jackson;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
@@ -71,7 +70,6 @@ class CacheObjectMapperTest extends AbstractContainerBaseTest {
 		JsonProcessingException {
 		// given
 		Portfolio portfolio = createPortfolio(createMember());
-		portfolio.setCreateAt(LocalDateTime.of(2024, 10, 23, 12, 0, 0));
 		PortfolioNameResponse response = PortfolioNameResponse.from(List.of(PortfolioNameItem.from(portfolio)));
 		String json = cacheObjectMapper.writeValueAsString(response);
 		// when

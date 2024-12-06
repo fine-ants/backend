@@ -19,22 +19,21 @@ import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
 import org.springframework.restdocs.payload.JsonFieldType;
 
 import co.fineants.api.docs.RestDocsSupport;
+import co.fineants.api.domain.common.notification.PortfolioMaximumLossNotifiable;
+import co.fineants.api.domain.common.notification.PortfolioTargetGainNotifiable;
+import co.fineants.api.domain.common.notification.TargetPriceNotificationNotifiable;
 import co.fineants.api.domain.member.domain.entity.Member;
 import co.fineants.api.domain.notification.controller.NotificationRestController;
 import co.fineants.api.domain.notification.domain.dto.response.NotifyMessage;
 import co.fineants.api.domain.notification.domain.dto.response.NotifyMessageItem;
 import co.fineants.api.domain.notification.domain.dto.response.PortfolioNotifyMessage;
 import co.fineants.api.domain.notification.domain.dto.response.PortfolioNotifyMessageItem;
-import co.fineants.api.domain.notification.domain.dto.response.PortfolioNotifyMessagesResponse;
 import co.fineants.api.domain.notification.domain.dto.response.StockNotifyMessage;
-import co.fineants.api.domain.notification.domain.dto.response.TargetPriceNotificationSaveResponse;
-import co.fineants.api.domain.notification.domain.dto.response.save.PortfolioNotificationSaveResponse;
 import co.fineants.api.domain.notification.domain.entity.Notification;
 import co.fineants.api.domain.notification.service.NotificationService;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import co.fineants.api.domain.stock.domain.entity.Stock;
 import co.fineants.api.domain.stock_target_price.domain.dto.response.TargetPriceNotifyMessageItem;
-import co.fineants.api.domain.stock_target_price.domain.dto.response.TargetPriceNotifyMessageResponse;
 import co.fineants.api.domain.stock_target_price.domain.entity.StockTargetPrice;
 import co.fineants.api.domain.stock_target_price.domain.entity.TargetPriceNotification;
 
@@ -53,16 +52,13 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 		// given
 		Member member = createMember();
 		Portfolio portfolio = createPortfolio(member);
-		PortfolioNotifyMessage message = (PortfolioNotifyMessage)portfolio.createTargetGainMessageWith("token");
-		Notification notification = createPortfolioNotification(message, member);
-		String messageId = "messageId";
-		PortfolioNotifyMessageItem item = (PortfolioNotifyMessageItem)PortfolioNotifyMessageItem.from(
-			PortfolioNotificationSaveResponse.from(notification), messageId);
+		PortfolioNotifyMessage message = (PortfolioNotifyMessage)PortfolioTargetGainNotifiable.from(portfolio, true)
+			.createMessage("token");
+		Notification notification = createPortfolioNotification(message, portfolio, member);
+		PortfolioNotifyMessageItem item = (PortfolioNotifyMessageItem)PortfolioNotifyMessageItem.from(notification);
 		List<NotifyMessageItem> items = List.of(item);
 
-		given(service.notifyTargetGain(
-			anyLong()))
-			.willReturn(PortfolioNotifyMessagesResponse.create(items));
+		given(service.notifyTargetGain(anyLong())).willReturn(items);
 
 		// when
 		mockMvc.perform(post("/api/notifications/portfolios/{portfolioId}/notify/target-gain", portfolio.getId())
@@ -80,7 +76,7 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 			.andExpect(jsonPath("data.notifications[0].referenceId").value(equalTo(item.getReferenceId())))
 			.andExpect(jsonPath("data.notifications[0].memberId").value(equalTo(item.getMemberId().intValue())))
 			.andExpect(jsonPath("data.notifications[0].link").value(equalTo(item.getLink())))
-			.andExpect(jsonPath("data.notifications[0].messageId").value(equalTo(item.getMessageId())))
+			.andExpect(jsonPath("data.notifications[0].messageIds").value(equalTo(item.getMessageIds())))
 			.andExpect(jsonPath("data.notifications[0].name").value(equalTo(item.getName())))
 			.andDo(
 				document(
@@ -115,7 +111,7 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 							.description("회원 등록 번호"),
 						fieldWithPath("data.notifications[].link").type(JsonFieldType.STRING)
 							.description("알림 링크"),
-						fieldWithPath("data.notifications[].messageId").type(JsonFieldType.STRING)
+						fieldWithPath("data.notifications[].messageIds").type(JsonFieldType.ARRAY)
 							.description("알림 메시지 아이디"),
 						fieldWithPath("data.notifications[].name").type(JsonFieldType.STRING)
 							.description("포트폴리오 이름")
@@ -130,15 +126,12 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 		// given
 		Member member = createMember();
 		Portfolio portfolio = createPortfolio(member);
-		PortfolioNotifyMessage message = (PortfolioNotifyMessage)portfolio.createMaxLossMessageWith("token");
-		Notification notification = createPortfolioNotification(message, member);
-		String messageId = "messageId";
-		PortfolioNotifyMessageItem item = (PortfolioNotifyMessageItem)PortfolioNotifyMessageItem.from(
-			PortfolioNotificationSaveResponse.from(notification), messageId);
+		PortfolioNotifyMessage message = (PortfolioNotifyMessage)PortfolioMaximumLossNotifiable.from(portfolio, true)
+			.createMessage("token");
+		Notification notification = createPortfolioNotification(message, portfolio, member);
+		PortfolioNotifyMessageItem item = (PortfolioNotifyMessageItem)PortfolioNotifyMessageItem.from(notification);
 		List<NotifyMessageItem> items = List.of(item);
-		given(service.notifyMaxLoss(
-			anyLong()))
-			.willReturn(PortfolioNotifyMessagesResponse.create(items));
+		given(service.notifyMaxLoss(anyLong())).willReturn(items);
 
 		// when
 		mockMvc.perform(post("/api/notifications/portfolios/{portfolioId}/notify/max-loss", portfolio.getId())
@@ -156,7 +149,7 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 			.andExpect(jsonPath("data.notifications[0].referenceId").value(equalTo(item.getReferenceId())))
 			.andExpect(jsonPath("data.notifications[0].memberId").value(equalTo(item.getMemberId().intValue())))
 			.andExpect(jsonPath("data.notifications[0].link").value(equalTo(item.getLink())))
-			.andExpect(jsonPath("data.notifications[0].messageId").value(equalTo(item.getMessageId())))
+			.andExpect(jsonPath("data.notifications[0].messageIds").value(equalTo(item.getMessageIds())))
 			.andExpect(jsonPath("data.notifications[0].name").value(equalTo(item.getName())))
 			.andDo(
 				document(
@@ -191,7 +184,7 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 							.description("회원 등록 번호"),
 						fieldWithPath("data.notifications[].link").type(JsonFieldType.STRING)
 							.description("알림 링크"),
-						fieldWithPath("data.notifications[].messageId").type(JsonFieldType.STRING)
+						fieldWithPath("data.notifications[].messageIds").type(JsonFieldType.ARRAY)
 							.description("알림 메시지 아이디"),
 						fieldWithPath("data.notifications[].name").type(JsonFieldType.STRING)
 							.description("포트폴리오 이름")
@@ -208,12 +201,12 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 		Stock stock = createSamsungStock();
 		StockTargetPrice stockTargetPrice = createStockTargetPrice(member, stock);
 		TargetPriceNotification targetPriceNotification = createTargetPriceNotification(stockTargetPrice);
-		NotifyMessage message = targetPriceNotification.getTargetPriceMessage("token");
+		NotifyMessage message = TargetPriceNotificationNotifiable.from(targetPriceNotification, true)
+			.createMessage("token");
 		Notification notification = createStockNotification((StockNotifyMessage)message, member);
-		TargetPriceNotificationSaveResponse saveResponse = TargetPriceNotificationSaveResponse.from(notification);
-		TargetPriceNotifyMessageItem item = TargetPriceNotifyMessageItem.from(saveResponse, "messageId");
-		given(service.notifyTargetPrice(anyLong()))
-			.willReturn(TargetPriceNotifyMessageResponse.create(List.of(item)));
+		TargetPriceNotifyMessageItem item = (TargetPriceNotifyMessageItem)TargetPriceNotifyMessageItem.from(
+			notification);
+		given(service.notifyTargetPrice(anyLong())).willReturn(List.of(item));
 
 		// when
 		mockMvc.perform(RestDocumentationRequestBuilders.post("/api/stocks/target-price/notifications/send")
@@ -233,7 +226,7 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 			.andExpect(jsonPath("data.notifications[0].referenceId").value(equalTo(item.getReferenceId())))
 			.andExpect(jsonPath("data.notifications[0].memberId").value(equalTo(item.getMemberId().intValue())))
 			.andExpect(jsonPath("data.notifications[0].link").value(equalTo(item.getLink())))
-			.andExpect(jsonPath("data.notifications[0].messageId").value(equalTo(item.getMessageId())))
+			.andExpect(jsonPath("data.notifications[0].messageIds").value(equalTo(item.getMessageIds())))
 			.andExpect(jsonPath("data.notifications[0].stockName").value(equalTo(item.getStockName())))
 			.andExpect(jsonPath("data.notifications[0].targetPrice").value(
 				equalTo(item.getTargetPrice().toInteger().intValue())))
@@ -274,7 +267,7 @@ class NotificationRestControllerDocsTest extends RestDocsSupport {
 							.description("회원 등록 번호"),
 						fieldWithPath("data.notifications[].link").type(JsonFieldType.STRING)
 							.description("알림 링크"),
-						fieldWithPath("data.notifications[].messageId").type(JsonFieldType.STRING)
+						fieldWithPath("data.notifications[].messageIds").type(JsonFieldType.ARRAY)
 							.description("알림 메시지 등록번호"),
 						fieldWithPath("data.notifications[].stockName").type(JsonFieldType.STRING)
 							.description("종목 이름"),

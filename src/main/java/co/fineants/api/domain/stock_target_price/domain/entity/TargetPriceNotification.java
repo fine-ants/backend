@@ -6,11 +6,7 @@ import co.fineants.api.domain.BaseEntity;
 import co.fineants.api.domain.common.money.Expression;
 import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.common.money.MoneyConverter;
-import co.fineants.api.domain.common.notification.Notifiable;
 import co.fineants.api.domain.kis.repository.CurrentPriceRedisRepository;
-import co.fineants.api.domain.notification.domain.dto.response.NotifyMessage;
-import co.fineants.api.domain.notification.domain.entity.type.NotificationType;
-import co.fineants.api.domain.notificationpreference.domain.entity.NotificationPreference;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
@@ -31,7 +27,7 @@ import lombok.ToString;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "target_price_notification")
-public class TargetPriceNotification extends BaseEntity implements Notifiable {
+public class TargetPriceNotification extends BaseEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
@@ -75,51 +71,51 @@ public class TargetPriceNotification extends BaseEntity implements Notifiable {
 		return targetPrice.compareTo(currentPrice) == 0;
 	}
 
-	@Override
-	public Long fetchMemberId() {
-		return stockTargetPrice.getMember().getId();
-	}
-
-	@Override
-	public NotifyMessage createTargetGainMessageWith(String token) {
-		throw new UnsupportedOperationException("This method is not supported for TargetPriceNotification");
-	}
-
-	@Override
-	public NotificationPreference getNotificationPreference() {
-		return stockTargetPrice.getMember().getNotificationPreference();
-	}
-
-	@Override
-	public NotifyMessage createMaxLossMessageWith(String token) {
-		throw new UnsupportedOperationException("This method is not supported for TargetPriceNotification");
-	}
-
-	@Override
-	public NotifyMessage getTargetPriceMessage(String token) {
-		NotificationType type = NotificationType.STOCK_TARGET_PRICE;
-		String title = type.getName();
-		String content = String.format("%s이(가) %s%s에 도달했습니다",
-			stockTargetPrice.getStock().getCompanyName(),
-			targetPrice.currencySymbol(),
-			targetPrice.toDecimalFormat());
-		String referenceId = stockTargetPrice.getStock().getTickerSymbol();
-		Long memberId = stockTargetPrice.getMember().getId();
-		String link = "/stock/" + referenceId;
-		String stockName = stockTargetPrice.getStock().getCompanyName();
-		return NotifyMessage.stock(
-			title,
-			content,
-			type,
-			referenceId,
-			memberId,
-			token,
-			link,
-			stockName,
-			targetPrice,
-			id
-		);
-	}
+	// @Override
+	// public Long fetchMemberId() {
+	// 	return stockTargetPrice.getMember().getId();
+	// }
+	//
+	// @Override
+	// public NotifyMessage createTargetGainMessageWith(String token) {
+	// 	throw new UnsupportedOperationException("This method is not supported for TargetPriceNotification");
+	// }
+	//
+	// @Override
+	// public NotificationPreference getNotificationPreference() {
+	// 	return stockTargetPrice.getMember().getNotificationPreference();
+	// }
+	//
+	// @Override
+	// public NotifyMessage createMaxLossMessageWith(String token) {
+	// 	throw new UnsupportedOperationException("This method is not supported for TargetPriceNotification");
+	// }
+	//
+	// @Override
+	// public NotifyMessage createTargetPriceMessage(String token) {
+	// 	NotificationType type = NotificationType.STOCK_TARGET_PRICE;
+	// 	String title = type.getName();
+	// 	String content = String.format("%s이(가) %s%s에 도달했습니다",
+	// 		stockTargetPrice.getStock().getCompanyName(),
+	// 		targetPrice.currencySymbol(),
+	// 		targetPrice.toDecimalFormat());
+	// 	String referenceId = stockTargetPrice.getStock().getTickerSymbol();
+	// 	Long memberId = stockTargetPrice.getMember().getId();
+	// 	String link = "/stock/" + referenceId;
+	// 	String stockName = stockTargetPrice.getStock().getCompanyName();
+	// 	return NotifyMessage.stock(
+	// 		title,
+	// 		content,
+	// 		type,
+	// 		referenceId,
+	// 		memberId,
+	// 		token,
+	// 		link,
+	// 		stockName,
+	// 		targetPrice,
+	// 		id
+	// 	);
+	// }
 
 	public boolean hasAuthorization(Long memberId) {
 		return stockTargetPrice.hasAuthorization(memberId);
