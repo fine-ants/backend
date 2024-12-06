@@ -63,6 +63,7 @@ public class NotificationService {
 	private final FirebaseMessagingService firebaseMessagingService;
 	private final PortfolioCalculator portfolioCalculator;
 	private final CurrentPriceRedisRepository currentPriceRedisRepository;
+	private final NotifyMessageFactory notifyMessageFactory;
 
 	/**
 	 * 특정 포트폴리오의 목표 수익률 달성 알림 푸시
@@ -110,7 +111,7 @@ public class NotificationService {
 		Consumer<Notification> addSendHistory,
 		Function<Notification, NotifyMessageItem> mapper) {
 		// 알림 조건을 만족하는 데이터를 생성
-		List<NotifyMessage> notifyMessages = generateNotifyMessages(data, policy);
+		List<NotifyMessage> notifyMessages = notifyMessageFactory.generate(data, policy);
 
 		// 만족하는 포트폴리오를 대상으로 알림 데이터 생성 & 알림 전송
 		List<NotifyMessage> sentNotifyMessages = sendNotifications(notifyMessages);
