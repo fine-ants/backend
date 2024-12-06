@@ -3,6 +3,7 @@ package co.fineants.api.domain.notification.service;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 import org.springframework.stereotype.Component;
@@ -30,22 +31,23 @@ public class NotifiableFactory {
 
 	public List<Notifiable> getAllPortfolios(Predicate<Portfolio> reachedPredicate) {
 		return portfolioRepository.findAllWithAll().stream()
-			.map(portfolio -> {
-				boolean isReached = reachedPredicate.test(portfolio);
-				return PortfolioTargetGainNotifiable.from(portfolio, isReached);
-			})
+			.map(mapToNotifiable(reachedPredicate))
 			.map(Notifiable.class::cast)
 			.toList();
 	}
 
 	public Notifiable getPortfolio(Long portfolioId, Predicate<Portfolio> reachedPredicate) {
 		return portfolioRepository.findByPortfolioIdWithAll(portfolioId)
-			.map(p -> {
-				boolean isReached = reachedPredicate.test(p);
-				return PortfolioTargetGainNotifiable.from(p, isReached);
-			})
+			.map(mapToNotifiable(reachedPredicate))
 			.map(Notifiable.class::cast)
 			.orElseThrow(() -> new FineAntsException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO));
+	}
+
+	private Function<Portfolio, Notifiable> mapToNotifiable(Predicate<Portfolio> reachedPredicate) {
+		return portfolio -> {
+			boolean isReached = reachedPredicate.test(portfolio);
+			return PortfolioTargetGainNotifiable.from(portfolio, isReached);
+		};
 	}
 
 	public List<Notifiable> getAllTargetPriceNotificationsBy(Long memberId) {
