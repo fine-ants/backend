@@ -31,6 +31,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import co.fineants.api.domain.common.count.Count;
 import co.fineants.api.domain.common.money.Money;
+import co.fineants.api.domain.common.notification.PortfolioTargetGainNotifiable;
+import co.fineants.api.domain.common.notification.TargetPriceNotificationNotifiable;
 import co.fineants.api.domain.dividend.domain.entity.StockDividend;
 import co.fineants.api.domain.gainhistory.domain.entity.PortfolioGainHistory;
 import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
@@ -41,7 +43,6 @@ import co.fineants.api.domain.notification.domain.dto.response.PortfolioNotifyMe
 import co.fineants.api.domain.notification.domain.dto.response.StockNotifyMessage;
 import co.fineants.api.domain.notification.domain.entity.Notification;
 import co.fineants.api.domain.notification.domain.entity.PortfolioNotification;
-import co.fineants.api.domain.notification.domain.entity.StockTargetPriceNotification;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import co.fineants.api.domain.portfolio.domain.entity.PortfolioDetail;
 import co.fineants.api.domain.portfolio.domain.entity.PortfolioFinancial;
@@ -175,21 +176,23 @@ public abstract class RestDocsSupport {
 		return StockDividend.create(Money.won(361), recordDate, paymentDate, stock);
 	}
 
-	protected Notification createPortfolioNotification(PortfolioNotifyMessage message, Member member) {
-		return PortfolioNotification.newNotification(1L, message.getTitle(), message.getType(),
-			message.getReferenceId(), message.getLink(), message.getName(), member);
+	protected Notification createPortfolioNotification(PortfolioNotifyMessage message, Portfolio portfolio,
+		Member member) {
+		return Notification.portfolioNotification(
+				message.getTitle(), message.getType(), message.getReferenceId(), message.getLink(), member,
+				message.getMessageIds(), portfolio.name(),
+				portfolio.getId()
+			)
+			.withId(1L);
 	}
 
 	protected Notification createStockNotification(StockNotifyMessage message, Member member) {
-		return StockTargetPriceNotification.newNotification(
-			1L,
+		return Notification.stockTargetPriceNotification(
+			message.getTitle(), message.getReferenceId(), message.getLink(), member, message.getMessageIds(),
 			message.getStockName(),
 			message.getTargetPrice(),
-			message.getTitle(),
-			message.getReferenceId(),
-			message.getLink(),
-			message.getTargetPriceNotificationId(),
-			member);
+			message.getTargetPriceNotificationId()
+		).withId(1L);
 	}
 
 	protected StockTargetPrice createStockTargetPrice(Member member, Stock stock) {
@@ -201,24 +204,30 @@ public abstract class RestDocsSupport {
 	}
 
 	protected PortfolioNotification createPortfolioTargetGainNotification(Portfolio portfolio, Member member) {
-		NotifyMessage message = portfolio.createTargetGainMessageWith("token");
-		return PortfolioNotification.newNotification(1L, message.getTitle(), message.getType(),
-			message.getReferenceId(), message.getLink(), portfolio.name(), member);
+		NotifyMessage message = PortfolioTargetGainNotifiable.from(portfolio, true).createMessage("token");
+		return (PortfolioNotification)Notification.portfolioNotification(
+				message.getTitle(), message.getType(), message.getReferenceId(), message.getLink(), member,
+				message.getMessageIds(), portfolio.name(),
+				portfolio.getId()
+			)
+			.withId(1L);
 	}
 
-	protected StockTargetPriceNotification createStockTargetPriceNotification(
+	protected Notification createStockTargetPriceNotification(
 		TargetPriceNotification targetPriceNotification, Member member) {
-		StockNotifyMessage message = (StockNotifyMessage)targetPriceNotification.getTargetPriceMessage("token");
-		return StockTargetPriceNotification.newNotification(
-			1L,
-			message.getStockName(),
-			message.getTargetPrice(),
+		StockNotifyMessage message = (StockNotifyMessage)TargetPriceNotificationNotifiable.from(targetPriceNotification,
+				true)
+			.createMessage("token");
+		return Notification.stockTargetPriceNotification(
 			message.getTitle(),
 			message.getReferenceId(),
 			message.getLink(),
-			message.getTargetPriceNotificationId(),
-			member
-		);
+			member,
+			message.getMessageIds(),
+			message.getStockName(),
+			message.getTargetPrice(),
+			message.getTargetPriceNotificationId()
+		).withId(1L);
 	}
 
 	protected WatchList createWatchList(Member member) {

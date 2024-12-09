@@ -84,4 +84,20 @@ public class StockTargetPrice extends BaseEntity {
 	public List<TargetPriceNotification> getTargetPriceNotifications() {
 		return Collections.unmodifiableList(targetPriceNotifications);
 	}
+
+	public String getReferenceId() {
+		return stock.getTickerSymbol();
+	}
+
+	public Long getMemberId() {
+		return member.getId();
+	}
+
+	public String getLink() {
+		return "/stock/" + getReferenceId();
+	}
+
+	public String getName() {
+		return stock.getCompanyName();
+	}
 }

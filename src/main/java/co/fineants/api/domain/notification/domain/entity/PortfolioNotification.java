@@ -1,34 +1,25 @@
 package co.fineants.api.domain.notification.domain.entity;
 
-import co.fineants.api.domain.member.domain.entity.Member;
-import co.fineants.api.domain.notification.domain.dto.response.save.NotificationSaveResponse;
-import co.fineants.api.domain.notification.domain.dto.response.save.PortfolioNotificationSaveResponse;
 import co.fineants.api.domain.notification.domain.entity.type.NotificationType;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 @Entity
 @DiscriminatorValue("P")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@SuperBuilder(toBuilder = true)
 public class PortfolioNotification extends Notification {
 	private String name;
+	private Long portfolioId;
 
-	private PortfolioNotification(Long id, String title, Boolean isRead, NotificationType type, String referenceId,
-		String link, Member member, String name) {
-		super(id, title, isRead, type, referenceId, link, member);
-		this.name = name;
-	}
-
-	public static PortfolioNotification newNotification(String title, NotificationType type, String referenceId,
-		String link, String portfolioName, Member member) {
-		return newNotification(null, title, type, referenceId, link, portfolioName, member);
-	}
-
-	public static PortfolioNotification newNotification(Long id, String title, NotificationType type,
-		String referenceId, String link, String portfolioName, Member member) {
-		return new PortfolioNotification(id, title, false, type, referenceId, link, member, portfolioName);
+	@Override
+	public Notification withId(Long id) {
+		return this.toBuilder()
+			.id(id)
+			.build();
 	}
 
 	@Override
@@ -52,7 +43,7 @@ public class PortfolioNotification extends Notification {
 	}
 
 	@Override
-	public NotificationSaveResponse toSaveResponse() {
-		return PortfolioNotificationSaveResponse.from(this);
+	public Long getIdToSentHistory() {
+		return portfolioId;
 	}
 }

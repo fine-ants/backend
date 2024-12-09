@@ -1,7 +1,5 @@
 package co.fineants.api.domain.notification.domain.dto.response.save;
 
-import co.fineants.api.domain.notification.domain.dto.response.NotifyMessageItem;
-import co.fineants.api.domain.notification.domain.dto.response.PortfolioNotifyMessageItem;
 import co.fineants.api.domain.notification.domain.entity.Notification;
 import co.fineants.api.domain.notification.domain.entity.type.NotificationType;
 import lombok.AccessLevel;
@@ -39,26 +37,5 @@ public class PortfolioNotificationSaveResponse implements NotificationSaveRespon
 			.memberId(notification.getMember().getId())
 			.name(notification.getName())
 			.build();
-	}
-
-	@Override
-	public String getIdToSentHistory() {
-		return String.format("portfolioNotification:%d", notificationId);
-	}
-
-	@Override
-	public NotifyMessageItem toNotifyMessageItemWith(String messageId) {
-		return PortfolioNotifyMessageItem.create(
-			notificationId,
-			isRead,
-			title,
-			content,
-			type,
-			referenceId,
-			memberId,
-			link,
-			messageId,
-			name
-		);
 	}
 }
