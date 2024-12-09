@@ -21,7 +21,7 @@ logging:
   level:
     co: info
 server:
-  port: 443
+  port: 8080
 cron:
   expression:
     reload-stocks: '0 0 8 * * ?'
