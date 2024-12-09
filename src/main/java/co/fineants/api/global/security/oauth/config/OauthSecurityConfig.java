@@ -84,6 +84,7 @@ public class OauthSecurityConfig {
 						"/api/auth/refresh/token",
 						"/api/stocks/search",
 						"/api/stocks/**",
+						"/health-check",
 						"/error"
 					).permitAll()
 					.anyRequest().authenticated());
