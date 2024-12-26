@@ -37,7 +37,8 @@ public class HolidayUpdateDto {
 	}
 
 	public static HolidayUpdateDto from(Holiday holiday) {
-		return new HolidayUpdateDto(holiday.getBaseDate(), holiday.getBaseDate().getDayOfWeek(), holiday.getIsOpen());
+		return new HolidayUpdateDto(holiday.getBaseDate(), holiday.getBaseDate().getDayOfWeek(),
+			holiday.isOpenMarket());
 	}
 
 	@Override

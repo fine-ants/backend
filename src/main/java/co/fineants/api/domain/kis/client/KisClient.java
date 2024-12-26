@@ -20,6 +20,7 @@ import co.fineants.api.domain.kis.domain.dto.response.KisClosingPrice;
 import co.fineants.api.domain.kis.domain.dto.response.KisDividend;
 import co.fineants.api.domain.kis.domain.dto.response.KisDividendWrapper;
 import co.fineants.api.domain.kis.domain.dto.response.KisErrorResponse;
+import co.fineants.api.domain.kis.domain.dto.response.KisHoliday;
 import co.fineants.api.domain.kis.domain.dto.response.KisIpoResponse;
 import co.fineants.api.domain.kis.domain.dto.response.KisSearchStockInfo;
 import co.fineants.api.domain.kis.properties.KisAccessTokenRequest;
@@ -255,6 +256,11 @@ public class KisClient {
 			.onStatus(HttpStatusCode::isError, this::handleError)
 			.bodyToMono(KisWebSocketApprovalKey.class)
 			.log();
+	}
+
+	// TODO: 12/26/24  
+	public Mono<List<KisHoliday>> fetchHolidays(LocalDate baseDate) {
+		return Mono.empty();
 	}
 
 	private <T> Mono<T> performGet(String urlPath, MultiValueMap<String, String> headerMap,
