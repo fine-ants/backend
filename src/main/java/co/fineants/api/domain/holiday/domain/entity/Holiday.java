@@ -9,11 +9,13 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import lombok.AccessLevel;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@EqualsAndHashCode(of = {"baseDate", "isOpen"})
 @Getter
 public class Holiday {
 	@Id
@@ -38,5 +40,10 @@ public class Holiday {
 			.baseDate(baseDate)
 			.isOpen(false)
 			.build();
+	}
+
+	@Override
+	public String toString() {
+		return "휴장 엔티티(id=%d, 기준일자=%s, 개장여부=%s)".formatted(id, baseDate, isOpen);
 	}
 }
