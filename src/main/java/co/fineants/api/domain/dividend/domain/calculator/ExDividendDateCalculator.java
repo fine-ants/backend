@@ -3,13 +3,13 @@ package co.fineants.api.domain.dividend.domain.calculator;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 
-import co.fineants.api.domain.kis.repository.HolidayRepository;
+import co.fineants.api.domain.kis.repository.FileHolidayRepository;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public class ExDividendDateCalculator {
 
-	private final HolidayRepository holidayRepository;
+	private final FileHolidayRepository fileHolidayRepository;
 
 	/**
 	 * 배정기준일(recordDate) 기준 배당락일 계산
@@ -33,7 +33,7 @@ public class ExDividendDateCalculator {
 	 */
 	private boolean isHolidayOrWeekend(LocalDate localDate) {
 		DayOfWeek dayOfWeek = localDate.getDayOfWeek();
-		return isWeekend(dayOfWeek) || holidayRepository.isHoliday(localDate);
+		return isWeekend(dayOfWeek) || fileHolidayRepository.isHoliday(localDate);
 	}
 
 	/**

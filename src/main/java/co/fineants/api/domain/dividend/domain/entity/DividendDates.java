@@ -8,7 +8,7 @@ import org.apache.logging.log4j.util.Strings;
 
 import co.fineants.api.domain.dividend.domain.calculator.ExDividendDateCalculator;
 import co.fineants.api.domain.dividend.domain.reader.HolidayFileReader;
-import co.fineants.api.domain.kis.repository.HolidayRepository;
+import co.fineants.api.domain.kis.repository.FileHolidayRepository;
 import co.fineants.api.domain.purchasehistory.domain.entity.PurchaseHistory;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
@@ -32,7 +32,7 @@ public class DividendDates {
 	private LocalDate paymentDate;
 
 	private static final ExDividendDateCalculator EX_DIVIDEND_DATE_CALCULATOR = new ExDividendDateCalculator(
-		new HolidayRepository(new HolidayFileReader()));
+		new FileHolidayRepository(new HolidayFileReader()));
 
 	public static DividendDates withRecordDateOnly(LocalDate recordDate) {
 		LocalDate exDividendDate = EX_DIVIDEND_DATE_CALCULATOR.calculate(recordDate);

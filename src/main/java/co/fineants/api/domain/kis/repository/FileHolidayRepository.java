@@ -14,11 +14,11 @@ import lombok.extern.slf4j.Slf4j;
 
 @Component
 @Slf4j
-public class HolidayRepository {
+public class FileHolidayRepository {
 
 	private final Set<LocalDate> holidays;
 
-	public HolidayRepository(HolidayFileReader reader) {
+	public FileHolidayRepository(HolidayFileReader reader) {
 		Set<LocalDate> temp = new HashSet<>();
 		try {
 			temp = reader.read().stream()
