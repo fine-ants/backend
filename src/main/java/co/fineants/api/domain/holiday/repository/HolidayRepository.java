@@ -15,4 +15,5 @@ public interface HolidayRepository extends JpaRepository<Holiday, Long> {
 	@Modifying
 	@Query("delete from Holiday h where h.baseDate in :baseDates")
 	int deleteAllByBaseDate(@Param("baseDates") List<LocalDate> baseDates);
+
 }

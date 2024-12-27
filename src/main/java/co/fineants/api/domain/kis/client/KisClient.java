@@ -259,8 +259,6 @@ public class KisClient {
 			.log();
 	}
 
-	// TODO: 12/26/24
-
 	/**
 	 * 기준 일자(포함) 이후의 국내 휴장 일정을 조회합니다
 	 *
@@ -282,6 +280,7 @@ public class KisClient {
 			.add(KisQueryParam.CTX_AREA_FK, Strings.EMPTY)
 			.build();
 		return performGet(kisProperties.getHolidayUrl(), header, queryParam, KisHolidayWrapper.class)
+			.retryWhen(Retry.fixedDelay(Long.MAX_VALUE, Duration.ofSeconds(5)))
 			.map(KisHolidayWrapper::getHolidays);
 	}
 

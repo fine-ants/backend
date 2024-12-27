@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,14 +40,23 @@ public class HolidayService {
 			.filter(Holiday::isCloseMarket)
 			.toList();
 		// 중복 데이터 삭제
-		List<LocalDate> baseDates = closeHolidays.stream()
+		deleteHolidays(closeHolidays);
+		// 데이터 저장
+		return saveHolidays(closeHolidays);
+	}
+
+	@NotNull
+	private List<Holiday> saveHolidays(List<Holiday> holidays) {
+		return repository.saveAll(holidays).stream()
+			.sorted()
+			.toList();
+	}
+
+	private void deleteHolidays(List<Holiday> holidays) {
+		List<LocalDate> baseDates = holidays.stream()
 			.map(Holiday::getBaseDate)
 			.toList();
 		int deleted = repository.deleteAllByBaseDate(baseDates);
 		log.info("delete count: {}", deleted);
-		// 데이터 저장
-		return repository.saveAll(closeHolidays).stream()
-			.sorted()
-			.toList();
 	}
 }
