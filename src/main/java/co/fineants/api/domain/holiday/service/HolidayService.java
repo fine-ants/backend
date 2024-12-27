@@ -5,6 +5,8 @@ import java.util.Collections;
 import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +28,7 @@ public class HolidayService {
 	private final HolidayRepository repository;
 
 	@Transactional
+	@CacheEvict(value = "holidayCache", allEntries = true)
 	public List<Holiday> updateHoliday(LocalDate baseDate) {
 		// 한국투자증권에 baseDate를 기준으로 기준일자 이후의 국내 휴장일을 조회합니다.
 		List<Holiday> holidays = kisClient.fetchHolidays(baseDate)
@@ -58,5 +61,19 @@ public class HolidayService {
 			.toList();
 		int deleted = repository.deleteAllByBaseDate(baseDates);
 		log.info("delete count: {}", deleted);
+	}
+
+	/**
+	 * 매개변수로 받은 localDate가 휴장 여부를 반환
+	 * <p>
+	 * 캐시 TTL : 1 days
+	 * </p>
+	 * @param localDate the local date
+	 * @return true: 휴장, false: 영업
+	 */
+	@Transactional(readOnly = true)
+	@Cacheable(value = "holidayCache", key = "#localDate")
+	public boolean isHoliday(LocalDate localDate) {
+		return repository.findByBaseDate(localDate).isPresent();
 	}
 }

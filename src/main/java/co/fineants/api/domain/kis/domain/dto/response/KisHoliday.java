@@ -11,7 +11,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import co.fineants.api.domain.holiday.domain.entity.Holiday;
 import lombok.EqualsAndHashCode;
 
-// TODO: 12/26/24 refactoring 
 @EqualsAndHashCode
 public class KisHoliday {
 

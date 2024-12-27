@@ -42,6 +42,7 @@ public class CacheConfig {
 		cacheConfigurations.put("tickerSymbols", defaultCacheConfig.entryTtl(Duration.ofMinutes(5)));
 		cacheConfigurations.put("lineChartCache", defaultCacheConfig.entryTtl(Duration.ofHours(24)));
 		cacheConfigurations.put("myAllPortfolioNames", defaultCacheConfig.entryTtl(Duration.ofMinutes(5)));
+		cacheConfigurations.put("holidayCache", defaultCacheConfig.entryTtl(Duration.ofDays(1)));
 
 		return RedisCacheManager.builder(redisConnectionFactory)
 			.cacheDefaults(defaultCacheConfig)

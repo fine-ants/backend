@@ -84,4 +84,16 @@ class HolidayServiceTest extends AbstractContainerBaseTest {
 			.hasSize(expected.size())
 			.containsExactlyElementsOf(expected);
 	}
+
+	@DisplayName("휴장 여부를 검사한다")
+	@Test
+	void isHoliday() {
+		// given
+		LocalDate localDate = LocalDate.of(2025, 12, 28);
+		repository.save(Holiday.close(localDate));
+		// when
+		boolean actual = service.isHoliday(localDate);
+		// then
+		Assertions.assertThat(actual).isTrue();
+	}
 }
