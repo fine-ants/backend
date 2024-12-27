@@ -379,7 +379,7 @@ class KisClientTest extends AbstractContainerBaseTest {
 			LocalDate.of(2024, 12, 31),
 			LocalDate.of(2025, 1, 1)
 		);
-		LocalDate endDate = baseDate.plusDays(1);
+		LocalDate endDate = LocalDate.of(2025, 1, 19);
 		List<KisHoliday> expected = baseDate.datesUntil(endDate)
 			.map(localDate -> {
 				if (isWeekend(localDate) || holidays.contains(localDate)) {
