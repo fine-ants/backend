@@ -28,10 +28,6 @@ public class HolidayUpdateDto {
 		this.isOpen = isOpen;
 	}
 
-	public static HolidayUpdateDto open(LocalDate baseDate) {
-		return new HolidayUpdateDto(baseDate, baseDate.getDayOfWeek(), Boolean.TRUE);
-	}
-
 	public static HolidayUpdateDto close(LocalDate baseDate) {
 		return new HolidayUpdateDto(baseDate, baseDate.getDayOfWeek(), Boolean.FALSE);
 	}

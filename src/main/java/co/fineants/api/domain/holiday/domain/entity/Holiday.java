@@ -2,6 +2,8 @@ package co.fineants.api.domain.holiday.domain.entity;
 
 import java.time.LocalDate;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.Column;
@@ -17,14 +19,14 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@EqualsAndHashCode(of = {"baseDate", "isOpen"})
+@EqualsAndHashCode(of = {"baseDate"})
 @Getter
-public class Holiday {
+public class Holiday implements Comparable<Holiday> {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@Column(name = "base_date", nullable = false)
+	@Column(name = "base_date", nullable = false, unique = true)
 	private LocalDate baseDate;
 
 	@Column(name = "is_open", nullable = false)
@@ -52,7 +54,7 @@ public class Holiday {
 	}
 
 	public static Holiday of(LocalDate baseDate, Boolean isOpen) {
-		if (isOpen) {
+		if (Boolean.TRUE.equals(isOpen)) {
 			return open(baseDate);
 		}
 		return close(baseDate);
@@ -66,6 +68,11 @@ public class Holiday {
 	@JsonIgnore
 	public boolean isCloseMarket() {
 		return !isOpen;
+	}
+
+	@Override
+	public int compareTo(@NotNull Holiday holiday) {
+		return baseDate.compareTo(holiday.baseDate);
 	}
 
 	@Override

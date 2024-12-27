@@ -21,6 +21,7 @@ import co.fineants.api.domain.kis.domain.dto.response.KisDividend;
 import co.fineants.api.domain.kis.domain.dto.response.KisDividendWrapper;
 import co.fineants.api.domain.kis.domain.dto.response.KisErrorResponse;
 import co.fineants.api.domain.kis.domain.dto.response.KisHoliday;
+import co.fineants.api.domain.kis.domain.dto.response.KisHolidayWrapper;
 import co.fineants.api.domain.kis.domain.dto.response.KisIpoResponse;
 import co.fineants.api.domain.kis.domain.dto.response.KisSearchStockInfo;
 import co.fineants.api.domain.kis.properties.KisAccessTokenRequest;
@@ -258,9 +259,30 @@ public class KisClient {
 			.log();
 	}
 
-	// TODO: 12/26/24  
+	// TODO: 12/26/24
+
+	/**
+	 * 기준 일자(포함) 이후의 국내 휴장 일정을 조회합니다
+	 *
+	 * @param baseDate 기준일자
+	 * @return 휴장 일정 데이터
+	 */
 	public Mono<List<KisHoliday>> fetchHolidays(LocalDate baseDate) {
-		return Mono.empty();
+		MultiValueMap<String, String> header = KisHeaderBuilder.builder()
+			.add(KisHeader.CONTENT_TYPE, APPLICATION_JSON_UTF8)
+			.add(KisHeader.AUTHORIZATION, manager.createAuthorization())
+			.add(KisHeader.APP_KEY, kisProperties.getAppkey())
+			.add(KisHeader.APP_SECRET, kisProperties.getSecretkey())
+			.add(KisHeader.TR_ID, kisTrIdProperties.getHoliday())
+			.add(KisHeader.CUSTOMER_TYPE, CustomerType.INDIVIDUAL)
+			.build();
+		MultiValueMap<String, String> queryParam = KisQueryParamBuilder.builder()
+			.add(KisQueryParam.BASS_DT, basicIso(baseDate))
+			.add(KisQueryParam.CTX_AREA_NK, Strings.EMPTY)
+			.add(KisQueryParam.CTX_AREA_FK, Strings.EMPTY)
+			.build();
+		return performGet(kisProperties.getHolidayUrl(), header, queryParam, KisHolidayWrapper.class)
+			.map(KisHolidayWrapper::getHolidays);
 	}
 
 	private <T> Mono<T> performGet(String urlPath, MultiValueMap<String, String> headerMap,

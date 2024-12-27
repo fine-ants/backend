@@ -13,9 +13,11 @@ import co.fineants.api.domain.kis.client.KisClient;
 import co.fineants.api.domain.kis.domain.dto.response.KisHoliday;
 import co.fineants.api.global.common.delay.DelayManager;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class HolidayService {
 
 	private final KisClient kisClient;
@@ -36,6 +38,15 @@ public class HolidayService {
 		List<Holiday> closeHolidays = holidays.stream()
 			.filter(Holiday::isCloseMarket)
 			.toList();
-		return repository.saveAll(closeHolidays);
+		// 중복 데이터 삭제
+		List<LocalDate> baseDates = closeHolidays.stream()
+			.map(Holiday::getBaseDate)
+			.toList();
+		int deleted = repository.deleteAllByBaseDate(baseDates);
+		log.info("delete count: {}", deleted);
+		// 데이터 저장
+		return repository.saveAll(closeHolidays).stream()
+			.sorted()
+			.toList();
 	}
 }
