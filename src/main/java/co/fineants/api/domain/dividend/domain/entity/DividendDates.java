@@ -31,6 +31,7 @@ public class DividendDates {
 	@Column(name = "payment_date")
 	private LocalDate paymentDate;
 
+	// TODO: 12/27/24 FileHolidayRepository 대신 HolidayService로 주입하도록 변경 
 	private static final ExDividendDateCalculator EX_DIVIDEND_DATE_CALCULATOR = new ExDividendDateCalculator(
 		new FileHolidayRepository(new HolidayFileReader()));
 
