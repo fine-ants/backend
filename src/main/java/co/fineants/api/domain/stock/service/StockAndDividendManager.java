@@ -13,6 +13,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import co.fineants.api.domain.dividend.domain.calculator.ExDividendDateCalculator;
 import co.fineants.api.domain.dividend.domain.entity.StockDividend;
 import co.fineants.api.domain.dividend.repository.StockDividendRepository;
 import co.fineants.api.domain.kis.domain.dto.response.DividendItem;
@@ -39,6 +40,7 @@ public class StockAndDividendManager {
 	private final StockDividendRepository dividendRepository;
 	private final KisService kisService;
 	private final DelayManager delayManager;
+	private final ExDividendDateCalculator exDividendDateCalculator;
 
 	/**
 	 * 한국 투자 증권 서버에 조회 후 종목 및 배당 일정 최신화 수행
@@ -204,13 +206,14 @@ public class StockAndDividendManager {
 	// 조회한 배당금을 엔티티 종목의 배당금으로 매핑
 	private StockDividend mapStockDividend(KisDividend dividend) {
 		return dividendRepository.findByTickerSymbolAndRecordDate(dividend.getTickerSymbol(), dividend.getRecordDate())
-			.map(existStockDividend -> dividend.toEntity(existStockDividend.getId(), existStockDividend.getStock()))
+			.map(existStockDividend -> dividend.toEntity(existStockDividend.getId(), existStockDividend.getStock(),
+				exDividendDateCalculator))
 			.orElseGet(supplierNewStockDividend(dividend));
 	}
 
 	@NotNull
 	private Supplier<StockDividend> supplierNewStockDividend(KisDividend dividend) {
-		return () -> dividend.toEntity(findStockBy(dividend.getTickerSymbol()));
+		return () -> dividend.toEntity(findStockBy(dividend.getTickerSymbol()), exDividendDateCalculator);
 	}
 
 	private Stock findStockBy(String tickerSymbol) {

@@ -1,0 +1,12 @@
+[[holiday]]
+=== 휴장 일정 업데이트
+
+==== HTTP Request
+
+include::{snippets}/holiday/http-request.adoc[]
+include::{snippets}/holiday/query-parameters.adoc[]
+
+==== HTTP Response
+
+include::{snippets}/holiday/http-response.adoc[]
+include::{snippets}/holiday/response-fields.adoc[]

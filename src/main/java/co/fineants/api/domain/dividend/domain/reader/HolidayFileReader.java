@@ -11,11 +11,9 @@ import java.util.List;
 
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
-import org.springframework.stereotype.Component;
 
 import co.fineants.api.domain.dividend.domain.dto.response.HolidayDto;
 
-@Component
 public class HolidayFileReader {
 
 	private static final String FILE_NAME = "holidays.tsv";

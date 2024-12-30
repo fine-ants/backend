@@ -63,14 +63,16 @@ public class StockDividend extends BaseEntity {
 		this.stock = stock;
 	}
 
-	public static StockDividend create(Money dividend, LocalDate recordDate, LocalDate paymentDate, Stock stock) {
-		DividendDates dividendDates = DividendDates.withPaymentDate(recordDate, paymentDate);
+	public static StockDividend create(Money dividend, LocalDate recordDate, LocalDate exDividendDate,
+		LocalDate paymentDate, Stock stock) {
+		DividendDates dividendDates = DividendDates.withPaymentDate(recordDate, exDividendDate, paymentDate);
 		return create(null, dividend, dividendDates, stock);
 	}
 
-	public static StockDividend create(Long id, Money dividend, LocalDate recordDate, LocalDate paymentDate,
+	public static StockDividend create(Long id, Money dividend, LocalDate recordDate, LocalDate exDividendDate,
+		LocalDate paymentDate,
 		Stock stock) {
-		DividendDates dividendDates = DividendDates.withPaymentDate(recordDate, paymentDate);
+		DividendDates dividendDates = DividendDates.withPaymentDate(recordDate, exDividendDate, paymentDate);
 		return create(id, dividend, dividendDates, stock);
 	}
 

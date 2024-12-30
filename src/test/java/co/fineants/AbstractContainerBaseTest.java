@@ -11,7 +11,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseCookie;
@@ -20,6 +19,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.GenericContainer;
@@ -29,6 +29,7 @@ import org.testcontainers.utility.DockerImageName;
 
 import co.fineants.api.domain.common.count.Count;
 import co.fineants.api.domain.common.money.Money;
+import co.fineants.api.domain.dividend.domain.calculator.ExDividendDateCalculator;
 import co.fineants.api.domain.dividend.domain.entity.StockDividend;
 import co.fineants.api.domain.fcm.domain.entity.FcmToken;
 import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
@@ -57,7 +58,8 @@ import co.fineants.api.global.security.factory.CookieDomainProvider;
 import co.fineants.api.global.security.factory.TokenFactory;
 import co.fineants.api.global.security.oauth.dto.MemberAuthentication;
 import co.fineants.api.global.security.oauth.dto.Token;
-import co.fineants.support.amazon.config.AmazonS3Config;
+import co.fineants.config.AmazonS3TestConfig;
+import co.fineants.config.TestConfig;
 import co.fineants.support.mysql.DatabaseCleaner;
 import co.fineants.support.redis.RedisRepository;
 import jakarta.servlet.http.Cookie;
@@ -67,7 +69,7 @@ import okhttp3.mockwebserver.MockResponse;
 @Slf4j
 @ActiveProfiles("test")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@Import(value = {AmazonS3Config.class})
+@ContextConfiguration(classes = {AmazonS3TestConfig.class, TestConfig.class})
 @AutoConfigureWebTestClient
 @Testcontainers
 @WithMockUser(username = "dragonbead95@naver.com")
@@ -109,6 +111,9 @@ public abstract class AbstractContainerBaseTest {
 
 	@Autowired
 	private CookieDomainProvider cookieDomainProvider;
+
+	@Autowired
+	private ExDividendDateCalculator exDividendDateCalculator;
 
 	@DynamicPropertySource
 	public static void overrideProps(DynamicPropertyRegistry registry) {
@@ -272,12 +277,14 @@ public abstract class AbstractContainerBaseTest {
 	}
 
 	protected StockDividend createStockDividend(LocalDate recordDate, LocalDate paymentDate, Stock stock) {
-		return StockDividend.create(Money.won(361), recordDate, paymentDate, stock);
+		LocalDate exDividendDate = exDividendDateCalculator.calculate(recordDate);
+		return StockDividend.create(Money.won(361), recordDate, exDividendDate, paymentDate, stock);
 	}
 
 	protected StockDividend createStockDividend(Money dividend, LocalDate recordDate,
 		LocalDate paymentDate, Stock stock) {
-		return StockDividend.create(dividend, recordDate, paymentDate, stock);
+		LocalDate exDividendDate = exDividendDateCalculator.calculate(recordDate);
+		return StockDividend.create(dividend, recordDate, exDividendDate, paymentDate, stock);
 	}
 
 	protected PurchaseHistory createPurchaseHistory(Long id, LocalDateTime purchaseDate, Count numShares,

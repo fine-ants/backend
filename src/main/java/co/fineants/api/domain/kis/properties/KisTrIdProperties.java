@@ -15,15 +15,17 @@ public class KisTrIdProperties {
 	private final String ipo;
 	private final String searchStockInfo;
 	private final String websocketCurrentPrice;
+	private final String holiday;
 
 	@ConstructorBinding
 	public KisTrIdProperties(String currentPrice, String closingPrice, String dividend, String ipo,
-		String searchStockInfo, String websocketCurrentPrice) {
+		String searchStockInfo, String websocketCurrentPrice, String holiday) {
 		this.currentPrice = currentPrice;
 		this.closingPrice = closingPrice;
 		this.dividend = dividend;
 		this.ipo = ipo;
 		this.searchStockInfo = searchStockInfo;
 		this.websocketCurrentPrice = websocketCurrentPrice;
+		this.holiday = holiday;
 	}
 }

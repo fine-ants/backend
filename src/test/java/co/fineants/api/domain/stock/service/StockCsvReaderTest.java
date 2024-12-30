@@ -6,6 +6,9 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import co.fineants.api.domain.dividend.domain.calculator.FileExDividendDateCalculator;
+import co.fineants.api.domain.dividend.domain.reader.HolidayFileReader;
+import co.fineants.api.domain.kis.repository.FileHolidayRepository;
 import co.fineants.api.domain.stock.domain.entity.Market;
 import co.fineants.api.domain.stock.domain.entity.Stock;
 
@@ -15,7 +18,8 @@ class StockCsvReaderTest {
 	@Test
 	void readStockCsv() {
 		// given
-		StockCsvReader reader = new StockCsvReader();
+		StockCsvReader reader = new StockCsvReader(
+			new FileExDividendDateCalculator(new FileHolidayRepository(new HolidayFileReader())));
 		// when
 		Set<Stock> stocks = reader.readStockCsv();
 		// then
