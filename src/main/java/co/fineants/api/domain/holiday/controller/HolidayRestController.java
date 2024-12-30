@@ -3,6 +3,7 @@ package co.fineants.api.domain.holiday.controller;
 import java.time.LocalDate;
 import java.util.List;
 
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -20,6 +21,7 @@ public class HolidayRestController {
 	private final HolidayService service;
 
 	@PutMapping("/api/holidays")
+	@Secured("ROLE_ADMIN")
 	public ApiResponse<List<HolidayUpdateDto>> updateHoliday(@RequestParam(required = false) LocalDate baseDate) {
 		if (baseDate == null) {
 			baseDate = LocalDate.now();
