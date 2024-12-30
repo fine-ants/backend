@@ -20,7 +20,10 @@ public enum KisQueryParam {
 	T_DT("T_DT", "조회일자To"),
 	SHT_CD("SHT_CD", "종목코드"),
 	PRDT_TYPE_CD("PRDT_TYPE_CD", "상품유형코드"),
-	PDNO("PDNO", "상품번호");
+	PDNO("PDNO", "상품번호"),
+	BASS_DT("BASS_DT", "기준일자"),
+	CTX_AREA_NK("CTX_AREA_NK", "연속조회키"),
+	CTX_AREA_FK("CTX_AREA_FK", "연속조회검색조건");
 
 	private final String paramName;
 	private final String korName;

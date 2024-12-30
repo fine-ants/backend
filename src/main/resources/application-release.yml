@@ -25,3 +25,4 @@ server:
 cron:
   expression:
     reload-stocks: '0 0 7 * * ?'
+    update-holidays: '0 1 0 * * ?' # 0시 1분 0초에 하루에 한번 수행

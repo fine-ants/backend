@@ -26,3 +26,4 @@ cron:
   expression:
     reload-stocks: '0 0 8 * * ?'
     closing-price: '0 0 16 * * ?'
+    update-holidays: '0 0 0 * * ?'

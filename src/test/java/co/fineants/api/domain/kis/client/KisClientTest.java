@@ -3,7 +3,10 @@ package co.fineants.api.domain.kis.client;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -13,6 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.util.Strings;
 import org.assertj.core.groups.Tuple;
@@ -22,6 +26,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import co.fineants.AbstractContainerBaseTest;
@@ -29,6 +34,7 @@ import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.kis.domain.dto.response.KisClosingPrice;
 import co.fineants.api.domain.kis.domain.dto.response.KisDividend;
 import co.fineants.api.domain.kis.domain.dto.response.KisDividendWrapper;
+import co.fineants.api.domain.kis.domain.dto.response.KisHoliday;
 import co.fineants.api.domain.kis.domain.dto.response.KisIpo;
 import co.fineants.api.domain.kis.domain.dto.response.KisIpoResponse;
 import co.fineants.api.domain.kis.domain.dto.response.KisSearchStockInfo;
@@ -355,6 +361,50 @@ class KisClientTest extends AbstractContainerBaseTest {
 			.usingComparatorForType(Money::compareTo, Money.class)
 			.containsExactlyInAnyOrder(
 				Tuple.tuple("005930", Money.won(600), LocalDate.of(2024, 8, 12), LocalDate.of(2024, 10, 12)));
+	}
+
+	@DisplayName("기준일자가 주어지고 기준일자 이후의 국내 휴장일을 조회한다")
+	@Test
+	void givenBaseDate_whenFetchHolidays_thenReturnListOfHolidays() {
+		// given
+		String json = getJsonString("holiday/holiday.json");
+		mockWebServer.enqueue(createResponse(200, json));
+		LocalDate baseDate = LocalDate.of(2024, 12, 26);
+		// when
+		List<KisHoliday> actual = kisClient.fetchHolidays(baseDate)
+			.blockOptional()
+			.orElseGet(Collections::emptyList);
+		// then
+		List<LocalDate> holidays = List.of(
+			LocalDate.of(2024, 12, 31),
+			LocalDate.of(2025, 1, 1)
+		);
+		LocalDate endDate = LocalDate.of(2025, 1, 19);
+		List<KisHoliday> expected = baseDate.datesUntil(endDate)
+			.map(localDate -> {
+				if (isWeekend(localDate) || holidays.contains(localDate)) {
+					return KisHoliday.close(localDate);
+				}
+				return KisHoliday.open(localDate);
+			})
+			.toList();
+		assertThat(actual)
+			.containsExactlyElementsOf(expected);
+	}
+
+	private boolean isWeekend(LocalDate localDate) {
+		DayOfWeek dayOfWeek = localDate.getDayOfWeek();
+		return dayOfWeek == DayOfWeek.SATURDAY || dayOfWeek == DayOfWeek.SUNDAY;
+	}
+
+	private String getJsonString(String path) {
+		ClassPathResource resource = new ClassPathResource(path);
+		try (BufferedReader reader = new BufferedReader(new InputStreamReader(resource.getInputStream()))) {
+			return reader.lines()
+				.collect(Collectors.joining());
+		} catch (IOException e) {
+			throw new IllegalArgumentException("invalid json file path", e);
+		}
 	}
 
 	private Map<String, String> createError() {

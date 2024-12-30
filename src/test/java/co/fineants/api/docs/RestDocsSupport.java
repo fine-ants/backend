@@ -33,9 +33,13 @@ import co.fineants.api.domain.common.count.Count;
 import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.common.notification.PortfolioTargetGainNotifiable;
 import co.fineants.api.domain.common.notification.TargetPriceNotificationNotifiable;
+import co.fineants.api.domain.dividend.domain.calculator.ExDividendDateCalculator;
+import co.fineants.api.domain.dividend.domain.calculator.FileExDividendDateCalculator;
 import co.fineants.api.domain.dividend.domain.entity.StockDividend;
+import co.fineants.api.domain.dividend.domain.reader.HolidayFileReader;
 import co.fineants.api.domain.gainhistory.domain.entity.PortfolioGainHistory;
 import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
+import co.fineants.api.domain.kis.repository.FileHolidayRepository;
 import co.fineants.api.domain.member.domain.entity.Member;
 import co.fineants.api.domain.member.domain.entity.MemberProfile;
 import co.fineants.api.domain.notification.domain.dto.response.NotifyMessage;
@@ -69,6 +73,8 @@ public abstract class RestDocsSupport {
 
 	private final PortfolioProperties properties = new PortfolioProperties(new String[] {"토스증권", "FineAnts"});
 
+	private ExDividendDateCalculator exDividendDateCalculator;
+
 	@BeforeEach
 	void setUp(RestDocumentationContextProvider provider) throws Exception {
 		this.memberAuthenticationArgumentResolver = Mockito.mock(MemberAuthenticationArgumentResolver.class);
@@ -83,6 +89,8 @@ public abstract class RestDocsSupport {
 			.willReturn(true);
 		given(memberAuthenticationArgumentResolver.resolveArgument(any(), any(), any(), any()))
 			.willReturn(createMemberAuthentication());
+		this.exDividendDateCalculator = new FileExDividendDateCalculator(
+			new FileHolidayRepository(new HolidayFileReader()));
 	}
 
 	private MemberAuthentication createMemberAuthentication() {
@@ -173,7 +181,8 @@ public abstract class RestDocsSupport {
 
 	protected StockDividend createStockDividend(LocalDate recordDate, LocalDate paymentDate,
 		Stock stock) {
-		return StockDividend.create(Money.won(361), recordDate, paymentDate, stock);
+		LocalDate exDividendDate = exDividendDateCalculator.calculate(recordDate);
+		return StockDividend.create(Money.won(361), recordDate, exDividendDate, paymentDate, stock);
 	}
 
 	protected Notification createPortfolioNotification(PortfolioNotifyMessage message, Portfolio portfolio,
