@@ -12,6 +12,7 @@ import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import co.fineants.api.domain.dividend.domain.calculator.ExDividendDateCalculator;
 import co.fineants.api.domain.dividend.domain.entity.StockDividend;
 import co.fineants.api.domain.dividend.repository.StockDividendRepository;
 import co.fineants.api.domain.kis.domain.dto.response.KisDividend;
@@ -33,6 +34,7 @@ public class StockDividendService {
 	private final StockDividendRepository stockDividendRepository;
 	private final KisService kisService;
 	private final LocalDateTimeService localDateTimeService;
+	private final ExDividendDateCalculator exDividendDateCalculator;
 
 	/**
 	 * 배당일정(StockDividend) 엔티티 데이터를 초기화합니다.
@@ -99,7 +101,8 @@ public class StockDividendService {
 				if (stockDividend == null || stockDividend.hasPaymentDate()) {
 					return null;
 				}
-				StockDividend changeStockDividend = kisDividend.toEntity(kisDividend.getStockBy(stockMap));
+				StockDividend changeStockDividend = kisDividend.toEntity(kisDividend.getStockBy(stockMap),
+					exDividendDateCalculator);
 				if (!changeStockDividend.hasPaymentDate()) {
 					return null;
 				}
@@ -117,7 +120,7 @@ public class StockDividendService {
 		List<StockDividend> addStockDividends = kisDividends.stream()
 			.filter(kisDividend -> kisDividend.containsFrom(stockMap))
 			.filter(kisDividend -> !kisDividend.matchTickerSymbolAndRecordDateFrom(stockMap))
-			.map(kisDividend -> kisDividend.toEntity(kisDividend.getStockBy(stockMap)))
+			.map(kisDividend -> kisDividend.toEntity(kisDividend.getStockBy(stockMap), exDividendDateCalculator))
 			.toList();
 
 		// 탐색된 데이터들 배당 일정 추가

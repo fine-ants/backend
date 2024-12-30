@@ -23,9 +23,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import co.fineants.api.domain.common.count.Count;
 import co.fineants.api.domain.common.money.Money;
+import co.fineants.api.domain.dividend.domain.calculator.ExDividendDateCalculator;
+import co.fineants.api.domain.dividend.domain.calculator.FileExDividendDateCalculator;
 import co.fineants.api.domain.dividend.domain.entity.StockDividend;
+import co.fineants.api.domain.dividend.domain.reader.HolidayFileReader;
 import co.fineants.api.domain.gainhistory.domain.entity.PortfolioGainHistory;
 import co.fineants.api.domain.holding.domain.entity.PortfolioHolding;
+import co.fineants.api.domain.kis.repository.FileHolidayRepository;
 import co.fineants.api.domain.member.domain.entity.Member;
 import co.fineants.api.domain.member.domain.entity.MemberProfile;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
@@ -58,6 +62,8 @@ public abstract class ControllerTestSupport {
 	@Autowired
 	private PortfolioProperties properties;
 
+	private ExDividendDateCalculator exDividendDateCalculator;
+
 	@MockBean
 	protected MemberAuthenticationArgumentResolver memberAuthenticationArgumentResolver;
 
@@ -74,6 +80,8 @@ public abstract class ControllerTestSupport {
 			.willReturn(true);
 		given(memberAuthenticationArgumentResolver.resolveArgument(any(), any(), any(), any()))
 			.willReturn(createMemberAuthentication());
+		this.exDividendDateCalculator = new FileExDividendDateCalculator(
+			new FileHolidayRepository(new HolidayFileReader()));
 	}
 
 	private MemberAuthentication createMemberAuthentication() {
@@ -131,7 +139,8 @@ public abstract class ControllerTestSupport {
 
 	protected StockDividend createStockDividend(LocalDate recordDate, LocalDate paymentDate,
 		Stock stock) {
-		return StockDividend.create(Money.won(361), recordDate, paymentDate, stock);
+		LocalDate exDividendDate = exDividendDateCalculator.calculate(recordDate);
+		return StockDividend.create(Money.won(361), recordDate, exDividendDate, paymentDate, stock);
 	}
 
 	protected PurchaseHistory createPurchaseHistory(Long id, LocalDateTime purchaseDate, Count count,

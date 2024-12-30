@@ -6,9 +6,6 @@ import java.time.format.DateTimeFormatter;
 
 import org.apache.logging.log4j.util.Strings;
 
-import co.fineants.api.domain.dividend.domain.calculator.ExDividendDateCalculator;
-import co.fineants.api.domain.dividend.domain.reader.HolidayFileReader;
-import co.fineants.api.domain.kis.repository.FileHolidayRepository;
 import co.fineants.api.domain.purchasehistory.domain.entity.PurchaseHistory;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
@@ -31,17 +28,7 @@ public class DividendDates {
 	@Column(name = "payment_date")
 	private LocalDate paymentDate;
 
-	// TODO: 12/27/24 FileHolidayRepository 대신 HolidayService로 주입하도록 변경 
-	private static final ExDividendDateCalculator EX_DIVIDEND_DATE_CALCULATOR = new ExDividendDateCalculator(
-		new FileHolidayRepository(new HolidayFileReader()));
-
-	public static DividendDates withRecordDateOnly(LocalDate recordDate) {
-		LocalDate exDividendDate = EX_DIVIDEND_DATE_CALCULATOR.calculate(recordDate);
-		return new DividendDates(recordDate, exDividendDate, null);
-	}
-
-	public static DividendDates withPaymentDate(LocalDate recordDate, LocalDate paymentDate) {
-		LocalDate exDividendDate = EX_DIVIDEND_DATE_CALCULATOR.calculate(recordDate);
+	public static DividendDates withPaymentDate(LocalDate recordDate, LocalDate exDividendDate, LocalDate paymentDate) {
 		return new DividendDates(recordDate, exDividendDate, paymentDate);
 	}
 

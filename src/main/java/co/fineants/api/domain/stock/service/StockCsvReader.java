@@ -26,6 +26,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
 import co.fineants.api.domain.common.money.Money;
+import co.fineants.api.domain.dividend.domain.calculator.ExDividendDateCalculator;
 import co.fineants.api.domain.dividend.domain.entity.StockDividend;
 import co.fineants.api.domain.stock.domain.entity.Market;
 import co.fineants.api.domain.stock.domain.entity.Stock;
@@ -38,6 +39,8 @@ import lombok.extern.slf4j.Slf4j;
 public class StockCsvReader {
 
 	public static final String CSV_DELIMITER = "$";
+
+	private final ExDividendDateCalculator exDividendDateCalculator;
 
 	public Set<Stock> readStockCsv() {
 		Resource resource = new ClassPathResource("stocks.csv");
@@ -87,11 +90,15 @@ public class StockCsvReader {
 				if (stock == null) {
 					continue;
 				}
+				LocalDate recordDate = basicIso(csvRecord.get("recordDate")).orElse(null);
+				LocalDate exDividendDate = exDividendDateCalculator.calculate(recordDate);
+				LocalDate paymentDate = basicIso(csvRecord.get("paymentDate")).orElse(null);
 				StockDividend stockDividend = StockDividend.create(
 					Long.valueOf(csvRecord.get("id")),
 					Money.won(csvRecord.get("dividend")),
-					basicIso(csvRecord.get("recordDate")).orElse(null),
-					basicIso(csvRecord.get("paymentDate")).orElse(null),
+					recordDate,
+					exDividendDate,
+					paymentDate,
 					stock
 				);
 				result.add(stockDividend);

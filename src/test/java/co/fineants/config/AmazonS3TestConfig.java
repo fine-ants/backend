@@ -1,11 +1,10 @@
-package co.fineants.support.amazon.config;
+package co.fineants.config;
 
 import java.io.IOException;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.ClassPathResource;
 
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
@@ -19,10 +18,9 @@ import com.amazonaws.services.s3.model.PutObjectRequest;
 import co.fineants.AbstractContainerBaseTest;
 import lombok.extern.slf4j.Slf4j;
 
-@Profile("test")
-@Configuration(proxyBeanMethods = false)
+@TestConfiguration(proxyBeanMethods = false)
 @Slf4j
-public class AmazonS3Config {
+public class AmazonS3TestConfig {
 
 	@Value("${aws.s3.bucket}")
 	private String bucketName;

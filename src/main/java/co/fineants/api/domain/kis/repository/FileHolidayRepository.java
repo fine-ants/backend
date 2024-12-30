@@ -6,13 +6,10 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.springframework.stereotype.Component;
-
 import co.fineants.api.domain.dividend.domain.dto.response.HolidayDto;
 import co.fineants.api.domain.dividend.domain.reader.HolidayFileReader;
 import lombok.extern.slf4j.Slf4j;
 
-@Component
 @Slf4j
 public class FileHolidayRepository {
 
