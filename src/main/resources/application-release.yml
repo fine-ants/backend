@@ -21,7 +21,7 @@ logging:
   level:
     co: debug
 server:
-  port: 9000
+  port: 444
 cron:
   expression:
     reload-stocks: '0 0 7 * * ?'

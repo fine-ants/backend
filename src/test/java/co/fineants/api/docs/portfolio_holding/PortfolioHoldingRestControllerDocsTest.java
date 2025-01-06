@@ -19,6 +19,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
+import org.mockito.BDDMockito;
 import org.mockito.Mockito;
 import org.springframework.http.MediaType;
 import org.springframework.restdocs.payload.JsonFieldType;
@@ -47,7 +48,6 @@ import co.fineants.api.domain.member.domain.entity.Member;
 import co.fineants.api.domain.portfolio.domain.calculator.PortfolioCalculator;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import co.fineants.api.domain.stock.domain.entity.Stock;
-import co.fineants.api.global.common.time.DefaultLocalDateTimeService;
 import co.fineants.api.global.common.time.LocalDateTimeService;
 import co.fineants.api.global.util.ObjectMapperUtil;
 
@@ -58,6 +58,7 @@ class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 		PortfolioObservableService.class);
 
 	private PriceRepository currentPriceRepository;
+	private LocalDateTimeService timeService;
 	private PortfolioCalculator calculator;
 
 	@Override
@@ -68,7 +69,11 @@ class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 	@BeforeEach
 	void setUp() {
 		currentPriceRepository = new CurrentPriceMemoryRepository();
-		calculator = new PortfolioCalculator(currentPriceRepository);
+		timeService = Mockito.mock(LocalDateTimeService.class);
+		calculator = new PortfolioCalculator(currentPriceRepository, timeService);
+
+		BDDMockito.given(timeService.getLocalDateWithNow())
+			.willReturn(LocalDate.of(2024, 1, 1));
 	}
 
 	@DisplayName("포트폴리오 종목 생성 API")
@@ -153,11 +158,10 @@ class PortfolioHoldingRestControllerDocsTest extends RestDocsSupport {
 		PortfolioGainHistory history = createEmptyPortfolioGainHistory(portfolio);
 
 		Map<String, Money> lastDayClosingPriceMap = Map.of("005930", Money.won(50000L));
-		LocalDateTimeService localDateTimeService = new DefaultLocalDateTimeService();
 		PortfolioHoldingsResponse mockResponse = PortfolioHoldingsResponse.of(portfolio, history,
 			List.of(portfolioHolding),
 			lastDayClosingPriceMap,
-			localDateTimeService,
+			timeService,
 			calculator);
 
 		given(service.readPortfolioHoldings(anyLong())).willReturn(mockResponse);

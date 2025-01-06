@@ -13,6 +13,7 @@ import co.fineants.api.domain.kis.repository.ClosingPriceRepository;
 import co.fineants.api.domain.kis.repository.CurrentPriceRedisRepository;
 import co.fineants.api.domain.stock.domain.entity.Stock;
 import co.fineants.api.domain.watchlist.domain.entity.WatchStock;
+import co.fineants.api.global.common.time.LocalDateTimeService;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -40,7 +41,8 @@ public class ReadWatchListResponse {
 	}
 
 	public static ReadWatchListResponse.WatchStockResponse from(WatchStock watchStock,
-		CurrentPriceRedisRepository currentPriceRedisRepository, ClosingPriceRepository closingPriceRepository) {
+		CurrentPriceRedisRepository currentPriceRedisRepository, ClosingPriceRepository closingPriceRepository,
+		LocalDateTimeService localDateTimeService) {
 		Bank bank = Bank.getInstance();
 		Currency to = Currency.KRW;
 		Stock stock = watchStock.getStock();
@@ -56,7 +58,7 @@ public class ReadWatchListResponse {
 				.getDailyChangeRate(currentPriceRedisRepository, closingPriceRepository)
 				.toPercentage(bank, to))
 			.annualDividendYield(stock
-				.getAnnualDividendYield(currentPriceRedisRepository)
+				.getAnnualDividendYield(currentPriceRedisRepository, localDateTimeService)
 				.toPercentage(bank, to))
 			.sector(stock.getSector())
 			.dateAdded(watchStock.getCreateAt())

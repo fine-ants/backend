@@ -13,6 +13,7 @@ import co.fineants.api.domain.kis.repository.ClosingPriceRepository;
 import co.fineants.api.domain.kis.repository.CurrentPriceRedisRepository;
 import co.fineants.api.domain.stock.domain.entity.Market;
 import co.fineants.api.domain.stock.domain.entity.Stock;
+import co.fineants.api.global.common.time.LocalDateTimeService;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -62,7 +63,7 @@ public class StockResponse {
 	}
 
 	public static StockResponse of(Stock stock, CurrentPriceRedisRepository currentPriceRedisRepository,
-		ClosingPriceRepository closingPriceRepository) {
+		ClosingPriceRepository closingPriceRepository, LocalDateTimeService localDateTimeService) {
 		Bank bank = Bank.getInstance();
 		Currency to = Currency.KRW;
 		return StockResponse.builder()
@@ -76,10 +77,10 @@ public class StockResponse {
 			.dailyChangeRate(stock.getDailyChangeRate(currentPriceRedisRepository, closingPriceRepository).toPercentage(
 				bank, to))
 			.sector(stock.getSector())
-			.annualDividend(stock.getAnnualDividend().reduce(bank, to))
+			.annualDividend(stock.getAnnualDividend(localDateTimeService).reduce(bank, to))
 			.annualDividendYield(
-				stock.getAnnualDividendYield(currentPriceRedisRepository).toPercentage(bank, to))
-			.dividendMonths(stock.getDividendMonths().stream()
+				stock.getAnnualDividendYield(currentPriceRedisRepository, localDateTimeService).toPercentage(bank, to))
+			.dividendMonths(stock.getDividendMonths(localDateTimeService).stream()
 				.map(Month::getValue)
 				.collect(Collectors.toList()))
 			.build();

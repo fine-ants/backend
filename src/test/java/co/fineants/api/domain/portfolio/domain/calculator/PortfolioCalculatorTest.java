@@ -47,7 +47,9 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 	@BeforeEach
 	void setUp() {
 		currentPriceRepository = new CurrentPriceMemoryRepository();
-		calculator = new PortfolioCalculator(currentPriceRepository);
+		calculator = new PortfolioCalculator(currentPriceRepository, localDateTimeService);
+		given(localDateTimeService.getLocalDateWithNow())
+			.willReturn(LocalDate.of(2024, 5, 1));
 	}
 
 	@DisplayName("포트폴리오 총 손익을 계산한다")
@@ -432,7 +434,6 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 	void calCurrentMonthDividendBy() {
 		Portfolio portfolio = createPortfolio(createMember());
 		Stock stock = createSamsungStock();
-		stock.setLocalDateTimeService(localDateTimeService);
 		createStockDividendWith(stock).forEach(stock::addStockDividend);
 		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
 		PurchaseHistory history = createPurchaseHistory(null, LocalDate.of(2024, 3, 28).atStartOfDay(), Count.from(3),
@@ -441,8 +442,6 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		holding.addPurchaseHistory(history);
 		portfolio.addHolding(holding);
 
-		given(localDateTimeService.getLocalDateWithNow())
-			.willReturn(LocalDate.of(2024, 5, 1));
 		// when
 		Expression actual = calculator.calCurrentMonthDividendBy(portfolio);
 		// then
@@ -455,7 +454,6 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 	void calCurrentMonthDividendBy_givenHoldings_whenCalCurrentMonthDividend_thenReturnSumOfHoldings() {
 		Portfolio portfolio = createPortfolio(createMember());
 		Stock stock = createSamsungStock();
-		stock.setLocalDateTimeService(localDateTimeService);
 		createStockDividendWith(stock).forEach(stock::addStockDividend);
 		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
 		PurchaseHistory history = createPurchaseHistory(null, LocalDate.of(2024, 3, 28).atStartOfDay(), Count.from(3),
@@ -463,9 +461,6 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 			"메모", holding);
 		holding.addPurchaseHistory(history);
 		portfolio.addHolding(holding);
-
-		given(localDateTimeService.getLocalDateWithNow())
-			.willReturn(LocalDate.of(2024, 5, 1));
 		// when
 		Expression actual = calculator.calCurrentMonthDividendBy(List.of(holding));
 		// then
@@ -478,7 +473,6 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 	void givenStockAndPurchaseHistories_whenCalCurrentMonthExpectDividend_thenReturnSumOfDividend() {
 		Portfolio portfolio = createPortfolio(createMember());
 		Stock stock = createSamsungStock();
-		stock.setLocalDateTimeService(localDateTimeService);
 		createStockDividendWith(stock).forEach(stock::addStockDividend);
 		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
 		PurchaseHistory history = createPurchaseHistory(null, LocalDate.of(2024, 3, 28).atStartOfDay(), Count.from(3),
@@ -487,8 +481,6 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		holding.addPurchaseHistory(history);
 		portfolio.addHolding(holding);
 
-		given(localDateTimeService.getLocalDateWithNow())
-			.willReturn(LocalDate.of(2024, 5, 1));
 		// when
 		Expression actual = calculator.calCurrentMonthExpectedDividend(stock, List.of(history));
 		// then
@@ -501,7 +493,6 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 	void calAnnualDividendBy_givenPortfolio_whenCalAnnualDividend_thenReturnSumOfAnnualDividend() {
 		Portfolio portfolio = createPortfolio(createMember());
 		Stock stock = createSamsungStock();
-		stock.setLocalDateTimeService(localDateTimeService);
 		createStockDividendWith(stock).forEach(stock::addStockDividend);
 		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
 		PurchaseHistory history = createPurchaseHistory(null, LocalDate.of(2024, 3, 28).atStartOfDay(), Count.from(3),
@@ -509,9 +500,6 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 			"메모", holding);
 		holding.addPurchaseHistory(history);
 		portfolio.addHolding(holding);
-
-		given(localDateTimeService.getLocalDateWithNow())
-			.willReturn(LocalDate.of(2024, 5, 1));
 		// when
 		Expression actual = calculator.calAnnualDividendBy(localDateTimeService, portfolio);
 		// then
@@ -524,7 +512,6 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 	void calAnnualDividendYieldBy_givenPortfolio_whenCalAnnualDividendYield_thenReturnPercentOfAnnualDividend() {
 		Portfolio portfolio = createPortfolio(createMember());
 		Stock stock = createSamsungStock();
-		stock.setLocalDateTimeService(localDateTimeService);
 		createStockDividendWith(stock).forEach(stock::addStockDividend);
 		currentPriceRepository.savePrice(stock, 50_000);
 		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
@@ -533,8 +520,6 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 			"메모", holding);
 		holding.addPurchaseHistory(history);
 		portfolio.addHolding(holding);
-		given(localDateTimeService.getLocalDateWithNow())
-			.willReturn(LocalDate.of(2024, 5, 1));
 		// when
 		Expression actual = calculator.calAnnualDividendYieldBy(localDateTimeService, portfolio);
 		// then
@@ -547,7 +532,6 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 	void calAnnualInvestmentDividendYieldBy() {
 		Portfolio portfolio = createPortfolio(createMember());
 		Stock stock = createSamsungStock();
-		stock.setLocalDateTimeService(localDateTimeService);
 		createStockDividendWith(stock).forEach(stock::addStockDividend);
 		currentPriceRepository.savePrice(stock, 50_000);
 		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
@@ -556,8 +540,6 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 			"메모", holding);
 		holding.addPurchaseHistory(history);
 		portfolio.addHolding(holding);
-		given(localDateTimeService.getLocalDateWithNow())
-			.willReturn(LocalDate.of(2024, 5, 1));
 		// when
 		Expression actual = calculator.calAnnualInvestmentDividendYieldBy(localDateTimeService, portfolio);
 		// then
@@ -570,7 +552,6 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 	void calAnnualInvestmentDividendYield() {
 		Portfolio portfolio = createPortfolio(createMember());
 		Stock stock = createSamsungStock();
-		stock.setLocalDateTimeService(localDateTimeService);
 		createStockDividendWith(stock).forEach(stock::addStockDividend);
 		currentPriceRepository.savePrice(stock, 50_000);
 		PortfolioHolding holding = createPortfolioHolding(portfolio, stock);
@@ -579,8 +560,6 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 			"메모", holding);
 		holding.addPurchaseHistory(history);
 		portfolio.addHolding(holding);
-		given(localDateTimeService.getLocalDateWithNow())
-			.willReturn(LocalDate.of(2024, 5, 1));
 
 		Expression annualDividend = calculator.calAnnualDividendBy(localDateTimeService, portfolio);
 		Expression totalInvestment = calculator.calTotalInvestmentBy(portfolio);
@@ -1232,7 +1211,7 @@ class PortfolioCalculatorTest extends AbstractContainerBaseTest {
 		holding.addPurchaseHistory(history);
 		portfolio.addHolding(holding);
 		// when
-		Expression actual = calculator.calAnnualExpectedDividend(stock, List.of(history));
+		Expression actual = calculator.calAnnualExpectedDividend(stock, List.of(history), localDateTimeService);
 		// then
 		Expression expected = Money.won(1083);
 		assertThat(actual).isEqualByComparingTo(expected);

@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.BDDMockito;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
@@ -51,7 +52,6 @@ import co.fineants.api.domain.member.domain.entity.Member;
 import co.fineants.api.domain.portfolio.domain.calculator.PortfolioCalculator;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import co.fineants.api.domain.stock.domain.entity.Stock;
-import co.fineants.api.global.common.time.DefaultLocalDateTimeService;
 import co.fineants.api.global.common.time.LocalDateTimeService;
 import co.fineants.api.global.errors.errorcode.PortfolioErrorCode;
 import co.fineants.api.global.errors.exception.NotFoundResourceException;
@@ -66,6 +66,8 @@ class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 
 	@MockBean
 	private PortfolioObservableService portfolioObservableService;
+	@MockBean
+	private LocalDateTimeService localDateTimeService;
 
 	private PriceRepository currentPriceRepository;
 	private PortfolioCalculator calculator;
@@ -78,13 +80,15 @@ class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 	@BeforeEach
 	void setUp() {
 		currentPriceRepository = new CurrentPriceMemoryRepository();
-		calculator = new PortfolioCalculator(currentPriceRepository);
+		calculator = new PortfolioCalculator(currentPriceRepository, localDateTimeService);
 	}
 
 	@DisplayName("사용자의 포트폴리오 상세 정보를 가져온다")
 	@Test
 	void readMyPortfolioStocks() throws Exception {
 		// given
+		BDDMockito.given(localDateTimeService.getLocalDateWithNow())
+			.willReturn(LocalDate.of(2024, 1, 1));
 		Member member = createMember();
 		Portfolio portfolio = createPortfolio(member);
 		Stock stock = createSamsungStock();
@@ -100,9 +104,7 @@ class PortfolioHoldingRestControllerTest extends ControllerTestSupport {
 			createPurchaseHistory(1L, purchaseDate, numShares, purchasePerShare, memo, portfolioHolding));
 		portfolio.addHolding(portfolioHolding);
 		PortfolioGainHistory history = createEmptyPortfolioGainHistory(portfolio);
-
 		Map<String, Money> lastDayClosingPriceMap = Map.of("005930", Money.won(50000L));
-		LocalDateTimeService localDateTimeService = new DefaultLocalDateTimeService();
 		PortfolioHoldingsResponse mockResponse = PortfolioHoldingsResponse.of(portfolio, history,
 			List.of(portfolioHolding),
 			lastDayClosingPriceMap,

@@ -21,6 +21,7 @@ import co.fineants.api.domain.portfolio.domain.calculator.PortfolioCalculator;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import co.fineants.api.domain.purchasehistory.domain.entity.PurchaseHistory;
 import co.fineants.api.domain.stock.domain.entity.Stock;
+import co.fineants.api.global.common.time.LocalDateTimeService;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -108,8 +109,8 @@ public class PortfolioHolding extends BaseEntity {
 		return calculator.calNumShares(purchaseHistories);
 	}
 
-	public Expression calAnnualExpectedDividend(PortfolioCalculator calculator) {
-		return calculator.calAnnualExpectedDividend(stock, purchaseHistories);
+	public Expression calAnnualExpectedDividend(PortfolioCalculator calculator, LocalDateTimeService timeService) {
+		return calculator.calAnnualExpectedDividend(stock, purchaseHistories, timeService);
 	}
 
 	public Expression calCurrentMonthDividend(PortfolioCalculator calculator) {
