@@ -11,8 +11,10 @@ import java.util.List;
 
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.BDDMockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
@@ -40,6 +42,7 @@ import co.fineants.api.domain.stock.domain.entity.Market;
 import co.fineants.api.domain.stock.domain.entity.Stock;
 import co.fineants.api.domain.stock.repository.StockRepository;
 import co.fineants.api.global.common.delay.DelayManager;
+import co.fineants.api.global.common.time.LocalDateTimeService;
 import co.fineants.api.infra.s3.service.AmazonS3StockService;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -75,6 +78,15 @@ class StockServiceTest extends AbstractContainerBaseTest {
 
 	@SpyBean
 	private DelayManager delayManager;
+
+	@SpyBean
+	private LocalDateTimeService localDateTimeService;
+
+	@BeforeEach
+	void setUp() {
+		BDDMockito.given(localDateTimeService.getLocalDateWithNow())
+			.willReturn(LocalDate.of(2024, 1, 1));
+	}
 
 	@DisplayName("사용자는 종목 정보를 상세 조회합니다")
 	@Test

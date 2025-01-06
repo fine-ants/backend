@@ -34,6 +34,7 @@ import co.fineants.api.domain.portfolio.domain.dto.response.OverviewResponse;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import co.fineants.api.domain.portfolio.service.DashboardService;
 import co.fineants.api.domain.stock.domain.entity.Stock;
+import co.fineants.api.global.common.time.DefaultLocalDateTimeService;
 
 class DashboardRestControllerDocsTest extends RestDocsSupport {
 
@@ -49,7 +50,7 @@ class DashboardRestControllerDocsTest extends RestDocsSupport {
 	@BeforeEach
 	void setUp() {
 		currentPriceRepository = new CurrentPriceMemoryRepository();
-		calculator = new PortfolioCalculator(currentPriceRepository);
+		calculator = new PortfolioCalculator(currentPriceRepository, new DefaultLocalDateTimeService());
 	}
 
 	@DisplayName("오버뷰 조회 API")

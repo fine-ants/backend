@@ -23,14 +23,12 @@ import co.fineants.api.domain.kis.repository.CurrentPriceRedisRepository;
 import co.fineants.api.domain.kis.repository.PriceRepository;
 import co.fineants.api.domain.purchasehistory.domain.entity.PurchaseHistory;
 import co.fineants.api.domain.stock.converter.MarketConverter;
-import co.fineants.api.global.common.time.DefaultLocalDateTimeService;
 import co.fineants.api.global.common.time.LocalDateTimeService;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
-import jakarta.persistence.Transient;
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -57,9 +55,6 @@ public class Stock extends BaseEntity {
 	@OneToMany(mappedBy = "stock", fetch = FetchType.LAZY)
 	private final List<StockDividend> stockDividends = new ArrayList<>();
 
-	@Transient
-	private LocalDateTimeService localDateTimeService = new DefaultLocalDateTimeService();
-
 	public static final String TICKER_PREFIX = "TS";
 
 	private Stock(String tickerSymbol, String companyName, String companyNameEng, String stockCode, String sector,
@@ -84,14 +79,14 @@ public class Stock extends BaseEntity {
 		}
 	}
 
-	public List<StockDividend> getCurrentMonthDividends() {
+	public List<StockDividend> getCurrentMonthDividends(LocalDateTimeService localDateTimeService) {
 		LocalDate today = localDateTimeService.getLocalDateWithNow();
 		return stockDividends.stream()
 			.filter(dividend -> dividend.isCurrentMonthPaymentDate(today))
 			.toList();
 	}
 
-	public List<StockDividend> getCurrentYearDividends() {
+	public List<StockDividend> getCurrentYearDividends(LocalDateTimeService localDateTimeService) {
 		LocalDate today = localDateTimeService.getLocalDateWithNow();
 		return stockDividends.stream()
 			.filter(dividend -> dividend.isCurrentYearPaymentDate(today))
@@ -155,7 +150,7 @@ public class Stock extends BaseEntity {
 		return result;
 	}
 
-	public Expression getAnnualDividend() {
+	public Expression getAnnualDividend(LocalDateTimeService localDateTimeService) {
 		return stockDividends.stream()
 			.filter(dividend -> dividend.isCurrentYearPaymentDate(localDateTimeService.getLocalDateWithNow()))
 			.map(StockDividend::getDividend)
@@ -163,7 +158,8 @@ public class Stock extends BaseEntity {
 			.reduce(Money.zero(), Expression::plus);
 	}
 
-	public RateDivision getAnnualDividendYield(CurrentPriceRedisRepository manager) {
+	public RateDivision getAnnualDividendYield(CurrentPriceRedisRepository manager,
+		LocalDateTimeService localDateTimeService) {
 		Expression dividends = stockDividends.stream()
 			.filter(dividend -> dividend.isPaymentInCurrentYear(localDateTimeService.getLocalDateWithNow()))
 			.map(StockDividend::getDividend)
@@ -197,7 +193,7 @@ public class Stock extends BaseEntity {
 		return manager.fetchPrice(tickerSymbol).orElseGet(Money::zero);
 	}
 
-	public List<Month> getDividendMonths() {
+	public List<Month> getDividendMonths(LocalDateTimeService localDateTimeService) {
 		return stockDividends.stream()
 			.filter(dividend -> dividend.isCurrentYearPaymentDate(localDateTimeService.getLocalDateWithNow()))
 			.map(StockDividend::getMonthByPaymentDate)
@@ -241,10 +237,6 @@ public class Stock extends BaseEntity {
 
 	public List<StockDividend> getStockDividends() {
 		return Collections.unmodifiableList(stockDividends);
-	}
-
-	public void setLocalDateTimeService(LocalDateTimeService localDateTimeService) {
-		this.localDateTimeService = localDateTimeService;
 	}
 
 	public Optional<Money> fetchPrice(PriceRepository repository) {

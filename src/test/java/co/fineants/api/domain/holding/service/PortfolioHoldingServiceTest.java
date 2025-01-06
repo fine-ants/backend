@@ -121,8 +121,8 @@ class PortfolioHoldingServiceTest extends AbstractContainerBaseTest {
 		Member member = memberRepository.save(createMember());
 		Portfolio portfolio = portfolioRepository.save(createPortfolio(member));
 		portfolio.setLocalDateTimeService(localDateTimeService);
-		given(localDateTimeService.getLocalDateWithNow()).willReturn(LocalDate.of(2024, 1, 1));
 		Stock stock = stockRepository.save(createSamsungStock());
+		given(localDateTimeService.getLocalDateWithNow()).willReturn(LocalDate.of(2024, 1, 1));
 		stockDividendRepository.saveAll(createStockDividendThisYearWith(stock));
 		PortfolioHolding portfolioHolding = portFolioHoldingRepository.save(createPortfolioHolding(portfolio, stock));
 

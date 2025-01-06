@@ -36,6 +36,7 @@ import lombok.RequiredArgsConstructor;
 public class PortfolioCalculator {
 
 	private final PriceRepository currentPriceRepository;
+	private final LocalDateTimeService timeService;
 
 	private static <T> Expression sumExpressions(List<T> data, Function<T, Expression> mapper) {
 		return data.stream()
@@ -346,7 +347,7 @@ public class PortfolioCalculator {
 	 * @return 이번달 배당금
 	 */
 	public Expression calCurrentMonthExpectedDividend(Stock stock, List<PurchaseHistory> histories) {
-		return stock.getCurrentMonthDividends().stream()
+		return stock.getCurrentMonthDividends(timeService).stream()
 			.map(stockDividend -> histories.stream()
 				.filter(stockDividend::isPurchaseDateBeforeExDividendDate)
 				.map(PurchaseHistory::getNumShares)
@@ -676,7 +677,7 @@ public class PortfolioCalculator {
 	 * @return 연간 배당금액 합계
 	 */
 	public Expression calAnnualExpectedDividendBy(PortfolioHolding holding) {
-		return holding.calAnnualExpectedDividend(this);
+		return holding.calAnnualExpectedDividend(this, timeService);
 	}
 
 	/**
@@ -753,9 +754,11 @@ public class PortfolioCalculator {
 	 * @param histories the histories
 	 * @return 예상 연배당금
 	 */
-	public Expression calAnnualExpectedDividend(Stock stock, List<PurchaseHistory> histories) {
+	public Expression calAnnualExpectedDividend(Stock stock, List<PurchaseHistory> histories,
+		LocalDateTimeService timeService) {
 		Expression annualDividend = this.calAnnualDividend(stock, histories);
-		Expression annualExpectedDividend = stock.createMonthlyExpectedDividends(histories, LocalDate.now())
+		Expression annualExpectedDividend = stock.createMonthlyExpectedDividends(histories,
+				timeService.getLocalDateWithNow())
 			.values()
 			.stream()
 			.reduce(Expression::plus)
@@ -765,7 +768,7 @@ public class PortfolioCalculator {
 
 	private Expression calAnnualDividend(Stock stock, List<PurchaseHistory> histories) {
 		return histories.stream()
-			.flatMap(history -> stock.getCurrentYearDividends().stream()
+			.flatMap(history -> stock.getCurrentYearDividends(timeService).stream()
 				.filter(stockDividend -> stockDividend.isSatisfiedBy(history))
 				.map(stockDividend -> stockDividend.calculateDividendSum(history.getNumShares())))
 			.reduce(Expression::plus)

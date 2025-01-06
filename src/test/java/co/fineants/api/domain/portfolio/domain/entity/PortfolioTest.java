@@ -20,6 +20,7 @@ import co.fineants.api.domain.member.domain.entity.Member;
 import co.fineants.api.domain.portfolio.domain.calculator.PortfolioCalculator;
 import co.fineants.api.domain.purchasehistory.domain.entity.PurchaseHistory;
 import co.fineants.api.domain.stock.domain.entity.Stock;
+import co.fineants.api.global.common.time.DefaultLocalDateTimeService;
 
 class PortfolioTest extends AbstractContainerBaseTest {
 
@@ -29,7 +30,7 @@ class PortfolioTest extends AbstractContainerBaseTest {
 	@BeforeEach
 	void setUp() {
 		currentPriceRepository = new CurrentPriceMemoryRepository();
-		calculator = new PortfolioCalculator(currentPriceRepository);
+		calculator = new PortfolioCalculator(currentPriceRepository, new DefaultLocalDateTimeService());
 	}
 
 	@DisplayName("포트폴리오의 총 손익을 계산한다")

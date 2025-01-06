@@ -18,6 +18,7 @@ import co.fineants.api.domain.portfolio.domain.calculator.PortfolioCalculator;
 import co.fineants.api.domain.portfolio.domain.entity.Portfolio;
 import co.fineants.api.domain.purchasehistory.domain.entity.PurchaseHistory;
 import co.fineants.api.domain.stock.domain.entity.Stock;
+import co.fineants.api.global.common.time.DefaultLocalDateTimeService;
 
 class PortfolioGainHistoryTest extends AbstractContainerBaseTest {
 
@@ -27,7 +28,7 @@ class PortfolioGainHistoryTest extends AbstractContainerBaseTest {
 	@BeforeEach
 	void setUp() {
 		currentPriceRepository = new CurrentPriceMemoryRepository();
-		calculator = new PortfolioCalculator(currentPriceRepository);
+		calculator = new PortfolioCalculator(currentPriceRepository, new DefaultLocalDateTimeService());
 	}
 
 	@DisplayName("빈 히스토리 상태에서 새로운 손익내역을 생성한다")

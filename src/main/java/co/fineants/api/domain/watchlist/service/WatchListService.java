@@ -28,6 +28,7 @@ import co.fineants.api.global.common.authorized.Authorized;
 import co.fineants.api.global.common.authorized.service.WatchListAuthorizedService;
 import co.fineants.api.global.common.resource.ResourceId;
 import co.fineants.api.global.common.resource.ResourceIds;
+import co.fineants.api.global.common.time.LocalDateTimeService;
 import co.fineants.api.global.errors.errorcode.MemberErrorCode;
 import co.fineants.api.global.errors.errorcode.StockErrorCode;
 import co.fineants.api.global.errors.errorcode.WatchListErrorCode;
@@ -47,6 +48,7 @@ public class WatchListService {
 	private final CurrentPriceRedisRepository currentPriceRedisRepository;
 	private final ClosingPriceRepository closingPriceRepository;
 	private final WatchStockEventPublisher watchStockEventPublisher;
+	private final LocalDateTimeService localDateTimeService;
 
 	@Transactional
 	@Secured("ROLE_USER")
@@ -79,7 +81,7 @@ public class WatchListService {
 
 		List<ReadWatchListResponse.WatchStockResponse> watchStockResponses = watchStocks.stream()
 			.map(watchStock -> ReadWatchListResponse.from(watchStock, currentPriceRedisRepository,
-				closingPriceRepository))
+				closingPriceRepository, localDateTimeService))
 			.toList();
 		return new ReadWatchListResponse(watchList.getName(), watchStockResponses);
 	}
