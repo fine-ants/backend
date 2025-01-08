@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<included>
+    <!-- log file path -->
+    <property name="LOG_PATH" value="logs/"/>
+    <!-- log file name -->
+    <property name="LOG_FILE_NAME" value="logs"/>
+    <!-- err log file name -->
+    <property name="ERR_LOG_FILE_NAME" value="err_log"/>
+    <!-- pattern -->
+    <property name="LOG_PATTERN" value="%d{yy-MM-dd HH:mm:ss} [%thread] %-5level [%logger{36}:%line] - %msg %n"/>
+    <!-- chatset -->
+    <property name="CHARSET" value="UTF-8"/>
+    <!-- 파일 경로 및 파일 이름 패턴 설정 -->
+    <property name="LOG_FILE_PATTERN" value="${LOG_PATH}/${LOG_FILE_NAME}.%d{yyyy-MM-dd}.log"/>
+    <!-- 파일 경로 및 에러 로그 파일 이름 패턴 설정 -->
+    <property name="ERROR_LOG_FILE_PATTERN" value="${LOG_PATH}/${ERR_LOG_FILE_NAME}.%d{yyyy-MM-dd}.log"/>
+    <!-- 최대 파일 사이즈 -->
+    <property name="MAX_FILE_SIZE" value="3GB"/>
+    <!-- 최대 내역 일수 -->
+    <property name="MAX_HISTORY_DAYS" value="30"/>
+</included>
