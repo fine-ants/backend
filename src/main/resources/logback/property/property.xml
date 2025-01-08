@@ -7,7 +7,7 @@
     <!-- err log file name -->
     <property name="ERR_LOG_FILE_NAME" value="err_log"/>
     <!-- pattern -->
-    <property name="LOG_PATTERN" value="%d{yy-MM-dd HH:mm:ss} [%thread] %-5level [%logger{36}:%line] - %msg %n"/>
+    <property name="LOG_PATTERN" value="%d{ISO8601} %-5level [%thread] [%X{traceId}] %logger{36}:%line - %msg %n"/>
     <!-- 파일 경로 및 파일 이름 패턴 설정 -->
     <property name="LOG_FILE_PATTERN" value="${LOG_PATH}/${LOG_FILE_NAME}.%d{yyyy-MM-dd}_%i.log"/>
     <!-- 파일 경로 및 에러 로그 파일 이름 패턴 설정 -->
