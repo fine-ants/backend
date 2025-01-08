@@ -6,6 +6,10 @@
     <include resource="logback/appender/error_file_appender.xml"/>
     <include resource="logback/property/property.xml"/>
 
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+
     <springProfile name="local, test">
         <logger name="co.fineants" level="DEBUG" additivity="false">
             <appender-ref ref="CONSOLE"/>
