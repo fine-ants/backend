@@ -9,11 +9,23 @@
     <!-- err log file name -->
     <property name="ERR_LOG_FILE_NAME" value="err_log"/>
     <!-- pattern -->
-    <property name="LOG_PATTERN" value="%-5level %d{yy-MM-dd HH:mm:ss}[%thread] [%logger{0}:%line] - %msg%n"/>
+    <property name="LOG_PATTERN" value="%d{yy-MM-dd HH:mm:ss} [%thread] %-5level [%logger{36}:%line] - %msg %n"/>
+    <!-- chatset -->
+    <property name="CHARSET" value="UTF-8"/>
+    <!-- 파일 경로 및 파일 이름 패턴 설정 -->
+    <property name="LOG_FILE_PATTERN" value="${LOG_PATH}/${LOG_FILE_NAME}.%d{yyyy-MM-dd}.log"/>
+    <!-- 파일 경로 및 에러 로그 파일 이름 패턴 설정 -->
+    <property name="ERROR_LOG_FILE_PATTERN" value="${LOG_PATH}/${ERR_LOG_FILE_NAME}.%d{yyyy-MM-dd}.log"/>
+    <!-- 최대 파일 사이즈 -->
+    <property name="MAX_FILE_SIZE" value="3GB"/>
+    <!-- 최대 내역 일수 -->
+    <property name="MAX_HISTORY_DAYS" value="30"/>
+
 
     <!-- Console Appender -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <charset>${CHARSET}</charset>
             <pattern>${LOG_PATTERN}</pattern>
         </encoder>
     </appender>
@@ -24,24 +36,25 @@
         <file>${LOG_PATH}/${LOG_FILE_NAME}.log</file>
         <!-- 출력패턴 설정-->
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <charset>${CHARSET}</charset>
             <pattern>${LOG_PATTERN}</pattern>
         </encoder>
         <!-- Rolling 정책 -->
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <!-- .gz,.zip 등을 넣으면 자동 일자별 로그파일 압축 -->
-            <fileNamePattern>${LOG_PATH}/${LOG_FILE_NAME}.%d{yyyy-MM-dd}_%i.log</fileNamePattern>
+            <fileNamePattern>${LOG_FILE_PATTERN}</fileNamePattern>
             <timeBasedFileNamingAndTriggeringPolicy
                     class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
                 <!-- 파일당 최고 용량 kb, mb, gb -->
-                <maxFileSize>3GB</maxFileSize>
+                <maxFileSize>${MAX_FILE_SIZE}</maxFileSize>
             </timeBasedFileNamingAndTriggeringPolicy>
             <!-- 일자별 로그파일 최대 보관주기(~일), 해당 설정일 이상된 파일은 자동으로 제거-->
-            <maxHistory>30</maxHistory>
+            <maxHistory>${MAX_HISTORY_DAYS}</maxHistory>
         </rollingPolicy>
     </appender>
 
     <!-- 에러의 경우 파일에 로그 처리 -->
-    <appender name="Error" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <appender name="ERROR" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <filter class="ch.qos.logback.classic.filter.LevelFilter">
             <level>error</level>
             <onMatch>ACCEPT</onMatch>
@@ -50,20 +63,20 @@
         <file>${LOG_PATH}/${ERR_LOG_FILE_NAME}.log</file>
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
             <!-- 이 옵션이 없을 경우 한글이 깨지는 경우 있음-->
-            <charset>UTF-8</charset>
+            <charset>${CHARSET}</charset>
             <pattern>${LOG_PATTERN}</pattern>
         </encoder>
         <!-- Rolling 정책 -->
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <!-- .gz,.zip 등을 넣으면 자동 일자별 로그파일 압축 -->
-            <fileNamePattern>${LOG_PATH}/${ERR_LOG_FILE_NAME}.%d{yyyy-MM-dd}_%i.log</fileNamePattern>
+            <fileNamePattern>${ERROR_LOG_FILE_PATTERN}</fileNamePattern>
             <timeBasedFileNamingAndTriggeringPolicy
                     class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
                 <!-- 파일당 최고 용량 kb, mb, gb -->
-                <maxFileSize>3GB</maxFileSize>
+                <maxFileSize>${MAX_FILE_SIZE}</maxFileSize>
             </timeBasedFileNamingAndTriggeringPolicy>
             <!-- 일자별 로그파일 최대 보관주기(~일), 해당 설정일 이상된 파일은 자동으로 제거-->
-            <maxHistory>30</maxHistory>
+            <maxHistory>${MAX_HISTORY_DAYS}</maxHistory>
         </rollingPolicy>
     </appender>
 
@@ -71,13 +84,13 @@
     <root level="INFO">
         <appender-ref ref="CONSOLE"/>
         <appender-ref ref="FILE"/>
-        <appender-ref ref="Error"/>
+        <appender-ref ref="ERROR"/>
     </root>
 
     <!-- 특정패키지 로깅레벨 설정 -->
-    <logger name="codesquard" level="DEBUG" additivity="false">
+    <logger name="co.fineants" level="DEBUG" additivity="false">
         <appender-ref ref="CONSOLE"/>
         <appender-ref ref="FILE"/>
-        <appender-ref ref="Error"/>
+        <appender-ref ref="ERROR"/>
     </logger>
 </configuration>
