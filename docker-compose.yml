@@ -46,7 +46,17 @@ services:
       - "6379:6379"
     networks:
       - spring-net
-
+  promtail:
+    image: grafana/promtail:latest
+    container_name: promtail
+    volumes:
+      - ./promtail:/etc/promtail
+      - ./logs:/var/log
+    env_file:
+      - .env
+    command:
+      -config.file=/etc/promtail/config.yaml
+      -config.expand-env=true
 networks:
   spring-net:
     driver: bridge
