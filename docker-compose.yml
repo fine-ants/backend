@@ -53,7 +53,7 @@ services:
       - ./promtail:/etc/promtail
       - ./logs:/var/log
     env_file:
-      - .env
+      - ./secret/promtail/.env
     command:
       -config.file=/etc/promtail/config.yaml
       -config.expand-env=true
