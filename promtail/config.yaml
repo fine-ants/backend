@@ -6,7 +6,10 @@ positions:
   filename: /tmp/positions.yaml
 
 clients:
-  - url: https://${LOKI_USERNAME}:${LOKI_PASSWORD}@logs-prod-030.grafana.net/loki/api/v1/push
+  - url: https://logs-prod-030.grafana.net/loki/api/v1/push
+    basic_auth:
+      username: "${LOKI_USERNAME}"
+      password: "${LOKI_PASSWORD}"
 scrape_configs:
   - job_name: logs  # 통합된 job 이름
     static_configs:

@@ -55,8 +55,8 @@ services:
     env_file:
       - ./secret/promtail/.env
     command:
-      -config.file=/etc/promtail/config.yaml
-      -config.expand-env=true
+      - -config.file=/etc/promtail/config.yaml
+      - -config.expand-env=true
 networks:
   spring-net:
     driver: bridge
