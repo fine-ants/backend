@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <included>
-    <appender name="ERROR" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <appender name="ERROR_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <filter class="ch.qos.logback.classic.filter.LevelFilter">
             <level>error</level>
             <onMatch>ACCEPT</onMatch>
             <onMismatch>DENY</onMismatch>
         </filter>
-        <file>${LOG_PATH}/${ERR_LOG_FILE_NAME}.log</file>
+        <file>${LOG_PATH}/error/${ERROR_LOG_FILE_NAME}.log</file>
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
             <!-- 이 옵션이 없을 경우 한글이 깨지는 경우 있음-->
             <charset>${CHARSET}</charset>
