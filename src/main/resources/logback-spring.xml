@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- 60초마다 설정 파일의 변경을 확인 하여 변경시 갱신 -->
 <configuration scan="true" scanPeriod="60 seconds">
-    <include resource="logback/appender/console_appender.xml"/>
-    <include resource="logback/appender/file_appender.xml"/>
-    <include resource="logback/appender/error_file_appender.xml"/>
+    <include resource="logback/appender/console/console_appender.xml"/>
+    <include resource="logback/appender/file/info_file_appender.xml"/>
+    <include resource="logback/appender/file/debug_file_appender.xml"/>
+    <include resource="logback/appender/file/warn_file_appender.xml"/>
+    <include resource="logback/appender/file/error_file_appender.xml"/>
     <include resource="logback/property/property.xml"/>
 
     <root level="INFO">
@@ -12,14 +14,18 @@
 
     <springProfile name="local, test">
         <logger name="co.fineants" level="DEBUG" additivity="false">
-            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="INFO_FILE"/>
+            <appender-ref ref="DEBUG_FILE"/>
+            <appender-ref ref="WARN_FILE"/>
+            <appender-ref ref="ERROR_FILE"/>
         </logger>
     </springProfile>
 
     <springProfile name="release, production">
         <logger name="co.fineants" level="INFO" additivity="false">
-            <appender-ref ref="FILE"/>
-            <appender-ref ref="ERROR"/>
+            <appender-ref ref="INFO_FILE"/>
+            <appender-ref ref="WARN_FILE"/>
+            <appender-ref ref="ERROR_FILE"/>
         </logger>
     </springProfile>
 </configuration>
