@@ -21,7 +21,6 @@ public class GlobalExceptionHandler {
 
 	@ExceptionHandler(FineAntsException.class)
 	public ResponseEntity<ApiResponse<Object>> handleFineANtsException(FineAntsException exception) {
-		log.error(exception.getMessage(), exception);
 		ApiResponse<Object> body = ApiResponse.error(exception.getErrorCode());
 		return ResponseEntity.status(exception.getErrorCode().getHttpStatus()).body(body);
 	}
@@ -29,7 +28,6 @@ public class GlobalExceptionHandler {
 	@ExceptionHandler(MethodArgumentNotValidException.class)
 	public ResponseEntity<ApiResponse<Object>> handleMethodArgumentNotValidException(
 		MethodArgumentNotValidException exception) {
-		log.error(exception.getMessage(), exception);
 		List<Map<String, String>> data = exception.getBindingResult().getFieldErrors().stream()
 			.map(error -> {
 				Map<String, String> errors = new HashMap<>();
@@ -48,14 +46,12 @@ public class GlobalExceptionHandler {
 	@ExceptionHandler(MissingServletRequestPartException.class)
 	public ResponseEntity<ApiResponse<Object>> handleMissingServletRequestPartException(
 		MissingServletRequestPartException exception) {
-		log.error(exception.getMessage(), exception);
 		ApiResponse<Object> body = ApiResponse.of(HttpStatus.BAD_REQUEST, exception.getMessage(), null);
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
 	}
 
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<ApiResponse<Object>> handleException(Exception exception) {
-		log.error(exception.getMessage(), exception);
 		ApiResponse<Object> body = ApiResponse.of(HttpStatus.INTERNAL_SERVER_ERROR, exception.getMessage(),
 			exception.toString());
 		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
