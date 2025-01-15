@@ -32,22 +32,16 @@ scrape_configs:
           log_level: error  # error 레벨 라벨 추가
           __path__: /var/log/error/*.log
     pipeline_stages:
-      # traceId 추출 (모든 로그에서 추출 가능)
       - regex:
           expression: '\\[traceId=(?P<traceId>[^\\]]+)\\]'
-
-      # HTTP Request 관련 라벨 추출 (HTTP Request 메시지에서만 추출)
       - regex:
-          expression: 'HTTPMethod=(?P<HTTPMethod>[A-Z]+) Path=(?P<Path>/\\S+) from IP=(?P<IP>[0-9a-fA-F:]+)'
-
-      # ExecutionTime 추출 (ExecutionTime이 있는 메시지에서만 추출)
+          expression: '.*HTTPMethod=(?P<HTTPMethod>[A-Z]+).*'
       - regex:
-          expression: 'ExecutionTime=(?P<ExecutionTime>\\d+ms)'
-
-      # 라벨 설정
+          expression: '.*Path=(?P<Path>https?://\S+).*'
+      - regex:
+          expression: '.*IP=(?P<IP>[0-9a-fA-F:]+).*'
       - labels:
           traceId: traceId
           HTTPMethod: HTTPMethod
           Path: Path
           IP: IP
-          ExecutionTime: ExecutionTime
