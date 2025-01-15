@@ -6,7 +6,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import co.fineants.api.global.errors.errorcode.ErrorCode;
 import co.fineants.api.global.success.SuccessCode;
+import lombok.Getter;
 
+@Getter
 public class ApiResponse<T> {
 
 	@JsonProperty
