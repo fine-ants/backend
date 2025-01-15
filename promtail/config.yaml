@@ -40,8 +40,20 @@ scrape_configs:
           expression: '.*Path=(?P<Path>https?://\S+).*'
       - regex:
           expression: '.*IP=(?P<IP>[0-9a-fA-F:]+).*'
+      - regex:
+          expression: '.*ResponseCode=(?P<ResponseCode>\d+).*'
+      - regex:
+          expression: '.*ResponseMessage=(?P<ResponseMessage>[^ ]+).*'
+      - regex:
+          expression: '.*ResponseData=(?P<ResponseData>[^"]*).*'
+      - regex:
+          expression: '.*ExecutionTime=(?P<ExecutionTime>\\d+ms).*'
       - labels:
           traceId: traceId
           HTTPMethod: HTTPMethod
           Path: Path
           IP: IP
+          ResponseCode: ResponseCode
+          ResponseMessage: ResponseMessage
+          ResponseData: ResponseData
+          ExecutionTime: ExecutionTime
