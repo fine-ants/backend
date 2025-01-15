@@ -27,7 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 public class HttpLoggingAspect {
 	private static final String HTTP_REQUEST_LOG_FORMAT = "HTTP Request: HTTPMethod={} Path={} from IP={}";
 	private static final String HTTP_RESPONSE_LOG_FORMAT =
-		"HTTP Response: Path={} ResponseCode={} ResponseMessage={} ResponseData={}";
+		"HTTP Response: Path={} ResponseCode={} ResponseMessage=\"{}\" ResponseData=\"{}\"";
 	private static final String HTTP_EXECUTION_LOG_FORMAT = "HTTP Execution: Path={} ExecutionTime={}ms";
 	private long startTime;
 
