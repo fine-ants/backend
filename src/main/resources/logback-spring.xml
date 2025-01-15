@@ -8,12 +8,9 @@
     <include resource="logback/appender/file/error_file_appender.xml"/>
     <include resource="logback/property/property.xml"/>
 
-    <root level="INFO">
-        <appender-ref ref="CONSOLE"/>
-    </root>
-
     <springProfile name="local, test">
         <logger name="co.fineants" level="DEBUG" additivity="false">
+            <appender-ref ref="CONSOLE"/>
             <appender-ref ref="INFO_FILE"/>
             <appender-ref ref="DEBUG_FILE"/>
             <appender-ref ref="WARN_FILE"/>
@@ -23,6 +20,7 @@
 
     <springProfile name="release, production">
         <logger name="co.fineants" level="INFO" additivity="false">
+            <appender-ref ref="CONSOLE"/>
             <appender-ref ref="INFO_FILE"/>
             <appender-ref ref="WARN_FILE"/>
             <appender-ref ref="ERROR_FILE"/>
