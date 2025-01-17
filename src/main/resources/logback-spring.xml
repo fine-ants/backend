@@ -8,7 +8,7 @@
     <include resource="logback/appender/file/error_file_appender.xml"/>
     <include resource="logback/property/property.xml"/>
 
-    <springProfile name="local, test">
+    <springProfile name="local">
         <logger name="co.fineants" level="DEBUG" additivity="false">
             <appender-ref ref="CONSOLE"/>
             <appender-ref ref="INFO_FILE"/>

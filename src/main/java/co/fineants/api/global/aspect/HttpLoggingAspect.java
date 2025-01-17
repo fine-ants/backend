@@ -9,6 +9,7 @@ import org.aspectj.lang.annotation.AfterThrowing;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.annotation.Pointcut;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -24,6 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @Aspect
 @Slf4j
+@Profile("!test")
 public class HttpLoggingAspect {
 	private static final String HTTP_REQUEST_LOG_FORMAT = "HTTP Request: HTTPMethod={} Path={} from IP={}";
 	private static final String HTTP_RESPONSE_LOG_FORMAT =
