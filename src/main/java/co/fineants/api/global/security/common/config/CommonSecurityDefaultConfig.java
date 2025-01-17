@@ -17,6 +17,7 @@ public class CommonSecurityDefaultConfig {
 		CorsConfiguration config = new CorsConfiguration();
 		config.setAllowedOrigins(
 			List.of("https://fineants.co",
+				"https://local.fineants.co:3000",
 				"https://www.fineants.co",
 				"https://release.fineants.co",
 				"http://localhost:5173",
