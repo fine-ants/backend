@@ -50,7 +50,9 @@ import co.fineants.api.global.errors.exception.ConflictException;
 import co.fineants.api.global.errors.exception.FineAntsException;
 import co.fineants.api.global.errors.exception.ForBiddenException;
 import co.fineants.api.global.util.ObjectMapperUtil;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 class PortFolioServiceTest extends AbstractContainerBaseTest {
 
 	@Autowired
@@ -368,7 +370,7 @@ class PortFolioServiceTest extends AbstractContainerBaseTest {
 			() -> service.updatePortfolio(request, portfolioId, member.getId()));
 
 		// then
-		throwable.printStackTrace(System.out);
+		log.error("fail update portfolio", throwable);
 		assertThat(throwable)
 			.isInstanceOf(BadRequestException.class)
 			.hasMessage("최대 손실 금액은 예산 보다 작아야 합니다");

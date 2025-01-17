@@ -17,6 +17,10 @@ public class FineAntsException extends RuntimeException {
 		this.errorCode = errorCode;
 	}
 
+	public int getHttpStatusCode() {
+		return getErrorCode().getHttpStatus().value();
+	}
+
 	@Override
 	public String toString() {
 		return String.format("FineAntsException(errorCode=%s, message=%s)", errorCode, getMessage());

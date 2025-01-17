@@ -13,6 +13,7 @@ import co.fineants.api.domain.exchangerate.domain.dto.response.ExchangeRateFetch
 import co.fineants.api.domain.member.service.WebClientWrapper;
 import co.fineants.api.global.errors.errorcode.ExchangeRateErrorCode;
 import co.fineants.api.global.errors.exception.FineAntsException;
+import reactor.util.retry.Retry;
 
 @Component
 public class ExchangeRateWebClient {
@@ -46,6 +47,7 @@ public class ExchangeRateWebClient {
 		header.add("X-RapidAPI-Host", "exchange-rate-api1.p.rapidapi.com");
 		return webClient.get(uri, header, ExchangeRateFetchResponse.class)
 			.map(ExchangeRateFetchResponse::getRates)
+			.retryWhen(Retry.fixedDelay(5, Duration.ofSeconds(1)))
 			.blockOptional(TIMEOUT)
 			.orElse(Collections.emptyMap());
 	}

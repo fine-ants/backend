@@ -10,3 +10,4 @@
 /src/main/generated/
 /htmlReport/
 /src/main/resources/db/
+.env
