@@ -17,6 +17,8 @@ services:
       DB_PASSWORD: password1234!
       REDIS_HOST: fineAnts_redis
       REDOS_PORT: 6379
+    volumes:
+      - ./logs:/app/logs
     depends_on:
       - redis
       - db
