@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import co.fineants.api.global.filter.SignupLoggingFilter;
+import co.fineants.api.global.filter.TraceIdFilter;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -16,6 +17,16 @@ public class FilterConfig {
 		FilterRegistrationBean<SignupLoggingFilter> filter = new FilterRegistrationBean<>();
 		filter.setFilter(new SignupLoggingFilter());
 		filter.addUrlPatterns("/api/auth/signup");
+		filter.setOrder(Integer.MIN_VALUE);
+		return filter;
+	}
+
+	@Bean
+	public FilterRegistrationBean<TraceIdFilter> traceIdFilter() {
+		FilterRegistrationBean<TraceIdFilter> filter = new FilterRegistrationBean<>();
+		filter.setFilter(new TraceIdFilter());
+		filter.addUrlPatterns("/*");
+		filter.setOrder(Integer.MIN_VALUE);
 		return filter;
 	}
 }

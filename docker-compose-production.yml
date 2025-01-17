@@ -9,6 +9,8 @@ services:
     environment:
       PROFILE: production
       TZ: Asia/Seoul
+    volumes:
+      - ./logs:/app/logs
     depends_on:
       - redis
     networks:
@@ -24,5 +26,16 @@ services:
       - "6379:6379"
     networks:
       - spring-net
+  promtail:
+    image: grafana/promtail:latest
+    container_name: promtail
+    volumes:
+      - ./promtail:/etc/promtail
+      - ./logs:/var/log
+    env_file:
+      - ./secret/promtail/.env
+    command:
+      - -config.file=/etc/promtail/config.yaml
+      - -config.expand-env=true
 networks:
   spring-net:

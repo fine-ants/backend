@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<included>
+    <!-- log file path -->
+    <property name="LOG_PATH" value="logs/"/>
+    <!-- info log file name -->
+    <property name="INFO_LOG_FILE_NAME" value="info"/>
+    <!-- debug log file name -->
+    <property name="DEBUG_LOG_FILE_NAME" value="debug"/>
+    <!-- warn log file name -->
+    <property name="WARN_LOG_FILE_NAME" value="warn"/>
+    <!-- err log file name -->
+    <property name="ERROR_LOG_FILE_NAME" value="error"/>
+    <!-- pattern -->
+    <property name="LOG_PATTERN"
+              value="%d{ISO8601} %-5level [%thread] [traceId=%X{traceId}] %logger{36}:%line - %msg %n"/>
+
+    <!-- 개별 로그 레벨에 맞는 경로 -->
+    <property name="INFO_LOG_FILE_PATTERN" value="${LOG_PATH}/info/info.%d{yyyy-MM-dd}_%i.log"/>
+    <property name="DEBUG_LOG_FILE_PATTERN" value="${LOG_PATH}/debug/debug.%d{yyyy-MM-dd}_%i.log"/>
+    <property name="WARN_LOG_FILE_PATTERN" value="${LOG_PATH}/warn/warn.%d{yyyy-MM-dd}_%i.log"/>
+    <property name="ERROR_LOG_FILE_PATTERN" value="${LOG_PATH}/error/error.%d{yyyy-MM-dd}_%i.log"/>
+    <!-- 최대 파일 사이즈 -->
+    <property name="MAX_FILE_SIZE" value="1GB"/>
+    <!-- 최대 내역 일수 -->
+    <property name="MAX_HISTORY_DAYS" value="7"/>
+    <!-- CHARSET -->
+    <property name="CHARSET" value="UTF-8"/>
+</included>

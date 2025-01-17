@@ -9,7 +9,9 @@ import co.fineants.api.domain.common.money.Money;
 import co.fineants.api.domain.portfolio.domain.entity.PortfolioFinancial;
 import co.fineants.api.global.errors.errorcode.PortfolioErrorCode;
 import co.fineants.api.global.errors.exception.portfolio.IllegalPortfolioFinancialArgumentException;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 class FineAntsExceptionTest extends AbstractContainerBaseTest {
 
 	@DisplayName("예외가 발생하면 에러코드의 메시지를 저장한다")
@@ -23,6 +25,7 @@ class FineAntsExceptionTest extends AbstractContainerBaseTest {
 				throw new FineAntsException(PortfolioErrorCode.NOT_FOUND_PORTFOLIO);
 			});
 		// then
+		log.error("fail find portfolio", throwable);
 		throwable.printStackTrace(System.out);
 		Assertions.assertThat(throwable)
 			.isInstanceOf(FineAntsException.class);
@@ -44,7 +47,7 @@ class FineAntsExceptionTest extends AbstractContainerBaseTest {
 			}
 		});
 		// then
-		throwable.printStackTrace(System.out);
+		log.error("not create PortfolioFinancial Instance", throwable);
 		Assertions.assertThat(throwable)
 			.isInstanceOf(BadRequestException.class);
 	}
